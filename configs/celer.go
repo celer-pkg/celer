@@ -16,6 +16,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+const portsRepo = "https://gitee.com/phil-zhang/celer-ports.git"
+
 var (
 	Version = "v0.0.0" // It would be set by build script.
 	DevMode bool       // In dev mode, detail message would be hide.
@@ -79,7 +81,7 @@ func (c *Celer) Init() error {
 
 		c.configData.Settings.JobNum = runtime.NumCPU()
 		c.configData.Settings.BuildType = "release"
-		c.configData.Settings.PortsRepo = "https://gitee.com/phil-zhang/celer-ports.git"
+		c.configData.Settings.PortsRepo = portsRepo
 
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
@@ -102,7 +104,7 @@ func (c *Celer) Init() error {
 
 		// Set default ports repo if not set.
 		if c.Settings.PortsRepo == "" {
-			c.configData.Settings.PortsRepo = "https://gitee.com/phil-zhang/celer-ports.git"
+			c.configData.Settings.PortsRepo = portsRepo
 		}
 
 		// Lower case build type always.
