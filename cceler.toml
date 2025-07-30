@@ -1,0 +1,7 @@
+[settings]
+  conf_repo = "https://gitee.com/phil-zhang/celer-conf.git"
+  ports_repo = "https://gitee.com/phil-zhang/celer-ports.git"
+  platform = ""
+  project = ""
+  job_num = 16
+  build_type = "release"

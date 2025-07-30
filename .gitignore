@@ -1,0 +1,17 @@
+/build
+/ports
+/conf
+/packages
+/tmp
+/.idea
+celer
+celer.toml
+toolchain_file.cmake
+temp
+/buildtrees
+/downloads
+/installed
+*.exe
+**/testdata/buildtrees/
+**/testdata/installed/
+nul

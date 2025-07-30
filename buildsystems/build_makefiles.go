@@ -1,0 +1,358 @@
+package buildsystems
+
+import (
+	"celer/buildtools"
+	"celer/pkgs/cmd"
+	"celer/pkgs/color"
+	"celer/pkgs/expr"
+	"celer/pkgs/fileio"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"strings"
+)
+
+func NewMakefiles(config *BuildConfig) *makefiles {
+	return &makefiles{BuildConfig: config}
+}
+
+type makefiles struct {
+	*BuildConfig
+}
+
+func (makefiles) Name() string {
+	return "makefiles"
+}
+
+func (m *makefiles) CheckTools() error {
+	if runtime.GOOS == "windows" {
+		configureWithPerl := m.shouldConfigureWithPerl()
+		tool := expr.If(configureWithPerl, "strawberry-perl", "msys2")
+		m.BuildConfig.BuildTools = append(m.BuildConfig.BuildTools, tool)
+	}
+
+	m.BuildConfig.BuildTools = append(m.BuildConfig.BuildTools, "git", "cmake")
+	return buildtools.CheckTools(m.BuildConfig.BuildTools...)
+}
+
+func (m makefiles) CleanRepo() error {
+	if fileio.PathExists(filepath.Join(m.PortConfig.RepoDir, ".git")) {
+		title := fmt.Sprintf("[clean %s]", m.PortConfig.nameVersionDesc())
+		executor := cmd.NewExecutor(title, "git clean -fdx && git reset --hard")
+		executor.SetWorkDir(m.PortConfig.RepoDir)
+		if err := executor.Execute(); err != nil {
+			return err
+		}
+	} else if m.BuildInSource {
+		if err := m.replaceSource(m.PortConfig.Archive, m.PortConfig.Url); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m makefiles) preConfigure() error {
+	// Execute pre configure scripts.
+	for _, script := range m.PreConfigure {
+		script = strings.TrimSpace(script)
+		if script == "" {
+			continue
+		}
+
+		title := fmt.Sprintf("[post confiure %s]", m.PortConfig.nameVersionDesc())
+		script = m.replaceHolders(script)
+		executor := cmd.NewExecutor(title, script)
+		executor.MSYS2Env(runtime.GOOS == "windows")
+		if err := executor.Execute(); err != nil {
+			return err
+		}
+	}
+
+	// Execute autogen if existed.
+	if fileio.PathExists(m.PortConfig.SrcDir + "/autogen.sh") {
+		// Disable auto configure by autogen.sh.
+		os.Setenv("NOCONFIGURE", "1")
+
+		var autogenCommand = "./autogen.sh"
+		if len(m.AutogenOptions) > 0 {
+			autogenCommand += " " + strings.Join(m.AutogenOptions, " ")
+		}
+
+		configureWithPerl := m.shouldConfigureWithPerl()
+
+		title := fmt.Sprintf("[autogen %s]", m.PortConfig.nameVersionDesc())
+		executor := cmd.NewExecutor(title, autogenCommand)
+		executor.MSYS2Env(runtime.GOOS == "windows" && !configureWithPerl)
+		executor.SetLogPath(m.getLogPath("autogen"))
+		executor.SetWorkDir(m.PortConfig.SrcDir)
+
+		// Use msys2 and msvc envs only when in windows and not using perl.
+		if runtime.GOOS == "windows" && !configureWithPerl {
+			executor.MSYS2Env(true)
+			executor.SetMsvcEnvs(m.msvcEnvs())
+		}
+
+		if err := executor.Execute(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m makefiles) configureOptions() ([]string, error) {
+	var options = slices.Clone(m.Options)
+
+	configureWithPerl := m.shouldConfigureWithPerl()
+	if configureWithPerl {
+		release := m.DevDep || strings.ToLower(m.BuildType) == "release"
+		options = append(options, expr.If(release, "--release", "--debug"))
+	}
+
+	// Remove common cross compile args for native build.
+	if m.PortConfig.CrossTools.Native || m.BuildConfig.DevDep {
+		options = slices.DeleteFunc(options, func(element string) bool {
+			return strings.HasPrefix(element, "--host=") ||
+				strings.HasPrefix(element, "--sysroot=") ||
+				strings.HasPrefix(element, "--arch=") ||
+				strings.HasPrefix(element, "--cross-prefix=") ||
+				strings.HasPrefix(element, "--target-os") ||
+				strings.HasPrefix(element, "--build=") ||
+				strings.HasPrefix(element, "--with-build-python=") ||
+				strings.HasPrefix(element, "--enable-cross-compile")
+		})
+	} else {
+		if m.shouldAddHost(options) {
+			options = append(options, fmt.Sprintf("--host=%s", m.PortConfig.CrossTools.Host))
+		}
+	}
+
+	// Set build library type.
+	libraryType := m.libraryType(
+		"--enable-shared",
+		"--enable-static",
+	)
+	switch m.BuildConfig.LibraryType {
+	case "shared", "": // default is `shared`.
+		options = append(options, libraryType.enableShared)
+		if libraryType.disableStatic != "" {
+			options = append(options, libraryType.disableStatic)
+		}
+	case "static":
+		options = append(options, libraryType.enableStatic)
+		if libraryType.disableShared != "" {
+			options = append(options, libraryType.disableShared)
+		}
+	}
+
+	// In msys2 or linux, the package path should be fixed to `/c/path1/path2`.
+	if runtime.GOOS == "windows" && configureWithPerl {
+		options = append(options, fmt.Sprintf("--prefix=%s", m.PortConfig.PackageDir))
+	} else {
+		options = append(options, fmt.Sprintf("--prefix=%s", fileio.ToCygpath(m.PortConfig.PackageDir)))
+	}
+
+	// Replace placeholders.
+	for index, value := range options {
+		options[index] = m.replaceHolders(value)
+	}
+
+	return options, nil
+}
+
+func (m makefiles) shouldAddHost(options []string) bool {
+	if m.shouldConfigureWithPerl() {
+		return false
+	}
+
+	if slices.ContainsFunc(options, func(element string) bool {
+		return strings.HasPrefix(element, "--host=")
+	}) {
+		return false
+	}
+
+	var (
+		hasArch     bool
+		hasTargetOS bool
+	)
+
+	// `--arch`` and `--target-os`` have the same function as `--host`
+	for _, option := range options {
+		if strings.HasPrefix(option, "--arch=") {
+			hasArch = true
+			if hasArch && hasTargetOS {
+				return false
+			}
+		}
+		if strings.HasPrefix(option, "--target-os=") {
+			hasTargetOS = true
+			if hasArch && hasTargetOS {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func (m makefiles) configured() bool {
+	makeFile := filepath.Join(m.PortConfig.BuildDir, "Makefile")
+	return fileio.PathExists(makeFile)
+}
+
+func (m makefiles) Configure(options []string) error {
+	// Some libraries may not need to configure.
+	configureRequired := m.configureRequired()
+	if !configureRequired {
+		return nil
+	}
+
+	// In windows, we set msvc related environments.
+	if m.DevDep && m.PortConfig.CrossTools.Name != "msvc" {
+		m.PortConfig.CrossTools.ClearEnvs()
+	} else {
+		m.PortConfig.CrossTools.SetEnvs(m.BuildConfig)
+	}
+
+	// Different Makefile projects set the build_type in inconsistent ways,
+	// Fortunately, it can be configured through CFLAGS and CXXFLAGS.
+	m.setBuildType(m.BuildType)
+
+	// Create build dir if not exists.
+	if !m.BuildInSource {
+		if err := os.MkdirAll(m.PortConfig.BuildDir, os.ModePerm); err != nil {
+			return err
+		}
+	}
+
+	configureWithPerl := m.shouldConfigureWithPerl()
+
+	// Find `configure` or `Configure`.
+	configureFile := expr.If(configureWithPerl, "Configure", "configure")
+
+	// Asssemble configure command.
+	joinedOptions := strings.Join(options, " ")
+	command := fmt.Sprintf("%s/%s %s", m.PortConfig.SrcDir, configureFile, joinedOptions)
+	if runtime.GOOS == "windows" {
+		command = expr.If(configureWithPerl, fmt.Sprintf("perl %s", command), fileio.ToCygpath(command))
+	}
+
+	title := fmt.Sprintf("[configure %s]", m.PortConfig.nameVersionDesc())
+	executor := cmd.NewExecutor(title, command)
+	executor.SetLogPath(m.getLogPath("configure"))
+	executor.SetWorkDir(expr.If(m.BuildInSource, m.PortConfig.SrcDir, m.PortConfig.BuildDir))
+
+	// Use msys2 and msvc env only when in windows and not using perl.
+	if runtime.GOOS == "windows" && !configureWithPerl {
+		executor.MSYS2Env(true)
+		executor.SetMsvcEnvs(m.msvcEnvs())
+	}
+	if err := executor.Execute(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m makefiles) buildOptions() ([]string, error) {
+	return nil, nil
+}
+
+func (m makefiles) Build(options []string) error {
+	configureWithPerl := m.shouldConfigureWithPerl()
+
+	// Assemble command.
+	var command string
+	if runtime.GOOS == "windows" {
+		command = expr.If(configureWithPerl, "nmake", fmt.Sprintf("make -j %d", m.PortConfig.JobNum))
+	} else {
+		command = fmt.Sprintf("make -j %d", m.PortConfig.JobNum)
+	}
+
+	// Execute build.
+	title := fmt.Sprintf("[build %s]", m.PortConfig.nameVersionDesc())
+	executor := cmd.NewExecutor(title, command)
+	executor.SetLogPath(m.getLogPath("build"))
+
+	// Use msys2 and msvc envs only when in windows and not using perl.
+	if runtime.GOOS == "windows" && !configureWithPerl {
+		executor.MSYS2Env(true)
+		executor.SetMsvcEnvs(m.msvcEnvs())
+	}
+
+	if !m.configureRequired() || m.BuildInSource {
+		executor.SetWorkDir(m.PortConfig.SrcDir)
+	} else {
+		executor.SetWorkDir(m.PortConfig.BuildDir)
+	}
+
+	if err := executor.Execute(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m makefiles) Install(options []string) error {
+	configureWithPerl := m.shouldConfigureWithPerl()
+	makeCommand := expr.If(runtime.GOOS == "windows" && configureWithPerl, "nmake", "make")
+
+	// Assemble command.
+	var command string
+	if m.configureRequired() {
+		command = fmt.Sprintf("%s install", makeCommand)
+	} else {
+		command = fmt.Sprintf("make install -C %s prefix=%s", m.PortConfig.SrcDir, m.PortConfig.PackageDir)
+	}
+
+	// Execute install.
+	title := fmt.Sprintf("[install %s]", m.PortConfig.nameVersionDesc())
+	executor := cmd.NewExecutor(title, command)
+	executor.SetLogPath(m.getLogPath("install"))
+
+	// Use msys2 and msvc envs only when in windows and not using perl.
+	if runtime.GOOS == "windows" && !configureWithPerl {
+		executor.MSYS2Env(true)
+		executor.SetMsvcEnvs(m.msvcEnvs())
+	}
+
+	if !m.configureRequired() || m.BuildInSource {
+		executor.SetWorkDir(m.PortConfig.SrcDir)
+	} else {
+		executor.SetWorkDir(m.PortConfig.BuildDir)
+	}
+
+	if err := executor.Execute(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m makefiles) configureRequired() bool {
+	return fileio.PathExists(m.PortConfig.SrcDir+"/configure") ||
+		fileio.PathExists(m.PortConfig.SrcDir+"/Configure") ||
+		fileio.PathExists(m.PortConfig.SrcDir+"/autogen.sh")
+}
+
+func (m makefiles) shouldConfigureWithPerl() bool {
+	// Some libraries should be configured with perl, such as openssl.
+	entities, err := os.ReadDir(m.PortConfig.SrcDir)
+	if err != nil {
+		color.Printf(color.Red, "please check if source dir exists: %s\n", m.PortConfig.SrcDir)
+		return false
+	}
+	for _, entity := range entities {
+		if entity.IsDir() {
+			continue
+		}
+		if entity.Name() == "Configure" {
+			return true
+		}
+	}
+
+	return false
+}
