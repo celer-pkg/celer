@@ -166,6 +166,9 @@ func (m meson) Install(options []string) error {
 	if err := executor.Execute(); err != nil {
 		return err
 	}
+	
+	// Remove `nul` file in workspace_dir.
+	os.Remove(filepath.Join(dirs.WorkspaceDir, "nul"))
 
 	return nil
 }
