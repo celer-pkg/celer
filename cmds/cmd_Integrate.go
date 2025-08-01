@@ -17,7 +17,8 @@ import (
 )
 
 type integrateCmd struct {
-	celer *configs.Celer
+	celer     *configs.Celer
+	uninstall bool
 }
 
 func (i integrateCmd) Command() *cobra.Command {
@@ -25,44 +26,30 @@ func (i integrateCmd) Command() *cobra.Command {
 		Use:   "integrate",
 		Short: "Integrates celer into [bash|fish|powershell|zsh]",
 		Run: func(cobraCmd *cobra.Command, args []string) {
-			remove, _ := cobraCmd.Flags().GetBool("remove")
-			if remove {
-				if err := i.uninstall(); err != nil {
-					configs.PrintError(err, "celer integration remove failed.")
+			if i.uninstall {
+				if err := i.doUninstall(); err != nil {
+					configs.PrintError(err, "celer integration uninstall failed.")
 					return
 				}
-
-				configs.PrintSuccess("celer integration is removed.")
-				return
-			}
-
-			if err := i.installToSystem(); err != nil {
-				configs.PrintError(err, "celer integrate failed.")
-				return
-			}
-
-			configs.PrintSuccess("celer is integrated.")
-		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			// Support flags completion.
-			var suggestions []string
-			for _, flag := range []string{"--remove"} {
-				if strings.HasPrefix(flag, toComplete) {
-					suggestions = append(suggestions, flag)
+				configs.PrintSuccess("celer integration is uninstalled.")
+			} else {
+				if err := i.installToSystem(); err != nil {
+					configs.PrintError(err, "celer integrate failed.")
+					return
 				}
+				configs.PrintSuccess("celer is integrated.")
 			}
-
-			return suggestions, cobra.ShellCompDirectiveNoFileComp
 		},
+		ValidArgsFunction: i.completion,
 	}
 
 	// Register flags.
-	command.Flags().Bool("remove", false, "remove integrated celer")
+	command.Flags().BoolVarP(&i.uninstall, "uninstall", "u", false, "uninstall integrated celer")
 
 	return command
 }
 
-func (i integrateCmd) uninstall() error {
+func (i integrateCmd) doUninstall() error {
 	switch runtime.GOOS {
 	case "windows":
 		// Remove completion ps file.
@@ -338,4 +325,15 @@ func (i integrateCmd) executeCmd(name string, args ...string) error {
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	return cmd.Run()
+}
+
+func (i integrateCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var suggestions []string
+	for _, flag := range []string{"--uninstall", "-u"} {
+		if strings.HasPrefix(flag, toComplete) {
+			suggestions = append(suggestions, flag)
+		}
+	}
+
+	return suggestions, cobra.ShellCompDirectiveNoFileComp
 }

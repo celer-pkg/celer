@@ -46,9 +46,7 @@ func (u updateCmd) Command() *cobra.Command {
 				}
 			}
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return u.completion(toComplete)
-		},
+		ValidArgsFunction: u.completion,
 	}
 
 	// Register flags.
@@ -58,7 +56,6 @@ func (u updateCmd) Command() *cobra.Command {
 	command.Flags().BoolVarP(&u.recurse, "recurse", "r", false, "update recursively")
 
 	command.MarkFlagsMutuallyExclusive("conf-repo", "ports-repo")
-
 	return command
 }
 
@@ -123,7 +120,7 @@ func (u updateCmd) updatePortRepo(nameVersion string) error {
 	return nil
 }
 
-func (u updateCmd) completion(toComplete string) ([]string, cobra.ShellCompDirective) {
+func (u updateCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	var buildtreesDir = dirs.BuildtreesDir
 
@@ -160,7 +157,13 @@ func (u updateCmd) completion(toComplete string) ([]string, cobra.ShellCompDirec
 	}
 
 	// Support flags completion.
-	for _, flag := range []string{"conf-repo", "ports-repo", "--recurse", "-r", "--force", "-f"} {
+	flags := []string{
+		"--conf-repo", "-c",
+		"--ports-repo", "-p",
+		"--recurse", "-r",
+		"--force", "-f",
+	}
+	for _, flag := range flags {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}

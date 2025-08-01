@@ -31,9 +31,7 @@ func (a autoremoveCmd) Command() *cobra.Command {
 
 			configs.PrintSuccess("autoremove successfully.")
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return a.completion(toComplete)
-		},
+		ValidArgsFunction: a.completion,
 	}
 
 	command.Flags().BoolVarP(&a.removeCache, "remove-cache", "c", false, "autoremove packages along with build cache.")
@@ -175,7 +173,7 @@ func (a autoremoveCmd) readPackages(libraryFolder string) ([]string, error) {
 	return packages, nil
 }
 
-func (a autoremoveCmd) completion(toComplete string) ([]string, cobra.ShellCompDirective) {
+func (a autoremoveCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Support flags completion.

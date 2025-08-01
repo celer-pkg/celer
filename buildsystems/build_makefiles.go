@@ -3,7 +3,6 @@ package buildsystems
 import (
 	"celer/buildtools"
 	"celer/pkgs/cmd"
-	"celer/pkgs/color"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -342,7 +341,6 @@ func (m makefiles) shouldConfigureWithPerl() bool {
 	// Some libraries should be configured with perl, such as openssl.
 	entities, err := os.ReadDir(m.PortConfig.SrcDir)
 	if err != nil {
-		color.Printf(color.Red, "please check if source dir exists: %s\n", m.PortConfig.SrcDir)
 		return false
 	}
 	for _, entity := range entities {

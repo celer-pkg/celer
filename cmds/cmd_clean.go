@@ -47,9 +47,7 @@ func (c cleanCmd) Command() *cobra.Command {
 				}
 			}
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return c.completion(toComplete)
-		},
+		ValidArgsFunction: c.completion,
 	}
 
 	// Register flags.
@@ -236,7 +234,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 	return nil
 }
 
-func (c cleanCmd) completion(toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c cleanCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	var buildtreesDir = dirs.BuildtreesDir
 

@@ -31,12 +31,6 @@ func (r removeCmd) Command() *cobra.Command {
 				return
 			}
 
-			r.buildType, _ = cmd.Flags().GetString("build-type")
-			r.recurse, _ = cmd.Flags().GetBool("recurse")
-			r.purge, _ = cmd.Flags().GetBool("purge")
-			r.dev, _ = cmd.Flags().GetBool("dev")
-			r.removeCache, _ = cmd.Flags().GetBool("remove-cache")
-
 			// Use build_type from `celer.toml` if not specified.
 			if r.buildType == "" {
 				r.buildType = r.celer.Settings.BuildType
@@ -49,17 +43,15 @@ func (r removeCmd) Command() *cobra.Command {
 
 			configs.PrintSuccess("remove %s successfully.", strings.Join(args, ", "))
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return r.completion(toComplete)
-		},
+		ValidArgsFunction: r.completion,
 	}
 
 	// Register flags.
-	command.Flags().String("build-type", "", "uninstall package with specified build type.")
-	command.Flags().Bool("remove-cache", false, "uninstall package along with build cache.")
-	command.Flags().Bool("recurse", false, "uninstall package along with its depedencies.")
-	command.Flags().Bool("purge", false, "uninstall package along with its package file.")
-	command.Flags().Bool("dev", false, "uninstall package from dev mode.")
+	command.Flags().StringVarP(&r.buildType, "build-type", "b", "release", "uninstall package with specified build type.")
+	command.Flags().BoolVarP(&r.removeCache, "remove-cache", "c", false, "uninstall package along with build cache.")
+	command.Flags().BoolVarP(&r.recurse, "recurse", "r", false, "uninstall package along with its depedencies.")
+	command.Flags().BoolVarP(&r.purge, "purge", "p", false, "uninstall package along with its package files.")
+	command.Flags().BoolVarP(&r.dev, "dev", "d", false, "uninstall package for dev mode.")
 
 	return command
 }
@@ -80,7 +72,7 @@ func (r removeCmd) remove(nameVersions []string) error {
 	return nil
 }
 
-func (r removeCmd) completion(toComplete string) ([]string, cobra.ShellCompDirective) {
+func (r removeCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	var buildtreesDir = dirs.BuildtreesDir
 
@@ -96,8 +88,15 @@ func (r removeCmd) completion(toComplete string) ([]string, cobra.ShellCompDirec
 			}
 		}
 
-		// Support flags completion.
-		for _, flag := range []string{"--build-type", "--remove-cache", "--recurse", "--purge", "--dev"} {
+		flags := []string{
+			"--build-type", "-b",
+			"--remove-cache", "-c",
+			"--recurse", "-r",
+			"--purge", "-p",
+			"--dev", "-d",
+		}
+
+		for _, flag := range flags {
 			if strings.HasPrefix(flag, toComplete) {
 				suggestions = append(suggestions, flag)
 			}

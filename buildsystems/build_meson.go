@@ -166,7 +166,7 @@ func (m meson) Install(options []string) error {
 	if err := executor.Execute(); err != nil {
 		return err
 	}
-	
+
 	// Remove `nul` file in workspace_dir.
 	os.Remove(filepath.Join(dirs.WorkspaceDir, "nul"))
 
@@ -287,13 +287,15 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 	}
 
 	// Allow meson to locate libraries of dependecies.
-	depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
-	if len(linkArgs) == 0 {
-		linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", depLibDir))
-		linkArgs = append(linkArgs, fmt.Sprintf(`'-Wl,-rpath-link=%s'`, depLibDir))
-	} else {
-		linkArgs = append(linkArgs, fmt.Sprintf("\t"+"'-L%s'", depLibDir))
-		linkArgs = append(linkArgs, fmt.Sprintf("\t"+`'-Wl,-rpath-link=%s'`, depLibDir))
+	if runtime.GOOS == "linux" {
+		depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
+		if len(linkArgs) == 0 {
+			linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", depLibDir))
+			linkArgs = append(linkArgs, fmt.Sprintf(`'-Wl,-rpath-link=%s'`, depLibDir))
+		} else {
+			linkArgs = append(linkArgs, fmt.Sprintf("\t"+"'-L%s'", depLibDir))
+			linkArgs = append(linkArgs, fmt.Sprintf("\t"+`'-Wl,-rpath-link=%s'`, depLibDir))
+		}
 	}
 
 	buffers.WriteString(fmt.Sprintf("c_args = [%s]\n", strings.Join(includeArgs, ",\n")))

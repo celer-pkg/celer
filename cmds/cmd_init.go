@@ -8,43 +8,41 @@ import (
 )
 
 type initCmd struct {
-	celer *configs.Celer
+	celer  *configs.Celer
+	url    string
+	branch string
 }
 
 func (i initCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "init",
-		Short: "Init with conf repo.",
+		Short: "Init celer with conf repo.",
 		Run: func(cmd *cobra.Command, args []string) {
-			url, _ := cmd.Flags().GetString("url")
-
 			celer := configs.NewCeler()
-			if err := celer.CloneConf(url); err != nil {
-				if url == "" {
-					configs.PrintError(err, "failed to init celer.")
-				} else {
-					configs.PrintError(err, "failed to init celer with --url=%s.", url)
-				}
+			if err := celer.CloneConf(i.url, i.branch); err != nil {
+				configs.PrintError(err, "failed to init celer: %s.", err)
 				return
 			}
 
 			configs.PrintSuccess("init celer successfully.")
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			var suggestions []string
-
-			for _, flag := range []string{"--url", "--branch"} {
-				if strings.HasPrefix(flag, toComplete) {
-					suggestions = append(suggestions, flag)
-				}
-			}
-			return suggestions, cobra.ShellCompDirectiveNoFileComp
-		},
+		ValidArgsFunction: i.completion,
 	}
 
 	// Register flags.
-	command.Flags().String("url", "", "init with conf repository url.")
-	command.Flags().String("branch", "master", "init with conf repository branch.")
+	command.Flags().StringVarP(&i.url, "url", "u", "", "init with conf repo url.")
+	command.Flags().StringVarP(&i.branch, "branch", "b", "", "init with conf repo branch.")
 
 	return command
+}
+
+func (i initCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var suggestions []string
+
+	for _, flag := range []string{"--url", "-u", "--branch", "-b"} {
+		if strings.HasPrefix(flag, toComplete) {
+			suggestions = append(suggestions, flag)
+		}
+	}
+	return suggestions, cobra.ShellCompDirectiveNoFileComp
 }

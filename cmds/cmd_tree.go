@@ -5,7 +5,6 @@ import (
 	"celer/depcheck"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -33,24 +32,16 @@ func (t treeCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "tree",
 		Short: "Show [dev_]dependencies of a port or a project.",
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			t.hideDevDep, _ = cmd.Flags().GetBool("hide-dev")
-
-			if len(args) == 0 {
-				configs.PrintError(errors.New("no port or project specified"), "failed to init celer.")
-				return
-			}
-
 			t.tree(args[0])
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return t.completion(toComplete)
-		},
+		ValidArgsFunction: t.completion,
 	}
 
 	// Register flags.
 	command.Flags().Bool("hide-dev", false, "hide dev dep in dependencies tree.")
-
 	return command
 }
 
@@ -234,7 +225,7 @@ func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool
 	}
 }
 
-func (t treeCmd) completion(toComplete string) ([]string, cobra.ShellCompDirective) {
+func (t treeCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Support port completion.
