@@ -29,10 +29,6 @@ func (c cleanCmd) Command() *cobra.Command {
 		Use:   "clean",
 		Short: "Clean build cache for package or project",
 		Run: func(cmd *cobra.Command, args []string) {
-			c.recurse, _ = cmd.Flags().GetBool("recurse")
-			c.dev, _ = cmd.Flags().GetBool("dev")
-			c.all, _ = cmd.Flags().GetBool("all")
-
 			if c.all {
 				if err := c.cleanAll(); err != nil {
 					configs.PrintError(err, "failed to clean all packages.")
@@ -57,9 +53,9 @@ func (c cleanCmd) Command() *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().BoolP("recurse", "r", false, "clean package/project along with its depedencies.")
-	command.Flags().BoolP("dev", "d", false, "clean package/project for dev mode.")
-	command.Flags().BoolP("all", "a", false, "clean all packages.")
+	command.Flags().BoolVarP(&c.recurse, "recurse", "r", false, "clean package/project along with its depedencies.")
+	command.Flags().BoolVarP(&c.dev, "dev", "d", false, "clean package/project for dev mode.")
+	command.Flags().BoolVarP(&c.all, "all", "a", false, "clean all packages.")
 	return command
 }
 

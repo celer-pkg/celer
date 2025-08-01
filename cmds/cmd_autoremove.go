@@ -24,9 +24,6 @@ func (a autoremoveCmd) Command() *cobra.Command {
 		Use:   "autoremove",
 		Short: "Remove installed package but unreferenced by current project.",
 		Run: func(cmd *cobra.Command, args []string) {
-			a.removeCache, _ = cmd.Flags().GetBool("remove-cache")
-			a.purge, _ = cmd.Flags().GetBool("purge")
-
 			if err := a.autoremove(); err != nil {
 				configs.PrintError(err, "failed to autoremove.")
 				return
@@ -39,8 +36,8 @@ func (a autoremoveCmd) Command() *cobra.Command {
 		},
 	}
 
-	command.Flags().Bool("remove-cache", false, "autoremove packages along with build cache.")
-	command.Flags().Bool("purge", false, "autoremove packages along with its package file.")
+	command.Flags().BoolVarP(&a.removeCache, "remove-cache", "c", false, "autoremove packages along with build cache.")
+	command.Flags().BoolVarP(&a.purge, "purge", "p", false, "autoremove packages along with its package file.")
 
 	return command
 }
@@ -182,7 +179,7 @@ func (a autoremoveCmd) completion(toComplete string) ([]string, cobra.ShellCompD
 	var suggestions []string
 
 	// Support flags completion.
-	for _, flag := range []string{"--remove-cache", "--purge"} {
+	for _, flag := range []string{"--remove-cache", "-c", "--purge", "-p"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}

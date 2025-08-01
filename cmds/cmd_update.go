@@ -18,6 +18,7 @@ type updateCmd struct {
 	celer     *configs.Celer
 	confRepo  bool
 	portsRepo bool
+	recurse   bool
 	force     bool
 }
 
@@ -25,7 +26,6 @@ func (u updateCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "update",
 		Short: "Update conf repo, ports repo and port source.",
-		Args:  cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := buildtools.CheckTools("git"); err != nil {
 				configs.PrintError(err, "failed to check git tools.")
@@ -41,8 +41,7 @@ func (u updateCmd) Command() *cobra.Command {
 					configs.PrintError(err, "failed to update ports repo.")
 				}
 			} else {
-				nameVersion := strings.ReplaceAll(args[0], "`", "")
-				if err := u.updatePort(nameVersion); err != nil {
+				if err := u.updatePorts(args); err != nil {
 					configs.PrintError(err, "failed to update port repo.")
 				}
 			}
@@ -56,6 +55,7 @@ func (u updateCmd) Command() *cobra.Command {
 	command.Flags().BoolVarP(&u.confRepo, "conf-repo", "c", false, "update conf repo")
 	command.Flags().BoolVarP(&u.portsRepo, "ports-repo", "p", false, "update ports repo")
 	command.Flags().BoolVarP(&u.force, "force", "f", false, "update forcibly")
+	command.Flags().BoolVarP(&u.recurse, "recurse", "r", false, "update recursively")
 
 	command.MarkFlagsMutuallyExclusive("conf-repo", "ports-repo")
 
@@ -74,18 +74,18 @@ func (u updateCmd) updatePortsRepo() error {
 	return cmd.UpdateRepo(title, repoDir, "", u.force)
 }
 
-func (u updateCmd) updatePort(nameVersion string) error {
-	// Update single repo.
-	if strings.TrimSpace(nameVersion) != "" {
-		return u.updatePortRepo(nameVersion)
+func (u updateCmd) updatePorts(targets []string) error {
+	if len(targets) == 0 {
+		return fmt.Errorf("no ports specified to update")
 	}
 
-	// Update all repo of current project.
-	for _, nameVersion := range u.celer.Project().Ports {
-		if err := u.updatePortRepo(nameVersion); err != nil {
+	for _, target := range targets {
+		target = strings.ReplaceAll(target, "`", "")
+		if err := u.updatePortRepo(target); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -97,9 +97,11 @@ func (u updateCmd) updatePortRepo(nameVersion string) error {
 	}
 
 	// Update repos of port's depedencies.
-	for _, nameVersion := range port.MatchedConfig.Dependencies {
-		if err := u.updatePortRepo(nameVersion); err != nil {
-			return err
+	if u.recurse {
+		for _, nameVersion := range port.MatchedConfig.Dependencies {
+			if err := u.updatePortRepo(nameVersion); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -158,7 +160,7 @@ func (u updateCmd) completion(toComplete string) ([]string, cobra.ShellCompDirec
 	}
 
 	// Support flags completion.
-	for _, flag := range []string{"conf-repo", "ports-repo", "--force", "-f"} {
+	for _, flag := range []string{"conf-repo", "ports-repo", "--recurse", "-r", "--force", "-f"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}

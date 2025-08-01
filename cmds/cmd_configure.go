@@ -12,7 +12,9 @@ import (
 )
 
 type configureCmd struct {
-	celer *configs.Celer
+	celer    *configs.Celer
+	platform string
+	project  string
 }
 
 func (c configureCmd) Command() *cobra.Command {
@@ -20,13 +22,10 @@ func (c configureCmd) Command() *cobra.Command {
 		Use:   "configure",
 		Short: "Configure to change platform or project.",
 		Run: func(cmd *cobra.Command, args []string) {
-			platform, _ := cmd.Flags().GetString("platform")
-			project, _ := cmd.Flags().GetString("project")
-
-			if platform != "" {
-				c.selectPlatform(platform)
-			} else if project != "" {
-				c.selectProject(project)
+			if c.platform != "" {
+				c.selectPlatform(c.platform)
+			} else if c.project != "" {
+				c.selectProject(c.project)
 			}
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -43,8 +42,8 @@ func (c configureCmd) Command() *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().String("platform", "", "configure platform.")
-	command.Flags().String("project", "", "configure project.")
+	command.Flags().StringVar(&c.platform, "platform", "", "configure platform.")
+	command.Flags().StringVar(&c.project, "project", "", "configure project.")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string,
@@ -55,6 +54,8 @@ func (c configureCmd) Command() *cobra.Command {
 		toComplete string) ([]string, cobra.ShellCompDirective) {
 		return c.completion(dirs.ConfProjectsDir, toComplete)
 	})
+
+	command.MarkFlagsMutuallyExclusive("platform", "project")
 
 	return command
 }
