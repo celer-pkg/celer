@@ -7,7 +7,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type initCmd struct{}
+type initCmd struct {
+	celer *configs.Celer
+}
 
 func (i initCmd) Command() *cobra.Command {
 	command := &cobra.Command{

@@ -10,7 +10,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type deployCmd struct{}
+type deployCmd struct {
+	celer *configs.Celer
+}
 
 func (d deployCmd) Command() *cobra.Command {
 	command := &cobra.Command{
@@ -24,39 +26,32 @@ func (d deployCmd) Command() *cobra.Command {
 			buildtools.DevMode = devMode
 			configs.DevMode = devMode
 
-			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
 			// Override build_type if specified.
 			if buildType != "" {
-				celer.Settings.BuildType = buildType
+				d.celer.Settings.BuildType = buildType
 			}
 
 			// Check circular dependency and version conflict.
-			if err := d.checkProject(celer); err != nil {
+			if err := d.checkProject(); err != nil {
 				configs.PrintError(err, "check circular dependency and version conflict failed.")
 				return
 			}
 
-			if err := celer.Deploy(); err != nil {
+			if err := d.celer.Deploy(); err != nil {
 				configs.PrintError(err, "failed to deploy celer.")
 				return
 			}
 
 			// Generate toolchain file in not in dev mode.
 			if !devMode {
-				if err := celer.GenerateToolchainFile(); err != nil {
+				if err := d.celer.GenerateToolchainFile(); err != nil {
 					configs.PrintError(err, "failed to generate toolchain file.")
 					return
 				}
 			}
 
 			if !devMode {
-				projectName := expr.If(celer.Settings.Project == "", "unnamed", celer.Settings.Project)
+				projectName := expr.If(d.celer.Settings.Project == "", "unnamed", d.celer.Settings.Project)
 				configs.PrintSuccess("celer is ready for project: %s.", projectName)
 			}
 		},
@@ -79,18 +74,18 @@ func (d deployCmd) Command() *cobra.Command {
 	return command
 }
 
-func (d deployCmd) checkProject(ctx configs.Context) error {
+func (d deployCmd) checkProject() error {
 	depcheck := depcheck.NewDepCheck()
 
 	var ports []configs.Port
-	for _, nameVersion := range ctx.Project().Ports {
+	for _, nameVersion := range d.celer.Project().Ports {
 		var port configs.Port
-		if err := port.Init(ctx, nameVersion, ctx.BuildType()); err != nil {
+		if err := port.Init(d.celer, nameVersion, d.celer.BuildType()); err != nil {
 			return err
 		}
 
 		// Check if every port have circular dependency.
-		if err := depcheck.CheckCircular(ctx, port); err != nil {
+		if err := depcheck.CheckCircular(d.celer, port); err != nil {
 			return err
 		}
 
@@ -98,7 +93,7 @@ func (d deployCmd) checkProject(ctx configs.Context) error {
 	}
 
 	// Check if ports have conflict versions.
-	if err := depcheck.CheckConflict(ctx, ports...); err != nil {
+	if err := depcheck.CheckConflict(d.celer, ports...); err != nil {
 		return err
 	}
 

@@ -18,7 +18,7 @@ $ ./celer create --platform=x86_64-linux-22.04
 
 ```toml
 [rootfs]
-url = "https://github.com/celer-pkg/celer-resource/releases/download/v1.0.0/ubuntu-base-20.04.5-base-amd64.tar.gz"
+url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-20.04.5-base-amd64.tar.gz"
 name = "gcc"
 version = "9.5"
 path = "ubuntu-base-20.04.5-base-amd64"
@@ -29,7 +29,7 @@ pkg_config_path = [
 ]
 
 [toolchain]
-url = "https://github.com/celer-pkg/celer-resource/releases/download/v1.0.0/gcc-9.5.0.tar.gz"
+url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-9.5.0.tar.gz"
 path = "gcc-9.5.0/bin"
 system_name = "Linux"
 system_processor = "x86_64"

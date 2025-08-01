@@ -16,20 +16,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type integrateCmd struct{}
+type integrateCmd struct {
+	celer *configs.Celer
+}
 
 func (i integrateCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "integrate",
 		Short: "Integrates celer into [bash|fish|powershell|zsh]",
 		Run: func(cobraCmd *cobra.Command, args []string) {
-			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
 			remove, _ := cobraCmd.Flags().GetBool("remove")
 			if remove {
 				if err := i.uninstall(); err != nil {

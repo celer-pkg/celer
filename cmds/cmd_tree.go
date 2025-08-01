@@ -25,7 +25,7 @@ type portInfo struct {
 }
 
 type treeCmd struct {
-	ctx        configs.Context
+	celer      *configs.Celer
 	hideDevDep bool
 }
 
@@ -34,13 +34,6 @@ func (t treeCmd) Command() *cobra.Command {
 		Use:   "tree",
 		Short: "Show [dev_]dependencies of a port or a project.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
 			t.hideDevDep, _ = cmd.Flags().GetBool("hide-dev")
 
 			if len(args) == 0 {
@@ -62,29 +55,22 @@ func (t treeCmd) Command() *cobra.Command {
 }
 
 func (t *treeCmd) tree(target string) {
-	celer := configs.NewCeler()
-	if err := celer.Init(); err != nil {
-		configs.PrintError(err, "failed to init celer.")
-		return
-	}
-
-	t.ctx = celer
 	depcheck := depcheck.NewDepCheck()
 
 	if strings.Contains(target, "@") {
 		var port configs.Port
-		if err := port.Init(celer, target, celer.Settings.BuildType); err != nil {
+		if err := port.Init(t.celer, target, t.celer.Settings.BuildType); err != nil {
 			configs.PrintError(err, "failed to init port.")
 			return
 		}
 
 		// Check circular dependence and version conflicts.
-		if err := depcheck.CheckCircular(celer, port); err != nil {
+		if err := depcheck.CheckCircular(t.celer, port); err != nil {
 			configs.PrintError(err, "failed to check circular dependence.")
 			return
 		}
 
-		if err := depcheck.CheckConflict(celer, port); err != nil {
+		if err := depcheck.CheckConflict(t.celer, port); err != nil {
 			configs.PrintError(err, "failed to check version conflict.")
 			return
 		}
@@ -102,7 +88,7 @@ func (t *treeCmd) tree(target string) {
 		t.printTree(&rootInfo)
 	} else {
 		var project configs.Project
-		if err := project.Init(celer, target); err != nil {
+		if err := project.Init(t.celer, target); err != nil {
 			configs.PrintError(err, "failed to init project.")
 			return
 		}
@@ -118,19 +104,19 @@ func (t *treeCmd) tree(target string) {
 		var ports []configs.Port
 		for _, nameVersion := range project.Ports {
 			var port configs.Port
-			if err := port.Init(celer, nameVersion, celer.BuildType()); err != nil {
+			if err := port.Init(t.celer, nameVersion, t.celer.BuildType()); err != nil {
 				configs.PrintError(err, "failed to init port: %s", nameVersion)
 				return
 			}
 
-			if err := depcheck.CheckCircular(celer, port); err != nil {
+			if err := depcheck.CheckCircular(t.celer, port); err != nil {
 				configs.PrintError(err, "failed to check circular dependence.")
 				return
 			}
 
 			ports = append(ports, port)
 		}
-		if err := depcheck.CheckConflict(celer, ports...); err != nil {
+		if err := depcheck.CheckConflict(t.celer, ports...); err != nil {
 			configs.PrintError(err, "failed to check version conflicts.")
 			return
 		}
@@ -156,7 +142,7 @@ func (t *treeCmd) tree(target string) {
 
 func (t *treeCmd) collectPortInfos(parent *portInfo, nameVersion string) error {
 	var port configs.Port
-	if err := port.Init(t.ctx, nameVersion, t.ctx.BuildType()); err != nil {
+	if err := port.Init(t.celer, nameVersion, t.celer.BuildType()); err != nil {
 		return err
 	}
 
@@ -166,7 +152,7 @@ func (t *treeCmd) collectPortInfos(parent *portInfo, nameVersion string) error {
 	// Collect dependency ports.
 	for _, depNameVersion := range matchedConfig.Dependencies {
 		var depPort configs.Port
-		if err := depPort.Init(t.ctx, depNameVersion, t.ctx.BuildType()); err != nil {
+		if err := depPort.Init(t.celer, depNameVersion, t.celer.BuildType()); err != nil {
 			return err
 		}
 
@@ -188,7 +174,7 @@ func (t *treeCmd) collectPortInfos(parent *portInfo, nameVersion string) error {
 		}
 
 		var devDepPort configs.Port
-		if err := devDepPort.Init(t.ctx, devDepNameVersion, t.ctx.BuildType()); err != nil {
+		if err := devDepPort.Init(t.celer, devDepNameVersion, t.celer.BuildType()); err != nil {
 			return err
 		}
 

@@ -8,20 +8,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type createCmd struct{}
+type createCmd struct {
+	celer *configs.Celer
+}
 
 func (c createCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "create",
 		Short: "Create new [platform|project|port].",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
 			platform, _ := cmd.Flags().GetString("platform")
 			project, _ := cmd.Flags().GetString("project")
 			port, _ := cmd.Flags().GetString("port")

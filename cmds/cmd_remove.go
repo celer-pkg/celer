@@ -12,7 +12,7 @@ import (
 )
 
 type removeCmd struct {
-	ctx         configs.Context
+	celer       *configs.Celer
 	buildType   string
 	dev         bool
 	purge       bool
@@ -31,14 +31,6 @@ func (r removeCmd) Command() *cobra.Command {
 				return
 			}
 
-			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-			r.ctx = celer
-
 			r.buildType, _ = cmd.Flags().GetString("build-type")
 			r.recurse, _ = cmd.Flags().GetBool("recurse")
 			r.purge, _ = cmd.Flags().GetBool("purge")
@@ -47,7 +39,7 @@ func (r removeCmd) Command() *cobra.Command {
 
 			// Use build_type from `celer.toml` if not specified.
 			if r.buildType == "" {
-				r.buildType = celer.Settings.BuildType
+				r.buildType = r.celer.Settings.BuildType
 			}
 
 			if err := r.remove(args); err != nil {
@@ -77,7 +69,7 @@ func (r removeCmd) remove(nameVersions []string) error {
 		var port configs.Port
 		port.DevDep = r.dev
 
-		if err := port.Init(r.ctx, nameVersion, r.buildType); err != nil {
+		if err := port.Init(r.celer, nameVersion, r.buildType); err != nil {
 			return err
 		}
 		if err := port.Remove(r.recurse, r.purge, r.removeCache); err != nil {

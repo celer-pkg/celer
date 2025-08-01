@@ -1,36 +1,50 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
-	"celer/pkgs/color"
+	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-type updateCmd struct{}
+type updateCmd struct {
+	celer     *configs.Celer
+	confRepo  bool
+	portsRepo bool
+	force     bool
+}
 
 func (u updateCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "update",
-		Short: "Update port's repo.",
-		Args:  cobra.ExactArgs(1),
+		Short: "Update conf repo, ports repo and port source.",
+		Args:  cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
+			if err := buildtools.CheckTools("git"); err != nil {
+				configs.PrintError(err, "failed to check git tools.")
 				return
 			}
 
-			nameVersion := args[0]
-			force, _ := cmd.Flags().GetBool("force")
-
-			if err := celer.UpdatePortRepo(nameVersion, force); err != nil {
-				color.Printf(color.Red, "%s\n", err.Error())
+			if u.confRepo {
+				if err := u.updateConfRepo(); err != nil {
+					configs.PrintError(err, "failed to update conf repo.")
+				}
+			} else if u.portsRepo {
+				if err := u.updatePortsRepo(); err != nil {
+					configs.PrintError(err, "failed to update ports repo.")
+				}
+			} else {
+				nameVersion := strings.ReplaceAll(args[0], "`", "")
+				if err := u.updatePort(nameVersion); err != nil {
+					configs.PrintError(err, "failed to update port repo.")
+				}
 			}
 		},
 		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -39,9 +53,72 @@ func (u updateCmd) Command() *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().BoolP("force", "f", false, "update port's repo forcibly")
+	command.Flags().BoolVarP(&u.confRepo, "conf-repo", "c", false, "update conf repo")
+	command.Flags().BoolVarP(&u.portsRepo, "ports-repo", "p", false, "update ports repo")
+	command.Flags().BoolVarP(&u.force, "force", "f", false, "update forcibly")
+
+	command.MarkFlagsMutuallyExclusive("conf-repo", "ports-repo")
 
 	return command
+}
+
+func (u updateCmd) updateConfRepo() error {
+	title := "[update conf repo]"
+	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
+	return cmd.UpdateRepo(title, repoDir, "", u.force)
+}
+
+func (u updateCmd) updatePortsRepo() error {
+	title := "[update ports repo]"
+	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
+	return cmd.UpdateRepo(title, repoDir, "", u.force)
+}
+
+func (u updateCmd) updatePort(nameVersion string) error {
+	// Update single repo.
+	if strings.TrimSpace(nameVersion) != "" {
+		return u.updatePortRepo(nameVersion)
+	}
+
+	// Update all repo of current project.
+	for _, nameVersion := range u.celer.Project().Ports {
+		if err := u.updatePortRepo(nameVersion); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (u updateCmd) updatePortRepo(nameVersion string) error {
+	// Read port file.
+	var port configs.Port
+	if err := port.Init(u.celer, nameVersion, "release"); err != nil {
+		return fmt.Errorf("%s: %w", nameVersion, err)
+	}
+
+	// Update repos of port's depedencies.
+	for _, nameVersion := range port.MatchedConfig.Dependencies {
+		if err := u.updatePortRepo(nameVersion); err != nil {
+			return err
+		}
+	}
+
+	// No need to update port if it's not git repo or its code is not exist.
+	srcDir := filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src")
+	if !fileio.PathExists(srcDir) {
+		return fmt.Errorf("%s/%s/src is not found, update is skipped", filepath.ToSlash(dirs.BuildtreesDir), nameVersion)
+	}
+	if !strings.HasSuffix(port.Package.Url, ".git") {
+		return fmt.Errorf("%s/%s/src is not git repo, update is skipped", filepath.ToSlash(dirs.BuildtreesDir), nameVersion)
+	}
+
+	// Update port.
+	title := fmt.Sprintf("[update %s]", nameVersion)
+	if err := cmd.UpdateRepo(title, srcDir, port.Package.Ref, u.force); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u updateCmd) completion(toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -81,7 +158,7 @@ func (u updateCmd) completion(toComplete string) ([]string, cobra.ShellCompDirec
 	}
 
 	// Support flags completion.
-	for _, flag := range []string{"--force", "-f"} {
+	for _, flag := range []string{"conf-repo", "ports-repo", "--force", "-f"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}

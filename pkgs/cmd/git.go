@@ -12,10 +12,30 @@ import (
 	"strings"
 )
 
-func UpdateRepo(srcDir, repoRef, nameVersion string) error {
+func UpdateRepo(title, repoDir, repoRef string, force bool) error {
+	// Check if repo is modified.
+	modified, err := IsRepoModified(repoDir)
+	if err != nil {
+		return err
+	}
+	if modified {
+		if !force {
+			return fmt.Errorf("repo file is modified, update is skipped ... ⭐⭐⭐ You can update forcibly with -f/--force ⭐⭐⭐")
+		}
+	}
+
+	// Get default branch if repoRef is empty.
+	if repoRef == "" {
+		branch, err := DefaultBranch(repoDir)
+		if err != nil {
+			return err
+		}
+		repoRef = branch
+	}
+
 	var isBranch = func(repoRef string) bool {
 		executor := NewExecutor("", fmt.Sprintf("git show-ref --quiet refs/remotes/origin/%s", repoRef))
-		executor.SetWorkDir(srcDir)
+		executor.SetWorkDir(repoDir)
 		return executor.Execute() == nil
 	}
 
@@ -34,9 +54,8 @@ func UpdateRepo(srcDir, repoRef, nameVersion string) error {
 
 	// Execute clone command.
 	commandLine := strings.Join(commands, " && ")
-	title := fmt.Sprintf("[update %s]", nameVersion)
 	executor := NewExecutor(title, commandLine)
-	executor.SetWorkDir(srcDir)
+	executor.SetWorkDir(repoDir)
 	return executor.Execute()
 }
 
@@ -251,4 +270,24 @@ func ReadGitCommit(repoDir string) (string, error) {
 	}
 
 	return strings.TrimSpace(out.String()), nil
+}
+
+func DefaultBranch(repoDir string) (string, error) {
+	exector := NewExecutor("", "git remote show origin")
+	outout, err := exector.ExecuteOutput()
+	if err != nil {
+		return "", fmt.Errorf("read git default branch: %w", err)
+	}
+
+	lines := strings.Split(outout, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "HEAD branch") {
+			parts := strings.Split(line, ":")
+			if len(parts) > 1 {
+				return strings.TrimSpace(parts[1]), nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("default branch not found")
 }

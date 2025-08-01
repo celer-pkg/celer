@@ -3,7 +3,6 @@ package configs
 import (
 	"celer/buildtools"
 	"celer/pkgs/cmd"
-	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"celer/pkgs/proxy"
@@ -16,7 +15,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-const portsRepo = "https://gitee.com/phil-zhang/celer-ports.git"
+const portsRepo = "https://github.com/celer-pkg/ports.git"
 
 var (
 	Version = "v0.0.0" // It would be set by build script.
@@ -24,6 +23,7 @@ var (
 )
 
 type Context interface {
+	Version() string
 	Platform() *Platform
 	Project() *Project
 	BuildType() string
@@ -149,9 +149,9 @@ func (c *Celer) Init() error {
 
 		// Clone ports repo.
 		command := fmt.Sprintf("git clone %s %s", c.configData.Settings.PortsRepo, portsDir)
-		executor := cmd.NewExecutor("[clone ports repo]", command)
+		executor := cmd.NewExecutor("[clone ports]", command)
 		if err := executor.Execute(); err != nil {
-			return err
+			return fmt.Errorf("`https://github.com/celer-pkg/ports.git` is not available, but your can change the default ports repo in celer.toml: %w", err)
 		}
 	}
 
@@ -347,7 +347,7 @@ func (c *Celer) CloneConf(confRepo string) error {
 
 		// Create celer conf file with default values.
 		c.Settings.JobNum = runtime.NumCPU()
-		c.Settings.BuildType = "Release"
+		c.Settings.BuildType = "release"
 		c.Settings.ConfRepo = confRepo
 		bytes, err := toml.Marshal(c)
 		if err != nil {
@@ -383,72 +383,6 @@ func (c *Celer) CloneConf(confRepo string) error {
 
 	// Update repo.
 	return c.updateConfRepo(c.Settings.ConfRepo)
-}
-
-func (c Celer) UpdatePortRepo(nameVersion string, force bool) error {
-	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
-
-	if !fileio.PathExists(celerPath) {
-		return fmt.Errorf("no celer.toml found, please init celer first")
-	}
-
-	// Read celer.toml to check if platform and project is selected.
-	bytes, err := os.ReadFile(celerPath)
-	if err != nil {
-		return err
-	}
-	celer := NewCeler()
-	if err := toml.Unmarshal(bytes, &celer); err != nil {
-		return fmt.Errorf("cannot unmarshal celer conf: %w", err)
-	}
-	if celer.Settings.Platform == "" {
-		return fmt.Errorf("no platform configured, please select a platform first")
-	}
-	if celer.Settings.Project == "" {
-		return fmt.Errorf("no project configurted, please select a project first")
-	}
-
-	// Init platform and project.
-	if err := celer.platform.Init(celer, celer.Settings.Platform); err != nil {
-		return err
-	}
-	if err := celer.project.Init(celer, celer.Settings.Project); err != nil {
-		return err
-	}
-
-	// git is required when cleaning port.
-	if err := buildtools.CheckTools("git"); err != nil {
-		return err
-	}
-
-	// Update single repo.
-	if strings.TrimSpace(nameVersion) != "" {
-		return c.updatePortRepo(celer, nameVersion, force)
-	}
-
-	// Update all repo of current project.
-	for _, nameVersion := range celer.project.Ports {
-		if err := c.updatePortRepo(celer, nameVersion, force); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (c Celer) About() string {
-	toolchainPath, _ := filepath.Abs("toolchain_file.cmake")
-	toolchainPath = color.Sprintf(color.Magenta, "%s", toolchainPath)
-
-	return fmt.Sprintf("\nWelcome to celer (%s).\n"+
-		"---------------------------------------\n"+
-		"This is a simple pkg-manager for C/C++.\n\n"+
-		"How to use it to build cmake project: \n"+
-		"option1: %s\n"+
-		"option2: %s\n\n",
-		Version,
-		color.Sprintf(color.Blue, "set(CMAKE_TOOLCHAIN_FILE \"%s\")", toolchainPath),
-		color.Sprintf(color.Blue, "cmake .. -DCMAKE_TOOLCHAIN_FILE=%s", toolchainPath),
-	)
 }
 
 func (c Celer) GenerateToolchainFile() error {
@@ -622,51 +556,11 @@ func (c Celer) updateConfRepo(repo string) error {
 	}
 }
 
-func (c Celer) updatePortRepo(ctx Context, nameVersion string, force bool) error {
-	// Read port file.
-	var port Port
-	if err := port.Init(ctx, nameVersion, "Release"); err != nil {
-		return fmt.Errorf("%s: %w", nameVersion, err)
-	}
-
-	// Update repos of port's depedencies.
-	for _, nameVersion := range port.MatchedConfig.Dependencies {
-		if err := c.updatePortRepo(ctx, nameVersion, force); err != nil {
-			return err
-		}
-	}
-
-	// No need to update port if it's not git repo or its code is not exist.
-	srcDir := filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src")
-	if !fileio.PathExists(srcDir) {
-		color.Sprintf(color.Green, "%s code is not exist, update is skipped...\n", nameVersion)
-		return nil
-	}
-	if !strings.HasSuffix(port.Package.Url, ".git") {
-		color.Sprintf(color.Green, "%s is not git repo, update is skipped...\n", nameVersion)
-		return nil
-	}
-
-	// Check if repo is modified.
-	modified, err := cmd.IsRepoModified(srcDir)
-	if err != nil {
-		return err
-	}
-	if modified {
-		if !force {
-			return fmt.Errorf("[x] %s source is modified, update is skipped ... ⭐⭐⭐ You can update forcibly with -f/--force ⭐⭐⭐", nameVersion)
-		}
-	}
-
-	// Update port.
-	if err := cmd.UpdateRepo(srcDir, port.Package.Ref, nameVersion); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // ======================= celer context implementation ====================== //
+
+func (c *Celer) Version() string {
+	return Version
+}
 
 func (c *Celer) Platform() *Platform {
 	return &c.platform

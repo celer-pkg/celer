@@ -11,20 +11,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type configureCmd struct{}
+type configureCmd struct {
+	celer *configs.Celer
+}
 
 func (c configureCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "configure",
 		Short: "Configure to change platform or project.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
 			platform, _ := cmd.Flags().GetString("platform")
 			project, _ := cmd.Flags().GetString("project")
 

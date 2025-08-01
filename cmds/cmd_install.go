@@ -14,6 +14,7 @@ import (
 )
 
 type installCmd struct {
+	celer     *configs.Celer
 	buildType string
 	dev       bool
 	force     bool
@@ -48,19 +49,12 @@ func (i installCmd) Command() *cobra.Command {
 }
 
 func (i installCmd) install(nameVersion string) {
-	// Init celer.
-	celer := configs.NewCeler()
-	if err := celer.Init(); err != nil {
-		configs.PrintError(err, "failed to init celer.")
-		return
-	}
-
 	// Use build_type from `celer.toml` if not specified.
 	if i.buildType == "" {
-		i.buildType = celer.Settings.BuildType
+		i.buildType = i.celer.Settings.BuildType
 	}
 
-	if err := celer.Platform().Setup(); err != nil {
+	if err := i.celer.Platform().Setup(); err != nil {
 		configs.PrintError(err, "setup platform failed: %s", err)
 		return
 	}
@@ -76,7 +70,7 @@ func (i installCmd) install(nameVersion string) {
 		return
 	}
 
-	portInProject := filepath.Join(dirs.ConfProjectsDir, celer.Project().Name, parts[0], parts[1], "port.toml")
+	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().Name, parts[0], parts[1], "port.toml")
 	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		configs.PrintError(fmt.Errorf("port %s is not found", nameVersion), "%s install failed.", nameVersion)
@@ -86,7 +80,7 @@ func (i installCmd) install(nameVersion string) {
 	// Install the port.
 	var port configs.Port
 	port.DevDep = i.dev
-	if err := port.Init(celer, nameVersion, i.buildType); err != nil {
+	if err := port.Init(i.celer, nameVersion, i.buildType); err != nil {
 		configs.PrintError(err, "init %s failed.", nameVersion)
 		return
 	}
@@ -98,13 +92,13 @@ func (i installCmd) install(nameVersion string) {
 
 	// Check circular dependence.
 	depcheck := depcheck.NewDepCheck()
-	if err := depcheck.CheckCircular(celer, port); err != nil {
+	if err := depcheck.CheckCircular(i.celer, port); err != nil {
 		configs.PrintError(err, "check circular dependence failed.")
 		return
 	}
 
 	// Check version conflict.
-	if err := depcheck.CheckConflict(celer, port); err != nil {
+	if err := depcheck.CheckConflict(i.celer, port); err != nil {
 		configs.PrintError(err, "check version conflict failed.")
 		return
 	}
