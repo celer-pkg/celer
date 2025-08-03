@@ -4,7 +4,6 @@ import (
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
-	"errors"
 	"os"
 	"strings"
 
@@ -12,7 +11,7 @@ import (
 )
 
 type removeCmd struct {
-	celer       *configs.Celer
+	ctx         configs.Context
 	buildType   string
 	dev         bool
 	purge       bool
@@ -26,14 +25,17 @@ func (r removeCmd) Command() *cobra.Command {
 		Short: "Uninstall a package.",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) == 0 {
-				configs.PrintError(errors.New("no package specified"), "failed to remove package.")
+			// Init celer.
+			celer := configs.NewCeler()
+			if err := celer.Init(); err != nil {
+				configs.PrintError(err, "failed to init celer.")
 				return
 			}
+			r.ctx = celer
 
 			// Use build_type from `celer.toml` if not specified.
 			if r.buildType == "" {
-				r.buildType = r.celer.Settings.BuildType
+				r.buildType = r.ctx.BuildType()
 			}
 
 			if err := r.remove(args); err != nil {
@@ -61,7 +63,7 @@ func (r removeCmd) remove(nameVersions []string) error {
 		var port configs.Port
 		port.DevDep = r.dev
 
-		if err := port.Init(r.celer, nameVersion, r.buildType); err != nil {
+		if err := port.Init(r.ctx, nameVersion, r.buildType); err != nil {
 			return err
 		}
 		if err := port.Remove(r.recurse, r.purge, r.removeCache); err != nil {

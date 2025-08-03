@@ -15,7 +15,7 @@ import (
 )
 
 type updateCmd struct {
-	celer     *configs.Celer
+	ctx       configs.Context
 	confRepo  bool
 	portsRepo bool
 	recurse   bool
@@ -27,6 +27,15 @@ func (u updateCmd) Command() *cobra.Command {
 		Use:   "update",
 		Short: "Update conf repo, ports repo and port source.",
 		Run: func(cmd *cobra.Command, args []string) {
+			// Init celer.
+			celer := configs.NewCeler()
+			if err := celer.Init(); err != nil {
+				configs.PrintError(err, "failed to init celer.")
+				return
+			}
+			u.ctx = celer
+
+			// Make sure git is available.
 			if err := buildtools.CheckTools("git"); err != nil {
 				configs.PrintError(err, "failed to check git tools.")
 				return
@@ -89,7 +98,7 @@ func (u updateCmd) updatePorts(targets []string) error {
 func (u updateCmd) updatePortRepo(nameVersion string) error {
 	// Read port file.
 	var port configs.Port
-	if err := port.Init(u.celer, nameVersion, "release"); err != nil {
+	if err := port.Init(u.ctx, nameVersion, "release"); err != nil {
 		return fmt.Errorf("%s: %w", nameVersion, err)
 	}
 

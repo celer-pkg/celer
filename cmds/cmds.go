@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/configs"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -43,20 +42,20 @@ var rootCmd = &cobra.Command{
 }
 
 // Execute register all commands and executes the command.
-func Execute(celer *configs.Celer) error {
+func Execute() error {
 	commands := []Command{
-		aboutCmd{celer: celer},
-		initCmd{celer: celer},
-		updateCmd{celer: celer},
-		createCmd{celer: celer},
-		configureCmd{celer: celer},
-		installCmd{celer: celer},
-		removeCmd{celer: celer},
-		integrateCmd{celer: celer},
-		deployCmd{celer: celer},
-		treeCmd{celer: celer},
-		cleanCmd{celer: celer},
-		autoremoveCmd{celer: celer},
+		aboutCmd{},
+		initCmd{},
+		updateCmd{},
+		createCmd{},
+		configureCmd{},
+		installCmd{},
+		removeCmd{},
+		integrateCmd{},
+		deployCmd{},
+		treeCmd{},
+		cleanCmd{},
+		autoremoveCmd{},
 	}
 
 	// Register commands.

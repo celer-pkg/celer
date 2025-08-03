@@ -17,7 +17,6 @@ import (
 )
 
 type integrateCmd struct {
-	celer     *configs.Celer
 	uninstall bool
 }
 

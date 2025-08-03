@@ -12,7 +12,7 @@ import (
 )
 
 type autoremoveCmd struct {
-	celer              *configs.Celer
+	ctx                configs.Context
 	projectPackages    []string
 	projectDevPackages []string
 	purge              bool
@@ -24,6 +24,14 @@ func (a autoremoveCmd) Command() *cobra.Command {
 		Use:   "autoremove",
 		Short: "Remove installed package but unreferenced by current project.",
 		Run: func(cmd *cobra.Command, args []string) {
+			// Init celer.
+			celer := configs.NewCeler()
+			if err := celer.Init(); err != nil {
+				configs.PrintError(err, "failed to init celer.")
+				return
+			}
+			a.ctx = celer
+
 			if err := a.autoremove(); err != nil {
 				configs.PrintError(err, "failed to autoremove.")
 				return
@@ -42,7 +50,7 @@ func (a autoremoveCmd) Command() *cobra.Command {
 
 func (a *autoremoveCmd) autoremove() error {
 	// Collect packages/devPackages that belongs to project.
-	for _, nameVersion := range a.celer.Project().Ports {
+	for _, nameVersion := range a.ctx.Project().Ports {
 		if err := a.collectProjectPackages(nameVersion); err != nil {
 			return err
 		}
@@ -66,7 +74,7 @@ func (a *autoremoveCmd) autoremove() error {
 
 		// Do remove package.
 		var port configs.Port
-		if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+		if err := port.Init(a.ctx, nameVersion, a.ctx.BuildType()); err != nil {
 			return err
 		}
 		if err := port.Remove(false, a.purge, a.removeCache); err != nil {
@@ -84,7 +92,7 @@ func (a *autoremoveCmd) autoremove() error {
 		// Do remove dev_package.
 		var port configs.Port
 		port.DevDep = true
-		if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+		if err := port.Init(a.ctx, nameVersion, a.ctx.BuildType()); err != nil {
 			return err
 		}
 		if err := port.Remove(false, a.purge, a.removeCache); err != nil {
@@ -97,7 +105,7 @@ func (a *autoremoveCmd) autoremove() error {
 
 func (a *autoremoveCmd) collectProjectPackages(nameVersion string) error {
 	var port configs.Port
-	if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+	if err := port.Init(a.ctx, nameVersion, a.ctx.BuildType()); err != nil {
 		return err
 	}
 
@@ -120,7 +128,7 @@ func (a *autoremoveCmd) collectProjectPackages(nameVersion string) error {
 
 func (a *autoremoveCmd) collectProjectDevPackages(nameVersion string) error {
 	var port configs.Port
-	if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+	if err := port.Init(a.ctx, nameVersion, a.ctx.BuildType()); err != nil {
 		return err
 	}
 
@@ -137,14 +145,14 @@ func (a *autoremoveCmd) collectProjectDevPackages(nameVersion string) error {
 }
 
 func (a autoremoveCmd) installedPackages() ([]string, []string, error) {
-	libraryFolder := fmt.Sprintf("%s@%s@%s", a.celer.Platform().Name,
-		a.celer.Project().Name, strings.ToLower(a.celer.BuildType()))
+	libraryFolder := fmt.Sprintf("%s@%s@%s", a.ctx.Platform().Name,
+		a.ctx.Project().Name, strings.ToLower(a.ctx.BuildType()))
 	depPkgs, err := a.readPackages(libraryFolder)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	devLibraryFolder := a.celer.Platform().HostName() + "-dev"
+	devLibraryFolder := a.ctx.Platform().HostName() + "-dev"
 	devDepPkgs, err := a.readPackages(devLibraryFolder)
 	if err != nil {
 		return nil, nil, err

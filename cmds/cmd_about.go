@@ -10,7 +10,6 @@ import (
 )
 
 type aboutCmd struct {
-	celer *configs.Celer
 }
 
 func (a aboutCmd) Command() *cobra.Command {
@@ -24,6 +23,7 @@ func (a aboutCmd) Command() *cobra.Command {
 }
 
 func (a aboutCmd) about() {
+	celer := configs.NewCeler()
 	toolchainPath, _ := filepath.Abs("toolchain_file.cmake")
 	toolchainPath = color.Sprintf(color.Magenta, "%s", toolchainPath)
 
@@ -33,7 +33,7 @@ func (a aboutCmd) about() {
 		"How to apply it in your cmake project: \n"+
 		"option1: %s\n"+
 		"option2: %s\n\n",
-		a.celer.Version(),
+		celer.Version(),
 		color.Sprintf(color.Blue, "set(CMAKE_TOOLCHAIN_FILE \"%s\")", toolchainPath),
 		color.Sprintf(color.Blue, "cmake .. -DCMAKE_TOOLCHAIN_FILE=%s", toolchainPath),
 	)

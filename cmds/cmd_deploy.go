@@ -21,6 +21,14 @@ func (d deployCmd) Command() *cobra.Command {
 		Use:   "deploy",
 		Short: "Deploy with selected platform and project.",
 		Run: func(cmd *cobra.Command, args []string) {
+			// Init celer.
+			celer := configs.NewCeler()
+			if err := celer.Init(); err != nil {
+				configs.PrintError(err, "failed to init celer.")
+				return
+			}
+			d.celer = celer
+
 			// Override dev mode if specified.
 			buildtools.DevMode = d.devMode
 			configs.DevMode = d.devMode

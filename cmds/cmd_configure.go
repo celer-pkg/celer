@@ -22,6 +22,14 @@ func (c configureCmd) Command() *cobra.Command {
 		Use:   "configure",
 		Short: "Configure to change platform or project.",
 		Run: func(cmd *cobra.Command, args []string) {
+			// Init celer.
+			celer := configs.NewCeler()
+			if err := celer.Init(); err != nil {
+				configs.PrintError(err, "failed to init celer.")
+				return
+			}
+			c.celer = celer
+
 			if c.platform != "" {
 				c.selectPlatform(c.platform)
 			} else if c.project != "" {
@@ -48,8 +56,7 @@ func (c configureCmd) Command() *cobra.Command {
 }
 
 func (c configureCmd) selectPlatform(platformName string) {
-	celer := configs.NewCeler()
-	if err := celer.ChangePlatform(platformName); err != nil {
+	if err := c.celer.ChangePlatform(platformName); err != nil {
 		configs.PrintError(err, "failed to select platform: %s.", platformName)
 		os.Exit(1)
 	}
@@ -58,8 +65,7 @@ func (c configureCmd) selectPlatform(platformName string) {
 }
 
 func (c configureCmd) selectProject(projectName string) {
-	celer := configs.NewCeler()
-	if err := celer.ChangeProject(projectName); err != nil {
+	if err := c.celer.ChangeProject(projectName); err != nil {
 		configs.PrintError(err, "failed to select project: %s.", projectName)
 		os.Exit(1)
 	}
