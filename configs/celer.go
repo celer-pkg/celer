@@ -146,8 +146,13 @@ func (c *Celer) Init() error {
 
 	// Clone celer ports repo if not exist.
 	portsDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	if !fileio.PathExists(portsDir) {
+	if !fileio.PathExists(filepath.Join(portsDir, ".git")) {
 		if err := buildtools.CheckTools("git"); err != nil {
+			return err
+		}
+
+		// Remove ports dir before clone it.
+		if err := os.RemoveAll(portsDir); err != nil {
 			return err
 		}
 
