@@ -48,7 +48,7 @@ func (t treeCmd) Command() *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().BoolVarP(&t.hideDevDep, "hide-dev", "h", false, "hide dev dep in dependencies tree.")
+	command.Flags().BoolVar(&t.hideDevDep, "hide-dev", false, "hide dev dep in dependencies tree.")
 	return command
 }
 
