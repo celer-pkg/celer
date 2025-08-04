@@ -1,110 +1,26 @@
-# 1. C.
+# 1. Celer的工作原理
 
-celer的workspace如下:
+&emsp;&emsp;不同的C++项目往往意味着可能需要不同的编译环境和依赖库，Celer推荐定义conf作为不同项目的项目的编译环境和编译选项的配置文件，conf的组成结构如下：
 
-```
-├── celer.toml
-├── conf
-│   ├── platforms
-│   │   ├── aarch64-linux-jetson.toml
-│   │   ├── aarch64-linux-raspberry.toml
-│   │   ├── x86_64-linux-20.04.toml
-│   │   └── x86_64-linux-22.04.toml
-│   └─── projects
-│       ├── project_001.toml
-│       ├── project_001
-│       │            ├─ ffmpeg
-│       │            │    └─ 5.1.6
-│       │            │       └─ port.toml
-│       │            └─ opencv
-│       │                └─ 4.1.2
-│       │                    └─ port.toml
-│       ├── project_002.toml
-│       └── project_003.toml
-├── downloads
-│   ├── cmake-3.30.5-linux-x86_64.tar.gz
-│   ├── gcc-9.5.0.tar.gz
-│   ├── nasm-2.16.03.tar.gz
-│   ├── ubuntu-base-20.04.5-base-amd64.tar.gz
-│   └── tools
-│        ├── cmake-3.30.5-linux-x86_64
-│        ├── gcc-9.5.0
-│        ├── nasm-2.16.03
-│        └── ubuntu-base-20.04.5-base-amd64
-├── installed
-│   ├── celer
-│   │   ├── hash
-│   │   │   ├── ffmpeg@3.4.13@x86_64-linux-20.04@Release.hash
-│   │   │   ├── opencv@3.4.18@x86_64-linux-20.04@Release.hash
-│   │   │   ├── x264@stable@x86_64-linux-20.04@Release.hash
-│   │   │   ├── x265@4.0@x86_64-linux-20.04@Release.hash
-│   │   │   └── zlib@1.3.1-x86_64-linux-20.04@Release.hash
-│   │   └── info
-│   │       ├── ffmpeg@3.4.13@x86_64-linux-20.04@Release.list
-│   │       ├── opencv@3.4.18@x86_64-linux-20.04@Release.list
-│   │       ├── x264@stable@x86_64-linux-20.04@Release.list
-│   │       ├── x265@4.0@x86_64-linux-20.04@Release.list
-│   │       └── zlib@1.3.1-x86_64-linux-20.04@Release.list
-│   └── x86_64-linux-20.04@Release
-│       ├── bin
-│       ├── include
-│       ├── lib
-│       └── share
-├── packages
-│   ├── ffmpeg@3.4.13@x86_64-linux-20.04@Release
-│   │   ├── include
-│   │   ├── lib
-│   │   └── share
-│   ├── opencv@3.4.18@x86_64-linux-20.04@Release
-│   │   ├── bin
-│   │   ├── include
-│   │   ├── lib
-│   │   └── share
-│   ├── x264@stable@x86_64-linux-20.04@Release
-│   │   ├── include
-│   │   └── lib
-│   └── x265@4.0@x86_64-linux-20.04@Release
-│       ├── include
-│       ├── lib
-│       └── share
-├── ports
-│    ├── ffmpeg
-│    │      ├── 3.4.13
-│    │      │   └── port.toml
-│    │      └─── 5.1.6
-│    │           └── port.toml
-│    ├── opencv
-│    ├── x265
-│    └── ...
-└── toolchain_file.cmake
-```
+- 平台定义（platforms/*.toml）：用于定义toolchain和rootfs，在Celer运行期间会读取并解析它们，里面的每一项配置都会体现在后面编译库的过程中；
+- 项目配置（projects/*.toml）：用于定义项目的依赖库列表，CMake全局变量，C++全局宏，C++全局编译选项，全局环境变量等，当执行deploy命令时会编译配置的依赖库，同时生成**toolchain_file.cmake**文件，所有的C++全局CMake变量、C++全局宏等都会定义在其中；
+- 库定制化（projects/*/port.toml）：不同的项目往往依赖库的不同版本，编译参数也需要定制，甚至还包含项目范围的私有库。
 
-主要由**celer.toml**，**conf**，**downloads**，**installed**，**packages**和**toolchain_file.cmake**等组成，详细成员介绍如下：
+&emsp;&emsp;其实，当conf缺失时，Celer依然可以工作，只不过Celer会调用本地已安装的toolchain进行编译：
 
-1. celer.toml: 这是celer的全局配置文件，用于定义`conf repo`，`current platform`，`current project`和`cache_dir`等，你可以通过celer的cli或者手动修改它。
+- 在Windows系统下，Celer会通过vswhere寻找系统里安装的VisualStudio作为toolchain，当目标库是makefile编译的，还会自动下载msys2并配置；
+- 在Linux系统下，Celer则会直接找本地安装的x86_64位的gcc和g++。
 
-2. conf: 如果需要通过celer进行交叉编译，以及工程化管理项目范围内的依赖，可以利用conf，我们推荐用一个仓库来管理此处的配置，所有可用的`platform`，`projects`，以及需要定制化的port都在其中定义。
-    - platform: 这个文件夹包含所有可用的平台配置文件，每个文件定义了工具链和根文件系统。
-    - projects: 这个文件夹包含所有可用的项目配置文件，每个文件定义了第三方库，全局CMake变量，环境变量，编译选项以及c++宏。
+## 2. 一键部署
 
-3. downloads: 所以编译资源以及三方库的压缩包都会下载到此目录下。
-4. installed: 所有第三方库都会被编译和安装到这个目录下，并且会按照平台特定的子目录进行存储，例如`x86_64-linux-20.04-release`。
-5. packages: 这是一个所有库编译安装的过渡目录，同时也是第三方库缓存包的检索和提取的目录。
-6. ports: 这个文件夹包含所有可用的第三方库，每个库都有自己的配置文件，定义了库的版本，编译选项和依赖关系。
-7. toolchain_file.cmake: 这是cmake进行交叉编译的配置文件，这也是celer执行deploy命令后生成的文件。
+当执行`./celer deploy`后，Celer会做如下工作：
 
-## 3. 一键部署
+- 检查并修复当前选择的平台的工具链，根文件系统和其他工具。如果缺失，Celer将下载它们并配置；
+- 检查当前选择的项目是否安装了第三方库。如果缺失，Celer将克隆它们的源代码，然后编译，同时包含它们的子依赖项。
 
-当执行`./celer --deploy`后，celer会做如下工作：
+Celer会根据conf目录下的配置文件，生成**toolchain_file.cmake**文件，这个文件可以直接用于cmake项目的编译。
 
-- 检查并修复当前选择的平台的工具链，根文件系统和其他工具。如果缺失，celer将下载它们并在进程中设置环境变量；
-- 检查当前选择的项目是否安装了第三方库。如果缺失，celer将克隆它们的源代码，然后配置，构建和安装，甚至它们的子依赖项。
-
-> **Tips:**
->
->实际上，`cmake configure`命令可以自动执行`./celer --setup`命令，从而实现一键部署。
-
-## 4. 关于和使用
+## 3. 关于和使用
 
 ./celer about 打印如下：
 
@@ -122,5 +38,5 @@ option2: cmake .. -DCMAKE_TOOLCHAIN_FILE=/home/phil/celer/toolchain_file.cmake
 
 **Tips:**
 
-1. celer在deploy执行成功后也就意味着生成了toolchain_file.cmake, 同时意味着项目开发可以选择仅仅依赖此toolchain_file.cmake即可。  
-2. 虽然celer还可以用来编译你的工程项目，但这不是是强制的，这也意味着当与他人合作开发，你可以将workspace下的downloaded（内部压缩包也可以删除）、installed、toolchain_file.cmake打包即可交付对方。
+1. Celer在deploy执行成功后也就意味着生成了**toolchain_file.cmake**，同时意味着项目开发可以选择仅仅依赖此**toolchain_file.cmake**即可。  
+2. 虽然Celer还可以用来编译你的工程项目，但这不是是强制的，这也意味着当与他人合作开发，你可以将workspace下的downloaded（内部压缩包也可以删除）、installed、toolchain_file.cmake打包即可交付对方。
