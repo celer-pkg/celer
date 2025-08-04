@@ -161,6 +161,10 @@ func (p Port) doInstallFromSource() error {
 			return err
 		}
 		hashFile := filepath.Join(p.packageDir, p.desc2hash(builddesc))
+		if err := os.MkdirAll(filepath.Dir(hashFile), os.ModePerm); err != nil {
+			installFailed = true
+			return err
+		}
 		if err := os.WriteFile(hashFile, []byte(builddesc), os.ModePerm); err != nil {
 			installFailed = true
 			return err

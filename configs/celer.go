@@ -122,6 +122,10 @@ func (c *Celer) Init() error {
 			if err := c.platform.Init(c, c.configData.Settings.Platform); err != nil {
 				return err
 			}
+		} else {
+			if err := c.platform.Setup(); err != nil {
+				return err
+			}
 		}
 
 		// Init project with project name.
@@ -142,8 +146,13 @@ func (c *Celer) Init() error {
 
 	// Clone celer ports repo if not exist.
 	portsDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	if !fileio.PathExists(portsDir) {
+	if !fileio.PathExists(filepath.Join(portsDir, ".git")) {
 		if err := buildtools.CheckTools("git"); err != nil {
+			return err
+		}
+
+		// Remove ports dir before clone it.
+		if err := os.RemoveAll(portsDir); err != nil {
 			return err
 		}
 
@@ -157,7 +166,7 @@ func (c *Celer) Init() error {
 
 	// Clone conf repo if specified.
 	if c.configData.Settings.ConfRepo != "" {
-		if err := c.CloneConf(c.configData.Settings.ConfRepo); err != nil {
+		if err := c.CloneConf(c.configData.Settings.ConfRepo, ""); err != nil {
 			return err
 		}
 	}
@@ -331,10 +340,10 @@ func (c Celer) CreatePort(nameVersion string) error {
 	return nil
 }
 
-func (c *Celer) CloneConf(confRepo string) error {
+func (c *Celer) CloneConf(url, branch string) error {
 	// No repo url specifeid, maybe want to update repo only.
-	if strings.TrimSpace(confRepo) == "" {
-		return c.updateConfRepo("")
+	if strings.TrimSpace(url) == "" {
+		return c.updateConfRepo("", branch)
 	}
 
 	// Create celer.toml if not exist.
@@ -348,7 +357,7 @@ func (c *Celer) CloneConf(confRepo string) error {
 		// Create celer conf file with default values.
 		c.Settings.JobNum = runtime.NumCPU()
 		c.Settings.BuildType = "release"
-		c.Settings.ConfRepo = confRepo
+		c.Settings.ConfRepo = url
 		bytes, err := toml.Marshal(c)
 		if err != nil {
 			return err
@@ -370,8 +379,8 @@ func (c *Celer) CloneConf(confRepo string) error {
 	}
 
 	// Override celer.toml with repo url.
-	if confRepo != "" {
-		c.Settings.ConfRepo = confRepo
+	if url != "" {
+		c.Settings.ConfRepo = url
 		bytes, err := toml.Marshal(c)
 		if err != nil {
 			return err
@@ -382,7 +391,7 @@ func (c *Celer) CloneConf(confRepo string) error {
 	}
 
 	// Update repo.
-	return c.updateConfRepo(c.Settings.ConfRepo)
+	return c.updateConfRepo(c.Settings.ConfRepo, branch)
 }
 
 func (c Celer) GenerateToolchainFile() error {
@@ -397,7 +406,7 @@ if(NOT DEFINED CELER_DEPLOYED)
 	find_program(CELER celer PATHS ${WORKSPACE_DIR} NO_DEFAULT_PATH)
 	if(CELER)
 		execute_process(
-			COMMAND ${CELER} deploy --dev --build-type=%s
+			COMMAND ${CELER} deploy --dev-mode --build-type=%s
 			WORKING_DIRECTORY ${WORKSPACE_DIR}
 			RESULT_VARIABLE celer_result
 		)
@@ -506,7 +515,7 @@ endif()`, c.BuildType()) + "\n")
 	return nil
 }
 
-func (c Celer) updateConfRepo(repo string) error {
+func (c Celer) updateConfRepo(repo, branch string) error {
 	// Extracted clone function for reusability.
 	cloneFunc := func(commands []string, workDir string) error {
 		commands = append(commands, fmt.Sprintf("git clone %s %s", repo, workDir))
@@ -523,6 +532,9 @@ func (c Celer) updateConfRepo(repo string) error {
 		var commands []string
 		commands = append(commands, "git reset --hard && git clean -xfd")
 		commands = append(commands, fmt.Sprintf("git -C %s fetch", workDir))
+		if branch != "" {
+			commands = append(commands, fmt.Sprintf("git -C %s checkout %s", workDir, branch))
+		}
 		commands = append(commands, "git pull")
 
 		// Execute clone command.

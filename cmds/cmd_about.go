@@ -10,7 +10,6 @@ import (
 )
 
 type aboutCmd struct {
-	celer *configs.Celer
 }
 
 func (a aboutCmd) Command() *cobra.Command {
@@ -18,23 +17,25 @@ func (a aboutCmd) Command() *cobra.Command {
 		Use:   "about",
 		Short: "About celer.",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Print(a.about())
+			a.about()
 		},
 	}
 }
 
-func (a aboutCmd) about() string {
+func (a aboutCmd) about() {
+	celer := configs.NewCeler()
 	toolchainPath, _ := filepath.Abs("toolchain_file.cmake")
 	toolchainPath = color.Sprintf(color.Magenta, "%s", toolchainPath)
 
-	return fmt.Sprintf("\nWelcome to celer (%s).\n"+
+	content := fmt.Sprintf("\nWelcome to celer (%s).\n"+
 		"---------------------------------------\n"+
 		"This is a simple pkg-manager for C/C++.\n\n"+
-		"How to use it to build cmake project: \n"+
+		"How to apply it in your cmake project: \n"+
 		"option1: %s\n"+
 		"option2: %s\n\n",
-		a.celer.Version(),
+		celer.Version(),
 		color.Sprintf(color.Blue, "set(CMAKE_TOOLCHAIN_FILE \"%s\")", toolchainPath),
 		color.Sprintf(color.Blue, "cmake .. -DCMAKE_TOOLCHAIN_FILE=%s", toolchainPath),
 	)
+	fmt.Print(content)
 }

@@ -270,9 +270,9 @@ func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string
 }
 
 func (b BuildConfig) Clone(url, ref, archive string) error {
-	// Clone repo only when source dir not exists.
-	if !fileio.PathExists(b.PortConfig.SrcDir) {
-		if strings.HasSuffix(url, ".git") {
+	// For git repo, clone it when source dir doesn't exists.
+	if strings.HasSuffix(url, ".git") {
+		if !fileio.PathExists(b.PortConfig.SrcDir) {
 			// Try to hack github repo url with proxy url.
 			redirectedUrl, err := proxy.HackRepoUrl(url)
 			if err != nil {
@@ -285,14 +285,22 @@ func (b BuildConfig) Clone(url, ref, archive string) error {
 			if err := cmd.NewExecutor(title, command).Execute(); err != nil {
 				return err
 			}
-		} else {
+		}
+	} else {
+		// For archive repo, download it and extract to src dir event src dir not empty.
+		archive = expr.If(archive == "", filepath.Base(url), archive)
+		if !fileio.PathExists(filepath.Join(dirs.DownloadedDir, archive)) {
 			// Create clean temp directory.
 			if err := dirs.CleanTmpFilesDir(); err != nil {
 				return fmt.Errorf("cannot create clean tmp dir: %w", err)
 			}
 
+			// Remove repor dir.
+			if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
+				return fmt.Errorf("cannot remove repo dir, err: %s", err)
+			}
+
 			// Check and repair resource.
-			archive = expr.If(archive == "", filepath.Base(url), archive)
 			repair := fileio.NewRepair(url, archive, ".", dirs.TmpFilesDir)
 			if err := repair.CheckAndRepair(); err != nil {
 				return err
@@ -309,7 +317,7 @@ func (b BuildConfig) Clone(url, ref, archive string) error {
 					return err
 				}
 			} else if len(entities) > 1 {
-				if err := fileio.RenameDir(dirs.TmpFilesDir, b.PortConfig.SrcDir); err != nil {
+				if err := fileio.RenameDir(dirs.TmpFilesDir, b.PortConfig.RepoDir); err != nil {
 					return err
 				}
 			}

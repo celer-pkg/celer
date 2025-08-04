@@ -17,7 +17,7 @@ import (
 )
 
 type integrateCmd struct {
-	celer *configs.Celer
+	uninstall bool
 }
 
 func (i integrateCmd) Command() *cobra.Command {
@@ -25,44 +25,36 @@ func (i integrateCmd) Command() *cobra.Command {
 		Use:   "integrate",
 		Short: "Integrates celer into [bash|fish|powershell|zsh]",
 		Run: func(cobraCmd *cobra.Command, args []string) {
-			remove, _ := cobraCmd.Flags().GetBool("remove")
-			if remove {
-				if err := i.uninstall(); err != nil {
-					configs.PrintError(err, "celer integration remove failed.")
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				configs.PrintError(err, "cannot get home dir.")
+				return
+			}
+
+			if i.uninstall {
+				if err := i.doUninstall(homeDir); err != nil {
+					configs.PrintError(err, "celer integration uninstall failed.")
 					return
 				}
-
-				configs.PrintSuccess("celer integration is removed.")
-				return
-			}
-
-			if err := i.installToSystem(); err != nil {
-				configs.PrintError(err, "celer integrate failed.")
-				return
-			}
-
-			configs.PrintSuccess("celer is integrated.")
-		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			// Support flags completion.
-			var suggestions []string
-			for _, flag := range []string{"--remove"} {
-				if strings.HasPrefix(flag, toComplete) {
-					suggestions = append(suggestions, flag)
+				configs.PrintSuccess("celer integration is uninstalled.")
+			} else {
+				if err := i.installToSystem(homeDir); err != nil {
+					configs.PrintError(err, "celer integrate failed.")
+					return
 				}
+				configs.PrintSuccess("celer is integrated.")
 			}
-
-			return suggestions, cobra.ShellCompDirectiveNoFileComp
 		},
+		ValidArgsFunction: i.completion,
 	}
 
 	// Register flags.
-	command.Flags().Bool("remove", false, "remove integrated celer")
+	command.Flags().BoolVarP(&i.uninstall, "uninstall", "u", false, "uninstall integrated celer.")
 
 	return command
 }
 
-func (i integrateCmd) uninstall() error {
+func (i integrateCmd) doUninstall(homeDir string) error {
 	switch runtime.GOOS {
 	case "windows":
 		// Remove completion ps file.
@@ -79,21 +71,17 @@ func (i integrateCmd) uninstall() error {
 		}
 
 	case "linux":
-		if err := i.ensureSudo(); err != nil {
-			return err
-		}
-
 		// Uninstall celer binary.
-		fmt.Println("[integrate] rm -f /usr/local/bin/celer")
-		cmd := exec.Command("sudo", "rm", "-f", "/usr/local/bin/celer")
+		fmt.Println("[integrate] rm -f ~/.local/bin/celer")
+		cmd := exec.Command("rm", "-f", filepath.Join(homeDir, ".local/bin/celer"))
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
 		cmd.Run()
 
 		// Uninstall celer_completion.
-		fmt.Println("[integrate] rm -f /etc/bash_completion.d/celer_completion")
-		cmd = exec.Command("sudo", "rm", "-f", "/etc/bash_completion.d/celer_completion")
+		fmt.Println("[integrate] rm -f ~/.local/share/bash-completion/completions/celer")
+		cmd = exec.Command("rm", "-f", filepath.Join(homeDir, ".local/share/bash-completion/completions/celer"))
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
@@ -103,25 +91,19 @@ func (i integrateCmd) uninstall() error {
 	return nil
 }
 
-func (i integrateCmd) installToSystem() error {
-	if runtime.GOOS == "linux" {
-		if err := i.ensureSudo(); err != nil {
-			return err
-		}
-	}
-
-	if err := i.installExecutable(); err != nil {
+func (i integrateCmd) installToSystem(homeDir string) error {
+	if err := i.installExecutable(homeDir); err != nil {
 		return err
 	}
 
-	if err := i.installCompletion(); err != nil {
+	if err := i.installCompletion(homeDir); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (i integrateCmd) installCompletion() error {
+func (i integrateCmd) installCompletion(homeDir string) error {
 	terminal, err := i.terminal()
 	if err != nil {
 		return fmt.Errorf("cannot guess terminal: %w", err)
@@ -138,7 +120,7 @@ func (i integrateCmd) installCompletion() error {
 
 	switch terminal {
 	case "bash":
-		filePath = filepath.Join(dirs.TmpFilesDir, "celer_completion")
+		filePath = filepath.Join(dirs.TmpFilesDir, "celer")
 		genFunc = rootCmd.GenBashCompletion
 
 	case "zsh":
@@ -172,14 +154,14 @@ func (i integrateCmd) installCompletion() error {
 	// Install completion file.
 	switch terminal {
 	case "bash":
-		destination := "/etc/bash_completion.d/celer_completion"
-		if err := i.executeCmd("sudo", "mkdir", "-p", filepath.Dir(destination)); err != nil {
+		destination := filepath.Join(homeDir, ".local", "share", "bash-completion", "completions", "celer")
+		if err := i.executeCmd("mkdir", "-p", filepath.Dir(destination)); err != nil {
 			return err
 		}
-		if err := i.executeCmd("sudo", "mv", filePath, destination); err != nil {
+		if err := i.executeCmd("mv", filePath, destination); err != nil {
 			return err
 		}
-		fmt.Printf("[integrate] celer_completion --> %s\n", destination)
+		fmt.Printf("[integrate] completion --> %s\n", destination)
 
 	case "zsh":
 		// cp completion file to  ~/.zsh/completions/
@@ -261,7 +243,7 @@ func (i integrateCmd) installCompletion() error {
 	return nil
 }
 
-func (i integrateCmd) installExecutable() error {
+func (i integrateCmd) installExecutable(homeDir string) error {
 	path, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("cannot get celer's path: %w", err)
@@ -270,7 +252,7 @@ func (i integrateCmd) installExecutable() error {
 	switch runtime.GOOS {
 	case "linux":
 		// Install celer into `/usr/local/bin`
-		if err := i.executeCmd("sudo", "cp", path, "/usr/local/bin"); err != nil {
+		if err := i.executeCmd("cp", path, filepath.Join(homeDir, ".local/bin")); err != nil {
 			return fmt.Errorf("failed to cp celer to `/usr/local/bin`: %w", err)
 		}
 
@@ -324,18 +306,21 @@ func (i integrateCmd) terminal() (string, error) {
 	return "", fmt.Errorf("unsupported terminal: %s", envValue)
 }
 
-func (i integrateCmd) ensureSudo() error {
-	if err := i.executeCmd("sudo", "-v"); err != nil {
-		return fmt.Errorf("wrong sudo password provided")
-	}
-
-	return nil
-}
-
 func (i integrateCmd) executeCmd(name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	return cmd.Run()
+}
+
+func (i integrateCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var suggestions []string
+	for _, flag := range []string{"--uninstall", "-u"} {
+		if strings.HasPrefix(flag, toComplete) {
+			suggestions = append(suggestions, flag)
+		}
+	}
+
+	return suggestions, cobra.ShellCompDirectiveNoFileComp
 }

@@ -122,3 +122,4 @@ checkBuildTools考虑每次append是否会重复添加 | ✘
 支持./celer search open*** 查询匹配的库 | ✘
 packages下再分子目录，结构跟cache_dir类似，为了方便直观的看到 | ✘
 支持格式化命令参数输出 | ✘
+linux下执行integrate避免需要sudo权限 | ✘

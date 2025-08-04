@@ -14,7 +14,6 @@ import (
 )
 
 type installCmd struct {
-	celer     *configs.Celer
 	buildType string
 	dev       bool
 	force     bool
@@ -27,34 +26,34 @@ func (i installCmd) Command() *cobra.Command {
 		Short: "Install a package.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			nameVersion := args[0]
-			i.dev, _ = cmd.Flags().GetBool("dev")
-			i.buildType, _ = cmd.Flags().GetString("build-type")
-			i.force, _ = cmd.Flags().GetBool("force")
-			i.recurse, _ = cmd.Flags().GetBool("recurse")
-			i.install(nameVersion)
+			i.install(args[0])
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return i.completion(toComplete)
-		},
+		ValidArgsFunction: i.completion,
 	}
 
 	// Register flags.
-	command.Flags().Bool("dev", false, "install package as runtime dev mode.")
-	command.Flags().String("build-type", "", "install package with build type.")
-	command.Flags().BoolP("force", "f", false, "uninstall package before install again.")
-	command.Flags().BoolP("recurse", "r", false, "uninstall package recursively before install again.")
+	command.Flags().BoolVarP(&i.dev, "dev", "d", false, "install package as runtime dev mode.")
+	command.Flags().StringVarP(&i.buildType, "build-type", "b", "release", "install package with build type.")
+	command.Flags().BoolVarP(&i.force, "force", "f", false, "uninstall package before install again.")
+	command.Flags().BoolVarP(&i.recurse, "recurse", "r", false, "uninstall package recursively before install again.")
 
 	return command
 }
 
 func (i installCmd) install(nameVersion string) {
-	// Use build_type from `celer.toml` if not specified.
-	if i.buildType == "" {
-		i.buildType = i.celer.Settings.BuildType
+	// Init celer.
+	celer := configs.NewCeler()
+	if err := celer.Init(); err != nil {
+		configs.PrintError(err, "failed to init celer.")
+		return
 	}
 
-	if err := i.celer.Platform().Setup(); err != nil {
+	// Use build_type from `celer.toml` if not specified.
+	if i.buildType == "" {
+		i.buildType = celer.Settings.BuildType
+	}
+
+	if err := celer.Platform().Setup(); err != nil {
 		configs.PrintError(err, "setup platform failed: %s", err)
 		return
 	}
@@ -70,7 +69,7 @@ func (i installCmd) install(nameVersion string) {
 		return
 	}
 
-	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().Name, parts[0], parts[1], "port.toml")
+	portInProject := filepath.Join(dirs.ConfProjectsDir, celer.Project().Name, parts[0], parts[1], "port.toml")
 	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		configs.PrintError(fmt.Errorf("port %s is not found", nameVersion), "%s install failed.", nameVersion)
@@ -80,7 +79,7 @@ func (i installCmd) install(nameVersion string) {
 	// Install the port.
 	var port configs.Port
 	port.DevDep = i.dev
-	if err := port.Init(i.celer, nameVersion, i.buildType); err != nil {
+	if err := port.Init(celer, nameVersion, i.buildType); err != nil {
 		configs.PrintError(err, "init %s failed.", nameVersion)
 		return
 	}
@@ -92,13 +91,13 @@ func (i installCmd) install(nameVersion string) {
 
 	// Check circular dependence.
 	depcheck := depcheck.NewDepCheck()
-	if err := depcheck.CheckCircular(i.celer, port); err != nil {
+	if err := depcheck.CheckCircular(celer, port); err != nil {
 		configs.PrintError(err, "check circular dependence failed.")
 		return
 	}
 
 	// Check version conflict.
-	if err := depcheck.CheckConflict(i.celer, port); err != nil {
+	if err := depcheck.CheckConflict(celer, port); err != nil {
 		configs.PrintError(err, "check version conflict failed.")
 		return
 	}
@@ -116,7 +115,7 @@ func (i installCmd) install(nameVersion string) {
 	}
 }
 
-func (i installCmd) completion(toComplete string) ([]string, cobra.ShellCompDirective) {
+func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	var portsDir = dirs.PortsDir
 
@@ -140,7 +139,7 @@ func (i installCmd) completion(toComplete string) ([]string, cobra.ShellCompDire
 		})
 
 		// Support flags completion.
-		for _, flag := range []string{"--dev", "--build-type", "--force", "-f"} {
+		for _, flag := range []string{"--dev", "-d", "--build-type", "-b", "--force", "-f"} {
 			if strings.HasPrefix(flag, toComplete) {
 				suggestions = append(suggestions, flag)
 			}

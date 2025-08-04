@@ -17,7 +17,7 @@ import (
 )
 
 type cleanCmd struct {
-	celer   *configs.Celer
+	ctx     configs.Context
 	recurse bool
 	dev     bool
 	all     bool
@@ -29,9 +29,13 @@ func (c cleanCmd) Command() *cobra.Command {
 		Use:   "clean",
 		Short: "Clean build cache for package or project",
 		Run: func(cmd *cobra.Command, args []string) {
-			c.recurse, _ = cmd.Flags().GetBool("recurse")
-			c.dev, _ = cmd.Flags().GetBool("dev")
-			c.all, _ = cmd.Flags().GetBool("all")
+			// Init celer.
+			celer := configs.NewCeler()
+			if err := celer.Init(); err != nil {
+				configs.PrintError(err, "failed to init celer.")
+				return
+			}
+			c.ctx = celer
 
 			if c.all {
 				if err := c.cleanAll(); err != nil {
@@ -51,15 +55,13 @@ func (c cleanCmd) Command() *cobra.Command {
 				}
 			}
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return c.completion(toComplete)
-		},
+		ValidArgsFunction: c.completion,
 	}
 
 	// Register flags.
-	command.Flags().BoolP("recurse", "r", false, "clean package/project along with its depedencies.")
-	command.Flags().BoolP("dev", "d", false, "clean package/project for dev mode.")
-	command.Flags().BoolP("all", "a", false, "clean all packages.")
+	command.Flags().BoolVarP(&c.recurse, "recurse", "r", false, "clean package/project along with its depedencies.")
+	command.Flags().BoolVarP(&c.dev, "dev", "d", false, "clean package/project for dev mode.")
+	command.Flags().BoolVarP(&c.all, "all", "a", false, "clean all packages.")
 	return command
 }
 
@@ -75,7 +77,7 @@ func (c *cleanCmd) clean(targets []string) error {
 			// Init port.
 			var port configs.Port
 			port.DevDep = false
-			if err := port.Init(c.celer, target, c.celer.BuildType()); err != nil {
+			if err := port.Init(c.ctx, target, c.ctx.BuildType()); err != nil {
 				return err
 			}
 
@@ -98,7 +100,7 @@ func (c *cleanCmd) clean(targets []string) error {
 			}
 		} else {
 			var project configs.Project
-			if err := project.Init(c.celer, target); err != nil {
+			if err := project.Init(c.ctx, target); err != nil {
 				return err
 			}
 
@@ -106,7 +108,7 @@ func (c *cleanCmd) clean(targets []string) error {
 				// Init port.
 				var port configs.Port
 				port.DevDep = false
-				if err := port.Init(c.celer, nameVersion, c.celer.BuildType()); err != nil {
+				if err := port.Init(c.ctx, nameVersion, c.ctx.BuildType()); err != nil {
 					return err
 				}
 
@@ -163,7 +165,7 @@ func (c *cleanCmd) cleanAll() error {
 
 			// Clean repo.
 			var port configs.Port
-			if err := port.Init(c.celer, nameVersion, c.celer.BuildType()); err != nil {
+			if err := port.Init(c.ctx, nameVersion, c.ctx.BuildType()); err != nil {
 				return err
 			}
 			if err := port.MatchedConfig.CleanRepo(); err != nil {
@@ -206,7 +208,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 			var depPort configs.Port
 			depPort.DevDep = port.DevDep
 			depPort.Native = port.Native
-			if err := depPort.Init(c.celer, nameVersion, c.celer.BuildType()); err != nil {
+			if err := depPort.Init(c.ctx, nameVersion, c.ctx.BuildType()); err != nil {
 				return err
 			}
 
@@ -224,7 +226,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 			var devDepPort configs.Port
 			devDepPort.DevDep = true
 			devDepPort.Native = true
-			if err := devDepPort.Init(c.celer, nameVersion, c.celer.BuildType()); err != nil {
+			if err := devDepPort.Init(c.ctx, nameVersion, c.ctx.BuildType()); err != nil {
 				return err
 			}
 
@@ -240,7 +242,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 	return nil
 }
 
-func (c cleanCmd) completion(toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c cleanCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	var buildtreesDir = dirs.BuildtreesDir
 

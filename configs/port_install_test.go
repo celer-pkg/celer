@@ -3,6 +3,7 @@ package configs
 import (
 	"celer/pkgs/dirs"
 	"os"
+	"runtime"
 	"testing"
 )
 
@@ -23,7 +24,11 @@ func TestInstall(t *testing.T) {
 	dirs.Init(dirs.ParentDir(currentDir, 1))
 
 	celer := NewCeler()
-	check(celer.ChangePlatform("x86_64-windows-msvc-14.44"))
+	if runtime.GOOS == "windows" {
+		check(celer.ChangePlatform("x86_64-windows-msvc-14.44"))
+	} else {
+		check(celer.ChangePlatform("x86_64-linux-ubuntu-22.04"))
+	}
 	check(celer.Init())
 
 	var port Port

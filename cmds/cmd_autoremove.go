@@ -12,7 +12,7 @@ import (
 )
 
 type autoremoveCmd struct {
-	celer              *configs.Celer
+	ctx                configs.Context
 	projectPackages    []string
 	projectDevPackages []string
 	purge              bool
@@ -24,8 +24,13 @@ func (a autoremoveCmd) Command() *cobra.Command {
 		Use:   "autoremove",
 		Short: "Remove installed package but unreferenced by current project.",
 		Run: func(cmd *cobra.Command, args []string) {
-			a.removeCache, _ = cmd.Flags().GetBool("remove-cache")
-			a.purge, _ = cmd.Flags().GetBool("purge")
+			// Init celer.
+			celer := configs.NewCeler()
+			if err := celer.Init(); err != nil {
+				configs.PrintError(err, "failed to init celer.")
+				return
+			}
+			a.ctx = celer
 
 			if err := a.autoremove(); err != nil {
 				configs.PrintError(err, "failed to autoremove.")
@@ -34,20 +39,18 @@ func (a autoremoveCmd) Command() *cobra.Command {
 
 			configs.PrintSuccess("autoremove successfully.")
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			return a.completion(toComplete)
-		},
+		ValidArgsFunction: a.completion,
 	}
 
-	command.Flags().Bool("remove-cache", false, "autoremove packages along with build cache.")
-	command.Flags().Bool("purge", false, "autoremove packages along with its package file.")
+	command.Flags().BoolVarP(&a.removeCache, "remove-cache", "c", false, "autoremove packages along with build cache.")
+	command.Flags().BoolVarP(&a.purge, "purge", "p", false, "autoremove packages along with its package file.")
 
 	return command
 }
 
 func (a *autoremoveCmd) autoremove() error {
 	// Collect packages/devPackages that belongs to project.
-	for _, nameVersion := range a.celer.Project().Ports {
+	for _, nameVersion := range a.ctx.Project().Ports {
 		if err := a.collectProjectPackages(nameVersion); err != nil {
 			return err
 		}
@@ -71,7 +74,7 @@ func (a *autoremoveCmd) autoremove() error {
 
 		// Do remove package.
 		var port configs.Port
-		if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+		if err := port.Init(a.ctx, nameVersion, a.ctx.BuildType()); err != nil {
 			return err
 		}
 		if err := port.Remove(false, a.purge, a.removeCache); err != nil {
@@ -89,7 +92,7 @@ func (a *autoremoveCmd) autoremove() error {
 		// Do remove dev_package.
 		var port configs.Port
 		port.DevDep = true
-		if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+		if err := port.Init(a.ctx, nameVersion, a.ctx.BuildType()); err != nil {
 			return err
 		}
 		if err := port.Remove(false, a.purge, a.removeCache); err != nil {
@@ -102,7 +105,7 @@ func (a *autoremoveCmd) autoremove() error {
 
 func (a *autoremoveCmd) collectProjectPackages(nameVersion string) error {
 	var port configs.Port
-	if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+	if err := port.Init(a.ctx, nameVersion, a.ctx.BuildType()); err != nil {
 		return err
 	}
 
@@ -125,7 +128,7 @@ func (a *autoremoveCmd) collectProjectPackages(nameVersion string) error {
 
 func (a *autoremoveCmd) collectProjectDevPackages(nameVersion string) error {
 	var port configs.Port
-	if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+	if err := port.Init(a.ctx, nameVersion, a.ctx.BuildType()); err != nil {
 		return err
 	}
 
@@ -142,14 +145,14 @@ func (a *autoremoveCmd) collectProjectDevPackages(nameVersion string) error {
 }
 
 func (a autoremoveCmd) installedPackages() ([]string, []string, error) {
-	libraryFolder := fmt.Sprintf("%s@%s@%s", a.celer.Platform().Name,
-		a.celer.Project().Name, strings.ToLower(a.celer.BuildType()))
+	libraryFolder := fmt.Sprintf("%s@%s@%s", a.ctx.Platform().Name,
+		a.ctx.Project().Name, strings.ToLower(a.ctx.BuildType()))
 	depPkgs, err := a.readPackages(libraryFolder)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	devLibraryFolder := a.celer.Platform().HostName() + "-dev"
+	devLibraryFolder := a.ctx.Platform().HostName() + "-dev"
 	devDepPkgs, err := a.readPackages(devLibraryFolder)
 	if err != nil {
 		return nil, nil, err
@@ -178,11 +181,11 @@ func (a autoremoveCmd) readPackages(libraryFolder string) ([]string, error) {
 	return packages, nil
 }
 
-func (a autoremoveCmd) completion(toComplete string) ([]string, cobra.ShellCompDirective) {
+func (a autoremoveCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Support flags completion.
-	for _, flag := range []string{"--remove-cache", "--purge"} {
+	for _, flag := range []string{"--remove-cache", "-c", "--purge", "-p"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}

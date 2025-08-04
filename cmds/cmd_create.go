@@ -9,7 +9,10 @@ import (
 )
 
 type createCmd struct {
-	celer *configs.Celer
+	celer    *configs.Celer
+	platform string
+	project  string
+	port     string
 }
 
 func (c createCmd) Command() *cobra.Command {
@@ -17,41 +20,36 @@ func (c createCmd) Command() *cobra.Command {
 		Use:   "create",
 		Short: "Create new [platform|project|port].",
 		Run: func(cmd *cobra.Command, args []string) {
-			platform, _ := cmd.Flags().GetString("platform")
-			project, _ := cmd.Flags().GetString("project")
-			port, _ := cmd.Flags().GetString("port")
+			// Init celer.
+			celer := configs.NewCeler()
+			if err := celer.Init(); err != nil {
+				configs.PrintError(err, "failed to init celer.")
+				return
+			}
+			c.celer = celer
 
-			if platform != "" {
-				c.createPlatform(platform)
-			} else if project != "" {
-				c.createProject(project)
-			} else if port != "" {
-				c.createPort(port)
+			if c.platform != "" {
+				c.createPlatform(c.platform)
+			} else if c.project != "" {
+				c.createProject(c.project)
+			} else if c.port != "" {
+				c.createPort(c.port)
 			}
 		},
-		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-			// Support flags completion.
-			var suggestions []string
-			for _, flag := range []string{"--platform", "--project", "--port"} {
-				if strings.HasPrefix(flag, toComplete) {
-					suggestions = append(suggestions, flag)
-				}
-			}
-			return suggestions, cobra.ShellCompDirectiveNoFileComp
-		},
+		ValidArgsFunction: c.completion,
 	}
 
 	// Register flags.
-	command.Flags().String("platform", "", "create new platform.")
-	command.Flags().String("project", "", "create new project.")
-	command.Flags().String("port", "", "create new port.")
+	command.Flags().StringVar(&c.platform, "platform", "", "create new platform.")
+	command.Flags().StringVar(&c.project, "project", "", "create new project.")
+	command.Flags().StringVar(&c.port, "port", "", "create new port.")
 
+	command.MarkFlagsMutuallyExclusive("platform", "project", "port")
 	return command
 }
 
 func (c createCmd) createPlatform(platformName string) {
-	celer := configs.NewCeler()
-	if err := celer.CreatePlatform(platformName); err != nil {
+	if err := c.celer.CreatePlatform(platformName); err != nil {
 		configs.PrintError(err, "%s could not be created.", platformName)
 		os.Exit(1)
 	}
@@ -60,8 +58,7 @@ func (c createCmd) createPlatform(platformName string) {
 }
 
 func (c createCmd) createProject(projectName string) {
-	celer := configs.NewCeler()
-	if err := celer.CreateProject(projectName); err != nil {
+	if err := c.celer.CreateProject(projectName); err != nil {
 		configs.PrintSuccess("%s could not be created.", projectName)
 		os.Exit(1)
 	}
@@ -70,11 +67,20 @@ func (c createCmd) createProject(projectName string) {
 }
 
 func (c createCmd) createPort(nameVersion string) {
-	celer := configs.NewCeler()
-	if err := celer.CreatePort(nameVersion); err != nil {
+	if err := c.celer.CreatePort(nameVersion); err != nil {
 		configs.PrintError(err, "%s could not be created.", nameVersion)
 		os.Exit(1)
 	}
 
 	configs.PrintSuccess("%s is created, please proceed with its refinement.", nameVersion)
+}
+
+func (c createCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var suggestions []string
+	for _, flag := range []string{"--platform", "--project", "--port"} {
+		if strings.HasPrefix(flag, toComplete) {
+			suggestions = append(suggestions, flag)
+		}
+	}
+	return suggestions, cobra.ShellCompDirectiveNoFileComp
 }
