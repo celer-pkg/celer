@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"celer/buildtools"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -144,13 +143,39 @@ func (c *Celer) Init() error {
 	// Cache github proxies globally.
 	proxy.CacheGithubProxies(c.configData.Settings.GithubAssetProxy, c.configData.Settings.GithubRepoProxy)
 
-	// Clone celer ports repo if not exist.
+	// Clone ports repo if empty.
+	if err := c.clonePorts(); err != nil {
+		return err
+	}
+
+	// Clone conf repo if specified.
+	if c.configData.Settings.ConfRepo != "" {
+		if err := c.CloneConf(c.configData.Settings.ConfRepo, ""); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c Celer) clonePorts() error {
+	var cloneRequired bool
+
 	portsDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	if !fileio.PathExists(filepath.Join(portsDir, ".git")) {
-		if err := buildtools.CheckTools("git"); err != nil {
+	if !fileio.PathExists(portsDir) {
+		cloneRequired = true
+	} else {
+		entities, err := os.ReadDir(portsDir)
+		if err != nil {
 			return err
 		}
 
+		if len(entities) == 0 {
+			cloneRequired = true
+		}
+	}
+
+	if cloneRequired {
 		// Remove ports dir before clone it.
 		if err := os.RemoveAll(portsDir); err != nil {
 			return err
@@ -161,13 +186,6 @@ func (c *Celer) Init() error {
 		executor := cmd.NewExecutor("[clone ports]", command)
 		if err := executor.Execute(); err != nil {
 			return fmt.Errorf("`https://github.com/celer-pkg/ports.git` is not available, but your can change the default ports repo in celer.toml: %w", err)
-		}
-	}
-
-	// Clone conf repo if specified.
-	if c.configData.Settings.ConfRepo != "" {
-		if err := c.CloneConf(c.configData.Settings.ConfRepo, ""); err != nil {
-			return err
 		}
 	}
 
