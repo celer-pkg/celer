@@ -1,6 +1,6 @@
-# 创建托管新的三方库
+# 如何贡献新的三方库
 
-&emsp;&emsp;三方库的配置文件存储在 `workspace/ports` 目录下，在这个文件中，我们描述了三方库从哪里克隆代码，如何构建，以及当前三方库依赖于哪些其他三方库。
+&emsp;&emsp;三方库的配置文件存储在 `workspace/ports` 目录下，同时ports目录是一个独立repo，专门存储所有三方库的配置文件。在这个文件中，我们描述了三方库从哪里克隆/下载源代码，如何构建，以及当前三方库依赖于哪些其他三方库等。
 
 ## 1. 如何托管新的库
 
@@ -18,9 +18,9 @@
 
 ```toml
 [package]
-url                 = "https://github.com/google/xxx.git"
+url                 = "https://github.com/google/glog.git"
 ref                 = "v0.6.0"
-archive             = "glog-0.6.0.tar.gz"   # optional field
+archive             = ""                    # optional field, it works only when url is not a git url.
 src_dir             = "xxx"                 # optional field
 supported_hosts     = [...]                 # optional field
 
@@ -66,15 +66,15 @@ options = [
 
 **Tips**：
 
-1. url: 三方库的git仓库地址, 也可以是https的地址, 但是在国内可能无法访问, 可以fork到自己的仓库, 然后url可以是自己的仓库地址, 甚至测试期间可以以`file:///`开头指向一个本地仓库；
-2. ref: 库的tag名字, 也可以是branch名称，当库的代码是压缩包形式下载的，ref也可以是压缩包的文件里的版本号；  
-3. archive: 可选, 当库的代码是压缩包形式下载的, 可以指定下载后后新的压缩包名字, 比如`boost_1_87_0.tar.gz`;  
-4. src_dir：可选，有些库的`configure`或者`CMakeLists.txt`不在根目录下, 比如`icu`库的`configure`文件在`icu4c/source`目录下;  
-5. build_config: 三方库的编译配置很多时候一个三方库在不同系统平台有着不同的编译方式, 区别往往体现在不同系统平台需要不同的编译参数，甚至编译步骤也不一样，甚至不少库在windows上编译需要特种预处理和后处理才能顺利编译。因此，build_config的定义是一个数组，我们可以在这里定义如何在不同系统平台上编译。
+1. **url**: 三方库的git仓库地址, 也可以是https或者ftp地址, 甚至测试期间可以以`file:///`开头指向一个本地仓库；
+2. **ref**: 库的tag名字, 也可以是branch名称，甚至是commit id，当库的代码是压缩包形式下载的，ref也可以是压缩包的文件名里的版本号；  
+3. **archive**: 可选, 当库的代码是压缩包形式下载的, 可以指定下载后后新的压缩包名字, 比如`boost_1_87_0.tar.gz`;  
+4. **src_dir**: 可选，有些库的`configure`文件或者`CMakeLists.txt`文件不在根目录下, 比如`icu`库的`configure`文件在`icu4c/source`目录下，我们可以通过`src_dir`来指定;  
+5. **build_config**: 三方库的编译配置很多时候一个三方库在不同系统平台有着不同的编译方式, 区别往往体现在不同系统平台需要不同的编译参数，甚至编译步骤也不一样，甚至不少库在windows上编译需要特种预处理和后处理才能顺利编译。因此，build_config的定义是一个数组，我们可以在这里定义如何在不同系统平台上编译。
 
 ## 2.2 build_config
 
-&emsp;&emsp;`buildconfig`被设计成一个数组，为的是满足一个库在不同系统平台下不同的编译方式或者差异，`celer`会根据`pattern`自动找到匹配的buildconig来组织编译命令并编译。
+&emsp;&emsp;`build_configs`被设计成一个数组，为的是满足一个库在不同系统平台下不同的编译方式或者差异，`celer`会根据`pattern`自动找到匹配的`build_conig`来组织编译命令并编译。
 
 ### 2.2.1 pattern
 
@@ -91,14 +91,14 @@ options = [
 
 ### 2.2.2 build_system
 
-&emsp;&emsp;不同的编译工具在实现交叉编译时，它们的配置差异巨大，但主体流程无非是`configure`、`build`和`install`等，`celer`为了简化用户的使用，将其都封装抽象为一个个buildsystem的选项，目前选项支持`b2`, `bazel`, `cmake`, `gyp`, `makefiles`, `meson`, `ninja`， `celer`会在未来扩展支持更多的构建工具。
+&emsp;&emsp;不同的编译工具在实现交叉编译时，它们的配置差异巨大，Celer为了简化用户的使用，将其都封装抽象为一个个buildsystem的选项，目前选项支持`b2`, `cmake`, `gyp`, `makefiles`, `meson`, `ninja`等， Celer会在未来扩展支持更多的构建工具，比如：bazel, msbuild, scons等。
 
 ### 2.2.3 build_tools
 
 &emsp;&emsp;可选，有些库编译需要本地安装额外的工具，比如：ruby、perl，甚至需要通过pip3安装额外的python库，例如：["ruby", "perl", "python3:setuptools"]
 
 >**Tip:**  
-实际celer内置管理的build tool有很多，比如：Window版本的CMake，MinGit，strawberry-perl，msys2，vswhere，等，只是这些绝大部分不需要用户关心，当切换不同buildsystem，这些隐藏的工具被被自动加入到了buildtools里了。比如：在windows上选择makefiles编译时候，msys2被自动加入buildtools。
+实际Celer内置管理的build tool有很多，比如：Window版本的CMake，MinGit，strawberry-perl，msys2，vswhere等，只是这些绝大部分不需要用户关心，当切换不同buildsystem，这些隐藏的工具被被自动加入到了buildtools里了。比如：在windows上选择makefiles编译时候，msys2被自动加入buildtools。
 
 ### 2.2.4 library_type
 
@@ -108,21 +108,19 @@ options = [
 
 &emsp;&emsp;可选，有一些古老的`makefiles`项目不支持以`--enable-shared`方式指定编译动态库，而是以`--with-shared`方式指定，为了灵活支持故在此预留配置入口。你可能会害怕这里的配置麻烦，幸运的是`build_shared`的值根据不同的`buildsystem`都有对应的默认值，只要按需覆盖指定即可, 而且需要覆盖的情况非常罕见，它们的默认值如下：
 
-- cmake: "-DBUILD_SHARED_LIBS=ON"
-- makefiles: "--enable-shared"
-- meson: "--default-library=shared"
-- b2: "link=shared runtime-link=shared"
+- **cmake**: "-DBUILD_SHARED_LIBS=ON"
+- **makefiles**: "--enable-shared"
+- **meson**: "--default-library=shared"
+- **b2**: "link=shared runtime-link=shared"
 
 同时，build_static对应不同buildsystem的默认值如下：
 
-- cmake: "-DBUILD_SHARED_LIBS=OFF"
-- makefiles: "--enable-static"
-- meson: "--default-library=static"
-- b2: "link=static runtime-link=static"
+- **cmake**: "-DBUILD_SHARED_LIBS=OFF"
+- **makefiles**: "--enable-static"
+- **meson**: "--default-library=static"
+- **b2**: "link=static runtime-link=static"
 
 当`library_type`被设置为`shared`, 则读取`build_shared`里的值作为编译选项参数，否则读取`build_static`里的值作为编译选项。
-
->**Tip:** 因为makefiles的历史分裂性，不是所有的库都支持`--enable-static`的，如果不支持却依然指定，编译期间会有警告输出，可以选择用"-"覆盖，即：`build_static = "-"`。
 
 ### 2.2.6 c_standard, cxx_standard
 
@@ -137,7 +135,7 @@ cxx_standard候选值：`C++98`、`C++03`、`C++11`、`C++14`、`C++17`、`C++20
 
 ### 2.2.8 patches
 
-&emsp;&emsp;可选, 有些库源码有一些问题会导致编译报错，传统办法是手动修改源码再重新编译，为了能方便一键编译，我们可以针对源码的修改创建修复的patch，你可以在port的版本目录下创建多个patch文件，支持git patch, 也支持linux patch, 比如：`"patches/0001-fix.patch"`， 这里是要给数组，因此允许定义多个patch文件，每次configure前celer会先应用这些patch。
+&emsp;&emsp;可选, 有些库源码有一些问题会导致编译报错，传统办法是手动修改源码再重新编译，为了能方便一键编译，我们可以针对源码的修改创建修复的patch，你可以在port的版本目录下创建多个patch文件，支持git patch, 也支持linux patch, 这里类型是一个数组，因此允许定义多个patch文件，每次configure前Celer会先尝试应用这些patch。
 
 ### 2.2.9 build_in_source
 
@@ -189,19 +187,19 @@ options = [
 
 ### 2.2.14 options
 
-&emsp;&emsp;编译三方库的时候, 总是有很多的选项需要开启或者关闭, 我们可以在这里定义它们, 比如`-DBUILD_TESTING=OFF`, `--host=${HOST}`；
+&emsp;&emsp;编译三方库的时候, 总是有很多的选项需要开启或者关闭, 我们可以在这里定义它们, 比如`-DBUILD_TESTING=OFF`；
 
 ## 3. 动态变量
 
-- ${SYSTEM_NAME}: 它的值来自platform文件中的`toolchain.system_name`定义;
-- ${HOST}: 它的值来自platform文件中的`toolchain.host`定义;
-- ${SYSTEM_PROCESSOR}: 它的值来自platform文件中的`toolchain.system_processor`定义;
-- ${SYSROOT}: 它的值来自platform文件中的`toolchain.sysroot`定义;
-- ${CROSS_PREFIX}: 它的值来自platform文件中的`toolchain.crosstool_prefix`定义;
-- ${BUILD_DIR}: 它指向当前库在buildtrees目录里的编译目录，如：`buildtrees\x264@stable\x86_64-windows-test_project_02-release`;
-- ${PACKAGE_DIR}: 它指向当前库在packages目录里的独立目录，如：`packages\x264@stable@x86_64-windows@test_project_02@release`;
-- ${BUILDTREES_DIR}: 它指向workspace下buildtrees根目录，即：`buildtrees`;
-- ${REPO_DIR}: 它指向当前库源码clone后所在目录，如：`buildtrees\x264@stable\src`;
-- ${DEPS_DIR}: 它指向`tmp/deps`目录，它是编译期间依赖库寻找的目录;
-- ${DEPS_DEV_DIR}: 它指向 `tmp/deps/\${HOST_NAME}-dev`目录，即编译期间依赖工具所在目录，如：`tmp/deps/x86_64-linux-dev`;
-- ${PYTHON3_PATH}: 它指向本地安装的python3所在路径，无需手动指定，它由celer自动识别到的; 
+- **${SYSTEM_NAME}**: 它的值来自platform文件中的`toolchain.system_name`定义;
+- **${HOST}**: 它的值来自platform文件中的`toolchain.host`定义;
+- **${SYSTEM_PROCESSOR}**: 它的值来自platform文件中的`toolchain.system_processor`定义;
+- **${SYSROOT}**: 它的值来自platform文件中的`toolchain.sysroot`定义;
+- **${CROSS_PREFIX}**: 它的值来自platform文件中的`toolchain.crosstool_prefix`定义;
+- **${BUILD_DIR}**: 它指向当前库在buildtrees目录里的编译目录，如：`buildtrees\x264@stable\x86_64-windows-test_project_02-release`;
+- **${PACKAGE_DIR}**: 它指向当前库在packages目录里的独立目录，如：`packages\x264@stable@x86_64-windows@test_project_02@release`;
+- **${BUILDTREES_DIR}**: 它指向workspace下buildtrees根目录，即：`buildtrees`;
+- **${REPO_DIR}**: 它指向当前库源码clone后所在目录，如：`buildtrees\x264@stable\src`;
+- **${DEPS_DIR}**: 它指向`tmp/deps`目录，它是编译期间依赖库寻找的目录;
+- **${DEPS_DEV_DIR}**: 它指向 `tmp/deps/\${HOST_NAME}-dev`目录，即编译期间依赖工具所在目录，如：`tmp/deps/x86_64-linux-dev`;
+- **${PYTHON3_PATH}**: 它指向本地安装的python3所在路径，无需手动指定，它由celer自动识别到的; 

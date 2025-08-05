@@ -19,11 +19,11 @@ func (i initCmd) Command() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			celer := configs.NewCeler()
 			if err := celer.CloneConf(i.url, i.branch); err != nil {
-				configs.PrintError(err, "failed to init celer: %s.", err)
+				configs.PrintError(err, "failed to initialize: %s.", err)
 				return
 			}
 
-			configs.PrintSuccess("init celer successfully.")
+			configs.PrintSuccess("initialize successfully.")
 		},
 		ValidArgsFunction: i.completion,
 	}
