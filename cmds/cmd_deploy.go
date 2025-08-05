@@ -35,7 +35,7 @@ func (d deployCmd) Command() *cobra.Command {
 
 			// Override build_type if specified.
 			if d.buildType != "" {
-				d.celer.Settings.BuildType = d.buildType
+				d.celer.Gloabl.BuildType = d.buildType
 			}
 
 			// Check circular dependency and version conflict.
@@ -58,7 +58,7 @@ func (d deployCmd) Command() *cobra.Command {
 			}
 
 			if !d.devMode {
-				projectName := expr.If(d.celer.Settings.Project == "", "unnamed", d.celer.Settings.Project)
+				projectName := expr.If(d.celer.Gloabl.Project == "", "unnamed", d.celer.Gloabl.Project)
 				configs.PrintSuccess("celer is ready for project: %s.", projectName)
 			}
 		},

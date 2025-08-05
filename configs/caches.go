@@ -10,9 +10,7 @@ import (
 )
 
 type CacheDir struct {
-	Dir      string `toml:"dir"`
-	Readable bool   `toml:"readable"`
-	Writable bool   `toml:"writable"`
+	Dir string `toml:"dir"`
 }
 
 func (c CacheDir) Validate() error {
@@ -21,12 +19,6 @@ func (c CacheDir) Validate() error {
 	}
 	if !fileio.PathExists(c.Dir) {
 		return fmt.Errorf("cache dir %s does not exist", c.Dir)
-	}
-	if c.Readable && !fileio.IsReadable(c.Dir) {
-		return fmt.Errorf("cache dir %s is not readable", c.Dir)
-	}
-	if c.Writable && !fileio.IsWritable(c.Dir) {
-		return fmt.Errorf("cache dir %s is not writable", c.Dir)
 	}
 	return nil
 }
@@ -49,10 +41,6 @@ func (c CacheDir) Read(platformName, projectName, buildType, nameVersion, buildh
 }
 
 func (c CacheDir) Write(packageDir, builddesc string) error {
-	if !c.Writable {
-		return nil
-	}
-
 	if !fileio.PathExists(packageDir) {
 		return fmt.Errorf("package dir %s does not exist", packageDir)
 	}

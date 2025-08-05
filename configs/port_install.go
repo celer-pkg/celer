@@ -82,8 +82,8 @@ func (p Port) Install() (string, error) {
 }
 
 func (p Port) doInstallFromCache() (bool, error) {
-	// No cache dir configured or cache dir is not readable, skip it.
-	if p.ctx.CacheDir() == nil || !p.ctx.CacheDir().Readable {
+	// No cache dir configured, skip it.
+	if p.ctx.CacheDir() == nil {
 		return false, nil
 	}
 
@@ -319,7 +319,7 @@ func (p Port) installFromSource() error {
 	// Write package to cache dirs so that others can share installed libraries,
 	// but only for none-dev package currently.
 	if !p.DevDep {
-		if p.ctx.CacheDir() != nil && p.ctx.CacheDir().Writable {
+		if p.ctx.CacheDir() != nil {
 			builddesc, err := p.builddesc()
 			if err != nil {
 				return err

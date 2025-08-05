@@ -22,13 +22,7 @@ func (c configureCmd) Command() *cobra.Command {
 		Use:   "configure",
 		Short: "Configure to change platform or project.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-			c.celer = celer
+			c.celer = configs.NewCeler()
 
 			if c.platform != "" {
 				c.selectPlatform(c.platform)

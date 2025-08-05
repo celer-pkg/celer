@@ -50,7 +50,7 @@ func (i installCmd) install(nameVersion string) {
 
 	// Use build_type from `celer.toml` if not specified.
 	if i.buildType == "" {
-		i.buildType = celer.Settings.BuildType
+		i.buildType = celer.Gloabl.BuildType
 	}
 
 	if err := celer.Platform().Setup(); err != nil {
