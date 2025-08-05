@@ -9,23 +9,23 @@
 │   ├── x86_64-linux-ubuntu-22.04.toml
 │   └── x86_64-windows-msvc-14.44.toml
 ├── projects
-│   ├── test_project_01 --------------- first demo project's dependencies
+│   ├── test_project_01 --------------- first project's dependencies
 │   │   ├── boost --------------------- override default options
 │   │   │   └── 1.87.0
 │   │   │       └── port.toml
 │   │   └── sqlite3 ------------------- override default options
 │   │       └── 3.49.0
 │   │           └── port.toml
-│   ├── test_project_01.toml ---------- first demo project
-│   ├── test_project_02 --------------- second demo project's dependencies
+│   ├── test_project_01.toml ---------- first project
+│   ├── test_project_02 --------------- second project's dependencies
 │   │   ├── ffmpeg -------------------- override default options
 │   │   │   └── 5.1.6
 │   │   │       └── port.toml
-│   │   ├── lib_001 ------------------- second demo project's private library
+│   │   ├── lib_001 ------------------- second project's private library
 │   │   │   └── port.toml
-│   │   └── lib_002 ------------------- second demo project's private library
+│   │   └── lib_002 ------------------- second project's private library
 │   │       └── port.toml
-│   └── test_project_02.toml ---------- second demo project
+│   └── test_project_02.toml ---------- second project
 └── README.md
 ```
 
