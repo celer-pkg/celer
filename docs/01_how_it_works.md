@@ -2,6 +2,33 @@
 
 &emsp;&emsp;不同的C++项目往往意味着可能需要不同的编译环境和依赖库，Celer推荐定义conf作为不同项目的项目的编译环境和编译选项的配置文件，conf的组成结构如下：
 
+```
+├── platforms
+│   ├── aarch64-linux-gnu-gcc-9.2.toml
+│   ├── x86_64-linux-ubuntu-20.04.toml
+│   ├── x86_64-linux-ubuntu-22.04.toml
+│   └── x86_64-windows-msvc-14.44.toml
+├── projects
+│   ├── test_project_01 --------------- first demo project's dependencies
+│   │   ├── boost --------------------- override default options
+│   │   │   └── 1.87.0
+│   │   │       └── port.toml
+│   │   └── sqlite3 ------------------- override default options
+│   │       └── 3.49.0
+│   │           └── port.toml
+│   ├── test_project_01.toml ---------- first demo project
+│   ├── test_project_02 --------------- second demo project's dependencies
+│   │   ├── ffmpeg -------------------- override default options
+│   │   │   └── 5.1.6
+│   │   │       └── port.toml
+│   │   ├── lib_001 ------------------- second demo project's private library
+│   │   │   └── port.toml
+│   │   └── lib_002 ------------------- second demo project's private library
+│   │       └── port.toml
+│   └── test_project_02.toml ---------- second demo project
+└── README.md
+```
+
 - 平台定义（platforms/*.toml）：用于定义toolchain和rootfs，在Celer运行期间会读取并解析它们，里面的每一项配置都会体现在后面编译库的过程中；
 - 项目配置（projects/*.toml）：用于定义项目的依赖库列表，CMake全局变量，C++全局宏，C++全局编译选项，全局环境变量等，当执行deploy命令时会编译配置的依赖库，同时生成**toolchain_file.cmake**文件，所有的C++全局CMake变量、C++全局宏等都会定义在其中；
 - 库定制化（projects/*/port.toml）：不同的项目往往依赖库的不同版本，编译参数也需要定制，甚至还包含项目范围的私有库。
