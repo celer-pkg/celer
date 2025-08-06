@@ -48,8 +48,5 @@ func TestInstall(t *testing.T) {
 
 	var port Port
 	check(port.Init(celer, "x264@stable", celer.BuildType()))
-
-	t.Run("install from source", func(t *testing.T) {
-		check(port.installFromSource())
-	})
+	check(port.installFromSource())
 }
