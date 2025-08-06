@@ -264,6 +264,7 @@ func (c *Celer) ChangePlatform(platformName string) error {
 		return err
 	}
 	c.Gloabl.Platform = platformName
+	c.platform.Name = platformName
 
 	// Do change platform.
 	bytes, err := toml.Marshal(c)
