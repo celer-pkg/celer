@@ -86,7 +86,10 @@ func (i installCmd) install(nameVersion string) {
 
 	// Uninstall the port if force flag is `ON`.
 	if i.force {
-		port.Remove(i.recurse, true, true)
+		if err := port.Remove(i.recurse, true, true); err != nil {
+			configs.PrintError(err, "uninstall %s failed before install again.", nameVersion)
+			return
+		}
 	}
 
 	// Check circular dependence.

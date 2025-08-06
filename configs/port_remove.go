@@ -66,8 +66,13 @@ func (p Port) Remove(recurse, purge, removeBuildCache bool) error {
 
 	// Remove build cache and logs.
 	if removeBuildCache {
-		os.RemoveAll(matchedConfig.PortConfig.BuildDir)
-		p.RemoveLogs()
+		if err := os.RemoveAll(matchedConfig.PortConfig.BuildDir); err != nil {
+			return fmt.Errorf("remove build cache: %w", err)
+		}
+
+		if err := p.RemoveLogs(); err != nil {
+			return fmt.Errorf("remove logs: %w", err)
+		}
 	}
 
 	return nil
