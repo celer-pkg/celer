@@ -303,11 +303,15 @@ func (p Port) installFromSource() error {
 		return err
 	}
 
-	color.Printf(color.Cyan, "-- Preparing build [dev_]dependencies for %s\n", p.NameVersion())
-	preparedTmpDeps = []string{}
-	if err := p.providerTmpDeps(); err != nil {
-		return err
+	// Prepare build dependencies.
+	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
+		color.Printf(color.Cyan, "-- Preparing build [dev_]dependencies for %s\n", p.NameVersion())
+		preparedTmpDeps = []string{}
+		if err := p.providerTmpDeps(); err != nil {
+			return err
+		}
 	}
+
 	if err := p.doInstallFromSource(); err != nil {
 		return err
 	}
