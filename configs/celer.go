@@ -157,7 +157,7 @@ func (c *Celer) Init() error {
 
 	// Clone conf repo if specified.
 	if c.configData.Gloabl.ConfRepo != "" {
-		if err := c.CloneConf(c.configData.Gloabl.ConfRepo, ""); err != nil {
+		if err := c.SyncConf(c.configData.Gloabl.ConfRepo, ""); err != nil {
 			return err
 		}
 	}
@@ -365,7 +365,7 @@ func (c Celer) CreatePort(nameVersion string) error {
 	return nil
 }
 
-func (c *Celer) CloneConf(url, branch string) error {
+func (c *Celer) SyncConf(url, branch string) error {
 	// No repo url specifeid, maybe want to update repo only.
 	if strings.TrimSpace(url) == "" {
 		return c.updateConfRepo("", branch)

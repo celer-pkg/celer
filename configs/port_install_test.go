@@ -8,7 +8,7 @@ import (
 )
 
 func TestInstall(t *testing.T) {
-	// Convenient check function.
+	// Check error.
 	var check = func(err error) {
 		t.Helper()
 		if err != nil {
@@ -23,14 +23,22 @@ func TestInstall(t *testing.T) {
 	}
 	dirs.Init(dirs.ParentDir(currentDir, 1))
 
+	// Init celer.
 	celer := NewCeler()
+	check(celer.Init())
+	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
+
+	// Change platform
 	if runtime.GOOS == "windows" {
 		check(celer.ChangePlatform("x86_64-windows-msvc-14.44"))
 	} else {
 		check(celer.ChangePlatform("x86_64-linux-ubuntu-22.04"))
 	}
 
-	check(celer.Init())
+	// Change project.
+	check(celer.ChangeProject("test_project_01"))
+
+	// This will setup build environment.
 	check(celer.Platform().Setup())
 
 	var port Port
