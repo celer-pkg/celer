@@ -3,6 +3,7 @@ package configs
 import (
 	"celer/pkgs/dirs"
 	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 )
@@ -22,6 +23,10 @@ func TestInstall(t *testing.T) {
 		t.Fatal(err)
 	}
 	dirs.Init(dirs.ParentDir(currentDir, 1))
+
+	// Clear exist config files.
+	check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf")))
+	check(os.Remove(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 
 	// Init celer.
 	celer := NewCeler()
