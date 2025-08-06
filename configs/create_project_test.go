@@ -9,22 +9,21 @@ import (
 )
 
 func TestCreate_Project(t *testing.T) {
-	// Set test workspace dir.
-	currentDir, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
-	dirs.Init(dirs.ParentDir(currentDir, 1))
 
+	// Init celer.
 	celer := NewCeler()
-	if err := celer.Init(); err != nil {
-		t.Fatal(err)
-	}
+	check(celer.Init())
+	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
 
 	const projectName = "test_project_03"
-	if err := celer.CreateProject(projectName); err != nil {
-		t.Fatal(err)
-	}
+	check(celer.CreateProject(projectName))
 
 	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
 	if !fileio.PathExists(projectPath) {
@@ -32,9 +31,7 @@ func TestCreate_Project(t *testing.T) {
 	}
 
 	t.Cleanup(func() {
-		if err := os.Remove(projectPath); err != nil {
-			t.Fatal(err)
-		}
+		check(os.Remove(projectPath))
 	})
 
 	t.Run("create project failed: empty name", func(t *testing.T) {
@@ -49,17 +46,18 @@ func TestCreate_Project(t *testing.T) {
 }
 
 func TestCreate_Project_EmptyName(t *testing.T) {
-	// Set test workspace dir.
-	currentDir, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
-	dirs.Init(dirs.ParentDir(currentDir, 1))
 
+	// Init celer.
 	celer := NewCeler()
-	if err := celer.Init(); err != nil {
-		t.Fatal(err)
-	}
+	check(celer.Init())
+	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
 
 	if err := celer.CreateProject(""); err == nil {
 		t.Fatal("it should be failed")

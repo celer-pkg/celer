@@ -56,7 +56,7 @@ func (p *Platform) Init(ctx Context, platformName string) error {
 	}
 
 	// Validate toolchain or detect toolchain if not specified in platform.
-	if err := p.initToolchain(); err != nil {
+	if err := p.detectToolchain(); err != nil {
 		return err
 	}
 
@@ -132,38 +132,32 @@ func (p *Platform) Setup() error {
 		}
 	}
 
-	// Validate toolchain or detect toolchain if not specified in platform.
-	if err := p.initToolchain(); err != nil {
-		return err
+	if p.Toolchain == nil {
+		// Auto detect native toolchain in different os.
+		if err := p.detectToolchain(); err != nil {
+			return err
+		}
+	} else {
+		// Repair toolchain.
+		if err := p.Toolchain.Validate(); err != nil {
+			return fmt.Errorf("valid toolchain error: %w", err)
+		}
+
+		if err := p.Toolchain.CheckAndRepair(); err != nil {
+			return fmt.Errorf("check and repair toolchain error: %w", err)
+		}
 	}
 
-	// Repair toolchain.
-	if err := p.Toolchain.Validate(); err != nil {
-		return fmt.Errorf("valid toolchain error: %w", err)
-	}
-
-	if err := p.Toolchain.CheckAndRepair(); err != nil {
-		return fmt.Errorf("check and repair toolchain error: %w", err)
-	}
 	return nil
 }
 
-func (p *Platform) initToolchain() error {
-	// Toolchain maybe nil when platform is native.
-	if p.Toolchain == nil {
-		var toolchain Toolchain
-		if err := toolchain.Detect(); err != nil {
-			return fmt.Errorf("detect celer.toolchain: %w", err)
-		}
-		p.Toolchain = &toolchain
-		if toolchain.Name == "msvc" {
-			p.Name = "x86_64-windows"
-		} else {
-			p.Name = "x86_64-linux"
-		}
-	} else if err := p.Toolchain.Validate(); err != nil {
-		return fmt.Errorf("celer.toolchain error: %w", err)
+func (p *Platform) detectToolchain() error {
+	// Detect toolchain.
+	var toolchain Toolchain
+	if err := toolchain.Detect(); err != nil {
+		return fmt.Errorf("detect celer.toolchain: %w", err)
 	}
+	p.Toolchain = &toolchain
 
 	// Windows kit is only supported in Windows.
 	if runtime.GOOS == "windows" && p.WindowsKit == nil {
@@ -172,6 +166,13 @@ func (p *Platform) initToolchain() error {
 			return fmt.Errorf("detect celer.windows_kit: %w", err)
 		}
 		p.WindowsKit = &windowsKit
+	}
+
+	// Assign standard toolchain name.
+	if toolchain.Name == "msvc" {
+		p.Name = "x86_64-windows"
+	} else {
+		p.Name = "x86_64-linux"
 	}
 
 	return nil

@@ -1,0 +1,9 @@
+/ports
+/conf
+/packages
+/tmp
+/buildtrees
+/downloads
+/installed
+celer.toml
+toolchain_file.cmake

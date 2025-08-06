@@ -18,8 +18,8 @@ func (i initCmd) Command() *cobra.Command {
 		Short: "Init celer with conf repo.",
 		Run: func(cmd *cobra.Command, args []string) {
 			celer := configs.NewCeler()
-			if err := celer.CloneConf(i.url, i.branch); err != nil {
-				configs.PrintError(err, "failed to initialize: %s.", err)
+			if err := celer.SyncConf(i.url, i.branch); err != nil {
+				configs.PrintError(err, "failed to init celer: %s.", err)
 				return
 			}
 

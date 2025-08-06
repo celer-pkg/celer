@@ -72,10 +72,10 @@ type configData struct {
 }
 
 func (c *Celer) Init() error {
-	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
-	if !fileio.PathExists(celerPath) {
+	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	if !fileio.PathExists(configPath) {
 		// Create conf dir if not exists.
-		if err := os.MkdirAll(filepath.Dir(celerPath), os.ModePerm); err != nil {
+		if err := os.MkdirAll(filepath.Dir(configPath), os.ModePerm); err != nil {
 			return err
 		}
 
@@ -89,12 +89,12 @@ func (c *Celer) Init() error {
 			return fmt.Errorf("cannot marshal celer conf: %w", err)
 		}
 
-		if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
+		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
 			return err
 		}
 	} else {
 		// Rewrite celer file with new platform.
-		bytes, err := os.ReadFile(celerPath)
+		bytes, err := os.ReadFile(configPath)
 		if err != nil {
 			return err
 		}
@@ -123,6 +123,7 @@ func (c *Celer) Init() error {
 				return err
 			}
 		} else {
+			// No platform specified, setup will auto detect native toolchain.
 			if err := c.platform.Setup(); err != nil {
 				return err
 			}
@@ -156,7 +157,7 @@ func (c *Celer) Init() error {
 
 	// Clone conf repo if specified.
 	if c.configData.Gloabl.ConfRepo != "" {
-		if err := c.CloneConf(c.configData.Gloabl.ConfRepo, ""); err != nil {
+		if err := c.SyncConf(c.configData.Gloabl.ConfRepo, ""); err != nil {
 			return err
 		}
 	}
@@ -263,6 +264,7 @@ func (c *Celer) ChangePlatform(platformName string) error {
 		return err
 	}
 	c.Gloabl.Platform = platformName
+	c.platform.Name = platformName
 
 	// Do change platform.
 	bytes, err := toml.Marshal(c)
@@ -364,7 +366,7 @@ func (c Celer) CreatePort(nameVersion string) error {
 	return nil
 }
 
-func (c *Celer) CloneConf(url, branch string) error {
+func (c *Celer) SyncConf(url, branch string) error {
 	// No repo url specifeid, maybe want to update repo only.
 	if strings.TrimSpace(url) == "" {
 		return c.updateConfRepo("", branch)
