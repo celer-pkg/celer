@@ -72,10 +72,10 @@ type configData struct {
 }
 
 func (c *Celer) Init() error {
-	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
-	if !fileio.PathExists(celerPath) {
+	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	if !fileio.PathExists(configPath) {
 		// Create conf dir if not exists.
-		if err := os.MkdirAll(filepath.Dir(celerPath), os.ModePerm); err != nil {
+		if err := os.MkdirAll(filepath.Dir(configPath), os.ModePerm); err != nil {
 			return err
 		}
 
@@ -89,12 +89,12 @@ func (c *Celer) Init() error {
 			return fmt.Errorf("cannot marshal celer conf: %w", err)
 		}
 
-		if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
+		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
 			return err
 		}
 	} else {
 		// Rewrite celer file with new platform.
-		bytes, err := os.ReadFile(celerPath)
+		bytes, err := os.ReadFile(configPath)
 		if err != nil {
 			return err
 		}
@@ -123,6 +123,7 @@ func (c *Celer) Init() error {
 				return err
 			}
 		} else {
+			// No platform specified, setup will auto detect native toolchain.
 			if err := c.platform.Setup(); err != nil {
 				return err
 			}

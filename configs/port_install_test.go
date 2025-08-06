@@ -29,7 +29,9 @@ func TestInstall(t *testing.T) {
 	} else {
 		check(celer.ChangePlatform("x86_64-linux-ubuntu-22.04"))
 	}
+
 	check(celer.Init())
+	check(celer.Platform().Setup())
 
 	var port Port
 	check(port.Init(celer, "x264@stable", celer.BuildType()))
