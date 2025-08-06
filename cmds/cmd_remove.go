@@ -26,12 +26,7 @@ func (r removeCmd) Command() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-			r.ctx = celer
+			r.ctx = configs.NewCeler()
 
 			// Use build_type from `celer.toml` if not specified.
 			if r.buildType == "" {

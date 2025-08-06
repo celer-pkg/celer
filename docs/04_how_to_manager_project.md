@@ -45,13 +45,13 @@ compile_options = [
 ]
 ```
 
-**字段解释**:
+>**Tips**:  
+**ports**: 此处可以定义当前项目依赖的三方库，需要注意的是无需指定库的内部依赖的库，比如：如果FFmpeg在自身内部已经定义了对x264和x265的依赖，那么在这里再定义x264和x265是冗余的；  
+**vars**: 此处可以定义当前项目需要的全局cmake变量；  
+**envs**: 此处可以定义当前项目需要的全局环境变量；  
+**micros**: 此处可以定义当前项目需要的C/C++宏；  
+**compile_options**: 此处可以定义当前项目需要的编译选项。
 
-- ports: 此处可以定义当前项目依赖的三方库，需要注意的是无需指定库的内部依赖的库，比如：如果FFmpeg在自身内部已经定义了对x264和x265的依赖，那么在这里再定义x264和x265是冗余的；
-- vars: 此处可以定义当前项目需要的全局cmake变量；
-- envs：此处可以定义当前项目需要的全局环境变量；
-- micros：此处可以定义当前项目需要的C/C++宏；
-- compile_options: 此处可以定义当前项目需要的编译选项。
 
 ## 3. project 配置切换
 
@@ -66,4 +66,4 @@ $ ./celer configure --project=project_001
 ```
 
 >**Tip:**  
-&emsp;&emsp;当配置了具体的project后，可以一键部署当前平台项目的开发环境，即：执行`./celer deploy`，celer会按此project里定义编译三方库、 动态生成`toolchain_file.cmake`，并在生成的`toolchain_file.cmake`里定义全局的cmake变量、 C/C++宏、全局的环境变量、C/C++的编译选项。
+&emsp;&emsp;当配置了具体的project后，可以一键部署当前平台项目的开发环境，即：执行`./celer deploy`，Celer会按此project里定义编译三方库、动态生成`toolchain_file.cmake`，并在生成的`toolchain_file.cmake`里定义全局的cmake变量、 C/C++宏、全局的环境变量、C/C++的编译选项。
