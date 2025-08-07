@@ -1,7 +1,6 @@
 # Celer overview [🌍中文](../zh-CH/README.md)
 
-&emsp;&emsp;Celer is a very lightweight C/C++ package manager written in Go. The name "Celer" is inspired by the vision of being C/C++'s accelerator.   
-&emsp;&emsp;The goal of Celer is to serve as a supplement to CMake, and not to replace it. It is designed to be user-friendly for developers to manager and compile third-party libraries with toml files only.
+&emsp;&emsp;Celer is a very lightweight C/C++ package manager written in Go. The name "Celer" is inspired by the vision of being C/C++'s accelerator. The goal of Celer is to serve as a supplement to CMake, and not to replace it. It is designed to be user-friendly for developers to manager and compile third-party libraries with toml files only.
 
 # The background of Celer
 
@@ -84,7 +83,7 @@ We have documentations to guide you in using Celer as below:
 
 # How to contribute
 
-1.  Fork this repo: https://github.com/celer-pkg/celer.git；
-2.  create branch like: feature_xxx or bugfix_xxx；
-3.  Submit code to your branch；
-4.  Create Pull Request；
+1.  Fork this repo: https://github.com/celer-pkg/celer.git.
+2.  create branch like: feature_xxx or bugfix_xxx.
+3.  Submit code to your branch.
+4.  Create Pull Request.
