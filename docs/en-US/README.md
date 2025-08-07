@@ -13,7 +13,7 @@
 
 &emsp;&emsp;In fact, the core functionality of Celer is to dynamically generate a **toolchain_file.cmake** as required. Within this file, it configures all required build tools with relative paths, and also specifies the library search paths to isolate system libraries from being found. This means that all the work required  is handled by Celer before generating the toolchain_file.cmake, this is [**one of the reasons**](./00_why_reinvent_celer.md) why Celer was reinvented, rather than using other C/C++ package managers.
 
-## Key features
+# Key features
 
 Celer now has below core features:
 
@@ -32,13 +32,13 @@ Celer supports precise build artifact management. Currently, you can configure t
 5. **Supports overriding compile options for third-party libraries and managing project-specific libraries**:  
 Celer supports overriding third-party libraries with different versions and compile options within individual project folders. It also allows adding project-specific internal libraries within the project's folder.
 
-## How to build Celer
+# How to build Celer
 
 1. Install the Go SDK by referring https://go.dev/doc/install.
 2. git clone https://github.com/celer-pkg/celer.git.
 3. cd celer && go build.
 
-## Get started
+# Get started
 
 ```
 ./celer help

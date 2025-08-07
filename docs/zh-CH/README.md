@@ -3,7 +3,7 @@
 &emsp;&emsp;Celer 是一个用 Go 语言开发的非常轻量级的C/C++包管理器。取名 "Celer" 是期望其作为**C/C++**项目开发的加速器。  
 Celer 的目标是作为 CMake 的补充，而不是取代它。它让开发者仅通过 toml 文件来管理和编译第三方库，提供一个更加友好的用户体验。
 
-## Celer诞生的背景
+# Celer诞生的背景
 
 &emsp;&emsp;CMake 已经成为编译 C/C++ 项目的主流选择，尤其是在进行交叉编译时。然而，CMake 仅在查找库（通过 find_package）方面发挥作用。在实际的项目开发中，往往还有一些 CMake 不负责的繁琐任务，包括如下：
 
@@ -13,7 +13,7 @@ Celer 的目标是作为 CMake 的补充，而不是取代它。它让开发者�
 
 &emsp;&emsp;其实，Celer最核心的功能是根据需要动态生成一个**toolchain_file.cmake**， 并在其中以相对路径配置了所有需要的编译工具，而且还指定了库的搜索路径以隔离系统库被寻找到，意味着在 **toolchain_file.cmake** 生成之前所有的工作都被Celer搞定了，这也是为什么重新发明Celer，而未采用其它的C/C++包管理的[**原因之一**](./00_why_reinvent_celer.md)。
 
-## 主要功能：
+# 主要功能：
 
 Celer目前主要提供以下几个核心功能：
 
@@ -32,13 +32,13 @@ Celer目前主要提供以下几个核心功能：
 5. **支持项目私有库管理**:  
 在实际项目中，不同项目往往需要使用三方库的不同版本，Celer 支持在对应的 project 配置文件里指定特定版本。有些库不属于公开的三方库，只属于当前项目内部所有，Celer 能通过在对应的 project 目录里创建并管理它们。
 
-## 如何编编译
+# 如何编编译
 
 1. 下载`golang sdk`；
 2. `go build`，即可编译成功；
 3. 或者执行内置的脚本`build.sh`即可编译成功；
 
-## 使用说明
+# 使用说明
 
 ```
 ./celer help
@@ -82,7 +82,7 @@ Use "celer [command] --help" for more information about a command.
 11. [如何生成cmake配置文件](./09_how_to_generate_cmake_config.md)
 12. [如何共享安装的三方库 ](./10_how_to_share_installed_libraries.md)
 
-## 如何参与贡献
+# 如何参与贡献
 
 1.  Fork 本仓库；
 2.  新建 feature_xxx / bugfix_xxx 分支；
