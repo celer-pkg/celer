@@ -4,31 +4,36 @@
 
 # The background of Celer
 
-&emsp;&emsp;CMake has been the mainstream choice for compiling C/C++ projects, especially when cross-compiling. However, CMake plays the role of finding libraries (via find_package) only. In actual project development, there are often additional tedious tasks CMake isn't  responsible, including:
+&emsp;&emsp;CMake has been the mainstream choice for compiling C/C++ projects, especially when cross-compiling. However, CMake plays the role of finding libraries (via find_package) only. In actual project development, there are often additional tedious tasks CMake isn't responsible, for examples as below:
 
-1. **Clone repos and setup build tools**: CMake doesn't download source code of libraries, setup toolchains, rootfs, and tools that required for compilation, such as autoconf, automake, pkg-config, nasm, windows-perl, cmake, etc., all of that need to be prepared and configured manually by developers themself.
-2. **Dependencies between third-party libraries**: Information is scattered across the internet, with no centralized place for archiving. During the compilation process, a lot of manual work is required to organize the dependencies.
-3. **Setup cross-compilation environment**: Although CMake supports configuring a cross-compilation environment via `CMAKE_TOOLCHAIN_FILE`, it still requires manually written scripts for proper configuration.
+**1. Clone repos and setup build tools**  
+CMake doesn't download source code of libraries, setup toolchains, rootfs, and tools that required for compilation, such as autoconf, automake, pkg-config, nasm, windows-perl, cmake, etc., all of that need to be prepared and configured manually by developers themself.
 
-&emsp;&emsp;In fact, the core functionality of Celer is to dynamically generate a **toolchain_file.cmake** as required. Within this file, it configures all required build tools with relative paths, and also specifies the library search paths to isolate system libraries from being found. This means that all the work required  is handled by Celer before generating the toolchain_file.cmake, this is [**one of the reasons**](./00_why_reinvent_celer.md) why Celer was reinvented, rather than using other C/C++ package managers.
+**2. Dependencies between third-party libraries**  
+Information is scattered across the internet, with no centralized place for archiving. During the compilation process, a lot of manual work is required to organize the dependencies.
+
+**3. Setup cross-compilation environment**  
+Although CMake supports cross-compilation by providing `-D CMAKE_TOOLCHAIN_FILE` to specify a **toolchain_file.cmake**, it still requires manually written scripts for proper configuration.
+
+>In fact, the core functionality of Celer is to dynamically generate a **toolchain_file.cmake** as required. Within this file, it configures all required build tools with relative paths, and also specifies the library search paths to isolate system libraries from being found. This means that all the work required  is handled by Celer before generating the toolchain_file.cmake, this is [**one of the reasons**](./00_why_reinvent_celer.md) why Celer was reinvented, rather than using other C/C++ package managers.
 
 # Key features
 
-Celer now has below core features:
+Celer now has below key features:
 
-1. **Automatically downloads and configures build tools**：  
+**1. Automatically downloads and configures build tools**  
 It automatically downloads and configures tools like toolchain, sysroot, CMake, ninja, msys2, and strawberry-perl based on the selected platform and target libraries.
 
-2. **Supports hosting of libraries compiled with common build tools**：  
+**2. Supports hosting of libraries compiled with common build tools**  
 In the port.toml file of each third-party library version directory, you can specify the `build_system` field as **cmake**, **makefiles**, **ninja**, **meson**, etc., to compile with different build tools.
 
-3. **Supports generating cmake configs**:  
-Celer can genereate cmake configs for any libraries, espically for libraries that not build by CMake, then you can `find_package` it easily.
+**3. Supports generating cmake configs**  
+Celer can generate cmake configs for any libraries, especially for libraries that not build by CMake, then you can `find_package` it easily.
 
-4. **Support cache and share build artifacts**:  
+**4. Support cache and share build artifacts**  
 Celer supports precise build artifact management. Currently, you can configure the `cache_dir` in **celer.toml** to store and access artifacts in a shared folder on the local network. This aims to avoid redundant compilation of source code and improve development efficiency.
 
-5. **Supports overriding compile options for third-party libraries and managing project-specific libraries**:  
+**5. Supports overriding compile options for third-party libraries and managing project-specific libraries**  
 Celer supports overriding third-party libraries with different versions and compile options within individual project folders. It also allows adding project-specific internal libraries within the project's folder.
 
 # How to build Celer
