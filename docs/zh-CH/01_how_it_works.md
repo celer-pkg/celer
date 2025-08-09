@@ -54,16 +54,12 @@ Celer会根据conf目录下的配置文件，生成**toolchain_file.cmake**文�
 ```
 Welcome to celer (v1.0.0).
 ---------------------------------------
-This is a simple pkg-manager for C/C++.
+This is a lightweight pkg-manager for C/C++.
 
 How to use it to build cmake project: 
-option1: set(CMAKE_TOOLCHAIN_FILE "/home/phil/celer/toolchain_file.cmake")
-option2: cmake .. -DCMAKE_TOOLCHAIN_FILE=/home/phil/celer/toolchain_file.cmake
-
-[ctrl+c/q -> quit]
+option1: set(CMAKE_TOOLCHAIN_FILE "/home/phil/workspace/toolchain_file.cmake")
+option2: cmake .. -DCMAKE_TOOLCHAIN_FILE=/home/phil/workspace/toolchain_file.cmake
 ```
 
-**Tips:**
-
-1. Celer在deploy执行成功后也就意味着生成了**toolchain_file.cmake**，同时意味着项目开发可以选择仅仅依赖此**toolchain_file.cmake**即可。  
-2. 虽然Celer还可以用来编译你的工程项目，但这不是是强制的，这也意味着当与他人合作开发，你可以将workspace下的downloaded（内部压缩包也可以删除）、installed、toolchain_file.cmake打包即可交付对方。
+&emsp;&emsp;Celer在deploy执行成功后也就意味着生成了**toolchain_file.cmake**，同时意味着项目开发可以选择仅仅依赖此 **toolchain_file.cmake** 文件即可, 随后Celer不再是必须，你可以保留workspace里的**installed文件夹**、**download文件夹**、**toolchain_file.cmake文件** 并打包分发给他人，以此作为你们共同的开发环境。  
+&emsp;&emsp;这也是Celer和别的包管理的一个核心区别，Celer明确自己的定位：只是作为CMake的辅助，且对所有CMake项目**零侵入性**。

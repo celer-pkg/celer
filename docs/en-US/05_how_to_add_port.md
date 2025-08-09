@@ -16,7 +16,7 @@
 
 比如：一个cmake三方库的port: `ports/glog/0.6.0/port.toml`:
 
-```toml
+```
 [package]
 url                 = "https://github.com/google/glog.git"
 ref                 = "v0.6.0"

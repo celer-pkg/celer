@@ -1,6 +1,6 @@
-# 1. Celer的工作原理
+# 1. How Celer works
 
-&emsp;&emsp;不同的C++项目往往意味着可能需要不同的编译环境和依赖库，Celer推荐定义conf作为不同项目的项目的编译环境和编译选项的配置文件，conf的组成结构如下：
+&emsp;&emsp;Different C++ projects often require distinct build environments and dependencies. Celer recommends using conf to define build environments and third-party dependencies for each project. The conf structure consists of:
 
 ```
 ├── platforms
@@ -29,41 +29,40 @@
 └── README.md
 ```
 
-- 平台定义（platforms/*.toml）：用于定义toolchain和rootfs，在Celer运行期间会读取并解析它们，里面的每一项配置都会体现在后面编译库的过程中；
-- 项目配置（projects/*.toml）：用于定义项目的依赖库列表，CMake全局变量，C++全局宏，C++全局编译选项，全局环境变量等，当执行deploy命令时会编译配置的依赖库，同时生成**toolchain_file.cmake**文件，所有的C++全局CMake变量、C++全局宏等都会定义在其中；
-- 库定制化（projects/*/port.toml）：不同的项目往往依赖库的不同版本，编译参数也需要定制，甚至还包含项目范围的私有库。
+- **Platform Definitions (platforms/*.toml):** Defines toolchains and rootfs. Celer reads and parses these during execution, with every configuration item affecting subsequent library compilation.
 
-&emsp;&emsp;其实，当conf缺失时，Celer依然可以工作，只不过Celer会调用本地已安装的toolchain进行编译：
+- **Project Configuration (projects/*.toml):** Defines project dependencies, CMake variables, C++ macros, and build settings - the `deploy` command compiles these dependencies and generates **toolchain_file.cmake** containing all global configurations.
 
-- 在Windows系统下，Celer会通过vswhere寻找系统里安装的VisualStudio作为toolchain，当目标库是makefile编译的，还会自动下载msys2并配置；
-- 在Linux系统下，Celer则会直接找本地安装的x86_64位的gcc和g++。
+- **Library Customization (projects/*/port.toml):** Handles project-specific library versions, custom build parameters, and private libraries scoped to individual projects.
 
-## 2. 一键部署
+&emsp;&emsp;If the conf file is missing, Celer can still work with locally installed toolchains:
 
-当执行`./celer deploy`后，Celer会做如下工作：
+- In Windows, Celer locates installed Visual Studio via vswhere as the default toolchain. For makefile-based libraries, it automatically downloads and configures MSYS2.
 
-- 检查并修复当前选择的平台的工具链，根文件系统和其他工具。如果缺失，Celer将下载它们并配置；
-- 检查当前选择的项目是否安装了第三方库。如果缺失，Celer将克隆它们的源代码，然后编译，同时包含它们的子依赖项。
+- In Linux, Celer automatically uses locally installed x86_64 gcc/g++ toolchains.
 
-Celer会根据conf目录下的配置文件，生成**toolchain_file.cmake**文件，这个文件可以直接用于cmake项目的编译。
+## 2. One-click deployment
 
-## 3. 关于和使用
+When executing `./celer deploy`, Celer performs the following operations:
 
-./celer about 打印如下：
+- Verifies and repairs the toolchain, root filesystem, and other tools for the selected platform. If missing, Celer automatically downloads and configures them.
+- Checks whether third-party libraries are installed for the selected project. If missing, Celer automatically clones their source code, compiles them, and handles their sub-dependencies.
+
+>Celer can generate **toolchain_file.cmake** with selected **platform** and **project** that configured in **celer.toml**. Then set `-DCMAKE_TOOLCHAIN_FILE` with the path of **toolchain_file.cmake** in your CMake project, you can now develop CMake project.  
+
+## 3. About and usage
+
+`./celer about` print message as below：
 
 ```
 Welcome to celer (v1.0.0).
 ---------------------------------------
-This is a simple pkg-manager for C/C++.
+This is a lightweight pkg-manager for C/C++.
 
 How to use it to build cmake project: 
-option1: set(CMAKE_TOOLCHAIN_FILE "/home/phil/celer/toolchain_file.cmake")
-option2: cmake .. -DCMAKE_TOOLCHAIN_FILE=/home/phil/celer/toolchain_file.cmake
-
-[ctrl+c/q -> quit]
+option1: set(CMAKE_TOOLCHAIN_FILE "/home/phil/workspace/toolchain_file.cmake")
+option2: cmake .. -DCMAKE_TOOLCHAIN_FILE=/home/phil/workspace/toolchain_file.cmake
 ```
 
-**Tips:**
-
-1. Celer在deploy执行成功后也就意味着生成了**toolchain_file.cmake**，同时意味着项目开发可以选择仅仅依赖此**toolchain_file.cmake**即可。  
-2. 虽然Celer还可以用来编译你的工程项目，但这不是是强制的，这也意味着当与他人合作开发，你可以将workspace下的downloaded（内部压缩包也可以删除）、installed、toolchain_file.cmake打包即可交付对方。
+&emsp;&emsp;A successful celer deploy generates toolchain_file.cmake, allowing projects to depend solely on this file - making Celer no longer required thereafter. Furthermore, you can pack workspace with **installed folder**, **downloaded folder** and **toolchain_file.cmake** inside, this can be the build environment with others.  
+&emsp;&emsp;This highlights a key distinction between Celer and other package managers: Celer is explicitly positioned as a non-intrusive CMake assistant for any CMake projects.
