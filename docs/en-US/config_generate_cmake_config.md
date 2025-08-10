@@ -1,10 +1,10 @@
-# 如何生成cmake配置文件
+# How to automatically generate cmake configuration files
 
-我们都知道，很多第三方库都没有使用cmake构建，安装后也不会生成cmake配置文件，这就导致我们不能使用cmake来找到它们。虽然我们可以使用`pkg-config`来找到它们，但是只能在linux下使用。现在，celer可以为它们生成cmake配置文件，这样就可以在任何平台下使用了。
+&emsp;&emsp;We all know that many third-party libraries do not use cmake to build, and after installation, they will not generate cmake configuration files. This makes it not easy to use cmake to find them. Although we can use `pkg-config` to find them, it can only be used on Linux. Now, Celer can generate cmake configuration files for them, so they can be used on any platform.
 
-## 1. 没有组件的库如何生成cmake配置文件
+## 1. How to generate cmake configuration files for libraries without components
 
-例如，x264，你应该在port的版本目录下创建一个cmake_config.toml文件。
+For example, x264, you should create a cmake_config.toml file in the version directory of the port.
 
 ```
 └── x264
@@ -13,7 +13,7 @@
         └── port.toml
 ```
 
-这个文件的内容如下，我们可以为不同的平台定义不同的文件名。
+The content of this file is as follows, we can define different filenames for different platforms.
 
 ```toml
 namespace = "x264"
@@ -34,7 +34,7 @@ impname = "libx264.lib"
 
 ```
 
-当编译和安装后，你可以看到生成的cmake配置文件如下：
+After compiling and installing, you can see the generated cmake configuration files as follows:
 
 ```
 lib
@@ -46,18 +46,19 @@ lib
         └── x264Targets-release.cmake
 ```
 
-最终，你可以在你的cmake项目中使用它，如下所示：
+Finally, you can use it in your cmake project as follows:
 
 ```cmake
 find_package(x264 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 ```
 
-> 注意，namespace是在cmake_config文件中定义的，如果没有定义，它将与库名相同, namespace也即使config文件名的前缀。
+> **Note:**  
+> &emsp;&emsp;Note that the namespace is defined in the cmake_config file. If it is not defined, it will be the same as the library name. The namespace is also the prefix of the config file name.
 
-## 2. 有多组件的库如何生成cmake配置文件
+## 2. How to generate cmake configuration files for libraries with components
 
-例如，ffmpeg，你应该在port的版本目录下创建一个cmake_config.toml文件：
+For example, ffmpeg, you should create a cmake_config.toml file in the version directory of the port.
 
 ```
 └── ffmpeg
@@ -168,9 +169,10 @@ filename = "swscale-4.dll"
 dependencies = ["avcodec", "avutil", "avformat"]
 ```
 
->不同的组件可能有不同的依赖项，所以我们需要在`dependencies`字段中定义它们。
+> **Note:**  
+> &emsp;&emsp;Note that different components may have different dependencies, so we need to define them in the `dependencies` field.
 
-当编译和安装后，你可以看到生成的cmake配置文件如下：
+After compiling and installing, you can see the generated cmake configuration files as follows:
 
 ```
 lib
@@ -179,13 +181,13 @@ lib
         ├── FFmpegConfig.cmake
         ├── FFmpegConfigVersion.cmake
         ├── FFmpegModules-release.cmake
-        └── FfmpegModules.cmake
+        └── FFmpegModules.cmake
 ```
 
-最终，你可以在你的cmake项目中使用它，如下所示：
+Finally, you can use it in your cmake project as follows:
 
 ```cmake
-find_package(ffmpeg REQUIRED)
+find_package(FFmpeg REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     FFmpeg::avutil
     FFmpeg::avcodec
@@ -198,4 +200,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 ```
 
-> 注意，namespace是在cmake_config文件中定义的，如果没有定义，它将与库名相同， namespace也即使config文件名的前缀。
+> **Note:**  
+> 1. If namespace is not specified, it will be the same as the library name. And the namespace is also the prefix of the config file name.  
+>
+> 2. The installed libraries files would be removed when there is any wrong in the cmake config file.

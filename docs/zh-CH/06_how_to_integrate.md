@@ -1,52 +1,51 @@
-# 如何全局集成
+# 集成tab 命令补全
 
-Celer 包管理器提供了一套强大的智能提示系统，能够帮助用户快速完成命令输入，减少记忆负担并提高使用效率。该系统支持多层次的自动补全和智能提示功能。
+## 概览
 
-```
-./celer integrate           
+Celer 集成tab 命令补全功能，将显著提高命令行生产力。
 
-[integrate] celer --> /home/phil/.local/bin/celer
+## 支持的shell
 
-[✔] ======== celer is integrated. ========
-```
+- Bash (Linux/macOS)
+- PowerShell (Windows)
+- Zsh (macOS/Linux)
 
-## 功能详解
+## Basic Usage
 
-1. 主命令自动补全
-当用户输入部分主命令时，按下 [tab] 键可自动补全完整命令
-
-示例：
-```
-$ cel[tab] → $ celer
+```shell
+celer integrate [--bash|--powershell|--zsh]
 ```
 
-2. 子命令提示输入主命令后，按下 [tab] 键可显示所有可用的子命令列表，可用子命令：
+## 命令选项
 
+| 选项	| 描述	|
+| -------- | -------- |
+| --bash	| 为Bash shell 启用tab 命令补全	|
+| --powershell	| 为PowerShell 启用tab 命令补全	|
+| --zsh	| 为Zsh shell 启用tab 命令补全	|
+| --remove	| 移除所有Celer shell 命令补全	|
+
+## 使用示例
+
+### 特定shell 集成
+
+要为特定shell 启用tab 命令补全，请使用对应的选项：
+
+```shell
+celer integrate --bash
+celer integrate --powershell
+celer integrate --zsh
 ```
-$ celer [tab]
-about       clean       create      help        install     remove  update 
-autoremove  configure   deploy      init        integrate   tree
+
+### 移除tab 命令补全
+
+要移除所有Celer shell 命令补全，请使用`--remove` 选项：
+
+```shell
+celer integrate --bash --remove
+celer integrate --powershell --remove
+celer integrate --zsh --remove
 ```
 
-3. 子命令参数补全
-
-对于特定子命令，系统会提示可用的参数选项。  
-示例（configure 命令）：
-
-```
-$ celer configure [tab]
-celer configure --platform/--project
-```
-
-4. 基于文件系统的智能提示
-
-对于需要文件/包名作为参数的子命令，系统会扫描相关目录并提供智能提示：
-
-install/remove/update/clean/tree 命令：自动扫描可用的包仓库，提供包名补全
-
-示例：
-
-```
-$ celer install [tab]
-celer install xxx/yyy/zzz
-```
+> **Note:**   
+> 集成完成后，您可能需要重启shell 才能使更改生效。
