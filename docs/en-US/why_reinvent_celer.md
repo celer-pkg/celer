@@ -5,19 +5,16 @@
 **1. Not friendly for hosting third-party libraries**
 
 &emsp;&emsp;Using existing third-party libraries is easy, but adding new ones is complicated - developers must learn special scripts and handle compilation (configure/build/install) manually for every library.  
-
 &emsp;&emsp;Celer simplifies this: just declare the build system (like CMake/Make/Meson) in config files. Developers only need to set compile options and dependencies.
 
 **2. Support for multi-platform and multi-project customization is weak**
 
 &emsp;&emsp;Third-party libraries typically offer a wide range of optional features, and different projects may require distinct configuration combinations—sometimes even mutually exclusive options. Enabling too many features can lead to dependency chain expansion and increased final build size. Enterprise-grade projects often rely on internal libraries, making them difficult to manage uniformly with traditional solutions.   
-
 &emsp;&emsp;Celer supports project-level library version management, preventing global configuration conflicts while also allowing private libraries to be hosted within project-specific directories.
 
 **3. Not friendly to projects with platform that contains multiple sub-projects**
 
-&emsp;&emsp;In platform-based projects with multiple sub-projects, traditional package managers require separate dependency lists for each sub-project, leading to scattered version control and inconsistent setups. With many dependencies, manual checks become costly, and versions can become mismatched over time.
-
+&emsp;&emsp;In platform-based projects with multiple sub-projects, traditional package managers require separate dependency lists for each sub-project, leading to scattered version control and inconsistent setups. With many dependencies, manual checks become costly, and versions can become mismatched over time.  
 &emsp;&emsp;Celer centralizes dependency management by defining an individual project TOML file, where all third-party libraries and project-specific libraries are declared. Celer can automatically generate a global **toolchain_file.cmake** to lock the build environment and required libraries. Sub-projects set `CMAKE_TOOLCHAIN_FILE` with the **toolchain_file.cmake**, automatically inheriting predefined dependencies and configurations during compilation, eliminating manual intervention. This maintains the independence of sub-projects while enabling centralized dependency management and supporting dynamic updates. After modifying the project TOML file, all local sub-projects sync automatically.
 
 **4. Lack of precise cache management**
@@ -28,11 +25,9 @@
 **5. Dependency conflict check is weak**
 
 &emsp;&emsp;Deep dependency trees often lead to version conflicts in shared libraries, which are difficult to spot and a pain to resolve manually.  
-
 &emsp;&emsp;Since Celer adopts a source code compilation approach, where all third-party libraries are managed via manifest files, it automatically checks for dependency version consistency during compilation and explicitly reports any conflicts.
 
 **6. Lacks developer-friendly integration for cross-company collaboration**
 
 &emsp;&emsp;When a company leads a project development with partner involvement, the lead company should provide all cross-compilation environments and pre-built third-party libraries. The entire development environment should work out of the box, without requiring manual installation or configuration by users.  
-
 &emsp;&emsp;As mentioned in the previous section *"Not friendly to projects with platform that contains multiple sub-projects"*, Celer automatically generates a **toolchain_file.cmake**. This file locates all compilation tools and file systems using relative paths internally. Therefore, users only need to set `CMAKE_TOOLCHAIN_FILE` with the path of this **toolchain_file.cmake** in their project.

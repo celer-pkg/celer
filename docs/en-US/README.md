@@ -55,22 +55,23 @@ Supported commands:
 | Command | Description |
 | --- | --- |
 | about | About Celer. |
-| autoremove | Remove installed package but required by current project |
+| autoremove | Remove installed packages of current project |
 | clean | Clean build cache for package or project. |
 | configure | Configure platform or project. |
-| create | Create a new project. |
+| create | Create a new platform, a project or a port. |
 | deploy | Deploy with selected platform and project. |
 | help | Help about any command. |
-| setup | Setup celer with conf repo. |
+| setup | Setup Celer with conf repo. |
 | install | Install a port. |
 | integrate | Integrate to support tab completion. |
 | remove | Remove a package. |
 | tree | Show the dependency tree of a port or a project. |
 | update | Update conf repo, ports repo and port source. |
 
-# How to contribute
+# Contribute
 
-1.  Fork this repo: https://github.com/celer-pkg/celer.git.
-2.  create branch like: feature_xxx or bugfix_xxx.
-3.  Submit code to your branch.
-4.  Create Pull Request.
+&emsp;&emsp;Celer is an open source project, and is thus built with your contributions. Celer is consist of two parts: [Celer](https://github.com/celer-pkg/celer.git) and [conf](https://github.com/celer-pkg/ports.git) you can contribute any of them.
+
+# License
+
+&emsp;&emsp;The code in this repository is licensed under the MIT License. The libraries provided by ports are licensed under the terms of their original authors.
