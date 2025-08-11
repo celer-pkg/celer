@@ -45,28 +45,28 @@ We have documentations to guide you in using Celer:
 - [Add a new project.](./config_add_project.md)
 - [Add a new port.](./config_add_port.md)
 
-Advanced Features:
+Advanced features:
 
 - [Generate cmake configs.](./config_generate_cmake_config.md)
 - [Cache build artifacts.](./config_cache_management.md)
 
 Supported commands:
 
-| Command | Description |
-| --- | --- |
-| about | About Celer. |
-| autoremove | Remove installed packages of current project |
-| clean | Clean build cache for package or project. |
-| configure | Configure platform or project. |
-| create | Create a new platform, a project or a port. |
-| deploy | Deploy with selected platform and project. |
-| help | Help about any command. |
-| setup | Setup Celer with conf repo. |
-| install | Install a port. |
-| integrate | Integrate to support tab completion. |
-| remove | Remove a package. |
-| tree | Show the dependency tree of a port or a project. |
-| update | Update conf repo, ports repo and port source. |
+| Command                           | Description                                                                   |
+| --------------------------------- | ----------------------------------------------------------------------------- |
+| about                             | About Celer.                                                                  |
+| [autoremove](./cmd_autoremove.md) | Remove installed packages of current project.                                 |
+| clean                             | Clean build cache for package or project.                                     |
+| configure                         | Configure platform or project.                                                |
+| create                            | Create [a platform](./config_add_platform.md), [a project](./config_add_project.md) or [a port](./config_add_port.md). |
+| deploy                            | Deploy with selected platform and project.                                    |
+| help                              | Help about any command.                                                       |
+| setup                             | Setup Celer with conf repo.                                                   |
+| [install](./cmd_install.md)       | Install a port.                                                               |
+| [integrate](./cmd_integrate.md)   | Integrate to support tab completion.                                          |
+| [remove](./cmd_remove.md)         | Remove a package.                                                             |
+| tree                              | Show the dependency tree of a port or a project.                              |
+| update                            | Update conf repo, ports repo and port source.                                 |
 
 # Contribute
 
