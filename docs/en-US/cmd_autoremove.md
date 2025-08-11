@@ -4,7 +4,7 @@
 
 &emsp;&emsp;The celer autoremove command removes installed packages that are no required by the current project. This helps clean up unused dependencies and maintain a tidy development environment.
 
-## Basic Usage
+## Command Syntax
 
 ```shell
 celer autoremove [flags]  
@@ -14,13 +14,12 @@ celer autoremove [flags]
 
 | Option	        | Short flag | Description                                              	|
 | ----------------- | ---------- | ------------------------------------------------------------ |
-| --help	        | -f	     | Show help for the command.	                                |
 | --purge           | -p         | Remove packages along with their associated package files.   |
 | --remove‑cache	| -c	     | Remove packages along with their build cache.	            |
 
 ## Usage Examples
 
-**1. Basic usage (remove unused packages):**
+**1. Command Syntax (remove unused packages):**
 
 ```shell
 celer autoremove  

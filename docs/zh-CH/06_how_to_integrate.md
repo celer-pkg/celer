@@ -10,7 +10,7 @@ Celer 集成tab 命令补全功能，将显著提高命令行生产力。
 - PowerShell (Windows)
 - Zsh (macOS/Linux)
 
-## Basic Usage
+## Command Syntax
 
 ```shell
 celer integrate [--bash|--powershell|--zsh]

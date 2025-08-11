@@ -4,7 +4,7 @@
 
 &emsp;&emsp;The celer clean command removes build cache files for a package or project, helping to free up disk space or resolve build issues caused by outdated cached data.
 
-## Basic Usage
+## Command Syntax
 
 ```shell
 celer clean [flags]
@@ -16,7 +16,6 @@ celer clean [flags]
 | ----------------- | ---------- | -----------------------------------------------------|
 | --all	            | -a	     | clean all packages.	                                |
 | --dev             | -d         | clean package/project for dev mode.                  |
-| --help	        | -h	     | help for clean	                                    |
 | --recurse	        | -r	     | clean package/project along with its dependencies.   |
 
 ## Usage Examples

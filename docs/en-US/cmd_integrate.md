@@ -10,7 +10,7 @@ The celer integrate command enables intelligent tab completion for Celer in your
 - PowerShell (Windows)
 - Zsh (macOS/Linux)
 
-## Basic Usage
+## Command Syntax
 
 ```shell
 celer integrate [--bash|--powershell|--zsh]

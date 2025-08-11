@@ -1,15 +1,52 @@
-# How to install library
+# Install
 
-&emsp;&emsp;Celer will clone the library code, then configure, build and install it. If the current library has sub-dependencies, the sub-dependencies will be cloned, configured, built and installed in advance.  
-&emsp;&emsp;After that, all third-party libraries will be installed to the `installed` folder, and each third-party library also has a separate package in the `packages` folder. The independent package package is convenient for intuitively viewing the compiled install products of the current library.
+## Overview
 
-You can execute the following command to install the library:
+&emsp;&emsp;The celer install command downloads, compiles, and installs packages with dependency resolution. It supports multiple build configurations and installation modes.
 
+## Command Syntax
+
+```shell
+celer install [package_name] [flags]  
 ```
-$ ./celer install name@version
+
+## Command Options
+
+| Option	        | Short flag | Description                                          |
+| ----------------- | ---------- | -----------------------------------------------------|
+| ----build-type	| -b	     | Specify build type (release/debug). Default: release.|
+| --dev             | -d         | Install as development dependency.                   |
+| --force	        | -f	     | Force reinstallation by removing installed package.  |
+| --recurse	        | -r	     | Recursively reinstall dependencies.                  |
+
+## Usage Examples
+
+**1. Standard Installation:**
+
+```shell
+celer install ffmpeg@5.1.6
 ```
 
-The structure of the `installed` folder is as follows:
+**2. Install as dev package:**
+
+```shell
+celer install pkgconf@2.4.3 --dev  
+```
+
+**3. Install forcibly:**
+
+```shell
+celer install ffmpeg@5.1.6 --force|-f
+```
+>Removes installed package and configure, build, install again.
+
+**4. Recursively reinstall dependencies:**
+
+```shell
+celer install ffmpeg@5.1.6 --recurse|-r
+```
+
+## Structure of installed directory
 
 ```
 └─ installed

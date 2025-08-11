@@ -90,7 +90,7 @@ Then the **celer.toml** file will be generated in the workspace directory:
 >**Tips:**  
 >  **https://github.com/celer-pkg/test-conf.git** is a test conf repo, you can use it to experience celer, and you can also create your own conf repo as a reference.
 
-## 4. Configure platform & project
+## 4. Configure platform or project
 
 **platform** and **project** are two combinations, they can be freely combined. For example, although the target environment is **aarch64-linux**, you can choose to compile/develop/debug in the **x86_64-linux** platform.
 
