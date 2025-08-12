@@ -1,10 +1,10 @@
-# Cache artifacts
+# 缓存构建产物
 
-&emsp;&emsp;All third-party libraries can be compiled in our project, but sometimes we want to share them. For example, we want to use ffmpeg in our project, but we don't want to compile it by everyone, because it takes a lot of time. Fortunately, Celer's cache managerment can help us.
+&emsp;&emsp;所有的第三方库都可以在我们的项目中编译，但是有时候我们想分享它们。例如，我们想在我们的项目中使用 ffmpeg，但是我们不想每个人都编译它，因为这需要花费很多时间。幸运的是，Celer 的缓存管理可以帮助我们。
 
-## 1. Define `cache_dirs`
+## 1. 定义 **cache_dirs**
 
-&emsp;&emsp;Once define `cache_dir` in `celer.toml`, everytime when build a library Celer will try to find matched cache artifact from `cache_dir`. If not found then will build from source. After building successfull, Celer will try to pack build artifact and store it in `cache_dir`.
+&emsp;&emsp;一旦在 **celer.toml** 中定义了 `cache_dir`，每次构建库时，Celer 都会尝试从 `cache_dir` 中查找匹配的缓存产物。如果未找到，则会从源代码构建。构建成功后，Celer 会尝试打包构建产物并将其存储在 `cache_dir` 中。
 
 ```
 [global]
@@ -41,30 +41,30 @@ dir = "/home/test/celer_cache"
                 └── others
 ```
 
->When build a library, Celer will try to find matched cache artifact from `cache_dir` with a cache key. If not found then will build from source. After building successfull, Celer will try to pack build artifact and store it in `cache_dir`.
+&emsp;&emsp;当构建库时，Celer 会尝试从 `cache_dir` 中查找匹配的缓存产物，缓存键是根据库的构建环境和参数计算得出的。如果未找到，则会从源代码构建。构建成功后，Celer 会尝试打包构建产物并将其存储在 `cache_dir` 中。
 
-## 3. Cache key
+## 3. 缓存key的构成
 
-The cache uses a composite key derived from:
+缓存使用从以下因素派生的复合键：
 
-**1. Build Environment**
+**1. 构建环境**
 
-- Toolchain (compiler path/version, system architecture).
-- Sysroot (name, configure).
+- 工具链（编译器路径/版本、系统架构）。
+- 系统根目录（名称、配置）。
 
-**2. Build Parameters**
+**2. 构建参数**
 
-- Library-specific options (e.g., FFmpeg's --enable-cross-compile, --enable-shared, --with-x264).
-- Environment variables (CFLAGS/LDFLAGS).
-- Selected build type (shared/static).
+- 库特定选项（例如，FFmpeg 的 --enable-cross-compile、--enable-shared、--with-x264）。
+- 环境变量（CFLAGS/LDFLAGS）。
+- 选择的构建类型（共享/静态）。
 
-**3. Source Modifications**
+**3. 源码修改**
 
-- Applied patches: The patch file contents are factored into the composite cache key computation.
+- 应用的补丁：补丁文件的内容会被纳入复合缓存键的计算中。
 
-**4. Dependency Graph**
+**4. 库依赖关系**
 
-- Recursive hashes of all dependencies (x264, nasm, etc.)
-- Their respective build configurations, versions, patches.
+- 所有依赖项的递归哈希（x264、nasm 等）。
+- 它们各自的构建配置、版本、补丁。
 
->Any one of the above factors change, Celer will consider it as a different cache key, then build from source, generating new key and store new build aritifact with the new key.
+>如果任何一个以上因素发生变化，Celer 会将其视为不同的缓存键，然后从源代码构建，生成新的键并将新的构建产物存储在新的键下。

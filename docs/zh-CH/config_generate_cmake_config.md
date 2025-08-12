@@ -1,10 +1,10 @@
-# How to automatically generate cmake configuration files
+# 如何配置生成cmake配置文件
 
-&emsp;&emsp;We all know that many third-party libraries do not use cmake to build, and after installation, they will not generate cmake configuration files. This makes it not easy to use cmake to find them. Although we can use `pkg-config` to find them, it can only be used on Linux. Now, Celer can generate cmake configuration files for them, so they can be used on any platform.
+&emsp;&emsp;我们都知道，许多第三方库都不使用cmake来构建，安装后也不会生成cmake配置文件。这使得使用cmake来找到它们变得困难。尽管我们可以使用`pkg-config`来找到它们，但是它只能在Linux上使用。现在，Celer可以为它们生成cmake配置文件，因此它们可以在任何平台上使用。
 
-**1. How to generate cmake configuration files for libraries without components**
+**1. 如何为没有组件的库生成cmake配置文件**
 
-For example, x264, you should create a cmake_config.toml file in the version directory of the port.
+例如，x264，你应该在端口的版本目录中创建一个cmake_config.toml文件。
 
 ```
 └── x264
@@ -13,7 +13,7 @@ For example, x264, you should create a cmake_config.toml file in the version dir
         └── port.toml
 ```
 
-The content of this file is as follows, we can define different filenames for different platforms.
+cmake_config.toml文件的内容如下，我们可以为不同的平台定义不同的文件名。
 
 ```toml
 namespace = "x264"

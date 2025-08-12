@@ -1,19 +1,19 @@
-# Add a new project
+# 添加一个新的项目配置
 
-&emsp;&emsp;Each project has its own features, such as the dependencies of the project, the global cmake variables, the environment variables, the C/C++ macros, and the compile options. Celer recommends defining a respective configuration file for each project to describe the features of the project.
+&emsp;&emsp;每个项目都有其独特的配置特征，包括项目依赖项、全局 CMake 变量、环境变量、C/C++ 宏定义以及编译选项等。Celer 建议为每个项目单独创建配置文件，用以描述这些项目特征。
 
-To create a new platrom, run: 
+要创建一个新的项目配置，运行以下命令：
 
-```
+```shell
 celer create --project=project_003
 ```
 
->The generated file is located in the **conf/projects** directory.   
->Then you need to open the generated file and configure it with your target project.
+> 生成的文件位于 **conf/projects** 目录中。  
+> 然后，您需要打开生成的文件并根据您的目标项目进行配置。
 
-## 1. Introduction to project configure file
+## 1. 项目配置文件介绍
 
-Let's take a look at the example project configure file, `project_003.toml`:
+让我们来看一个示例项目配置文件，`project_003.toml`：
 
 ```toml
 ports = [
@@ -44,12 +44,12 @@ compile_options = [
 ]
 ```
 
-The following are fields and their descriptions:
+以下是字段及其描述：
 
-| Field | Description |
+| 字段 | 描述 |
 | --- | --- |
-| ports | Define the third-party libraries that the current project depends on. |
-| vars | Define the global cmake variables that the current project required. |
-| envs | Define the global environment variables that the current project required. |
-| micros | Define the C/C++ macros that the current project required. |
-| compile_options | Define the compile options that the current project required. |
+| ports | 定义当前项目依赖的第三方库。 |
+| vars | 定义当前项目所需的全局 CMake 变量。 |
+| envs | 定义当前项目所需的全局环境变量。 |
+| micros | 定义当前项目所需的 C/C++ 宏定义。 |
+| compile_options | 定义当前项目所需的编译选项。 |

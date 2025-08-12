@@ -1,19 +1,19 @@
 # 添加一个新的平台配置文件
 
-&emsp;&emsp;Platform configure files are stored in **conf/platforms** directory, these files defines the `toolchain` and `rootfs` required by this platform.  
+&emsp;&emsp;平台配置文件存放于 **conf/platforms** 目录中，这些文件定义了该平台所需的 toolchain（工具链）和 rootfs（根文件系统）。
 
-To create a new platrom, run: 
+要创建一个新平台的配置文件，运行以下命令：
 
 ```
 celer create --platform=x86_64-linux-22.04
 ```
 
->The generated file is located in the **conf/platforms** directory.  
->Then you need to open the generated file and configure it according to your target environment.
+> 生成的文件位于 **conf/platforms** 目录中。
+> 然后，您需要打开生成的文件并根据您的目标环境进行配置。
 
-## 1. Introduction to platform configure file
+## 1. 平台配置文件介绍
 
-Let's take a look at an example platform configure file, `x86_64-linux-22.04.toml`:
+让我们看一个示例平台配置文件，**x86_64-linux-22.04.toml**：
 
   ```toml
   [rootfs]
@@ -44,9 +44,9 @@ Let's take a look at an example platform configure file, `x86_64-linux-22.04.tom
     strip = "x86_64-linux-gnu-strip"            # optional field
   ```
 
-The following are fields and their descriptions:
+以下是字段和其描述：
 
-| Field             | Description |
+| 字段             | 描述 |
 | ----------------- | ----------- |
 | url               | It can be http、https or ftp url, celer will download it, even it can be local file path, and it should start with **file:///**, e.g. **file:////home/phil/buildresource/ubuntu-base-20.04.5/gcc-9.5.0.tar.gz**. |
 | path              | It is the path to the toolchain directory, celer will add it to the environment path during runtime, and it will also be added to $ENV{PATH} in the generated toolchain_file.cmake, which is convenient for compiling during runtime to access the executable files inside. |
@@ -58,9 +58,9 @@ The following are fields and their descriptions:
 | cxx               | Path to the c++ compiler, e.g. **x86_64-linux-gnu-g++**, **aarch64-linux-gnu-g++**, **i686-w64-mingw32-g++**. |
 | fc, ranlib, ar, nm, objdump, strip, etc | They are optional fields, toolchain can find them with `crosstool_prefix`. |
 
-## 2. Configure for Windows platform
+## 2. 配置 Windows 平台
 
-&emsp;&emsp;Windows use MSVC to compile C/C++ projects, and the configuration of MSVC is quite different from Linux's GCC. The difference is that the compiler file names in MSVC are basically fixed, but the header files and library files are scattered in different directories, which is not a problem for Celer. Celer encapsulates all the details, and finally configuring the MSVC platform is simpler, for example:
+&emsp;&emsp;Windows 使用 MSVC 编译 C/C++ 项目，而 MSVC 的配置与 Linux 的 GCC 有很大的不同。区别在于 MSVC 中的编译器文件名基本上是固定的，但是头文件和库文件分散在不同的目录中，这对于 Celer 来说不是问题。Celer 封装了所有的细节，最终配置 MSVC 平台要简单得多，例如：
 
 ```toml
 [toolchain]
