@@ -1,4 +1,4 @@
-# Clean command
+# Deploy command
 
 &emsp;&emsp;The celer deploy command performs a complete build and deployment cycle for all required third-party libraries based on the selected platform and project configuration. It simultaneously generates a **toolchain_file.cmake** for seamless integration with CMake-based projects.
 
