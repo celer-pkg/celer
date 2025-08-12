@@ -4,13 +4,13 @@
 
 # The background of Celer
 
-&emsp;&emsp;CMake has been the mainstream choice for compiling C/C++ projects, especially when cross-compiling. However, CMake plays the role of finding libraries (via find_package) only. In actual project development, there are often additional tedious tasks CMake isn't responsible, for examples as below:
+&emsp;&emsp;CMake has become the mainstream build system for compiling C/C++ projects, especially in cross-compiling scenarios. While CMake excels at managing the build process—including configuration, compilation, and installation—it primarily focuses on locating dependencies (via **find_package**) rather than handling higher-level package management tasks. In real-world development, many additional tedious tasks fall outside CMake's responsibilities, such as:
 
 **1. Clone repos and setup build tools**  
 CMake doesn't download source code of libraries, setup toolchains, rootfs, and tools that required for compilation, such as autoconf, automake, pkg-config, nasm, windows-perl, cmake, etc., all of that need to be prepared and configured manually by developers themself.
 
-**2. Dependencies between third-party libraries**  
-Information is scattered across the internet, with no centralized place for archiving. During the compilation process, a lot of manual work is required to organize the dependencies.
+**2. Organize dependencies between third-party libraries**  
+In C/C++ projects, dependencies are described within the library's source code, making them highly non-intuitive to understand. During the compilation process, a lot of manual work is required to organize the dependencies.
 
 **3. Setup cross-compilation environment**  
 Although CMake supports cross-compilation by providing `-D CMAKE_TOOLCHAIN_FILE` to specify a **toolchain_file.cmake**, it still requires manually written scripts for proper configuration.
@@ -24,7 +24,7 @@ Celer now has below key features:
 **1. Automatically downloads and configures build tools**  
 It automatically downloads and configures tools like toolchain, sysroot, CMake, ninja, msys2, and strawberry-perl based on the selected platform and target libraries.
 
-**2. Supports hosting of libraries compiled with common build tools**  
+**2. Supports hosting of libraries building with common build tools**  
 In the port.toml file of each third-party library version directory, you can specify the `build_system` field as **cmake**, **makefiles**, **ninja**, **meson**, etc., to compile with different build tools.
 
 **3. Supports generating cmake configs**  
@@ -40,10 +40,10 @@ Celer supports overriding third-party libraries with different versions and comp
 
 We have documentations to guide you in using Celer:
 
-- [Quick start Celer.](./quick_start.md)
-- [Add a new platform.](./config_add_platform.md)
-- [Add a new project.](./config_add_project.md)
-- [Add a new port.](./config_add_port.md)
+- [Quick start.](./quick_start.md)
+- [How to a new platform.](./config_add_platform.md)
+- [How to a new project.](./config_add_project.md)
+- [How to a new port.](./config_add_port.md)
 
 Advanced features:
 
