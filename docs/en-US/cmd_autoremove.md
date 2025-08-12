@@ -12,7 +12,7 @@ celer autoremove [flags]
 
 | Option	        | Short flag | Description                                              	|
 | ----------------- | ---------- | ------------------------------------------------------------ |
-| --purge           | -p         | Remove packages along with their associated package files.   |
+| --purge           | -p         | Remove packages along with associated package files.   |
 | --remove‑cache	| -c	     | Remove packages along with their build cache.	            |
 
 ## Usage Examples
