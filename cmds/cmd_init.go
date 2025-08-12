@@ -15,7 +15,7 @@ type initCmd struct {
 func (i initCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "init",
-		Short: "Init celer with conf repo.",
+		Short: "Init with conf repo.",
 		Run: func(cmd *cobra.Command, args []string) {
 			celer := configs.NewCeler()
 			if err := celer.SyncConf(i.url, i.branch); err != nil {

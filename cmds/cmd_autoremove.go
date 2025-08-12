@@ -22,7 +22,7 @@ type autoremoveCmd struct {
 func (a autoremoveCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "autoremove",
-		Short: "Remove installed package but not required by current project.",
+		Short: "Tidy up installation directory - removing project's unnecessary files.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Init celer.
 			celer := configs.NewCeler()

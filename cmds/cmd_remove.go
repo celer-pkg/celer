@@ -22,7 +22,7 @@ type removeCmd struct {
 func (r removeCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "remove",
-		Short: "Uninstall a package.",
+		Short: "Remove a package.",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			// Init celer.
