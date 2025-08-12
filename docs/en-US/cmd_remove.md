@@ -1,13 +1,11 @@
-# How to remove installed libraries
+# Remove command
 
-## Overview
-
-The celer remove command uninstalls a specified package from your system. It provides flexible removal options including dependency cleanup, build cache deletion, and development-mode package handling.
+&emsp;&emsp;The celer remove command uninstalls a specified package from your system. It provides flexible removal options including dependency cleanup, build cache deletion, and development-mode package handling.
 
 ## Command Syntax
 
 ```shell
-celer remove [package_name] [flags]  
+celer remove [name@version] [flags]  
 ```
 
 ## Flags
@@ -22,37 +20,32 @@ celer remove [package_name] [flags]
 
 ## Usage Examples
 
-1. Basic removal
+**1. Basic removal**
 
 ```shell
 celer remove ffmpeg@5.1.6
 ```
 
-2. Remove with dependencies
+**2. Remove with dependencies**
 
 ```shell
 celer remove ffmpeg@5.1.6 --recurse/-r
 ```
 
-3. Purge package completely
+**3. Purge package completely**
 
 ```shell
 celer remove ffmpeg@5.1.6 --purge/-p
 ```
 
-4. Remove Dev-Mode package
+**4. Remove dev runtime mode package**
 
 ```shell
 celer remove ffmpeg@5.1.6 --dev/-d
 ```
 
-5. Remove package and clean build cache
+**5. Remove package and clean build cache**
 
 ```shell
 celer remove ffmpeg@5.1.6 --remove-cache/-c
 ```
-
->Notes
->1. Use -r with caution—it may break other packages if shared dependencies are removed.
->2. -p is irreversible; ensure you don’t need the package’s files (e.g., configs).
->3. Cache removal (-c) frees disk space but may slow down future rebuilds.

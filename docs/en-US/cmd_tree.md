@@ -1,6 +1,4 @@
-# Tree
-
-## Overview
+# Tree command
 
 &emsp;&emsp;The celer tree command visualizes dependency relationships for packages or projects, displaying both runtime dependencies and development dependencies by default.
 
@@ -18,13 +16,13 @@ celer tree [package_name|project_name] [flags]
 
 ## Usage Examples
 
-**1. Show Complete Dependency Tree:**
+**1. Show complete dependency tree**
 
 ```shell
 celer tree ffmpeg@5.1.6
 ```
 
-**2. Show dependencies without runtime Dependencies:**
+**2. Show dependencies without runtime dependencies**
 
 ```shell
 celer tree ffmpeg@5.1.6 --hide-dev

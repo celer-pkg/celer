@@ -1,8 +1,8 @@
-# Add new platform
+# Add a new platform
 
-&emsp;&emsp;Platform configure file is stored in **conf/platforms** directory, this file defines the `toolchain` and `rootfs` required by this platform.  
+&emsp;&emsp;Platform configure files are stored in **conf/platforms** directory, these files defines the `toolchain` and `rootfs` required by this platform.  
 
-To create new platrom, run: 
+To create a new platrom, run: 
 
 ```
 celer create --platform=x86_64-linux-22.04
@@ -46,16 +46,16 @@ Let's take a look at an example platform configure file, `x86_64-linux-22.04.tom
 
 The following are fields and their descriptions:
 
-| Field | Description |
-| ------ | ----------- |
-| url | It can be http、https or ftp url, celer will download it, even it can be local file path, and it should start with **file:///**, e.g. **file:////home/phil/buildresource/ubuntu-base-20.04.5/gcc-9.5.0.tar.gz**. |
-| path | It is the path to the toolchain directory, celer will add it to the environment path during runtime, and it will also be added to $ENV{PATH} in the generated toolchain_file.cmake, which is convenient for compiling during runtime to access the executable files inside. |
-| system_name | It is the name of the system, e.g. **Linux**, **Windows**, **macOS**. |
-| system_processor | Processor of the system, e.g. **x86_64**, **arm64**, **i386**. |
-| host | Host of the toolchain, e.g. **x86_64-linux-gnu**, **aarch64-linux-gnu**, **i686-w64-mingw32**. |
-| crosstool_prefix | Prefix of the toolchain, e.g. **x86_64-linux-gnu-**, **aarch64-linux-gnu-**, **i686-w64-mingw32-**. |
-| cc | Path to the compiler, e.g. **x86_64-linux-gnu-gcc**, **aarch64-linux-gnu-gcc**, **i686-w64-mingw32-gcc**. |
-| cxx | Path to the c++ compiler, e.g. **x86_64-linux-gnu-g++**, **aarch64-linux-gnu-g++**, **i686-w64-mingw32-g++**. |
+| Field             | Description |
+| ----------------- | ----------- |
+| url               | It can be http、https or ftp url, celer will download it, even it can be local file path, and it should start with **file:///**, e.g. **file:////home/phil/buildresource/ubuntu-base-20.04.5/gcc-9.5.0.tar.gz**. |
+| path              | It is the path to the toolchain directory, celer will add it to the environment path during runtime, and it will also be added to $ENV{PATH} in the generated toolchain_file.cmake, which is convenient for compiling during runtime to access the executable files inside. |
+| system_name       | It is the name of the system, e.g. **Linux**, **Windows**, **macOS**. |
+| system_processor  | Processor of the system, e.g. **x86_64**, **arm64**, **i386**. |
+| host              | Host of the toolchain, e.g. **x86_64-linux-gnu**, **aarch64-linux-gnu**, **i686-w64-mingw32**. |
+| crosstool_prefix  | Prefix of the toolchain, e.g. **x86_64-linux-gnu-**, **aarch64-linux-gnu-**, **i686-w64-mingw32-**. |
+| cc                | Path to the compiler, e.g. **x86_64-linux-gnu-gcc**, **aarch64-linux-gnu-gcc**, **i686-w64-mingw32-gcc**. |
+| cxx               | Path to the c++ compiler, e.g. **x86_64-linux-gnu-g++**, **aarch64-linux-gnu-g++**, **i686-w64-mingw32-g++**. |
 | fc, ranlib, ar, nm, objdump, strip, etc | They are optional fields, toolchain can find them with `crosstool_prefix`. |
 
 ## 2. Configure for Windows platform

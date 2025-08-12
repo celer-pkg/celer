@@ -47,23 +47,24 @@ dir = "/home/test/celer_cache"
 
 The cache uses a composite key derived from:
 
-1. Build Environment
+**1. Build Environment**
 
-    - Toolchain (compiler path/version, system architecture).
-    - Sysroot (name, configure).
+- Toolchain (compiler path/version, system architecture).
+- Sysroot (name, configure).
 
-2. Build Parameters
+**2. Build Parameters**
 
-    - Library-specific options (e.g., FFmpeg's --enable-cross-compile, --enable-shared, --with-x264).
-    - Environment variables (CFLAGS/LDFLAGS).
-    - Selected build type (shared/static).
+- Library-specific options (e.g., FFmpeg's --enable-cross-compile, --enable-shared, --with-x264).
+- Environment variables (CFLAGS/LDFLAGS).
+- Selected build type (shared/static).
 
-3. Source Modifications
+**3. Source Modifications**
 
-    - Applied patches: The patch file contents are factored into the composite cache key computation.
+- Applied patches: The patch file contents are factored into the composite cache key computation.
 
-4. Dependency Graph
-    - Recursive hashes of all dependencies (x264, nasm, etc.)
-    - Their respective build configurations, versions, patches.
+**4. Dependency Graph**
+
+- Recursive hashes of all dependencies (x264, nasm, etc.)
+- Their respective build configurations, versions, patches.
 
 >Any one of the above factors change, Celer will consider it as a different cache key, then build from source, generating new key and store new build aritifact with the new key.

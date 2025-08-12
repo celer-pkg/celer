@@ -1,8 +1,6 @@
-# About
+# About command
 
-## Overview
-
-The celer about command displays essential information about the Celer build system, including:
+&emsp;&emsp;The celer about command displays essential information about the Celer build system, including:
 
 - Version number and release channel (stable/beta/nightly).
 - Usage guide.

@@ -1,8 +1,6 @@
-# Integrate Tab completion
+# Integrate command
 
-## Overview
-
-The celer integrate command enables intelligent tab completion for Celer in your shell environment, significantly improving command-line productivity.
+&emsp;&emsp;The celer integrate command enables intelligent tab completion for Celer in your shell environment, significantly improving command-line productivity.
 
 ## Supported Shells
 
@@ -13,38 +11,35 @@ The celer integrate command enables intelligent tab completion for Celer in your
 ## Command Syntax
 
 ```shell
-celer integrate [--bash|--powershell|--zsh]
+celer integrate [--bash|--powershell]
 ```
 
 ## Command Options
 
-| Option	| Description	|
-| -------- | -------- |
-| --bash	| Enable tab completion for Bash shell	|
-| --powershell	| Enable tab completion for PowerShell	|
-| --zsh	| Enable tab completion for Zsh shell	|
-| --remove	| Remove all Celer shell completions	|
+| Option	    | Description	                                                    |
+| ------------- | ----------------------------------------------------------------- |
+| --bash	    | Enable tab completion for Bash shell	                            |
+| --powershell	| Enable tab completion for PowerShell	                            |
+| --remove	    | Combing with --bash and --powershell to remove tab completions	|
 
 ## Usage Examples
 
-### Specific shell integration
+**1. Specific shell integration**
 
 To enable tab completion for a specific shell, use the corresponding option:
 
 ```shell
 celer integrate --bash
 celer integrate --powershell
-celer integrate --zsh
 ```
 
-### Remove tab completion
+**2. Remove tab completion**
 
 To remove all Celer shell completions, use the --remove option:
 
 ```shell
 celer integrate --bash --remove
 celer integrate --powershell --remove
-celer integrate --zsh --remove
 ```
 
 > **Note:**   

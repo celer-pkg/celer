@@ -1,6 +1,4 @@
-# Clean
-
-## Overview
+# Clean command
 
 &emsp;&emsp;The celer clean command removes build cache files for a package or project, helping to free up disk space or resolve build issues caused by outdated cached data.
 
@@ -20,31 +18,31 @@ celer clean [flags]
 
 ## Usage Examples
 
-**1. Clean build caches for all dependencies of specified project:**
+**1. Clean build caches for all dependencies of specified project**
 
 ```shell
 celer clean project_xxx
 ```
 
-**2. Clean build caches for multi packages:**
+**2. Clean build caches for multi packages**
 
 ```shell
 celer clean ffmpeg@5.1.6 opencv@4.11.0
 ```
 
-**3. Clean build caches for dev packages:**
+**3. Clean build caches for dev packages**
 
 ```shell
-celer clean --dev pkgconf@2.4.3
+celer clean --dev/-d pkgconf@2.4.3
 ```
 
-**4. Combine recurse and cache:**
+**4. Combine recurse and cache**
 
 ```shell
-celer clean --recurse|-r ffmpeg@5.1.6
+celer clean --recurse/-r ffmpeg@5.1.6
 ```
 
-**5. Clean all build caches under buildtrees directory:**
+**5. Clean all build caches under buildtrees directory**
 
 ```shell
 celer clean --all

@@ -1,6 +1,4 @@
-# Clean
-
-## Overview
+# Clean command
 
 &emsp;&emsp;The celer deploy command performs a complete build and deployment cycle for all required third-party libraries based on the selected platform and project configuration. It simultaneously generates a **toolchain_file.cmake** for seamless integration with CMake-based projects.
 
@@ -19,7 +17,7 @@ celer deploy [flags]
 
 ## Usage Examples
 
-**1. Standard Deployment:**
+**1. Standard Deployment**
 
 ```shell
 celer deploy
@@ -27,19 +25,19 @@ celer deploy
 
 >Standard deployment is always used in command line.
 
-**2. Development Mode Deployment:**
+**2. Dev mode deployment**
 
 ```shell
-celer deploy --dev-mode
+celer deploy --dev-mode/-d
 ```
 
->Development mode deployment is always called in generated **toolchain_file.cmake**.
+>Dev mode deployment is always called in generated **toolchain_file.cmake**, and it will not override **toolchain_file.cmake**.
 
-**3. Deploy with build Type:**
+**3. Deploy with build Type**
 
 ```shell
-celer deploy --build-type debug
+celer deploy --build-type/-b debug
 ```
 
->Build type can be specified in **celer.toml** file.
+>The build type is read from **celer.toml** file, default is **release**. You can also specify build type in command line.
 

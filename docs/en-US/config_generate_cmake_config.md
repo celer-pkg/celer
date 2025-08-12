@@ -2,7 +2,7 @@
 
 &emsp;&emsp;We all know that many third-party libraries do not use cmake to build, and after installation, they will not generate cmake configuration files. This makes it not easy to use cmake to find them. Although we can use `pkg-config` to find them, it can only be used on Linux. Now, Celer can generate cmake configuration files for them, so they can be used on any platform.
 
-## 1. How to generate cmake configuration files for libraries without components
+**1. How to generate cmake configuration files for libraries without components**
 
 For example, x264, you should create a cmake_config.toml file in the version directory of the port.
 
@@ -56,7 +56,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 > **Note:**  
 > &emsp;&emsp;Note that the namespace is defined in the cmake_config file. If it is not defined, it will be the same as the library name. The namespace is also the prefix of the config file name.
 
-## 2. How to generate cmake configuration files for libraries with components
+**2. How to generate cmake configuration files for libraries with components**
 
 For example, ffmpeg, you should create a cmake_config.toml file in the version directory of the port.
 
