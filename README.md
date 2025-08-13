@@ -25,13 +25,13 @@ Celer now has below key features:
 It automatically downloads and configures tools like toolchain, sysroot, CMake, ninja, msys2, and strawberry-perl based on the selected platform and target libraries.
 
 **2. Supports hosting of libraries building with common build tools**  
-In the port.toml file of each third-party library version directory, you can specify the `build_system` field as **cmake**, **makefiles**, **ninja**, **meson**, etc., to compile with different build tools.
+In the port.toml file of each third-party library version directory, you can specify the **build_system** field as **cmake**, **makefiles**, **ninja**, **meson**, etc., to compile with different build tools.
 
 **3. Supports generating cmake configs**  
-Celer can generate cmake configs for any libraries, especially for libraries that not build by CMake, then you can `find_package` it easily.
+Celer can generate cmake configs for any libraries, especially for libraries that not build by CMake, then you can **find_package** it easily.
 
 **4. Support cache and share build artifacts**  
-Celer supports precise build artifact management. Currently, you can configure the `cache_dir` in **celer.toml** to store and access artifacts in a shared folder on the local network. This aims to avoid redundant compilation of source code and improve development efficiency.
+Celer supports precise build artifact management. Currently, you can configure the **cache_dir** in **celer.toml** to store and access artifacts in a shared folder on the local network. This aims to avoid redundant compilation of source code and improve development efficiency.
 
 **5. Supports overriding compile options for third-party libraries and managing project-specific libraries**  
 Celer supports overriding third-party libraries with different versions and compile options within individual project folders. It also allows adding project-specific internal libraries within the project's folder.
