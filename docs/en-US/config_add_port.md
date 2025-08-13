@@ -70,11 +70,12 @@ The following are fields and their descriptions:
 | ref | It can be a tag name, branch name, or commit id, and it can also be the version number in the filename of the compressed package when the library code is downloaded in the compressed package form. |
 | archive | Optional, it works only when url is not a git url. We can rename the downloaded archive file name with this field. |
 | src_dir | Optional, some libraries' **configure** file or **CMakeLists.txt** file is not in the root directory, for example, the **configure** file of **icu** library is in **icu4c/source** directory, we can use **src_dir** to specify. |
-| build_config | The build configuration of third-party libraries often varies across different systems. These differences typically involve platform-specific compilation flags or even entirely distinct build steps. Some libraries even require special pre-processing or post-processing to compile correctly on Windows. That's why the build_config is defined as an array—to specify how the library should be built on different platforms. |
+| build_configs | It's a array of config to descript how to build library in different platforms. |
 
-## 2.2 build_config
+## 2.2 build_configs
 
-&emsp;&emsp;**build_configs** is designed as an array to meet the different compilation requirements of a library on different system platforms. Celer will automatically find the matching **build_config** according to **pattern** to assemble the compilation command.
+&emsp;&emsp;**build_configs** is designed as an array to meet the different compilation requirements of a library on different system platforms. Celer will automatically find the matching **build_config** according to **pattern** to assemble the compilation command.  
+&emsp;&emsp;The build configuration of third-party libraries often varies across different systems. These differences typically involve platform-specific compilation flags or even entirely distinct build steps. Some libraries even require special pre-processing or post-processing to compile correctly on Windows. 
 
 ### 2.2.1 pattern
 

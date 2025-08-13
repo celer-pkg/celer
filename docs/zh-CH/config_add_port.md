@@ -66,15 +66,16 @@ options = [
 
 | 字段 | 描述 |
 | --- | --- |
-| url | The url to clone or download library code, it can be https or ftp, even it can be **file:///** pointing to a local dir, even during testing, it can be **file:///** pointing to a local repo. |
-| ref | It can be a tag name, branch name, or commit id, and it can also be the version number in the filename of the compressed package when the library code is downloaded in the compressed package form. |
-| archive | Optional, it works only when url is not a git url. We can rename the downloaded archive file name with this field. |
-| src_dir | Optional, some libraries' **configure** file or **CMakeLists.txt** file is not in the root directory, for example, the **configure** file of **icu** library is in **icu4c/source** directory, we can use **src_dir** to specify. |
-| build_config | The build configuration of third-party libraries often varies across different systems. These differences typically involve platform-specific compilation flags or even entirely distinct build steps. Some libraries even require special pre-processing or post-processing to compile correctly on Windows. That's why the build_config is defined as an array—to specify how the library should be built on different platforms. |
+| url | 这是库的代码仓库地址，它可以是 https 或 ftp，甚至可以是 **file:///** 指向本地目录，甚至在测试期间，它也可以是 **file:///** 指向本地仓库。 |
+| ref | 这可以是标签名、分支名或提交 ID，也可以是压缩包文件名中的版本号，当库代码以压缩包形式下载时。 |
+| archive | 可选字段，仅当 url 不是 git 仓库时才有效。我们可以使用此字段重命名下载的压缩包文件名。 |
+| src_dir | 可选字段，用于指定**configure** 文件或 **CMakeLists.txt**所在目录，默认为空，即： 一般库默认就在源码根目录。 |
+| build_config | 这是一个数组，用于指定在不同平台上如何构建库。 |
 
 ## 2.2 build_config
 
-**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **pattern** 自动找到匹配的 **build_config** 来组装编译命令。
+&emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **pattern** 自动找到匹配的 **build_config** 来组装编译命令。  
+&emsp;&emsp;第三方库的编译配置通常在不同系统上会有差异。这些差异通常涉及平台特定的编译标志或甚至 entirely distinct build steps。一些库甚至需要特殊的预处理或后处理才能在 Windows 上正确编译。
 
 ### 2.2.1 pattern
 

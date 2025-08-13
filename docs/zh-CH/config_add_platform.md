@@ -1,4 +1,4 @@
-# 添加一个新的平台配置文件
+# 添加一个新的平台
 
 &emsp;&emsp;平台配置文件存放于 **conf/platforms** 目录中，这些文件定义了该平台所需的 toolchain（工具链）和 rootfs（根文件系统）。
 
@@ -48,15 +48,17 @@ celer create --platform=x86_64-linux-22.04
 
 | 字段             | 描述 |
 | ----------------- | ----------- |
-| url               | It can be http、https or ftp url, celer will download it, even it can be local file path, and it should start with **file:///**, e.g. **file:////home/phil/buildresource/ubuntu-base-20.04.5/gcc-9.5.0.tar.gz**. |
-| path              | It is the path to the toolchain directory, celer will add it to the environment path during runtime, and it will also be added to $ENV{PATH} in the generated toolchain_file.cmake, which is convenient for compiling during runtime to access the executable files inside. |
-| system_name       | It is the name of the system, e.g. **Linux**, **Windows**, **macOS**. |
-| system_processor  | Processor of the system, e.g. **x86_64**, **arm64**, **i386**. |
-| host              | Host of the toolchain, e.g. **x86_64-linux-gnu**, **aarch64-linux-gnu**, **i686-w64-mingw32**. |
-| crosstool_prefix  | Prefix of the toolchain, e.g. **x86_64-linux-gnu-**, **aarch64-linux-gnu-**, **i686-w64-mingw32-**. |
-| cc                | Path to the compiler, e.g. **x86_64-linux-gnu-gcc**, **aarch64-linux-gnu-gcc**, **i686-w64-mingw32-gcc**. |
-| cxx               | Path to the c++ compiler, e.g. **x86_64-linux-gnu-g++**, **aarch64-linux-gnu-g++**, **i686-w64-mingw32-g++**. |
-| fc, ranlib, ar, nm, objdump, strip, etc | They are optional fields, toolchain can find them with `crosstool_prefix`. |
+| url               | 它可以是 http、https 或 ftp 协议的 URL，也可以是本地文件路径，本地文件路径应该以 **file:///** 开头，例如 **file:////home/phil/buildresource/ubuntu-base-20.04.5/gcc-9.5.0.tar.gz**。 |
+| path              | 它是工具链目录的路径，Celer 会在运行时将其添加到环境路径中，并且还会在生成的 toolchain_file.cmake 中添加到 $ENV{PATH} 中，这对于在运行时编译时访问内部的可执行文件非常方便。 |
+| system_name       | 系统名称，例如 **Linux**、**Windows**、**macOS**。 |
+| system_processor  | 系统处理器架构，例如 **x86_64**、**arm64**、**i386**。 |
+| name              | 工具链名称，例如 **gcc**、**clang**、**msvc**。 |
+| version           | 工具链版本，例如 **9.5**、**11.3**、**14.44.35207**。 |
+| host              | 工具链运行的操作系统，例如 **x86_64-linux-gnu**、**aarch64-linux-gnu**、**i686-w64-mingw32**。 |
+| crosstool_prefix  | 工具链前缀，例如 **x86_64-linux-gnu-**、**aarch64-linux-gnu-**、**i686-w64-mingw32-**。 |
+| cc                | 工具链中的 C 编译器，例如 **x86_64-linux-gnu-gcc**、**aarch64-linux-gnu-gcc**、**i686-w64-mingw32-gcc**。 |
+| cxx               | 工具链中的 C++ 编译器，例如 **x86_64-linux-gnu-g++**、**aarch64-linux-gnu-g++**、**i686-w64-mingw32-g++**。 |
+| fc, ranlib, ar, nm, objdump, strip, etc | 它们是可选字段，工具链可以使用 `crosstool_prefix` 找到它们。 |
 
 ## 2. 配置 Windows 平台
 

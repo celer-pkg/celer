@@ -1,4 +1,4 @@
-# Use Celer to build your CMake project
+# Quick start
 
 ## 1. Clone the repository
 

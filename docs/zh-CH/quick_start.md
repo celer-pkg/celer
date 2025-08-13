@@ -1,30 +1,34 @@
-# Use Celer to build your CMake project
+# 快速上手
 
-## 1. Clone the repository
+## 1. 克隆Clone the repository
 
-The first step is to clone the celer repository from GitHub. This the source of whole celer project. To do this, run:
+第一步是从GitHub克隆Celer仓库，这是Celer项目的所有源代码。  
+
+要执行此操作，请运行以下命令：
 
 ```shell
 git clone https://github.com/celer-pkg/celer.git
 ```
 
-## 2. Build Celer
+## 2. 编译 Celer
 
-  - Install the Go SDK by referring https://go.dev/doc/install.
-  - cd celer && go build.
+  - 安装Go SDK，参考https://go.dev/doc/install。
+  - 进入Celer目录，执行`go build`。
 
   **Tips:**  
-  In China, you may need to set proxy for go, like this:
+  在中国，你可能需要为Go设置代理，如下所示：
 
   ```shell
   export GOPROXY=https://goproxy.cn
   ```
 
->**Note:** When a stable version is released, users can directly download the pre-built binaries, skipping the first two steps.
+>**Note:** 未来，当Celer发布稳定版本时，用户可以直接下载预构建的二进制文件，跳过前两步。
 
-## 3. Setup conf
+## 3. 配置 conf
 
-Different C++ projects often require distinct build environments and dependencies. Celer recommends using **conf** to define cross-compiling environments and third-party dependencies for each project. The strucure of **conf** should be like as below:
+不同的C++项目通常需要不同的构建环境和依赖项。Celer建议使用**conf**来定义每个项目的跨编译环境和第三方依赖项。
+
+**conf**的结构如下：
 
 ```
 conf
@@ -53,26 +57,26 @@ conf
     └── test_project_02.toml ---------- project_02
 ```
 
->About how to create new **platform**, **project** and **port**, you can refer: [**add platform**](./03_add_platform.md), [**add project**](./04_add_project.md) and [**add port**](./05_add_new_port.md).
+>关于如何创建新的**platform**、**project**和**port**，你可以参考：[**add platform**](./03_add_platform.md)、[**add project**](./04_add_project.md)和[**add port**](./05_add_new_port.md)。
 
-The following are conf files and their descriptions:
+以下是conf文件和它们的描述：
 
-| file | description |
+| 文件 | 描述 |
 | ----- | ---------- |
-| platforms/*.toml | Define platforms with toolchains and rootfs. |
-| projects/*.toml  | Defines projects with dependencies, CMake variables, C++ macros, and build options for it.|
-| projects/*/port.toml | Used to override project-specific third-party library versions, custom build parameters, and define private libraries for projects. |
+| platforms/*.toml | 定义平台，包括工具链和根文件系统。 |
+| projects/*.toml  | 定义项目，包括依赖项、CMake变量、C++宏和构建选项。|
+| projects/*/port.toml | 用于覆盖项目特定的第三方库版本、自定义构建参数和定义项目的私有库。 |
 
 >**Note:**  
-&emsp;&emsp;Although **conf** is highly recommend for Celer, Celer can still work without **conf**. In that case, We can only use Celer to build third-party libraries with locally toolchains:
+&emsp;&emsp;虽然**conf**是Celer推荐的配置方式，但是Celer也可以在没有**conf**的情况下工作。在这种情况下，我们只能使用Celer来构建本地工具链的第三方库：
 >
->- In Windows, Celer locates installed Visual Studio via **vswhere** as the default toolchain. For makefile-based libraries, it automatically downloads and configures MSYS2.
+>- 在Windows中，Celer通过**vswhere**定位已安装的Visual Studio作为默认工具链。对于基于makefile的库，它会自动下载并配置MSYS2。
 >
->- In Linux, Celer automatically uses locally installed x86_64 gcc/g++ toolchain.
+>- 在Linux中，Celer会自动使用本地安装的x86_64 gcc/g++工具链。
 
-To setup conf, run:
+要设置conf，请运行以下命令：
 
-```
+```shell
 celer setup --url=https://github.com/celer-pkg/test-conf.git
 ```
 
@@ -88,18 +92,18 @@ Then the **celer.toml** file will be generated in the workspace directory:
 ```
 
 >**Tips:**  
->  **https://github.com/celer-pkg/test-conf.git** is a test conf repo, you can use it to experience celer, and you can also create your own conf repo as a reference.
+>  **https://github.com/celer-pkg/test-conf.git** 只是一个测试用的conf仓库，你可以使用它来体验Celer，也可以根据它创建你自己的conf仓库作为参考。
 
-## 4. Configure platform or project
+## 4. 配置平台或项目
 
-**platform** and **project** are two combinations, they can be freely combined. For example, although the target environment is **aarch64-linux**, you can choose to compile/develop/debug in the **x86_64-linux** platform.
+**platform** 和 **project** 是两个组合，它们可以自由组合。例如，尽管目标环境是 **aarch64-linux**，但你可以选择在 **x86_64-linux** 平台上编译/开发/调试。
 
 ```shell
 celer configure --platform=x86_64-linux-20.04
 celer configure --project=test_project_02
 ```
 
-Then the **celer.toml** file would be updated as below:
+经过配置后，**celer.toml** 文件会更新为以下内容：
 
 ```toml
 [gloabl]
@@ -113,35 +117,35 @@ Then the **celer.toml** file would be updated as below:
   dir = "/home/phil/celer_cache"
 ```
 
-The following are fields and their descriptions:
+以下是字段以及它们的描述：
 
-| field | description |
+| 字段 | 描述 |
 | ----- | ----------- |
-| conf_repo |  Url of repo used to save configurations of platforms and projects |
-| platform | Selected platform for current workspace, when it's empty, celer will use detect local toolchain to compile your libraires and projects. |
-| project | Selected project for current workspace, When it's empty, there'll be a project name called "unname". |
-| job_num | The max cpu cores for celer to compile, default is the number of cores of your cpu. |
-| build_type | Default is **release**, you can also set it to **debug**. |
-| cache_dir | Celer supports cache build artifact, which can avoid redundant compilation. [You can configure it as a local directory or a shared folder in the LAN](./10_cache_management.md). |
+| conf_repo |  用于保存平台和项目配置的仓库URL |
+| platform |  当前工作空间所选的平台，当为空时，Celer会使用检测本地工具链来编译您的库和项目。 |
+| project |  当前工作空间所选的项目，当为空时，会创建一个名为“unname”的项目。 |
+| job_num |  Celer编译时使用的最大CPU核心数，默认值为您CPU的核心数。 |
+| build_type | 默认值为 **release**，您也可以将其设置为 **debug**。 |
+| cache_dir | Celer支持缓存构建工件，这可以避免重复编译。[你可以将其配置为本地目录或LAN中的共享文件夹](./10_cache_management.md)。 |
 
-## 5. Depoy Celer
+## 5. 部署 Celer
 
-Deploy Celer is to build third-party libraries required in project with build environment in selected platform. To deploy celer, run:
+部署 Celer 是在所选平台的构建环境中构建项目所需的第三方库，要部署 Celer，请运行：
 
 ```shell
 celer deploy
 ```
 
-&emsp;&emsp;A successful celer deploy generates **toolchain_file.cmake** under workspace directory, allowing projects to depend solely on this file - making Celer no longer required thereafter. Furthermore, you can pack workspace with **installed folder**, **downloaded folder** and **toolchain_file.cmake** inside, this can be the build environment with others.  
+&emsp;&emsp;成功部署 Celer 后，会在工作空间目录下生成 **toolchain_file.cmake** 文件，该文件允许项目仅依赖于此文件，从而无需后续再使用 Celer。此外，您可以将工作空间打包为 **installed folder**、**downloaded folder** 和 **toolchain_file.cmake** 三个文件夹，这可以是构建环境的基础，供其他用户使用。  
 
-## 6. Build your CMake project
+## 6. 构建您的 CMake 项目
 
-With the **toolchain_file.cmake** generated by Celer, build your cmake projects will be quite easy as below:
+使用 Celer 生成的 **toolchain_file.cmake** 文件，构建您的 CMake 项目将变得非常简单，如下所示：
 
 ```shell
-# option1: 
+# 方式1: 
 set(CMAKE_TOOLCHAIN_FILE "/xx/workspace/toolchain_file.cmake")  
 
-# option2: 
+# 方式2: 
 cmake .. -DCMAKE_TOOLCHAIN_FILE="/xx/workspace/toolchain_file.cmake"
 ```
