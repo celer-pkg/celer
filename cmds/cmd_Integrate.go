@@ -171,7 +171,7 @@ func (i integrateCmd) installCompletion(homeDir string) error {
 		if err := os.MkdirAll(filepath.Dir(destination), os.ModePerm); err != nil {
 			return err
 		}
-		if err := os.Rename(filePath, destination); err != nil {
+		if err := fileio.MoveFile(filePath, destination); err != nil {
 			return err
 		}
 		fmt.Printf("[integrate] completion --> %s\n", destination)
