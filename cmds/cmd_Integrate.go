@@ -23,7 +23,7 @@ type integrateCmd struct {
 func (i integrateCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "integrate",
-		Short: "Integrates celer into [bash|fish|powershell|zsh]",
+		Short: "Integrate to support tab completion.",
 		Run: func(cobraCmd *cobra.Command, args []string) {
 			homeDir, err := os.UserHomeDir()
 			if err != nil {

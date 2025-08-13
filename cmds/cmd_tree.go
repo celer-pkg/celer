@@ -31,17 +31,10 @@ type treeCmd struct {
 func (t treeCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "tree",
-		Short: "Show [dev_]dependencies of a port or a project.",
+		Short: "Show the dependencies of a port or a project.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-			t.ctx = celer
-
+			t.ctx = configs.NewCeler()
 			t.tree(args[0])
 		},
 		ValidArgsFunction: t.completion,

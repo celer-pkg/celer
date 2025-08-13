@@ -29,7 +29,7 @@ func (a aboutCmd) about() {
 
 	content := fmt.Sprintf("\nWelcome to celer (%s).\n"+
 		"---------------------------------------\n"+
-		"This is a simple pkg-manager for C/C++.\n\n"+
+		"This is a lightweight pkg-manager for C/C++.\n\n"+
 		"How to apply it in your cmake project: \n"+
 		"option1: %s\n"+
 		"option2: %s\n\n",

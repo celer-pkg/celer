@@ -1,10 +1,10 @@
-# 如何生成cmake配置文件
+# 如何配置生成cmake配置文件
 
-我们都知道，很多第三方库都没有使用cmake构建，安装后也不会生成cmake配置文件，这就导致我们不能使用cmake来找到它们。虽然我们可以使用`pkg-config`来找到它们，但是只能在linux下使用。现在，celer可以为它们生成cmake配置文件，这样就可以在任何平台下使用了。
+&emsp;&emsp;我们都知道，许多第三方库都不使用cmake来构建，安装后也不会生成cmake配置文件。这使得使用cmake来找到它们变得困难。尽管我们可以使用**pkg-config**来找到它们，但是它只能在Linux上使用。现在，Celer可以为它们生成cmake配置文件，因此它们可以在任何平台上使用。
 
-## 1. 没有组件的库如何生成cmake配置文件
+**1. 如何为没有组件的库生成cmake配置文件**
 
-例如，x264，你应该在port的版本目录下创建一个cmake_config.toml文件。
+例如，x264，你应该在端口的版本目录中创建一个cmake_config.toml文件。
 
 ```
 └── x264
@@ -13,7 +13,7 @@
         └── port.toml
 ```
 
-这个文件的内容如下，我们可以为不同的平台定义不同的文件名。
+cmake_config.toml文件的内容如下，我们可以为不同的平台定义不同的文件名。
 
 ```toml
 namespace = "x264"
@@ -34,7 +34,7 @@ impname = "libx264.lib"
 
 ```
 
-当编译和安装后，你可以看到生成的cmake配置文件如下：
+当编译并安装后，你可以在lib目录下看到生成的cmake配置文件，如下所示：
 
 ```
 lib
@@ -46,18 +46,19 @@ lib
         └── x264Targets-release.cmake
 ```
 
-最终，你可以在你的cmake项目中使用它，如下所示：
+随后, 你可以在cmake项目中使用它，如下所示：
 
 ```cmake
 find_package(x264 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 ```
 
-> 注意，namespace是在cmake_config文件中定义的，如果没有定义，它将与库名相同, namespace也即使config文件名的前缀。
+> **Note:**  
+> 如果namespace没有在cmake_config里定义，library名将成为namespace的默认值，namespace同时也是cmake config文件的前缀。
 
-## 2. 有多组件的库如何生成cmake配置文件
+**2. 如何为有组件的库生成cmake配置文件**
 
-例如，ffmpeg，你应该在port的版本目录下创建一个cmake_config.toml文件：
+例如，ffmpeg，你应该在端口的版本目录中创建一个cmake_config.toml文件。
 
 ```
 └── ffmpeg
@@ -168,9 +169,10 @@ filename = "swscale-4.dll"
 dependencies = ["avcodec", "avutil", "avformat"]
 ```
 
->不同的组件可能有不同的依赖项，所以我们需要在`dependencies`字段中定义它们。
+> **Note:**  
+> 不同的组件可能有不同的依赖关系，因此我们需要在`dependencies`字段中定义它们。
 
-当编译和安装后，你可以看到生成的cmake配置文件如下：
+当编译并安装后，你可以在lib目录下看到生成的cmake配置文件，如下所示：
 
 ```
 lib
@@ -179,13 +181,12 @@ lib
         ├── FFmpegConfig.cmake
         ├── FFmpegConfigVersion.cmake
         ├── FFmpegModules-release.cmake
-        └── FfmpegModules.cmake
+        └── FFmpegModules.cmake
 ```
-
-最终，你可以在你的cmake项目中使用它，如下所示：
+随后, 你可以在cmake项目中使用它，如下所示：
 
 ```cmake
-find_package(ffmpeg REQUIRED)
+find_package(FFmpeg REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     FFmpeg::avutil
     FFmpeg::avcodec
@@ -198,4 +199,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 ```
 
-> 注意，namespace是在cmake_config文件中定义的，如果没有定义，它将与库名相同， namespace也即使config文件名的前缀。
+> **Note:**  
+> 1. 如果namespace没有在cmake_config里定义，library名字将成为默认的namespace，namespace同时也是cmake config文件的前缀。  
+> 2. 当cmake config文件有错误时，安装的库文件将被删除。

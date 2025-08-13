@@ -25,7 +25,7 @@ type updateCmd struct {
 func (u updateCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "update",
-		Short: "Update conf repo, ports repo and port source.",
+		Short: "Update conf repo, ports config repo or third-party repo.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Init celer.
 			celer := configs.NewCeler()

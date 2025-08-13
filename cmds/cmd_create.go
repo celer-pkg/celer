@@ -18,7 +18,7 @@ type createCmd struct {
 func (c createCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "create",
-		Short: "Create new [platform|project|port].",
+		Short: "Create a platform, project, or port.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Init celer.
 			celer := configs.NewCeler()

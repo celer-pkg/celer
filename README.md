@@ -1,21 +1,21 @@
 # Celer overview [🌍中文](./docs/zh-CH/README.md)
 
-&emsp;&emsp;Celer is a very lightweight C/C++ package manager written in Go. The name "Celer" is inspired by the vision of being C/C++'s accelerator. The goal of Celer is to serve as a supplement to CMake, and not to replace it. It is designed to be user-friendly for developers to manager and compile third-party libraries with toml files only.
+&emsp;&emsp;Celer is a very lightweight C/C++ package manager written in Go. The name "Celer" is inspired by the vision of being C/C++'s accelerator. Celer is explicitly positioned as a non-intrusive CMake assistant for any CMake projects. It is designed to be user-friendly for developers to manager and compile third-party libraries with toml files only.
 
 # The background of Celer
 
-&emsp;&emsp;CMake has been the mainstream choice for compiling C/C++ projects, especially when cross-compiling. However, CMake plays the role of finding libraries (via find_package) only. In actual project development, there are often additional tedious tasks CMake isn't responsible, for examples as below:
+&emsp;&emsp;CMake has become the mainstream build system for compiling C/C++ projects, especially in cross-compiling scenarios. While CMake excels at managing the build process—including configuration, compilation, and installation—it primarily focuses on locating dependencies (via **find_package**) rather than handling higher-level package management tasks. In real-world development, many additional tedious tasks fall outside CMake's responsibilities, such as:
 
 **1. Clone repos and setup build tools**  
 CMake doesn't download source code of libraries, setup toolchains, rootfs, and tools that required for compilation, such as autoconf, automake, pkg-config, nasm, windows-perl, cmake, etc., all of that need to be prepared and configured manually by developers themself.
 
-**2. Dependencies between third-party libraries**  
-Information is scattered across the internet, with no centralized place for archiving. During the compilation process, a lot of manual work is required to organize the dependencies.
+**2. Organize dependencies between third-party libraries**  
+In C/C++ projects, dependencies are described within the library's source code, making them highly non-intuitive to understand. During the compilation process, a lot of manual work is required to organize the dependencies.
 
 **3. Setup cross-compilation environment**  
 Although CMake supports cross-compilation by providing `-D CMAKE_TOOLCHAIN_FILE` to specify a **toolchain_file.cmake**, it still requires manually written scripts for proper configuration.
 
->In fact, the core functionality of Celer is to dynamically generate a **toolchain_file.cmake** as required. Within this file, it configures all required build tools with relative paths, and also specifies the library search paths to isolate system libraries from being found. This means that all the work required  is handled by Celer before generating the toolchain_file.cmake, this is [**one of the reasons**](./docs/en-US/00_why_reinvent_celer.md) why Celer was reinvented, rather than using other C/C++ package managers.
+>In fact, the core functionality of Celer is to dynamically generate a **toolchain_file.cmake** as required. Within this file, it configures all required build tools with relative paths, and also specifies the library search paths to isolate system libraries from being found. This means that all the work required  is handled by Celer before generating the toolchain_file.cmake, this is [**one of the reasons**](./docs/en-US/why_reinvent_celer.md) why Celer was reinvented, rather than using other C/C++ package managers.
 
 # Key features
 
@@ -24,71 +24,53 @@ Celer now has below key features:
 **1. Automatically downloads and configures build tools**  
 It automatically downloads and configures tools like toolchain, sysroot, CMake, ninja, msys2, and strawberry-perl based on the selected platform and target libraries.
 
-**2. Supports hosting of libraries compiled with common build tools**  
-In the port.toml file of each third-party library version directory, you can specify the `build_system` field as **cmake**, **makefiles**, **ninja**, **meson**, etc., to compile with different build tools.
+**2. Supports hosting of libraries building with common build tools**  
+In the port.toml file of each third-party library version directory, you can specify the **build_system** field as **cmake**, **makefiles**, **ninja**, **meson**, etc., to compile with different build tools.
 
 **3. Supports generating cmake configs**  
-Celer can generate cmake configs for any libraries, especially for libraries that not build by CMake, then you can `find_package` it easily.
+Celer can generate cmake configs for any libraries, especially for libraries that not build by CMake, then you can **find_package** it easily.
 
 **4. Support cache and share build artifacts**  
-Celer supports precise build artifact management. Currently, you can configure the `cache_dir` in **celer.toml** to store and access artifacts in a shared folder on the local network. This aims to avoid redundant compilation of source code and improve development efficiency.
+Celer supports precise build artifact management. Currently, you can configure the **cache_dir** in **celer.toml** to store and access artifacts in a shared folder on the local network. This aims to avoid redundant compilation of source code and improve development efficiency.
 
 **5. Supports overriding compile options for third-party libraries and managing project-specific libraries**  
 Celer supports overriding third-party libraries with different versions and compile options within individual project folders. It also allows adding project-specific internal libraries within the project's folder.
 
-# How to build Celer
-
-1. Install the Go SDK by referring https://go.dev/doc/install.
-2. git clone https://github.com/celer-pkg/celer.git.
-3. cd celer && go build.
-
 # Get started
 
-```
-./celer help
-A pkg-manager for C/C++，it's simply a supplement to CMake.
+We have documentations to guide you in using Celer:
 
-Usage:
-  celer [flags]
-  celer [command]
+- [Quick start.](./docs/en-US/quick_start.md)
+- [How to a new platform.](./docs/en-US/config_add_platform.md)
+- [How to a new project.](./docs/en-US/config_add_project.md)
+- [How to a new port.](./docs/en-US/config_add_port.md)
 
-Available Commands:
-  about       About celer.
-  autoremove  Remove installed package but unreferenced by current project.
-  clean       Clean build cache for package or project
-  configure   Configure to change platform or project.
-  create      Create new [platform|project|port].
-  deploy      Deploy with selected platform and project.
-  help        Help about any command
-  init        Init with conf repo.
-  install     Install a package.
-  integrate   Integrates celer into [bash|fish|powershell|zsh]
-  remove      Uninstall a package.
-  update      Update port's repo.
-  tree        Show [dev_]dependencies of a port or a project.
+Advanced features:
 
-Flags:
-  -h， --help   help for celer
+- [Generate cmake configs.](./docs/en-US/config_generate_cmake_config.md)
+- [Cache build artifacts.](./docs/en-US/config_cache_artifacts.md)
 
-Use "celer [command] --help" for more information about a command.
-```
+Supported commands:
 
-We have documentations to guide you in using Celer as below:
+| Command                                         | Description                                                                   |
+| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| [about](./docs/en-US/cmd_about.md)              | About Celer.                                                                  |
+| [autoremove](./docs/en-US/cmd_autoremove.md)    | Tidy up installation directory - removing project's unnecessary files.        |
+| [clean](./docs/en-US/cmd_clean.md)              | Remove build cache and clean repo for packages or projects.                   |
+| [configure](./docs/en-US/quick_start.md#4-configure-platform-or-project) | Configure platform or project.                       |
+| create                                | Create [a platform](./docs/en-US/config_add_platform.md), [project](./docs/en-US/config_add_project.md) or [port](./docs/en-US/config_add_port.md). |
+| [deploy](./docs/en-US/cmd_deploy.md)            | Deploy with selected platform and project.                                    |
+| [init](./docs/en-US/quick_start.md#3-setup-conf)| Init with conf repo.                                                          |
+| [install](./docs/en-US/cmd_install.md)          | Install a package.                                                            |
+| [integrate](./docs/en-US/cmd_integrate.md)      | Integrate to support tab completion.                                          |
+| [remove](./docs/en-US/cmd_remove.md)            | Remove a package.                                                             |
+| [tree](./docs/en-US/cmd_tree.md)                | Show the dependencies of a port or a project.                                 |
+| [update](./docs/en-US/cmd_update.md)            | Update conf repo, ports config repo or third-party repo.                      |
 
-1. [How Celer works](./docs/en-US/01_how_it_works.md)
-2. [How to init Celer](./docs/en-US/02_how_to_init.md)
-3. [How to manager platform](./docs/en-US/03_how_to_manager_platform.md)
-4. [How to manager projects](./docs/en-US/04_how_to_manager_project.md)
-5. [How to add a new port](./docs/en-US/05_how_to_add_port.md)
-8. [How to support tab completion](./docs/en-US/06_how_to_integrate.md)
-9. [How to install a third-party library](./docs/en-US/07_how_to_install.md)
-10. [How to uninstall a package](./docs/en-US/08_how_to_remove.md)
-11. [How to generate cmake configs](./docs/en-US/09_how_to_generate_cmake_config.md)
-12. [How to share build artifacts](./docs/en-US/10_how_to_share_installed_libraries.md)
+# Contribute
 
-# How to contribute
+&emsp;&emsp;Celer is an open source project, and is thus built with your contributions. Celer is consist of two parts: [Celer](https://github.com/celer-pkg/celer.git) and [ports](https://github.com/celer-pkg/ports.git), you can contribute any of them.
 
-1.  Fork this repo: https://github.com/celer-pkg/celer.git.
-2.  create branch like: feature_xxx or bugfix_xxx.
-3.  Submit code to your branch.
-4.  Create Pull Request.
+# License
+
+&emsp;&emsp;The code in this repository is licensed under the MIT License. The libraries provided by ports are licensed under the terms of their original authors.
