@@ -69,7 +69,7 @@ Supported commands:
 
 # Contribute
 
-&emsp;&emsp;Celer is an open source project, and is thus built with your contributions. Celer is consist of two parts: [Celer](https://github.com/celer-pkg/celer.git) and [conf](https://github.com/celer-pkg/ports.git), you can contribute any of them.
+&emsp;&emsp;Celer is an open source project, and is thus built with your contributions. Celer is consist of two parts: [Celer](https://github.com/celer-pkg/celer.git) and [ports](https://github.com/celer-pkg/ports.git), you can contribute any of them.
 
 # License
 
