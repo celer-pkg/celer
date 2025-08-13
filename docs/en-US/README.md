@@ -62,7 +62,7 @@ Supported commands:
 | [deploy](./cmd_deploy.md)             | Deploy with selected platform and project.                                    |
 | [init](./quick_start.md#3-setup-conf) | Init with conf repo.                                                          |
 | [install](./cmd_install.md)           | Install a package.                                                            |
-| [integrate](./cmd_integrate.md)       | Integrate to support tab completion.                                          |
+| [integrate](./cmd_integrate.md)       | Integrate tab completion.                                                     |
 | [remove](./cmd_remove.md)             | Remove a package.                                                             |
 | [tree](./cmd_tree.md)                 | Show the dependencies of a port or a project.                                 |
 | [update](./cmd_update.md)             | Update conf repo, ports config repo or third-party repo.                      |

@@ -1,6 +1,8 @@
 package cmds
 
 import (
+	"bufio"
+	"bytes"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -17,13 +19,15 @@ import (
 )
 
 type integrateCmd struct {
-	uninstall bool
+	powershell bool
+	bash       bool
+	remove     bool
 }
 
 func (i integrateCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "integrate",
-		Short: "Integrate to support tab completion.",
+		Short: "Integrate tab completion.",
 		Run: func(cobraCmd *cobra.Command, args []string) {
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
@@ -31,32 +35,40 @@ func (i integrateCmd) Command() *cobra.Command {
 				return
 			}
 
-			if i.uninstall {
-				if err := i.doUninstall(homeDir); err != nil {
-					configs.PrintError(err, "celer integration uninstall failed.")
+			if i.remove {
+				if err := i.doRemove(homeDir); err != nil {
+					configs.PrintError(err, "tab completion remove failed.")
 					return
 				}
-				configs.PrintSuccess("celer integration is uninstalled.")
+				configs.PrintSuccess("tab completion is removed.")
 			} else {
 				if err := i.installToSystem(homeDir); err != nil {
-					configs.PrintError(err, "celer integrate failed.")
+					configs.PrintError(err, "tab completion remove failed.")
 					return
 				}
-				configs.PrintSuccess("celer is integrated.")
+				configs.PrintSuccess("tab completion is integrated.")
 			}
 		},
 		ValidArgsFunction: i.completion,
 	}
 
 	// Register flags.
-	command.Flags().BoolVarP(&i.uninstall, "uninstall", "u", false, "uninstall integrated celer.")
+	command.Flags().BoolVar(&i.remove, "remove", false, "remove tab completion.")
+	command.Flags().BoolVar(&i.powershell, "powershell", false, "integrate tab completion for powershell.")
+	command.Flags().BoolVar(&i.bash, "bash", false, "integrate tab completion for bash.")
+
+	command.MarkFlagsMutuallyExclusive("powershell", "bash")
 
 	return command
 }
 
-func (i integrateCmd) doUninstall(homeDir string) error {
-	switch runtime.GOOS {
-	case "windows":
+func (i integrateCmd) doRemove(homeDir string) error {
+	switch {
+	case i.powershell:
+		if runtime.GOOS != "windows" {
+			return fmt.Errorf("powershell completion is only supported on windows")
+		}
+
 		// Remove completion ps file.
 		modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
 		celerDir := filepath.Join(modulesDir, "celer")
@@ -70,8 +82,47 @@ func (i integrateCmd) doUninstall(homeDir string) error {
 			return fmt.Errorf("cannot remove celer.exe: %w", err)
 		}
 
-	case "linux":
-		// Uninstall celer binary.
+		// Remove celer_completion.ps1 from profile.ps1.
+		celerProfile := filepath.Join(modulesDir, "celer", "celer_completion.ps1")
+		profilePath := filepath.Join(filepath.Dir(modulesDir), "profile.ps1")
+		if fileio.PathExists(profilePath) {
+			file, err := os.Open(profilePath)
+			if err != nil {
+				return err
+			}
+
+			var buffer bytes.Buffer
+			scanner := bufio.NewScanner(file)
+			for scanner.Scan() {
+				line := scanner.Text()
+				if !strings.HasPrefix(line, ". "+celerProfile) {
+					buffer.WriteString(line + "\n")
+				}
+			}
+			if err := scanner.Err(); err != nil {
+				file.Close()
+				return err
+			}
+
+			if buffer.Len() == 0 {
+				file.Close()
+				if err := os.Remove(profilePath); err != nil {
+					return err
+				}
+			} else {
+				if err := os.WriteFile(profilePath, buffer.Bytes(), os.ModePerm); err != nil {
+					file.Close()
+					return err
+				}
+			}
+		}
+
+	case i.bash:
+		if runtime.GOOS != "linux" {
+			return fmt.Errorf("bash completion is only supported on linux")
+		}
+
+		// Remove celer binary.
 		fmt.Println("[integrate] rm -f ~/.local/bin/celer")
 		cmd := exec.Command("rm", "-f", filepath.Join(homeDir, ".local/bin/celer"))
 		cmd.Stdout = os.Stdout
@@ -79,13 +130,16 @@ func (i integrateCmd) doUninstall(homeDir string) error {
 		cmd.Stdin = os.Stdin
 		cmd.Run()
 
-		// Uninstall celer_completion.
+		// Remove celer_completion.
 		fmt.Println("[integrate] rm -f ~/.local/share/bash-completion/completions/celer")
 		cmd = exec.Command("rm", "-f", filepath.Join(homeDir, ".local/share/bash-completion/completions/celer"))
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
 		cmd.Run()
+
+	default:
+		return fmt.Errorf("no --bash or --powershell specified to integrate")
 	}
 
 	return nil
@@ -104,103 +158,26 @@ func (i integrateCmd) installToSystem(homeDir string) error {
 }
 
 func (i integrateCmd) installCompletion(homeDir string) error {
-	terminal, err := i.terminal()
+	filePath, err := i.generateCompletionFile()
 	if err != nil {
-		return fmt.Errorf("cannot guess terminal: %w", err)
-	}
-
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return fmt.Errorf("cannot create clean tmp dir: %w", err)
-	}
-
-	var (
-		filePath string
-		genFunc  func(io.Writer) error
-	)
-
-	switch terminal {
-	case "bash":
-		filePath = filepath.Join(dirs.TmpFilesDir, "celer")
-		genFunc = rootCmd.GenBashCompletion
-
-	case "zsh":
-		filePath = filepath.Join(dirs.TmpFilesDir, "_celer_completion")
-		genFunc = rootCmd.GenZshCompletion
-
-	case "fish":
-		filePath = filepath.Join(dirs.TmpFilesDir, "celer_completion")
-		genFunc = func(w io.Writer) error {
-			return rootCmd.GenFishCompletion(w, true)
-		}
-
-	case "powershell":
-		filePath = filepath.Join(dirs.TmpFilesDir, "celer_completion.ps1")
-		genFunc = rootCmd.GenPowerShellCompletionWithDesc
-
-	default:
-		return fmt.Errorf("unsupported terminal: %s", terminal)
-	}
-
-	file, err := os.Create(filePath)
-	if err != nil {
-		return fmt.Errorf("cannot create completion file: %w", err)
-	}
-	defer file.Close()
-
-	if err := genFunc(file); err != nil {
-		return fmt.Errorf("cannot generate completion file: %w", err)
+		return err
 	}
 
 	// Install completion file.
-	switch terminal {
-	case "bash":
+	switch {
+	case i.bash:
+		// Install completion file to `~/.local/share/bash-completion/completions`
 		destination := filepath.Join(homeDir, ".local", "share", "bash-completion", "completions", "celer")
-		if err := i.executeCmd("mkdir", "-p", filepath.Dir(destination)); err != nil {
-			return err
-		}
-		if err := i.executeCmd("mv", filePath, destination); err != nil {
-			return err
-		}
-		fmt.Printf("[integrate] completion --> %s\n", destination)
-
-	case "zsh":
-		// cp completion file to  ~/.zsh/completions/
-		destination := filepath.Join(os.Getenv("USERPROFILE"), "completions", "_celer_completion")
 		if err := os.MkdirAll(filepath.Dir(destination), os.ModePerm); err != nil {
-			return fmt.Errorf("cannot create zsh folder: %w", err)
+			return err
 		}
 		if err := os.Rename(filePath, destination); err != nil {
 			return err
 		}
+		fmt.Printf("[integrate] completion --> %s\n", destination)
 
-		// Fix ~/.zshrc to support completion.
-		content := []string{"fpath=(~/.zsh/completions $fpath)", "autoload -Uz compinit && compinit"}
-		zshrcPath := filepath.Join(os.Getenv("USERPROFILE"), ".zshrc")
-		if fileio.PathExists(zshrcPath) {
-			if err := os.WriteFile(zshrcPath, []byte(strings.Join(content, "\n")), os.ModePerm); err != nil {
-				return fmt.Errorf("cannot create ~/.zshrc")
-			}
-		} else {
-			bytes, err := os.ReadFile(zshrcPath)
-			if err != nil {
-				return fmt.Errorf("cannnot read ~/.zshrc")
-			}
-
-			lines := strings.Split(string(bytes), "\n")
-			if !slices.Contains(lines, content[0]) {
-				zshrc, err := os.OpenFile(filePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, os.ModePerm)
-				if err != nil {
-					return fmt.Errorf("cannot open ~/.zshrc")
-				}
-				defer zshrc.Close()
-
-				if _, err := zshrc.WriteAt([]byte(strings.Join(content, "\n")), 0); err != nil {
-					return fmt.Errorf("cannot write ~/.zshrc: %w", err)
-				}
-			}
-		}
-
-	case "powershell":
+	case i.powershell:
+		// Install completion file to `~/Documents/WindowsPowerShell/Modules`
 		modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
 		celerProfile := filepath.Join(modulesDir, "celer", "celer_completion.ps1")
 		profilePath := filepath.Join(filepath.Dir(modulesDir), "profile.ps1")
@@ -208,10 +185,11 @@ func (i integrateCmd) installCompletion(homeDir string) error {
 			return fmt.Errorf("cannot create PowerShell Modules dir: %w", err)
 		}
 
-		if err := fileio.CopyFile(filePath, celerProfile); err != nil {
-			return fmt.Errorf("cannot copy PowerShell completion file: %w", err)
+		if err := fileio.MoveFile(filePath, celerProfile); err != nil {
+			return fmt.Errorf("cannot move PowerShell completion file: %w", err)
 		}
 
+		// Append completion file path to profile.
 		if fileio.PathExists(profilePath) {
 			// Add completion script to if not contains.
 			profile, err := os.OpenFile(profilePath, os.O_CREATE|os.O_RDWR, os.ModePerm)
@@ -243,6 +221,52 @@ func (i integrateCmd) installCompletion(homeDir string) error {
 	return nil
 }
 
+func (i integrateCmd) generateCompletionFile() (string, error) {
+	if err := dirs.CleanTmpFilesDir(); err != nil {
+		return "", fmt.Errorf("cannot create clean tmp dir: %w", err)
+	}
+
+	var (
+		filePath string
+		genFunc  func(io.Writer) error
+	)
+
+	// Prepare completion file path and completion generation func.
+	switch {
+	case i.bash:
+		if runtime.GOOS != "linux" {
+			return "", fmt.Errorf("bash completion is only supported on linux")
+		}
+
+		filePath = filepath.Join(dirs.TmpFilesDir, "celer")
+		genFunc = rootCmd.GenBashCompletion
+
+	case i.powershell:
+		if runtime.GOOS != "windows" {
+			return "", fmt.Errorf("powershell completion is only supported on windows")
+		}
+
+		filePath = filepath.Join(dirs.TmpFilesDir, "celer_completion.ps1")
+		genFunc = rootCmd.GenPowerShellCompletionWithDesc
+
+	default:
+		return "", fmt.Errorf("no --bash or --powershell specified to integrate")
+	}
+
+	// Generate completion file.
+	file, err := os.Create(filePath)
+	if err != nil {
+		return "", fmt.Errorf("cannot create completion file: %w", err)
+	}
+	defer file.Close()
+
+	if err := genFunc(file); err != nil {
+		return "", fmt.Errorf("cannot generate completion file: %w", err)
+	}
+
+	return filePath, nil
+}
+
 func (i integrateCmd) installExecutable(homeDir string) error {
 	path, err := os.Executable()
 	if err != nil {
@@ -251,15 +275,15 @@ func (i integrateCmd) installExecutable(homeDir string) error {
 
 	switch runtime.GOOS {
 	case "linux":
-		// Install celer into `/usr/local/bin`
+		// Copy into `~/.local/bin`
 		if err := i.executeCmd("cp", path, filepath.Join(homeDir, ".local/bin")); err != nil {
 			return fmt.Errorf("failed to cp celer to `/usr/local/bin`: %w", err)
 		}
 
-		fmt.Println("[integrate] celer --> /usr/local/bin")
+		fmt.Println("[integrate] celer --> ~/.local/bin")
 
 	case "windows":
-		// Install celer into `C:/Users/[user]/AppData/Local/celer/celer.exe`
+		// Copy into `~/AppData/Local/celer`
 		destionation := filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "celer", "celer.exe")
 		if err := os.MkdirAll(filepath.Dir(destionation), os.ModePerm); err != nil {
 			return fmt.Errorf("cannot create celer.exe destination dir: %w", err)
@@ -272,38 +296,14 @@ func (i integrateCmd) installExecutable(homeDir string) error {
 		pathEnv := os.Getenv("PATH")
 		if !strings.Contains(pathEnv, filepath.Dir(destionation)) {
 			if err := i.executeCmd("setx", "PATH", "%PATH%;"+filepath.Dir(destionation)); err != nil {
-				return fmt.Errorf("failed to add celer.exe to PATH: %w", err)
+				return fmt.Errorf("failed to add celer dir to PATH: %w", err)
 			}
 		}
 
-		fmt.Printf("[integrate] celer.exe --> %s\n", destionation)
+		fmt.Printf("[integrate] celer.exe --> %s\n", filepath.Dir(destionation))
 	}
 
 	return nil
-}
-
-func (i integrateCmd) terminal() (string, error) {
-	if runtime.GOOS == "windows" {
-		return "powershell", nil
-	}
-
-	envValue := os.Getenv("SHELL")
-	if envValue == "" {
-		return "", fmt.Errorf("cannot guess current terminal")
-	}
-
-	switch {
-	case strings.HasSuffix(envValue, "bash"):
-		return "bash", nil
-
-	case strings.HasSuffix(envValue, "zsh"):
-		return "zsh", nil
-
-	case strings.HasSuffix(envValue, "fish"):
-		return "fish", nil
-	}
-
-	return "", fmt.Errorf("unsupported terminal: %s", envValue)
 }
 
 func (i integrateCmd) executeCmd(name string, args ...string) error {
@@ -316,7 +316,7 @@ func (i integrateCmd) executeCmd(name string, args ...string) error {
 
 func (i integrateCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	for _, flag := range []string{"--uninstall", "-u"} {
+	for _, flag := range []string{"--powershell", "--bash", "--remove"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}
