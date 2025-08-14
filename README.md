@@ -41,9 +41,9 @@ Celer supports overriding third-party libraries with different versions and comp
 We have documentations to guide you in using Celer:
 
 - [Quick start.](./docs/en-US/quick_start.md)
-- [How to a new platform.](./docs/en-US/config_add_platform.md)
-- [How to a new project.](./docs/en-US/config_add_project.md)
-- [How to a new port.](./docs/en-US/config_add_port.md)
+- [How to create a new platform.](./docs/en-US/config_add_platform.md)
+- [How to createa new project.](./docs/en-US/config_add_project.md)
+- [How to create a new port.](./docs/en-US/config_add_port.md)
 
 Advanced features:
 
