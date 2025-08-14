@@ -43,7 +43,7 @@ func (i integrateCmd) Command() *cobra.Command {
 				configs.PrintSuccess("tab completion is removed.")
 			} else {
 				if err := i.installToSystem(homeDir); err != nil {
-					configs.PrintError(err, "tab completion remove failed.")
+					configs.PrintError(err, "tab completion install failed.")
 					return
 				}
 				configs.PrintSuccess("tab completion is integrated.")
@@ -103,15 +103,14 @@ func (i integrateCmd) doRemove(homeDir string) error {
 				file.Close()
 				return err
 			}
+			file.Close()
 
 			if buffer.Len() == 0 {
-				file.Close()
 				if err := os.Remove(profilePath); err != nil {
 					return err
 				}
 			} else {
 				if err := os.WriteFile(profilePath, buffer.Bytes(), os.ModePerm); err != nil {
-					file.Close()
 					return err
 				}
 			}
