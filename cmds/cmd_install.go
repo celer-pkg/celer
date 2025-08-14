@@ -84,10 +84,16 @@ func (i installCmd) install(nameVersion string) {
 		return
 	}
 
-	// Uninstall the port if force flag is `ON`.
 	if i.force {
+		// Remove pacakge(installed + package + buildcache).
 		if err := port.Remove(i.recurse, true, true); err != nil {
-			configs.PrintError(err, "uninstall %s failed before install again.", nameVersion)
+			configs.PrintError(err, "uninstall %s failed before reinstall.", nameVersion)
+			return
+		}
+
+		// Remove all caches for the port.
+		if err := celer.CacheDir().Remove(celer.Platform().Name, celer.Project().Name, i.buildType, port.NameVersion()); err != nil {
+			configs.PrintError(err, "remove cache for %s failed before reinstall.", nameVersion)
 			return
 		}
 	}

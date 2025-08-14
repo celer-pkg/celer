@@ -98,6 +98,18 @@ func (c CacheDir) Write(packageDir, builddesc string) error {
 	return nil
 }
 
+// Remove removes the cache for the specified platform, project, build type and name version.
+func (c CacheDir) Remove(platformName, projectName, buildType, nameVersion string) error {
+	pacakgeDir := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion)
+	if fileio.PathExists(pacakgeDir) {
+		if err := os.RemoveAll(pacakgeDir); err != nil {
+			return fmt.Errorf("remove cache package %s: %w", pacakgeDir, err)
+		}
+	}
+
+	return nil
+}
+
 // Exist check both archive file and build desc file exist.
 func (c CacheDir) Exist(platformName, projectName, buildType, nameVersion, buildhash string) bool {
 	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, buildhash+".tar.gz")

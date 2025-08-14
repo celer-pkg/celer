@@ -21,12 +21,11 @@ func (c createCmd) Command() *cobra.Command {
 		Short: "Create a platform, project, or port.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Init celer.
-			celer := configs.NewCeler()
-			if err := celer.Init(); err != nil {
+			c.celer = configs.NewCeler()
+			if err := c.celer.Init(); err != nil {
 				configs.PrintError(err, "failed to init celer.")
 				return
 			}
-			c.celer = celer
 
 			if c.platform != "" {
 				c.createPlatform(c.platform)
