@@ -212,31 +212,43 @@ func renameWithRetry(src, dst string, maxRetries int) error {
 }
 
 func MoveFile(src, dst string) error {
+	// Try atomic rename first.
+	if err := os.Rename(src, dst); err == nil {
+		return nil
+	}
+
+	// Fallback to copy+delete mode.
+	if err := fileCopy(src, dst); err != nil {
+		return err
+	}
+	return os.Remove(src)
+}
+
+func fileCopy(src, dst string) error {
+	// Close src file after copy.
 	srcFile, err := os.Open(src)
 	if err != nil {
-		return fmt.Errorf("cannot open file: %v", err)
+		return err
 	}
 	defer srcFile.Close()
 
-	dstFile, err := os.Create(dst)
+	// Keep original file attributes.
+	stat, err := srcFile.Stat()
 	if err != nil {
-		return fmt.Errorf("cannot create dest file: %v", err)
+		return err
+	}
+
+	dstFile, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, stat.Mode())
+	if err != nil {
+		return err
 	}
 	defer dstFile.Close()
 
 	if _, err = io.Copy(dstFile, srcFile); err != nil {
-		return fmt.Errorf("copy file: %w", err)
+		return err
 	}
 
-	if err := dstFile.Sync(); err != nil {
-		return fmt.Errorf("sync file: %w", err)
-	}
-
-	if err := os.Remove(src); err != nil {
-		return fmt.Errorf("remove src file: %w", err)
-	}
-
-	return nil
+	return dstFile.Sync()
 }
 
 func moveNestedFolderIfExist(filePath string) error {

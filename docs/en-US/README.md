@@ -58,11 +58,11 @@ Supported commands:
 | [autoremove](./cmd_autoremove.md)     | Tidy up installation directory - removing project's unnecessary files.        |
 | [clean](./cmd_clean.md)               | Remove build cache and clean repo for packages or projects.                   |
 | [configure](./quick_start.md#4-configure-platform-or-project) | Configure platform or project.                        |
-| create                                | Create [a platform](./config_add_platform.md), [project](./config_add_project.md) or [port](./config_add_port.md). |
+| create                                | Create a [platform](./config_add_platform.md), [project](./config_add_project.md) or [port](./config_add_port.md). |
 | [deploy](./cmd_deploy.md)             | Deploy with selected platform and project.                                    |
 | [init](./quick_start.md#3-setup-conf) | Init with conf repo.                                                          |
 | [install](./cmd_install.md)           | Install a package.                                                            |
-| [integrate](./cmd_integrate.md)       | Integrate to support tab completion.                                          |
+| [integrate](./cmd_integrate.md)       | Integrate tab completion.                                                     |
 | [remove](./cmd_remove.md)             | Remove a package.                                                             |
 | [tree](./cmd_tree.md)                 | Show the dependencies of a port or a project.                                 |
 | [update](./cmd_update.md)             | Update conf repo, ports config repo or third-party repo.                      |
