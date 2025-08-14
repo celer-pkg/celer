@@ -2,6 +2,7 @@ package configs
 
 import (
 	"bufio"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -79,6 +80,8 @@ func (p Port) Remove(recurse, purge, removeBuildCache bool) error {
 }
 
 func (p Port) doRemovePort() error {
+	color.Printf(color.Blue, "\n[remove %s]: from \"%s\"\n", p.NameVersion(), p.installedDir)
+
 	// Check if port is installed.
 	infoDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "info")
 
@@ -91,8 +94,6 @@ func (p Port) doRemovePort() error {
 	if err != nil {
 		return fmt.Errorf("cannot open install info file: %s", err)
 	}
-
-	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().Name, p.ctx.Project().Name, p.buildType)
 
 	// Read line by line to remove installed file.
 	scanner := bufio.NewScanner(file)
@@ -115,12 +116,13 @@ func (p Port) doRemovePort() error {
 			return fmt.Errorf("cannot remove parent folder: %s", err)
 		}
 
-		fmt.Printf("remove: %s\n", fileToRemove)
+		fmt.Printf("-- remove: %s\n", fileToRemove)
 	}
 	file.Close()
 
 	// Remove generated cmake config if exist.
 	portName := strings.Split(p.NameVersion(), "@")[0]
+	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().Name, p.ctx.Project().Name, p.buildType)
 	cmakeConfigDir := filepath.Join(dirs.InstalledDir, platformProject, "lib", "cmake", portName)
 	if err := os.RemoveAll(cmakeConfigDir); err != nil {
 		return fmt.Errorf("cannot remove cmake config folder: %s", err)

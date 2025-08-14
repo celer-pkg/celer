@@ -155,13 +155,6 @@ func (c *Celer) Init() error {
 		return err
 	}
 
-	// Clone conf repo if specified.
-	if c.configData.Gloabl.ConfRepo != "" {
-		if err := c.SyncConf(c.configData.Gloabl.ConfRepo, ""); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
