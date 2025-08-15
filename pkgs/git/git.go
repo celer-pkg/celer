@@ -22,13 +22,13 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 	}
 
 	switch {
-	case IsRemoteBranch(repoUrl, repoRef), IsRemoteTag(repoUrl, repoRef):
+	case IsBranch(repoUrl, repoRef), IsTag(repoUrl, repoRef):
 		command := fmt.Sprintf("git clone --branch %s %s --depth 1 --recursive %s", repoRef, repoUrl, repoDir)
 		if err := cmd.NewExecutor(title, command).Execute(); err != nil {
 			return err
 		}
 
-	case IsRemoteCommit(repoUrl, repoRef):
+	case IsCommit(repoUrl, repoRef):
 		// Clone repo.
 		cloneCmd := fmt.Sprintf("git clone %s %s --depth 1", repoUrl, repoDir)
 		if err := cmd.NewExecutor(title, cloneCmd).Execute(); err != nil {
@@ -79,17 +79,17 @@ func UpdateRepo(title, repoDir, repoRef string, force bool) error {
 	commands = append(commands, "git reset --hard && git clean -xfd")
 
 	switch {
-	case IsRemoteBranch(repoDir, repoRef):
+	case IsBranch(repoDir, repoRef):
 		commands = append(commands, fmt.Sprintf("git fetch origin %s", repoRef))
 		commands = append(commands, fmt.Sprintf("git checkout -B %s origin/%s", repoRef, repoRef))
 		commands = append(commands, fmt.Sprintf("git pull origin %s", repoRef))
 
-	case IsRemoteTag(repoDir, repoRef):
+	case IsTag(repoDir, repoRef):
 		commands = append(commands, fmt.Sprintf("git tag -d %s || true", repoRef))
 		commands = append(commands, "git fetch --tags origin")
 		commands = append(commands, fmt.Sprintf("git checkout %s", repoRef))
 
-	case IsRemoteCommit(repoDir, repoRef):
+	case IsCommit(repoDir, repoRef):
 		commands = append(commands, fmt.Sprintf("git reset --hard %s", repoRef))
 	}
 
