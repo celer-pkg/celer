@@ -92,9 +92,12 @@ func (i installCmd) install(nameVersion string) {
 		}
 
 		// Remove all caches for the port.
-		if err := celer.CacheDir().Remove(celer.Platform().Name, celer.Project().Name, i.buildType, port.NameVersion()); err != nil {
-			configs.PrintError(err, "remove cache for %s failed before reinstall.", nameVersion)
-			return
+		cacheDir := celer.CacheDir()
+		if cacheDir != nil {
+			if err := cacheDir.Remove(celer.Platform().Name, celer.Project().Name, i.buildType, port.NameVersion()); err != nil {
+				configs.PrintError(err, "remove cache for %s failed before reinstall.", nameVersion)
+				return
+			}
 		}
 	}
 

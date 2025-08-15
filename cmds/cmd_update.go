@@ -3,9 +3,9 @@ package cmds
 import (
 	"celer/buildtools"
 	"celer/configs"
-	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
+	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -70,13 +70,13 @@ func (u updateCmd) Command() *cobra.Command {
 func (u updateCmd) updateConfRepo() error {
 	title := "[update conf repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	return cmd.UpdateRepo(title, repoDir, "", u.force)
+	return git.UpdateRepo(title, repoDir, "", u.force)
 }
 
 func (u updateCmd) updatePortsRepo() error {
 	title := "[update ports repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	return cmd.UpdateRepo(title, repoDir, "", u.force)
+	return git.UpdateRepo(title, repoDir, "", u.force)
 }
 
 func (u updateCmd) updatePorts(targets []string) error {
@@ -121,7 +121,7 @@ func (u updateCmd) updatePortRepo(nameVersion string) error {
 
 	// Update port.
 	title := fmt.Sprintf("[update %s]", nameVersion)
-	if err := cmd.UpdateRepo(title, srcDir, port.Package.Ref, u.force); err != nil {
+	if err := git.UpdateRepo(title, srcDir, port.Package.Ref, u.force); err != nil {
 		return err
 	}
 

@@ -3,11 +3,10 @@ package buildsystems
 import (
 	"celer/buildtools"
 	"celer/generator"
-	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
-	"celer/pkgs/proxy"
+	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -269,26 +268,19 @@ func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string
 	}
 }
 
-func (b BuildConfig) Clone(url, ref, archive string) error {
+func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 	// For git repo, clone it when source dir doesn't exists.
-	if strings.HasSuffix(url, ".git") {
+	if strings.HasSuffix(repoUrl, ".git") {
 		if !fileio.PathExists(b.PortConfig.SrcDir) {
-			// Try to hack github repo url with proxy url.
-			redirectedUrl, err := proxy.HackRepoUrl(url)
-			if err != nil {
-				return err
-			}
-
 			// Clone repo.
-			command := fmt.Sprintf("git clone --branch %s %s %s --depth 1 --recursive", ref, redirectedUrl, b.PortConfig.RepoDir)
 			title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
-			if err := cmd.NewExecutor(title, command).Execute(); err != nil {
+			if err := git.CloneRepo(title, repoUrl, repoRef, b.PortConfig.SrcDir); err != nil {
 				return err
 			}
 		}
 	} else {
 		// For archive repo, download it and extract to src dir event src dir not empty.
-		archive = expr.If(archive == "", filepath.Base(url), archive)
+		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
 		if !fileio.PathExists(filepath.Join(dirs.DownloadedDir, archive)) {
 			// Create clean temp directory.
 			if err := dirs.CleanTmpFilesDir(); err != nil {
@@ -301,7 +293,7 @@ func (b BuildConfig) Clone(url, ref, archive string) error {
 			}
 
 			// Check and repair resource.
-			repair := fileio.NewRepair(url, archive, ".", dirs.TmpFilesDir)
+			repair := fileio.NewRepair(repoUrl, archive, ".", dirs.TmpFilesDir)
 			if err := repair.CheckAndRepair(); err != nil {
 				return err
 			}
@@ -361,7 +353,7 @@ func (b BuildConfig) Patch() error {
 			}
 
 			// Apply patch (linux patch or git patch).
-			if err := cmd.ApplyPatch(b.PortConfig.RepoDir, b.PortConfig.RepoDir, patchPath); err != nil {
+			if err := git.ApplyPatch(b.PortConfig.RepoDir, b.PortConfig.RepoDir, patchPath); err != nil {
 				return err
 			}
 		}

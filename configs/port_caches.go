@@ -4,10 +4,10 @@ import (
 	"celer/buildsystems"
 	"celer/buildtools"
 	"celer/caches"
-	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"celer/pkgs/git"
 	"crypto/sha256"
 	"fmt"
 	"path/filepath"
@@ -80,7 +80,7 @@ func (p Port) Commit(nameVersion string) (string, error) {
 			return "", fmt.Errorf("check git: %w", err)
 		}
 
-		commit, err := cmd.ReadGitCommit(srcDir)
+		commit, err := git.ReadGitCommit(srcDir)
 		if err != nil {
 			return "", fmt.Errorf("get git commit of port %s: %w", nameVersion, err)
 		}
