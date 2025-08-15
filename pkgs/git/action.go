@@ -2,7 +2,6 @@ package git
 
 import (
 	"bufio"
-	"bytes"
 	"celer/pkgs/cmd"
 	"celer/pkgs/fileio"
 	"celer/pkgs/proxy"
@@ -14,6 +13,7 @@ import (
 	"strings"
 )
 
+// CloneRepo clone git repo.
 func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 	// Try to hack github repo url with proxy url.
 	repoUrl, err := proxy.HackRepoUrl(repoUrl)
@@ -54,9 +54,10 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 	return nil
 }
 
-func UpdateRepo(title, repoDir, repoRef string, force bool) error {
+// UpdateRepo update git repo.
+func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	// Check if repo is modified.
-	modified, err := IsRepoModified(repoDir)
+	modified, err := IsModified(repoDir)
 	if err != nil {
 		return err
 	}
@@ -100,6 +101,7 @@ func UpdateRepo(title, repoDir, repoRef string, force bool) error {
 	return executor.Execute()
 }
 
+// CherryPick cherry-pick patches.
 func CherryPick(title, srcDir string, patches []string) error {
 	// Change to source dir to execute git command.
 	if err := os.Chdir(srcDir); err != nil {
@@ -122,6 +124,7 @@ func CherryPick(title, srcDir string, patches []string) error {
 	return nil
 }
 
+// Rebase rebase patches.
 func Rebase(title, srcDir, repoRef string, rebaseRefs []string) error {
 	// Change to source dir to execute git command.
 	if err := os.Chdir(srcDir); err != nil {
@@ -144,17 +147,28 @@ func Rebase(title, srcDir, repoRef string, rebaseRefs []string) error {
 	return nil
 }
 
+// CleanRepo clean git repo.
 func CleanRepo(repoDir string) error {
-	commandLine := "git reset --hard && git clean -xfd"
-	executor := cmd.NewExecutor("", commandLine)
-	executor.SetWorkDir(repoDir)
-	if err := executor.Execute(); err != nil {
+	// git reset --hard
+	resetCmd := exec.Command("git", "reset", "--hard")
+	resetCmd.Stdout = os.Stdout
+	resetCmd.Stderr = os.Stderr
+	if err := resetCmd.Run(); err != nil {
+		return err
+	}
+
+	// git clean -xfd
+	cleanCmd := exec.Command("git", "clean", "-xfd")
+	cleanCmd.Stdout = os.Stdout
+	cleanCmd.Stderr = os.Stderr
+	if err := cleanCmd.Run(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+// ApplyPatch apply git patch.
 func ApplyPatch(port, repoDir, patchFile string) error {
 	patchFileName := filepath.Base(patchFile)
 
@@ -224,111 +238,4 @@ func ApplyPatch(port, repoDir, patchFile string) error {
 		return fmt.Errorf("cannot write %s into .patched: %w", patchFileName, err)
 	}
 	return nil
-}
-
-func IsPatched(repoDir, patchFile string) (gitBatch, patched bool, err error) {
-	file, err := os.Open(patchFile)
-	if err != nil {
-		return false, false, err
-	}
-	defer file.Close()
-
-	// Read the first few lines of the file to check for Git patch features.
-	scanner := bufio.NewScanner(file)
-	for range 10 {
-		if !scanner.Scan() {
-			break
-		}
-		line := scanner.Text()
-
-		// If you find Git patch features such as "From " or "Subject: "
-		if strings.HasPrefix(line, "diff --git ") {
-			gitBatch = true
-			break
-		}
-	}
-
-	if gitBatch {
-		command := fmt.Sprintf("git apply --check %s", patchFile)
-		exector := cmd.NewExecutor("", command)
-		exector.SetWorkDir(repoDir)
-		outout, err := exector.ExecuteOutput()
-
-		if err != nil {
-			return true, false, fmt.Errorf("run git command: %w", err)
-		}
-
-		if strings.TrimSpace(outout) == "" {
-			return true, true, nil
-		}
-
-		return true, false, nil
-	} else {
-		command := fmt.Sprintf("patch --dry-run -p1 < %s", patchFile)
-		exector := cmd.NewExecutor("", command)
-		exector.SetWorkDir(repoDir)
-		outout, err := exector.ExecuteOutput()
-
-		if err != nil {
-			return false, false, fmt.Errorf("run git command: %w", err)
-		}
-
-		if strings.Contains(outout, "patch detected") {
-			return false, true, nil
-		}
-
-		return false, false, nil
-	}
-}
-
-func IsRepoModified(repoDir string) (bool, error) {
-	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
-
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-
-	if err := cmd.Run(); err != nil {
-		return false, fmt.Errorf("run git command: %w", err)
-	}
-
-	status := strings.TrimSpace(out.String())
-	return status != "", nil
-}
-
-func ReadGitCommit(repoDir string) (string, error) {
-	if !fileio.PathExists(repoDir) {
-		return "", fmt.Errorf("repo dir %s is not exist", repoDir)
-	}
-	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
-
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("read git commit hash: %w", err)
-	}
-
-	return strings.TrimSpace(out.String()), nil
-}
-
-func DefaultBranch(repoDir string) (string, error) {
-	exector := cmd.NewExecutor("", "git remote show origin")
-	outout, err := exector.ExecuteOutput()
-	if err != nil {
-		return "", fmt.Errorf("read git default branch: %w", err)
-	}
-
-	lines := strings.Split(outout, "\n")
-	for _, line := range lines {
-		if strings.Contains(line, "HEAD branch") {
-			parts := strings.Split(line, ":")
-			if len(parts) > 1 {
-				return strings.TrimSpace(parts[1]), nil
-			}
-		}
-	}
-
-	return "", fmt.Errorf("default branch not found")
 }

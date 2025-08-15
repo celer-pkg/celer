@@ -70,13 +70,13 @@ func (u updateCmd) Command() *cobra.Command {
 func (u updateCmd) updateConfRepo() error {
 	title := "[update conf repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	return git.UpdateRepo(title, repoDir, "", u.force)
+	return git.UpdateRepo(title, "", repoDir, u.force)
 }
 
 func (u updateCmd) updatePortsRepo() error {
 	title := "[update ports repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	return git.UpdateRepo(title, repoDir, "", u.force)
+	return git.UpdateRepo(title, "", repoDir, u.force)
 }
 
 func (u updateCmd) updatePorts(targets []string) error {
@@ -113,15 +113,17 @@ func (u updateCmd) updatePortRepo(nameVersion string) error {
 	// No need to update port if it's not git repo or its code is not exist.
 	srcDir := filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src")
 	if !fileio.PathExists(srcDir) {
-		return fmt.Errorf("%s/%s/src is not found, update is skipped", filepath.ToSlash(dirs.BuildtreesDir), nameVersion)
+		return fmt.Errorf("%s/%s/src is not found, update is skipped",
+			filepath.ToSlash(dirs.BuildtreesDir), nameVersion)
 	}
 	if !strings.HasSuffix(port.Package.Url, ".git") {
-		return fmt.Errorf("%s/%s/src is not git repo, update is skipped", filepath.ToSlash(dirs.BuildtreesDir), nameVersion)
+		return fmt.Errorf("%s/%s/src is not git repo, update is skipped",
+			filepath.ToSlash(dirs.BuildtreesDir), nameVersion)
 	}
 
 	// Update port.
 	title := fmt.Sprintf("[update %s]", nameVersion)
-	if err := git.UpdateRepo(title, srcDir, port.Package.Ref, u.force); err != nil {
+	if err := git.UpdateRepo(title, port.Package.Ref, srcDir, u.force); err != nil {
 		return err
 	}
 

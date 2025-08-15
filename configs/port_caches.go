@@ -80,7 +80,7 @@ func (p Port) Commit(nameVersion string) (string, error) {
 			return "", fmt.Errorf("check git: %w", err)
 		}
 
-		commit, err := git.ReadGitCommit(srcDir)
+		commit, err := git.ReadCommit(srcDir)
 		if err != nil {
 			return "", fmt.Errorf("get git commit of port %s: %w", nameVersion, err)
 		}
