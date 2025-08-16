@@ -12,6 +12,5 @@ temp
 /downloads
 /installed
 *.exe
-**/testdata/buildtrees/
-**/testdata/installed/
+**/testdata
 nul

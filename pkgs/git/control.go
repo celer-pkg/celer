@@ -22,13 +22,21 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 	}
 
 	switch {
-	case IsBranch(repoUrl, repoRef), IsTag(repoUrl, repoRef):
+	case repoRef == "":
+		// Clone default branch.
+		command := fmt.Sprintf("git clone %s --recursive %s", repoUrl, repoDir)
+		if err := cmd.NewExecutor(title, command).Execute(); err != nil {
+			return err
+		}
+
+	case CheckIfRemoteBranch(repoUrl, repoRef), CheckIfRemoteTag(repoUrl, repoRef):
+		// Clone specific branch or tag.
 		command := fmt.Sprintf("git clone --branch %s %s --depth 1 --recursive %s", repoRef, repoUrl, repoDir)
 		if err := cmd.NewExecutor(title, command).Execute(); err != nil {
 			return err
 		}
 
-	case IsCommit(repoUrl, repoRef):
+	case CheckIfRemoteCommit(repoUrl, repoRef):
 		// Clone repo.
 		cloneCmd := fmt.Sprintf("git clone %s %s --depth 1", repoUrl, repoDir)
 		if err := cmd.NewExecutor(title, cloneCmd).Execute(); err != nil {
@@ -80,17 +88,17 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	commands = append(commands, "git reset --hard && git clean -xfd")
 
 	switch {
-	case IsBranch(repoDir, repoRef):
+	case CheckIfRemoteBranch(repoDir, repoRef):
 		commands = append(commands, fmt.Sprintf("git fetch origin %s", repoRef))
 		commands = append(commands, fmt.Sprintf("git checkout -B %s origin/%s", repoRef, repoRef))
 		commands = append(commands, fmt.Sprintf("git pull origin %s", repoRef))
 
-	case IsTag(repoDir, repoRef):
+	case CheckIfRemoteTag(repoDir, repoRef):
 		commands = append(commands, fmt.Sprintf("git tag -d %s || true", repoRef))
 		commands = append(commands, "git fetch --tags origin")
 		commands = append(commands, fmt.Sprintf("git checkout %s", repoRef))
 
-	case IsCommit(repoDir, repoRef):
+	case CheckIfRemoteCommit(repoDir, repoRef):
 		commands = append(commands, fmt.Sprintf("git reset --hard %s", repoRef))
 	}
 
@@ -125,7 +133,7 @@ func CherryPick(title, srcDir string, patches []string) error {
 }
 
 // Rebase rebase patches.
-func Rebase(title, srcDir, repoRef string, rebaseRefs []string) error {
+func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 	// Change to source dir to execute git command.
 	if err := os.Chdir(srcDir); err != nil {
 		return err

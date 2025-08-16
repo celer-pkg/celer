@@ -8,34 +8,38 @@ import (
 	"strings"
 )
 
-// IsBranch check if ref is a branch.
-func IsBranch(repoUrl, repoRef string) bool {
-	cmd := exec.Command("git", "ls-remote", "--heads", repoUrl, repoRef)
-	output, err := cmd.CombinedOutput()
+// CheckIfLocalBranch check if repoRef is a branch.
+func CheckIfLocalBranch(repoDir, repoRef string) (bool, error) {
+	// Also can call `git symbolic-ref --short HEAD`
+	command := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	command.Dir = repoDir
+	output, err := command.CombinedOutput()
 	if err != nil {
-		return false
+		return false, err
 	}
-	return strings.TrimSpace(string(output)) != ""
+	return strings.TrimSpace(string(output)) == repoRef, nil
 }
 
-// IsTag check if ref is a tag.
-func IsTag(repoUrl, repoRef string) bool {
-	cmd := exec.Command("git", "ls-remote", "--tags", repoUrl, repoRef+"^{}")
-	output, err := cmd.CombinedOutput()
+// CheckIfLocalTag check if repoRef is a tag.
+func CheckIfLocalTag(repoDir, repoRef string) (bool, error) {
+	command := exec.Command("git", "describe", "--exact-match", "--tags", "HEAD")
+	command.Dir = repoDir
+	output, err := command.CombinedOutput()
 	if err != nil {
-		return false
+		return false, err
 	}
-	return strings.TrimSpace(string(output)) != ""
+	return strings.TrimSpace(string(output)) == repoRef, nil
 }
 
-// IsCommit check if ref is a commit.
-func IsCommit(repoUrl, repoRef string) bool {
-	cmd := exec.Command("git", "ls-remote", repoUrl)
-	output, err := cmd.CombinedOutput()
+// CheckIfLocalCommit check if repoRef is a commit.
+func CheckIfLocalCommit(repoDir, repoRef string) (bool, error) {
+	command := exec.Command("git", "rev-parse", " HEAD")
+	command.Dir = repoDir
+	output, err := command.CombinedOutput()
 	if err != nil {
-		return false
+		return false, err
 	}
-	return strings.Contains(string(output), repoRef)
+	return strings.TrimSpace(string(output)) == repoRef, nil
 }
 
 // IsModified check if repo is modified.
@@ -91,4 +95,13 @@ func DefaultBranch(repoDir string) (string, error) {
 	}
 
 	return "", fmt.Errorf("default branch not found")
+}
+
+func BranchOfLocal(repoDir string) (string, error) {
+	command := exec.Command("git", "-C", repoDir, "rev-parse", "--abbrev-ref", "HEAD")
+	output, err := command.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("get current branch name: %w", err)
+	}
+	return strings.TrimSpace(string(output)), nil
 }
