@@ -46,7 +46,7 @@ func (p Port) builddesc() (string, error) {
 func (c Port) GenPlatformTomlString() (string, error) {
 	bytes, err := toml.Marshal(c.ctx.Platform())
 	if err != nil {
-		return "", fmt.Errorf("marshal platform %s: %w", c.ctx.Platform().Name, err)
+		return "", fmt.Errorf("marshal platform %s error: %w", c.ctx.Platform().Name, err)
 	}
 	return string(bytes), nil
 }
@@ -62,7 +62,7 @@ func (p Port) GenPortTomlString(nameVersion string) (string, error) {
 
 	bytes, err := toml.Marshal(port)
 	if err != nil {
-		return "", fmt.Errorf("marshal port %s: %w", nameVersion, err)
+		return "", fmt.Errorf("marshal port %s error: %w", nameVersion, err)
 	}
 	return string(bytes), nil
 }
@@ -77,12 +77,12 @@ func (p Port) Commit(nameVersion string) (string, error) {
 	if strings.HasSuffix(port.Package.Url, ".git") {
 		srcDir := filepath.Join(dirs.BuildtreesDir, nameVersion, "src")
 		if err := buildtools.CheckTools("git"); err != nil {
-			return "", fmt.Errorf("check git: %w", err)
+			return "", fmt.Errorf("check git error: %w", err)
 		}
 
 		commit, err := git.ReadCommit(srcDir)
 		if err != nil {
-			return "", fmt.Errorf("get git commit of port %s: %w", nameVersion, err)
+			return "", fmt.Errorf("get git commit of port %s error: %w", nameVersion, err)
 		}
 		return "git:" + commit, nil
 	} else {
@@ -90,7 +90,7 @@ func (p Port) Commit(nameVersion string) (string, error) {
 		filePath := filepath.Join(dirs.DownloadedDir, fileName)
 		commit, err := fileio.CalculateChecksum(filePath)
 		if err != nil {
-			return "", fmt.Errorf("get checksum of part's archive %s: %w", nameVersion, err)
+			return "", fmt.Errorf("get checksum of part's archive %s error: %w", nameVersion, err)
 		}
 		return "file:" + commit, nil
 	}

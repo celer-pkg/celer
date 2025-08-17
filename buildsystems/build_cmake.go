@@ -352,7 +352,7 @@ func (c cmake) formatBuildType() string {
 
 func detectMSVCGenerator() (string, error) {
 	if err := buildtools.CheckTools("vswhere"); err != nil {
-		return "", fmt.Errorf("vswhere is not available: %w", err)
+		return "", fmt.Errorf("check tool vswhere error: %w", err)
 	}
 
 	// Query all available msvc installation paths.

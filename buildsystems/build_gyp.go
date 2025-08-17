@@ -94,15 +94,15 @@ func (g gyp) Install(options []string) error {
 	binDir := filepath.Join(buildTreesRootDir, "dist", "Debug", "bin")
 
 	if err := fileio.CopyDir(headerDir, filepath.Join(g.PortConfig.PackageDir, "include")); err != nil {
-		return fmt.Errorf("install include of %w", err)
+		return fmt.Errorf("install include error: %w", err)
 	}
 
 	if err := fileio.CopyDir(libDir, filepath.Join(g.PortConfig.PackageDir, "lib")); err != nil {
-		return fmt.Errorf("install lib of %w", err)
+		return fmt.Errorf("install lib error: %w", err)
 	}
 
 	if err := fileio.CopyDir(binDir, filepath.Join(g.PortConfig.PackageDir, "bin")); err != nil {
-		return fmt.Errorf("install bin of %w", err)
+		return fmt.Errorf("install bin error: %w", err)
 	}
 
 	return nil

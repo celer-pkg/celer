@@ -56,7 +56,7 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 		} else {
 			// Create clean temp directory.
 			if err := dirs.CleanTmpFilesDir(); err != nil {
-				return fmt.Errorf("cannot create clean tmp dir: %w", err)
+				return fmt.Errorf("create clean tmp dir error: %w", err)
 			}
 
 			// Check and repair resource.

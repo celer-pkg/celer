@@ -41,7 +41,7 @@ func HackRepoUrl(repoUrl string) (string, error) {
 		if strings.HasPrefix(repoUrl, "https://github.com") {
 			redirectedUrl, err := url.JoinPath(githubRepoProxy, strings.TrimPrefix(repoUrl, "https://"))
 			if err != nil {
-				return "", fmt.Errorf("wrong github proxy repo url: %w", err)
+				return "", fmt.Errorf("github proxy repo url error: %w", err)
 			}
 			return redirectedUrl, nil
 		}
@@ -49,7 +49,7 @@ func HackRepoUrl(repoUrl string) (string, error) {
 		if strings.HasPrefix(repoUrl, "github.com") {
 			redirectedUrl, err := url.JoinPath(githubRepoProxy, repoUrl)
 			if err != nil {
-				return "", fmt.Errorf("wrong github proxy repo url: %w", err)
+				return "", fmt.Errorf("github proxy repo url error: %w", err)
 			}
 			return redirectedUrl, nil
 		}

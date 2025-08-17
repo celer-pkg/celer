@@ -28,12 +28,12 @@ func (p Port) Remove(recurse, purge, removeBuildCache bool) error {
 			port.DevDep = devDep
 			port.Parent = p.NameVersion()
 			if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
-				return fmt.Errorf("init dependency %s: %w", nameVersion, err)
+				return fmt.Errorf("init dependency %s error: %w", nameVersion, err)
 			}
 
 			// Remove dependency.
 			if err := port.Remove(recurse, purge, removeBuildCache); err != nil {
-				return fmt.Errorf("remove dependency %s: %w", nameVersion, err)
+				return fmt.Errorf("remove dependency %s error: %w", nameVersion, err)
 			}
 
 			return nil
@@ -42,12 +42,12 @@ func (p Port) Remove(recurse, purge, removeBuildCache bool) error {
 		if matchedConfig != nil {
 			for _, nameVersion := range matchedConfig.Dependencies {
 				if err := removeFunc(nameVersion, false); err != nil {
-					return fmt.Errorf("remove dependency %s: %w", nameVersion, err)
+					return fmt.Errorf("remove dependency %s error: %w", nameVersion, err)
 				}
 			}
 			for _, nameVersion := range matchedConfig.DevDependencies {
 				if err := removeFunc(nameVersion, true); err != nil {
-					return fmt.Errorf("remove dev_dependency %s: %w", nameVersion, err)
+					return fmt.Errorf("remove dev_dependency %s error: %w", nameVersion, err)
 				}
 			}
 		}
@@ -55,24 +55,24 @@ func (p Port) Remove(recurse, purge, removeBuildCache bool) error {
 
 	// Do remove port itself.
 	if err := p.doRemovePort(); err != nil {
-		return fmt.Errorf("remove port: %w", err)
+		return fmt.Errorf("remove port error: %w", err)
 	}
 
 	// Remove port's package files.
 	if purge {
 		if err := p.removePackage(); err != nil {
-			return fmt.Errorf("remove package: %w", err)
+			return fmt.Errorf("remove package error: %w", err)
 		}
 	}
 
 	// Remove build cache and logs.
 	if removeBuildCache {
 		if err := os.RemoveAll(matchedConfig.PortConfig.BuildDir); err != nil {
-			return fmt.Errorf("remove build cache: %w", err)
+			return fmt.Errorf("remove build cache error: %w", err)
 		}
 
 		if err := p.RemoveLogs(); err != nil {
-			return fmt.Errorf("remove logs: %w", err)
+			return fmt.Errorf("remove logs error: %w", err)
 		}
 	}
 
@@ -202,12 +202,12 @@ func (p Port) RemoveLogs() error {
 	logPathPrefix := filepath.Join(p.NameVersion(), expr.If(p.DevDep || p.Native, p.ctx.Platform().HostName()+"-dev", platformProject))
 	matches, err := filepath.Glob(filepath.Join(dirs.BuildtreesDir, logPathPrefix+"-*.log"))
 	if err != nil {
-		return fmt.Errorf("invalid glob syntax: %w", err)
+		return fmt.Errorf("glob syntax error: %w", err)
 	}
 
 	for _, match := range matches {
 		if err := os.Remove(match); err != nil {
-			return fmt.Errorf("cannot remove log %s: %w", match, err)
+			return fmt.Errorf("remove log %s error: %w", match, err)
 		}
 	}
 

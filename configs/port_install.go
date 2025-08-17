@@ -117,7 +117,7 @@ func (p Port) doInstallFromCache() (bool, error) {
 	// Calculate buildhash.
 	buildhash, err := p.buildhash()
 	if err != nil {
-		return false, fmt.Errorf("calculate buildhash: %s", err)
+		return false, fmt.Errorf("calculate buildhash error: %w", err)
 	}
 
 	// Read cache file and extract them to package dir.
@@ -229,7 +229,7 @@ func (p Port) installFromPackage() (bool, error) {
 	var hashFile string
 	entities, err := os.ReadDir(p.MatchedConfig.PortConfig.PackageDir)
 	if err != nil {
-		return false, fmt.Errorf("read package dir: %w", err)
+		return false, fmt.Errorf("read package dir error: %w", err)
 	}
 	for _, entity := range entities {
 		if p.isChecksumFile(filepath.Join(p.MatchedConfig.PortConfig.PackageDir, entity.Name())) {
@@ -245,11 +245,11 @@ func (p Port) installFromPackage() (bool, error) {
 	// Install from package if buildhash matches.
 	buildBytes, err := os.ReadFile(hashFile)
 	if err != nil {
-		return false, fmt.Errorf("read package buildhash of %s: %w", p.NameVersion(), err)
+		return false, fmt.Errorf("read package buildhash of %s error: %w", p.NameVersion(), err)
 	}
 	newBuilddesc, err := p.builddesc()
 	if err != nil {
-		return false, fmt.Errorf("calculate buildhash of %s: %w", p.NameVersion(), err)
+		return false, fmt.Errorf("calculate buildhash of %s error: %w", p.NameVersion(), err)
 	}
 
 	localBuilddesc := string(buildBytes)
@@ -261,7 +261,7 @@ func (p Port) installFromPackage() (bool, error) {
 		color.Println(color.Blue, newBuilddesc)
 
 		if err := p.doInstallFromPackage(p.installedDir); err != nil {
-			return false, fmt.Errorf("install from package: %w", err)
+			return false, fmt.Errorf("install from package error: %w", err)
 		}
 		return true, p.writeInfoFile("package")
 	}
@@ -278,7 +278,7 @@ func (p Port) installFromPackage() (bool, error) {
 func (p Port) installFromCache() (bool, error) {
 	installed, err := p.doInstallFromCache()
 	if err != nil {
-		return false, fmt.Errorf("install from cache: %w", err)
+		return false, fmt.Errorf("install from cache error: %w", err)
 	}
 
 	if installed {
@@ -471,14 +471,14 @@ func (p Port) providerTmpDeps() error {
 func (p Port) writeInfoFile(installedFrom string) error {
 	// Write installed files info into its installation info list.
 	if err := os.MkdirAll(filepath.Dir(p.infoFile), os.ModePerm); err != nil {
-		return fmt.Errorf("create info dir: %w", err)
+		return fmt.Errorf("create info dir error: %w", err)
 	}
 	packageFiles, err := p.PackageFiles(p.packageDir, p.ctx.Platform().Name, p.ctx.Project().Name)
 	if err != nil {
-		return fmt.Errorf("get package files: %w", err)
+		return fmt.Errorf("get package files error: %w", err)
 	}
 	if err := os.WriteFile(p.infoFile, []byte(strings.Join(packageFiles, "\n")), os.ModePerm); err != nil {
-		return fmt.Errorf("write info file: %w", err)
+		return fmt.Errorf("write info file error: %w", err)
 	}
 
 	// Print install info.

@@ -68,7 +68,7 @@ func getOSType() (string, error) {
 	executor := cmd.NewExecutor("", "cat /etc/os-release")
 	out, err := executor.ExecuteOutput()
 	if err != nil {
-		return "", fmt.Errorf("read /etc/os-release: %w", err)
+		return "", fmt.Errorf("read /etc/os-release error: %w", err)
 	}
 
 	lines := strings.Split(string(out), "\n")

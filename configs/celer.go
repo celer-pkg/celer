@@ -86,7 +86,7 @@ func (c *Celer) Init() error {
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
 		if err != nil {
-			return fmt.Errorf("cannot marshal celer conf: %w", err)
+			return fmt.Errorf("marshal celer conf error: %w", err)
 		}
 
 		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
@@ -304,7 +304,7 @@ func (c *Celer) ChangeProject(projectName string) error {
 		c.Gloabl.JobNum = runtime.NumCPU()
 		bytes, err := toml.Marshal(c)
 		if err != nil {
-			return fmt.Errorf("cannot marshal celer conf: %w", err)
+			return fmt.Errorf("marshal celer conf error: %w", err)
 		}
 		if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
 			return err
@@ -319,7 +319,7 @@ func (c *Celer) ChangeProject(projectName string) error {
 		return err
 	}
 	if err := toml.Unmarshal(bytes, c); err != nil {
-		return fmt.Errorf("cannot unmarshal celer conf: %w", err)
+		return fmt.Errorf("unmarshal celer conf error: %w", err)
 	}
 
 	// Read project file and setup it.
