@@ -33,7 +33,7 @@ func CheckIfLocalTag(repoDir, repoRef string) (bool, error) {
 
 // CheckIfLocalCommit check if repoRef is a commit.
 func CheckIfLocalCommit(repoDir, repoRef string) (bool, error) {
-	command := exec.Command("git", "rev-parse", " HEAD")
+	command := exec.Command("git", "rev-parse", "HEAD")
 	command.Dir = repoDir
 	output, err := command.CombinedOutput()
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 )
 
 type initCmd struct {
+	celer  *configs.Celer
 	url    string
 	branch string
 }
@@ -17,8 +18,12 @@ func (i initCmd) Command() *cobra.Command {
 		Use:   "init",
 		Short: "Init with conf repo.",
 		Run: func(cmd *cobra.Command, args []string) {
-			celer := configs.NewCeler()
-			if err := celer.SyncConf(i.url, i.branch); err != nil {
+			i.celer = configs.NewCeler()
+			if err := i.celer.Init(); err != nil {
+				configs.PrintError(err, "failed to init celer.")
+				return
+			}
+			if err := i.celer.SyncConf(i.url, i.branch); err != nil {
 				configs.PrintError(err, "failed to init celer: %s.", err)
 				return
 			}

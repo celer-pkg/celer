@@ -135,9 +135,9 @@ func (p Port) Installed() (bool, error) {
 	localBuilddesc := string(descBytes)
 	if localBuilddesc != newBuilddesc {
 		color.Printf(color.Green, "\n================ package will be removed, because build desc not match for %s: ================\n", p.NameVersion())
-		color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local build desc: >>>>>>>>>>>>>>>>>")
+		color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local build desc: <<<<<<<<<<<<<<<<<")
 		color.Println(color.Blue, newBuilddesc)
-		color.Println(color.Green, ">>>>>>>>>>>>>>>>> New build desc: >>>>>>>>>>>>>>>>>")
+		color.Println(color.Green, ">>>>>>>>>>>>>>>>> New build desc: <<<<<<<<<<<<<<<<<")
 		color.Println(color.Blue, newBuilddesc)
 
 		if err := p.Remove(false, true, true); err != nil {
