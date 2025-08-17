@@ -105,17 +105,8 @@ func (p Port) doInstallFromCache() (bool, error) {
 		return false, err
 	}
 
-	// For downloaded ports, check if the archive file exists, if not exists, skip it.
-	if !strings.HasSuffix(port.Package.Url, ".git") {
-		fileName := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-		filePath := filepath.Join(dirs.DownloadedDir, fileName)
-		if !fileio.PathExists(filePath) {
-			return false, nil
-		}
-	}
-
 	// Calculate buildhash.
-	buildhash, err := p.buildhash()
+	buildhash, err := p.buildhash(p.Package.Commit)
 	if err != nil {
 		return false, fmt.Errorf("calculate buildhash error: %w", err)
 	}
@@ -129,7 +120,7 @@ func (p Port) doInstallFromCache() (bool, error) {
 		buildhash+".tar.gz",
 		p.MatchedConfig.PortConfig.PackageDir,
 	); err != nil {
-		return false, fmt.Errorf("read cache: %s", err)
+		return false, fmt.Errorf("read cache with buildhash: %s", err)
 	} else if ok {
 		return true, nil
 	}
@@ -155,17 +146,17 @@ func (p Port) doInstallFromSource() error {
 
 	// Generate hash file.
 	if p.MatchedConfig.BuildSystem != "nobuild" {
-		builddesc, err := p.builddesc()
+		metaInfo, err := p.buildMeta(p.Package.Commit)
 		if err != nil {
 			installFailed = true
 			return err
 		}
-		hashFile := filepath.Join(p.packageDir, p.desc2hash(builddesc))
+		hashFile := filepath.Join(p.packageDir, p.meta2hash(metaInfo))
 		if err := os.MkdirAll(filepath.Dir(hashFile), os.ModePerm); err != nil {
 			installFailed = true
 			return err
 		}
-		if err := os.WriteFile(hashFile, []byte(builddesc), os.ModePerm); err != nil {
+		if err := os.WriteFile(hashFile, []byte(metaInfo), os.ModePerm); err != nil {
 			installFailed = true
 			return err
 		}
@@ -247,18 +238,18 @@ func (p Port) installFromPackage() (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("read package buildhash of %s error: %w", p.NameVersion(), err)
 	}
-	newBuilddesc, err := p.builddesc()
+	newMeta, err := p.buildMeta(p.Package.Commit)
 	if err != nil {
 		return false, fmt.Errorf("calculate buildhash of %s error: %w", p.NameVersion(), err)
 	}
 
-	localBuilddesc := string(buildBytes)
-	if localBuilddesc != newBuilddesc {
-		color.Printf(color.Green, "================ build desc not match for %s: ================\n", p.NameVersion())
-		color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local build desc: <<<<<<<<<<<<<<<<<")
-		color.Println(color.Blue, newBuilddesc)
-		color.Println(color.Green, ">>>>>>>>>>>>>>>>> New build desc: <<<<<<<<<<<<<<<<<")
-		color.Println(color.Blue, newBuilddesc)
+	localMeta := string(buildBytes)
+	if localMeta != newMeta {
+		color.Printf(color.Green, "================ meta not match for %s: ================\n", p.NameVersion())
+		color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local meta: <<<<<<<<<<<<<<<<<")
+		color.Println(color.Blue, newMeta)
+		color.Println(color.Green, ">>>>>>>>>>>>>>>>> New meta: <<<<<<<<<<<<<<<<<")
+		color.Println(color.Blue, newMeta)
 
 		if err := p.doInstallFromPackage(p.installedDir); err != nil {
 			return false, fmt.Errorf("install from package error: %w", err)
@@ -324,12 +315,12 @@ func (p Port) installFromSource() error {
 	// but only for none-dev package currently.
 	if !p.DevDep {
 		if p.ctx.CacheDir() != nil {
-			builddesc, err := p.builddesc()
+			metaInfo, err := p.buildMeta(p.Package.Commit)
 			if err != nil {
 				return err
 			}
 
-			if err := p.ctx.CacheDir().Write(p.MatchedConfig.PortConfig.PackageDir, builddesc); err != nil {
+			if err := p.ctx.CacheDir().Write(p.MatchedConfig.PortConfig.PackageDir, metaInfo); err != nil {
 				return err
 			}
 		}

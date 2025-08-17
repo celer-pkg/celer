@@ -2,7 +2,6 @@ package git
 
 import (
 	"bytes"
-	"celer/pkgs/fileio"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -58,11 +57,8 @@ func IsModified(repoDir string) (bool, error) {
 	return status != "", nil
 }
 
-// ReadCommit read git commit hash.
-func ReadCommit(repoDir string) (string, error) {
-	if !fileio.PathExists(repoDir) {
-		return "", fmt.Errorf("repo dir %s is not exist", repoDir)
-	}
+// ReadLocalCommit read git commit hash.
+func ReadLocalCommit(repoDir string) (string, error) {
 	command := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
 
 	var out bytes.Buffer
