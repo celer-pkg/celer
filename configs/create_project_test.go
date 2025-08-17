@@ -34,7 +34,7 @@ func TestCreate_Project(t *testing.T) {
 		check(os.Remove(projectPath))
 	})
 
-	t.Run("create project failed: empty name", func(t *testing.T) {
+	t.Run("create project error: empty name", func(t *testing.T) {
 		if err := celer.CreateProject(""); err == nil {
 			t.Fatal("it should be failed")
 		} else {

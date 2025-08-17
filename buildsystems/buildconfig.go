@@ -522,7 +522,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.LibraryFolder),
 	)
 	if err := fileio.FixupPkgConfig(b.PortConfig.PackageDir, prefix); err != nil {
-		return fmt.Errorf("fixup pkg-config failed: %w", err)
+		return fmt.Errorf("fixup pkg-config error: %w", err)
 	}
 
 	// Generate cmake configs.

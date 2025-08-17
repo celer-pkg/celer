@@ -411,7 +411,7 @@ func (p Port) providerTmpDeps() error {
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
 		)
 		if err := fileio.FixupPkgConfig(p.packageDir, prefix); err != nil {
-			return fmt.Errorf("fixup pkg-config failed: %w", err)
+			return fmt.Errorf("fixup pkg-config error: %w", err)
 		}
 
 		// Provider tmp deps recursively.
@@ -452,7 +452,7 @@ func (p Port) providerTmpDeps() error {
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
 		)
 		if err := fileio.FixupPkgConfig(port.tmpDepsDir, prefix); err != nil {
-			return fmt.Errorf("fixup pkg-config failed: %w", err)
+			return fmt.Errorf("fixup pkg-config error: %w", err)
 		}
 
 		// Provider tmp deps recursively.

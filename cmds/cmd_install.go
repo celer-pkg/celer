@@ -54,7 +54,7 @@ func (i installCmd) install(nameVersion string) {
 	}
 
 	if err := celer.Platform().Setup(); err != nil {
-		configs.PrintError(err, "setup platform failed: %s", err)
+		configs.PrintError(err, "setup platform error: %s", err)
 		return
 	}
 
