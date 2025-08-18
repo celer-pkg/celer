@@ -40,7 +40,7 @@ type Port struct {
 	Callbacks   Callbacks
 }
 
-func (p Port) BuildDesc() (string, error) {
+func (p Port) BuildMeta(commit string) (string, error) {
 	var buffer bytes.Buffer
 
 	// Write platform content for root port only.
@@ -71,13 +71,18 @@ func (p Port) BuildDesc() (string, error) {
 	p.writeDivider(&buffer, p.Parents, p.NameVersion, "port")
 	buffer.WriteString(content + "\n")
 
-	// Write commit id of port.
-	commit, err := p.Callbacks.Commit(p.NameVersion)
-	if err != nil {
-		return "", fmt.Errorf("get commit of port %s: %s", p.NameVersion, err)
+	// Write commit of port.
+	if commit != "" {
+		p.writeDivider(&buffer, p.Parents, p.NameVersion, "commit")
+		buffer.WriteString(commit + "\n")
+	} else {
+		commit, err := p.Callbacks.Commit(p.NameVersion)
+		if err != nil {
+			return "", fmt.Errorf("get commit of port %s error: %s", p.NameVersion, err)
+		}
+		p.writeDivider(&buffer, p.Parents, p.NameVersion, "commit")
+		buffer.WriteString(commit + "\n")
 	}
-	p.writeDivider(&buffer, p.Parents, p.NameVersion, "commit")
-	buffer.WriteString(commit + "\n")
 
 	// Write content of patches.
 	for _, patch := range p.BuildConfig.Patches {
@@ -118,7 +123,7 @@ func (p Port) BuildDesc() (string, error) {
 			Callbacks:   p.Callbacks,
 		}
 
-		content, err := port.BuildDesc()
+		content, err := port.BuildMeta("")
 		if err != nil {
 			return "", fmt.Errorf("fill content of dev_dependency %s: %s", nameVersion, err)
 		}
@@ -144,7 +149,7 @@ func (p Port) BuildDesc() (string, error) {
 			Callbacks:   p.Callbacks,
 		}
 
-		content, err := port.BuildDesc()
+		content, err := port.BuildMeta("")
 		if err != nil {
 			return "", fmt.Errorf("fill content of dependency %s: %s", nameVersion, err)
 		}

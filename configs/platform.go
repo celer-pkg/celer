@@ -163,7 +163,7 @@ func (p *Platform) detectToolchain() error {
 	if runtime.GOOS == "windows" && p.WindowsKit == nil {
 		var windowsKit WindowsKit
 		if err := windowsKit.Detect(&p.Toolchain.msvc); err != nil {
-			return fmt.Errorf("detect celer.windows_kit: %w", err)
+			return fmt.Errorf("detect celer.windows_kit error: %w", err)
 		}
 		p.WindowsKit = &windowsKit
 	}

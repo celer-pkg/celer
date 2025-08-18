@@ -26,13 +26,13 @@ func TestConfigure_Platform(t *testing.T) {
 		}
 	})
 
-	t.Run("configure platform failed: none exist platform", func(t *testing.T) {
+	t.Run("configure platform error: none exist platform", func(t *testing.T) {
 		if err := celer.ChangePlatform("xxxx"); err == nil {
 			t.Fatal("it should be failed")
 		}
 	})
 
-	t.Run("configure platform failed: empty platform", func(t *testing.T) {
+	t.Run("configure platform error: empty platform", func(t *testing.T) {
 		if err := celer.ChangePlatform(""); err != nil {
 			if err.Error() != "platform name is empty" {
 				t.Fatal("error should be 'platform name is empty'")
@@ -67,13 +67,13 @@ func TestConfigure_Project(t *testing.T) {
 		}
 	})
 
-	t.Run("configure project failed: none exist project", func(t *testing.T) {
+	t.Run("configure project error: none exist project", func(t *testing.T) {
 		if err := celer.ChangeProject("xxxx"); err == nil {
 			t.Fatal("it should be failed")
 		}
 	})
 
-	t.Run("configure project failed: empty project", func(t *testing.T) {
+	t.Run("configure project error: empty project", func(t *testing.T) {
 		if err := celer.ChangeProject(""); err == nil {
 			t.Fatal("it should be failed")
 		}

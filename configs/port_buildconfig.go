@@ -79,12 +79,12 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 			if fileio.PathExists(portInPorts) && fileio.PathExists(portInProject) {
 				bytes, err := os.ReadFile(portInProject)
 				if err != nil {
-					return fmt.Errorf("read project port: %w", err)
+					return fmt.Errorf("read project port error: %w", err)
 				}
 
 				var portInProject Port
 				if err := toml.Unmarshal(bytes, &portInProject); err != nil {
-					return fmt.Errorf("unmarshal project port: %w", err)
+					return fmt.Errorf("unmarshal project port error: %w", err)
 				}
 
 				portInProject.ctx = p.ctx

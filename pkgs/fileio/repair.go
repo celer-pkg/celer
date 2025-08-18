@@ -39,15 +39,15 @@ func (r Repair) CheckAndRepair() error {
 		if strings.HasSuffix(downloaded, ".exe") {
 			destFile := filepath.Join(destDir, filepath.Base(downloaded))
 			if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-				return fmt.Errorf("%s: mkdir failed: %w", destDir, err)
+				return fmt.Errorf("%s: mkdir error: %w", destDir, err)
 			}
 			if err := CopyFile(downloaded, destFile); err != nil {
-				return fmt.Errorf("%s: rename failed: %w", downloaded, err)
+				return fmt.Errorf("%s: rename error: %w", downloaded, err)
 			}
 		} else {
 			// Extract archive file.
 			if err := Extract(downloaded, destDir); err != nil {
-				return fmt.Errorf("%s: extract failed: %w", downloaded, err)
+				return fmt.Errorf("%s: extract error: %w", downloaded, err)
 			}
 
 			// Check if has nested folder (handling case where there's an nested folder).

@@ -4,33 +4,34 @@ import (
 	"celer/buildsystems"
 	"celer/buildtools"
 	"celer/caches"
-	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"celer/pkgs/git"
 	"crypto/sha256"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/BurntSushi/toml"
 )
 
-func (p Port) buildhash() (string, error) {
-	builddesc, err := p.builddesc()
+func (p Port) buildhash(commit string) (string, error) {
+	metaInfo, err := p.buildMeta(commit)
 	if err != nil {
 		return "", err
 	}
 
-	return p.desc2hash(builddesc), nil
+	return p.meta2hash(metaInfo), nil
 }
 
-func (p Port) desc2hash(builddesc string) string {
-	checksum := sha256.Sum256([]byte(builddesc))
+func (p Port) meta2hash(metaInfo string) string {
+	checksum := sha256.Sum256([]byte(metaInfo))
 	return fmt.Sprintf("%x", checksum)
 }
 
-func (p Port) builddesc() (string, error) {
+func (p Port) buildMeta(commit string) (string, error) {
 	cachePort := caches.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    p.ctx.Platform().Name,
@@ -40,13 +41,13 @@ func (p Port) builddesc() (string, error) {
 		Callbacks:   p,
 	}
 
-	return cachePort.BuildDesc()
+	return cachePort.BuildMeta(commit)
 }
 
 func (c Port) GenPlatformTomlString() (string, error) {
 	bytes, err := toml.Marshal(c.ctx.Platform())
 	if err != nil {
-		return "", fmt.Errorf("marshal platform %s: %w", c.ctx.Platform().Name, err)
+		return "", fmt.Errorf("marshal platform %s error: %w", c.ctx.Platform().Name, err)
 	}
 	return string(bytes), nil
 }
@@ -62,7 +63,7 @@ func (p Port) GenPortTomlString(nameVersion string) (string, error) {
 
 	bytes, err := toml.Marshal(port)
 	if err != nil {
-		return "", fmt.Errorf("marshal port %s: %w", nameVersion, err)
+		return "", fmt.Errorf("marshal port %s error: %w", nameVersion, err)
 	}
 	return string(bytes), nil
 }
@@ -73,24 +74,71 @@ func (p Port) Commit(nameVersion string) (string, error) {
 		return "", err
 	}
 
-	// Return git commit id for git repo and calculate checksum for archive file.
+	// Git port.
 	if strings.HasSuffix(port.Package.Url, ".git") {
-		srcDir := filepath.Join(dirs.BuildtreesDir, nameVersion, "src")
 		if err := buildtools.CheckTools("git"); err != nil {
-			return "", fmt.Errorf("check git: %w", err)
+			return "", fmt.Errorf("check git error: %w", err)
 		}
 
-		commit, err := cmd.ReadGitCommit(srcDir)
-		if err != nil {
-			return "", fmt.Errorf("get git commit of port %s: %w", nameVersion, err)
+		// Clone git repo if not exists.
+		if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
+			if err := git.CloneRepo("[clone "+nameVersion+"]",
+				port.Package.Url, port.Package.Ref,
+				port.MatchedConfig.PortConfig.RepoDir); err != nil {
+				return "", fmt.Errorf("clone git repo error: %w", err)
+			}
 		}
-		return "git:" + commit, nil
-	} else {
+
+		commit, err := git.ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
+		if err != nil {
+			return "", fmt.Errorf("read git commit hash error: %w", err)
+		}
+
+		return commit, nil
+	} else { // Non-git port.
 		fileName := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
 		filePath := filepath.Join(dirs.DownloadedDir, fileName)
+
+		// Download and extract archive source.
+		if !fileio.PathExists(filePath) {
+			// Create clean temp directory.
+			if err := dirs.CleanTmpFilesDir(); err != nil {
+				return "", fmt.Errorf("create clean tmp dir error: %w", err)
+			}
+
+			// Remove repor dir.
+			if err := os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir); err != nil {
+				return "", fmt.Errorf("remove repo dir error: %w", err)
+			}
+
+			// Check and repair resource.
+			archive := expr.If(port.Package.Archive == "", filepath.Base(port.Package.Url), port.Package.Archive)
+			repair := fileio.NewRepair(port.Package.Url, archive, ".", dirs.TmpFilesDir)
+			if err := repair.CheckAndRepair(); err != nil {
+				return "", err
+			}
+
+			// Move extracted files to source dir.
+			entities, err := os.ReadDir(dirs.TmpFilesDir)
+			if err != nil || len(entities) == 0 {
+				return "", fmt.Errorf("cannot find extracted files under tmp dir")
+			}
+			if len(entities) == 1 {
+				srcDir := filepath.Join(dirs.TmpFilesDir, entities[0].Name())
+				if err := fileio.RenameDir(srcDir, port.MatchedConfig.PortConfig.RepoDir); err != nil {
+					return "", err
+				}
+			} else if len(entities) > 1 {
+				if err := fileio.RenameDir(dirs.TmpFilesDir, port.MatchedConfig.PortConfig.RepoDir); err != nil {
+					return "", err
+				}
+			}
+		}
+
+		// Return the checksum of archive file.
 		commit, err := fileio.CalculateChecksum(filePath)
 		if err != nil {
-			return "", fmt.Errorf("get checksum of part's archive %s: %w", nameVersion, err)
+			return "", fmt.Errorf("get checksum of part's archive %s error: %w", nameVersion, err)
 		}
 		return "file:" + commit, nil
 	}

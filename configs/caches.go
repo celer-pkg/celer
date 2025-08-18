@@ -40,7 +40,7 @@ func (c CacheDir) Read(platformName, projectName, buildType, nameVersion, buildh
 	return true, nil
 }
 
-func (c CacheDir) Write(packageDir, builddesc string) error {
+func (c CacheDir) Write(packageDir, metaInfo string) error {
 	if !fileio.PathExists(packageDir) {
 		return fmt.Errorf("package dir %s does not exist", packageDir)
 	}
@@ -71,7 +71,7 @@ func (c CacheDir) Write(packageDir, builddesc string) error {
 	hashDir := filepath.Join(destDir, "hash")
 
 	// Calculate checksum of description.
-	data := sha256.Sum256([]byte(builddesc))
+	data := sha256.Sum256([]byte(metaInfo))
 	buildhash := fmt.Sprintf("%x", data)
 
 	// Create the dir if not exist.
@@ -90,7 +90,7 @@ func (c CacheDir) Write(packageDir, builddesc string) error {
 	}
 
 	// Write description to hash dir.
-	if err := os.WriteFile(filepath.Join(hashDir, buildhash+".txt"), []byte(builddesc), os.ModePerm); err != nil {
+	if err := os.WriteFile(filepath.Join(hashDir, buildhash+".txt"), []byte(metaInfo), os.ModePerm); err != nil {
 		return err
 	}
 
@@ -103,7 +103,7 @@ func (c CacheDir) Remove(platformName, projectName, buildType, nameVersion strin
 	pacakgeDir := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion)
 	if fileio.PathExists(pacakgeDir) {
 		if err := os.RemoveAll(pacakgeDir); err != nil {
-			return fmt.Errorf("remove cache package %s: %w", pacakgeDir, err)
+			return fmt.Errorf("remove cache package %s error: %w", pacakgeDir, err)
 		}
 	}
 
@@ -113,6 +113,6 @@ func (c CacheDir) Remove(platformName, projectName, buildType, nameVersion strin
 // Exist check both archive file and build desc file exist.
 func (c CacheDir) Exist(platformName, projectName, buildType, nameVersion, buildhash string) bool {
 	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, buildhash+".tar.gz")
-	buildDescPath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, "hash", buildhash+".txt")
-	return fileio.PathExists(archivePath) && fileio.PathExists(buildDescPath)
+	metaFilePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, "hash", buildhash+".txt")
+	return fileio.PathExists(archivePath) && fileio.PathExists(metaFilePath)
 }

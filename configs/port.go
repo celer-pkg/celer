@@ -22,6 +22,7 @@ var preparedTmpDeps []string
 type Package struct {
 	Url            string   `toml:"url"`
 	Ref            string   `toml:"ref"`
+	Commit         string   `toml:"commit,omitempty"`
 	Archive        string   `toml:"archive,omitempty"`
 	SrcDir         string   `toml:"src_dir,omitempty"`
 	SupportedHosts []string `toml:"supported_hosts,omitempty"`
@@ -81,15 +82,15 @@ func (p *Port) Init(ctx Context, nameVersion, buildType string) error {
 	// Decode TOML.
 	bytes, err := os.ReadFile(expr.If(!fileio.PathExists(portInPorts), portInProject, portInPorts))
 	if err != nil {
-		return fmt.Errorf("read port: %w", err)
+		return fmt.Errorf("read port error: %w", err)
 	}
 	if err := toml.Unmarshal(bytes, p); err != nil {
-		return fmt.Errorf("unmarshal port: %w", err)
+		return fmt.Errorf("unmarshal port error: %w", err)
 	}
 
 	// Init build config.
 	if err := p.initBuildConfig(nameVersion); err != nil {
-		return fmt.Errorf("init build config: %w", err)
+		return fmt.Errorf("init build config error: %w", err)
 	}
 
 	p.MatchedConfig = p.findMatchedConfig(p.buildType)
@@ -104,7 +105,7 @@ func (p *Port) Init(ctx Context, nameVersion, buildType string) error {
 
 	// Validate port.
 	if err := p.validate(); err != nil {
-		return fmt.Errorf("validate port: %w", err)
+		return fmt.Errorf("validate port error: %w", err)
 	}
 
 	return nil
@@ -126,19 +127,19 @@ func (p Port) Installed() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	newBuilddesc, err := p.builddesc()
+	newMeta, err := p.buildMeta(p.Package.Commit)
 	if err != nil {
 		return false, err
 	}
 
 	// Remove installed package if build config changed.
-	localBuilddesc := string(descBytes)
-	if localBuilddesc != newBuilddesc {
+	localMeta := string(descBytes)
+	if localMeta != newMeta {
 		color.Printf(color.Green, "\n================ package will be removed, because build desc not match for %s: ================\n", p.NameVersion())
-		color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local build desc: >>>>>>>>>>>>>>>>>")
-		color.Println(color.Blue, newBuilddesc)
-		color.Println(color.Green, ">>>>>>>>>>>>>>>>> New build desc: >>>>>>>>>>>>>>>>>")
-		color.Println(color.Blue, newBuilddesc)
+		color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local meta: <<<<<<<<<<<<<<<<<")
+		color.Println(color.Blue, newMeta)
+		color.Println(color.Green, ">>>>>>>>>>>>>>>>> New meta <<<<<<<<<<<<<<<<<")
+		color.Println(color.Blue, newMeta)
 
 		if err := p.Remove(false, true, true); err != nil {
 			return false, err
