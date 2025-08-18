@@ -57,6 +57,7 @@ func Execute() error {
 		cleanCmd{},
 		autoremoveCmd{},
 		dependCmd{},
+		searchCmd{},
 	}
 
 	// Register commands.
