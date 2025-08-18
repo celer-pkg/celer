@@ -13,7 +13,7 @@ type Command interface {
 
 var rootCmd = &cobra.Command{
 	Use:   "celer",
-	Short: "A pkg-manager for C/C++, it's simply a supplement to CMake.",
+	Short: "A super lightweight package manager for C/C++.",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Println("welcome to celer.")
 	},
