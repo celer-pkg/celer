@@ -129,15 +129,13 @@ func (i installCmd) install(nameVersion string) {
 
 func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	var portsDir = dirs.PortsDir
-
-	if fileio.PathExists(portsDir) {
-		filepath.WalkDir(portsDir, func(path string, d fs.DirEntry, err error) error {
+	if fileio.PathExists(dirs.PortsDir) {
+		filepath.WalkDir(dirs.PortsDir, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
 
-			if !d.IsDir() && strings.HasSuffix(d.Name(), ".toml") {
+			if !d.IsDir() && d.Name() == "port.toml" {
 				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
 				libVersion := filepath.Base(filepath.Dir(path))
 				nameVersion := libName + "@" + libVersion

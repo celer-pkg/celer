@@ -56,6 +56,7 @@ func Execute() error {
 		treeCmd{},
 		cleanCmd{},
 		autoremoveCmd{},
+		dependCmd{},
 	}
 
 	// Register commands.
