@@ -96,26 +96,18 @@ func (p Port) Commit(nameVersion string) (string, error) {
 
 		return commit, nil
 	} else { // Non-git port.
-		fileName := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-		filePath := filepath.Join(dirs.DownloadedDir, fileName)
+		archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
+		filePath := filepath.Join(dirs.DownloadedDir, archive)
 
-		// Download and extract archive source.
-		if !fileio.PathExists(filePath) {
-			// Create clean temp directory.
-			if err := dirs.CleanTmpFilesDir(); err != nil {
-				return "", fmt.Errorf("create clean tmp dir error: %w", err)
-			}
-
+		// Check and repair resource.
+		repair := fileio.NewRepair(port.Package.Url, archive, ".", dirs.TmpFilesDir)
+		if err := repair.CheckAndRepair(); err != nil {
+			return "", err
+		}
+		if repair.Repaired {
 			// Remove repor dir.
 			if err := os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir); err != nil {
 				return "", fmt.Errorf("remove repo dir error: %w", err)
-			}
-
-			// Check and repair resource.
-			archive := expr.If(port.Package.Archive == "", filepath.Base(port.Package.Url), port.Package.Archive)
-			repair := fileio.NewRepair(port.Package.Url, archive, ".", dirs.TmpFilesDir)
-			if err := repair.CheckAndRepair(); err != nil {
-				return "", err
 			}
 
 			// Move extracted files to source dir.
@@ -132,6 +124,11 @@ func (p Port) Commit(nameVersion string) (string, error) {
 				if err := fileio.RenameDir(dirs.TmpFilesDir, port.MatchedConfig.PortConfig.RepoDir); err != nil {
 					return "", err
 				}
+			}
+
+			// Init as git repo for tracking file change.
+			if err := git.InitRepo(port.MatchedConfig.PortConfig.RepoDir, "init for tracking file change"); err != nil {
+				return "", err
 			}
 		}
 

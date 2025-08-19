@@ -54,11 +54,6 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 				return err
 			}
 		} else {
-			// Create clean temp directory.
-			if err := dirs.CleanTmpFilesDir(); err != nil {
-				return fmt.Errorf("create clean tmp dir error: %w", err)
-			}
-
 			// Check and repair resource.
 			archive = expr.If(archive == "", filepath.Base(url), archive)
 			repair := fileio.NewRepair(url, archive, ".", dirs.TmpFilesDir)
@@ -67,18 +62,20 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 			}
 
 			// Move extracted files to source dir.
-			entities, err := os.ReadDir(dirs.TmpFilesDir)
-			if err != nil || len(entities) == 0 {
-				return fmt.Errorf("cannot find extracted files under tmp dir")
-			}
-			if len(entities) == 1 {
-				srcDir := filepath.Join(dirs.TmpFilesDir, entities[0].Name())
-				if err := fileio.RenameDir(srcDir, p.PortConfig.PackageDir); err != nil {
-					return err
+			if repair.Repaired {
+				entities, err := os.ReadDir(dirs.TmpFilesDir)
+				if err != nil || len(entities) == 0 {
+					return fmt.Errorf("cannot find extracted files under tmp dir")
 				}
-			} else if len(entities) > 1 {
-				if err := fileio.RenameDir(dirs.TmpFilesDir, p.PortConfig.PackageDir); err != nil {
-					return err
+				if len(entities) == 1 {
+					srcDir := filepath.Join(dirs.TmpFilesDir, entities[0].Name())
+					if err := fileio.RenameDir(srcDir, p.PortConfig.PackageDir); err != nil {
+						return err
+					}
+				} else if len(entities) > 1 {
+					if err := fileio.RenameDir(dirs.TmpFilesDir, p.PortConfig.PackageDir); err != nil {
+						return err
+					}
 				}
 			}
 		}

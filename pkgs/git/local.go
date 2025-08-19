@@ -101,3 +101,25 @@ func BranchOfLocal(repoDir string) (string, error) {
 	}
 	return strings.TrimSpace(string(output)), nil
 }
+
+func InitRepo(repoDir, message string) error {
+	command := exec.Command("git", "init")
+	command.Dir = repoDir
+	if err := command.Run(); err != nil {
+		return fmt.Errorf("git init repo error: %w", err)
+	}
+
+	command = exec.Command("git", "add", "-A")
+	command.Dir = repoDir
+	if err := command.Run(); err != nil {
+		return fmt.Errorf("git add files error: %w", err)
+	}
+
+	command = exec.Command("git", "commit", "-m", message)
+	command.Dir = repoDir
+	if err := command.Run(); err != nil {
+		return fmt.Errorf("git commit error: %w", err)
+	}
+
+	return nil
+}
