@@ -441,11 +441,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		}
 	}
 
-	// Clone and patch related steps.
-	if err := b.buildSystem.Clone(url, ref, archive); err != nil {
-		operating := expr.If(strings.HasSuffix(url, ".git"), "clone", "download")
-		return fmt.Errorf("%s %s: %w", operating, b.PortConfig.nameVersionDesc(), err)
-	}
+	// Apply patches.
 	if err := b.buildSystem.Patch(); err != nil {
 		return fmt.Errorf("patch %s: %w", b.PortConfig.nameVersionDesc(), err)
 	}

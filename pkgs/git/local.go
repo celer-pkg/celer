@@ -50,11 +50,18 @@ func IsModified(repoDir string) (bool, error) {
 	cmd.Stderr = &out
 
 	if err := cmd.Run(); err != nil {
-		return false, fmt.Errorf("run git command: %w", err)
+		return false, fmt.Errorf("check if repo is modified error: %w", err)
 	}
 
-	status := strings.TrimSpace(out.String())
-	return status != "", nil
+	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "M ") {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 // ReadLocalCommit read git commit hash.
