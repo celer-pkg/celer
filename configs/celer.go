@@ -39,7 +39,7 @@ type Context interface {
 func NewCeler() *Celer {
 	return &Celer{
 		configData: configData{
-			Gloabl: gloabl{
+			Global: global{
 				JobNum:    runtime.NumCPU(),
 				BuildType: "Release",
 			},
@@ -55,7 +55,7 @@ type Celer struct {
 	project  Project
 }
 
-type gloabl struct {
+type global struct {
 	ConfRepo         string `toml:"conf_repo"`
 	PortsRepo        string `toml:"ports_repo"`
 	Platform         string `toml:"platform"`
@@ -67,7 +67,7 @@ type gloabl struct {
 }
 
 type configData struct {
-	Gloabl   gloabl    `toml:"gloabl"`
+	Global   global    `toml:"global"`
 	CacheDir *CacheDir `toml:"cache_dir"`
 }
 
@@ -79,9 +79,9 @@ func (c *Celer) Init() error {
 			return err
 		}
 
-		c.configData.Gloabl.JobNum = runtime.NumCPU()
-		c.configData.Gloabl.BuildType = "release"
-		c.configData.Gloabl.PortsRepo = portsRepo
+		c.configData.Global.JobNum = runtime.NumCPU()
+		c.configData.Global.BuildType = "release"
+		c.configData.Global.PortsRepo = portsRepo
 
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
@@ -103,12 +103,12 @@ func (c *Celer) Init() error {
 		}
 
 		// Set default ports repo if not set.
-		if c.Gloabl.PortsRepo == "" {
-			c.configData.Gloabl.PortsRepo = portsRepo
+		if c.Global.PortsRepo == "" {
+			c.configData.Global.PortsRepo = portsRepo
 		}
 
 		// Lower case build type always.
-		c.configData.Gloabl.BuildType = strings.ToLower(c.configData.Gloabl.BuildType)
+		c.configData.Global.BuildType = strings.ToLower(c.configData.Global.BuildType)
 
 		// Validate cache dirs.
 		if c.configData.CacheDir != nil {
@@ -118,8 +118,8 @@ func (c *Celer) Init() error {
 		}
 
 		// Init platform with platform name.
-		if c.configData.Gloabl.Platform != "" {
-			if err := c.platform.Init(c, c.configData.Gloabl.Platform); err != nil {
+		if c.configData.Global.Platform != "" {
+			if err := c.platform.Init(c, c.configData.Global.Platform); err != nil {
 				return err
 			}
 		} else {
@@ -130,8 +130,8 @@ func (c *Celer) Init() error {
 		}
 
 		// Init project with project name.
-		if c.configData.Gloabl.Project != "" {
-			if err := c.project.Init(c, c.configData.Gloabl.Project); err != nil {
+		if c.configData.Global.Project != "" {
+			if err := c.project.Init(c, c.configData.Global.Project); err != nil {
 				return err
 			}
 		}
@@ -143,7 +143,7 @@ func (c *Celer) Init() error {
 	}
 
 	// Cache github proxies globally.
-	proxy.CacheGithubProxies(c.configData.Gloabl.GithubAssetProxy, c.configData.Gloabl.GithubRepoProxy)
+	proxy.CacheGithubProxies(c.configData.Global.GithubAssetProxy, c.configData.Global.GithubRepoProxy)
 
 	// Git is required to clone/update repo.
 	if err := buildtools.CheckTools("git"); err != nil {
@@ -182,7 +182,7 @@ func (c Celer) clonePorts() error {
 		}
 
 		// Clone ports repo.
-		command := fmt.Sprintf("git clone %s %s", c.configData.Gloabl.PortsRepo, portsDir)
+		command := fmt.Sprintf("git clone %s %s", c.configData.Global.PortsRepo, portsDir)
 		executor := cmd.NewExecutor("[clone ports]", command)
 		if err := executor.Execute(); err != nil {
 			return fmt.Errorf("`https://github.com/celer-pkg/ports.git` is not available, but your can change the default ports repo in celer.toml: %w", err)
@@ -233,7 +233,7 @@ func (c *Celer) ChangePlatform(platformName string) error {
 		}
 
 		// Create celer conf file with default values.
-		c.Gloabl.JobNum = runtime.NumCPU()
+		c.Global.JobNum = runtime.NumCPU()
 		bytes, err := toml.Marshal(c)
 		if err != nil {
 			return err
@@ -256,7 +256,7 @@ func (c *Celer) ChangePlatform(platformName string) error {
 	if err := c.platform.Init(c, platformName); err != nil {
 		return err
 	}
-	c.Gloabl.Platform = platformName
+	c.Global.Platform = platformName
 	c.platform.Name = platformName
 
 	// Do change platform.
@@ -301,7 +301,7 @@ func (c *Celer) ChangeProject(projectName string) error {
 		}
 
 		// Create celer conf file with default values.
-		c.Gloabl.JobNum = runtime.NumCPU()
+		c.Global.JobNum = runtime.NumCPU()
 		bytes, err := toml.Marshal(c)
 		if err != nil {
 			return fmt.Errorf("marshal celer conf error: %w", err)
@@ -326,7 +326,7 @@ func (c *Celer) ChangeProject(projectName string) error {
 	if err := c.project.Init(c, projectName); err != nil {
 		return err
 	}
-	c.Gloabl.Project = projectName
+	c.Global.Project = projectName
 
 	// Do change project.
 	bytes, err = toml.Marshal(c)
@@ -374,9 +374,9 @@ func (c *Celer) SyncConf(url, branch string) error {
 		}
 
 		// Create celer conf file with default values.
-		c.Gloabl.JobNum = runtime.NumCPU()
-		c.Gloabl.BuildType = "release"
-		c.Gloabl.ConfRepo = url
+		c.Global.JobNum = runtime.NumCPU()
+		c.Global.BuildType = "release"
+		c.Global.ConfRepo = url
 		bytes, err := toml.Marshal(c)
 		if err != nil {
 			return err
@@ -399,7 +399,7 @@ func (c *Celer) SyncConf(url, branch string) error {
 
 	// Override celer.toml with repo url.
 	if url != "" {
-		c.Gloabl.ConfRepo = url
+		c.Global.ConfRepo = url
 		bytes, err := toml.Marshal(c)
 		if err != nil {
 			return err
@@ -410,7 +410,7 @@ func (c *Celer) SyncConf(url, branch string) error {
 	}
 
 	// Update repo.
-	return c.updateConfRepo(c.Gloabl.ConfRepo, branch)
+	return c.updateConfRepo(c.Global.ConfRepo, branch)
 }
 
 func (c Celer) GenerateToolchainFile() error {
@@ -481,7 +481,7 @@ endif()`, c.BuildType()) + "\n")
 	toolchain.WriteString(`set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH_STR}")` + "\n")
 
 	toolchain.WriteString("\n# Set cmake library search paths.\n")
-	platformProject := c.Gloabl.Platform + "@" + c.Gloabl.Project + "@" + strings.ToLower(c.Gloabl.BuildType)
+	platformProject := c.Global.Platform + "@" + c.Global.Project + "@" + strings.ToLower(c.Global.BuildType)
 	installedDir := "${WORKSPACE_DIR}/installed/" + platformProject
 	toolchain.WriteString(fmt.Sprintf(`list(APPEND CMAKE_FIND_ROOT_PATH "%s")`, installedDir) + "\n")
 	toolchain.WriteString(fmt.Sprintf(`list(APPEND CMAKE_PREFIX_PATH "%s")`, installedDir) + "\n")
@@ -602,7 +602,7 @@ func (c Celer) Project() *Project {
 }
 
 func (c Celer) BuildType() string {
-	return c.configData.Gloabl.BuildType
+	return c.configData.Global.BuildType
 }
 
 func (c *Celer) Toolchain() *Toolchain {
@@ -633,7 +633,7 @@ func (c Celer) SystemProcessor() string {
 }
 
 func (c Celer) JobNum() int {
-	return c.Gloabl.JobNum
+	return c.Global.JobNum
 }
 
 func (c Celer) CacheDir() *CacheDir {

@@ -101,10 +101,11 @@ func (p Port) Commit(nameVersion string) (string, error) {
 
 		// Check and repair resource.
 		repair := fileio.NewRepair(port.Package.Url, archive, ".", dirs.TmpFilesDir)
-		if err := repair.CheckAndRepair(); err != nil {
+		repaired, err := repair.CheckAndRepair()
+		if err != nil {
 			return "", err
 		}
-		if repair.Repaired {
+		if repaired {
 			// Remove repor dir.
 			if err := os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir); err != nil {
 				return "", fmt.Errorf("remove repo dir error: %w", err)

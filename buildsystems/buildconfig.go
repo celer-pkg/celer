@@ -283,11 +283,12 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
 		// Check and repair resource.
 		repair := fileio.NewRepair(repoUrl, archive, ".", b.PortConfig.RepoDir)
-		if err := repair.CheckAndRepair(); err != nil {
+		repaired, err := repair.CheckAndRepair()
+		if err != nil {
 			return err
 		}
-		if repair.Repaired {
-			// Move extracted files to source dir.
+		if repaired {
+			// Move extracted files to repo dir.
 			entities, err := os.ReadDir(b.PortConfig.RepoDir)
 			if err != nil || len(entities) == 0 {
 				return fmt.Errorf("cannot find extracted files under repo dir")
@@ -739,26 +740,22 @@ func (b BuildConfig) replaceSource(archive, url string) error {
 
 	// Check and repair resource.
 	archive = expr.If(archive == "", filepath.Base(url), archive)
-	repair := fileio.NewRepair(url, archive, ".", dirs.TmpFilesDir)
-	if err := repair.CheckAndRepair(); err != nil {
+	repair := fileio.NewRepair(url, archive, ".", b.PortConfig.RepoDir)
+	repaired, err := repair.CheckAndRepair()
+	if err != nil {
 		replaceFailed = true
 		return err
 	}
-	if repair.Repaired {
+	if repaired {
 		// Move extracted files to source dir.
-		entities, err := os.ReadDir(dirs.TmpFilesDir)
+		entities, err := os.ReadDir(b.PortConfig.RepoDir)
 		if err != nil || len(entities) == 0 {
 			replaceFailed = true
 			return fmt.Errorf("cannot find extracted files under tmp dir")
 		}
 		if len(entities) == 1 {
-			srcDir := filepath.Join(dirs.TmpFilesDir, entities[0].Name())
+			srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
 			if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
-				replaceFailed = true
-				return err
-			}
-		} else if len(entities) > 1 {
-			if err := fileio.RenameDir(dirs.TmpFilesDir, b.PortConfig.RepoDir); err != nil {
 				replaceFailed = true
 				return err
 			}

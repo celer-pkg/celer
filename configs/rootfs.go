@@ -3,6 +3,7 @@ package configs
 import (
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
@@ -45,30 +46,22 @@ func (r RootFS) CheckAndRepair() error {
 	if r.Archive != "" {
 		folderName = fileio.FileBaseName(r.Archive)
 	}
-	location := filepath.Join(dirs.DownloadedToolsDir, folderName)
-
-	// Check if tool exists.
-	if fileio.PathExists(r.fullpath) {
-		return nil
-	}
-
-	// Use archive name as download file name if specified.
-	archiveName := filepath.Base(r.Url)
-	if r.Archive != "" {
-		archiveName = r.Archive
-	}
 
 	// Check and repair resource.
+	archiveName := expr.If(r.Archive != "", r.Archive, filepath.Base(r.Url))
 	repair := fileio.NewRepair(r.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-	if err := repair.CheckAndRepair(); err != nil {
+	repaired, err := repair.CheckAndRepair()
+	if err != nil {
 		return err
 	}
 
 	// Print download & extract info.
-	if !DevMode {
+	if repaired && !DevMode {
+		location := filepath.Join(dirs.DownloadedToolsDir, folderName)
 		title := color.Sprintf(color.Green, "\n[✔] ---- Rootfs: %s\n", fileio.FileBaseName(r.Url))
 		fmt.Printf("%sLocation: %s\n", title, location)
 	}
+
 	return nil
 }
 
