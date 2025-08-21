@@ -102,7 +102,7 @@ celer configure --project=test_project_02
 Then the **celer.toml** file would be updated as below:
 
 ```toml
-[gloabl]
+[global]
   conf_repo = "https://github.com/celer-pkg/test-conf.git"
   platform = "aarch64-linux-gnu-gcc-9.2"
   project = "test_project_02"
