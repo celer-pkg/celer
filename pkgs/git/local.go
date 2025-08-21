@@ -110,22 +110,30 @@ func BranchOfLocal(repoDir string) (string, error) {
 }
 
 func InitRepo(repoDir, message string) error {
+	var stdout, stderr bytes.Buffer
+
 	command := exec.Command("git", "init")
 	command.Dir = repoDir
+	command.Stdout = &stdout
+	command.Stderr = &stderr
 	if err := command.Run(); err != nil {
-		return fmt.Errorf("git init repo error: %w", err)
+		return fmt.Errorf("git init repo error: \nstdout: %s\nstderr: %s", stdout.String(), stderr.String())
 	}
 
 	command = exec.Command("git", "add", "-A")
 	command.Dir = repoDir
+	command.Stdout = &stdout
+	command.Stderr = &stderr
 	if err := command.Run(); err != nil {
-		return fmt.Errorf("git add files error: %w", err)
+		return fmt.Errorf("git init repo error: \nstdout: %s\nstderr: %s", stdout.String(), stderr.String())
 	}
 
 	command = exec.Command("git", "commit", "-m", message)
 	command.Dir = repoDir
+	command.Stdout = &stdout
+	command.Stderr = &stderr
 	if err := command.Run(); err != nil {
-		return fmt.Errorf("git commit error: %w", err)
+		return fmt.Errorf("git init repo error: \nstdout: %s\nstderr: %s", stdout.String(), stderr.String())
 	}
 
 	return nil
