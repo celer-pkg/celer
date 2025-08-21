@@ -160,31 +160,25 @@ func (b *buildTool) validate() error {
 }
 
 func (b *buildTool) checkAndFix() error {
-	// Default folder name would be the first folder of path,
-	// it also can be specified by archiveName.
-	folderName := strings.Split(b.Paths[0], "/")[0]
-
-	location := filepath.Join(dirs.DownloadedToolsDir, b.Name)
-
-	// Check if tool exists.
-	if fileio.PathExists(b.fullpaths[0]) {
-		return nil
-	}
-
 	// Use archive name as download file name if specified.
 	archiveName := filepath.Base(b.Url)
 	if b.Archive != "" {
 		archiveName = b.Archive
 	}
 
+	// Default folder name would be the first folder of path, it also can be specified by archiveName.
+	folderName := strings.Split(b.Paths[0], "/")[0]
+
 	// Check and repair resource.
+	location := filepath.Join(dirs.DownloadedToolsDir, b.Name)
 	repair := fileio.NewRepair(b.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-	if err := repair.CheckAndRepair(); err != nil {
+	repaired, err := repair.CheckAndRepair()
+	if err != nil {
 		return err
 	}
 
 	// Print download & extract info.
-	if !DevMode {
+	if repaired && !DevMode {
 		title := color.Sprintf(color.Green, "\n[✔] ---- Tool: %s\n", fileio.FileBaseName(b.Url))
 		fmt.Printf("%sLocation: %s\n", title, location)
 	}

@@ -367,3 +367,15 @@ func CalculateChecksum(filePath string) (string, error) {
 	checksum := hex.EncodeToString(hash.Sum(nil))
 	return checksum, nil
 }
+
+func CleanDir(dir string) error {
+	if err := os.RemoveAll(dir); err != nil {
+		return fmt.Errorf("cannot remove dir: %w", err)
+	}
+
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return fmt.Errorf("cannot mkdir dir: %w", err)
+	}
+
+	return nil
+}

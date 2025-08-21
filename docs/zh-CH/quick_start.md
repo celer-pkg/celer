@@ -106,7 +106,7 @@ celer configure --project=test_project_02
 经过配置后，**celer.toml** 文件会更新为以下内容：
 
 ```toml
-[gloabl]
+[global]
   conf_repo = "https://github.com/celer-pkg/test-conf.git"
   platform = "aarch64-linux-gnu-gcc-9.2"
   project = "test_project_02"

@@ -47,7 +47,7 @@ func TestCeler_Init_ExistingConfig(t *testing.T) {
 	}
 
 	// Create a test config.
-	existingConfig := `[gloabl]
+	existingConfig := `[global]
 	build_type = "debug"
 	job_num = 4
 	platform = ""

@@ -281,37 +281,28 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 	} else {
 		// For archive repo, download it and extract to src dir event src dir not empty.
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
-		if !fileio.PathExists(filepath.Join(dirs.DownloadedDir, archive)) {
-			// Create clean temp directory.
-			if err := dirs.CleanTmpFilesDir(); err != nil {
-				return fmt.Errorf("create clean tmp dir error: %w", err)
-			}
-
-			// Remove repor dir.
-			if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
-				return fmt.Errorf("remove repo dir error: %w", err)
-			}
-
-			// Check and repair resource.
-			repair := fileio.NewRepair(repoUrl, archive, ".", dirs.TmpFilesDir)
-			if err := repair.CheckAndRepair(); err != nil {
-				return err
-			}
-
-			// Move extracted files to source dir.
-			entities, err := os.ReadDir(dirs.TmpFilesDir)
+		// Check and repair resource.
+		repair := fileio.NewRepair(repoUrl, archive, ".", b.PortConfig.RepoDir)
+		repaired, err := repair.CheckAndRepair()
+		if err != nil {
+			return err
+		}
+		if repaired {
+			// Move extracted files to repo dir.
+			entities, err := os.ReadDir(b.PortConfig.RepoDir)
 			if err != nil || len(entities) == 0 {
-				return fmt.Errorf("cannot find extracted files under tmp dir")
+				return fmt.Errorf("cannot find extracted files under repo dir")
 			}
 			if len(entities) == 1 {
-				srcDir := filepath.Join(dirs.TmpFilesDir, entities[0].Name())
+				srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
 				if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
 					return err
 				}
-			} else if len(entities) > 1 {
-				if err := fileio.RenameDir(dirs.TmpFilesDir, b.PortConfig.RepoDir); err != nil {
-					return err
-				}
+			}
+
+			// Init as git repo for tracking file change.
+			if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
+				return err
 			}
 		}
 	}
@@ -450,11 +441,15 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		}
 	}
 
-	// Clone and patch related steps.
-	if err := b.buildSystem.Clone(url, ref, archive); err != nil {
-		operating := expr.If(strings.HasSuffix(url, ".git"), "clone", "download")
-		return fmt.Errorf("%s %s: %w", operating, b.PortConfig.nameVersionDesc(), err)
+	// Clone repo, the repo maybe already cloned during computer hash.
+	if !fileio.PathExists(b.PortConfig.RepoDir) {
+		if err := b.buildSystem.Clone(url, ref, archive); err != nil {
+			message := expr.If(strings.HasSuffix(url, ".git"), "clone", "download")
+			return fmt.Errorf("%s %s: %w", message, b.PortConfig.nameVersionDesc(), err)
+		}
 	}
+
+	// Apply patches.
 	if err := b.buildSystem.Patch(); err != nil {
 		return fmt.Errorf("patch %s: %w", b.PortConfig.nameVersionDesc(), err)
 	}
@@ -747,35 +742,31 @@ func (b BuildConfig) replaceSource(archive, url string) error {
 		}
 	}()
 
-	// Clean tmp directory.
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		replaceFailed = true
-		return fmt.Errorf("create clean tmp dir error: %w", err)
-	}
-
 	// Check and repair resource.
 	archive = expr.If(archive == "", filepath.Base(url), archive)
-	repair := fileio.NewRepair(url, archive, ".", dirs.TmpFilesDir)
-	if err := repair.CheckAndRepair(); err != nil {
+	repair := fileio.NewRepair(url, archive, ".", b.PortConfig.RepoDir)
+	repaired, err := repair.CheckAndRepair()
+	if err != nil {
 		replaceFailed = true
 		return err
 	}
-
-	// Move extracted files to source dir.
-	entities, err := os.ReadDir(dirs.TmpFilesDir)
-	if err != nil || len(entities) == 0 {
-		replaceFailed = true
-		return fmt.Errorf("cannot find extracted files under tmp dir")
-	}
-	if len(entities) == 1 {
-		srcDir := filepath.Join(dirs.TmpFilesDir, entities[0].Name())
-		if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
+	if repaired {
+		// Move extracted files to source dir.
+		entities, err := os.ReadDir(b.PortConfig.RepoDir)
+		if err != nil || len(entities) == 0 {
 			replaceFailed = true
-			return err
+			return fmt.Errorf("cannot find extracted files under tmp dir")
 		}
-	} else if len(entities) > 1 {
-		if err := fileio.RenameDir(dirs.TmpFilesDir, b.PortConfig.RepoDir); err != nil {
-			replaceFailed = true
+		if len(entities) == 1 {
+			srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
+			if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
+				replaceFailed = true
+				return err
+			}
+		}
+
+		// Init as git repo for tracking file change.
+		if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
 			return err
 		}
 	}

@@ -1,8 +1,8 @@
 package git
 
 import (
-	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -10,9 +10,9 @@ import (
 // CheckIfLocalBranch check if repoRef is a branch.
 func CheckIfLocalBranch(repoDir, repoRef string) (bool, error) {
 	// Also can call `git symbolic-ref --short HEAD`
-	command := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-	command.Dir = repoDir
-	output, err := command.CombinedOutput()
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	cmd.Dir = repoDir
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return false, err
 	}
@@ -21,9 +21,9 @@ func CheckIfLocalBranch(repoDir, repoRef string) (bool, error) {
 
 // CheckIfLocalTag check if repoRef is a tag.
 func CheckIfLocalTag(repoDir, repoRef string) (bool, error) {
-	command := exec.Command("git", "describe", "--exact-match", "--tags", "HEAD")
-	command.Dir = repoDir
-	output, err := command.CombinedOutput()
+	cmd := exec.Command("git", "describe", "--exact-match", "--tags", "HEAD")
+	cmd.Dir = repoDir
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return false, err
 	}
@@ -32,9 +32,9 @@ func CheckIfLocalTag(repoDir, repoRef string) (bool, error) {
 
 // CheckIfLocalCommit check if repoRef is a commit.
 func CheckIfLocalCommit(repoDir, repoRef string) (bool, error) {
-	command := exec.Command("git", "rev-parse", "HEAD")
-	command.Dir = repoDir
-	output, err := command.CombinedOutput()
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	cmd.Dir = repoDir
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return false, err
 	}
@@ -44,38 +44,37 @@ func CheckIfLocalCommit(repoDir, repoRef string) (bool, error) {
 // IsModified check if repo is modified.
 func IsModified(repoDir string) (bool, error) {
 	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
-
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-
-	if err := cmd.Run(); err != nil {
-		return false, fmt.Errorf("run git command: %w", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return false, fmt.Errorf("check if repo is modified error: %w", err)
 	}
 
-	status := strings.TrimSpace(out.String())
-	return status != "", nil
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "M ") {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 // ReadLocalCommit read git commit hash.
 func ReadLocalCommit(repoDir string) (string, error) {
-	command := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
-
-	var out bytes.Buffer
-	command.Stdout = &out
-	command.Stderr = &out
-
-	if err := command.Run(); err != nil {
+	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
 		return "", fmt.Errorf("read git commit hash: %w", err)
 	}
 
-	return strings.TrimSpace(out.String()), nil
+	return strings.TrimSpace(string(output)), nil
 }
 
 // DefaultBranch read git default branch.
 func DefaultBranch(repoDir string) (string, error) {
-	command := exec.Command("git", "remote", "show", "origin")
-	output, err := command.CombinedOutput()
+	cmd := exec.Command("git", "remote", "show", "origin")
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("read git default branch: %w", err)
 	}
@@ -100,4 +99,35 @@ func BranchOfLocal(repoDir string) (string, error) {
 		return "", fmt.Errorf("get current branch name: %w", err)
 	}
 	return strings.TrimSpace(string(output)), nil
+}
+
+func InitRepo(repoDir, message string) error {
+	cmd := exec.Command("git", "init")
+	cmd.Dir = repoDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git init error: %s", string(output))
+	}
+
+	cmd = exec.Command("git", "add", "-A")
+	cmd.Dir = repoDir
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git add -A error: %s", string(output))
+	}
+
+	cmd = exec.Command("git", "commit", "-m", message)
+	cmd.Dir = repoDir
+	cmd.Env = append(os.Environ(),
+		"GIT_AUTHOR_NAME=CI Robot",
+		"GIT_AUTHOR_EMAIL=ci@celer.com",
+		"GIT_COMMITTER_NAME=CI Robot",
+		"GIT_COMMITTER_EMAIL=ci@celer.com",
+	)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git commit error: %s", string(output))
+	}
+
+	return nil
 }

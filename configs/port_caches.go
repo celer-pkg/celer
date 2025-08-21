@@ -2,7 +2,6 @@ package configs
 
 import (
 	"celer/buildsystems"
-	"celer/buildtools"
 	"celer/caches"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -10,7 +9,6 @@ import (
 	"celer/pkgs/git"
 	"crypto/sha256"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -74,68 +72,24 @@ func (p Port) Commit(nameVersion string) (string, error) {
 		return "", err
 	}
 
-	// Git port.
+	// Clone or download repo if not exist.
+	if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
+		if err := p.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, p.Package.Archive); err != nil {
+			message := expr.If(strings.HasSuffix(port.Package.Url, ".git"), "clone", "download")
+			return "", fmt.Errorf("%s %s: %w", message, port.NameVersion(), err)
+		}
+	}
+
+	// Get commit hash or archive checksum.
 	if strings.HasSuffix(port.Package.Url, ".git") {
-		if err := buildtools.CheckTools("git"); err != nil {
-			return "", fmt.Errorf("check git error: %w", err)
-		}
-
-		// Clone git repo if not exists.
-		if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
-			if err := git.CloneRepo("[clone "+nameVersion+"]",
-				port.Package.Url, port.Package.Ref,
-				port.MatchedConfig.PortConfig.RepoDir); err != nil {
-				return "", fmt.Errorf("clone git repo error: %w", err)
-			}
-		}
-
 		commit, err := git.ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
 		if err != nil {
 			return "", fmt.Errorf("read git commit hash error: %w", err)
 		}
-
 		return commit, nil
-	} else { // Non-git port.
-		fileName := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-		filePath := filepath.Join(dirs.DownloadedDir, fileName)
-
-		// Download and extract archive source.
-		if !fileio.PathExists(filePath) {
-			// Create clean temp directory.
-			if err := dirs.CleanTmpFilesDir(); err != nil {
-				return "", fmt.Errorf("create clean tmp dir error: %w", err)
-			}
-
-			// Remove repor dir.
-			if err := os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir); err != nil {
-				return "", fmt.Errorf("remove repo dir error: %w", err)
-			}
-
-			// Check and repair resource.
-			archive := expr.If(port.Package.Archive == "", filepath.Base(port.Package.Url), port.Package.Archive)
-			repair := fileio.NewRepair(port.Package.Url, archive, ".", dirs.TmpFilesDir)
-			if err := repair.CheckAndRepair(); err != nil {
-				return "", err
-			}
-
-			// Move extracted files to source dir.
-			entities, err := os.ReadDir(dirs.TmpFilesDir)
-			if err != nil || len(entities) == 0 {
-				return "", fmt.Errorf("cannot find extracted files under tmp dir")
-			}
-			if len(entities) == 1 {
-				srcDir := filepath.Join(dirs.TmpFilesDir, entities[0].Name())
-				if err := fileio.RenameDir(srcDir, port.MatchedConfig.PortConfig.RepoDir); err != nil {
-					return "", err
-				}
-			} else if len(entities) > 1 {
-				if err := fileio.RenameDir(dirs.TmpFilesDir, port.MatchedConfig.PortConfig.RepoDir); err != nil {
-					return "", err
-				}
-			}
-		}
-
-		// Return the checksum of archive file.
+	} else {
+		archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
+		filePath := filepath.Join(dirs.DownloadedDir, archive)
 		commit, err := fileio.CalculateChecksum(filePath)
 		if err != nil {
 			return "", fmt.Errorf("get checksum of part's archive %s error: %w", nameVersion, err)
