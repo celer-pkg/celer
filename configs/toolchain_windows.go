@@ -8,6 +8,7 @@ import (
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
@@ -197,19 +198,17 @@ func (t *Toolchain) CheckAndRepair() error {
 	}
 
 	// Use archive name as download file name if specified.
-	archiveName := filepath.Base(t.Url)
-	if t.Archive != "" {
-		archiveName = t.Archive
-	}
+	archive := expr.If(t.Archive != "", t.Archive, filepath.Base(t.Url))
 
 	// Check and repair resource.
-	repair := fileio.NewRepair(t.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-	if err := repair.CheckAndRepair(); err != nil {
+	repair := fileio.NewRepair(t.Url, archive, folderName, dirs.DownloadedToolsDir)
+	repaired, err := repair.CheckAndRepair()
+	if err != nil {
 		return err
 	}
 
 	// Print download & extract info.
-	if !DevMode {
+	if repaired && !DevMode {
 		title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)
 		fmt.Printf("%sLocation: %s\n", title, t.rootDir)
 	}
