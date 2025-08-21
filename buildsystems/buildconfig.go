@@ -441,6 +441,14 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		}
 	}
 
+	// Clone repo, the repo maybe already cloned during computer hash.
+	if !fileio.PathExists(b.PortConfig.RepoDir) {
+		if err := b.buildSystem.Clone(url, ref, archive); err != nil {
+			message := expr.If(strings.HasSuffix(url, ".git"), "clone", "download")
+			return fmt.Errorf("%s %s: %w", message, b.PortConfig.nameVersionDesc(), err)
+		}
+	}
+
 	// Apply patches.
 	if err := b.buildSystem.Patch(); err != nil {
 		return fmt.Errorf("patch %s: %w", b.PortConfig.nameVersionDesc(), err)
