@@ -14,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -190,11 +189,6 @@ func (t *Toolchain) CheckAndRepair() error {
 	folderName := strings.Split(t.Path, string(filepath.Separator))[0]
 	if t.Archive != "" {
 		folderName = fileio.FileBaseName(t.Archive)
-	}
-
-	// Check if tool exists.
-	if slices.ContainsFunc(t.msvc.binDirs, fileio.PathExists) {
-		return nil
 	}
 
 	// Use archive name as download file name if specified.

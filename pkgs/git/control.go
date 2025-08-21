@@ -48,7 +48,7 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 	}
 
 	// ============ Clone and checkout commit ============
-	command := fmt.Sprintf("git clone --no-checkout %s %s", repoUrl, repoDir)
+	command := fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
 	if err := cmd.NewExecutor(title, command).Execute(); err != nil {
 		return fmt.Errorf("clone git repo error: %w", err)
 	}

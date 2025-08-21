@@ -1,6 +1,7 @@
 package fileio
 
 import (
+	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"fmt"
 	"os"
@@ -79,19 +80,8 @@ func Extract(archiveFile, destDir string) error {
 		return fmt.Errorf("mkdir for extract: %w", err)
 	}
 
-	// Run command.
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/c", command)
-	} else {
-		cmd = exec.Command("bash", "-c", command)
-	}
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stdout
-	cmd.Env = os.Environ()
-
-	if err := cmd.Run(); err != nil {
+	executor := cmd.NewExecutor("", command)
+	if err := executor.Execute(); err != nil {
 		extractFailed = true
 		return fmt.Errorf("extract: %w", err)
 	}
