@@ -1,6 +1,7 @@
 package fileio
 
 import (
+	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"fmt"
 	"os"
@@ -24,18 +25,10 @@ func Extract(archiveFile, destDir string) error {
 		return err
 	}
 
-	// Exactly specify tar bin in different os.
-	var tarPath string
-	if runtime.GOOS == "windows" {
-		tarPath = "C:/Windows/System32/tar.exe"
-	} else {
-		tarPath = "/usr/bin/tar"
-	}
-
-	var extractFailed bool
-
 	fileName := filepath.Base(archiveFile)
 	expr.PrintInline(fmt.Sprintf("\rExtracting: %s...", fileName))
+
+	var extractFailed bool
 	defer func() {
 		if !extractFailed {
 			expr.PrintInline(fmt.Sprintf("\rExtracted: %s...", fileName))
@@ -43,6 +36,7 @@ func Extract(archiveFile, destDir string) error {
 	}()
 
 	var command string
+	tarPath := expr.If(runtime.GOOS == "windows", "C:/Windows/System32/tar.exe", "/usr/bin/tar")
 
 	switch {
 	case strings.HasSuffix(archiveFile, ".tar.gz"),
@@ -79,19 +73,8 @@ func Extract(archiveFile, destDir string) error {
 		return fmt.Errorf("mkdir for extract: %w", err)
 	}
 
-	// Run command.
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/c", command)
-	} else {
-		cmd = exec.Command("bash", "-c", command)
-	}
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stdout
-	cmd.Env = os.Environ()
-
-	if err := cmd.Run(); err != nil {
+	executor := cmd.NewExecutor("", command)
+	if err := executor.Execute(); err != nil {
 		extractFailed = true
 		return fmt.Errorf("extract: %w", err)
 	}
