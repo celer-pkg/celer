@@ -25,18 +25,10 @@ func Extract(archiveFile, destDir string) error {
 		return err
 	}
 
-	// Exactly specify tar bin in different os.
-	var tarPath string
-	if runtime.GOOS == "windows" {
-		tarPath = "C:/Windows/System32/tar.exe"
-	} else {
-		tarPath = "/usr/bin/tar"
-	}
-
-	var extractFailed bool
-
 	fileName := filepath.Base(archiveFile)
 	expr.PrintInline(fmt.Sprintf("\rExtracting: %s...", fileName))
+
+	var extractFailed bool
 	defer func() {
 		if !extractFailed {
 			expr.PrintInline(fmt.Sprintf("\rExtracted: %s...", fileName))
@@ -44,6 +36,7 @@ func Extract(archiveFile, destDir string) error {
 	}()
 
 	var command string
+	tarPath := expr.If(runtime.GOOS == "windows", "C:/Windows/System32/tar.exe", "/usr/bin/tar")
 
 	switch {
 	case strings.HasSuffix(archiveFile, ".tar.gz"),
