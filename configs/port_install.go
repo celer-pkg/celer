@@ -38,7 +38,7 @@ func (p Port) Install() (string, error) {
 	}
 
 	// Clear the tmp/deps dir, then copy only the needed library files into it.
-	// This ensures the folder contains exactly the libraries required for building.
+	// This ensures the folder contains exactly the libraries required by the current port.
 	if p.Parent == "" {
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
 			return "", err
