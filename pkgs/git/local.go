@@ -46,7 +46,7 @@ func IsModified(repoDir string) (bool, error) {
 	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, fmt.Errorf("check if repo is modified error: %w", err)
+		return false, fmt.Errorf("check if repo is modified error: %s", output)
 	}
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
@@ -65,7 +65,7 @@ func ReadLocalCommit(repoDir string) (string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("read git commit hash: %w", err)
+		return "", fmt.Errorf("read git commit hash: %s", output)
 	}
 
 	return strings.TrimSpace(string(output)), nil
@@ -76,7 +76,7 @@ func DefaultBranch(repoDir string) (string, error) {
 	cmd := exec.Command("git", "remote", "show", "origin")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("read git default branch: %w", err)
+		return "", fmt.Errorf("read git default branch: %s", output)
 	}
 
 	lines := strings.Split(string(output), "\n")
@@ -96,7 +96,7 @@ func BranchOfLocal(repoDir string) (string, error) {
 	command := exec.Command("git", "-C", repoDir, "rev-parse", "--abbrev-ref", "HEAD")
 	output, err := command.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("get current branch name: %w", err)
+		return "", fmt.Errorf("get current branch name: %s", output)
 	}
 	return strings.TrimSpace(string(output)), nil
 }
@@ -106,14 +106,14 @@ func InitRepo(repoDir, message string) error {
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("git init error: %s", string(output))
+		return fmt.Errorf("git init error: %s", output)
 	}
 
 	cmd = exec.Command("git", "add", "-A")
 	cmd.Dir = repoDir
 	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("git add -A error: %s", string(output))
+		return fmt.Errorf("git add -A error: %s", output)
 	}
 
 	cmd = exec.Command("git", "commit", "-m", message)
@@ -126,7 +126,7 @@ func InitRepo(repoDir, message string) error {
 	)
 	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("git commit error: %s", string(output))
+		return fmt.Errorf("git commit error: %s", output)
 	}
 
 	return nil

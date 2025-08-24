@@ -271,10 +271,10 @@ func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 	// For git repo, clone it when source dir doesn't exists.
 	if strings.HasSuffix(repoUrl, ".git") {
-		if !fileio.PathExists(b.PortConfig.SrcDir) {
+		if !fileio.PathExists(b.PortConfig.RepoDir) {
 			// Clone repo.
 			title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
-			if err := git.CloneRepo(title, repoUrl, repoRef, b.PortConfig.SrcDir); err != nil {
+			if err := git.CloneRepo(title, repoUrl, repoRef, b.PortConfig.RepoDir); err != nil {
 				return err
 			}
 		}
