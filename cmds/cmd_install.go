@@ -7,6 +7,7 @@ import (
 	"celer/pkgs/fileio"
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -22,6 +23,13 @@ type installCmd struct {
 }
 
 func (i installCmd) Command() *cobra.Command {
+	// Init celer (seems cannot new celer in completion function, so moved here).
+	i.celer = configs.NewCeler()
+	if err := i.celer.Init(); err != nil {
+		configs.PrintError(err, "failed to init celer.")
+		os.Exit(1)
+	}
+
 	command := &cobra.Command{
 		Use:   "install",
 		Short: "Install a package.",
@@ -42,13 +50,6 @@ func (i installCmd) Command() *cobra.Command {
 }
 
 func (i installCmd) install(nameVersion string) {
-	// Init celer.
-	i.celer = configs.NewCeler()
-	if err := i.celer.Init(); err != nil {
-		configs.PrintError(err, "failed to init celer.")
-		return
-	}
-
 	// Use build_type from `celer.toml` if not specified.
 	if i.buildType == "" {
 		i.buildType = i.celer.Global.BuildType
@@ -128,52 +129,46 @@ func (i installCmd) install(nameVersion string) {
 	}
 }
 
+func (i installCmd) buildSuggestions(suggestions *[]string, portDir string, toComplete string) {
+	err := filepath.WalkDir(portDir, func(path string, entity fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !entity.IsDir() && entity.Name() == "port.toml" {
+			libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
+			libVersion := filepath.Base(filepath.Dir(path))
+			nameVersion := libName + "@" + libVersion
+
+			if strings.HasPrefix(nameVersion, toComplete) {
+				*suggestions = append(*suggestions, nameVersion)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		configs.PrintError(err, "failed to read %s: %s.\n", portDir, err)
+		os.Exit(1)
+	}
+}
+
 func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
-	projectDir := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().Name)
-	if fileio.PathExists(dirs.PortsDir) || fileio.PathExists(projectDir) {
-		filepath.WalkDir(dirs.PortsDir, func(path string, entity fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
+	if fileio.PathExists(dirs.PortsDir) {
+		i.buildSuggestions(&suggestions, dirs.PortsDir, toComplete)
+	}
 
-			if !entity.IsDir() && entity.Name() == "port.toml" {
-				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
-				libVersion := filepath.Base(filepath.Dir(path))
-				nameVersion := libName + "@" + libVersion
+	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().Name)
+	if fileio.PathExists(projectPortsDir) {
+		i.buildSuggestions(&suggestions, projectPortsDir, toComplete)
+	}
 
-				if strings.HasPrefix(nameVersion, toComplete) {
-					suggestions = append(suggestions, nameVersion)
-				}
-			}
-
-			return nil
-		})
-
-		filepath.WalkDir(projectDir, func(path string, entity fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-
-			if !entity.IsDir() && entity.Name() == "port.toml" {
-				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
-				libVersion := filepath.Base(filepath.Dir(path))
-				nameVersion := libName + "@" + libVersion
-
-				if strings.HasPrefix(nameVersion, toComplete) {
-					suggestions = append(suggestions, nameVersion)
-				}
-			}
-
-			return nil
-		})
-
-		// Support flags completion.
-		for _, flag := range []string{"--dev", "-d", "--build-type", "-b", "--force", "-f"} {
-			if strings.HasPrefix(flag, toComplete) {
-				suggestions = append(suggestions, flag)
-			}
+	// Support flags completion.
+	for _, flag := range []string{"--dev", "-d", "--build-type", "-b", "--force", "-f"} {
+		if strings.HasPrefix(flag, toComplete) {
+			suggestions = append(suggestions, flag)
 		}
 	}
 

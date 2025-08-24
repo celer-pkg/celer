@@ -145,8 +145,9 @@ func (p Port) doInstallFromSource() error {
 		return err
 	}
 
-	// Generate hash file.
-	if p.MatchedConfig.BuildSystem != "nobuild" {
+	// Generate meta file.
+	buildSystem := p.MatchedConfig.BuildSystem
+	if buildSystem != "nobuild" && buildSystem != "prebuilt" {
 		metaInfo, err := p.buildMeta(p.Package.Commit)
 		if err != nil {
 			installFailed = true
@@ -313,7 +314,7 @@ func (p Port) installFromSource() error {
 
 	// Write package to cache dirs so that others can share installed libraries,
 	// but only for non-dev and non-native package currently.
-	if !p.DevDep && !p.Native {
+	if !p.DevDep && !p.Native && p.MatchedConfig.BuildSystem != "prebuilt" {
 		if p.ctx.CacheDir() != nil {
 			// Do not cache if repo is modified.
 			modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)

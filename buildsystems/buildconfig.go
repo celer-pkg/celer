@@ -279,29 +279,29 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 			}
 		}
 	} else {
-		// For archive repo, download it and extract to src dir event src dir not empty.
-		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
 		// Check and repair resource.
-		repair := fileio.NewRepair(repoUrl, archive, ".", b.PortConfig.RepoDir)
+		destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
+		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
+		repair := fileio.NewRepair(repoUrl, archive, ".", destDir)
 		repaired, err := repair.CheckAndRepair()
 		if err != nil {
 			return err
 		}
 		if repaired {
 			// Move extracted files to repo dir.
-			entities, err := os.ReadDir(b.PortConfig.RepoDir)
+			entities, err := os.ReadDir(destDir)
 			if err != nil || len(entities) == 0 {
 				return fmt.Errorf("cannot find extracted files under repo dir")
 			}
 			if len(entities) == 1 {
-				srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
-				if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
+				srcDir := filepath.Join(destDir, entities[0].Name())
+				if err := fileio.RenameDir(srcDir, destDir); err != nil {
 					return err
 				}
 			}
 
 			// Init as git repo for tracking file change.
-			if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
+			if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
 				return err
 			}
 		}
