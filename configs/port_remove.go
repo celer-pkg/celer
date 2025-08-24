@@ -140,7 +140,8 @@ func (p Port) doRemovePort() error {
 	}
 
 	// Remove hash file and clean hash dir.
-	if p.MatchedConfig.BuildSystem != "nobuild" {
+	buildSystem := p.MatchedConfig.BuildSystem
+	if buildSystem != "nobuild" && buildSystem != "prebuilt" {
 		hashDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "hash")
 		if err := os.Remove(p.hashFile); err != nil {
 			return fmt.Errorf("cannot remove hash file: %s", err)

@@ -7,6 +7,7 @@ import (
 	"celer/pkgs/fileio"
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -14,6 +15,7 @@ import (
 )
 
 type installCmd struct {
+	celer     *configs.Celer
 	buildType string
 	dev       bool
 	force     bool
@@ -21,6 +23,13 @@ type installCmd struct {
 }
 
 func (i installCmd) Command() *cobra.Command {
+	// Init celer (seems cannot new celer in completion function, so moved here).
+	i.celer = configs.NewCeler()
+	if err := i.celer.Init(); err != nil {
+		configs.PrintError(err, "failed to init celer.")
+		os.Exit(1)
+	}
+
 	command := &cobra.Command{
 		Use:   "install",
 		Short: "Install a package.",
@@ -41,19 +50,12 @@ func (i installCmd) Command() *cobra.Command {
 }
 
 func (i installCmd) install(nameVersion string) {
-	// Init celer.
-	celer := configs.NewCeler()
-	if err := celer.Init(); err != nil {
-		configs.PrintError(err, "failed to init celer.")
-		return
-	}
-
 	// Use build_type from `celer.toml` if not specified.
 	if i.buildType == "" {
-		i.buildType = celer.Global.BuildType
+		i.buildType = i.celer.Global.BuildType
 	}
 
-	if err := celer.Platform().Setup(); err != nil {
+	if err := i.celer.Platform().Setup(); err != nil {
 		configs.PrintError(err, "setup platform error: %s", err)
 		return
 	}
@@ -69,7 +71,7 @@ func (i installCmd) install(nameVersion string) {
 		return
 	}
 
-	portInProject := filepath.Join(dirs.ConfProjectsDir, celer.Project().Name, parts[0], parts[1], "port.toml")
+	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().Name, parts[0], parts[1], "port.toml")
 	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		configs.PrintError(fmt.Errorf("port %s is not found", nameVersion), "%s install failed.", nameVersion)
@@ -79,7 +81,7 @@ func (i installCmd) install(nameVersion string) {
 	// Install the port.
 	var port configs.Port
 	port.DevDep = i.dev
-	if err := port.Init(celer, nameVersion, i.buildType); err != nil {
+	if err := port.Init(i.celer, nameVersion, i.buildType); err != nil {
 		configs.PrintError(err, "init %s failed.", nameVersion)
 		return
 	}
@@ -92,9 +94,9 @@ func (i installCmd) install(nameVersion string) {
 		}
 
 		// Remove all caches for the port.
-		cacheDir := celer.CacheDir()
+		cacheDir := i.celer.CacheDir()
 		if cacheDir != nil {
-			if err := cacheDir.Remove(celer.Platform().Name, celer.Project().Name, i.buildType, port.NameVersion()); err != nil {
+			if err := cacheDir.Remove(i.celer.Platform().Name, i.celer.Project().Name, i.buildType, port.NameVersion()); err != nil {
 				configs.PrintError(err, "remove cache for %s failed before reinstall.", nameVersion)
 				return
 			}
@@ -103,13 +105,13 @@ func (i installCmd) install(nameVersion string) {
 
 	// Check circular dependence.
 	depcheck := depcheck.NewDepCheck()
-	if err := depcheck.CheckCircular(celer, port); err != nil {
+	if err := depcheck.CheckCircular(i.celer, port); err != nil {
 		configs.PrintError(err, "check circular dependence failed.")
 		return
 	}
 
 	// Check version conflict.
-	if err := depcheck.CheckConflict(celer, port); err != nil {
+	if err := depcheck.CheckConflict(i.celer, port); err != nil {
 		configs.PrintError(err, "check version conflict failed.")
 		return
 	}
@@ -127,32 +129,46 @@ func (i installCmd) install(nameVersion string) {
 	}
 }
 
+func (i installCmd) buildSuggestions(suggestions *[]string, portDir string, toComplete string) {
+	err := filepath.WalkDir(portDir, func(path string, entity fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !entity.IsDir() && entity.Name() == "port.toml" {
+			libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
+			libVersion := filepath.Base(filepath.Dir(path))
+			nameVersion := libName + "@" + libVersion
+
+			if strings.HasPrefix(nameVersion, toComplete) {
+				*suggestions = append(*suggestions, nameVersion)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		configs.PrintError(err, "failed to read %s: %s.\n", portDir, err)
+		os.Exit(1)
+	}
+}
+
 func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
+
 	if fileio.PathExists(dirs.PortsDir) {
-		filepath.WalkDir(dirs.PortsDir, func(path string, entity fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
+		i.buildSuggestions(&suggestions, dirs.PortsDir, toComplete)
+	}
 
-			if !entity.IsDir() && entity.Name() == "port.toml" {
-				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
-				libVersion := filepath.Base(filepath.Dir(path))
-				nameVersion := libName + "@" + libVersion
+	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().Name)
+	if fileio.PathExists(projectPortsDir) {
+		i.buildSuggestions(&suggestions, projectPortsDir, toComplete)
+	}
 
-				if strings.HasPrefix(nameVersion, toComplete) {
-					suggestions = append(suggestions, nameVersion)
-				}
-			}
-
-			return nil
-		})
-
-		// Support flags completion.
-		for _, flag := range []string{"--dev", "-d", "--build-type", "-b", "--force", "-f"} {
-			if strings.HasPrefix(flag, toComplete) {
-				suggestions = append(suggestions, flag)
-			}
+	// Support flags completion.
+	for _, flag := range []string{"--dev", "-d", "--build-type", "-b", "--force", "-f"} {
+		if strings.HasPrefix(flag, toComplete) {
+			suggestions = append(suggestions, flag)
 		}
 	}
 
