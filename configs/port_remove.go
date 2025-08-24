@@ -82,9 +82,6 @@ func (p Port) Remove(recurse, purge, removeBuildCache bool) error {
 func (p Port) doRemovePort() error {
 	color.Printf(color.Blue, "\n[remove %s]: from \"%s\"\n", p.NameVersion(), p.installedDir)
 
-	// Check if port is installed.
-	infoDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "info")
-
 	if !fileio.PathExists(p.infoFile) {
 		return nil
 	}
@@ -135,19 +132,20 @@ func (p Port) doRemovePort() error {
 	if err := os.Remove(p.infoFile); err != nil {
 		return fmt.Errorf("cannot remove info file: %s", err)
 	}
+	infoDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "info")
 	if err := fileio.RemoveFolderRecursively(infoDir); err != nil {
 		return fmt.Errorf("cannot remove info dir: %s", err)
 	}
 
-	// Remove hash file and clean hash dir.
+	// Remove meta file and clean meta dir.
 	buildSystem := p.MatchedConfig.BuildSystem
 	if buildSystem != "nobuild" && buildSystem != "prebuilt" {
-		hashDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "hash")
-		if err := os.Remove(p.hashFile); err != nil {
-			return fmt.Errorf("cannot remove hash file: %s", err)
+		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "meta")
+		if err := os.Remove(p.metaFile); err != nil {
+			return fmt.Errorf("cannot remove meta file: %s", err)
 		}
-		if err := fileio.RemoveFolderRecursively(hashDir); err != nil {
-			return fmt.Errorf("cannot remove hash dir: %s", err)
+		if err := fileio.RemoveFolderRecursively(metaDir); err != nil {
+			return fmt.Errorf("cannot remove meta dir: %s", err)
 		}
 	}
 

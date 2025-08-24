@@ -32,9 +32,9 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		filepath.Join(dirs.InstalledDir, "celer", "info", nameVersion+"@"+hostName+"-dev.list"),
 		filepath.Join(dirs.InstalledDir, "celer", "info", nameVersion+"@"+platformProject+".list"),
 	)
-	p.hashFile = expr.If(p.DevDep,
-		filepath.Join(dirs.InstalledDir, "celer", "hash", nameVersion+"@"+hostName+"-dev.hash"),
-		filepath.Join(dirs.InstalledDir, "celer", "hash", nameVersion+"@"+platformProject+".hash"),
+	p.metaFile = expr.If(p.DevDep,
+		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+hostName+"-dev.meta"),
+		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+platformProject+".meta"),
 	)
 
 	p.packageDir = filepath.Join(dirs.WorkspaceDir, "packages", packageFolder)

@@ -192,7 +192,7 @@ func (p Port) doInstallFromPackage(destDir string) error {
 
 		// Rename hash file as new name in hash folder.
 		if p.isChecksumFile(filepath.Join(p.packageDir, file)) {
-			dest = p.hashFile
+			dest = p.metaFile
 		}
 
 		if err := os.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
