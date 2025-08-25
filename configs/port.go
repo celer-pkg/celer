@@ -44,7 +44,7 @@ type Port struct {
 	buildType    string
 	packageDir   string
 	installedDir string
-	infoFile     string
+	traceFile    string
 	metaFile     string
 	tmpDepsDir   string
 }
@@ -118,7 +118,7 @@ func (p Port) Installed() (bool, error) {
 	}
 
 	// No info no hash means not installed.
-	if !fileio.PathExists(p.infoFile) || !fileio.PathExists(p.metaFile) {
+	if !fileio.PathExists(p.traceFile) || !fileio.PathExists(p.metaFile) {
 		return false, nil
 	}
 

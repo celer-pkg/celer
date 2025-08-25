@@ -82,12 +82,12 @@ func (p Port) Remove(recurse, purge, removeBuildCache bool) error {
 func (p Port) doRemovePort() error {
 	color.Printf(color.Blue, "\n[remove %s]: from \"%s\"\n", p.NameVersion(), p.installedDir)
 
-	if !fileio.PathExists(p.infoFile) {
+	if !fileio.PathExists(p.traceFile) {
 		return nil
 	}
 
 	// Open install info file.
-	file, err := os.OpenFile(p.infoFile, os.O_RDONLY, os.ModePerm)
+	file, err := os.OpenFile(p.traceFile, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("cannot open install info file: %s", err)
 	}
@@ -129,11 +129,11 @@ func (p Port) doRemovePort() error {
 	}
 
 	// Remove info file and clean info dir.
-	if err := os.Remove(p.infoFile); err != nil {
+	if err := os.Remove(p.traceFile); err != nil {
 		return fmt.Errorf("cannot remove info file: %s", err)
 	}
-	infoDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace")
-	if err := fileio.RemoveFolderRecursively(infoDir); err != nil {
+	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace")
+	if err := fileio.RemoveFolderRecursively(traceDir); err != nil {
 		return fmt.Errorf("cannot remove info dir: %s", err)
 	}
 

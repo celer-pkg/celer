@@ -148,17 +148,17 @@ func (p Port) doInstallFromSource() error {
 	// Generate meta file.
 	buildSystem := p.MatchedConfig.BuildSystem
 	if buildSystem != "nobuild" && buildSystem != "prebuilt" {
-		metaInfo, err := p.buildMeta(p.Package.Commit)
+		metaData, err := p.buildMeta(p.Package.Commit)
 		if err != nil {
 			installFailed = true
 			return err
 		}
-		hashFile := filepath.Join(p.packageDir, p.meta2hash(metaInfo))
-		if err := os.MkdirAll(filepath.Dir(hashFile), os.ModePerm); err != nil {
+		metaFile := filepath.Join(p.packageDir, p.meta2hash(metaData))
+		if err := os.MkdirAll(filepath.Dir(metaFile), os.ModePerm); err != nil {
 			installFailed = true
 			return err
 		}
-		if err := os.WriteFile(hashFile, []byte(metaInfo), os.ModePerm); err != nil {
+		if err := os.WriteFile(metaFile, []byte(metaData), os.ModePerm); err != nil {
 			installFailed = true
 			return err
 		}
@@ -219,24 +219,24 @@ func (p Port) installFromPackage() (bool, error) {
 	}
 
 	// Check if have hash file in package, no hash file indicates the package is invalid.
-	var hashFile string
+	var metaFile string
 	entities, err := os.ReadDir(p.MatchedConfig.PortConfig.PackageDir)
 	if err != nil {
 		return false, fmt.Errorf("read package dir error: %w", err)
 	}
 	for _, entity := range entities {
 		if p.isChecksumFile(filepath.Join(p.MatchedConfig.PortConfig.PackageDir, entity.Name())) {
-			hashFile = filepath.Join(p.MatchedConfig.PortConfig.PackageDir, entity.Name())
+			metaFile = filepath.Join(p.MatchedConfig.PortConfig.PackageDir, entity.Name())
 			break
 		}
 	}
-	if hashFile == "" {
+	if metaFile == "" {
 		suffix := expr.If(p.DevDep, "@dev", "")
 		return false, fmt.Errorf("invalid package %s, since hash is not found for %s", p.packageDir, p.NameVersion()+suffix)
 	}
 
 	// Install from package if buildhash matches.
-	buildBytes, err := os.ReadFile(hashFile)
+	buildBytes, err := os.ReadFile(metaFile)
 	if err != nil {
 		return false, fmt.Errorf("read package buildhash of %s error: %w", p.NameVersion(), err)
 	}
@@ -256,7 +256,7 @@ func (p Port) installFromPackage() (bool, error) {
 		if err := p.doInstallFromPackage(p.installedDir); err != nil {
 			return false, fmt.Errorf("install from package error: %w", err)
 		}
-		return true, p.writeInfoFile("package")
+		return true, p.writeTraceFile("package")
 	}
 
 	// Remove overdue package.
@@ -284,7 +284,7 @@ func (p Port) installFromCache() (bool, error) {
 		}
 
 		fromDir := p.ctx.CacheDir().Dir
-		return true, p.writeInfoFile(fmt.Sprintf("cache [%s]", fromDir))
+		return true, p.writeTraceFile(fmt.Sprintf("cache [%s]", fromDir))
 	}
 
 	return false, nil
@@ -322,21 +322,21 @@ func (p Port) installFromSource() error {
 				return err
 			}
 			if modified {
-				return nil
+				return p.writeTraceFile("source")
 			}
 
-			// Write cache with meta info.
-			metaInfo, err := p.buildMeta(p.Package.Commit)
+			// Write cache with meta data.
+			metaData, err := p.buildMeta(p.Package.Commit)
 			if err != nil {
 				return err
 			}
-			if err := p.ctx.CacheDir().Write(p.MatchedConfig.PortConfig.PackageDir, metaInfo); err != nil {
+			if err := p.ctx.CacheDir().Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 				return err
 			}
 		}
 	}
 
-	return p.writeInfoFile("source")
+	return p.writeTraceFile("source")
 }
 
 func (p Port) installDependencies() error {
@@ -469,20 +469,20 @@ func (p Port) providerTmpDeps() error {
 	return nil
 }
 
-func (p Port) writeInfoFile(installedFrom string) error {
-	// Write installed files info into its installation info list.
-	if err := os.MkdirAll(filepath.Dir(p.infoFile), os.ModePerm); err != nil {
-		return fmt.Errorf("create info dir error: %w", err)
+func (p Port) writeTraceFile(installedFrom string) error {
+	// Write installed files trace into its installation trace list.
+	if err := os.MkdirAll(filepath.Dir(p.traceFile), os.ModePerm); err != nil {
+		return fmt.Errorf("create trace dir error: %w", err)
 	}
 	packageFiles, err := p.PackageFiles(p.packageDir, p.ctx.Platform().Name, p.ctx.Project().Name)
 	if err != nil {
 		return fmt.Errorf("get package files error: %w", err)
 	}
-	if err := os.WriteFile(p.infoFile, []byte(strings.Join(packageFiles, "\n")), os.ModePerm); err != nil {
-		return fmt.Errorf("write info file error: %w", err)
+	if err := os.WriteFile(p.traceFile, []byte(strings.Join(packageFiles, "\n")), os.ModePerm); err != nil {
+		return fmt.Errorf("write trace file error: %w", err)
 	}
 
-	// Print install info.
+	// Print install trace.
 	title := color.Sprintf(color.Green, "\n[✔] ---- package: %s is installed from %s\n",
 		p.NameVersion(), installedFrom)
 	fmt.Printf("%sLocation: %s\n", title, p.installedDir)
