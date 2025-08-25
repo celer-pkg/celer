@@ -53,8 +53,8 @@ celer install ffmpeg@5.1.6 --force/-f --recurse/-r
     │   │   ├── nasm@2.16.03@x86_64-windows-dev.hash
     │   │   └── x264@stable@x86_64-windows-msvc-14.44@test_project_02@release.hash
     │   └── info
-    │       ├── nasm@2.16.03@x86_64-windows-dev.list
-    │       └── x264@stable@x86_64-windows-msvc-14.44@test_project_02@release.list
+    │       ├── nasm@2.16.03@x86_64-windows-dev.trace
+    │       └── x264@stable@x86_64-windows-msvc-14.44@test_project_02@release.trace
     ├── x86_64-windows-dev
     │   ├── LICENSE
     │   └── bin

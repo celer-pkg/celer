@@ -132,7 +132,7 @@ func (p Port) doRemovePort() error {
 	if err := os.Remove(p.infoFile); err != nil {
 		return fmt.Errorf("cannot remove info file: %s", err)
 	}
-	infoDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "info")
+	infoDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace")
 	if err := fileio.RemoveFolderRecursively(infoDir); err != nil {
 		return fmt.Errorf("cannot remove info dir: %s", err)
 	}
