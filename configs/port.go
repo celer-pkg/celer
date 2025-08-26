@@ -44,8 +44,8 @@ type Port struct {
 	buildType    string
 	packageDir   string
 	installedDir string
-	infoFile     string
-	hashFile     string
+	traceFile    string
+	metaFile     string
 	tmpDepsDir   string
 }
 
@@ -118,12 +118,12 @@ func (p Port) Installed() (bool, error) {
 	}
 
 	// No info no hash means not installed.
-	if !fileio.PathExists(p.infoFile) || !fileio.PathExists(p.hashFile) {
+	if !fileio.PathExists(p.traceFile) || !fileio.PathExists(p.metaFile) {
 		return false, nil
 	}
 
 	// Check if build desc matches.
-	descBytes, err := os.ReadFile(p.hashFile)
+	descBytes, err := os.ReadFile(p.metaFile)
 	if err != nil {
 		return false, err
 	}

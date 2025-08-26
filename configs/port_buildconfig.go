@@ -28,13 +28,13 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	packageFolder := expr.If(p.DevDep, nameVersion+"@"+hostName+"-dev",
 		fmt.Sprintf("%s@%s@%s@%s", nameVersion, p.ctx.Platform().Name, p.ctx.Project().Name, buildType),
 	)
-	p.infoFile = expr.If(p.DevDep,
-		filepath.Join(dirs.InstalledDir, "celer", "info", nameVersion+"@"+hostName+"-dev.list"),
-		filepath.Join(dirs.InstalledDir, "celer", "info", nameVersion+"@"+platformProject+".list"),
+	p.traceFile = expr.If(p.DevDep,
+		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+hostName+"-dev.trace"),
+		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+platformProject+".trace"),
 	)
-	p.hashFile = expr.If(p.DevDep,
-		filepath.Join(dirs.InstalledDir, "celer", "hash", nameVersion+"@"+hostName+"-dev.hash"),
-		filepath.Join(dirs.InstalledDir, "celer", "hash", nameVersion+"@"+platformProject+".hash"),
+	p.metaFile = expr.If(p.DevDep,
+		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+hostName+"-dev.meta"),
+		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+platformProject+".meta"),
 	)
 
 	p.packageDir = filepath.Join(dirs.WorkspaceDir, "packages", packageFolder)

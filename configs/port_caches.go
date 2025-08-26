@@ -16,16 +16,16 @@ import (
 )
 
 func (p Port) buildhash(commit string) (string, error) {
-	metaInfo, err := p.buildMeta(commit)
+	metaData, err := p.buildMeta(commit)
 	if err != nil {
 		return "", err
 	}
 
-	return p.meta2hash(metaInfo), nil
+	return p.meta2hash(metaData), nil
 }
 
-func (p Port) meta2hash(metaInfo string) string {
-	checksum := sha256.Sum256([]byte(metaInfo))
+func (p Port) meta2hash(metaData string) string {
+	checksum := sha256.Sum256([]byte(metaData))
 	return fmt.Sprintf("%x", checksum)
 }
 

@@ -162,9 +162,9 @@ func (a autoremoveCmd) installedPackages() ([]string, []string, error) {
 }
 
 func (a autoremoveCmd) readPackages(libraryFolder string) ([]string, error) {
-	infoDir := filepath.Join(dirs.InstalledDir, "celer", "info")
-	pattern := filepath.Join(infoDir, "*@"+libraryFolder+".list")
-	suffix := "@" + libraryFolder + ".list"
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace")
+	pattern := filepath.Join(traceDir, "*@"+libraryFolder+".trace")
+	suffix := "@" + libraryFolder + ".trace"
 
 	matches, err := filepath.Glob(pattern)
 	if err != nil {

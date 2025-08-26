@@ -23,8 +23,8 @@ func (c CacheDir) Validate() error {
 	return nil
 }
 
-func (c CacheDir) Read(platformName, projectName, buildType, nameVersion, buildhash, destDir string) (bool, error) {
-	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, buildhash)
+func (c CacheDir) Read(platformName, projectName, buildType, nameVersion, hash, destDir string) (bool, error) {
+	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, hash)
 	if !fileio.PathExists(archivePath) {
 		return false, nil // not an error even not exist.
 	}
@@ -40,7 +40,7 @@ func (c CacheDir) Read(platformName, projectName, buildType, nameVersion, buildh
 	return true, nil
 }
 
-func (c CacheDir) Write(packageDir, metaInfo string) error {
+func (c CacheDir) Write(packageDir, meta string) error {
 	if !fileio.PathExists(packageDir) {
 		return fmt.Errorf("package dir %s does not exist", packageDir)
 	}
@@ -68,11 +68,11 @@ func (c CacheDir) Write(packageDir, metaInfo string) error {
 
 	nameVersion := fmt.Sprintf("%s@%s", libName, libVersion)
 	destDir := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion)
-	hashDir := filepath.Join(destDir, "hash")
+	metaDir := filepath.Join(destDir, "meta")
 
 	// Calculate checksum of description.
-	data := sha256.Sum256([]byte(metaInfo))
-	buildhash := fmt.Sprintf("%x", data)
+	data := sha256.Sum256([]byte(meta))
+	hash := fmt.Sprintf("%x", data)
 
 	// Create the dir if not exist.
 	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
@@ -80,17 +80,17 @@ func (c CacheDir) Write(packageDir, metaInfo string) error {
 	}
 
 	// Create the hash dir if not exist.
-	if err := os.MkdirAll(hashDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(metaDir, os.ModePerm); err != nil {
 		return err
 	}
 
 	// Move the tarball to cache dir.
-	if err := fileio.CopyFile(destPath, filepath.Join(destDir, buildhash+".tar.gz")); err != nil {
+	if err := fileio.CopyFile(destPath, filepath.Join(destDir, hash+".tar.gz")); err != nil {
 		return err
 	}
 
 	// Write description to hash dir.
-	if err := os.WriteFile(filepath.Join(hashDir, buildhash+".txt"), []byte(metaInfo), os.ModePerm); err != nil {
+	if err := os.WriteFile(filepath.Join(metaDir, hash+".txt"), []byte(meta), os.ModePerm); err != nil {
 		return err
 	}
 
@@ -111,8 +111,8 @@ func (c CacheDir) Remove(platformName, projectName, buildType, nameVersion strin
 }
 
 // Exist check both archive file and build desc file exist.
-func (c CacheDir) Exist(platformName, projectName, buildType, nameVersion, buildhash string) bool {
-	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, buildhash+".tar.gz")
-	metaFilePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, "hash", buildhash+".txt")
+func (c CacheDir) Exist(platformName, projectName, buildType, nameVersion, hash string) bool {
+	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, hash+".tar.gz")
+	metaFilePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, "meta", hash+".txt")
 	return fileio.PathExists(archivePath) && fileio.PathExists(metaFilePath)
 }
