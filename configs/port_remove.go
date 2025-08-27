@@ -140,10 +140,13 @@ func (p Port) doRemovePort() error {
 	// Remove meta file and clean meta dir.
 	buildSystem := p.MatchedConfig.BuildSystem
 	if buildSystem != "nobuild" && buildSystem != "prebuilt" {
-		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "meta")
-		if err := os.Remove(p.metaFile); err != nil {
-			return fmt.Errorf("cannot remove meta file: %s", err)
+		if fileio.PathExists(p.metaFile) {
+			if err := os.Remove(p.metaFile); err != nil {
+				return fmt.Errorf("cannot remove meta file: %s", err)
+			}
 		}
+
+		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "meta")
 		if err := fileio.RemoveFolderRecursively(metaDir); err != nil {
 			return fmt.Errorf("cannot remove meta dir: %s", err)
 		}

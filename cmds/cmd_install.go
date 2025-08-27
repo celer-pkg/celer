@@ -15,11 +15,12 @@ import (
 )
 
 type installCmd struct {
-	celer     *configs.Celer
-	buildType string
-	dev       bool
-	force     bool
-	recurse   bool
+	celer      *configs.Celer
+	buildType  string
+	dev        bool
+	force      bool
+	recurse    bool
+	storeCache bool
 }
 
 func (i installCmd) Command() *cobra.Command {
@@ -45,6 +46,7 @@ func (i installCmd) Command() *cobra.Command {
 	command.Flags().StringVarP(&i.buildType, "build-type", "b", "release", "install package with build type.")
 	command.Flags().BoolVarP(&i.force, "force", "f", false, "uninstall package before install again.")
 	command.Flags().BoolVarP(&i.recurse, "recurse", "r", false, "uninstall package recursively before install again.")
+	command.Flags().BoolVarP(&i.storeCache, "store-cache", "s", false, "store cache after installation.")
 
 	return command
 }
@@ -81,25 +83,18 @@ func (i installCmd) install(nameVersion string) {
 	// Install the port.
 	var port configs.Port
 	port.DevDep = i.dev
+	port.ForceInstall = i.force
+	port.StoreCache = i.storeCache
 	if err := port.Init(i.celer, nameVersion, i.buildType); err != nil {
 		configs.PrintError(err, "init %s failed.", nameVersion)
 		return
 	}
 
+	// Remove pacakge(installed + package + buildcache).
 	if i.force {
-		// Remove pacakge(installed + package + buildcache).
 		if err := port.Remove(i.recurse, true, true); err != nil {
 			configs.PrintError(err, "uninstall %s failed before reinstall.", nameVersion)
 			return
-		}
-
-		// Remove all caches for the port.
-		cacheDir := i.celer.CacheDir()
-		if cacheDir != nil {
-			if err := cacheDir.Remove(i.celer.Platform().Name, i.celer.Project().Name, i.buildType, port.NameVersion()); err != nil {
-				configs.PrintError(err, "remove cache for %s failed before reinstall.", nameVersion)
-				return
-			}
 		}
 	}
 
@@ -166,7 +161,15 @@ func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	}
 
 	// Support flags completion.
-	for _, flag := range []string{"--dev", "-d", "--build-type", "-b", "--force", "-f"} {
+	commands := []string{
+		"--dev", "-d",
+		"--build-type", "-b",
+		"--force", "-f",
+		"--recurse", "-r",
+		"--store-cache", "-s",
+	}
+
+	for _, flag := range commands {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}
