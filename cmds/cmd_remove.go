@@ -5,6 +5,7 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -75,17 +76,19 @@ func (r removeCmd) remove(nameVersions []string) error {
 
 func (r removeCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	var buildtreesDir = dirs.BuildtreesDir
 
-	if fileio.PathExists(buildtreesDir) {
-		entities, err := os.ReadDir(buildtreesDir)
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace")
+	if fileio.PathExists(traceDir) {
+		entities, err := os.ReadDir(traceDir)
 		if err != nil {
 			return suggestions, cobra.ShellCompDirectiveNoFileComp
 		}
 
 		for _, entity := range entities {
-			if entity.IsDir() && strings.HasPrefix(entity.Name(), toComplete) {
-				suggestions = append(suggestions, entity.Name())
+			parts := strings.Split(entity.Name(), "@")
+			nameVersion := parts[0] + "@" + parts[1]
+			if strings.HasPrefix(nameVersion, toComplete) {
+				suggestions = append(suggestions, nameVersion)
 			}
 		}
 
