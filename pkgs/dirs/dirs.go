@@ -18,6 +18,7 @@ var (
 	BuildtreesDir      string // absolute dir of "buildtrees"
 	TmpFilesDir        string // absolute dir of "tmp/files"
 	TmpDepsDir         string // absolute dir of "tmp/deps"
+	TmpSrcDir          string // absolute dir of "tmp/src"
 )
 
 func init() {
@@ -41,6 +42,7 @@ func Init(workspaceDir string) {
 	BuildtreesDir = filepath.Join(WorkspaceDir, "buildtrees")
 	TmpFilesDir = filepath.Join(WorkspaceDir, "tmp", "files")
 	TmpDepsDir = filepath.Join(WorkspaceDir, "tmp", "deps")
+	TmpSrcDir = filepath.Join(WorkspaceDir, "tmp", "src")
 }
 
 // ParentDir return the parent directory of path.

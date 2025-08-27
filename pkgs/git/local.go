@@ -41,23 +41,20 @@ func CheckIfLocalCommit(repoDir, repoRef string) (bool, error) {
 	return strings.TrimSpace(string(output)) == repoRef, nil
 }
 
-// IsModified check if repo is modified.
-func IsModified(repoDir string) (bool, error) {
+// IsDirty check if repo is dirty.
+func IsDirty(repoDir string) (bool, error) {
+	// // Not exists, not dirty.
+	// if !fileio.PathExists(repoDir) {
+	// 	return false, nil
+	// }
+
 	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, fmt.Errorf("check if repo is modified error: %s", output)
+		return false, fmt.Errorf("check if repo is dirty error: %s", output)
 	}
 
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "M ") {
-			return true, nil
-		}
-	}
-
-	return false, nil
+	return strings.TrimSpace(string(output)) != "", nil
 }
 
 // ReadLocalCommit read git commit hash.
@@ -130,4 +127,19 @@ func InitRepo(repoDir, message string) error {
 	}
 
 	return nil
+}
+
+func AddWorktree(repoDir, worktreeDir string) error {
+	if err := os.RemoveAll(worktreeDir); err != nil {
+		return err
+	}
+
+	cmd := exec.Command("git", "worktree", "add", worktreeDir, "HEAD", "-f")
+	cmd.Dir = repoDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git add worktree error: %s", output)
+	}
+	return nil
+
 }

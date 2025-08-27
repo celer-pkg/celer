@@ -42,10 +42,10 @@ func (p Port) buildMeta(commit string) (string, error) {
 	return cachePort.BuildMeta(commit)
 }
 
-func (c Port) GenPlatformTomlString() (string, error) {
-	bytes, err := toml.Marshal(c.ctx.Platform())
+func (p Port) GenPlatformTomlString() (string, error) {
+	bytes, err := toml.Marshal(p.ctx.Platform())
 	if err != nil {
-		return "", fmt.Errorf("marshal platform %s error: %w", c.ctx.Platform().Name, err)
+		return "", fmt.Errorf("marshal platform %s error: %w", p.ctx.Platform().Name, err)
 	}
 	return string(bytes), nil
 }

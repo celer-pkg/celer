@@ -27,8 +27,8 @@ type PortConfig struct {
 	HostName      string      // like: `x86_64-linux`, `x86_64-windows`
 	ProjectName   string      // toml filename in conf/projects.
 	CrossTools    *CrossTools // cross tools like CC, CXX, FC, RANLIB, AR, LD, NM, OBJDUMP, STRIP
-	SrcDir        string      // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
 	RepoDir       string      // for example: ${workspace}/buildtrees/icu@75.1/src
+	SrcDir        string      // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
 	BuildDir      string      // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
 	PackageDir    string      // for example: ${workspace}/packages/ffmpeg-3.4.13-x86_64-linux-20.04-Release
 	LibraryFolder string      // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release

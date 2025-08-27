@@ -5,6 +5,7 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -49,18 +50,16 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		Url:           p.Package.Url,
 		ProjectName:   p.ctx.Project().Name,
 		HostName:      p.ctx.Platform().HostName(),
-		SrcDir:        filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 		BuildDir:      filepath.Join(dirs.WorkspaceDir, "buildtrees", buildFolder),
 		PackageDir:    p.packageDir,
 		LibraryFolder: libraryFolder,
 		DevDep:        p.DevDep,
 		JobNum:        p.ctx.JobNum(),
-		RepoDir:       filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 	}
 
-	// Source folder may be a inner dir.
-	if p.Package.SrcDir != "" {
-		portConfig.SrcDir = filepath.Join(portConfig.SrcDir, p.Package.SrcDir)
+	// Try to redirect repo dir and src dir.
+	if err := p.redirectDirs(nameVersion, &portConfig); err != nil {
+		return err
 	}
 
 	if p.ctx.RootFS() != nil {
@@ -96,6 +95,41 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 			}
 		}
 	}
+
+	return nil
+}
+
+func (p Port) redirectDirs(nameVersion string, portCofig *buildsystems.PortConfig) error {
+	var repoDir = filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src")
+	var srcDir string
+
+	if !fileio.PathExists(repoDir) {
+		srcDir = repoDir
+	} else {
+		dirty, err := git.IsDirty(repoDir)
+		if err != nil {
+			return err
+		}
+		if dirty {
+			srcDir = repoDir
+		} else {
+			// Redirect repo dir to tmp/src dir.
+			if err := git.AddWorktree(repoDir, dirs.TmpSrcDir); err != nil {
+				return err
+			}
+			repoDir = dirs.TmpSrcDir
+			srcDir = repoDir
+		}
+	}
+
+	// Source folder may be a inner dir.
+	if p.Package.SrcDir != "" {
+		srcDir = filepath.Join(srcDir, p.Package.SrcDir)
+	}
+
+	// Redirect repoDir and srcDir.
+	portCofig.RepoDir = repoDir
+	portCofig.SrcDir = srcDir
 
 	return nil
 }

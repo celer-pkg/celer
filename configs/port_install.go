@@ -317,7 +317,7 @@ func (p Port) installFromSource() error {
 	if !p.DevDep && !p.Native && p.MatchedConfig.BuildSystem != "prebuilt" {
 		if p.ctx.CacheDir() != nil {
 			// Do not cache if repo is modified.
-			modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
+			modified, err := git.IsDirty(p.MatchedConfig.PortConfig.RepoDir)
 			if err != nil {
 				return err
 			}

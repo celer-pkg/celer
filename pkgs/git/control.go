@@ -77,7 +77,7 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 // UpdateRepo update git repo.
 func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	// Check if repo is modified.
-	modified, err := IsModified(repoDir)
+	modified, err := IsDirty(repoDir)
 	if err != nil {
 		return err
 	}
