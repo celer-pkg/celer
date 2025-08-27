@@ -148,7 +148,7 @@ func (p Port) doInstallFromSource() error {
 
 	// Generate meta file and store cache.
 	buildSystem := p.MatchedConfig.BuildSystem
-	if p.StoreCache && buildSystem != "nobuild" && buildSystem != "prebuilt" {
+	if buildSystem != "nobuild" && buildSystem != "prebuilt" {
 		metaData, err := p.buildMeta(p.Package.Commit)
 		if err != nil {
 			installFailed = true
@@ -162,6 +162,14 @@ func (p Port) doInstallFromSource() error {
 		if err := os.WriteFile(metaFile, []byte(metaData), os.ModePerm); err != nil {
 			installFailed = true
 			return err
+		}
+
+		// Store cache.
+		cacheDir := p.ctx.CacheDir()
+		if cacheDir != nil && p.StoreCache {
+			if err := cacheDir.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
+				return err
+			}
 		}
 	}
 

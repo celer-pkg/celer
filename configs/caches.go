@@ -79,7 +79,7 @@ func (c CacheDir) Write(packageDir, meta string) error {
 		return err
 	}
 
-	// Create the hash dir if not exist.
+	// Create the meta dir if not exist.
 	if err := os.MkdirAll(metaDir, os.ModePerm); err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (c CacheDir) Write(packageDir, meta string) error {
 		return err
 	}
 
-	// Write description to hash dir.
+	// Write description to meta dir.
 	if err := os.WriteFile(filepath.Join(metaDir, hash+".txt"), []byte(meta), os.ModePerm); err != nil {
 		return err
 	}
