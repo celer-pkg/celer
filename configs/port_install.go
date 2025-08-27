@@ -5,7 +5,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -68,10 +67,12 @@ func (p Port) Install() (string, error) {
 	}
 
 	// 2. try to install from cache.
-	if installed, err := p.installFromCache(); err != nil {
-		return "", err
-	} else if installed {
-		return "cache", nil
+	if !p.StoreCache && !p.ForceInstall {
+		if installed, err := p.installFromCache(); err != nil {
+			return "", err
+		} else if installed {
+			return "cache", nil
+		}
 	}
 
 	// 3. try to install from source.
@@ -145,7 +146,7 @@ func (p Port) doInstallFromSource() error {
 		return err
 	}
 
-	// Generate meta file.
+	// Generate meta file and store cache.
 	buildSystem := p.MatchedConfig.BuildSystem
 	if buildSystem != "nobuild" && buildSystem != "prebuilt" {
 		metaData, err := p.buildMeta(p.Package.Commit)
@@ -161,6 +162,14 @@ func (p Port) doInstallFromSource() error {
 		if err := os.WriteFile(metaFile, []byte(metaData), os.ModePerm); err != nil {
 			installFailed = true
 			return err
+		}
+
+		// Store cache.
+		cacheDir := p.ctx.CacheDir()
+		if cacheDir != nil && p.StoreCache {
+			if err := cacheDir.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -307,33 +316,8 @@ func (p Port) installFromSource() error {
 	if err := p.doInstallFromSource(); err != nil {
 		return err
 	}
-
 	if err := p.doInstallFromPackage(p.installedDir); err != nil {
 		return err
-	}
-
-	// Write package to cache dirs so that others can share installed libraries,
-	// but only for non-dev and non-native package currently.
-	if !p.DevDep && !p.Native && p.MatchedConfig.BuildSystem != "prebuilt" {
-		if p.ctx.CacheDir() != nil {
-			// Do not cache if repo is modified.
-			modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
-			if err != nil {
-				return err
-			}
-			if modified {
-				return p.writeTraceFile("source")
-			}
-
-			// Write cache with meta data.
-			metaData, err := p.buildMeta(p.Package.Commit)
-			if err != nil {
-				return err
-			}
-			if err := p.ctx.CacheDir().Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
-				return err
-			}
-		}
 	}
 
 	return p.writeTraceFile("source")

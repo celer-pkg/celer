@@ -38,6 +38,8 @@ type Port struct {
 	Parent        string                    `toml:"-"`
 	DevDep        bool                      `toml:"-"`
 	Native        bool                      `toml:"-"`
+	ForceInstall  bool                      `toml:"-"`
+	StoreCache    bool                      `toml:"-"`
 	MatchedConfig *buildsystems.BuildConfig `toml:"-"`
 
 	ctx          Context
