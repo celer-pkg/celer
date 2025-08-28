@@ -42,11 +42,11 @@ func (i installCmd) Command() *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().BoolVarP(&i.dev, "dev", "d", false, "install package as runtime dev mode.")
-	command.Flags().StringVarP(&i.buildType, "build-type", "b", "release", "install package with build type.")
-	command.Flags().BoolVarP(&i.force, "force", "f", false, "uninstall package before install again.")
-	command.Flags().BoolVarP(&i.recurse, "recurse", "r", false, "uninstall package recursively before install again.")
-	command.Flags().BoolVarP(&i.storeCache, "store-cache", "s", false, "store cache after installation.")
+	command.Flags().StringVarP(&i.buildType, "build-type", "b", "release", "Install with specified build type.")
+	command.Flags().BoolVarP(&i.dev, "dev", "d", false, "Install in dev mode.")
+	command.Flags().BoolVarP(&i.force, "force", "f", false, "Try to uninstall before installation.")
+	command.Flags().BoolVarP(&i.recurse, "recurse", "r", false, "Combine with --force, recursively reinstall dependencies.")
+	command.Flags().BoolVarP(&i.storeCache, "store-cache", "s", false, "Store artifact into cache after installation.")
 
 	return command
 }
