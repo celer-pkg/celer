@@ -15,7 +15,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-const portsRepo = "https://github.com/celer-pkg/ports.git"
+const defaultPortsRepo = "https://github.com/celer-pkg/ports.git"
 
 var (
 	Version = "v0.0.0" // It would be set by build script.
@@ -57,7 +57,6 @@ type Celer struct {
 
 type global struct {
 	ConfRepo         string `toml:"conf_repo"`
-	PortsRepo        string `toml:"ports_repo"`
 	Platform         string `toml:"platform"`
 	Project          string `toml:"project"`
 	JobNum           int    `toml:"job_num"`
@@ -81,7 +80,6 @@ func (c *Celer) Init() error {
 
 		c.configData.Global.JobNum = runtime.NumCPU()
 		c.configData.Global.BuildType = "release"
-		c.configData.Global.PortsRepo = portsRepo
 
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
@@ -100,11 +98,6 @@ func (c *Celer) Init() error {
 		}
 		if err := toml.Unmarshal(bytes, c); err != nil {
 			return err
-		}
-
-		// Set default ports repo if not set.
-		if c.Global.PortsRepo == "" {
-			c.configData.Global.PortsRepo = portsRepo
 		}
 
 		// Lower case build type always.
@@ -158,6 +151,15 @@ func (c *Celer) Init() error {
 	return nil
 }
 
+func (c Celer) portsRepoUrl() string {
+	portsRepo := os.Getenv("CELER_PORTS_REPO")
+	if portsRepo != "" {
+		return portsRepo
+	}
+
+	return defaultPortsRepo
+}
+
 func (c Celer) clonePorts() error {
 	var cloneRequired bool
 
@@ -182,7 +184,7 @@ func (c Celer) clonePorts() error {
 		}
 
 		// Clone ports repo.
-		command := fmt.Sprintf("git clone %s %s", c.configData.Global.PortsRepo, portsDir)
+		command := fmt.Sprintf("git clone %s %s", c.portsRepoUrl(), portsDir)
 		executor := cmd.NewExecutor("[clone ports]", command)
 		if err := executor.Execute(); err != nil {
 			return fmt.Errorf("`https://github.com/celer-pkg/ports.git` is not available, but your can change the default ports repo in celer.toml: %w", err)
