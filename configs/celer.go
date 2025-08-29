@@ -361,7 +361,7 @@ func (c Celer) CreatePort(nameVersion string) error {
 	return nil
 }
 
-func (c *Celer) SyncConf(url, branch string) error {
+func (c *Celer) SetConfRepo(url, branch string) error {
 	// No repo url specifeid, maybe want to update repo only.
 	if strings.TrimSpace(url) == "" {
 		return c.updateConfRepo("", branch)

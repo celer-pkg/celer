@@ -16,7 +16,7 @@ func TestConfigure_Platform(t *testing.T) {
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
-	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
 	t.Run("configure platform success", func(t *testing.T) {
 		const newName = "x86_64-linux-ubuntu-22.04"
@@ -55,7 +55,7 @@ func TestConfigure_Project(t *testing.T) {
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
-	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
 	t.Run("configure project success", func(t *testing.T) {
 		const projectName = "test_project_01"

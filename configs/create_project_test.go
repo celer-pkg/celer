@@ -20,7 +20,7 @@ func TestCreate_Project(t *testing.T) {
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
-	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
 	const projectName = "test_project_03"
 	check(celer.CreateProject(projectName))
@@ -57,7 +57,7 @@ func TestCreate_Project_EmptyName(t *testing.T) {
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
-	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
 	if err := celer.CreateProject(""); err == nil {
 		t.Fatal("it should be failed")

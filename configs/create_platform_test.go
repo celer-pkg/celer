@@ -20,7 +20,7 @@ func TestCreate_Platform(t *testing.T) {
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
-	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
 	const platformName = "x86_64-linux-ubuntu-test"
 	check(celer.CreatePlatform(platformName))
@@ -51,7 +51,7 @@ func TestCreate_Platform_EmptyName(t *testing.T) {
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
-	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
 	if err := celer.CreatePlatform(""); err == nil {
 		t.Fatal("it should be failed")
