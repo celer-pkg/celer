@@ -54,7 +54,7 @@ func (c configureCmd) Command() *cobra.Command {
 }
 
 func (c configureCmd) selectPlatform(platformName string) {
-	if err := c.celer.ChangePlatform(platformName); err != nil {
+	if err := c.celer.SetPlatform(platformName); err != nil {
 		configs.PrintError(err, "failed to select platform: %s.", platformName)
 		os.Exit(1)
 	}
@@ -63,7 +63,7 @@ func (c configureCmd) selectPlatform(platformName string) {
 }
 
 func (c configureCmd) selectProject(projectName string) {
-	if err := c.celer.ChangeProject(projectName); err != nil {
+	if err := c.celer.SetProject(projectName); err != nil {
 		configs.PrintError(err, "failed to select project: %s.", projectName)
 		os.Exit(1)
 	}
