@@ -594,3 +594,101 @@ func TestInstall_Nobuild_Global_BuildType_Release(t *testing.T) {
 		port.Remove(true, true, true)
 	})
 }
+
+func TestInstall_MakeFiles_BuildType_Debug(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := NewCeler()
+	check(celer.Init())
+
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetBuildType("Release"))
+
+	// Change platform
+	if runtime.GOOS == "windows" {
+		check(celer.SetPlatform("x86_64-windows-msvc-14.44"))
+	} else {
+		check(celer.SetPlatform("x86_64-linux-ubuntu-22.04"))
+	}
+
+	// Change project.
+	check(celer.SetProject("test_project_01"))
+
+	// This will setup build environment.
+	check(celer.Platform().Setup())
+
+	var port Port
+	check(port.Init(celer, "x264@stable", "Debug"))
+	check(port.installFromSource())
+
+	var packageDir string
+	if runtime.GOOS == "windows" {
+		packageDir = filepath.Join(dirs.PackagesDir, "x264@stable@x86_64-windows-msvc-14.44@test_project_01@debug")
+	} else {
+		packageDir = filepath.Join(dirs.PackagesDir, "x264@stable@x86_64-linux-ubuntu-22.04@test_project_01@debug")
+	}
+
+	if !fileio.PathExists(packageDir) {
+		t.Fatal("package cannot found")
+	}
+
+	t.Cleanup(func() {
+		port.Remove(true, true, true)
+	})
+}
+
+func TestInstall_MakeFiles_BuildType_Release(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := NewCeler()
+	check(celer.Init())
+
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetBuildType("Debug"))
+
+	// Change platform
+	if runtime.GOOS == "windows" {
+		check(celer.SetPlatform("x86_64-windows-msvc-14.44"))
+	} else {
+		check(celer.SetPlatform("x86_64-linux-ubuntu-22.04"))
+	}
+
+	// Change project.
+	check(celer.SetProject("test_project_01"))
+
+	// This will setup build environment.
+	check(celer.Platform().Setup())
+
+	var port Port
+	check(port.Init(celer, "x264@stable", "Debug"))
+	check(port.installFromSource())
+
+	var packageDir string
+	if runtime.GOOS == "windows" {
+		packageDir = filepath.Join(dirs.PackagesDir, "x264@stable@x86_64-windows-msvc-14.44@test_project_01@release")
+	} else {
+		packageDir = filepath.Join(dirs.PackagesDir, "x264@stable@x86_64-linux-ubuntu-22.04@test_project_01@release")
+	}
+
+	if !fileio.PathExists(packageDir) {
+		t.Fatal("package cannot found")
+	}
+
+	t.Cleanup(func() {
+		port.Remove(true, true, true)
+	})
+}
