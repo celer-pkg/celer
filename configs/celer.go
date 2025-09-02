@@ -4,6 +4,7 @@ import (
 	"celer/buildtools"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/proxy"
 	"fmt"
@@ -232,6 +233,26 @@ func (c *Celer) SetProject(projectName string) error {
 	}
 	c.Global.Project = projectName
 
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetCacheDir(cacheDir string) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
+		return err
+	}
+
+	c.configData.CacheDir = &CacheDir{
+		Dir:   cacheDir,
+		Token: expr.If(c.configData.CacheDir != nil, c.configData.CacheDir.Token, ""),
+	}
 	if err := c.save(); err != nil {
 		return err
 	}

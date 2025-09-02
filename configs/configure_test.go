@@ -1,6 +1,9 @@
 package configs
 
 import (
+	"celer/pkgs/dirs"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -76,6 +79,34 @@ func TestConfigure_Project(t *testing.T) {
 	t.Run("configure project error: empty project", func(t *testing.T) {
 		if err := celer.SetProject(""); err == nil {
 			t.Fatal("it should be failed")
+		}
+	})
+}
+
+func TestConfigure_CacheDir(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetCacheDir(dirs.TestCacheDir))
+
+	celer2 := NewCeler()
+	check(celer2.Init())
+	if celer2.CacheDir().Dir != dirs.TestCacheDir {
+		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
+	}
+
+	t.Cleanup(func() {
+		if err := os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")); err != nil {
+			t.Fatal(err)
 		}
 	})
 }

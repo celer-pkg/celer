@@ -15,6 +15,7 @@ type configureCmd struct {
 	celer    *configs.Celer
 	platform string
 	project  string
+	cacheDir string
 }
 
 func (c configureCmd) Command() *cobra.Command {
@@ -29,9 +30,11 @@ func (c configureCmd) Command() *cobra.Command {
 			}
 
 			if c.platform != "" {
-				c.selectPlatform(c.platform)
+				c.setPlatform(c.platform)
 			} else if c.project != "" {
-				c.selectProject(c.project)
+				c.setProject(c.project)
+			} else if c.cacheDir != "" {
+				c.setCacheDir(c.cacheDir)
 			}
 		},
 		ValidArgsFunction: c.completion,
@@ -40,6 +43,7 @@ func (c configureCmd) Command() *cobra.Command {
 	// Register flags.
 	command.Flags().StringVar(&c.platform, "platform", "", "configure platform.")
 	command.Flags().StringVar(&c.project, "project", "", "configure project.")
+	command.Flags().StringVar(&c.cacheDir, "cachedir", "", "configure cache dir.")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -49,11 +53,11 @@ func (c configureCmd) Command() *cobra.Command {
 		return c.flagCompletion(dirs.ConfProjectsDir, toComplete)
 	})
 
-	command.MarkFlagsMutuallyExclusive("platform", "project")
+	command.MarkFlagsMutuallyExclusive("platform", "project", "cachedir")
 	return command
 }
 
-func (c configureCmd) selectPlatform(platformName string) {
+func (c configureCmd) setPlatform(platformName string) {
 	if err := c.celer.SetPlatform(platformName); err != nil {
 		configs.PrintError(err, "failed to select platform: %s.", platformName)
 		os.Exit(1)
@@ -62,12 +66,20 @@ func (c configureCmd) selectPlatform(platformName string) {
 	configs.PrintSuccess("current platform: %s.", platformName)
 }
 
-func (c configureCmd) selectProject(projectName string) {
+func (c configureCmd) setProject(projectName string) {
 	if err := c.celer.SetProject(projectName); err != nil {
 		configs.PrintError(err, "failed to select project: %s.", projectName)
 		os.Exit(1)
 	}
-	configs.PrintSuccess("celer is ready for project: %s.", projectName)
+	configs.PrintSuccess("current project: %s.", projectName)
+}
+
+func (c configureCmd) setCacheDir(cacheDir string) {
+	if err := c.celer.SetCacheDir(cacheDir); err != nil {
+		configs.PrintError(err, "failed to select cache dir: %s.", cacheDir)
+		os.Exit(1)
+	}
+	configs.PrintSuccess("current cache dir: %s.", cacheDir)
 }
 
 func (c configureCmd) flagCompletion(dir, toComplete string) ([]string, cobra.ShellCompDirective) {
