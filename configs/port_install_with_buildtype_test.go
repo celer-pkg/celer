@@ -132,9 +132,9 @@ func TestInstall_CMake_Global_BuildType_Release(t *testing.T) {
 	// Check if package dir exists.
 	var packageDir string
 	if runtime.GOOS == "windows" {
-		packageDir = filepath.Join(dirs.PackagesDir, "x264@stable@x86_64-windows-msvc-14.44@test_project_01@release")
+		packageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-windows-msvc-14.44@test_project_01@release")
 	} else {
-		packageDir = filepath.Join(dirs.PackagesDir, "x264@stable@x86_64-linux-ubuntu-22.04@test_project_01@release")
+		packageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-linux-ubuntu-22.04@test_project_01@release")
 	}
 
 	if !fileio.PathExists(packageDir) {
