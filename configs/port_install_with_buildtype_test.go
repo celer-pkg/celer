@@ -589,7 +589,7 @@ func TestInstall_Nobuild_Global_BuildType_Release(t *testing.T) {
 	})
 }
 
-func TestInstall_MakeFiles_BuildType_Debug(t *testing.T) {
+func TestInstall_MakeFiles_Private_BuildType_Debug(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -637,7 +637,7 @@ func TestInstall_MakeFiles_BuildType_Debug(t *testing.T) {
 	})
 }
 
-func TestInstall_MakeFiles_BuildType_Release(t *testing.T) {
+func TestInstall_MakeFiles_Private_BuildType_Release(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -659,7 +659,7 @@ func TestInstall_MakeFiles_BuildType_Release(t *testing.T) {
 	check(celer.Platform().Setup())
 
 	var port Port
-	check(port.Init(celer, "x264@stable", "Debug"))
+	check(port.Init(celer, "x264@stable", "Release"))
 	check(port.installFromSource())
 
 	// Check if package dir exists.

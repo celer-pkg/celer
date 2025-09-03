@@ -227,7 +227,7 @@ func (p Port) installFromPackage() (bool, error) {
 		return false, err
 	}
 
-	// Check if have hash file in package, no hash file indicates the package is invalid.
+	// Check if have meta file in package, no meta file means the package is invalid.
 	var metaFile string
 	entities, err := os.ReadDir(p.MatchedConfig.PortConfig.PackageDir)
 	if err != nil {
@@ -241,39 +241,42 @@ func (p Port) installFromPackage() (bool, error) {
 	}
 	if metaFile == "" {
 		suffix := expr.If(p.DevDep, "@dev", "")
-		return false, fmt.Errorf("invalid package %s, since hash is not found for %s", p.packageDir, p.NameVersion()+suffix)
+		return false, fmt.Errorf("invalid package %s, since meta file is not found for %s", p.packageDir, p.NameVersion()+suffix)
 	}
 
-	// Install from package if buildhash matches.
-	buildBytes, err := os.ReadFile(metaFile)
+	// Install from package if meta matches.
+	metaBytes, err := os.ReadFile(metaFile)
 	if err != nil {
-		return false, fmt.Errorf("read package buildhash of %s error: %w", p.NameVersion(), err)
+		return false, fmt.Errorf("read package meta of %s error: %w", p.NameVersion(), err)
 	}
 	newMeta, err := p.buildMeta(p.Package.Commit)
 	if err != nil {
-		return false, fmt.Errorf("calculate buildhash of %s error: %w", p.NameVersion(), err)
+		return false, fmt.Errorf("calculate meta of %s error: %w", p.NameVersion(), err)
 	}
 
-	localMeta := string(buildBytes)
+	// Remove overdue package.
+	localMeta := string(metaBytes)
 	if localMeta != newMeta {
-		color.Printf(color.Green, "================ meta not match for %s: ================\n", p.NameVersion())
+		color.Printf(color.Green, "================ remove overdue package: metas don't match for %s: ================\n", p.NameVersion())
 		color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local meta: <<<<<<<<<<<<<<<<<")
 		color.Println(color.Blue, newMeta)
 		color.Println(color.Green, ">>>>>>>>>>>>>>>>> New meta: <<<<<<<<<<<<<<<<<")
 		color.Println(color.Blue, newMeta)
 
-		if err := p.doInstallFromPackage(p.installedDir); err != nil {
-			return false, fmt.Errorf("install from package error: %w", err)
+		if err := p.Remove(false, false, false); err != nil {
+			return false, fmt.Errorf("remove overdue package error: %w", err)
 		}
-		return true, p.writeTraceFile("package")
 	}
 
-	// Remove overdue package.
-	if err := p.Remove(false, false, false); err != nil {
-		color.Printf(color.Yellow, "[✘] ======== failed to remove overdue package %s. ========\n", err)
+	if err := p.doInstallFromPackage(p.installedDir); err != nil {
+		return false, fmt.Errorf("install from package error: %w", err)
 	}
 
-	return false, nil
+	if err := p.writeTraceFile("package"); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (p Port) installFromCache() (bool, error) {

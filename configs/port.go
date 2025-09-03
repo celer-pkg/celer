@@ -119,35 +119,43 @@ func (p Port) Installed() (bool, error) {
 		return true, nil
 	}
 
-	// No info no hash means not installed.
-	if !fileio.PathExists(p.traceFile) || !fileio.PathExists(p.metaFile) {
+	// No trace file means not installed.
+	if !fileio.PathExists(p.traceFile) {
 		return false, nil
 	}
 
-	// Check if build desc matches.
-	descBytes, err := os.ReadFile(p.metaFile)
-	if err != nil {
-		return false, err
-	}
-	newMeta, err := p.buildMeta(p.Package.Commit)
-	if err != nil {
-		return false, err
-	}
+	// No meta file means not installed.
+	if p.MatchedConfig.BuildSystem != "nobuild" && p.MatchedConfig.BuildSystem != "prebuilt" {
+		// Check if meta file exists.
+		if !fileio.PathExists(p.metaFile) {
+			return false, nil
+		}
 
-	// Remove installed package if build config changed.
-	localMeta := string(descBytes)
-	if localMeta != newMeta {
-		color.Printf(color.Green, "\n================ package will be removed, because build desc not match for %s: ================\n", p.NameVersion())
-		color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local meta: <<<<<<<<<<<<<<<<<")
-		color.Println(color.Blue, newMeta)
-		color.Println(color.Green, ">>>>>>>>>>>>>>>>> New meta <<<<<<<<<<<<<<<<<")
-		color.Println(color.Blue, newMeta)
-
-		if err := p.Remove(false, true, true); err != nil {
+		// Check if build desc matches.
+		metaBytes, err := os.ReadFile(p.metaFile)
+		if err != nil {
+			return false, err
+		}
+		newMeta, err := p.buildMeta(p.Package.Commit)
+		if err != nil {
 			return false, err
 		}
 
-		return false, nil
+		// Remove installed package if build config changed.
+		localMeta := string(metaBytes)
+		if localMeta != newMeta {
+			color.Printf(color.Green, "\n================ remove overdue package: metas don't match for %s: ================\n", p.NameVersion())
+			color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local meta: <<<<<<<<<<<<<<<<<")
+			color.Println(color.Blue, newMeta)
+			color.Println(color.Green, ">>>>>>>>>>>>>>>>> New meta <<<<<<<<<<<<<<<<<")
+			color.Println(color.Blue, newMeta)
+
+			if err := p.Remove(false, true, true); err != nil {
+				return false, err
+			}
+
+			return false, nil
+		}
 	}
 
 	return true, nil
