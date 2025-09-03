@@ -4,6 +4,7 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -17,6 +18,12 @@ func TestInstall_MakeFiles_Global_BuildType_Release(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -48,13 +55,13 @@ func TestInstall_MakeFiles_Global_BuildType_Release(t *testing.T) {
 	// Check if installed.
 	installed, err := port.Installed()
 	check(err)
+
 	if !installed {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_MakeFiles_Global_BuildType_Debug(t *testing.T) {
@@ -65,6 +72,12 @@ func TestInstall_MakeFiles_Global_BuildType_Debug(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -96,13 +109,13 @@ func TestInstall_MakeFiles_Global_BuildType_Debug(t *testing.T) {
 	// Check if installed.
 	installed, err := port.Installed()
 	check(err)
+
 	if !installed {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_CMake_Global_BuildType_Release(t *testing.T) {
@@ -113,6 +126,12 @@ func TestInstall_CMake_Global_BuildType_Release(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -148,9 +167,8 @@ func TestInstall_CMake_Global_BuildType_Release(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_CMake_Global_BuildType_Debug(t *testing.T) {
@@ -161,6 +179,12 @@ func TestInstall_CMake_Global_BuildType_Debug(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -196,9 +220,8 @@ func TestInstall_CMake_Global_BuildType_Debug(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_B2_Global_BuildType_Release(t *testing.T) {
@@ -209,6 +232,12 @@ func TestInstall_B2_Global_BuildType_Release(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -243,9 +272,8 @@ func TestInstall_B2_Global_BuildType_Release(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_B2_Global_BuildType_Debug(t *testing.T) {
@@ -256,6 +284,12 @@ func TestInstall_B2_Global_BuildType_Debug(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -290,9 +324,8 @@ func TestInstall_B2_Global_BuildType_Debug(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_GYP_Global_BuildType_Release(t *testing.T) {
@@ -303,6 +336,12 @@ func TestInstall_GYP_Global_BuildType_Release(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -337,9 +376,8 @@ func TestInstall_GYP_Global_BuildType_Release(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_GYP_Global_BuildType_Debub(t *testing.T) {
@@ -350,6 +388,12 @@ func TestInstall_GYP_Global_BuildType_Debub(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -377,9 +421,8 @@ func TestInstall_GYP_Global_BuildType_Debub(t *testing.T) {
 		t.Fatal("package dir cannot found")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_Meson_Global_BuildType_Release(t *testing.T) {
@@ -390,6 +433,12 @@ func TestInstall_Meson_Global_BuildType_Release(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -424,9 +473,8 @@ func TestInstall_Meson_Global_BuildType_Release(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_Meson_Global_BuildType_Debug(t *testing.T) {
@@ -437,6 +485,12 @@ func TestInstall_Meson_Global_BuildType_Debug(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -471,9 +525,8 @@ func TestInstall_Meson_Global_BuildType_Debug(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_Prebuilt_Global_BuildType_Release(t *testing.T) {
@@ -484,6 +537,12 @@ func TestInstall_Prebuilt_Global_BuildType_Release(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -511,9 +570,8 @@ func TestInstall_Prebuilt_Global_BuildType_Release(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_Prebuilt_Global_BuildType_Debug(t *testing.T) {
@@ -524,6 +582,12 @@ func TestInstall_Prebuilt_Global_BuildType_Debug(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -551,9 +615,8 @@ func TestInstall_Prebuilt_Global_BuildType_Debug(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_Nobuild_Global_BuildType_Release(t *testing.T) {
@@ -564,6 +627,12 @@ func TestInstall_Nobuild_Global_BuildType_Release(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -584,9 +653,8 @@ func TestInstall_Nobuild_Global_BuildType_Release(t *testing.T) {
 		t.Fatal("src dir cannot found")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_MakeFiles_Private_BuildType_Debug(t *testing.T) {
@@ -597,6 +665,12 @@ func TestInstall_MakeFiles_Private_BuildType_Debug(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -632,9 +706,8 @@ func TestInstall_MakeFiles_Private_BuildType_Debug(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }
 
 func TestInstall_MakeFiles_Private_BuildType_Release(t *testing.T) {
@@ -645,6 +718,12 @@ func TestInstall_MakeFiles_Private_BuildType_Release(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -680,7 +759,6 @@ func TestInstall_MakeFiles_Private_BuildType_Release(t *testing.T) {
 		t.Fatal("package is not installed")
 	}
 
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
+	// Clean up.
+	check(port.Remove(true, true, true))
 }

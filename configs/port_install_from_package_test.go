@@ -4,6 +4,7 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -17,6 +18,12 @@ func TestInstall_From_Package_Success(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
@@ -47,13 +54,14 @@ func TestInstall_From_Package_Success(t *testing.T) {
 
 	installed, err := port.installFromPackage()
 	check(err)
+
+	t.Cleanup(func() {
+		check(port.Remove(true, true, true))
+	})
+
 	if !installed {
 		t.Fatal("should not be successfully installed from package")
 	}
-
-	t.Cleanup(func() {
-		port.Remove(true, true, true)
-	})
 }
 
 func TestInstall_From_Package_Failed(t *testing.T) {
@@ -64,6 +72,12 @@ func TestInstall_From_Package_Failed(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()

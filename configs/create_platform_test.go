@@ -17,6 +17,12 @@ func TestCreate_Platform(t *testing.T) {
 		}
 	}
 
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
@@ -31,12 +37,7 @@ func TestCreate_Platform(t *testing.T) {
 		t.Fatalf("platform %s should be created", platformName)
 	}
 
-	// Cleanup.
-	t.Cleanup(func() {
-		if err := os.Remove(platformPath); err != nil {
-			t.Fatal(err)
-		}
-	})
+	check(os.RemoveAll(platformPath))
 }
 
 func TestCreate_Platform_EmptyName(t *testing.T) {
@@ -48,6 +49,12 @@ func TestCreate_Platform_EmptyName(t *testing.T) {
 		}
 	}
 
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
@@ -56,4 +63,6 @@ func TestCreate_Platform_EmptyName(t *testing.T) {
 	if err := celer.CreatePlatform(""); err == nil {
 		t.Fatal("it should be failed")
 	}
+
+	check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 }

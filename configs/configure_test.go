@@ -16,6 +16,12 @@ func TestConfigure_Platform(t *testing.T) {
 		}
 	}
 
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
@@ -55,6 +61,12 @@ func TestConfigure_Project(t *testing.T) {
 		}
 	}
 
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
@@ -92,6 +104,12 @@ func TestConfigure_CacheDir(t *testing.T) {
 		}
 	}
 
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
@@ -107,10 +125,4 @@ func TestConfigure_CacheDir(t *testing.T) {
 	if celer2.CacheDir().Token != "token_123456" {
 		t.Fatalf("cache token should be `token_123456`")
 	}
-
-	t.Cleanup(func() {
-		if err := os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")); err != nil {
-			t.Fatal(err)
-		}
-	})
 }

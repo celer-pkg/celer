@@ -17,6 +17,12 @@ func TestCreate_Project(t *testing.T) {
 		}
 	}
 
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
@@ -53,6 +59,12 @@ func TestCreate_Project_EmptyName(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
 
 	// Init celer.
 	celer := NewCeler()
