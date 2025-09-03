@@ -141,6 +141,24 @@ func (p Port) doInstallFromSource() error {
 		}
 	}()
 
+	var writeCacheAfterInstall bool
+	cacheDir := p.ctx.CacheDir()
+	if cacheDir != nil && p.StoreCache {
+		if cacheDir.Token == "" {
+			return fmt.Errorf("cache token is not defined in celer.toml")
+		}
+
+		if p.CacheToken == "" {
+			return fmt.Errorf("cache token is not specified with `--cache-token`")
+		}
+
+		if p.CacheToken != cacheDir.Token {
+			return fmt.Errorf("cache token is not matched")
+		}
+
+		writeCacheAfterInstall = true
+	}
+
 	if err := p.MatchedConfig.Install(p.Package.Url, p.Package.Ref, p.Package.Archive); err != nil {
 		installFailed = true
 		return err
@@ -164,9 +182,8 @@ func (p Port) doInstallFromSource() error {
 			return err
 		}
 
-		// Store cache.
-		cacheDir := p.ctx.CacheDir()
-		if cacheDir != nil && p.StoreCache {
+		// Store cache after installation.
+		if writeCacheAfterInstall {
 			if err := cacheDir.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 				return err
 			}

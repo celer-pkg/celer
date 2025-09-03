@@ -96,12 +96,16 @@ func TestConfigure_CacheDir(t *testing.T) {
 	celer := NewCeler()
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
-	check(celer.SetCacheDir(dirs.TestCacheDir))
+	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 
 	celer2 := NewCeler()
 	check(celer2.Init())
 	if celer2.CacheDir().Dir != dirs.TestCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
+	}
+
+	if celer2.CacheDir().Token != "token_123456" {
+		t.Fatalf("cache token should be `token_123456`")
 	}
 
 	t.Cleanup(func() {

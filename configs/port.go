@@ -39,8 +39,11 @@ type Port struct {
 	DevDep        bool                      `toml:"-"`
 	Native        bool                      `toml:"-"`
 	ForceInstall  bool                      `toml:"-"`
-	StoreCache    bool                      `toml:"-"`
 	MatchedConfig *buildsystems.BuildConfig `toml:"-"`
+
+	// Cached fields.
+	StoreCache bool   `toml:"-"`
+	CacheToken string `toml:"-"`
 
 	ctx          Context
 	buildType    string

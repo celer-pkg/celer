@@ -48,7 +48,7 @@ func TestInstall_From_Package_Success(t *testing.T) {
 	installed, err := port.installFromPackage()
 	check(err)
 	if !installed {
-		t.Fatal("cannot install from package")
+		t.Fatal("should not be successfully installed from package")
 	}
 
 	t.Cleanup(func() {
