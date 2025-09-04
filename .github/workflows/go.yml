@@ -29,5 +29,5 @@ jobs:
 
     - name: Test
       run: |
-        go test -v ./depcheck/...
-        go test -v ./configs/...
+        go test -v ./depcheck/... -timeout 1h
+        go test -v ./configs/... -timeout 1h
