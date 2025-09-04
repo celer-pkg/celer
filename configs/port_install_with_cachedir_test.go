@@ -75,6 +75,82 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	check(port.Remove(true, true, true))
 }
 
+func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := NewCeler()
+	check(celer.Init())
+
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetBuildType("Release"))
+	check(celer.SetProject("test_project_01"))
+	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+
+	// Setup build environment.
+	check(celer.Platform().Setup())
+
+	var glogPort Port
+	glogPort.StoreCache = true
+	glogPort.CacheToken = "token_123456"
+	check(glogPort.Init(celer, "glog@0.6.0", celer.BuildType()))
+	check(glogPort.installFromSource())
+
+	var glogPackageDir, gflagsPackageDir string
+	if runtime.GOOS == "windows" {
+		glogPackageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-windows-msvc-14.44@test_project_01@release")
+		gflagsPackageDir = filepath.Join(dirs.PackagesDir, "gflags@2.2.2@x86_64-windows-msvc-14.44@test_project_01@release")
+	} else {
+		glogPackageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-linux-ubuntu-22.04@test_project_01@release")
+		gflagsPackageDir = filepath.Join(dirs.PackagesDir, "gflags@2.2.2@x86_64-linux-ubuntu-22.04@test_project_01@release")
+	}
+	if !fileio.PathExists(glogPackageDir) || !fileio.PathExists(gflagsPackageDir) {
+		t.Fatal("gflags or glog package cannot found")
+	}
+
+	// Totally remove port
+	check(glogPort.Remove(true, true, true))
+
+	// Install from package should fail.
+	installed, err := glogPort.installFromPackage()
+	check(err)
+	if installed {
+		t.Fatal("should install failed from package")
+	}
+
+	// Install from cache should success.
+	installed, err = glogPort.installFromCache()
+	check(err)
+	if !installed {
+		t.Fatal("should install successfully from cache")
+	}
+
+	var gflagsPort Port
+	check(gflagsPort.Init(celer, "gflags@2.2.2", celer.BuildType()))
+	installed, err = gflagsPort.Installed()
+	check(err)
+	if !installed {
+		t.Fatal("gflags not installed")
+	}
+
+	// Clean up.
+	check(glogPort.Remove(true, true, true))
+	check(gflagsPort.Remove(true, true, true))
+}
+
 func TestInstall_CacheDir_DirNotDefined(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
