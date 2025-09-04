@@ -149,7 +149,7 @@ func (p Port) doInstallFromSource() error {
 	var writeCacheAfterInstall bool
 	cacheDir := p.ctx.CacheDir()
 	if p.StoreCache {
-		if cacheDir == nil {
+		if cacheDir == nil || cacheDir.Dir == "" {
 			return ErrCacheDirNotConfigured
 		}
 

@@ -23,7 +23,7 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 
 	// ============ Clone default branch ============
 	if repoRef == "" {
-		command := fmt.Sprintf("git clone %s --depth 1 --recursive %s", repoUrl, repoDir)
+		command := fmt.Sprintf("git clone %s --recursive %s", repoUrl, repoDir)
 		return cmd.NewExecutor(title, command).Execute()
 	}
 
@@ -33,7 +33,7 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 		return fmt.Errorf("check if remote branch error: %w", err)
 	}
 	if isBranch {
-		command := fmt.Sprintf("git clone --branch %s %s --depth 1 --recursive %s", repoRef, repoUrl, repoDir)
+		command := fmt.Sprintf("git clone --branch %s %s --recursive %s", repoRef, repoUrl, repoDir)
 		return cmd.NewExecutor(title, command).Execute()
 	}
 
@@ -43,12 +43,12 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 		return fmt.Errorf("check if remote tag error: %w", err)
 	}
 	if isTag {
-		command := fmt.Sprintf("git clone --branch %s %s --depth 1 --recursive %s", repoRef, repoUrl, repoDir)
+		command := fmt.Sprintf("git clone --branch %s %s --recursive %s", repoRef, repoUrl, repoDir)
 		return cmd.NewExecutor(title, command).Execute()
 	}
 
 	// ============ Clone and checkout commit ============
-	command := fmt.Sprintf("git clone %s %s --depth 1", repoUrl, repoDir)
+	command := fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
 	if err := cmd.NewExecutor(title, command).Execute(); err != nil {
 		return fmt.Errorf("clone git repo error: %w", err)
 	}

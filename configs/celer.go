@@ -4,6 +4,7 @@ import (
 	"celer/buildtools"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/proxy"
 	"fmt"
@@ -244,8 +245,9 @@ func (c *Celer) SetCacheDir(dir, token string) error {
 		return err
 	}
 
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		return err
+	if c.configData.CacheDir != nil {
+		dir = expr.If(dir != "", dir, c.configData.CacheDir.Dir)
+		token = expr.If(token != "", token, c.configData.CacheDir.Token)
 	}
 
 	c.configData.CacheDir = &CacheDir{

@@ -275,6 +275,9 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 	celer := NewCeler()
 	check(celer.Init())
 
+	// Must create cache dir before setting cache dir.
+	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject("test_project_01"))
@@ -312,6 +315,9 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 	celer := NewCeler()
 	check(celer.Init())
 
+	// Must create cache dir before setting cache dir.
+	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject("test_project_01"))
@@ -348,6 +354,9 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
+
+	// Must create cache dir before setting cache dir.
+	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
