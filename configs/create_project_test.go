@@ -17,10 +17,16 @@ func TestCreate_Project(t *testing.T) {
 		}
 	}
 
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
-	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
 	const projectName = "test_project_03"
 	check(celer.CreateProject(projectName))
@@ -54,10 +60,16 @@ func TestCreate_Project_EmptyName(t *testing.T) {
 		}
 	}
 
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())
-	check(celer.SyncConf("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
 	if err := celer.CreateProject(""); err == nil {
 		t.Fatal("it should be failed")

@@ -88,7 +88,7 @@ type libraryType struct {
 }
 
 type BuildConfig struct {
-	Pattern string `toml:"pattern"`
+	Pattern string `toml:"pattern,omitempty"`
 	Url     string `toml:"url,omitempty"` // Used to override url in package.
 
 	// Build System

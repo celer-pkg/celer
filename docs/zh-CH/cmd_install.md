@@ -16,6 +16,8 @@ celer install [package_name] [flags]
 | --dev             | -d         | Install as dev runtime dependency.                       |
 | --force	        | -f	     | Uninstall and install again.                             |
 | --recurse	        | -r	     | Combine with --force, recursively reinstall dependencies.|
+| --store-cache     | -s         | Store artifact into cache after installation.            |
+| --cache-token     | -t         | Combine with --store-cache, specify cache token.         |
 
 ## 命令示例
 
@@ -41,7 +43,7 @@ celer install ffmpeg@5.1.6 --force/-f
 **4. 强制重新安装，包含依赖项**
 
 ```shell
-celer install ffmpeg@5.1.6 --force/-f --recurse/-r
+celer install ffmpeg@5.1.6 --force/-f --recurse/-r --cache-token/-t token_xxx
 ```
 
 ## 安装目录结构

@@ -4,6 +4,7 @@ import (
 	"celer/buildtools"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/proxy"
 	"fmt"
@@ -15,7 +16,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-const portsRepo = "https://github.com/celer-pkg/ports.git"
+const defaultPortsRepo = "https://github.com/celer-pkg/ports.git"
 
 var (
 	Version = "v0.0.0" // It would be set by build script.
@@ -57,7 +58,6 @@ type Celer struct {
 
 type global struct {
 	ConfRepo         string `toml:"conf_repo"`
-	PortsRepo        string `toml:"ports_repo"`
 	Platform         string `toml:"platform"`
 	Project          string `toml:"project"`
 	JobNum           int    `toml:"job_num"`
@@ -81,7 +81,6 @@ func (c *Celer) Init() error {
 
 		c.configData.Global.JobNum = runtime.NumCPU()
 		c.configData.Global.BuildType = "release"
-		c.configData.Global.PortsRepo = portsRepo
 
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
@@ -100,11 +99,6 @@ func (c *Celer) Init() error {
 		}
 		if err := toml.Unmarshal(bytes, c); err != nil {
 			return err
-		}
-
-		// Set default ports repo if not set.
-		if c.Global.PortsRepo == "" {
-			c.configData.Global.PortsRepo = portsRepo
 		}
 
 		// Lower case build type always.
@@ -158,51 +152,6 @@ func (c *Celer) Init() error {
 	return nil
 }
 
-func (c Celer) clonePorts() error {
-	var cloneRequired bool
-
-	portsDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	if !fileio.PathExists(portsDir) {
-		cloneRequired = true
-	} else {
-		entities, err := os.ReadDir(portsDir)
-		if err != nil {
-			return err
-		}
-
-		if len(entities) == 0 {
-			cloneRequired = true
-		}
-	}
-
-	if cloneRequired {
-		// Remove ports dir before clone it.
-		if err := os.RemoveAll(portsDir); err != nil {
-			return err
-		}
-
-		// Clone ports repo.
-		command := fmt.Sprintf("git clone %s %s", c.configData.Global.PortsRepo, portsDir)
-		executor := cmd.NewExecutor("[clone ports]", command)
-		if err := executor.Execute(); err != nil {
-			return fmt.Errorf("`https://github.com/celer-pkg/ports.git` is not available, but your can change the default ports repo in celer.toml: %w", err)
-		}
-	}
-
-	return nil
-}
-
-func (c Celer) Deploy() error {
-	if err := c.platform.Setup(); err != nil {
-		return err
-	}
-	if err := c.project.Deploy(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (c Celer) CreatePlatform(platformName string) error {
 	// Clean platform name.
 	platformName = strings.TrimSpace(platformName)
@@ -222,34 +171,22 @@ func (c Celer) CreatePlatform(platformName string) error {
 	return nil
 }
 
-func (c *Celer) ChangePlatform(platformName string) error {
-	// Init celer with "celer.toml"
-	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+func (c *Celer) SetBuildType(buildtype string) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
 
-	if !fileio.PathExists(celerPath) { // Create celer.toml if not exist.
-		// Create conf directory.
-		if err := os.MkdirAll(filepath.Dir(celerPath), os.ModePerm); err != nil {
-			return err
-		}
+	c.configData.Global.BuildType = buildtype
+	if err := c.save(); err != nil {
+		return err
+	}
 
-		// Create celer conf file with default values.
-		c.Global.JobNum = runtime.NumCPU()
-		bytes, err := toml.Marshal(c)
-		if err != nil {
-			return err
-		}
-		if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
-			return err
-		}
-	} else {
-		// Read celer.toml.
-		bytes, err := os.ReadFile(celerPath)
-		if err != nil {
-			return err
-		}
-		if err := toml.Unmarshal(bytes, c); err != nil {
-			return err
-		}
+	return nil
+}
+
+func (c *Celer) SetPlatform(platformName string) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
 	}
 
 	// Init and setup platform.
@@ -259,12 +196,7 @@ func (c *Celer) ChangePlatform(platformName string) error {
 	c.Global.Platform = platformName
 	c.platform.Name = platformName
 
-	// Do change platform.
-	bytes, err := toml.Marshal(c)
-	if err != nil {
-		return err
-	}
-	if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
+	if err := c.save(); err != nil {
 		return err
 	}
 
@@ -290,36 +222,9 @@ func (c Celer) CreateProject(projectName string) error {
 	return nil
 }
 
-func (c *Celer) ChangeProject(projectName string) error {
-	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
-
-	// Create celer.toml if not exist.
-	if !fileio.PathExists(celerPath) {
-		// Create conf directory.
-		if err := os.MkdirAll(filepath.Dir(celerPath), os.ModePerm); err != nil {
-			return err
-		}
-
-		// Create celer conf file with default values.
-		c.Global.JobNum = runtime.NumCPU()
-		bytes, err := toml.Marshal(c)
-		if err != nil {
-			return fmt.Errorf("marshal celer conf error: %w", err)
-		}
-		if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	// Read celer.toml to check if platform is selected.
-	bytes, err := os.ReadFile(celerPath)
-	if err != nil {
+func (c *Celer) SetProject(projectName string) error {
+	if err := c.readOrCreate(); err != nil {
 		return err
-	}
-	if err := toml.Unmarshal(bytes, c); err != nil {
-		return fmt.Errorf("unmarshal celer conf error: %w", err)
 	}
 
 	// Read project file and setup it.
@@ -328,12 +233,28 @@ func (c *Celer) ChangeProject(projectName string) error {
 	}
 	c.Global.Project = projectName
 
-	// Do change project.
-	bytes, err = toml.Marshal(c)
-	if err != nil {
+	if err := c.save(); err != nil {
 		return err
 	}
-	if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
+
+	return nil
+}
+
+func (c *Celer) SetCacheDir(dir, token string) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.CacheDir != nil {
+		dir = expr.If(dir != "", dir, c.configData.CacheDir.Dir)
+		token = expr.If(token != "", token, c.configData.CacheDir.Token)
+	}
+
+	c.configData.CacheDir = &CacheDir{
+		Dir:   dir,
+		Token: token,
+	}
+	if err := c.save(); err != nil {
 		return err
 	}
 
@@ -359,58 +280,26 @@ func (c Celer) CreatePort(nameVersion string) error {
 	return nil
 }
 
-func (c *Celer) SyncConf(url, branch string) error {
+func (c *Celer) SetConfRepo(url, branch string) error {
 	// No repo url specifeid, maybe want to update repo only.
 	if strings.TrimSpace(url) == "" {
 		return c.updateConfRepo("", branch)
-	}
-
-	// Create celer.toml if not exist.
-	confPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
-	if !fileio.PathExists(confPath) {
-		// Create conf directory.
-		if err := os.MkdirAll(filepath.Dir(confPath), os.ModePerm); err != nil {
-			return err
-		}
-
-		// Create celer conf file with default values.
-		c.Global.JobNum = runtime.NumCPU()
-		c.Global.BuildType = "release"
-		c.Global.ConfRepo = url
-		bytes, err := toml.Marshal(c)
-		if err != nil {
-			return err
-		}
-		if err := os.WriteFile(confPath, []byte(bytes), os.ModePerm); err != nil {
+	} else {
+		if err := c.updateConfRepo(url, branch); err != nil {
 			return err
 		}
 	}
 
-	// Update conf repo with repo url.
-	bytes, err := os.ReadFile(confPath)
-	if err != nil {
+	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
-	// Unmarshall with celer.toml
-	if err := toml.Unmarshal(bytes, c); err != nil {
+	c.Global.ConfRepo = url
+	if err := c.save(); err != nil {
 		return err
 	}
 
-	// Override celer.toml with repo url.
-	if url != "" {
-		c.Global.ConfRepo = url
-		bytes, err := toml.Marshal(c)
-		if err != nil {
-			return err
-		}
-		if err := os.WriteFile(confPath, []byte(bytes), os.ModePerm); err != nil {
-			return err
-		}
-	}
-
-	// Update repo.
-	return c.updateConfRepo(c.Global.ConfRepo, branch)
+	return nil
 }
 
 func (c Celer) GenerateToolchainFile() error {
@@ -534,12 +423,85 @@ endif()`, c.BuildType()) + "\n")
 	return nil
 }
 
+func (c Celer) Deploy() error {
+	if err := c.platform.Setup(); err != nil {
+		return err
+	}
+	if err := c.project.Deploy(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) readOrCreate() error {
+	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	if !fileio.PathExists(celerPath) {
+		// Create conf directory.
+		if err := os.MkdirAll(filepath.Dir(celerPath), os.ModePerm); err != nil {
+			return err
+		}
+
+		if c.Global.JobNum == 0 {
+			c.Global.JobNum = runtime.NumCPU()
+		}
+
+		if c.Global.BuildType == "" {
+			c.Global.BuildType = "release"
+		}
+
+		bytes, err := toml.Marshal(c)
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
+			return err
+		}
+	} else {
+		// Read celer.toml.
+		bytes, err := os.ReadFile(celerPath)
+		if err != nil {
+			return err
+		}
+		if err := toml.Unmarshal(bytes, c); err != nil {
+			return err
+		}
+
+		if c.Global.JobNum == 0 {
+			c.Global.JobNum = runtime.NumCPU()
+		}
+
+		if c.Global.BuildType == "" {
+			c.Global.BuildType = "release"
+		}
+	}
+
+	return nil
+}
+
+func (c Celer) save() error {
+	bytes, err := toml.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c Celer) updateConfRepo(repo, branch string) error {
 	// Extracted clone function for reusability.
-	cloneFunc := func(commands []string, workDir string) error {
-		commands = append(commands, fmt.Sprintf("git clone %s %s", repo, workDir))
+	cloneFunc := func(workDir string) error {
+		if err := os.RemoveAll(workDir); err != nil {
+			return err
+		}
 
-		// Execute clone command.
+		var commands []string
+		commands = append(commands, fmt.Sprintf("git clone %s %s", repo, workDir))
 		commandLine := strings.Join(commands, " && ")
 		executor := cmd.NewExecutor("[clone]", commandLine)
 		executor.SetWorkDir(dirs.WorkspaceDir)
@@ -550,9 +512,9 @@ func (c Celer) updateConfRepo(repo, branch string) error {
 	updateFunc := func(workDir string) error {
 		var commands []string
 		commands = append(commands, "git reset --hard && git clean -xfd")
-		commands = append(commands, fmt.Sprintf("git -C %s fetch", workDir))
+		commands = append(commands, "git fetch")
 		if branch != "" {
-			commands = append(commands, fmt.Sprintf("git -C %s checkout %s", workDir, branch))
+			commands = append(commands, fmt.Sprintf("git checkout %s", branch))
 		}
 		commands = append(commands, "git pull")
 
@@ -560,7 +522,6 @@ func (c Celer) updateConfRepo(repo, branch string) error {
 		commandLine := strings.Join(commands, " && ")
 		executor := cmd.NewExecutor("[update conf repo]", commandLine)
 		executor.SetWorkDir(workDir)
-
 		output, err := executor.ExecuteOutput()
 		if err != nil {
 			return err
@@ -576,15 +537,56 @@ func (c Celer) updateConfRepo(repo, branch string) error {
 		if fileio.PathExists(filepath.Join(confDir, ".git")) {
 			return updateFunc(confDir)
 		} else if repo != "" {
-			commands := []string{fmt.Sprintf("rm -rf %s", confDir)}
-			return cloneFunc(commands, confDir)
+			return cloneFunc(confDir)
 		} else {
 			return fmt.Errorf("conf repo url is empty")
 		}
 	} else {
-		var commands []string
-		return cloneFunc(commands, confDir)
+		return cloneFunc(confDir)
 	}
+}
+
+func (c Celer) portsRepoUrl() string {
+	portsRepo := os.Getenv("CELER_PORTS_REPO")
+	if portsRepo != "" {
+		return portsRepo
+	}
+
+	return defaultPortsRepo
+}
+
+func (c Celer) clonePorts() error {
+	var cloneRequired bool
+
+	portsDir := filepath.Join(dirs.WorkspaceDir, "ports")
+	if !fileio.PathExists(portsDir) {
+		cloneRequired = true
+	} else {
+		entities, err := os.ReadDir(portsDir)
+		if err != nil {
+			return err
+		}
+
+		if len(entities) == 0 {
+			cloneRequired = true
+		}
+	}
+
+	if cloneRequired {
+		// Remove ports dir before clone it.
+		if err := os.RemoveAll(portsDir); err != nil {
+			return err
+		}
+
+		// Clone ports repo.
+		command := fmt.Sprintf("git clone %s %s", c.portsRepoUrl(), portsDir)
+		executor := cmd.NewExecutor("[clone ports]", command)
+		if err := executor.Execute(); err != nil {
+			return fmt.Errorf("`https://github.com/celer-pkg/ports.git` is not available, but your can change the default ports repo in celer.toml: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // ======================= celer context implementation ====================== //

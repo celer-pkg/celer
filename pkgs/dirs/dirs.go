@@ -7,17 +7,19 @@ import (
 )
 
 var (
-	WorkspaceDir       string // absolute dir of "."
-	ConfPlatformsDir   string // absolute dir of "conf/platforms"
-	ConfProjectsDir    string // absolute dir of "conf/projects"
-	PortsDir           string // absolute dir of "ports"
-	PackagesDir        string // absolute dir of "packages"
-	DownloadedDir      string // absolute dir of "downloads"
-	DownloadedToolsDir string // absolute dir of "downloaded/tools"
-	InstalledDir       string // absolute dir of "installed"
-	BuildtreesDir      string // absolute dir of "buildtrees"
-	TmpFilesDir        string // absolute dir of "tmp/files"
-	TmpDepsDir         string // absolute dir of "tmp/deps"
+	WorkspaceDir       string // "."
+	ConfPlatformsDir   string // "conf/platforms"
+	ConfProjectsDir    string // "conf/projects"
+	PortsDir           string // "ports"
+	PackagesDir        string // "packages"
+	DownloadedDir      string // "downloads"
+	DownloadedToolsDir string // "downloaded/tools"
+	InstalledDir       string // "installed"
+	BuildtreesDir      string // "buildtrees"
+	TmpDir             string // "tmp"
+	TmpFilesDir        string // "tmp/files"
+	TmpDepsDir         string // "tmp/deps"
+	TestCacheDir       string // "cachedir"
 )
 
 func init() {
@@ -39,8 +41,10 @@ func Init(workspaceDir string) {
 	DownloadedToolsDir = filepath.Join(WorkspaceDir, "downloads", "tools")
 	InstalledDir = filepath.Join(WorkspaceDir, "installed")
 	BuildtreesDir = filepath.Join(WorkspaceDir, "buildtrees")
+	TmpDir = filepath.Join(WorkspaceDir, "tmp")
 	TmpFilesDir = filepath.Join(WorkspaceDir, "tmp", "files")
 	TmpDepsDir = filepath.Join(WorkspaceDir, "tmp", "deps")
+	TestCacheDir = filepath.Join(WorkspaceDir, "cachedir")
 }
 
 // ParentDir return the parent directory of path.

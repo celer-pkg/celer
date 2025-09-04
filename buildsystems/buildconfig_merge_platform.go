@@ -88,7 +88,7 @@ func (b *BuildConfig) mergePlatform() {
 
 func (b BuildConfig) buildTarget() string {
 	switch {
-	case b.Pattern == "":
+	case b.Pattern == "" || b.Pattern == "*":
 		return runtime.GOOS
 
 	case strings.Contains(b.Pattern, "windows"):

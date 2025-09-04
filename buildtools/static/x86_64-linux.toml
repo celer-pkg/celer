@@ -1,4 +1,3 @@
-# 定义 build_tools 数组
 [[build_tools]]
 name = "cmake"
 version = "3.30.5"

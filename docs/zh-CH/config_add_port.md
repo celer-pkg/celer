@@ -115,7 +115,9 @@ options = [
 - **meson**: "--default-library=shared"
 - **b2**: "link=shared runtime-link=shared"
 
->由于大多数 C/C++ 库不支持显式地仅编译静态库，因此除非在 port.toml 中手动指定 **build_static**，否则默认值为空。
+>**注意：**  
+>**1:** 由于大多数 C/C++ 库不支持显式地仅编译静态库，因此除非在 port.toml 中手动指定 **build_static**，否则默认值为空。  
+>**2:** 有些makefiles项目的构建目标是一个可执行文件，而不是库。在这种情况下，您可以将 **build_shared** 和 **build_static** 设置为 **no** 来分别禁用编译动态库和静态库。
 
 当 **library_type** 被设置为 **shared** 时，尝试读取 **build_shared** 中的值作为编译选项参数，否则读取 **build_static** 中的值作为编译选项参数。
 

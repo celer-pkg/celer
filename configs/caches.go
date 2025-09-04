@@ -10,7 +10,8 @@ import (
 )
 
 type CacheDir struct {
-	Dir string `toml:"dir"`
+	Dir   string `toml:"dir"`
+	Token string `toml:"token,omitempty"`
 }
 
 func (c CacheDir) Validate() error {
@@ -90,7 +91,7 @@ func (c CacheDir) Write(packageDir, meta string) error {
 	}
 
 	// Write description to meta dir.
-	if err := os.WriteFile(filepath.Join(metaDir, hash+".txt"), []byte(meta), os.ModePerm); err != nil {
+	if err := os.WriteFile(filepath.Join(metaDir, hash+".meta"), []byte(meta), os.ModePerm); err != nil {
 		return err
 	}
 
@@ -113,6 +114,6 @@ func (c CacheDir) Remove(platformName, projectName, buildType, nameVersion strin
 // Exist check both archive file and build desc file exist.
 func (c CacheDir) Exist(platformName, projectName, buildType, nameVersion, hash string) bool {
 	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, hash+".tar.gz")
-	metaFilePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, "meta", hash+".txt")
+	metaFilePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, "meta", hash+".meta")
 	return fileio.PathExists(archivePath) && fileio.PathExists(metaFilePath)
 }

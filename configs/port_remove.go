@@ -139,7 +139,7 @@ func (p Port) doRemovePort() error {
 
 	// Remove meta file and clean meta dir.
 	buildSystem := p.MatchedConfig.BuildSystem
-	if buildSystem != "nobuild" && buildSystem != "prebuilt" {
+	if buildSystem != "nobuild" {
 		if fileio.PathExists(p.metaFile) {
 			if err := os.Remove(p.metaFile); err != nil {
 				return fmt.Errorf("cannot remove meta file: %s", err)

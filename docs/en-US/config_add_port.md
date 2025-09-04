@@ -108,14 +108,18 @@ The following are fields and their descriptions:
 
 ### 2.2.5 build_shared，build_static
 
-&emsp;&emsp;Optional, some ancient **makefiles** projects do not support compiling dynamic libraries with **--enable-shared**, but with **--with-shared**. To flexibly support this, this configuration entry is reserved. You may be afraid of the configuration here, but fortunately, the default value of **build_shared** depends on the different **buildsystem**, and you only need to override the specified value when needed. The default values of **build_shared** and **build_static** are as follows:
+&emsp;&emsp;Optional, some old **makefiles** projects do not support compiling dynamic libraries with **--enable-shared**, but with **--with-shared**. To flexibly support this, this configuration entry is reserved. You may be afraid of the configuration here, but fortunately, the default value of **build_shared** depends on the different **buildsystem**, and you only need to override the specified value when needed. The default values of **build_shared** and **build_static** are as follows:
 
 - **cmake**: "-DBUILD_SHARED_LIBS=ON"
 - **makefiles**: "--enable-shared"
 - **meson**: "--default-library=shared"
 - **b2**: "link=shared runtime-link=shared"
 
->Since most C/C++ libraries don't support explicitly compiling static libraries only, **build_static**'s default value is empty unless manually specified in **port.toml**.
+>**Note**:  
+>
+>**1.** Since most C/C++ libraries don't support explicitly compiling static libraries only, **build_static**'s default value is empty unless manually specified in **port.toml**.  
+>
+>**2.** Some makefiles project's build target is an execuable, not library. In this case, you can set **build_shared** and **build_static** to **no** to disable compiling dynamic library and static library respectively.
 
 When **library_type** is set to **shared**, try to read the value in **build_shared** as the compilation option parameter, otherwise read the value in **build_static** as the compilation option parameter.
 

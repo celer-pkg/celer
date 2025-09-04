@@ -23,7 +23,7 @@ func (i initCmd) Command() *cobra.Command {
 				configs.PrintError(err, "failed to init celer.")
 				return
 			}
-			if err := i.celer.SyncConf(i.url, i.branch); err != nil {
+			if err := i.celer.SetConfRepo(i.url, i.branch); err != nil {
 				configs.PrintError(err, "failed to init celer: %s.", err)
 				return
 			}

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"strings"
 )
@@ -28,12 +27,18 @@ func (p Port) Install() (string, error) {
 	}
 
 	if installed {
-		// Don't show installed info when building in host is not supported.
-		if !DevMode && p.IsHostSupported() {
-			title := color.Sprintf(color.Green, "\n[✔] ---- package: %s\n", p.NameVersion())
-			fmt.Printf("%sLocation: %s\n", title, installedDir)
+		if p.Reinstall {
+			if err := p.Remove(p.Recurse, true, true); err != nil {
+				return "", err
+			}
+		} else {
+			// Don't show installed info when building in host is not supported.
+			if !DevMode && p.IsHostSupported() {
+				title := color.Sprintf(color.Green, "\n[✔] ---- package: %s\n", p.NameVersion())
+				fmt.Printf("%sLocation: %s\n", title, installedDir)
+			}
+			return "", nil
 		}
-		return "", nil
 	}
 
 	// Clear the tmp/deps dir, then copy only the needed library files into it.
@@ -67,7 +72,7 @@ func (p Port) Install() (string, error) {
 	}
 
 	// 2. try to install from cache.
-	if !p.StoreCache && !p.ForceInstall {
+	if !p.StoreCache && !p.Reinstall {
 		if installed, err := p.installFromCache(); err != nil {
 			return "", err
 		} else if installed {
@@ -141,6 +146,28 @@ func (p Port) doInstallFromSource() error {
 		}
 	}()
 
+	var writeCacheAfterInstall bool
+	cacheDir := p.ctx.CacheDir()
+	if p.StoreCache {
+		if cacheDir == nil || cacheDir.Dir == "" {
+			return ErrCacheDirNotConfigured
+		}
+
+		if cacheDir.Token == "" {
+			return ErrCacheTokenNotConfigured
+		}
+
+		if p.CacheToken == "" {
+			return ErrCacheTokenNotSpecified
+		}
+
+		if p.CacheToken != cacheDir.Token {
+			return ErrCacheTokenNotMatch
+		}
+
+		writeCacheAfterInstall = true
+	}
+
 	if err := p.MatchedConfig.Install(p.Package.Url, p.Package.Ref, p.Package.Archive); err != nil {
 		installFailed = true
 		return err
@@ -148,13 +175,13 @@ func (p Port) doInstallFromSource() error {
 
 	// Generate meta file and store cache.
 	buildSystem := p.MatchedConfig.BuildSystem
-	if buildSystem != "nobuild" && buildSystem != "prebuilt" {
+	if buildSystem != "nobuild" {
 		metaData, err := p.buildMeta(p.Package.Commit)
 		if err != nil {
 			installFailed = true
 			return err
 		}
-		metaFile := filepath.Join(p.packageDir, p.meta2hash(metaData))
+		metaFile := filepath.Join(p.packageDir, p.meta2hash(metaData)) + ".meta"
 		if err := os.MkdirAll(filepath.Dir(metaFile), os.ModePerm); err != nil {
 			installFailed = true
 			return err
@@ -164,9 +191,8 @@ func (p Port) doInstallFromSource() error {
 			return err
 		}
 
-		// Store cache.
-		cacheDir := p.ctx.CacheDir()
-		if cacheDir != nil && p.StoreCache {
+		// Store cache after installation.
+		if writeCacheAfterInstall {
 			if err := cacheDir.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 				return err
 			}
@@ -199,8 +225,8 @@ func (p Port) doInstallFromPackage(destDir string) error {
 		src := filepath.Join(p.packageDir, file)
 		dest := filepath.Join(destDir, file)
 
-		// Rename hash file as new name in hash folder.
-		if p.isChecksumFile(filepath.Join(p.packageDir, file)) {
+		// Rename meta file as new name in meta folder.
+		if strings.HasSuffix(file, ".meta") {
 			dest = p.metaFile
 		}
 
@@ -227,53 +253,56 @@ func (p Port) installFromPackage() (bool, error) {
 		return false, err
 	}
 
-	// Check if have hash file in package, no hash file indicates the package is invalid.
+	// Check if have meta file in package, no meta file means the package is invalid.
 	var metaFile string
 	entities, err := os.ReadDir(p.MatchedConfig.PortConfig.PackageDir)
 	if err != nil {
 		return false, fmt.Errorf("read package dir error: %w", err)
 	}
 	for _, entity := range entities {
-		if p.isChecksumFile(filepath.Join(p.MatchedConfig.PortConfig.PackageDir, entity.Name())) {
+		if strings.HasSuffix(entity.Name(), ".meta") {
 			metaFile = filepath.Join(p.MatchedConfig.PortConfig.PackageDir, entity.Name())
 			break
 		}
 	}
 	if metaFile == "" {
 		suffix := expr.If(p.DevDep, "@dev", "")
-		return false, fmt.Errorf("invalid package %s, since hash is not found for %s", p.packageDir, p.NameVersion()+suffix)
+		return false, fmt.Errorf("invalid package %s, since meta file is not found for %s", p.packageDir, p.NameVersion()+suffix)
 	}
 
-	// Install from package if buildhash matches.
-	buildBytes, err := os.ReadFile(metaFile)
+	// Install from package if meta matches.
+	metaBytes, err := os.ReadFile(metaFile)
 	if err != nil {
-		return false, fmt.Errorf("read package buildhash of %s error: %w", p.NameVersion(), err)
+		return false, fmt.Errorf("read package meta of %s error: %w", p.NameVersion(), err)
 	}
 	newMeta, err := p.buildMeta(p.Package.Commit)
 	if err != nil {
-		return false, fmt.Errorf("calculate buildhash of %s error: %w", p.NameVersion(), err)
+		return false, fmt.Errorf("calculate meta of %s error: %w", p.NameVersion(), err)
 	}
 
-	localMeta := string(buildBytes)
+	// Remove overdue package.
+	localMeta := string(metaBytes)
 	if localMeta != newMeta {
-		color.Printf(color.Green, "================ meta not match for %s: ================\n", p.NameVersion())
+		color.Printf(color.Green, "================ remove overdue package: metas don't match for %s: ================\n", p.NameVersion())
 		color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local meta: <<<<<<<<<<<<<<<<<")
 		color.Println(color.Blue, newMeta)
 		color.Println(color.Green, ">>>>>>>>>>>>>>>>> New meta: <<<<<<<<<<<<<<<<<")
 		color.Println(color.Blue, newMeta)
 
-		if err := p.doInstallFromPackage(p.installedDir); err != nil {
-			return false, fmt.Errorf("install from package error: %w", err)
+		if err := p.Remove(false, false, false); err != nil {
+			return false, fmt.Errorf("remove overdue package error: %w", err)
 		}
-		return true, p.writeTraceFile("package")
 	}
 
-	// Remove overdue package.
-	if err := p.Remove(false, false, false); err != nil {
-		color.Printf(color.Yellow, "[✘] ======== failed to remove overdue package %s. ========\n", err)
+	if err := p.doInstallFromPackage(p.installedDir); err != nil {
+		return false, fmt.Errorf("install from package error: %w", err)
 	}
 
-	return false, nil
+	if err := p.writeTraceFile("package"); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (p Port) installFromCache() (bool, error) {
@@ -471,26 +500,4 @@ func (p Port) writeTraceFile(installedFrom string) error {
 		p.NameVersion(), installedFrom)
 	fmt.Printf("%sLocation: %s\n", title, p.installedDir)
 	return nil
-}
-
-func (p Port) isChecksumFile(filePath string) bool {
-	fileName := filepath.Base(filePath)
-
-	// Sha-256 always has 64 characters.
-	if len(fileName) != 64 {
-		return false
-	}
-
-	// Check if contains only hexadecimal characters (0-9, a-f, A-F).
-	matched, err := regexp.MatchString(`^[0-9a-fA-F]{64}$`, fileName)
-	if err != nil || !matched {
-		return false
-	}
-
-	// Check if the checksum matches the file content.
-	checksum, err := fileio.CalculateChecksum(filePath)
-	if err != nil {
-		return false
-	}
-	return checksum == fileName
 }
