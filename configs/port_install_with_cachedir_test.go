@@ -138,6 +138,7 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 		t.Fatal("should install successfully from cache")
 	}
 
+	// gflags should also be installed from cache.
 	var gflagsPort Port
 	check(gflagsPort.Init(celer, "gflags@2.2.2", celer.BuildType()))
 	installed, err = gflagsPort.Installed()
