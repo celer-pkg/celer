@@ -17,6 +17,7 @@ celer install [package_name] [flags]
 | --force	        | -f	     | Try to uninstall before installation.                    |
 | --recurse	        | -r	     | Combine with --force, recursively reinstall dependencies.|
 | --store-cache     | -s         | Store artifact into cache after installation.            |
+| --cache-token     | -t         | Combine with --store-cache, specify cache token.         |
 
 ## Usage Examples
 
@@ -48,7 +49,7 @@ celer install ffmpeg@5.1.6 --force/-f --recurse/-r
 **5. Store artifact into cache after installation:**
 
 ```shell
-celer install ffmpeg@5.1.6 --store-cache/-f
+celer install ffmpeg@5.1.6 --store-cache/-f --cache-token/-t token_xxx
 ```
 
 ## Structure of installed directory

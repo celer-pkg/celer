@@ -38,8 +38,11 @@ type Port struct {
 	Parent        string                    `toml:"-"`
 	DevDep        bool                      `toml:"-"`
 	Native        bool                      `toml:"-"`
-	ForceInstall  bool                      `toml:"-"`
 	MatchedConfig *buildsystems.BuildConfig `toml:"-"`
+
+	// Reinstall fields.
+	Reinstall bool `toml:"-"`
+	Recurse   bool `toml:"-"`
 
 	// Cached fields.
 	StoreCache bool   `toml:"-"`
@@ -128,7 +131,7 @@ func (p Port) Installed() (bool, error) {
 	}
 
 	// No meta file means not installed.
-	if p.MatchedConfig.BuildSystem != "nobuild" && p.MatchedConfig.BuildSystem != "prebuilt" {
+	if p.MatchedConfig.BuildSystem != "nobuild" {
 		// Check if meta file exists.
 		if !fileio.PathExists(p.metaFile) {
 			return false, nil

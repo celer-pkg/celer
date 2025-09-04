@@ -44,6 +44,7 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	check(port.Init(celer, "sqlite3@3.49.0", celer.BuildType()))
 	check(port.installFromSource())
 
+	// Check package.
 	var packageDir string
 	if runtime.GOOS == "windows" {
 		packageDir = filepath.Join(dirs.PackagesDir, "sqlite3@3.49.0@x86_64-windows-msvc-14.44@test_project_01@release")
@@ -54,8 +55,9 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 		t.Fatal("package cannot found")
 	}
 
-	// Totally remove port
+	// Totally remove port and src.
 	check(port.Remove(true, true, true))
+	check(os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir))
 
 	// Install from package should fail.
 	installed, err := port.installFromPackage()
@@ -121,8 +123,9 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 		t.Fatal("gflags or glog package cannot found")
 	}
 
-	// Totally remove port
+	// Totally remove port and src.
 	check(glogPort.Remove(true, true, true))
+	check(os.RemoveAll(glogPort.MatchedConfig.PortConfig.RepoDir))
 
 	// Install from package should fail.
 	installed, err := glogPort.installFromPackage()
@@ -152,7 +155,71 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 	check(gflagsPort.Remove(true, true, true))
 }
 
-func TestInstall_CacheDir_DirNotDefined(t *testing.T) {
+func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := NewCeler()
+	check(celer.Init())
+
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetBuildType("Release"))
+	check(celer.SetProject("test_project_02"))
+	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+
+	// Setup build environment.
+	check(celer.Platform().Setup())
+
+	var port Port
+	port.StoreCache = true
+	port.CacheToken = "token_123456"
+	check(port.Init(celer, "prebuilt-x264@stable", celer.BuildType()))
+	check(port.installFromSource())
+
+	// Check package & repo.
+	packageDir := filepath.Join(dirs.PackagesDir, "prebuilt-x264@stable@x86_64-linux-ubuntu-22.04@test_project_02@release")
+	if !fileio.PathExists(packageDir) {
+		t.Fatal("package cannot found")
+	}
+	if fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
+		t.Fatal("repo should not exist")
+	}
+
+	// Totally remove port.
+	check(port.Remove(true, true, true))
+
+	// Install from package should fail.
+	installed, err := port.installFromPackage()
+	check(err)
+	if installed {
+		t.Fatal("should install failed from package")
+	}
+
+	// Install from cache should success.
+	installed, err = port.installFromCache()
+	check(err)
+	if !installed {
+		t.Fatal("should install successfully from cache")
+	}
+
+	// Clean up.
+	check(port.Remove(true, true, true))
+}
+
+func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -189,7 +256,7 @@ func TestInstall_CacheDir_DirNotDefined(t *testing.T) {
 	}
 }
 
-func TestInstall_CacheDir_TokenNotDefined(t *testing.T) {
+func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -226,7 +293,7 @@ func TestInstall_CacheDir_TokenNotDefined(t *testing.T) {
 	}
 }
 
-func TestInstall_CacheDir_TokenNotSpecified(t *testing.T) {
+func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -263,7 +330,7 @@ func TestInstall_CacheDir_TokenNotSpecified(t *testing.T) {
 	}
 }
 
-func TestInstall_CacheDir_TokenNotMatch(t *testing.T) {
+func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()

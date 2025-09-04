@@ -21,6 +21,7 @@ type installCmd struct {
 	force      bool
 	recurse    bool
 	storeCache bool
+	cacheToken string
 }
 
 func (i installCmd) Command() *cobra.Command {
@@ -47,6 +48,7 @@ func (i installCmd) Command() *cobra.Command {
 	command.Flags().BoolVarP(&i.force, "force", "f", false, "Try to uninstall before installation.")
 	command.Flags().BoolVarP(&i.recurse, "recurse", "r", false, "Combine with --force, recursively reinstall dependencies.")
 	command.Flags().BoolVarP(&i.storeCache, "store-cache", "s", false, "Store artifact into cache after installation.")
+	command.Flags().StringVarP(&i.cacheToken, "cache-token", "t", "", "Combine with --store-cache, specify cache token.")
 
 	return command
 }
@@ -83,19 +85,13 @@ func (i installCmd) install(nameVersion string) {
 	// Install the port.
 	var port configs.Port
 	port.DevDep = i.dev
-	port.ForceInstall = i.force
+	port.Reinstall = i.force
+	port.Recurse = i.recurse
 	port.StoreCache = i.storeCache
+	port.CacheToken = i.cacheToken
 	if err := port.Init(i.celer, nameVersion, i.buildType); err != nil {
 		configs.PrintError(err, "init %s failed.", nameVersion)
 		return
-	}
-
-	// Remove pacakge(installed + package + buildcache).
-	if i.force {
-		if err := port.Remove(i.recurse, true, true); err != nil {
-			configs.PrintError(err, "uninstall %s failed before reinstall.", nameVersion)
-			return
-		}
 	}
 
 	// Check circular dependence.

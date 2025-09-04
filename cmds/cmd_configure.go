@@ -59,7 +59,7 @@ func (c configureCmd) Command() *cobra.Command {
 		return c.flagCompletion(dirs.ConfProjectsDir, toComplete)
 	})
 
-	command.MarkFlagsMutuallyExclusive("platform", "project", "cachedir")
+	command.MarkFlagsMutuallyExclusive("platform", "project", "cache-dir")
 	return command
 }
 
@@ -81,18 +81,18 @@ func (c configureCmd) setProject(projectName string) {
 }
 
 func (c configureCmd) setCacheDir(dir, token string) {
-	cacheDirChanged := c.Command().Flags().Changed("cache-dir")
-	cacheTokenChanged := c.Command().Flags().Changed("cache-token")
+	dir = expr.If(dir != "", dir, c.celer.CacheDir().Dir)
+	token = expr.If(token != "", token, c.celer.CacheDir().Token)
 
-	finalDir := expr.If(cacheDirChanged, dir, c.celer.CacheDir().Dir)
-	finalToken := expr.If(cacheTokenChanged, token, c.celer.CacheDir().Token)
-
-	if err := c.celer.SetCacheDir(finalDir, finalToken); err != nil {
+	if err := c.celer.SetCacheDir(dir, token); err != nil {
 		configs.PrintError(err, "failed to set cache dir: %s, token: %s.", dir, token)
 		os.Exit(1)
 	}
 
-	configs.PrintSuccess("current cache dir: %s, token: %s.", dir, token)
+	configs.PrintSuccess("current cache dir: %s, token: %s.",
+		expr.If(dir != "", dir, "empty"),
+		expr.If(token != "", token, "empty"),
+	)
 }
 
 func (c configureCmd) flagCompletion(dir, toComplete string) ([]string, cobra.ShellCompDirective) {

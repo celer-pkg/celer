@@ -282,19 +282,22 @@ func (c *Celer) SetConfRepo(url, branch string) error {
 	// No repo url specifeid, maybe want to update repo only.
 	if strings.TrimSpace(url) == "" {
 		return c.updateConfRepo("", branch)
+	} else {
+		if err := c.updateConfRepo(url, branch); err != nil {
+			return err
+		}
 	}
 
-	c.Global.ConfRepo = url
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
+	c.Global.ConfRepo = url
 	if err := c.save(); err != nil {
 		return err
 	}
 
-	// Update repo.
-	return c.updateConfRepo(c.Global.ConfRepo, branch)
+	return nil
 }
 
 func (c Celer) GenerateToolchainFile() error {
@@ -490,10 +493,13 @@ func (c Celer) save() error {
 
 func (c Celer) updateConfRepo(repo, branch string) error {
 	// Extracted clone function for reusability.
-	cloneFunc := func(commands []string, workDir string) error {
-		commands = append(commands, fmt.Sprintf("git clone %s %s", repo, workDir))
+	cloneFunc := func(workDir string) error {
+		if err := os.RemoveAll(workDir); err != nil {
+			return err
+		}
 
-		// Execute clone command.
+		var commands []string
+		commands = append(commands, fmt.Sprintf("git clone %s %s", repo, workDir))
 		commandLine := strings.Join(commands, " && ")
 		executor := cmd.NewExecutor("[clone]", commandLine)
 		executor.SetWorkDir(dirs.WorkspaceDir)
@@ -504,9 +510,9 @@ func (c Celer) updateConfRepo(repo, branch string) error {
 	updateFunc := func(workDir string) error {
 		var commands []string
 		commands = append(commands, "git reset --hard && git clean -xfd")
-		commands = append(commands, fmt.Sprintf("git -C %s fetch", workDir))
+		commands = append(commands, "git fetch")
 		if branch != "" {
-			commands = append(commands, fmt.Sprintf("git -C %s checkout %s", workDir, branch))
+			commands = append(commands, fmt.Sprintf("git checkout %s", branch))
 		}
 		commands = append(commands, "git pull")
 
@@ -514,7 +520,6 @@ func (c Celer) updateConfRepo(repo, branch string) error {
 		commandLine := strings.Join(commands, " && ")
 		executor := cmd.NewExecutor("[update conf repo]", commandLine)
 		executor.SetWorkDir(workDir)
-
 		output, err := executor.ExecuteOutput()
 		if err != nil {
 			return err
@@ -530,14 +535,12 @@ func (c Celer) updateConfRepo(repo, branch string) error {
 		if fileio.PathExists(filepath.Join(confDir, ".git")) {
 			return updateFunc(confDir)
 		} else if repo != "" {
-			commands := []string{fmt.Sprintf("rm -rf %s", confDir)}
-			return cloneFunc(commands, confDir)
+			return cloneFunc(confDir)
 		} else {
 			return fmt.Errorf("conf repo url is empty")
 		}
 	} else {
-		var commands []string
-		return cloneFunc(commands, confDir)
+		return cloneFunc(confDir)
 	}
 }
 

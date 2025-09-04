@@ -130,18 +130,24 @@ func (m makefiles) configureOptions() ([]string, error) {
 	}
 
 	// Set build library type.
+	m.BuildConfig.BuildShared = expr.If(m.BuildConfig.BuildShared == "no", "", "--enable-shared")
+	m.BuildConfig.BuildStatic = expr.If(m.BuildConfig.BuildStatic == "no", "", "--enable-static")
 	libraryType := m.libraryType(
-		"--enable-shared",
-		"--enable-static",
+		m.BuildConfig.BuildShared,
+		m.BuildConfig.BuildStatic,
 	)
 	switch m.BuildConfig.LibraryType {
 	case "shared", "": // default is `shared`.
-		options = append(options, libraryType.enableShared)
+		if libraryType.enableShared != "" {
+			options = append(options, libraryType.enableShared)
+		}
 		if libraryType.disableStatic != "" {
 			options = append(options, libraryType.disableStatic)
 		}
 	case "static":
-		options = append(options, libraryType.enableStatic)
+		if libraryType.enableStatic != "" {
+			options = append(options, libraryType.enableStatic)
+		}
 		if libraryType.disableShared != "" {
 			options = append(options, libraryType.disableShared)
 		}
