@@ -2,6 +2,7 @@ package configs
 
 import (
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
@@ -55,9 +56,11 @@ func (p *Platform) Init(ctx Context, platformName string) error {
 		}
 	}
 
-	// Validate toolchain or detect toolchain if not specified in platform.
-	if err := p.detectToolchain(); err != nil {
-		return err
+	// Detect toolchain if not specified in platform toml.
+	if p.Toolchain == nil {
+		if err := p.detectToolchain(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -169,11 +172,7 @@ func (p *Platform) detectToolchain() error {
 	}
 
 	// Assign standard toolchain name.
-	if toolchain.Name == "msvc" {
-		p.Name = "x86_64-windows"
-	} else {
-		p.Name = "x86_64-linux"
-	}
+	p.Name = expr.If(p.Toolchain.Name == "msvc", "x86_64-windows", "x86_64-linux")
 
 	return nil
 }
