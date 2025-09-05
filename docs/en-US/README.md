@@ -15,7 +15,7 @@ In C/C++ projects, dependencies are described within the library's source code, 
 **3. Setup cross-compilation environment**  
 Although CMake supports cross-compilation by providing `-D CMAKE_TOOLCHAIN_FILE` to specify a **toolchain_file.cmake**, it still requires manually written scripts for proper configuration.
 
->In fact, the core functionality of Celer is to dynamically generate a **toolchain_file.cmake** as required. Within this file, it configures all required build tools with relative paths, and also specifies the library search paths to isolate system libraries from being found. This means that all the work required  is handled by Celer before generating the toolchain_file.cmake, this is [**one of the reasons**](./why_reinvent_celer.md) why Celer was reinvented, rather than using other C/C++ package managers.
+>In fact, the core functionality of Celer is to dynamically generate a **toolchain_file.cmake** as required. Within this file, it configures all required build tools with relative paths, and also specifies the library search paths to isolate system libraries from being found. This means that all the work required  is handled by Celer before generating the toolchain_file.cmake, this is one of the [**REASONS**](./why_reinvent_celer.md) why Celer was reinvented, rather than using other C/C++ package managers.
 
 # Key features
 

@@ -15,7 +15,7 @@ CMake 本身并不负责下载库源码、配置工具链、准备根文件系�
 **3. 配置交叉编译环境**  
 尽管 CMake 支持通过 `-D CMAKE_TOOLCHAIN_FILE` 指定 **toolchain_file.cmake** 来进行交叉编译，但这仍然需要开发者手动编写脚本进行正确配置。
 
->实际上，Celer 的核心功能在于按需动态生成 toolchain_file.cmake 文件。该文件会通过相对路径配置所有必需的构建工具，并指定库搜索路径以隔离系统库的干扰。这意味着在生成 toolchain_file.cmake 之前，所有准备工作都已由 Celer 自动完成——这也正是我们重新打造 Celer 而非直接采用其他 C/C++ 包管理工具的核心理由之一。
+>实际上，Celer 的核心功能在于按需动态生成 toolchain_file.cmake 文件。该文件会通过相对路径配置所有必需的构建工具，并指定库搜索路径以隔离系统库的干扰。这意味着在生成 toolchain_file.cmake 之前，所有准备工作都已由 Celer 自动完成——这也正是我们重新打造 Celer 而非直接采用其他 C/C++ 包管理工具的核心[**原因**](./why_reinvent_celer.md)之一。
 
 # 主要功能：
 
