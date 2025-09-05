@@ -106,8 +106,8 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 		cmd.Stdout = io.MultiWriter(os.Stdout, logFile)
 		cmd.Stderr = io.MultiWriter(os.Stderr, logFile)
 	} else if buffer != nil {
-		cmd.Stdout = io.MultiWriter(os.Stdout, buffer)
-		cmd.Stderr = io.MultiWriter(os.Stdout, buffer)
+		cmd.Stdout = buffer
+		cmd.Stderr = buffer
 	} else {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stdout
