@@ -110,6 +110,9 @@ func TestConfigure_CacheDir(t *testing.T) {
 		check(os.RemoveAll(dirs.TestCacheDir))
 	})
 
+	// Must create cache dir before setting cache dir.
+	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+
 	// Init celer.
 	celer := NewCeler()
 	check(celer.Init())

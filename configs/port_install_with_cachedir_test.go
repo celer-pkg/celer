@@ -44,15 +44,15 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	var port Port
 	port.StoreCache = true
 	port.CacheToken = "token_123456"
-	check(port.Init(celer, "sqlite3@3.49.0", celer.BuildType()))
+	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
 	check(port.installFromSource())
 
 	// Check package.
 	var packageDir string
 	if runtime.GOOS == "windows" {
-		packageDir = filepath.Join(dirs.PackagesDir, "sqlite3@3.49.0@x86_64-windows-msvc-14.44@test_project_01@release")
+		packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@test_project_01@release")
 	} else {
-		packageDir = filepath.Join(dirs.PackagesDir, "sqlite3@3.49.0@x86_64-linux-ubuntu-22.04@test_project_01@release")
+		packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@test_project_01@release")
 	}
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found")
