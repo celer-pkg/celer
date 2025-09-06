@@ -679,7 +679,8 @@ func (b *BuildConfig) fillPlaceHolders() {
 }
 
 func (b BuildConfig) setBuildType(buildType string) {
-	isRelease := strings.ToLower(buildType) == "release"
+	buildType = strings.ToLower(buildType)
+	isRelease := buildType == "release" || buildType == "relwithdebinfo" || buildType == "minsizerel"
 
 	if b.PortConfig.CrossTools.Name == "msvc" {
 		cl := strings.Split(os.Getenv("CL"), " ")

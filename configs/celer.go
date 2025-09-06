@@ -172,11 +172,34 @@ func (c Celer) CreatePlatform(platformName string) error {
 }
 
 func (c *Celer) SetBuildType(buildtype string) error {
+	buildtype = strings.ToLower(buildtype)
+
+	if buildtype != "release" && buildtype != "debug" && buildtype != "relwithdebinfo" && buildtype != "minsizerel" {
+		return ErrInvalidBuildType
+	}
+
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
 	c.configData.Global.BuildType = buildtype
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetJobNum(jobNum int) error {
+	if jobNum < 0 {
+		return ErrInvalidJobNum
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	c.configData.Global.JobNum = jobNum
 	if err := c.save(); err != nil {
 		return err
 	}

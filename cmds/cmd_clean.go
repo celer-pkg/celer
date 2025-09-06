@@ -61,6 +61,7 @@ func (c cleanCmd) Command() *cobra.Command {
 	command.Flags().BoolVarP(&c.recurse, "recurse", "r", false, "clean package/project along with its depedencies.")
 	command.Flags().BoolVarP(&c.dev, "dev", "d", false, "clean package/project for dev mode.")
 	command.Flags().BoolVarP(&c.all, "all", "a", false, "clean all packages.")
+
 	return command
 }
 
