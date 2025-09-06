@@ -50,6 +50,7 @@ func (m meson) CleanRepo() error {
 
 func (m meson) configureOptions() ([]string, error) {
 	buildType := strings.ToLower(m.BuildType)
+	isRelease := buildType == "release" || buildType == "relwithdebinfo" || buildType == "minsizerel"
 
 	var options = slices.Clone(m.Options)
 
@@ -63,7 +64,7 @@ func (m meson) configureOptions() ([]string, error) {
 		if !slices.ContainsFunc(options, func(arg string) bool {
 			return strings.Contains(arg, "--buildtype")
 		}) {
-			options = append(options, "--buildtype="+buildType)
+			options = append(options, "--buildtype="+expr.If(isRelease, "release", "debug"))
 		}
 	}
 
