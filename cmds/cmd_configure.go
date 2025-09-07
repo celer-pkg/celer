@@ -16,6 +16,8 @@ type configureCmd struct {
 	celer      *configs.Celer
 	platform   string
 	project    string
+	buildType  string
+	jobNum     int
 	cacheDir   string
 	cacheToken string
 }
@@ -23,7 +25,7 @@ type configureCmd struct {
 func (c configureCmd) Command() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "configure",
-		Short: "Configure to change platform or project.",
+		Short: "Configure to change gloabal settings.",
 		Run: func(cmd *cobra.Command, args []string) {
 			c.celer = configs.NewCeler()
 			if err := c.celer.Init(); err != nil {
@@ -33,13 +35,46 @@ func (c configureCmd) Command() *cobra.Command {
 
 			switch {
 			case c.platform != "":
-				c.setPlatform(c.platform)
+				if err := c.celer.SetPlatform(c.platform); err != nil {
+					configs.PrintError(err, "failed to set platform: %s.", c.platform)
+					os.Exit(1)
+				}
+				configs.PrintSuccess("current platform: %s.", c.platform)
 
 			case c.project != "":
-				c.setProject(c.project)
+				if err := c.celer.SetProject(c.project); err != nil {
+					configs.PrintError(err, "failed to set project: %s.", c.project)
+					os.Exit(1)
+				}
+				configs.PrintSuccess("current project: %s.", c.project)
 
-			case c.cacheDir != "":
-				c.setCacheDir(c.cacheDir, c.cacheToken)
+			case c.buildType != "":
+				if err := c.celer.SetBuildType(c.buildType); err != nil {
+					configs.PrintError(err, "failed to set build type: %s.", c.buildType)
+					os.Exit(1)
+				}
+				configs.PrintSuccess("current build type: %s.", c.buildType)
+
+			case c.jobNum != -1:
+				if err := c.celer.SetJobNum(c.jobNum); err != nil {
+					configs.PrintError(err, "failed to set job num: %d.", c.jobNum)
+					os.Exit(1)
+				}
+				configs.PrintSuccess("current job num: %d.", c.jobNum)
+
+			case c.cacheDir != "" || c.cacheToken != "":
+				cacheDir := expr.If(c.cacheDir != "", c.cacheDir, c.celer.CacheDir().Dir)
+				cacheToken := expr.If(c.cacheToken != "", c.cacheToken, c.celer.CacheDir().Token)
+
+				if err := c.celer.SetCacheDir(cacheDir, cacheToken); err != nil {
+					configs.PrintError(err, "failed to set cache dir: %s, token: %s.", cacheDir, cacheToken)
+					os.Exit(1)
+				}
+
+				configs.PrintSuccess("current cache dir: %s, token: %s.",
+					expr.If(cacheDir != "", cacheDir, "empty"),
+					expr.If(cacheToken != "", cacheToken, "empty"),
+				)
 			}
 		},
 		ValidArgsFunction: c.completion,
@@ -48,54 +83,32 @@ func (c configureCmd) Command() *cobra.Command {
 	// Register flags.
 	command.Flags().StringVar(&c.platform, "platform", "", "configure platform.")
 	command.Flags().StringVar(&c.project, "project", "", "configure project.")
+	command.Flags().StringVar(&c.buildType, "build-type", "", "configure build type.")
+	command.Flags().IntVar(&c.jobNum, "job-num", -1, "configure job num.")
 	command.Flags().StringVar(&c.cacheDir, "cache-dir", "", "configure cache dir.")
 	command.Flags().StringVar(&c.cacheToken, "cache-token", "", "configure cache token.")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return c.flagCompletion(dirs.ConfPlatformsDir, toComplete)
+		return c.tomlFileCompletion(dirs.ConfPlatformsDir, toComplete)
 	})
 	command.RegisterFlagCompletionFunc("project", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return c.flagCompletion(dirs.ConfProjectsDir, toComplete)
+		return c.tomlFileCompletion(dirs.ConfProjectsDir, toComplete)
+	})
+	command.RegisterFlagCompletionFunc("build-type", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{
+			"Release",
+			"Debug",
+			"RelWithDebInfo",
+			"MinSizeRel",
+		}, cobra.ShellCompDirectiveNoFileComp
 	})
 
-	command.MarkFlagsMutuallyExclusive("platform", "project", "cache-dir")
+	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "job-num", "cache-dir")
 	return command
 }
 
-func (c configureCmd) setPlatform(platformName string) {
-	if err := c.celer.SetPlatform(platformName); err != nil {
-		configs.PrintError(err, "failed to set platform: %s.", platformName)
-		os.Exit(1)
-	}
-
-	configs.PrintSuccess("current platform: %s.", platformName)
-}
-
-func (c configureCmd) setProject(projectName string) {
-	if err := c.celer.SetProject(projectName); err != nil {
-		configs.PrintError(err, "failed to set project: %s.", projectName)
-		os.Exit(1)
-	}
-	configs.PrintSuccess("current project: %s.", projectName)
-}
-
-func (c configureCmd) setCacheDir(dir, token string) {
-	dir = expr.If(dir != "", dir, c.celer.CacheDir().Dir)
-	token = expr.If(token != "", token, c.celer.CacheDir().Token)
-
-	if err := c.celer.SetCacheDir(dir, token); err != nil {
-		configs.PrintError(err, "failed to set cache dir: %s, token: %s.", dir, token)
-		os.Exit(1)
-	}
-
-	configs.PrintSuccess("current cache dir: %s, token: %s.",
-		expr.If(dir != "", dir, "empty"),
-		expr.If(token != "", token, "empty"),
-	)
-}
-
-func (c configureCmd) flagCompletion(dir, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var fileNames []string
 	if fileio.PathExists(dir) {
 		entities, err := os.ReadDir(dir)
@@ -120,7 +133,7 @@ func (c configureCmd) flagCompletion(dir, toComplete string) ([]string, cobra.Sh
 }
 
 func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	commands := []string{"--platform", "--project", "--cache-dir", "--cache-token"}
+	commands := []string{"--platform", "--project", "--build-type", "--job-num", "--cache-dir", "--cache-token"}
 
 	var suggestions []string
 	for _, flag := range commands {

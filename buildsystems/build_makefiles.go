@@ -107,7 +107,9 @@ func (m makefiles) configureOptions() ([]string, error) {
 
 	configureWithPerl := m.shouldConfigureWithPerl()
 	if configureWithPerl {
-		release := m.DevDep || strings.ToLower(m.BuildType) == "release"
+		buildType := strings.ToLower(m.BuildType)
+		isRelease := buildType == "release" || buildType == "relwithdebinfo" || buildType == "minsizerel"
+		release := m.DevDep || isRelease
 		options = append(options, expr.If(release, "--release", "--debug"))
 	}
 

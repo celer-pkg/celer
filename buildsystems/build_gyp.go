@@ -55,13 +55,13 @@ func (g gyp) configured() bool {
 }
 
 func (g gyp) Configure(options []string) error {
-	// Set cross tool environment Variables.
 	if g.DevDep {
 		g.PortConfig.CrossTools.ClearEnvs()
 	} else {
 		g.PortConfig.CrossTools.SetEnvs(g.BuildConfig)
 	}
 
+	g.setBuildType(g.BuildType)
 	return nil
 }
 
