@@ -2,8 +2,12 @@ package configs
 
 import (
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
+	"celer/pkgs/fileio"
+	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -223,6 +227,49 @@ func TestConfigure_JobNum_Invalid(t *testing.T) {
 	}
 }
 
+func TestConfigure_Offline(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := NewCeler()
+	check(celer.Init())
+
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetProject("test_project_01"))
+	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetOffline(true))
+
+	if celer.Global.Offline != true {
+		t.Fatalf("offline should be `true`")
+	}
+
+	if fileio.PathExists(dirs.DownloadedDir) {
+		check(os.Rename(dirs.DownloadedDir, dirs.DownloadedDir+".bak"))
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(dirs.DownloadedDir))
+		check(os.Rename(dirs.DownloadedDir+".bak", dirs.DownloadedDir))
+	})
+
+	err := celer.Platform().Setup()
+	if err == nil || !errors.Is(err, fileio.ErrOffline) {
+		t.Fatal("setup should fail due to offline")
+	}
+}
+
 func TestConfigure_CacheDir_Success(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
@@ -280,31 +327,5 @@ func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
 
 	if err := celer.SetCacheDir(dirs.TestCacheDir, "token_123456"); err != ErrCacheDirNotExist {
 		t.Fatal(ErrCacheDirNotExist)
-	}
-}
-
-func TestConfigure_Offline(t *testing.T) {
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
-
-	// Init celer.
-	celer := NewCeler()
-	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
-	check(celer.SetOffline(true))
-
-	if celer.Global.Offline != true {
-		t.Fatalf("offline should be `true`")
 	}
 }

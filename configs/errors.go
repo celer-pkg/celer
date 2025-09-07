@@ -1,8 +1,13 @@
 package configs
 
-import "errors"
+import (
+	"celer/pkgs/fileio"
+	"errors"
+)
 
 var (
+	ErrOffline = fileio.ErrOffline
+
 	ErrInvalidBuildType = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
 	ErrInvalidJobNum    = errors.New("invalid job num, must be greater than 0")
 
