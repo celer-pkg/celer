@@ -264,8 +264,7 @@ func TestConfigure_Offline(t *testing.T) {
 		check(os.Rename(dirs.DownloadedDir+".bak", dirs.DownloadedDir))
 	})
 
-	err := celer.Platform().Setup()
-	if err == nil || !errors.Is(err, fileio.ErrOffline) {
+	if err := celer.Platform().Setup(); err == nil || !errors.Is(err, fileio.ErrOffline) {
 		t.Fatal("setup should fail due to offline")
 	}
 }

@@ -95,6 +95,9 @@ func (c *Celer) Init() error {
 		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
 			return err
 		}
+
+		// Pass context to platform.
+		c.platform.ctx = c
 	} else {
 		// Rewrite celer file with new platform.
 		bytes, err := os.ReadFile(configPath)
@@ -104,6 +107,9 @@ func (c *Celer) Init() error {
 		if err := toml.Unmarshal(bytes, c); err != nil {
 			return err
 		}
+
+		// Pass context to platform.
+		c.platform.ctx = c
 
 		// Lower case build type always.
 		c.configData.Global.BuildType = strings.ToLower(c.configData.Global.BuildType)
@@ -117,7 +123,7 @@ func (c *Celer) Init() error {
 
 		// Init platform with platform name.
 		if c.configData.Global.Platform != "" {
-			if err := c.platform.Init(c, c.configData.Global.Platform); err != nil {
+			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
 				return err
 			}
 		} else {
@@ -217,7 +223,7 @@ func (c *Celer) SetPlatform(platformName string) error {
 	}
 
 	// Init and setup platform.
-	if err := c.platform.Init(c, platformName); err != nil {
+	if err := c.platform.Init(platformName); err != nil {
 		return err
 	}
 	c.Global.Platform = platformName
@@ -467,7 +473,7 @@ endif()`, c.BuildType()) + "\n")
 	return nil
 }
 
-func (c Celer) Deploy() error {
+func (c *Celer) Deploy() error {
 	if err := c.platform.Setup(); err != nil {
 		return err
 	}

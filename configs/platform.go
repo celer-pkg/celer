@@ -23,9 +23,8 @@ type Platform struct {
 	ctx  Context
 }
 
-func (p *Platform) Init(ctx Context, platformName string) error {
+func (p *Platform) Init(platformName string) error {
 	// Init internal fields.
-	p.ctx = ctx
 	p.Name = platformName
 
 	// Check if platform name is empty.
@@ -54,8 +53,9 @@ func (p *Platform) Init(ctx Context, platformName string) error {
 		if err := p.RootFS.Validate(); err != nil {
 			return err
 		}
+
+		p.RootFS.ctx = p.ctx
 	}
-	p.RootFS.ctx = p.ctx
 
 	// Detect toolchain if not specified in platform toml.
 	if p.Toolchain == nil {
@@ -135,14 +135,18 @@ func (p *Platform) Setup() error {
 		if err := p.RootFS.CheckAndRepair(); err != nil {
 			return fmt.Errorf("check and repair rootfs error: %w", err)
 		}
+
+		p.RootFS.ctx = p.ctx
 	}
 
 	if p.Toolchain == nil {
-		// Auto detect native toolchain in different os.
+		// Auto detect native toolchain for different os.
 		if err := p.detectToolchain(); err != nil {
 			return err
 		}
 	} else {
+		p.Toolchain.ctx = p.ctx
+
 		// Repair toolchain.
 		if err := p.Toolchain.Validate(); err != nil {
 			return fmt.Errorf("valid toolchain error: %w", err)
@@ -158,7 +162,7 @@ func (p *Platform) Setup() error {
 
 func (p *Platform) detectToolchain() error {
 	// Detect toolchain.
-	var toolchain Toolchain
+	var toolchain = Toolchain{ctx: p.ctx}
 	if err := toolchain.Detect(); err != nil {
 		return fmt.Errorf("detect celer.toolchain: %w", err)
 	}
