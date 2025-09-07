@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/dirs"
@@ -39,6 +40,10 @@ func (t treeCmd) Command() *cobra.Command {
 				configs.PrintError(err, "failed to init celer.")
 				return
 			}
+
+			// Set offline mode.
+			buildtools.Offline = t.celer.Global.Offline
+			configs.Offline = t.celer.Global.Offline
 
 			t.tree(args[0])
 		},

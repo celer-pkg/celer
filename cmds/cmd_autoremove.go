@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"fmt"
@@ -30,6 +31,10 @@ func (a autoremoveCmd) Command() *cobra.Command {
 				configs.PrintError(err, "failed to init celer.")
 				return
 			}
+
+			// Set offline mode.
+			buildtools.Offline = a.celer.Global.Offline
+			configs.Offline = a.celer.Global.Offline
 
 			if err := a.autoremove(); err != nil {
 				configs.PrintError(err, "failed to autoremove.")

@@ -21,6 +21,7 @@ type RootFS struct {
 
 	// Internal fields.
 	fullpath string
+	ctx      Context
 }
 
 func (r *RootFS) Validate() error {
@@ -50,13 +51,12 @@ func (r RootFS) CheckAndRepair() error {
 	// Check and repair resource.
 	archiveName := expr.If(r.Archive != "", r.Archive, filepath.Base(r.Url))
 	repair := fileio.NewRepair(r.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-	repaired, err := repair.CheckAndRepair()
-	if err != nil {
+	if err := repair.CheckAndRepair(r.ctx.Offline()); err != nil {
 		return err
 	}
 
 	// Print download & extract info.
-	if repaired && !DevMode {
+	if !DevMode {
 		location := filepath.Join(dirs.DownloadedToolsDir, folderName)
 		title := color.Sprintf(color.Green, "\n[✔] ---- Rootfs: %s\n", fileio.FileBaseName(r.Url))
 		fmt.Printf("%sLocation: %s\n", title, location)

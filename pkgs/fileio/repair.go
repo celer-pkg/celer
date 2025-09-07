@@ -25,46 +25,46 @@ type Repair struct {
 	downloader downloader
 	folder     string
 	destDir    string
+	offline    bool
 }
 
-func (r *Repair) CheckAndRepair() (bool, error) {
+func (r *Repair) CheckAndRepair(offline bool) error {
+	r.offline = offline
+
 	switch {
 	case strings.HasPrefix(r.downloader.url, "http"), strings.HasPrefix(r.downloader.url, "ftp"):
 		downloaded := filepath.Join(dirs.DownloadedDir, r.downloader.archive)
 		destDir := filepath.Join(r.destDir, r.folder)
 
-		// Download archive file if not exist.
-		if !PathExists(downloaded) {
-			if err := r.download(r.downloader.url, r.downloader.archive); err != nil {
-				return false, err
-			}
+		override, err := r.download(r.downloader.url, r.downloader.archive)
+		if err != nil {
+			return err
+		}
+
+		if override {
+			// Remove for override.
 			if err := os.RemoveAll(destDir); err != nil {
-				return false, err
-			}
-		}
-
-		// Skip if destDir exist.
-		if PathExists(destDir) {
-			return false, nil
-		}
-
-		if strings.HasSuffix(downloaded, ".exe") {
-			destFile := filepath.Join(destDir, filepath.Base(downloaded))
-			if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-				return false, fmt.Errorf("%s: mkdir error: %w", destDir, err)
-			}
-			if err := CopyFile(downloaded, destFile); err != nil {
-				return false, fmt.Errorf("%s: rename error: %w", downloaded, err)
-			}
-		} else {
-			// Extract archive file.
-			if err := Extract(downloaded, destDir); err != nil {
-				return false, fmt.Errorf("%s: extract error: %w", downloaded, err)
+				return err
 			}
 
-			// Check if has nested folder (handling case where there's an nested folder).
-			if err := moveNestedFolderIfExist(destDir); err != nil {
-				return false, fmt.Errorf("%s: move nested folder: %w", destDir, err)
+			if strings.HasSuffix(downloaded, ".exe") {
+				destFile := filepath.Join(destDir, filepath.Base(downloaded))
+				if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
+					return fmt.Errorf("%s: mkdir error: %w", destDir, err)
+				}
+				if err := CopyFile(downloaded, destFile); err != nil {
+					return fmt.Errorf("%s: rename error: %w", downloaded, err)
+				}
+			} else {
+				// Extract archive file.
+				if err := Extract(downloaded, destDir); err != nil {
+					return fmt.Errorf("%s: extract error: %w", downloaded, err)
+				}
+
+				// Check if has nested folder (handling case where there's an nested folder).
+				if err := moveNestedFolderIfExist(destDir); err != nil {
+					return fmt.Errorf("%s: move nested folder: %w", destDir, err)
+				}
 			}
 		}
 
@@ -72,12 +72,12 @@ func (r *Repair) CheckAndRepair() (bool, error) {
 		localPath := strings.TrimPrefix(r.downloader.url, "file:///")
 		state, err := os.Stat(localPath)
 		if err != nil {
-			return false, fmt.Errorf("%s is not accessable", r.downloader.url)
+			return fmt.Errorf("%s is not accessable", r.downloader.url)
 		}
 
 		// If localPath is a directory, we assume it is valid.
 		if state.IsDir() {
-			return false, nil
+			return nil
 		}
 
 		simpleName := FileBaseName(r.downloader.url)
@@ -85,24 +85,24 @@ func (r *Repair) CheckAndRepair() (bool, error) {
 
 		// Skip if destDir exist.
 		if PathExists(destDir) {
-			return false, nil
+			return nil
 		}
 
 		// Extract archive file.
 		if err := Extract(localPath, destDir); err != nil {
-			return false, fmt.Errorf("%s: extract: %w", localPath, err)
+			return fmt.Errorf("%s: extract: %w", localPath, err)
 		}
 
 		// Check if has nested folder (handling case where there's an extra nested folder).
 		if err := moveNestedFolderIfExist(destDir); err != nil {
-			return false, fmt.Errorf("%s: move nested folder: %w", r.folder, err)
+			return fmt.Errorf("%s: move nested folder: %w", r.folder, err)
 		}
 
 	default:
-		return false, fmt.Errorf("%s is not accessible", r.downloader.url)
+		return fmt.Errorf("%s is not accessible", r.downloader.url)
 	}
 
-	return true, nil
+	return nil
 }
 
 func (r *Repair) MoveAllToParent() error {
@@ -120,30 +120,43 @@ func (r *Repair) MoveAllToParent() error {
 	return nil
 }
 
-func (r Repair) download(url, archive string) (err error) {
+func (r Repair) download(url, archive string) (override bool, err error) {
 	downloaded := filepath.Join(dirs.DownloadedDir, archive)
 	if PathExists(downloaded) {
+		// Skip checking filesize and re-download.
+		if r.offline {
+			return false, nil
+		}
+
 		// Redownload if remote file size and local file size not match.
 		fileSize, err := FileSize(url)
 		if err != nil {
-			return fmt.Errorf("get remote filesize: %w", err)
+			return false, fmt.Errorf("get remote filesize: %w", err)
 		}
 		info, err := os.Stat(downloaded)
 		if err != nil {
-			return fmt.Errorf("%s: get local filesize: %w", archive, err)
+			return false, fmt.Errorf("%s: get local filesize: %w", archive, err)
 		}
 
 		// Not every remote file has size, so we need to check if fileSize is greater than 0.
 		if fileSize > 0 && info.Size() != fileSize {
 			if _, err := r.downloader.Start(); err != nil {
-				return fmt.Errorf("%s: download: %w", archive, err)
+				return false, fmt.Errorf("%s: download: %w", archive, err)
 			}
+			return true, nil
 		}
-	} else {
-		if _, err := r.downloader.Start(); err != nil {
-			return fmt.Errorf("%s: download: %w", archive, err)
-		}
-	}
 
-	return nil
+		return false, nil
+	} else {
+		// Skip downloading in offline mode.
+		if r.offline {
+			return false, ErrOffline
+		}
+
+		if _, err := r.downloader.Start(); err != nil {
+			return false, fmt.Errorf("%s: download: %w", archive, err)
+		}
+
+		return true, nil
+	}
 }

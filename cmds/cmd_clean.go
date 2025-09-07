@@ -36,6 +36,10 @@ func (c cleanCmd) Command() *cobra.Command {
 				return
 			}
 
+			// Set offline mode.
+			buildtools.Offline = c.celer.Global.Offline
+			configs.Offline = c.celer.Global.Offline
+
 			if c.all {
 				if err := c.cleanAll(); err != nil {
 					configs.PrintError(err, "failed to clean all packages.")

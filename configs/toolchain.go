@@ -38,6 +38,7 @@ type Toolchain struct {
 	READELF string `toml:"readelf,omitempty"` // Read ELF file.
 
 	// Internal fields.
+	ctx         Context
 	displayName string
 	rootDir     string
 	fullpath    string

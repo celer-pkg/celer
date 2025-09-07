@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"os"
 	"strings"
@@ -26,6 +27,10 @@ func (c createCmd) Command() *cobra.Command {
 				configs.PrintError(err, "failed to init celer.")
 				return
 			}
+
+			// Set offline mode.
+			buildtools.Offline = c.celer.Global.Offline
+			configs.Offline = c.celer.Global.Offline
 
 			if c.platform != "" {
 				c.createPlatform(c.platform)

@@ -55,6 +55,7 @@ func (p *Platform) Init(ctx Context, platformName string) error {
 			return err
 		}
 	}
+	p.RootFS.ctx = p.ctx
 
 	// Detect toolchain if not specified in platform toml.
 	if p.Toolchain == nil {
@@ -62,6 +63,7 @@ func (p *Platform) Init(ctx Context, platformName string) error {
 			return err
 		}
 	}
+	p.Toolchain.ctx = p.ctx
 
 	return nil
 }
@@ -127,11 +129,11 @@ func (p *Platform) Setup() error {
 	// Repair rootfs if not empty.
 	if p.RootFS != nil {
 		if err := p.RootFS.Validate(); err != nil {
-			return err
+			return fmt.Errorf("valid rootfs error: %w", err)
 		}
 
 		if err := p.RootFS.CheckAndRepair(); err != nil {
-			return fmt.Errorf("celer.rootfs check and repair error: %w", err)
+			return fmt.Errorf("check and repair rootfs error: %w", err)
 		}
 	}
 

@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -28,6 +29,10 @@ func (d dependCmd) Command() *cobra.Command {
 				configs.PrintError(err, "failed to init celer.")
 				return
 			}
+
+			// Set offline mode.
+			buildtools.Offline = d.celer.Global.Offline
+			configs.Offline = d.celer.Global.Offline
 
 			libraries, err := d.query(args[0])
 			if err != nil {

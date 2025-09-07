@@ -124,13 +124,12 @@ func (t Toolchain) CheckAndRepair() error {
 	// Check and repair resource.
 	archiveName := expr.If(t.Archive != "", t.Archive, filepath.Base(t.Url))
 	repair := fileio.NewRepair(t.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-	repaired, err := repair.CheckAndRepair()
-	if err != nil {
+	if err := repair.CheckAndRepair(t.ctx.Offline()); err != nil {
 		return err
 	}
 
 	// Print download & extract info.
-	if repaired && !DevMode {
+	if !DevMode {
 		title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)
 		fmt.Printf("%sLocation: %s\n", title, t.rootDir)
 	}

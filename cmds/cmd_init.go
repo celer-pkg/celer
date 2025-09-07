@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"strings"
 
@@ -23,6 +24,11 @@ func (i initCmd) Command() *cobra.Command {
 				configs.PrintError(err, "failed to init celer.")
 				return
 			}
+
+			// Set offline mode.
+			buildtools.Offline = i.celer.Global.Offline
+			configs.Offline = i.celer.Global.Offline
+
 			if err := i.celer.SetConfRepo(i.url, i.branch); err != nil {
 				configs.PrintError(err, "failed to init celer: %s.", err)
 				return

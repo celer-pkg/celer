@@ -56,22 +56,19 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 			// Check and repair resource.
 			archive = expr.If(archive == "", filepath.Base(url), archive)
 			repair := fileio.NewRepair(url, archive, ".", p.PortConfig.PackageDir)
-			repaired, err := repair.CheckAndRepair()
-			if err != nil {
+			if err := repair.CheckAndRepair(p.Offline); err != nil && err != fileio.ErrOffline {
 				return err
 			}
 
-			if repaired {
-				// Move extracted files to source dir.
-				entities, err := os.ReadDir(p.PortConfig.PackageDir)
-				if err != nil || len(entities) == 0 {
-					return fmt.Errorf("cannot find extracted files under tmp dir")
-				}
-				if len(entities) == 1 {
-					srcDir := filepath.Join(p.PortConfig.PackageDir, entities[0].Name())
-					if err := fileio.RenameDir(srcDir, p.PortConfig.PackageDir); err != nil {
-						return err
-					}
+			// Move extracted files to source dir.
+			entities, err := os.ReadDir(p.PortConfig.PackageDir)
+			if err != nil || len(entities) == 0 {
+				return fmt.Errorf("cannot find extracted files under tmp dir")
+			}
+			if len(entities) == 1 {
+				srcDir := filepath.Join(p.PortConfig.PackageDir, entities[0].Name())
+				if err := fileio.RenameDir(srcDir, p.PortConfig.PackageDir); err != nil {
+					return err
 				}
 			}
 		}

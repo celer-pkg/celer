@@ -7,6 +7,7 @@ import (
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/proxy"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -21,6 +22,7 @@ const defaultPortsRepo = "https://github.com/celer-pkg/ports.git"
 var (
 	Version = "v0.0.0" // It would be set by build script.
 	DevMode bool       // In dev mode, detail message would be hide.
+	Offline bool       // In offline mode, tools and repos would not be downloaded.
 )
 
 type Context interface {
@@ -32,6 +34,7 @@ type Context interface {
 	WindowsKit() *WindowsKit
 	RootFS() *RootFS
 	JobNum() int
+	Offline() bool
 	CacheDir() *CacheDir
 	SystemName() string
 	SystemProcessor() string
@@ -62,6 +65,7 @@ type global struct {
 	Project          string `toml:"project"`
 	JobNum           int    `toml:"job_num"`
 	BuildType        string `toml:"build_type"`
+	Offline          bool   `toml:"offline"`
 	GithubAssetProxy string `toml:"github_asset_proxy,omitempty"`
 	GithubRepoProxy  string `toml:"github_repo_proxy,omitempty"`
 }
@@ -263,6 +267,19 @@ func (c *Celer) SetProject(projectName string) error {
 	return nil
 }
 
+func (c *Celer) SetOffline(offline bool) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	c.Global.Offline = offline
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Celer) SetCacheDir(dir, token string) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
@@ -271,6 +288,10 @@ func (c *Celer) SetCacheDir(dir, token string) error {
 	if c.configData.CacheDir != nil {
 		dir = expr.If(dir != "", dir, c.configData.CacheDir.Dir)
 		token = expr.If(token != "", token, c.configData.CacheDir.Token)
+
+		if !fileio.PathExists(dir) {
+			return ErrCacheDirNotExist
+		}
 	}
 
 	c.configData.CacheDir = &CacheDir{
@@ -602,6 +623,11 @@ func (c Celer) clonePorts() error {
 		}
 
 		// Clone ports repo.
+		if c.Global.Offline {
+			PrintWarning(errors.New("offline is on"), "skip clone ports repo")
+			return nil
+		}
+
 		command := fmt.Sprintf("git clone %s %s", c.portsRepoUrl(), portsDir)
 		executor := cmd.NewExecutor("[clone ports]", command)
 		if err := executor.Execute(); err != nil {
@@ -659,6 +685,10 @@ func (c Celer) SystemProcessor() string {
 
 func (c Celer) JobNum() int {
 	return c.Global.JobNum
+}
+
+func (c Celer) Offline() bool {
+	return c.Global.Offline
 }
 
 func (c Celer) CacheDir() *CacheDir {

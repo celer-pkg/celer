@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -32,6 +33,10 @@ func (r removeCmd) Command() *cobra.Command {
 				configs.PrintError(err, "failed to init celer.")
 				return
 			}
+
+			// Set offline mode.
+			buildtools.Offline = r.celer.Global.Offline
+			configs.Offline = r.celer.Global.Offline
 
 			// Use build_type from `celer.toml` if not specified.
 			if r.buildType == "" {

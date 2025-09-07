@@ -223,7 +223,7 @@ func TestConfigure_JobNum_Invalid(t *testing.T) {
 	}
 }
 
-func TestConfigure_CacheDir(t *testing.T) {
+func TestConfigure_CacheDir_Success(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -255,5 +255,56 @@ func TestConfigure_CacheDir(t *testing.T) {
 
 	if celer2.CacheDir().Token != "token_123456" {
 		t.Fatalf("cache token should be `token_123456`")
+	}
+}
+
+func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+
+	if err := celer.SetCacheDir(dirs.TestCacheDir, "token_123456"); err != ErrCacheDirNotExist {
+		t.Fatal(ErrCacheDirNotExist)
+	}
+}
+
+func TestConfigure_Offline(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetOffline(true))
+
+	if celer.Global.Offline != true {
+		t.Fatalf("offline should be `true`")
 	}
 }

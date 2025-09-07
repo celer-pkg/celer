@@ -23,6 +23,9 @@ var (
 	// In dev mode, detail message would be hide,
 	// and it's value would be override by cmd_deploy.
 	DevMode bool
+
+	// In offline mode, tools would not be downloaded.
+	Offline bool
 )
 
 // CheckTools checks if tools exist and repair them if necessary.
@@ -172,13 +175,13 @@ func (b *buildTool) checkAndFix() error {
 	// Check and repair resource.
 	location := filepath.Join(dirs.DownloadedToolsDir, b.Name)
 	repair := fileio.NewRepair(b.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-	repaired, err := repair.CheckAndRepair()
-	if err != nil {
+
+	if err := repair.CheckAndRepair(Offline); err != nil {
 		return err
 	}
 
 	// Print download & extract info.
-	if repaired && !DevMode {
+	if !DevMode {
 		title := color.Sprintf(color.Green, "\n[✔] ---- Tool: %s\n", fileio.FileBaseName(b.Url))
 		fmt.Printf("%sLocation: %s\n", title, location)
 	}
