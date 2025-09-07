@@ -324,7 +324,7 @@ func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
-	if err := celer.SetCacheDir(dirs.TestCacheDir, "token_123456"); err != ErrCacheDirNotExist {
+	if err := celer.SetCacheDir(dirs.TestCacheDir, "token_123456"); errors.Is(err, ErrCacheDirNotExist) {
 		t.Fatal(ErrCacheDirNotExist)
 	}
 }

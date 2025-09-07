@@ -41,7 +41,8 @@ func (r *Repair) CheckAndRepair(offline bool) error {
 			return err
 		}
 
-		if override {
+		// Repair resource.
+		if override || !PathExists(destDir) {
 			// Remove for override.
 			if err := os.RemoveAll(destDir); err != nil {
 				return err
