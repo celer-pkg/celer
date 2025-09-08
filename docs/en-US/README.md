@@ -4,18 +4,8 @@
 
 # The background of Celer
 
-&emsp;&emsp;CMake has become the mainstream build system for compiling C/C++ projects, especially in cross-compiling scenarios. While CMake excels at managing the build process—including configuration, compilation, and installation—it primarily focuses on locating dependencies (via **find_package**) rather than handling higher-level package management tasks. In real-world development, many additional tedious tasks fall outside CMake's responsibilities, such as:
-
-**1. Clone repos and setup build tools**  
-CMake doesn't download source code of libraries, setup toolchains, rootfs, and tools that required for compilation, such as autoconf, automake, pkg-config, nasm, windows-perl, cmake, etc., all of that need to be prepared and configured manually by developers themself.
-
-**2. Organize dependencies between third-party libraries**  
-In C/C++ projects, dependencies are described within the library's source code, making them highly non-intuitive to understand. During the compilation process, a lot of manual work is required to organize the dependencies.
-
-**3. Setup cross-compilation environment**  
-Although CMake supports cross-compilation by providing `-D CMAKE_TOOLCHAIN_FILE` to specify a **toolchain_file.cmake**, it still requires manually written scripts for proper configuration.
-
->In fact, the core functionality of Celer is to dynamically generate a **toolchain_file.cmake** as required. Within this file, it configures all required build tools with relative paths, and also specifies the library search paths to isolate system libraries from being found. This means that all the work required  is handled by Celer before generating the toolchain_file.cmake, this is one of the [**REASONS**](./why_reinvent_celer.md) why Celer was reinvented, rather than using other C/C++ package managers.
+&emsp;&emsp;CMake has become the mainstream build system for compiling C/C++ projects, particularly for cross-compiling. While CMake excels at managing the build process—including configuration, compilation, and installation—it primarily focuses on locating dependencies (via **find_package**) rather than handling higher-level package management tasks. In real-world development, many additional tedious tasks fall outside CMake's responsibilities, such as: **clone repos and setup build tools**, **organize dependencies between third-party libraries**, **setup cross-compilation environment**, etc.  
+&emsp;&emsp;In fact, the core functionality of Celer is to dynamically generate a **toolchain_file.cmake** as required. Within this file, it configures all required build tools with relative paths, and also specifies the library search paths to isolate system libraries from being found. This means that all the work required  is handled by Celer before generating the toolchain_file.cmake, this is one of the [**REASONS**](./docs/en-US/why_reinvent_celer.md) why Celer was reinvented, rather than using other C/C++ package managers.
 
 # Key features
 
@@ -33,8 +23,8 @@ Celer can generate cmake configs for any libraries, especially for libraries tha
 **4. Support cache and share build artifacts**  
 Celer supports precise build artifact management. Currently, you can configure the **cache_dir** in **celer.toml** to store and access artifacts in a shared folder on the local network. This aims to avoid redundant compilation of source code and improve development efficiency.
 
-**5. Supports overriding compile options for third-party libraries and managing project-specific libraries**  
-Celer supports overriding third-party libraries with different versions and compile options within individual project folders. It also allows adding project-specific internal libraries within the project's folder.
+**5. Multi-Project Management and Customization of Third-Party Libraries**  
+Celer supports multi-project management, allowing project-specific customization of third-party libraries, including version and compilation options. It also enables the management of internal libraries within each project's folder.
 
 # Get started
 

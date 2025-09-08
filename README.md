@@ -31,9 +31,9 @@ Celer supports multi-project management, allowing project-specific customization
 We have docs to guide you in using Celer:
 
 - [Quick start.](./docs/en-US/quick_start.md)
-- [How to create a new platform.](./docs/en-US/config_add_platform.md)
-- [How to createa new project.](./docs/en-US/config_add_project.md)
-- [How to create a new port.](./docs/en-US/config_add_port.md)
+- [How to create a new platform.](./docs/en-US/cmd_create.md#1-create-a-new-platform)
+- [How to createa new project.](./docs/en-US/cmd_create.md#2-create-a-new-project)
+- [How to create a new port.](./docs/en-US/cmd_create.md#3-create-a-new-port)
 
 Advanced features:
 
@@ -48,7 +48,7 @@ Supported commands:
 | [autoremove](./docs/en-US/cmd_autoremove.md)    | Tidy up installation directory - removing project's unnecessary files.        |
 | [clean](./docs/en-US/cmd_clean.md)              | Remove build cache and clean repo for packages or projects.                   |
 | [configure](./docs/en-US/cmd_configure.md)      | Configure to change gloabal settings.                                         |
-| create | Create a [platform](./docs/en-US/config_add_platform.md), [project](./docs/en-US/config_add_project.md) or [port](./docs/en-US/config_add_port.md). |
+| [create](./docs/en-US/cmd_create.md)            | Create a platform, project or port.                                           |
 | [deploy](./docs/en-US/cmd_deploy.md)            | Deploy with selected platform and project.                                    |
 | [init](./docs/en-US/quick_start.md#3-setup-conf)| Init with conf repo.                                                          |
 | [install](./docs/en-US/cmd_install.md)          | Install a package.                                                            |

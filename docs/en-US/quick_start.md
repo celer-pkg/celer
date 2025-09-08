@@ -53,7 +53,7 @@ conf
     └── test_project_02.toml ---------- project_02
 ```
 
->About how to create new **platform**, **project** and **port**, you can refer: [**add platform**](./03_add_platform.md), [**add project**](./04_add_project.md) and [**add port**](./05_add_new_port.md).
+>About how to create new **platform**, **project** and **port**, you can refer: [**add platform**](./cmd_create.md#1-create-a-new-platform), [**add project**](./cmd_create.md#2-create-a-new-project) and [**add port**](./cmd_create.md#3-create-a-new-port).
 
 The following are conf files and their descriptions:
 
@@ -122,7 +122,7 @@ The following are fields and their descriptions:
 | project | Selected project for current workspace, When it's empty, there'll be a project name called "unname". |
 | job_num | The max cpu cores for celer to compile, default is the number of cores of your cpu. |
 | build_type | Default is **release**, you can also set it to **debug**. |
-| cache_dir | Celer supports cache build artifact, which can avoid redundant compilation. [You can configure it as a local directory or a shared folder in the LAN](./10_cache_management.md). |
+| cache_dir | Celer supports cache build artifact, which can avoid redundant compilation. [You can configure it as a local directory or a shared folder in the LAN](./introduce_cache_artifacts.md). |
 
 ## 5. Depoy Celer
 

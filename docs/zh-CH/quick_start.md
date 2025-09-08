@@ -57,7 +57,7 @@ conf
     └── test_project_02.toml ---------- project_02
 ```
 
->关于如何创建新的**platform**、**project**和**port**，你可以参考：[**add platform**](./03_add_platform.md)、[**add project**](./04_add_project.md)和[**add port**](./05_add_new_port.md)。
+>关于如何创建新的**platform**、**project**和**port**，你可以参考：[**add platform**](./cmd_create.md#1-创建一个新的平台)、[**add project**](./cmd_create.md#2-创建一个新的项目)和[**add port**](./cmd_create.md#3-创建一个新的端口)。
 
 以下是conf文件和它们的描述：
 
@@ -126,7 +126,7 @@ celer configure --project=test_project_02
 | project |  当前工作空间所选的项目，当为空时，会创建一个名为“unname”的项目。 |
 | job_num |  Celer编译时使用的最大CPU核心数，默认值为您CPU的核心数。 |
 | build_type | 默认值为 **release**，您也可以将其设置为 **debug**。 |
-| cache_dir | Celer支持缓存构建工件，这可以避免重复编译。[你可以将其配置为本地目录或LAN中的共享文件夹](./10_cache_management.md)。 |
+| cache_dir | Celer支持缓存构建工件，这可以避免重复编译。[你可以将其配置为本地目录或LAN中的共享文件夹](./introduce_cache_artifacts.md)。 |
 
 ## 5. 部署 Celer
 
