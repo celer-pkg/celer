@@ -261,7 +261,9 @@ func TestConfigure_Offline(t *testing.T) {
 
 	t.Cleanup(func() {
 		check(os.RemoveAll(dirs.DownloadedDir))
-		check(os.Rename(dirs.DownloadedDir+".bak", dirs.DownloadedDir))
+		if fileio.PathExists(dirs.DownloadedDir + ".bak") {
+			check(os.Rename(dirs.DownloadedDir+".bak", dirs.DownloadedDir))
+		}
 	})
 
 	if err := celer.Platform().Setup(); err == nil || !errors.Is(err, fileio.ErrOffline) {
