@@ -4,18 +4,8 @@
 
 # Celer诞生的背景
 
-&emsp;&emsp;CMake 已成为 C/C++ 项目构建的主流选择，尤其在跨平台编译场景中表现突出。尽管 CMake 在管理构建流程（包括配置、编译和安装）方面表现出色，但其核心功能主要聚焦于依赖项定位（通过 find_package 实现），而非更高层次的包管理任务。在实际开发过程中，许多额外繁琐工作仍超出 CMake 的职责范围，例如：
-
-**1. 克隆库源码和配置编译期间需要的工具**  
-CMake 本身并不负责下载库源码、配置工具链、准备根文件系统(rootfs)以及管理编译所需的各类工具（如 autoconf、automake、pkg-config、nasm、windows-perl、cmake 等），这些都需要开发者自行手动准备和配置。
-
-**2. 组织第三方库之间的依赖关系**  
-在 C/C++ 项目中，依赖关系通常被描述在库的源代码中，这使得理解和管理依赖变得非常复杂。在编译过程中，需要手动组织依赖关系，这不仅耗时，还容易出错。
-
-**3. 配置交叉编译环境**  
-尽管 CMake 支持通过 `-D CMAKE_TOOLCHAIN_FILE` 指定 **toolchain_file.cmake** 来进行交叉编译，但这仍然需要开发者手动编写脚本进行正确配置。
-
->实际上，Celer 的核心功能在于按需动态生成 toolchain_file.cmake 文件。该文件会通过相对路径配置所有必需的构建工具，并指定库搜索路径以隔离系统库的干扰。这意味着在生成 toolchain_file.cmake 之前，所有准备工作都已由 Celer 自动完成——这也正是我们重新打造 Celer 而非直接采用其他 C/C++ 包管理工具的核心[**原因**](./why_reinvent_celer.md)之一。
+&emsp;&emsp;CMake 已成为 C/C++ 项目构建的主流选择，尤其在跨平台编译场景中表现突出。尽管 CMake 在管理构建流程（包括配置、编译和安装）方面表现出色，但其核心功能主要聚焦于依赖项定位（通过 find_package 实现），而非更高层次的包管理任务。在实际开发过程中，许多额外繁琐工作仍超出 CMake 的职责范围，例如： **克隆库源码和配置编译期间需要的工具**，**组织第三方库之间的依赖关系**， **配置交叉编译环境**等等。  
+&emsp;&emsp;实际上，Celer 的核心功能在于按需动态生成 **toolchain_file.cmake** 文件。该文件会通过相对路径配置所有必需的构建工具，并指定库搜索路径以隔离系统库的干扰。这意味着在生成 **toolchain_file.cmake** 之前，所有准备工作都已由 Celer 自动完成——这也正是我们重新打造 Celer 而非直接采用其他 C/C++ 包管理工具的核心[**原因**](./why_reinvent_celer.md)之一。
 
 # 主要功能：
 
@@ -34,7 +24,7 @@ Celer目前主要提供以下几个核心功能：
 通过配置**cache_dir**，可进行在局域网内的共享文件夹进行存储和访问**编译安装后的输出产物**，通过精确地管理编译缓存，避免重复编译以提升开发效率；
 
 5. **支持项目私有库管理**  
-在实际项目中，不同项目往往需要使用三方库的不同版本，Celer 支持在对应的 project 配置文件里指定特定版本。有些库不属于公开的三方库，只属于当前项目内部所有，Celer 能通过在对应的 project 目录里创建并管理它们。
+在实际项目中，不同项目往往需要使用三方库的不同版本，Celer支持在对应的project配置文件里指定特定版本。有些库不属于公开的三方库，只属于当前项目内部所有，Celer能通过在对应的 project目录里创建并管理它们。
 
 # 快速开始
 
@@ -52,24 +42,25 @@ Celer目前主要提供以下几个核心功能：
 
 支持的命令列表：
 
-| 命令                               | 描述                                                                     |
-| ------------------------------------- | -------------------------------------------------------------------- |
-| [about](./cmd_about.md)               | 显示 Celer 版本信息。                                                 |
-| [autoremove](./cmd_autoremove.md)     | 清理安装目录 - 移除项目不必要的文件。                                   |
-| [clean](./cmd_clean.md)               | 移除构建缓存和清理项目的仓库。                                          |
-| [configure](./quick_start.md#4-configure-platform-or-project) | 配置平台或项目。                              |
+| 命令                               | 描述                                  |
+| ------------------------------------- | --------------------------------- |
+| [about](./cmd_about.md)               | 显示 Celer 版本信息。 |
+| [autoremove](./cmd_autoremove.md)     | 清理安装目录 - 移除项目不必要的文件。|
+| [clean](./cmd_clean.md)               | 移除构建缓存和清理项目的仓库。|
+| [configure](./quick_start.md#4-configure-platform-or-project) | 配置平台或项目。|
 | [create](./cmd_create.md)             | 创建 [平台](./config_add_platform.md)、[项目](./config_add_project.md) 或 [端口](./config_add_port.md)。 |
-| [deploy](./cmd_deploy.md)             | 部署项目。                                    |
-| [init](./quick_start.md#3-setup-conf) | 初始化配置仓库。                                                      |
-| [install](./cmd_install.md)           | 安装一个库。                                                          |
-| [integrate](./cmd_integrate.md)       | 集成以支持 tab 补全。                                                 |
-| [remove](./cmd_remove.md)             | 移除一个库。                                                          |
-| [tree](./cmd_tree.md)                 | 显示端口或项目的依赖关系。                                             | 
-| [update](./cmd_update.md)             | 更新配置仓库、端口配置仓库或第三方仓库。                                |
+| [deploy](./cmd_deploy.md)             | 部署项目。|
+| [init](./quick_start.md#3-setup-conf) | 初始化配置仓库。|
+| [install](./cmd_install.md)           | 安装一个库。|
+| [integrate](./cmd_integrate.md)       | 集成以支持 tab 补全。|
+| [remove](./cmd_remove.md)             | 移除已安装的库库。|
+| [search](./cmd_search.md)             | 搜索库库。|
+| [tree](./cmd_tree.md)                 | 显示端口或项目的依赖关系。| 
+| [update](./cmd_update.md)             | 更新配置仓库、端口配置仓库或第三方仓库。|
 
 # 贡献
 
-&emsp;&emsp;Celer 是一个开源项目，因此它的构建依赖于您的贡献。Celer 由两个部分组成：[Celer](https://github.com/celer-pkg/celer.git) 和 [ports](https://github.com/celer-pkg/ports.git)，您可以贡献其中的任意一个。
+&emsp;&emsp;Celer 是一个开源项目，因此它的构建依赖于您的贡献。Celer 由两个部分组成：[celer](https://github.com/celer-pkg/celer.git) 和 [ports](https://github.com/celer-pkg/ports.git)，您可以贡献其中的任意一个。
 
 # 许可证
 

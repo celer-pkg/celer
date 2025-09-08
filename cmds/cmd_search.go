@@ -39,8 +39,8 @@ func (s searchCmd) Command() *cobra.Command {
 				return
 			}
 
-			color.Println(color.Cyan, "[Search result]:")
 			if len(libraries) > 0 {
+				color.Println(color.Cyan, "[Search result]:")
 				color.Println(color.Gray, strings.Join(libraries, "\n"))
 			} else {
 				color.Println(color.Red, "no matched port found.")
