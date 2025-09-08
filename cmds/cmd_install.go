@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/dirs"
@@ -32,6 +33,10 @@ func (i installCmd) Command() *cobra.Command {
 		os.Exit(1)
 	}
 
+	// Set offline mode.
+	buildtools.Offline = i.celer.Global.Offline
+	configs.Offline = i.celer.Global.Offline
+
 	command := &cobra.Command{
 		Use:   "install",
 		Short: "Install a package.",
@@ -60,7 +65,7 @@ func (i installCmd) install(nameVersion string) {
 	}
 
 	if err := i.celer.Platform().Setup(); err != nil {
-		configs.PrintError(err, "setup platform error: %s", err)
+		configs.PrintError(err, "setup platform error:")
 		return
 	}
 

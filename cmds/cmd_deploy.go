@@ -32,6 +32,10 @@ func (d deployCmd) Command() *cobra.Command {
 			buildtools.DevMode = d.devMode
 			configs.DevMode = d.devMode
 
+			// Set offline mode.
+			buildtools.Offline = d.celer.Global.Offline
+			configs.Offline = d.celer.Global.Offline
+
 			// Override build_type if specified.
 			if d.buildType != "" {
 				d.celer.Global.BuildType = d.buildType

@@ -70,6 +70,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 
 	if len(p.BuildConfigs) > 0 {
 		for index := range p.BuildConfigs {
+			p.BuildConfigs[index].Offline = p.ctx.Offline()
 			p.BuildConfigs[index].PortConfig = portConfig
 			p.BuildConfigs[index].DevDep = p.DevDep
 

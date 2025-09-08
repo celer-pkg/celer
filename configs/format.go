@@ -11,14 +11,22 @@ func SprintSuccess(format string, args ...interface{}) string {
 	return color.Sprintf(color.Magenta, "\n[✔] ======== %s ========\n\n", fmt.Sprintf(format, args...))
 }
 
-func SprintError(err error, format string, args ...interface{}) string {
-	return color.Sprintf(color.Red, "\n[✘] %s\n[☛] %s.\n\n", fmt.Sprintf(format, args...), err)
-}
-
 func PrintSuccess(format string, args ...interface{}) {
 	color.Printf(color.Magenta, "\n[✔] ======== %s ========\n\n", fmt.Sprintf(format, args...))
 }
 
+func SprintError(err error, format string, args ...interface{}) string {
+	return color.Sprintf(color.Red, "\n[✘] %s\n[☛] %s.\n\n", fmt.Sprintf(format, args...), err)
+}
+
 func PrintError(err error, format string, args ...interface{}) {
 	color.Printf(color.Red, "\n[✘] %s\n[☛] %s.\n\n", fmt.Sprintf(format, args...), err)
+}
+
+func PrintWarning(err error, format string, args ...interface{}) string {
+	return color.Sprintf(color.Yellow, "\n[❕︎] %s\n[☛] %s.\n\n", fmt.Sprintf(format, args...), err)
+}
+
+func SprintWarning(err error, format string, args ...interface{}) {
+	color.Printf(color.Yellow, "\n[❕︎] %s\n[☛] %s.\n\n", fmt.Sprintf(format, args...), err)
 }

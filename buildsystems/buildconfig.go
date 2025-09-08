@@ -218,6 +218,7 @@ type BuildConfig struct {
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
 	// Internal fields
+	Offline     bool       `toml:"-"`
 	DevDep      bool       `toml:"-"`
 	PortConfig  PortConfig `toml:"-"`
 	BuildType   string     `toml:"-"`
@@ -283,27 +284,25 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
 		repair := fileio.NewRepair(repoUrl, archive, ".", destDir)
-		repaired, err := repair.CheckAndRepair()
-		if err != nil {
+		if err := repair.CheckAndRepair(b.Offline); err != nil {
 			return err
 		}
-		if repaired {
-			// Move extracted files to repo dir.
-			entities, err := os.ReadDir(destDir)
-			if err != nil || len(entities) == 0 {
-				return fmt.Errorf("cannot find extracted files under repo dir")
-			}
-			if len(entities) == 1 {
-				srcDir := filepath.Join(destDir, entities[0].Name())
-				if err := fileio.RenameDir(srcDir, destDir); err != nil {
-					return err
-				}
-			}
 
-			// Init as git repo for tracking file change.
-			if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
+		// Move extracted files to repo dir.
+		entities, err := os.ReadDir(destDir)
+		if err != nil || len(entities) == 0 {
+			return fmt.Errorf("cannot find extracted files under repo dir")
+		}
+		if len(entities) == 1 {
+			srcDir := filepath.Join(destDir, entities[0].Name())
+			if err := fileio.RenameDir(srcDir, destDir); err != nil {
 				return err
 			}
+		}
+
+		// Init as git repo for tracking file change.
+		if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
+			return err
 		}
 	}
 
@@ -746,30 +745,28 @@ func (b BuildConfig) replaceSource(archive, url string) error {
 	// Check and repair resource.
 	archive = expr.If(archive == "", filepath.Base(url), archive)
 	repair := fileio.NewRepair(url, archive, ".", b.PortConfig.RepoDir)
-	repaired, err := repair.CheckAndRepair()
-	if err != nil {
+	if err := repair.CheckAndRepair(b.Offline); err != nil {
 		replaceFailed = true
 		return err
 	}
-	if repaired {
-		// Move extracted files to source dir.
-		entities, err := os.ReadDir(b.PortConfig.RepoDir)
-		if err != nil || len(entities) == 0 {
-			replaceFailed = true
-			return fmt.Errorf("cannot find extracted files under tmp dir")
-		}
-		if len(entities) == 1 {
-			srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
-			if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
-				replaceFailed = true
-				return err
-			}
-		}
 
-		// Init as git repo for tracking file change.
-		if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
+	// Move extracted files to source dir.
+	entities, err := os.ReadDir(b.PortConfig.RepoDir)
+	if err != nil || len(entities) == 0 {
+		replaceFailed = true
+		return fmt.Errorf("cannot find extracted files under tmp dir")
+	}
+	if len(entities) == 1 {
+		srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
+		if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
+			replaceFailed = true
 			return err
 		}
+	}
+
+	// Init as git repo for tracking file change.
+	if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
+		return err
 	}
 
 	return nil

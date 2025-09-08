@@ -34,6 +34,10 @@ func (u updateCmd) Command() *cobra.Command {
 				return
 			}
 
+			// Set offline mode.
+			buildtools.Offline = u.celer.Global.Offline
+			configs.Offline = u.celer.Global.Offline
+
 			// Make sure git is available.
 			if err := buildtools.CheckTools("git"); err != nil {
 				configs.PrintError(err, "failed to check git tools.")
