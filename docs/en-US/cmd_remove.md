@@ -1,6 +1,6 @@
 # Remove command
 
-&emsp;&emsp;The celer remove command uninstalls a specified package from your system. It provides flexible removal options including dependency cleanup, build cache deletion, and development-mode package handling.
+&emsp;&emsp;The remove command uninstalls a specified package from your system. It provides flexible removal options including dependency cleanup, build cache deletion, and development-mode package handling.
 
 ## Command Syntax
 

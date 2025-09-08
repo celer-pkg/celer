@@ -1,6 +1,6 @@
 # Tree command
 
-&emsp;&emsp;The celer search command searches ports that match the specified name with pattern.
+&emsp;&emsp;The search command searches ports that match the specified name with pattern.
 
 ## Command Syntax
 

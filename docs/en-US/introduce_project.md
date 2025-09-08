@@ -1,17 +1,8 @@
-# Add a new project
+# Introduce project
 
 &emsp;&emsp;Each project has its own features, such as the dependencies of the project, the global cmake variables, the environment variables, the C/C++ macros, and the compile options. Celer recommends defining a respective configuration file for each project to describe the features of the project.
 
-To create a new platrom, run: 
-
-```
-celer create --project=project_003
-```
-
->The generated file is located in the **conf/projects** directory.   
->Then you need to open the generated file and configure it with your target project.
-
-## 1. Introduction to project configure file
+## 1. Project toml file
 
 Let's take a look at the example project configure file, `project_003.toml`:
 

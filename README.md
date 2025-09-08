@@ -37,8 +37,8 @@ We have docs to guide you in using Celer:
 
 Advanced features:
 
-- [Generate cmake configs.](./docs/en-US/config_generate_cmake_config.md)
-- [Cache build artifacts.](./docs/en-US/config_cache_artifacts.md)
+- [Generate cmake configs.](./docs/en-US/introduce_generate_cmake_config.md)
+- [Cache build artifacts.](./docs/en-US/introduce_cache_artifacts.md)
 
 Supported commands:
 
@@ -47,14 +47,14 @@ Supported commands:
 | [about](./docs/en-US/cmd_about.md)              | About Celer.                                                                  |
 | [autoremove](./docs/en-US/cmd_autoremove.md)    | Tidy up installation directory - removing project's unnecessary files.        |
 | [clean](./docs/en-US/cmd_clean.md)              | Remove build cache and clean repo for packages or projects.                   |
-| [configure](./docs/en-US/quick_start.md#4-configure-platform-or-project) | Configure to change gloabal settings.                       |
-| create                                | Create a [platform](./docs/en-US/config_add_platform.md), [project](./docs/en-US/config_add_project.md) or [port](./docs/en-US/config_add_port.md). |
+| [configure](./docs/en-US/cmd_configure.md)      | Configure to change gloabal settings.                                         |
+| create | Create a [platform](./docs/en-US/config_add_platform.md), [project](./docs/en-US/config_add_project.md) or [port](./docs/en-US/config_add_port.md). |
 | [deploy](./docs/en-US/cmd_deploy.md)            | Deploy with selected platform and project.                                    |
 | [init](./docs/en-US/quick_start.md#3-setup-conf)| Init with conf repo.                                                          |
 | [install](./docs/en-US/cmd_install.md)          | Install a package.                                                            |
 | [integrate](./docs/en-US/cmd_integrate.md)      | Integrate tab completion.                                                     |
 | [remove](./docs/en-US/cmd_remove.md)            | Remove a package.                                                             |
-| [search](./docs/en-US/cmd_search.md)            | Search matched ports.                                                             |
+| [search](./docs/en-US/cmd_search.md)            | Search matched ports.                                                         |
 | [tree](./docs/en-US/cmd_tree.md)                | Show the dependencies of a port or a project.                                 |
 | [update](./docs/en-US/cmd_update.md)            | Update conf repo, ports config repo or third-party repo.                      |
 

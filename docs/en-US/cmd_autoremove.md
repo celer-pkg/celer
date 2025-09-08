@@ -1,6 +1,6 @@
 # Autoremove command
 
-&emsp;&emsp;The celer autoremove command removes installed packages that are no required by the current project. This helps clean up unused dependencies and maintain a tidy development environment.
+&emsp;&emsp;The autoremove command removes installed packages that are no required by the current project. This helps clean up unused dependencies and maintain a tidy development environment.
 
 ## Command Syntax
 

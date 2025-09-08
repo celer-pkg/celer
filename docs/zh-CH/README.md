@@ -31,31 +31,31 @@ Celer目前主要提供以下几个核心功能：
 我们提供了详细的文档来帮助您使用 Celer：
 
 - [快速开始](./quick_start.md)
-- [如何添加新平台](./config_add_platform.md)
-- [如何添加新项目](./config_add_project.md)
-- [如何添加新端口](./config_add_port.md)
+- [如何添加新平台](./cmd_create.md#1-创建一个新的平台)
+- [如何添加新项目](./cmd_create.md#2-创建一个新的项目)
+- [如何添加新端口](./cmd_create.md#3-创建一个新的端口)
 
 高级功能：
 
-- [生成 CMake 配置文件](./config_generate_cmake_config.md)
-- [缓存构建产物](./config_cache_management.md)
+- [生成 CMake 配置文件](./introduce_generate_cmake_config.md)
+- [缓存构建产物](./introduce_cache_artifacts.md)
 
 支持的命令列表：
 
 | 命令                               | 描述                                  |
 | ------------------------------------- | --------------------------------- |
-| [about](./cmd_about.md)               | 显示 Celer 版本信息。 |
+| [about](./cmd_about.md)               | 显示Celer版本信息。 |
 | [autoremove](./cmd_autoremove.md)     | 清理安装目录 - 移除项目不必要的文件。|
 | [clean](./cmd_clean.md)               | 移除构建缓存和清理项目的仓库。|
-| [configure](./quick_start.md#4-configure-platform-or-project) | 配置平台或项目。|
-| [create](./cmd_create.md)             | 创建 [平台](./config_add_platform.md)、[项目](./config_add_project.md) 或 [端口](./config_add_port.md)。 |
+| [configure](./cmd_configfure.md)      | 修改workspace的全局配置。|
+| [create](./cmd_create.md)             | 创建平台、项目或端口。 |
 | [deploy](./cmd_deploy.md)             | 部署项目。|
 | [init](./quick_start.md#3-setup-conf) | 初始化配置仓库。|
 | [install](./cmd_install.md)           | 安装一个库。|
-| [integrate](./cmd_integrate.md)       | 集成以支持 tab 补全。|
+| [integrate](./cmd_integrate.md)       | 集成以支持tab补全。|
 | [remove](./cmd_remove.md)             | 移除已安装的库库。|
 | [search](./cmd_search.md)             | 搜索库库。|
-| [tree](./cmd_tree.md)                 | 显示端口或项目的依赖关系。| 
+| [tree](./cmd_tree.md)                 | 显示三方库或项目的依赖关系。| 
 | [update](./cmd_update.md)             | 更新配置仓库、端口配置仓库或第三方仓库。|
 
 # 贡献

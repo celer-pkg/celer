@@ -41,32 +41,32 @@ Celer supports overriding third-party libraries with different versions and comp
 We have documentations to guide you in using Celer:
 
 - [Quick start.](./quick_start.md)
-- [How to create a new platform.](./config_add_platform.md)
-- [How to create a new project.](./config_add_project.md)
-- [How to create a new port.](./config_add_port.md)
+- [How to create a new platform.](./cmd_create.md#1-create-a-new-platform)
+- [How to create a new project.](./cmd_create.md#2-create-a-new-project)
+- [How to create a new port.](./cmd_create.md#3-create-a-new-port)
 
 Advanced features:
 
-- [Generate cmake configs.](./config_generate_cmake_config.md)
-- [Cache build artifacts.](./config_cache_management.md)
+- [Generate cmake configs.](./introduce_generate_cmake_config.md)
+- [Cache build artifacts.](./introduce_cache_management.md)
 
 Supported commands:
 
-| Command                               | Description  |
-| ------------------------------------- | ------------ |
-| [about](./cmd_about.md)               | About Celer. |
+| Command                               | Description                                                            |
+| ------------------------------------- | ---------------------------------------------------------------------- |
+| [about](./cmd_about.md)               | About Celer.                                                           |
 | [autoremove](./cmd_autoremove.md)     | Tidy up installation directory - removing project's unnecessary files. |
-| [clean](./cmd_clean.md)               | Remove build cache and clean repo for packages or projects. |
-| [configure](./quick_start.md#4-configure-platform-or-project) | Configure platform or project. |
-| create                                | Create a [platform](./config_add_platform.md), [project](./config_add_project.md) or [port](./config_add_port.md). |
-| [deploy](./cmd_deploy.md)             | Deploy with selected platform and project. |
-| [init](./quick_start.md#3-setup-conf) | Init with conf repo. |
-| [install](./cmd_install.md)           | Install a package. |
-| [integrate](./cmd_integrate.md)       | Integrate tab completion. |
-| [remove](./cmd_remove.md)             | Remove a package. |
-| [search](./cmd_search.md)             | Search matched ports. |
-| [tree](./cmd_tree.md)                 | Show the dependencies of a port or a project. |
-| [update](./cmd_update.md)             | Update conf repo, ports config repo or third-party repo. |
+| [clean](./cmd_clean.md)               | Remove build cache and clean repo for packages or projects.            |
+| [configure](./cmd_configure.md)       | Configure platform or project.                                         |
+| [create](./cmd_create.md)             | Create a platform, project or port.                                    |
+| [deploy](./cmd_deploy.md)             | Deploy with selected platform and project.                             |
+| [init](./quick_start.md#3-setup-conf) | Init with conf repo.                                                   |
+| [install](./cmd_install.md)           | Install a package.                                                     |
+| [integrate](./cmd_integrate.md)       | Integrate tab completion.                                              |
+| [remove](./cmd_remove.md)             | Remove a package.                                                      |
+| [search](./cmd_search.md)             | Search matched ports.                                                  |
+| [tree](./cmd_tree.md)                 | Show the dependencies of a port or a project.                          |
+| [update](./cmd_update.md)             | Update conf repo, ports config repo or third-party repo.               |
 
 # Contribute
 

@@ -44,9 +44,9 @@ func (c createCmd) Command() *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().StringVar(&c.platform, "platform", "", "create new platform.")
-	command.Flags().StringVar(&c.project, "project", "", "create new project.")
-	command.Flags().StringVar(&c.port, "port", "", "create new port.")
+	command.Flags().StringVar(&c.platform, "platform", "", "create a new platform.")
+	command.Flags().StringVar(&c.project, "project", "", "create a new project.")
+	command.Flags().StringVar(&c.port, "port", "", "create a new port.")
 
 	command.MarkFlagsMutuallyExclusive("platform", "project", "port")
 	return command

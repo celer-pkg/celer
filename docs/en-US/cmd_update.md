@@ -1,6 +1,6 @@
 # Update command
 
-&emsp;&emsp;The celer update command synchronizes local repositories with their remote counterparts, ensuring you have the latest package configurations and build definitions. It supports targeted updates for different repository types.
+&emsp;&emsp;The update command synchronizes local repositories with their remote counterparts, ensuring you have the latest package configurations and build definitions. It supports targeted updates for different repository types.
 
 ## Command Syntax
 

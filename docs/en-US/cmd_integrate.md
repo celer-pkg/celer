@@ -1,6 +1,6 @@
 # Integrate command
 
-&emsp;&emsp;The celer integrate command enables intelligent tab completion for Celer in your shell environment, significantly improving command-line productivity.
+&emsp;&emsp;The integrate command enables intelligent tab completion for Celer in your shell environment, significantly improving command-line productivity.
 
 ## Supported Shells
 

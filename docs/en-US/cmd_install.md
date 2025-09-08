@@ -1,6 +1,6 @@
 # Install command
 
-&emsp;&emsp;The celer install command downloads, compiles, and installs packages with dependency resolution. It supports multiple build configurations and installation modes.
+&emsp;&emsp;The install command downloads, compiles, and installs packages with dependency resolution. It supports multiple build configurations and installation modes.
 
 ## Command Syntax
 

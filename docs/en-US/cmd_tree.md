@@ -1,6 +1,6 @@
 # Tree command
 
-&emsp;&emsp;The celer tree command visualizes dependency relationships for packages or projects, displaying both runtime dependencies and development dependencies by default.
+&emsp;&emsp;The tree command visualizes dependency relationships for packages or projects, displaying both runtime dependencies and development dependencies by default.
 
 ## Command Syntax
 

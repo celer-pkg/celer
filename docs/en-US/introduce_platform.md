@@ -1,17 +1,8 @@
-# Add a new platform
+# Introduce to platform
 
 &emsp;&emsp;Platform configure files are stored in **conf/platforms** directory, these files defines the `toolchain` and `rootfs` required by this platform.  
 
-To create a new platrom, run: 
-
-```
-celer create --platform=x86_64-linux-22.04
-```
-
->The generated file is located in the **conf/platforms** directory.  
->Then you need to open the generated file and configure it according to your target environment.
-
-## 1. Introduction to platform configure file
+## 1. Platform toml file
 
 Let's take a look at an example platform configure file, `x86_64-linux-22.04.toml`:
 

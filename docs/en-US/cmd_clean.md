@@ -1,6 +1,6 @@
 # Clean command
 
-&emsp;&emsp;The celer clean command removes build cache files for a package or project, helping to free up disk space or resolve build issues caused by outdated cached data.
+&emsp;&emsp;The clean command allows to remove build cache files for a package or project, helping to free up disk space or resolve build issues caused by outdated cached data.
 
 ## Command Syntax
 
