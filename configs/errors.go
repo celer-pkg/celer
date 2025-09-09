@@ -18,4 +18,5 @@ var (
 	ErrCacheTokenNotMatch      = errors.New(
 		"cache tokens doesn't matched, please check `--cache-token` and `cache_dir.token` in celer.toml",
 	)
+	ErrCacheNotFoundWithCommit = errors.New("cache not found with commit")
 )
