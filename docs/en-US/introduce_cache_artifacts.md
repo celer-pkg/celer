@@ -1,12 +1,13 @@
 # Cache artifacts
 
-&emsp;&emsp;All third-party libraries can be compiled in our project, but sometimes we want to share them. For example, we want to use ffmpeg in our project, but we don't want to compile it by everyone, because it takes a lot of time. Fortunately, Celer's cache managerment can help us.
+&emsp;&emsp;Although third-party libraries can be compiled from source code, the compilation of numerous C/C++ libraries often takes a long time, which can severely impact project development efficiency. Fortunately, Celer supports precise cache management of build artifacts, effectively preventing the same libraries from being repeatedly compiled with identical requirements.  
+&emsp;&emsp;Furthermore, Celer supports retrievuing build artifacts of libraries without cloning their source code, this can be very useable for private libraries.
 
-## 1. Define `cache_dirs`
+## 1. Retrieve build artifacts by defining `cache_dirs`
 
-&emsp;&emsp;Once define `cache_dir` in `celer.toml`, everytime when build a library Celer will try to find matched cache artifact from `cache_dir`. If not found then will build from source. After building successfull, Celer will try to pack build artifact and store it in `cache_dir`.
+&emsp;&emsp;Once configured `cache_dir` in `celer.toml`, everytime when build a library Celer will try to find matched cache artifact from `cache_dir`.
 
-```
+```toml
 [global]
 conf_repo = "https://gitee.com/phil-zhang/celer_conf.git"
 platform = "x86_64-linux-ubuntu-20.04.5"
@@ -17,7 +18,38 @@ job_num = 32
 dir = "/home/test/celer_cache"
 ```
 
-## 2. Cache directory structure
+## 2. Save build artifacts to `cache_dir`
+
+&emsp;&emsp;`cache_token` should be configured in `celer.toml` as below, when install port with `--store-cache`, Celer will try to pack build artifact and store it in `cache_dir`.
+
+```toml
+[global]
+conf_repo = "https://gitee.com/phil-zhang/celer_conf.git"
+platform = "x86_64-linux-ubuntu-20.04.5"
+project = "project_01"
+job_num = 32
+
+[cache_dir]
+dir = "/home/test/celer_cache"
+token = "token_xxxx"
+```
+
+## 3. Retrieve build artifacts without cloning source code
+
+&emsp;&emsp;When the commit is provided in the target library's `port.toml`, Celer calculates the cache key based on the commit value, and then searches for the matching build artifact in the `cache_dir` with this key.
+
+```toml
+[package]
+url = "https://gitlab.com/libeigen/eigen.git"
+ref = "3.4.0"
+commit = "3147391d946bb4b6c68edd901f2add6ac1f31f8c"
+
+[[build_configs]]
+build_system = "cmake"
+options = ["-DEIGEN_TEST_NO_OPENGL=1", "-DBUILD_TESTING=OFF"]
+```
+
+## 4. Cache directory structure
 
 ```
 /home/test
@@ -41,16 +73,14 @@ dir = "/home/test/celer_cache"
                 └── others
 ```
 
->When build a library, Celer will try to find matched cache artifact from `cache_dir` with a cache key. If not found then will build from source. After building successfull, Celer will try to pack build artifact and store it in `cache_dir`.
-
-## 3. Cache key
+## 5. Cache key
 
 The cache uses a composite key derived from:
 
 **1. Build Environment**
 
-- Toolchain (compiler path/version, system architecture).
-- Sysroot (name, configure).
+- Toolchain (url, path, name, version, system architecture, etc).
+- Sysroot (url, path, pkg_config_path, etc).
 
 **2. Build Parameters**
 
@@ -60,7 +90,7 @@ The cache uses a composite key derived from:
 
 **3. Source Modifications**
 
-- Applied patches: The patch file contents are factored into the composite cache key computation.
+- Applied patches: The patch file is included in the cache key computation.
 
 **4. Dependency Graph**
 
