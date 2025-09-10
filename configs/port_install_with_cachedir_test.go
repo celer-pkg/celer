@@ -488,7 +488,7 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 	// Install from cache with not matched commit.
 	port.Package.Commit = "not_matched_commit_xxxxxx"
 	installed, err := port.installFromCache()
-	if err == nil || errors.Is(err, ErrCacheNotFoundWithCommit) {
+	if err == nil || !errors.Is(err, ErrCacheNotFoundWithCommit) {
 		t.Fatal("should return ErrCacheNotFoundWithCommit")
 	}
 	if installed {
