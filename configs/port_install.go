@@ -323,6 +323,8 @@ func (p Port) installFromCache() (bool, error) {
 
 		fromDir := p.ctx.CacheDir().Dir
 		return true, p.writeTraceFile(fmt.Sprintf("cache [%s]", fromDir))
+	} else if p.Package.Commit != "" {
+		return false, ErrCacheNotFoundWithCommit
 	}
 
 	return false, nil

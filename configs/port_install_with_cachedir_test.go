@@ -4,6 +4,8 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"celer/pkgs/git"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -262,7 +264,7 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 	var port Port
 	port.StoreCache = true
 	port.CacheToken = "token_123456"
-	check(port.Init(celer, "sqlite3@3.49.0", celer.BuildType()))
+	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
 	if err := port.installFromSource(); err != ErrCacheDirNotConfigured {
 		t.Fatal("should return ErrCacheDirNotConfigured")
 	}
@@ -302,7 +304,7 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 	var port Port
 	port.StoreCache = true
 	port.CacheToken = "token_123456"
-	check(port.Init(celer, "sqlite3@3.49.0", celer.BuildType()))
+	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
 	if err := port.installFromSource(); err != ErrCacheTokenNotConfigured {
 		t.Fatal("should return ErrCacheTokenNotConfigured")
 	}
@@ -342,7 +344,7 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 	var port Port
 	port.StoreCache = true
 	port.CacheToken = "" // Token not specified
-	check(port.Init(celer, "sqlite3@3.49.0", celer.BuildType()))
+	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
 	if err := port.installFromSource(); err != ErrCacheTokenNotSpecified {
 		t.Fatal("should return ErrCacheTokenNotSpecified")
 	}
@@ -382,8 +384,114 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 	var port Port
 	port.StoreCache = true
 	port.CacheToken = "token_654321" // Token not match.
-	check(port.Init(celer, "sqlite3@3.49.0", celer.BuildType()))
+	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
 	if err := port.installFromSource(); err != ErrCacheTokenNotMatch {
 		t.Fatal("should return ErrCacheTokenNotMatch")
+	}
+}
+
+func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Must create cache dir before setting cache dir.
+	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+
+	// Init celer.
+	celer := NewCeler()
+	check(celer.Init())
+
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetBuildType("Release"))
+	check(celer.SetProject("test_project_01"))
+	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+
+	// Setup build environment.
+	check(celer.Platform().Setup())
+
+	var port Port
+	port.StoreCache = true
+	port.CacheToken = "token_123456"
+	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+	check(port.installFromSource())
+
+	// Read commit.
+	commit, err := git.ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
+	check(err)
+
+	// Remove installed and src dir.
+	check(port.Remove(true, true, true))
+	check(os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir))
+
+	// Install from cache with commit.
+	port.Package.Commit = commit
+	installed, err := port.installFromCache()
+	check(err)
+	if !installed {
+		t.Fatal("should be installed from cache")
+	}
+}
+
+func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Must create cache dir before setting cache dir.
+	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+
+	// Init celer.
+	celer := NewCeler()
+	check(celer.Init())
+
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetBuildType("Release"))
+	check(celer.SetProject("test_project_01"))
+	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+
+	// Setup build environment.
+	check(celer.Platform().Setup())
+
+	var port Port
+	port.StoreCache = true
+	port.CacheToken = "token_123456"
+	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+	check(port.installFromSource())
+
+	// Remove installed and src dir.
+	check(port.Remove(true, true, true))
+	check(os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir))
+
+	// Install from cache with not matched commit.
+	port.Package.Commit = "not_matched_commit_xxxxxx"
+	installed, err := port.installFromCache()
+	if err == nil || !errors.Is(err, ErrCacheNotFoundWithCommit) {
+		t.Fatal("should return ErrCacheNotFoundWithCommit")
+	}
+	if installed {
+		t.Fatal("should not be installed from cache")
 	}
 }
