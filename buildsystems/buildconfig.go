@@ -816,13 +816,13 @@ func (b BuildConfig) msvcEnvs() string {
 	for index, path := range parts {
 		parts[index] = fileio.ToCygpath(path)
 	}
-	envs = append(envs, fmt.Sprintf(`export PATH="%s:${PATH}"`, strings.Join(parts, ":")))
+	envs = append(envs, fmt.Sprintf(`PATH="%s:${PATH}"`, strings.Join(parts, ":")))
 
 	// Provider envs if exist.
 	var appendEnv = func(envKey string) {
 		envValue := strings.TrimSpace(os.Getenv(envKey))
 		if envValue != "" {
-			envs = append(envs, fmt.Sprintf(`export %s="%s"`, envKey, envValue))
+			envs = append(envs, fmt.Sprintf(`%s="%s"`, envKey, envValue))
 		}
 	}
 	appendEnv("PKG_CONFIG_PATH")
@@ -836,10 +836,10 @@ func (b BuildConfig) msvcEnvs() string {
 	appendEnv("LIB")
 
 	// Provider CC, CXX, LD, AR but no NM and others.
-	envs = append(envs, fmt.Sprintf(`export CC="%s"`, b.PortConfig.CrossTools.CC))
-	envs = append(envs, fmt.Sprintf(`export CXX="%s"`, b.PortConfig.CrossTools.CXX))
-	envs = append(envs, fmt.Sprintf(`export LD="%s"`, b.PortConfig.CrossTools.LD))
-	envs = append(envs, fmt.Sprintf(`export AR="%s"`, "ar-lib "+b.PortConfig.CrossTools.AR))
+	envs = append(envs, fmt.Sprintf(`CC="%s"`, b.PortConfig.CrossTools.CC))
+	envs = append(envs, fmt.Sprintf(`CXX="%s"`, b.PortConfig.CrossTools.CXX))
+	envs = append(envs, fmt.Sprintf(`LD="%s"`, b.PortConfig.CrossTools.LD))
+	envs = append(envs, fmt.Sprintf(`AR="%s"`, "ar-lib "+b.PortConfig.CrossTools.AR))
 
-	return strings.Join(envs, " && ")
+	return strings.Join(envs, " ")
 }

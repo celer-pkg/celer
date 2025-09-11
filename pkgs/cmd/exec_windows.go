@@ -73,7 +73,7 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 
 	// Set msvc envs if specified.
 	if e.msvcEnvs != "" {
-		e.command = e.msvcEnvs + " && " + e.command
+		e.command = e.msvcEnvs + " " + e.command
 	}
 
 	// Create command for windows and unix like.
