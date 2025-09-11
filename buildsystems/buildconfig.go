@@ -301,8 +301,10 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		}
 
 		// Init as git repo for tracking file change.
-		if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
-			return err
+		if b.buildSystem.Name() != "prebuilt" {
+			if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
+				return err
+			}
 		}
 	}
 

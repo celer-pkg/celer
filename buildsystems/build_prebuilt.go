@@ -38,7 +38,7 @@ func (p prebuilt) CleanRepo() error {
 
 func (p prebuilt) Clone(url, ref, archive string) error {
 	// Clone repo only when source dir not exists.
-	if !fileio.PathExists(p.PortConfig.SrcDir) {
+	if !fileio.PathExists(p.PortConfig.RepoDir) {
 		if strings.HasSuffix(url, ".git") {
 			// Try to hack github repo url with proxy url.
 			redirectedUrl, err := proxy.HackRepoUrl(url)
