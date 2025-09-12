@@ -1,0 +1,12 @@
+# Import target "@NAMESPACE@::@COMPONENT@" for configuration "@BUILD_TYPE@"
+set_property(TARGET @NAMESPACE@::@COMPONENT@ APPEND PROPERTY IMPORTED_CONFIGURATIONS @BUILD_TYPE_UPPER@)
+set_target_properties(@NAMESPACE@::@COMPONENT@ PROPERTIES
+    IMPORTED_LINK_INTERFACE_LANGUAGES_@BUILD_TYPE_UPPPER@ "CXX"
+    IMPORTED_LOCATION_@BUILD_TYPE_UPPPER@ "${_IMPORT_PREFIX}/lib/@FILENAME@"
+)
+
+list(APPEND _cmake_import_check_targets @NAMESPACE@::@COMPONENT@)
+list(APPEND _cmake_import_check_files_for_@NAMESPACE@::@COMPONENT@ "${_IMPORT_PREFIX}/lib/@FILENAME@" )
+
+# Commands beyond this point should not need to know the version.
+set(CMAKE_IMPORT_FILE_VERSION)

@@ -1,0 +1,7 @@
+[package]
+url = "https://sqlite.org/2025/sqlite-amalgamation-3490100.zip"
+ref = "1.0.0"
+
+[[build_configs]]
+build_system = "cmake"
+dependencies = ["ddd@2.0.0"]

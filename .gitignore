@@ -1,0 +1,16 @@
+/build
+/.idea
+**/ports
+**/conf
+**/packages
+**/tmp
+**/buildtrees
+**/downloads
+**/installed
+**/testdata
+**/cachedir
+**toolchain_file.cmake
+*.exe
+celer
+celer.toml
+nul

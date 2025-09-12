@@ -1,0 +1,13 @@
+builtin_packages = [
+  "base-devel",
+  "git",
+  "make",
+  "libpcre",
+  "autoconf",
+  "automake",
+  "libtool",
+  "m4",
+  "pkgconf",
+  "intltool",
+  "gettext-devel"
+]

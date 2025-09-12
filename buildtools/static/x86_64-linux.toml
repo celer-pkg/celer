@@ -1,0 +1,26 @@
+[[build_tools]]
+name = "cmake"
+version = "3.30.5"
+url = "https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-linux-x86_64.tar.gz"
+archive = "cmake-3.30.5-linux-x86_64.tar.gz"
+paths = [
+  "cmake-3.30.5-linux-x86_64/bin"
+]
+
+[[build_tools]]
+name = "ninja"
+version = "v1.12.1"
+url = "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux.zip"
+archive = "ninja-linux-x86_64-v1.12.1.zip"
+paths = [
+  "ninja-linux-x86_64-v1.12.1"
+]
+
+[[build_tools]]
+name = "llvm"
+version = "20.1.5"
+url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.5/LLVM-20.1.5-Linux-X64.tar.xz"
+archive = "llvmorg-20.1.5/LLVM-20.1.5-Linux-X64.tar.xz"
+paths = [
+  "llvmorg-20.1.5/LLVM-20.1.5-Linux-X64/bin"
+]
