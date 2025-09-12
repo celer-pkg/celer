@@ -38,11 +38,9 @@ type CrossTools struct {
 }
 
 type msvc struct {
-	IncludeDirs []string
-	LibDirs     []string
-	BinDirs     []string
-	MT          string
-	RC          string
+	VCVars string
+	MT     string
+	RC     string
 }
 
 func (c CrossTools) SetEnvs(buildConfig *BuildConfig) {

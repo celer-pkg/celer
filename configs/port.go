@@ -374,11 +374,9 @@ func (p Port) crossTools() *buildsystems.CrossTools {
 	crossTools.READELF = toolchain.READELF
 
 	// For windows MSVC.
+	crossTools.MSVC.VCVars = toolchain.msvc.VCVars
 	crossTools.MSVC.MT = toolchain.msvc.MtPath
 	crossTools.MSVC.RC = toolchain.msvc.RcPath
-	crossTools.MSVC.IncludeDirs = toolchain.msvc.includeDirs
-	crossTools.MSVC.LibDirs = toolchain.msvc.libDirs
-	crossTools.MSVC.BinDirs = toolchain.msvc.binDirs
 
 	return &crossTools
 }

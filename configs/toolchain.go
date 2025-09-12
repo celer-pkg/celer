@@ -47,11 +47,9 @@ type Toolchain struct {
 }
 
 type msvc struct {
-	includeDirs []string
-	libDirs     []string
-	binDirs     []string
-	MtPath      string
-	RcPath      string
+	VCVars string
+	MtPath string
+	RcPath string
 }
 
 func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {

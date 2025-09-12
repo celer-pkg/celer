@@ -101,11 +101,6 @@ func (b *BuildConfig) setupEnvs() {
 	// Setup pkg-config.
 	b.setupPkgConfig()
 
-	// Set build environment for msvc.
-	if b.PortConfig.CrossTools.Name == "msvc" {
-		b.setupMSVC()
-	}
-
 	// Set ACLOCAL_PATH for ports that rely on macros.
 	macrosRequired := slices.ContainsFunc(b.DevDependencies, func(element string) bool {
 		return strings.HasPrefix(element, "macros@")
@@ -115,24 +110,9 @@ func (b *BuildConfig) setupEnvs() {
 			filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev", "share", "aclocal")))
 	}
 
-	// Make sure so in dev/lib can be load by dev/bin.
-	if runtime.GOOS == "linux" {
-		devBinDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev", "bin")
-		b.envBackup.setenv("PATH", env.JoinPaths("PATH", devBinDir))
-	}
-}
-
-func (b BuildConfig) setupMSVC() {
-	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
-
-	includeDirs := append(b.PortConfig.CrossTools.MSVC.IncludeDirs, filepath.Join(tmpDepsDir, "include"))
-	b.envBackup.setenv("INCLUDE", strings.Join(includeDirs, ";"))
-
-	libDirs := append(b.PortConfig.CrossTools.MSVC.LibDirs, filepath.Join(tmpDepsDir, "lib"))
-	b.envBackup.setenv("LIB", strings.Join(libDirs, ";"))
-
-	binDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev", "bin")
-	b.envBackup.setenv("PATH", env.JoinPaths("PATH", binDir))
+	// Expose dev/bin to PATH.
+	devBinDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev", "bin")
+	b.envBackup.setenv("PATH", env.JoinPaths("PATH", devBinDir))
 }
 
 func (b BuildConfig) setupPkgConfig() {

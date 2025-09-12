@@ -65,6 +65,11 @@ func (p *Platform) Init(platformName string) error {
 	}
 	p.Toolchain.ctx = p.ctx
 
+	// Only for Windows MSVC.
+	if p.Toolchain.Name == "msvc" {
+		p.Toolchain.msvc.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+	}
+
 	return nil
 }
 
@@ -155,6 +160,11 @@ func (p *Platform) Setup() error {
 		if err := p.Toolchain.CheckAndRepair(); err != nil {
 			return fmt.Errorf("check and repair toolchain error: %w", err)
 		}
+	}
+
+	// Only for Windows MSVC.
+	if p.Toolchain.Name == "msvc" {
+		p.Toolchain.msvc.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
 	}
 
 	return nil

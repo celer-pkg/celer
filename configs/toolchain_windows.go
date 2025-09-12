@@ -101,8 +101,8 @@ func (t *Toolchain) Validate() error {
 
 		firstSection := strings.Split(filepath.ToSlash(t.Path), "/")[0]
 		t.rootDir = filepath.Join(dirs.DownloadedToolsDir, firstSection)
-		t.msvc.binDirs = append(t.msvc.binDirs, filepath.Join(dirs.DownloadedToolsDir, t.Path))
-		os.Setenv("PATH", env.JoinPaths("PATH", t.msvc.binDirs...))
+		t.fullpath = filepath.Join(dirs.DownloadedToolsDir, t.Path)
+		os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
 
 	case strings.HasPrefix(t.Url, "file:///"):
 		localPath := strings.TrimPrefix(t.Url, "file:///")
@@ -118,47 +118,8 @@ func (t *Toolchain) Validate() error {
 
 				// Runtime paths.
 				t.fullpath = fmt.Sprintf(`%s\VC\Tools\MSVC\%s\bin\Host%s\x64`, localPath, t.Version, t.arch())
-				t.msvc.binDirs = append(t.msvc.binDirs, t.fullpath)
-				t.msvc.binDirs = append(t.msvc.binDirs, fmt.Sprintf(`%s\Common7\IDE\VC\VCPackages`, localPath))
-				t.msvc.binDirs = append(t.msvc.binDirs, fmt.Sprintf(`%s\Common7\IDE\CommonExtensions\Microsoft\TestWindow`, localPath))
-				t.msvc.binDirs = append(t.msvc.binDirs, fmt.Sprintf(`%s\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer`, localPath))
-				t.msvc.binDirs = append(t.msvc.binDirs, fmt.Sprintf(`%s\MSBuild\Current\bin\Roslyn`, localPath))
-				t.msvc.binDirs = append(t.msvc.binDirs, fmt.Sprintf(`%s\Team Tools\DiagnosticsHub\Collector`, localPath))
-				t.msvc.binDirs = append(t.msvc.binDirs, fmt.Sprintf(`%s\MSBuild\Current\Bin\amd64`, localPath))
-				t.msvc.binDirs = append(t.msvc.binDirs, fmt.Sprintf(`%s\Common7\IDE`, localPath))
-				t.msvc.binDirs = append(t.msvc.binDirs, fmt.Sprintf(`%s\Common7\Tools`, localPath))
-
-				// Validate msvc runtime paths.
-				for _, path := range t.msvc.binDirs {
-					if !fileio.PathExists(path) {
-						return fmt.Errorf("msvc path: %s is not exist, please check your msvc installation and version", path)
-					}
-				}
-
-				// Header dirs.
-				t.msvc.includeDirs = append(t.msvc.includeDirs, fmt.Sprintf(`%s\VC\Tools\MSVC\%s\include`, localPath, t.Version))
-				t.msvc.includeDirs = append(t.msvc.includeDirs, fmt.Sprintf(`%s\VC\Tools\MSVC\%s\atlmfc\include`, localPath, t.Version))
-				t.msvc.includeDirs = append(t.msvc.includeDirs, fmt.Sprintf(`%s\VC\Auxiliary\VS\include`, localPath))
-
-				// Validate msvc include dirs.
-				for _, dir := range t.msvc.includeDirs {
-					if !fileio.PathExists(dir) {
-						return fmt.Errorf("msvc include dir: %s is not exist", t.Url)
-					}
-				}
-
-				// Lib dirs.
-				t.msvc.libDirs = append(t.msvc.libDirs, fmt.Sprintf(`%s\VC\Tools\MSVC\%s\atlmfc\lib\x64`, localPath, t.Version))
-				t.msvc.libDirs = append(t.msvc.libDirs, fmt.Sprintf(`%s\VC\Tools\MSVC\%s\lib\x64`, localPath, t.Version))
-
-				// Validate msvc lib dirs.
-				for _, dir := range t.msvc.libDirs {
-					if !fileio.PathExists(dir) {
-						return fmt.Errorf("msvc lib dir: %s is not exist", t.Url)
-					}
-				}
 			}
-			os.Setenv("PATH", env.JoinPaths("PATH", t.msvc.binDirs...))
+			os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
 		} else {
 			// Even local must be a archive file and path should not be empty.
 			if t.Path == "" {
@@ -172,8 +133,8 @@ func (t *Toolchain) Validate() error {
 
 			firstSection := strings.Split(filepath.ToSlash(t.Path), "/")[0]
 			t.rootDir = filepath.Join(dirs.DownloadedToolsDir, firstSection)
-			t.msvc.binDirs = append(t.msvc.binDirs, filepath.Join(dirs.DownloadedToolsDir, t.Path))
-			os.Setenv("PATH", env.JoinPaths("PATH", t.msvc.binDirs...))
+			t.fullpath = filepath.Join(dirs.DownloadedToolsDir, t.Path)
+			os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
 		}
 
 	default:
@@ -321,24 +282,6 @@ func (w *WindowsKit) Detect(msvc *msvc) error {
 		return fmt.Errorf("cannot read current verson of microsoft sdk v10.0")
 	}
 	w.Version = w.normalizeVersion(version)
-
-	// Append include dirs.
-	for _, dir := range []string{"ucrt", "shared", "um", "winrt", "cppwinrt"} {
-		includeDir := filepath.Join(w.InstalledDir, "Include", w.Version, dir)
-		if !fileio.PathExists(includeDir) {
-			continue
-		}
-		msvc.includeDirs = append(msvc.includeDirs, includeDir)
-	}
-
-	// Append lib dirs.
-	for _, dir := range []string{"ucrt", "um", "ucrt_enclave"} {
-		libDir := filepath.Join(w.InstalledDir, "Lib", w.Version, dir, "x64")
-		if !fileio.PathExists(libDir) {
-			continue
-		}
-		msvc.libDirs = append(msvc.libDirs, libDir)
-	}
 
 	binDir := filepath.Join(w.InstalledDir, "bin", w.Version, "x64")
 	msvc.MtPath = filepath.Join(binDir, "mt.exe")

@@ -19,6 +19,7 @@ func NewMakefiles(config *BuildConfig) *makefiles {
 
 type makefiles struct {
 	*BuildConfig
+	msvcEnvs string
 }
 
 func (makefiles) Name() string {
@@ -53,7 +54,16 @@ func (m makefiles) CleanRepo() error {
 	return nil
 }
 
-func (m makefiles) preConfigure() error {
+func (m *makefiles) preConfigure() error {
+	// Cache MSVC envs.
+	if runtime.GOOS == "windows" {
+		msvcEnvs, err := m.BuildConfig.msvcEnvs()
+		if err != nil {
+			return err
+		}
+		m.msvcEnvs = msvcEnvs
+	}
+
 	// Execute pre configure scripts.
 	for _, script := range m.PreConfigure {
 		script = strings.TrimSpace(script)
@@ -91,7 +101,7 @@ func (m makefiles) preConfigure() error {
 		// Use msys2 and msvc envs only when in windows and not using perl.
 		if runtime.GOOS == "windows" && !configureWithPerl {
 			executor.MSYS2Env(true)
-			executor.SetMsvcEnvs(m.msvcEnvs())
+			executor.SetMsvcEnvs(m.msvcEnvs)
 		}
 
 		if err := executor.Execute(); err != nil {
@@ -255,7 +265,7 @@ func (m makefiles) Configure(options []string) error {
 	// Use msys2 and msvc env only when in windows and not using perl.
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
-		executor.SetMsvcEnvs(m.msvcEnvs())
+		executor.SetMsvcEnvs(m.msvcEnvs)
 	}
 	if err := executor.Execute(); err != nil {
 		return err
@@ -287,7 +297,7 @@ func (m makefiles) Build(options []string) error {
 	// Use msys2 and msvc envs only when in windows and not using perl.
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
-		executor.SetMsvcEnvs(m.msvcEnvs())
+		executor.SetMsvcEnvs(m.msvcEnvs)
 	}
 
 	if !m.configureRequired() || m.BuildInSource {
@@ -323,7 +333,7 @@ func (m makefiles) Install(options []string) error {
 	// Use msys2 and msvc envs only when in windows and not using perl.
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
-		executor.SetMsvcEnvs(m.msvcEnvs())
+		executor.SetMsvcEnvs(m.msvcEnvs)
 	}
 
 	if !m.configureRequired() || m.BuildInSource {

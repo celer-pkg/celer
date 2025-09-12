@@ -132,11 +132,11 @@ func (r Repair) download(url, archive string) (override bool, err error) {
 		// Redownload if remote file size and local file size not match.
 		fileSize, err := FileSize(url)
 		if err != nil {
-			return false, fmt.Errorf("get remote filesize: %w", err)
+			return false, fmt.Errorf("get remote file size: %w", err)
 		}
 		info, err := os.Stat(downloaded)
 		if err != nil {
-			return false, fmt.Errorf("%s: get local filesize: %w", archive, err)
+			return false, fmt.Errorf("%s: get local file size: %w", archive, err)
 		}
 
 		// Not every remote file has size, so we need to check if fileSize is greater than 0.

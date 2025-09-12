@@ -1,6 +1,7 @@
 package buildsystems
 
 import (
+	"bytes"
 	"celer/buildtools"
 	"celer/generator"
 	"celer/pkgs/dirs"
@@ -9,10 +10,12 @@ import (
 	"celer/pkgs/git"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
+	"syscall"
 )
 
 const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, ninja, qmake"
@@ -808,38 +811,75 @@ func (b BuildConfig) getLogPath(suffix string) string {
 }
 
 // msvcEnvs provider the MSVC environment variables required by msys2.
-func (b BuildConfig) msvcEnvs() string {
-	var envs []string
+func (b BuildConfig) msvcEnvs() (string, error) {
+	// Load MSVC environment variables.
+	msvcEnvs, err := b.readMSVCEnvs()
+	if err != nil {
+		return "", err
+	}
 
 	// Convert windows PATH to linux PATH.
 	parts := strings.Split(os.Getenv("PATH"), ";")
+	msvcPaths := strings.Split(msvcEnvs["PATH"], ";")
+	parts = append(parts, msvcPaths...)
+
 	for index, path := range parts {
 		parts[index] = fileio.ToCygpath(path)
 	}
+
+	var envs []string
 	envs = append(envs, fmt.Sprintf(`PATH="%s:${PATH}"`, strings.Join(parts, ":")))
 
 	// Provider envs if exist.
-	var appendEnv = func(envKey string) {
-		envValue := strings.TrimSpace(os.Getenv(envKey))
+	var appendEnv = func(envKey, envValue string) {
 		if envValue != "" {
 			envs = append(envs, fmt.Sprintf(`%s="%s"`, envKey, envValue))
 		}
 	}
-	appendEnv("PKG_CONFIG_PATH")
-	appendEnv("PKG_CONFIG_SYSROOT_DIR")
-	appendEnv("ACLOCAL_PATH")
-	appendEnv("CFLAGS")
-	appendEnv("CXXFLAGS")
-	appendEnv("CPPFLAGS")
-	appendEnv("LDFLAGS")
-	appendEnv("INCLUDE")
-	appendEnv("LIB")
+	appendEnv("PKG_CONFIG_PATH", os.Getenv("PKG_CONFIG_PATH"))
+	appendEnv("PKG_CONFIG_SYSROOT_DIR", os.Getenv("PKG_CONFIG_SYSROOT_DIR"))
+	appendEnv("ACLOCAL_PATH", os.Getenv("ACLOCAL_PATH"))
+	appendEnv("CFLAGS", os.Getenv("CFLAGS"))
+	appendEnv("CXXFLAGS", os.Getenv("CXXFLAGS"))
+	appendEnv("CPPFLAGS", os.Getenv("CPPFLAGS"))
+	appendEnv("LDFLAGS", os.Getenv("LDFLAGS"))
+	appendEnv("INCLUDE", msvcEnvs["INCLUDE"])
+	appendEnv("LIB", msvcEnvs["LIB"])
+	appendEnv("CC", msvcEnvs["CC"])
+	appendEnv("CXX", msvcEnvs["CXX"])
+	appendEnv("LD", msvcEnvs["LD"])
+	appendEnv("AR", msvcEnvs["AR"])
 
-	// Provider CC, CXX, LD, AR but no NM and others.
-	envs = append(envs, fmt.Sprintf(`CC="%s"`, b.PortConfig.CrossTools.CC))
-	envs = append(envs, fmt.Sprintf(`CXX="%s"`, b.PortConfig.CrossTools.CXX))
-	envs = append(envs, fmt.Sprintf(`LD="%s"`, b.PortConfig.CrossTools.LD))
-	envs = append(envs, fmt.Sprintf(`AR="%s"`, "ar-lib "+b.PortConfig.CrossTools.AR))
+	return strings.Join(envs, " "), nil
+}
 
-	return strings.Join(envs, " ")
+func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
+	// Read MSVC environment variables.
+	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.CrossTools.MSVC.VCVars)
+	cmd := exec.Command("cmd")
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		CmdLine:    fmt.Sprintf(`/c %s`, command),
+		HideWindow: true,
+	}
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("failed to call vcvarsall: %v\noutput: %s", err, out.String())
+	}
+
+	// Parse environment variables from output.
+	var msvcEnvs = make(map[string]string)
+
+	lines := strings.Split(out.String(), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" && strings.Contains(line, "=") {
+			parts := strings.Split(line, "=")
+			msvcEnvs[parts[0]] = parts[1]
+		}
+	}
+
+	return msvcEnvs, nil
 }
