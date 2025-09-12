@@ -1,21 +1,19 @@
 package buildsystems
 
 import (
-	"bytes"
 	"celer/buildtools"
 	"celer/generator"
+	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
-	"syscall"
 )
 
 const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, ninja, qmake"
@@ -856,23 +854,16 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 	// Read MSVC environment variables.
 	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.CrossTools.MSVC.VCVars)
-	cmd := exec.Command("cmd")
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		CmdLine:    fmt.Sprintf(`/c %s`, command),
-		HideWindow: true,
-	}
-
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("failed to call vcvarsall: %v\noutput: %s", err, out.String())
+	executor := cmd.NewExecutor("read msvc envs", command)
+	output, err := executor.ExecuteOutput()
+	if err != nil {
+		return nil, err
 	}
 
 	// Parse environment variables from output.
 	var msvcEnvs = make(map[string]string)
 
-	lines := strings.Split(out.String(), "\n")
+	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line != "" && strings.Contains(line, "=") {
