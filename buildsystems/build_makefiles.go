@@ -80,8 +80,10 @@ func (m *makefiles) preConfigure() error {
 		}
 	}
 
-	// Execute autogen if existed.
-	if fileio.PathExists(m.PortConfig.SrcDir + "/autogen.sh") {
+	// If `configure` exists, then `autogen.sh` is unnecessary.
+	haveAutogen := fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, "autogen.sh"))
+	haveConfigure := fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, "configure"))
+	if haveAutogen && !haveConfigure {
 		// Disable auto configure by autogen.sh.
 		os.Setenv("NOCONFIGURE", "1")
 
@@ -142,8 +144,20 @@ func (m makefiles) configureOptions() ([]string, error) {
 	}
 
 	// Set build library type.
-	m.BuildConfig.BuildShared = expr.If(m.BuildConfig.BuildShared == "no", "", "--enable-shared")
-	m.BuildConfig.BuildStatic = expr.If(m.BuildConfig.BuildStatic == "no", "", "--enable-static")
+	switch m.BuildConfig.BuildShared {
+	case "no":
+		m.BuildConfig.BuildShared = ""
+	case "":
+		m.BuildConfig.BuildShared = "--enable-shared"
+	}
+
+	switch m.BuildConfig.BuildStatic {
+	case "no":
+		m.BuildConfig.BuildStatic = ""
+	case "":
+		m.BuildConfig.BuildStatic = "--enable-static"
+	}
+
 	libraryType := m.libraryType(
 		m.BuildConfig.BuildShared,
 		m.BuildConfig.BuildStatic,
