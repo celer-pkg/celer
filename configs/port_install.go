@@ -39,6 +39,17 @@ func (p Port) Install() (string, error) {
 			}
 			return "", nil
 		}
+	} else {
+		// Remove build cache and logs.
+		if p.Reinstall {
+			if err := os.RemoveAll(p.MatchedConfig.PortConfig.BuildDir); err != nil {
+				return "", fmt.Errorf("remove build cache error: %w", err)
+			}
+
+			if err := p.RemoveLogs(); err != nil {
+				return "", fmt.Errorf("remove logs error: %w", err)
+			}
+		}
 	}
 
 	// Clear the tmp/deps dir, then copy only the needed library files into it.
