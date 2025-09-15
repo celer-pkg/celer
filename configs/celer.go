@@ -70,8 +70,16 @@ type global struct {
 	GithubRepoProxy  string `toml:"github_repo_proxy,omitempty"`
 }
 
+type optLevel struct {
+	Debug          string `toml:"debug"`
+	Release        string `toml:"release"`
+	RelWithDebInfo string `toml:"relwithdebinfo"`
+	MinSizeRel     string `toml:"minsizerel"`
+}
+
 type configData struct {
 	Global   global    `toml:"global"`
+	OptLevel optLevel  `toml:"opt_level"`
 	CacheDir *CacheDir `toml:"cache_dir"`
 }
 
@@ -83,8 +91,20 @@ func (c *Celer) Init() error {
 			return err
 		}
 
-		c.configData.Global.JobNum = runtime.NumCPU()
-		c.configData.Global.BuildType = "release"
+		// Default global values.
+		c.configData.Global = global{
+			JobNum:    runtime.NumCPU(),
+			BuildType: "release",
+			Offline:   false,
+		}
+
+		// Default opt level values.
+		c.configData.OptLevel = optLevel{
+			Debug:          "-g",
+			Release:        "-O3",
+			RelWithDebInfo: "-O2 -g",
+			MinSizeRel:     "-Os",
+		}
 
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
@@ -99,7 +119,7 @@ func (c *Celer) Init() error {
 		// Pass context to platform.
 		c.platform.ctx = c
 	} else {
-		// Rewrite celer file with new platform.
+		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
 		if err != nil {
 			return err
@@ -108,11 +128,14 @@ func (c *Celer) Init() error {
 			return err
 		}
 
-		// Pass context to platform.
 		c.platform.ctx = c
-
-		// Lower case build type always.
 		c.configData.Global.BuildType = strings.ToLower(c.configData.Global.BuildType)
+
+		// Assign default opt level values.
+		c.configData.OptLevel.Debug = expr.If(c.configData.OptLevel.Debug != "", c.configData.OptLevel.Debug, "-g")
+		c.configData.OptLevel.Release = expr.If(c.configData.OptLevel.Release != "", c.configData.OptLevel.Release, "-O3")
+		c.configData.OptLevel.RelWithDebInfo = expr.If(c.configData.OptLevel.RelWithDebInfo != "", c.configData.OptLevel.RelWithDebInfo, "-O2 -g")
+		c.configData.OptLevel.MinSizeRel = expr.If(c.configData.OptLevel.MinSizeRel != "", c.configData.OptLevel.MinSizeRel, "-Os")
 
 		// Validate cache dirs.
 		if c.configData.CacheDir != nil {
@@ -424,6 +447,16 @@ endif()`, c.BuildType()) + "\n")
 	installedDir := "${WORKSPACE_DIR}/installed/" + platformProject
 	toolchain.WriteString(fmt.Sprintf(`list(APPEND CMAKE_FIND_ROOT_PATH "%s")`, installedDir) + "\n")
 	toolchain.WriteString(fmt.Sprintf(`list(APPEND CMAKE_PREFIX_PATH "%s")`, installedDir) + "\n")
+
+	toolchain.WriteString("\n# Set optimization level.\n")
+	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_DEBUG "%s")`, c.OptLevel.Debug) + "\n")
+	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELEASE "%s")`, c.OptLevel.Release) + "\n")
+	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELWITHDEBINFO "%s")`, c.OptLevel.RelWithDebInfo) + "\n")
+	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_MINSIZEREL "%s")`, c.OptLevel.MinSizeRel) + "\n")
+	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_DEBUG "%s")`, c.OptLevel.Debug) + "\n")
+	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELEASE "%s")`, c.OptLevel.Release) + "\n")
+	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "%s")`, c.OptLevel.RelWithDebInfo) + "\n")
+	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_MINSIZEREL "%s")`, c.OptLevel.MinSizeRel) + "\n")
 
 	// Define global cmake vars, env vars, micro vars and compile options.
 	for index, item := range c.project.Vars {
