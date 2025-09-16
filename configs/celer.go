@@ -70,7 +70,7 @@ type global struct {
 	GithubRepoProxy  string `toml:"github_repo_proxy,omitempty"`
 }
 
-type optLevel struct {
+type OptLevel struct {
 	Debug          string `toml:"debug"`
 	Release        string `toml:"release"`
 	RelWithDebInfo string `toml:"relwithdebinfo"`
@@ -79,7 +79,7 @@ type optLevel struct {
 
 type configData struct {
 	Global   global    `toml:"global"`
-	OptLevel optLevel  `toml:"opt_level"`
+	OptLevel OptLevel  `toml:"opt_level"`
 	CacheDir *CacheDir `toml:"cache_dir"`
 }
 
@@ -99,7 +99,7 @@ func (c *Celer) Init() error {
 		}
 
 		// Default opt level values.
-		c.configData.OptLevel = optLevel{
+		c.configData.OptLevel = OptLevel{
 			Debug:          "-g",
 			Release:        "-O3",
 			RelWithDebInfo: "-O2 -g",
@@ -302,6 +302,22 @@ func (c *Celer) SetOffline(offline bool) error {
 	}
 
 	c.Global.Offline = offline
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetOptLevel(optLevel OptLevel) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	c.OptLevel.Debug = expr.If(optLevel.Debug != "", optLevel.Debug, c.OptLevel.Debug)
+	c.OptLevel.Release = expr.If(optLevel.Release != "", optLevel.Release, c.OptLevel.Release)
+	c.OptLevel.RelWithDebInfo = expr.If(optLevel.RelWithDebInfo != "", optLevel.RelWithDebInfo, c.OptLevel.RelWithDebInfo)
+	c.OptLevel.MinSizeRel = expr.If(optLevel.MinSizeRel != "", optLevel.MinSizeRel, c.OptLevel.MinSizeRel)
 	if err := c.save(); err != nil {
 		return err
 	}
