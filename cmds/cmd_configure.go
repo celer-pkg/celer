@@ -150,7 +150,19 @@ func (c configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cobr
 }
 
 func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	commands := []string{"--platform", "--project", "--build-type", "--job-num", "--offline", "--cache-dir", "--cache-token"}
+	commands := []string{
+		"--platform",
+		"--project",
+		"--build-type",
+		"--job-num",
+		"--offline",
+		"--cache-dir",
+		"--cache-token",
+		"--opt-level-Debug",
+		"--opt-level-Release",
+		"--opt-level-RelWithDebInfo",
+		"--opt-level-MinSizeRel",
+	}
 
 	var suggestions []string
 	for _, flag := range commands {

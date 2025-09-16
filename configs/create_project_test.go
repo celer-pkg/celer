@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestCreate_Project(t *testing.T) {
+func TestCreate_Project_Success(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -40,15 +40,20 @@ func TestCreate_Project(t *testing.T) {
 		check(os.Remove(projectPath))
 	})
 
-	t.Run("create project error: empty name", func(t *testing.T) {
-		if err := celer.CreateProject(""); err == nil {
-			t.Fatal("it should be failed")
-		} else {
-			if err.Error() != "project name is empty" {
-				t.Fatal("error should be 'project name is empty'")
-			}
-		}
-	})
+	// Check default opt level.
+	var project Project
+	check(project.Init(celer, projectName))
+	if project.OptLevel.Debug != "-g" ||
+		project.OptLevel.Release != "-O3" ||
+		project.OptLevel.RelWithDebInfo != "-O2 -g" ||
+		project.OptLevel.MinSizeRel != "-Os" {
+		t.Fatalf("default opt level is not right, expect '-g -O3 -O2 -g -Os', got '%s %s %s %s'",
+			project.OptLevel.Debug,
+			project.OptLevel.Release,
+			project.OptLevel.RelWithDebInfo,
+			project.OptLevel.MinSizeRel,
+		)
+	}
 }
 
 func TestCreate_Project_EmptyName(t *testing.T) {
