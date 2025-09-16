@@ -9,26 +9,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type aboutCmd struct {
-}
+type versionCmd struct{}
 
-func (a aboutCmd) Command() *cobra.Command {
+func (v versionCmd) Command() *cobra.Command {
 	return &cobra.Command{
-		Use:   "about",
-		Short: "About celer.",
+		Use:   "version",
+		Short: "Version",
 		Run: func(cmd *cobra.Command, args []string) {
-			a.about()
+			v.version()
 		},
 	}
 }
 
-func (a aboutCmd) about() {
+func (v versionCmd) version() {
 	celer := configs.NewCeler()
 	toolchainPath, _ := filepath.Abs("toolchain_file.cmake")
 	toolchainPath = color.Sprintf(color.Magenta, "%s", toolchainPath)
 
 	content := fmt.Sprintf("\nWelcome to celer (%s).\n"+
-		"---------------------------------------\n"+
+		"--------------------------------------------\n"+
 		"This is a lightweight pkg-manager for C/C++.\n\n"+
 		"How to apply it in your cmake project: \n"+
 		"option1: %s\n"+

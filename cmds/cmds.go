@@ -18,7 +18,7 @@ var rootCmd = &cobra.Command{
 		cmd.Println("welcome to celer.")
 	},
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		var commands = []string{"about", "init", "create", "configure", "install", "remove", "integrate", "update"}
+		var commands = []string{"version", "init", "create", "configure", "install", "remove", "integrate", "update"}
 		var suggestions = []string{}
 
 		for _, c := range commands {
@@ -44,7 +44,7 @@ var rootCmd = &cobra.Command{
 // Execute register all commands and executes the command.
 func Execute() error {
 	commands := []Command{
-		aboutCmd{},
+		versionCmd{},
 		initCmd{},
 		updateCmd{},
 		createCmd{},
