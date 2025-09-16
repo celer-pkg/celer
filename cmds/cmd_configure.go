@@ -22,7 +22,6 @@ type configureCmd struct {
 	offline    bool
 	cacheDir   string
 	cacheToken string
-	optLevel   configs.OptLevel
 }
 
 func (c configureCmd) Command() *cobra.Command {
@@ -89,15 +88,6 @@ func (c configureCmd) Command() *cobra.Command {
 					expr.If(cacheDir != "", cacheDir, "empty"),
 					expr.If(cacheToken != "", cacheToken, "empty"),
 				)
-
-			case c.optLevel.Debug != "":
-			case c.optLevel.Release != "":
-			case c.optLevel.RelWithDebInfo != "":
-			case c.optLevel.MinSizeRel != "":
-				if err := c.celer.SetOptLevel(c.optLevel); err != nil {
-					configs.PrintError(err, "failed to set opt level: %s.")
-					os.Exit(1)
-				}
 			}
 		},
 		ValidArgsFunction: c.completion,
@@ -111,12 +101,6 @@ func (c configureCmd) Command() *cobra.Command {
 	command.Flags().BoolVar(&c.offline, "offline", false, "configure offline mode.")
 	command.Flags().StringVar(&c.cacheDir, "cache-dir", "", "configure cache dir.")
 	command.Flags().StringVar(&c.cacheToken, "cache-token", "", "configure cache token.")
-
-	// Configure optimization level for build types.
-	command.Flags().StringVar(&c.optLevel.Debug, "opt-level-Debug", "", "configure optimization level for Debug.")
-	command.Flags().StringVar(&c.optLevel.Release, "opt-level-Release", "", "configure optimization level for Release.")
-	command.Flags().StringVar(&c.optLevel.RelWithDebInfo, "opt-level-RelWithDebInfo", "", "configure optimization level for RelWithDebInfo.")
-	command.Flags().StringVar(&c.optLevel.MinSizeRel, "opt-level-MinSizeRel", "", "configure optimization level for MinSizeRel.")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

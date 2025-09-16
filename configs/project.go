@@ -2,6 +2,7 @@ package configs
 
 import (
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
@@ -18,10 +19,18 @@ type Project struct {
 	Envs           []string `toml:"envs"`
 	Micros         []string `toml:"micros"`
 	CompileOptions []string `toml:"compile_options"`
+	OptLevel       optLevel `toml:"opt_level"`
 
 	// Internal fields.
 	Name string `toml:"-"`
 	ctx  Context
+}
+
+type optLevel struct {
+	Debug          string `toml:"debug"`
+	Release        string `toml:"release"`
+	RelWithDebInfo string `toml:"relwithdebinfo"`
+	MinSizeRel     string `toml:"minsizerel"`
 }
 
 func (p *Project) Init(ctx Context, projectName string) error {
@@ -53,6 +62,12 @@ func (p *Project) Init(ctx Context, projectName string) error {
 		p.BuildType = "Release"
 	}
 
+	// Assign default opt level.
+	p.OptLevel.Debug = expr.If(p.OptLevel.Debug != "", p.OptLevel.Debug, "-g")
+	p.OptLevel.Release = expr.If(p.OptLevel.Release != "", p.OptLevel.Release, "-O3")
+	p.OptLevel.RelWithDebInfo = expr.If(p.OptLevel.RelWithDebInfo != "", p.OptLevel.RelWithDebInfo, "-O2 -g")
+	p.OptLevel.MinSizeRel = expr.If(p.OptLevel.MinSizeRel != "", p.OptLevel.MinSizeRel, "-Os")
+
 	// Set values of internal fields.
 	p.Name = projectName
 	return nil
@@ -73,6 +88,14 @@ func (p Project) Write(platformPath string) error {
 	}
 	if len(p.Micros) == 0 {
 		p.Micros = []string{}
+	}
+
+	// Default opt level values.
+	p.OptLevel = optLevel{
+		Debug:          "-g",
+		Release:        "-O3",
+		RelWithDebInfo: "-O2 -g",
+		MinSizeRel:     "-Os",
 	}
 
 	bytes, err := toml.Marshal(p)
