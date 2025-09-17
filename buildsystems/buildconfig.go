@@ -84,7 +84,6 @@ type buildSystem interface {
 	rollbackEnvs()
 
 	fillPlaceHolders()
-	setBuildType(buildType string)
 	getLogPath(suffix string) string
 }
 
@@ -683,54 +682,6 @@ func (b *BuildConfig) fillPlaceHolders() {
 
 		if strings.Contains(argument, "${SRC_DIR}") {
 			b.Options[index] = strings.ReplaceAll(argument, "${SRC_DIR}", b.PortConfig.SrcDir)
-		}
-	}
-}
-
-func (b BuildConfig) setBuildType(buildType string) {
-	buildType = strings.ToLower(buildType)
-	isRelease := buildType == "release" || buildType == "relwithdebinfo" || buildType == "minsizerel"
-
-	if b.PortConfig.CrossTools.Name == "msvc" {
-		cl := strings.Split(os.Getenv("CL"), " ")
-		cl = slices.DeleteFunc(cl, func(element string) bool {
-			return strings.Contains(element, "/O")
-		})
-
-		if b.DevDep {
-			cl = append(cl, "/O2")
-			os.Setenv("CL", strings.Join(cl, " "))
-		} else {
-			flags := expr.If(isRelease, "/O2", "/Od")
-
-			cl = append(cl, flags)
-			os.Setenv("CL", strings.Join(cl, " "))
-		}
-	} else {
-		cflags := strings.Split(os.Getenv("CFLAGS"), " ")
-		cflags = slices.DeleteFunc(cflags, func(element string) bool {
-			element = strings.TrimSpace(element)
-			return element == "-g" || element == "-O"
-		})
-
-		cxxflags := strings.Split(os.Getenv("CXXFLAGS"), " ")
-		cxxflags = slices.DeleteFunc(cxxflags, func(element string) bool {
-			element = strings.TrimSpace(element)
-			return element == "-g" || element == "-O"
-		})
-
-		if b.DevDep {
-			cflags = append(cflags, "-O3")
-			cxxflags = append(cxxflags, "-O3")
-			os.Setenv("CFLAGS", strings.Join(cflags, " "))
-			os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
-		} else {
-			flags := expr.If(isRelease, "-O3", "-g")
-
-			cflags = append(cflags, flags)
-			cxxflags = append(cxxflags, flags)
-			os.Setenv("CFLAGS", strings.Join(cflags, " "))
-			os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 		}
 	}
 }

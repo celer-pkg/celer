@@ -254,7 +254,7 @@ func (m makefiles) Configure(options []string) error {
 
 	// Different Makefile projects set the build_type in inconsistent ways,
 	// Fortunately, it can be configured through CFLAGS and CXXFLAGS.
-	m.setBuildType(m.BuildType)
+	// m.setBuildType(m.BuildType) // TODO
 
 	// Create build dir if not exists.
 	if !m.BuildInSource {

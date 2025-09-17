@@ -65,7 +65,42 @@ func (g gyp) Configure(options []string) error {
 		g.PortConfig.CrossTools.SetEnvs(g.BuildConfig)
 	}
 
-	g.setBuildType(g.BuildType)
+	// Set optimization flags.
+	cflags := strings.Split(os.Getenv("CFLAGS"), " ")
+	cxxflags := strings.Split(os.Getenv("CXXFLAGS"), " ")
+	if g.DevDep {
+		if g.OptFlags.Release != "" {
+			cflags = append(cflags, g.OptFlags.Release)
+			cxxflags = append(cxxflags, g.OptFlags.Release)
+		}
+	} else {
+		buildType := strings.ToLower(g.BuildType)
+		switch buildType {
+		case "release":
+			if g.OptFlags.Release != "" {
+				cflags = append(cflags, g.OptFlags.Release)
+				cxxflags = append(cxxflags, g.OptFlags.Release)
+			}
+		case "debug":
+			if g.OptFlags.Debug != "" {
+				cflags = append(cflags, g.OptFlags.Debug)
+				cxxflags = append(cxxflags, g.OptFlags.Debug)
+			}
+		case "relwithdebinfo":
+			if g.OptFlags.RelWithDebInfo != "" {
+				cflags = append(cflags, g.OptFlags.RelWithDebInfo)
+				cxxflags = append(cxxflags, g.OptFlags.RelWithDebInfo)
+			}
+		case "minsizerel":
+			if g.OptFlags.MinSizeRel != "" {
+				cflags = append(cflags, g.OptFlags.MinSizeRel)
+				cxxflags = append(cxxflags, g.OptFlags.MinSizeRel)
+			}
+		}
+	}
+	os.Setenv("CFLAGS", strings.Join(cflags, " "))
+	os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+
 	return nil
 }
 
