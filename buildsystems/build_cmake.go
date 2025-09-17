@@ -152,6 +152,26 @@ func (c cmake) configureOptions() ([]string, error) {
 			options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="--sysroot=%s ${CMAKE_CXX_FLAGS}"`, c.PortConfig.CrossTools.RootFS))
 		}
 
+		// Set compile optimization flags.
+		if c.OptFlags != nil {
+			if c.OptFlags.Debug != "" && c.BuildType == "Debug" {
+				options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s ${CMAKE_C_FLAGS}"`, c.OptFlags.Debug))
+				options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s ${CMAKE_CXX_FLAGS}"`, c.OptFlags.Debug))
+			}
+			if c.OptFlags.Release != "" && c.BuildType == "Release" {
+				options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s ${CMAKE_C_FLAGS}"`, c.OptFlags.Release))
+				options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s ${CMAKE_CXX_FLAGS}"`, c.OptFlags.Release))
+			}
+			if c.OptFlags.RelWithDebInfo != "" && c.BuildType == "RelWithDebInfo" {
+				options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s ${CMAKE_C_FLAGS}"`, c.OptFlags.RelWithDebInfo))
+				options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s ${CMAKE_CXX_FLAGS}"`, c.OptFlags.RelWithDebInfo))
+			}
+			if c.OptFlags.MinSizeRel != "" && c.BuildType == "MinSizeRel" {
+				options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s ${CMAKE_C_FLAGS}"`, c.OptFlags.MinSizeRel))
+				options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s ${CMAKE_CXX_FLAGS}"`, c.OptFlags.MinSizeRel))
+			}
+		}
+
 		// Windows
 		switch c.PortConfig.CrossTools.Name {
 		case "gcc":
