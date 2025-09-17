@@ -78,8 +78,12 @@ func (c cmake) CleanRepo() error {
 }
 
 func (c cmake) configureOptions() ([]string, error) {
-	var options = slices.Clone(c.Options)
+	var flags []string
 
+	// Format as cmake build type.
+	c.BuildType = c.formatBuildType()
+
+	var options = slices.Clone(c.Options)
 	options = append(options, "-DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON")
 
 	// Append cross-compile options only for none-runtime library.
@@ -148,27 +152,22 @@ func (c cmake) configureOptions() ([]string, error) {
 		options = append(options, fmt.Sprintf(`-DCMAKE_SYSTEM_NAME="%s"`, c.PortConfig.CrossTools.SystemName))
 
 		if c.PortConfig.CrossTools.RootFS != "" {
-			options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="--sysroot=%s ${CMAKE_C_FLAGS}"`, c.PortConfig.CrossTools.RootFS))
-			options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="--sysroot=%s ${CMAKE_CXX_FLAGS}"`, c.PortConfig.CrossTools.RootFS))
+			flags = append(flags, "--sysroot="+c.PortConfig.CrossTools.RootFS)
 		}
 
 		// Set compile optimization flags.
 		if c.OptFlags != nil {
 			if c.OptFlags.Debug != "" && c.BuildType == "Debug" {
-				options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s ${CMAKE_C_FLAGS}"`, c.OptFlags.Debug))
-				options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s ${CMAKE_CXX_FLAGS}"`, c.OptFlags.Debug))
+				flags = append(flags, c.OptFlags.Debug)
 			}
 			if c.OptFlags.Release != "" && c.BuildType == "Release" {
-				options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s ${CMAKE_C_FLAGS}"`, c.OptFlags.Release))
-				options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s ${CMAKE_CXX_FLAGS}"`, c.OptFlags.Release))
+				flags = append(flags, c.OptFlags.Release)
 			}
 			if c.OptFlags.RelWithDebInfo != "" && c.BuildType == "RelWithDebInfo" {
-				options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s ${CMAKE_C_FLAGS}"`, c.OptFlags.RelWithDebInfo))
-				options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s ${CMAKE_CXX_FLAGS}"`, c.OptFlags.RelWithDebInfo))
+				flags = append(flags, c.OptFlags.RelWithDebInfo)
 			}
 			if c.OptFlags.MinSizeRel != "" && c.BuildType == "MinSizeRel" {
-				options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s ${CMAKE_C_FLAGS}"`, c.OptFlags.MinSizeRel))
-				options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s ${CMAKE_CXX_FLAGS}"`, c.OptFlags.MinSizeRel))
+				flags = append(flags, c.OptFlags.MinSizeRel)
 			}
 		}
 
@@ -206,8 +205,7 @@ func (c cmake) configureOptions() ([]string, error) {
 		} else {
 			if !slices.ContainsFunc(options, func(arg string) bool {
 				return strings.Contains(arg, "CMAKE_BUILD_TYPE")
-			}) { // Format as cmake build type.
-				c.BuildType = c.formatBuildType()
+			}) {
 				options = append(options, "-DCMAKE_BUILD_TYPE="+c.BuildType)
 			}
 		}
@@ -235,6 +233,10 @@ func (c cmake) configureOptions() ([]string, error) {
 			options = append(options, libraryType.disableShared)
 		}
 	}
+
+	// Append merged flags.
+	options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s"`, strings.Join(flags, " ")))
+	options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s"`, strings.Join(flags, " ")))
 
 	// Set CMAKE_PREFIX_PATH and CMAKE_INSTALL_PREFIX.
 	options = append(options, "-DCMAKE_PREFIX_PATH="+filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder))

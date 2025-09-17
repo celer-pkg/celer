@@ -429,20 +429,20 @@ endif()`, c.BuildType()) + "\n")
 	if c.project.OptFlags != nil {
 		toolchain.WriteString("\n# Set optimization level.\n")
 		if c.project.OptFlags.Debug != "" {
-			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_DEBUG "%s")`, c.project.OptFlags.Debug) + "\n")
-			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_DEBUG "%s")`, c.project.OptFlags.Debug) + "\n")
+			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_DEBUG "%s ${CMAKE_C_FLAGS}")`, c.project.OptFlags.Debug) + "\n")
+			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_DEBUG "%s ${CMAKE_CXX_FLAGS}")`, c.project.OptFlags.Debug) + "\n")
 		}
 		if c.project.OptFlags.Release != "" {
-			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELEASE "%s")`, c.project.OptFlags.Release) + "\n")
-			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELEASE "%s")`, c.project.OptFlags.Release) + "\n")
+			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELEASE "%s ${CMAKE_C_FLAGS}")`, c.project.OptFlags.Release) + "\n")
+			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELEASE "%s ${CMAKE_CXX_FLAGS}")`, c.project.OptFlags.Release) + "\n")
 		}
 		if c.project.OptFlags.RelWithDebInfo != "" {
-			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELWITHDEBINFO "%s")`, c.project.OptFlags.RelWithDebInfo) + "\n")
-			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "%s")`, c.project.OptFlags.RelWithDebInfo) + "\n")
+			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELWITHDEBINFO "%s ${CMAKE_C_FLAGS}")`, c.project.OptFlags.RelWithDebInfo) + "\n")
+			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "%s ${CMAKE_CXX_FLAGS}")`, c.project.OptFlags.RelWithDebInfo) + "\n")
 		}
 		if c.project.OptFlags.MinSizeRel != "" {
-			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_MINSIZEREL "%s")`, c.project.OptFlags.MinSizeRel) + "\n")
-			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_MINSIZEREL "%s")`, c.project.OptFlags.MinSizeRel) + "\n")
+			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_MINSIZEREL "%s ${CMAKE_C_FLAGS}")`, c.project.OptFlags.MinSizeRel) + "\n")
+			toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_MINSIZEREL "%s ${CMAKE_CXX_FLAGS}")`, c.project.OptFlags.MinSizeRel) + "\n")
 		}
 	}
 
