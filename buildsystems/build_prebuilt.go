@@ -12,14 +12,16 @@ import (
 	"strings"
 )
 
-func NewPrebuilt(config *BuildConfig) *prebuilt {
+func NewPrebuilt(config *BuildConfig, optLevel *OptLevel) *prebuilt {
 	return &prebuilt{
 		BuildConfig: config,
+		OptLevel:    optLevel,
 	}
 }
 
 type prebuilt struct {
 	*BuildConfig
+	*OptLevel
 }
 
 func (p prebuilt) Name() string {

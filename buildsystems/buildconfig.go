@@ -20,6 +20,13 @@ const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, ni
 
 var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "ninja", "qmake"}
 
+type OptLevel struct {
+	Debug          string `toml:"debug"`
+	Release        string `toml:"release"`
+	RelWithDebInfo string `toml:"relwithdebinfo"`
+	MinSizeRel     string `toml:"minsizerel"`
+}
+
 type PortConfig struct {
 	LibName       string      // like: `ffmpeg`
 	LibVersion    string      // like: `4.4`
@@ -542,32 +549,32 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	return nil
 }
 
-func (b *BuildConfig) InitBuildSystem() error {
+func (b *BuildConfig) InitBuildSystem(optLevel *OptLevel) error {
 	if b.BuildSystem == "" {
 		return fmt.Errorf("build_system is empty")
 	}
 
 	switch b.BuildSystem {
 	case "nobuild":
-		b.buildSystem = NewNoBuild(b)
+		b.buildSystem = NewNoBuild(b, optLevel)
 	case "gyp":
-		b.buildSystem = NewGyp(b)
+		b.buildSystem = NewGyp(b, optLevel)
 	case "cmake":
-		b.buildSystem = NewCMake(b, "")
+		b.buildSystem = NewCMake(b, optLevel, "")
 	case "ninja":
-		b.buildSystem = NewNinja(b)
+		b.buildSystem = NewNinja(b, optLevel)
 	case "makefiles":
-		b.buildSystem = NewMakefiles(b)
+		b.buildSystem = NewMakefiles(b, optLevel)
 	case "meson":
-		b.buildSystem = NewMeson(b)
+		b.buildSystem = NewMeson(b, optLevel)
 	case "b2":
-		b.buildSystem = NewB2(b)
+		b.buildSystem = NewB2(b, optLevel)
 	case "bazel":
-		b.buildSystem = NewBazel(b)
+		b.buildSystem = NewBazel(b, optLevel)
 	case "qmake":
-		b.buildSystem = NewQMake(b)
+		b.buildSystem = NewQMake(b, optLevel)
 	case "prebuilt":
-		b.buildSystem = NewPrebuilt(b)
+		b.buildSystem = NewPrebuilt(b, optLevel)
 	default:
 		return fmt.Errorf("unsupported build system: %s", b.BuildSystem)
 	}

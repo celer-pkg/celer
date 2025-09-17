@@ -426,15 +426,17 @@ endif()`, c.BuildType()) + "\n")
 	toolchain.WriteString(fmt.Sprintf(`list(APPEND CMAKE_FIND_ROOT_PATH "%s")`, installedDir) + "\n")
 	toolchain.WriteString(fmt.Sprintf(`list(APPEND CMAKE_PREFIX_PATH "%s")`, installedDir) + "\n")
 
-	toolchain.WriteString("\n# Set optimization level.\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_DEBUG "%s")`, c.project.OptLevel.Debug) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELEASE "%s")`, c.project.OptLevel.Release) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELWITHDEBINFO "%s")`, c.project.OptLevel.RelWithDebInfo) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_MINSIZEREL "%s")`, c.project.OptLevel.MinSizeRel) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_DEBUG "%s")`, c.project.OptLevel.Debug) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELEASE "%s")`, c.project.OptLevel.Release) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "%s")`, c.project.OptLevel.RelWithDebInfo) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_MINSIZEREL "%s")`, c.project.OptLevel.MinSizeRel) + "\n")
+	if c.project.OptLevel != nil {
+		toolchain.WriteString("\n# Set optimization level.\n")
+		toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_DEBUG "%s")`, c.project.OptLevel.Debug) + "\n")
+		toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELEASE "%s")`, c.project.OptLevel.Release) + "\n")
+		toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELWITHDEBINFO "%s")`, c.project.OptLevel.RelWithDebInfo) + "\n")
+		toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_MINSIZEREL "%s")`, c.project.OptLevel.MinSizeRel) + "\n")
+		toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_DEBUG "%s")`, c.project.OptLevel.Debug) + "\n")
+		toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELEASE "%s")`, c.project.OptLevel.Release) + "\n")
+		toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "%s")`, c.project.OptLevel.RelWithDebInfo) + "\n")
+		toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_MINSIZEREL "%s")`, c.project.OptLevel.MinSizeRel) + "\n")
+	}
 
 	// Define global cmake vars, env vars, micro vars and compile options.
 	for index, item := range c.project.Vars {

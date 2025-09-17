@@ -16,12 +16,16 @@ import (
 	"strings"
 )
 
-func NewB2(config *BuildConfig) *b2 {
-	return &b2{BuildConfig: config}
+func NewB2(config *BuildConfig, optLevel *OptLevel) *b2 {
+	return &b2{
+		BuildConfig: config,
+		OptLevel:    optLevel,
+	}
 }
 
 type b2 struct {
 	*BuildConfig
+	*OptLevel
 }
 
 func (b b2) Name() string {

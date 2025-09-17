@@ -92,7 +92,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 				p.mergeBuildConfig(index, portInProject.MatchedConfig)
 			}
 
-			if err := p.BuildConfigs[index].InitBuildSystem(); err != nil {
+			if err := p.BuildConfigs[index].InitBuildSystem(p.ctx.Project().OptLevel); err != nil {
 				return err
 			}
 		}
