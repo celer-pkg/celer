@@ -7,16 +7,16 @@ import (
 	"path/filepath"
 )
 
-func NewNoBuild(config *BuildConfig, optLevel *OptLevel) *nobuild {
+func NewNoBuild(config *BuildConfig, optFlags *OptFlags) *nobuild {
 	return &nobuild{
 		BuildConfig: config,
-		OptLevel:    optLevel,
+		OptFlags:    optFlags,
 	}
 }
 
 type nobuild struct {
 	*BuildConfig
-	*OptLevel
+	*OptFlags
 }
 
 func (n nobuild) CheckTools() error {

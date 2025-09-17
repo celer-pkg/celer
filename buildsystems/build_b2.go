@@ -16,16 +16,16 @@ import (
 	"strings"
 )
 
-func NewB2(config *BuildConfig, optLevel *OptLevel) *b2 {
+func NewB2(config *BuildConfig, optFlags *OptFlags) *b2 {
 	return &b2{
 		BuildConfig: config,
-		OptLevel:    optLevel,
+		OptFlags:    optFlags,
 	}
 }
 
 type b2 struct {
 	*BuildConfig
-	*OptLevel
+	*OptFlags
 }
 
 func (b b2) Name() string {
@@ -123,10 +123,15 @@ func (b b2) buildOptions() ([]string, error) {
 
 	// Set build type.
 	buildType := strings.ToLower(b.BuildType)
-	if buildType == "release" || buildType == "relwithdebinfo" || buildType == "minsizerel" {
+	switch buildType {
+	case "release":
 		options = append(options, "variant=release")
-	} else {
+	case "debug":
 		options = append(options, "variant=debug")
+	case "relwithdebinfo":
+		options = append(options, "variant=release debug-symbols=on")
+	case "minsizerel":
+		options = append(options, "variant=release optimization=space")
 	}
 
 	// Set build cache dir.

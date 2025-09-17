@@ -13,16 +13,16 @@ import (
 	"strings"
 )
 
-func NewMakefiles(config *BuildConfig, optLevel *OptLevel) *makefiles {
+func NewMakefiles(config *BuildConfig, optFlags *OptFlags) *makefiles {
 	return &makefiles{
 		BuildConfig: config,
-		OptLevel:    optLevel,
+		OptFlags:    optFlags,
 	}
 }
 
 type makefiles struct {
 	*BuildConfig
-	*OptLevel
+	*OptFlags
 	msvcEnvs string
 }
 

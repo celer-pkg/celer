@@ -20,7 +20,7 @@ const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, ni
 
 var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "ninja", "qmake"}
 
-type OptLevel struct {
+type OptFlags struct {
 	Debug          string `toml:"debug"`
 	Release        string `toml:"release"`
 	RelWithDebInfo string `toml:"relwithdebinfo"`
@@ -549,7 +549,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	return nil
 }
 
-func (b *BuildConfig) InitBuildSystem(optLevel *OptLevel) error {
+func (b *BuildConfig) InitBuildSystem(optLevel *OptFlags) error {
 	if b.BuildSystem == "" {
 		return fmt.Errorf("build_system is empty")
 	}

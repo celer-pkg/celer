@@ -19,7 +19,7 @@ type Project struct {
 	Envs           []string               `toml:"envs"`
 	Micros         []string               `toml:"micros"`
 	CompileOptions []string               `toml:"compile_options"`
-	OptLevel       *buildsystems.OptLevel `toml:"opt_level"`
+	OptFlags       *buildsystems.OptFlags `toml:"opt_flags"`
 
 	// Internal fields.
 	Name string `toml:"-"`
@@ -78,7 +78,7 @@ func (p Project) Write(platformPath string) error {
 	}
 
 	// Default opt level values.
-	p.OptLevel = &buildsystems.OptLevel{
+	p.OptFlags = &buildsystems.OptFlags{
 		Debug:          "-g",
 		Release:        "-O3",
 		RelWithDebInfo: "-O2 -g",

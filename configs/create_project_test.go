@@ -43,15 +43,15 @@ func TestCreate_Project_Success(t *testing.T) {
 	// Check default opt level.
 	var project Project
 	check(project.Init(celer, projectName))
-	if project.OptLevel.Debug != "-g" ||
-		project.OptLevel.Release != "-O3" ||
-		project.OptLevel.RelWithDebInfo != "-O2 -g" ||
-		project.OptLevel.MinSizeRel != "-Os" {
+	if project.OptFlags.Debug != "-g" ||
+		project.OptFlags.Release != "-O3" ||
+		project.OptFlags.RelWithDebInfo != "-O2 -g" ||
+		project.OptFlags.MinSizeRel != "-Os" {
 		t.Fatalf("default opt level is not right, expect '-g -O3 -O2 -g -Os', got '%s %s %s %s'",
-			project.OptLevel.Debug,
-			project.OptLevel.Release,
-			project.OptLevel.RelWithDebInfo,
-			project.OptLevel.MinSizeRel,
+			project.OptFlags.Debug,
+			project.OptFlags.Release,
+			project.OptFlags.RelWithDebInfo,
+			project.OptFlags.MinSizeRel,
 		)
 	}
 }

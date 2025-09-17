@@ -10,16 +10,16 @@ import (
 	"strings"
 )
 
-func NewGyp(config *BuildConfig, optLevel *OptLevel) *gyp {
+func NewGyp(config *BuildConfig, optFlags *OptFlags) *gyp {
 	return &gyp{
 		BuildConfig: config,
-		OptLevel:    optLevel,
+		OptFlags:    optFlags,
 	}
 }
 
 type gyp struct {
 	*BuildConfig
-	*OptLevel
+	*OptFlags
 }
 
 func (g gyp) Name() string {

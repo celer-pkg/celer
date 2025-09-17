@@ -12,13 +12,13 @@ import (
 	"strings"
 )
 
-func NewQMake(config *BuildConfig, optLevel *OptLevel) *qmake {
-	return &qmake{BuildConfig: config, OptLevel: optLevel}
+func NewQMake(config *BuildConfig, optFlags *OptFlags) *qmake {
+	return &qmake{BuildConfig: config, OptFlags: optFlags}
 }
 
 type qmake struct {
 	*BuildConfig
-	*OptLevel
+	*OptFlags
 }
 
 func (qmake) Name() string {

@@ -22,7 +22,7 @@ const (
 	visualStudio_12_2013 = "Visual Studio 12 2013 Win64"
 )
 
-func NewCMake(config *BuildConfig, optLevel *OptLevel, generator string) *cmake {
+func NewCMake(config *BuildConfig, optFlags *OptFlags, generator string) *cmake {
 	// Set default generator if not specified.
 	if generator == "" {
 		switch runtime.GOOS {
@@ -52,14 +52,14 @@ func NewCMake(config *BuildConfig, optLevel *OptLevel, generator string) *cmake 
 
 	return &cmake{
 		BuildConfig: config,
-		OptLevel:    optLevel,
+		OptFlags:    optFlags,
 		generator:   generator,
 	}
 }
 
 type cmake struct {
 	*BuildConfig
-	*OptLevel
+	*OptFlags
 	generator string // e.g. Ninja, Unix Makefiles, Visual Studio 16 2019, etc.
 }
 

@@ -2,16 +2,16 @@ package buildsystems
 
 import "celer/buildtools"
 
-func NewMSBuild(config *BuildConfig, optLevel *OptLevel) *msbuild {
+func NewMSBuild(config *BuildConfig, optFlags *OptFlags) *msbuild {
 	return &msbuild{
 		BuildConfig: config,
-		OptLevel:    optLevel,
+		OptFlags:    optFlags,
 	}
 }
 
 type msbuild struct {
 	*BuildConfig
-	*OptLevel
+	*OptFlags
 }
 
 func (m msbuild) Name() string {
