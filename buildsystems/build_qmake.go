@@ -30,7 +30,7 @@ func (m *qmake) CheckTools() error {
 	return buildtools.CheckTools(m.BuildConfig.BuildTools...)
 }
 
-func (q qmake) CleanRepo() error {
+func (q qmake) Clean() error {
 	// We do not configure qmake project in source folder.
 	return nil
 }

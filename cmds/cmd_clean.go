@@ -99,7 +99,7 @@ func (c *cleanCmd) clean(targets []string) error {
 			}
 
 			// Clean source.
-			if err := port.MatchedConfig.CleanRepo(); err != nil {
+			if err := port.MatchedConfig.Clean(); err != nil {
 				return err
 			}
 		} else {
@@ -128,7 +128,7 @@ func (c *cleanCmd) clean(targets []string) error {
 				}
 
 				// Clean repo.
-				if err := port.MatchedConfig.CleanRepo(); err != nil {
+				if err := port.MatchedConfig.Clean(); err != nil {
 					return err
 				}
 			}
@@ -172,7 +172,7 @@ func (c *cleanCmd) cleanAll() error {
 			if err := port.Init(c.celer, nameVersion, c.celer.BuildType()); err != nil {
 				return err
 			}
-			if err := port.MatchedConfig.CleanRepo(); err != nil {
+			if err := port.MatchedConfig.Clean(); err != nil {
 				return err
 			}
 		}

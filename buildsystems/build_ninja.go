@@ -25,8 +25,8 @@ func (n ninja) CheckTools() error {
 	return buildtools.CheckTools(n.BuildConfig.BuildTools...)
 }
 
-func (n ninja) CleanRepo() error {
-	return n.cmake.CleanRepo()
+func (n ninja) Clean() error {
+	return n.cmake.Clean()
 }
 
 func (n ninja) configureOptions() ([]string, error) {

@@ -179,8 +179,8 @@ func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 	return nil
 }
 
-// CleanRepo clean git repo.
-func CleanRepo(repoDir string) error {
+// Clean clean git repo.
+func Clean(repoDir string) error {
 	// git reset --hard
 	resetCmd := exec.Command("git", "reset", "--hard")
 	resetCmd.Stdout = os.Stdout

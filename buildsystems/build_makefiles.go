@@ -41,7 +41,7 @@ func (m *makefiles) CheckTools() error {
 	return buildtools.CheckTools(m.BuildConfig.BuildTools...)
 }
 
-func (m makefiles) CleanRepo() error {
+func (m makefiles) Clean() error {
 	if fileio.PathExists(filepath.Join(m.PortConfig.RepoDir, ".git")) {
 		title := fmt.Sprintf("[clean %s]", m.PortConfig.nameVersionDesc())
 		executor := cmd.NewExecutor(title, "git clean -fdx && git reset --hard")

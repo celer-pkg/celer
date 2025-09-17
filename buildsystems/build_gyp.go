@@ -31,7 +31,7 @@ func (g gyp) CheckTools() error {
 	return buildtools.CheckTools(g.BuildConfig.BuildTools...)
 }
 
-func (g gyp) CleanRepo() error {
+func (g gyp) Clean() error {
 	if fileio.PathExists(filepath.Join(g.PortConfig.RepoDir, ".git")) {
 		title := fmt.Sprintf("[clean %s]", g.PortConfig.nameVersionDesc())
 		executor := cmd.NewExecutor(title, "git clean -fdx && git reset --hard")

@@ -37,7 +37,7 @@ func (b b2) CheckTools() error {
 	return buildtools.CheckTools(b.BuildConfig.BuildTools...)
 }
 
-func (b b2) CleanRepo() error {
+func (b b2) Clean() error {
 	if fileio.PathExists(filepath.Join(b.PortConfig.SrcDir, "b2")) {
 		title := fmt.Sprintf("[clean %s@%s]", b.PortConfig.LibName, b.PortConfig.LibVersion)
 		executor := cmd.NewExecutor(title, "./b2 clean")
@@ -58,7 +58,7 @@ func (b b2) configured() bool {
 
 func (b b2) Configure(options []string) error {
 	// Clean build cache.
-	if err := b.CleanRepo(); err != nil {
+	if err := b.Clean(); err != nil {
 		return err
 	}
 

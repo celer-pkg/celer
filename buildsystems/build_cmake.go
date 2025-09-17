@@ -72,7 +72,7 @@ func (c cmake) CheckTools() error {
 	return buildtools.CheckTools(c.BuildConfig.BuildTools...)
 }
 
-func (c cmake) CleanRepo() error {
+func (c cmake) Clean() error {
 	// We do not configure cmake project in source folder.
 	return nil
 }

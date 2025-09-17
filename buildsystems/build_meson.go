@@ -47,7 +47,7 @@ func (m meson) CheckTools() error {
 	return buildtools.CheckTools(m.BuildConfig.BuildTools...)
 }
 
-func (m meson) CleanRepo() error {
+func (m meson) Clean() error {
 	// We do not configure meson project in source folder.
 	return nil
 }

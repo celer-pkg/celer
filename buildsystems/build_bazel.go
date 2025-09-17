@@ -25,7 +25,7 @@ func (b bazel) CheckTools() error {
 	return buildtools.CheckTools(b.BuildConfig.BuildTools...)
 }
 
-func (b bazel) CleanRepo() error {
+func (b bazel) Clean() error {
 	return nil
 }
 

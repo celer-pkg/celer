@@ -33,7 +33,7 @@ func (p prebuilt) CheckTools() error {
 	return buildtools.CheckTools(p.BuildConfig.BuildTools...)
 }
 
-func (p prebuilt) CleanRepo() error {
+func (p prebuilt) Clean() error {
 	// No repo to clean.
 	return nil
 }

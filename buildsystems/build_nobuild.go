@@ -23,7 +23,7 @@ func (n nobuild) CheckTools() error {
 	return nil
 }
 
-func (n nobuild) CleanRepo() error {
+func (n nobuild) Clean() error {
 	if fileio.PathExists(filepath.Join(n.PortConfig.RepoDir, ".git")) {
 		title := fmt.Sprintf("[clean %s]", n.PortConfig.nameVersionDesc())
 		executor := cmd.NewExecutor(title, "git clean -fdx && git reset --hard")

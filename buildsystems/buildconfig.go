@@ -60,8 +60,8 @@ type buildSystem interface {
 	Name() string
 	CheckTools() error
 
-	// CleanRepo repo.
-	CleanRepo() error
+	// Clean repo.
+	Clean() error
 
 	// Clone & patch source code
 	Clone(repoUrl, repoRef, archive string) error
@@ -319,8 +319,8 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 	return nil
 }
 
-func (b BuildConfig) CleanRepo() error {
-	return b.buildSystem.CleanRepo()
+func (b BuildConfig) Clean() error {
+	return b.buildSystem.Clean()
 }
 
 func (b BuildConfig) Patch() error {
