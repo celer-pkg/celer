@@ -102,9 +102,41 @@ func (m qmake) Configure(options []string) error {
 		m.PortConfig.CrossTools.SetEnvs(m.BuildConfig)
 	}
 
-	// Different Makefile projects set the build_type in inconsistent ways,
-	// Fortunately, it can be configured through CFLAGS and CXXFLAGS.
-	// m.setBuildType(m.BuildType) // TODO
+	// Set optimization flags with build_type.
+	cflags := strings.Split(os.Getenv("CFLAGS"), " ")
+	cxxflags := strings.Split(os.Getenv("CXXFLAGS"), " ")
+	if m.DevDep {
+		if m.OptFlags.Release != "" {
+			cflags = append(cflags, m.OptFlags.Release)
+			cxxflags = append(cxxflags, m.OptFlags.Release)
+		}
+	} else {
+		buildType := strings.ToLower(m.BuildType)
+		switch buildType {
+		case "release":
+			if m.OptFlags.Release != "" {
+				cflags = append(cflags, m.OptFlags.Release)
+				cxxflags = append(cxxflags, m.OptFlags.Release)
+			}
+		case "debug":
+			if m.OptFlags.Debug != "" {
+				cflags = append(cflags, m.OptFlags.Debug)
+				cxxflags = append(cxxflags, m.OptFlags.Debug)
+			}
+		case "relwithdebinfo":
+			if m.OptFlags.RelWithDebInfo != "" {
+				cflags = append(cflags, m.OptFlags.RelWithDebInfo)
+				cxxflags = append(cxxflags, m.OptFlags.RelWithDebInfo)
+			}
+		case "minsizerel":
+			if m.OptFlags.MinSizeRel != "" {
+				cflags = append(cflags, m.OptFlags.MinSizeRel)
+				cxxflags = append(cxxflags, m.OptFlags.MinSizeRel)
+			}
+		}
+	}
+	os.Setenv("CFLAGS", strings.Join(cflags, " "))
+	os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 
 	// Create build dir if not exists.
 	if !m.BuildInSource {
