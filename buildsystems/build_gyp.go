@@ -65,7 +65,7 @@ func (g gyp) Configure(options []string) error {
 		g.PortConfig.CrossTools.SetEnvs(g.BuildConfig)
 	}
 
-	// Set optimization flags.
+	// Set optimization flags with build_type.
 	cflags := strings.Split(os.Getenv("CFLAGS"), " ")
 	cxxflags := strings.Split(os.Getenv("CXXFLAGS"), " ")
 	if g.DevDep {
