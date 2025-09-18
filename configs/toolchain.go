@@ -93,8 +93,8 @@ func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
 	// Only linux may have sysroot.
 	if t.Name == "gcc" {
 		toolchain.WriteString("\n")
-		toolchain.WriteString("set(CMAKE_C_FLAGS \"--sysroot=${CMAKE_SYSROOT}\")\n")
-		toolchain.WriteString("set(CMAKE_CXX_FLAGS \"--sysroot=${CMAKE_SYSROOT}\")\n")
+		toolchain.WriteString(`set(CMAKE_C_FLAGS "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")` + "\n")
+		toolchain.WriteString(`set(CMAKE_CXX_FLAGS "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")` + "\n")
 	}
 
 	return nil
