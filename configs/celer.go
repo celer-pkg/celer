@@ -426,24 +426,6 @@ endif()`, c.BuildType()) + "\n")
 	toolchain.WriteString(fmt.Sprintf(`list(APPEND CMAKE_FIND_ROOT_PATH "%s")`, installedDir) + "\n")
 	toolchain.WriteString(fmt.Sprintf(`list(APPEND CMAKE_PREFIX_PATH "%s")`, installedDir) + "\n")
 
-	if c.project.OptFlags != nil {
-		toolchain.WriteString("\n# Set optimization flags.\n")
-		toolchain.WriteString("add_compile_options(\n")
-		if c.project.OptFlags.Release != "" {
-			toolchain.WriteString(fmt.Sprintf("\t"+`"$<$<CONFIG:Release>:%s>"`, c.project.OptFlags.Release) + "\n")
-		}
-		if c.project.OptFlags.Debug != "" {
-			toolchain.WriteString(fmt.Sprintf("\t"+`"$<$<CONFIG:Debug>:%s>"`, c.project.OptFlags.Debug) + "\n")
-		}
-		if c.project.OptFlags.RelWithDebInfo != "" {
-			toolchain.WriteString(fmt.Sprintf("\t"+`"$<$<CONFIG:RelWithDebInfo>:%s>"`, c.project.OptFlags.RelWithDebInfo) + "\n")
-		}
-		if c.project.OptFlags.MinSizeRel != "" {
-			toolchain.WriteString(fmt.Sprintf("\t"+`"$<$<CONFIG:MinSizeRel>:%s>"`, c.project.OptFlags.MinSizeRel) + "\n")
-		}
-		toolchain.WriteString(")\n")
-	}
-
 	// Define global cmake vars, env vars, micro vars and compile options.
 	for index, item := range c.project.Vars {
 		if index == 0 {
@@ -459,6 +441,7 @@ endif()`, c.BuildType()) + "\n")
 			return fmt.Errorf("invalid cmake var: %s", item)
 		}
 	}
+
 	for index, item := range c.project.Envs {
 		parts := strings.Split(item, "=")
 		if len(parts) != 2 {
@@ -470,17 +453,35 @@ endif()`, c.BuildType()) + "\n")
 		}
 		toolchain.WriteString(fmt.Sprintf(`set(ENV{%s} "%s")`, parts[0], parts[1]) + "\n")
 	}
+
 	for index, item := range c.project.Micros {
 		if index == 0 {
 			toolchain.WriteString("\n# Define global micros.\n")
 		}
 		toolchain.WriteString(fmt.Sprintf("add_compile_definitions(%s)\n", item))
 	}
-	for index, item := range c.project.CompileOptions {
-		if index == 0 {
-			toolchain.WriteString("\n# Define global compile options.\n")
+
+	if len(c.project.Flags) > 0 || c.project.OptFlags != nil {
+		toolchain.WriteString("\n# Define flags.\n")
+		toolchain.WriteString("add_compile_options(\n")
+		if c.project.OptFlags != nil {
+			if c.project.OptFlags.Release != "" {
+				toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Release>:%s>\"\n", c.project.OptFlags.Release))
+			}
+			if c.project.OptFlags.Debug != "" {
+				toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Debug>:%s>\"\n", c.project.OptFlags.Debug))
+			}
+			if c.project.OptFlags.RelWithDebInfo != "" {
+				toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", c.project.OptFlags.RelWithDebInfo))
+			}
+			if c.project.OptFlags.MinSizeRel != "" {
+				toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:MinSizeRel>:%s>\"\n", c.project.OptFlags.MinSizeRel))
+			}
 		}
-		toolchain.WriteString(fmt.Sprintf("add_compile_options(%s)\n", item))
+		for _, item := range c.project.Flags {
+			toolchain.WriteString(fmt.Sprintf("\t%q\n", item))
+		}
+		toolchain.WriteString(")\n")
 	}
 
 	// Write toolchain file.

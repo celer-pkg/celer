@@ -13,13 +13,13 @@ import (
 )
 
 type Project struct {
-	BuildType      string                 `toml:"build_type"`
-	Ports          []string               `toml:"ports"`
-	Vars           []string               `toml:"vars"`
-	Envs           []string               `toml:"envs"`
-	Micros         []string               `toml:"micros"`
-	CompileOptions []string               `toml:"compile_options"`
-	OptFlags       *buildsystems.OptFlags `toml:"opt_flags"`
+	BuildType string                 `toml:"build_type"`
+	Ports     []string               `toml:"ports"`
+	Vars      []string               `toml:"vars"`
+	Envs      []string               `toml:"envs"`
+	Micros    []string               `toml:"micros"`
+	Flags     []string               `toml:"flags"`
+	OptFlags  *buildsystems.OptFlags `toml:"opt_flags"`
 
 	// Internal fields.
 	Name string `toml:"-"`
