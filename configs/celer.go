@@ -447,16 +447,20 @@ func (c Celer) GenerateToolchainFile(deployMode bool) error {
 	toolchain.WriteString("\n# Global flags.\n")
 	toolchain.WriteString("add_compile_options(\n")
 	if c.project.Optimize.Release != "" {
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Release>:%s>\"\n", c.project.Optimize.Release))
+		flags := strings.Join(strings.Fields(c.project.Optimize.Release), ";")
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Release>:%s>\"\n", flags))
 	}
 	if c.project.Optimize.Debug != "" {
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Debug>:%s>\"\n", c.project.Optimize.Debug))
+		flags := strings.Join(strings.Fields(c.project.Optimize.Debug), ";")
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Debug>:%s>\"\n", flags))
 	}
 	if c.project.Optimize.RelWithDebInfo != "" {
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", c.project.Optimize.RelWithDebInfo))
+		flags := strings.Join(strings.Fields(c.project.Optimize.RelWithDebInfo), ";")
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", flags))
 	}
 	if c.project.Optimize.MinSizeRel != "" {
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:MinSizeRel>:%s>\"\n", c.project.Optimize.MinSizeRel))
+		flags := strings.Join(strings.Fields(c.project.Optimize.MinSizeRel), ";")
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:MinSizeRel>:%s>\"\n", flags))
 	}
 	if len(c.project.Flags) > 0 {
 		for _, item := range c.project.Flags {
