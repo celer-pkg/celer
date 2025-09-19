@@ -170,6 +170,6 @@ func (t *Toolchain) Detect() error {
 }
 
 // Detect no msvc in linux.
-func (w *WindowsKit) Detect(msvc *msvc) error {
+func (w *WindowsKit) Detect(msvc *MSVC) error {
 	return nil
 }

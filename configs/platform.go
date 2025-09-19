@@ -67,7 +67,7 @@ func (p *Platform) Init(platformName string) error {
 
 	// Only for Windows MSVC.
 	if p.Toolchain.Name == "msvc" {
-		p.Toolchain.msvc.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+		p.Toolchain.MSVC.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
 	}
 
 	return nil
@@ -164,7 +164,7 @@ func (p *Platform) Setup() error {
 
 	// Only for Windows MSVC.
 	if p.Toolchain.Name == "msvc" {
-		p.Toolchain.msvc.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+		p.Toolchain.MSVC.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
 	}
 
 	return nil
@@ -177,11 +177,13 @@ func (p *Platform) detectToolchain() error {
 		return fmt.Errorf("detect celer.toolchain: %w", err)
 	}
 	p.Toolchain = &toolchain
+	p.Toolchain.SystemName = runtime.GOOS
+	p.Toolchain.SystemProcessor = runtime.GOARCH
 
 	// Windows kit is only supported in Windows.
 	if runtime.GOOS == "windows" && p.WindowsKit == nil {
 		var windowsKit WindowsKit
-		if err := windowsKit.Detect(&p.Toolchain.msvc); err != nil {
+		if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
 			return fmt.Errorf("detect celer.windows_kit error: %w", err)
 		}
 		p.WindowsKit = &windowsKit

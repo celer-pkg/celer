@@ -338,11 +338,7 @@ func (p Port) crossTools() *buildsystems.CrossTools {
 		return nil
 	}
 
-	crossTools := buildsystems.CrossTools{
-		SystemName:      p.ctx.SystemName(),
-		SystemProcessor: p.ctx.SystemProcessor(),
-	}
-
+	var crossTools buildsystems.CrossTools
 	crossTools.Native = p.Native || toolchain.Name == "msvc" ||
 		(toolchain.Name == "gcc" && toolchain.Path == "/usr/bin")
 	crossTools.Name = toolchain.Name
@@ -374,9 +370,9 @@ func (p Port) crossTools() *buildsystems.CrossTools {
 	crossTools.READELF = toolchain.READELF
 
 	// For windows MSVC.
-	crossTools.MSVC.VCVars = toolchain.msvc.VCVars
-	crossTools.MSVC.MT = toolchain.msvc.MtPath
-	crossTools.MSVC.RC = toolchain.msvc.RcPath
+	crossTools.MSVC.VCVars = toolchain.MSVC.VCVars
+	crossTools.MSVC.MT = toolchain.MSVC.MT
+	crossTools.MSVC.RC = toolchain.MSVC.RC
 
 	return &crossTools
 }
