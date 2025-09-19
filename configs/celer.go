@@ -426,20 +426,10 @@ endif()`, c.BuildType()) + "\n")
 	toolchain.WriteString(fmt.Sprintf(`list(APPEND CMAKE_FIND_ROOT_PATH "%s")`, installedDir) + "\n")
 	toolchain.WriteString(fmt.Sprintf(`list(APPEND CMAKE_PREFIX_PATH "%s")`, installedDir) + "\n")
 
-	toolchain.WriteString("\n# Set optimization level.\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_DEBUG "%s")`, c.project.OptLevel.Debug) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELEASE "%s")`, c.project.OptLevel.Release) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_RELWITHDEBINFO "%s")`, c.project.OptLevel.RelWithDebInfo) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_C_FLAGS_MINSIZEREL "%s")`, c.project.OptLevel.MinSizeRel) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_DEBUG "%s")`, c.project.OptLevel.Debug) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELEASE "%s")`, c.project.OptLevel.Release) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "%s")`, c.project.OptLevel.RelWithDebInfo) + "\n")
-	toolchain.WriteString(fmt.Sprintf(`set(CMAKE_CXX_FLAGS_MINSIZEREL "%s")`, c.project.OptLevel.MinSizeRel) + "\n")
-
 	// Define global cmake vars, env vars, micro vars and compile options.
 	for index, item := range c.project.Vars {
 		if index == 0 {
-			toolchain.WriteString("\n# Define global cmake vars.\n")
+			toolchain.WriteString("\n# Global cmake vars.\n")
 		}
 
 		parts := strings.Split(item, "=")
@@ -451,6 +441,7 @@ endif()`, c.BuildType()) + "\n")
 			return fmt.Errorf("invalid cmake var: %s", item)
 		}
 	}
+
 	for index, item := range c.project.Envs {
 		parts := strings.Split(item, "=")
 		if len(parts) != 2 {
@@ -458,22 +449,38 @@ endif()`, c.BuildType()) + "\n")
 		}
 
 		if index == 0 {
-			toolchain.WriteString("\n# Define global envs.\n")
+			toolchain.WriteString("\n# Global envs.\n")
 		}
 		toolchain.WriteString(fmt.Sprintf(`set(ENV{%s} "%s")`, parts[0], parts[1]) + "\n")
 	}
+
 	for index, item := range c.project.Micros {
 		if index == 0 {
-			toolchain.WriteString("\n# Define global micros.\n")
+			toolchain.WriteString("\n# Global micros.\n")
 		}
 		toolchain.WriteString(fmt.Sprintf("add_compile_definitions(%s)\n", item))
 	}
-	for index, item := range c.project.CompileOptions {
-		if index == 0 {
-			toolchain.WriteString("\n# Define global compile options.\n")
-		}
-		toolchain.WriteString(fmt.Sprintf("add_compile_options(%s)\n", item))
+
+	toolchain.WriteString("\n# Global flags.\n")
+	toolchain.WriteString("add_compile_options(\n")
+	if c.project.Optimize.Release != "" {
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Release>:%s>\"\n", c.project.Optimize.Release))
 	}
+	if c.project.Optimize.Debug != "" {
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Debug>:%s>\"\n", c.project.Optimize.Debug))
+	}
+	if c.project.Optimize.RelWithDebInfo != "" {
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", c.project.Optimize.RelWithDebInfo))
+	}
+	if c.project.Optimize.MinSizeRel != "" {
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:MinSizeRel>:%s>\"\n", c.project.Optimize.MinSizeRel))
+	}
+	if len(c.project.Flags) > 0 {
+		for _, item := range c.project.Flags {
+			toolchain.WriteString(fmt.Sprintf("\t%q\n", item))
+		}
+	}
+	toolchain.WriteString(")\n")
 
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")

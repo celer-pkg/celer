@@ -16,12 +16,16 @@ import (
 	"strings"
 )
 
-func NewB2(config *BuildConfig) *b2 {
-	return &b2{BuildConfig: config}
+func NewB2(config *BuildConfig, optimize Optimize) *b2 {
+	return &b2{
+		BuildConfig: config,
+		Optimize:    optimize,
+	}
 }
 
 type b2 struct {
 	*BuildConfig
+	Optimize
 }
 
 func (b b2) Name() string {
@@ -33,7 +37,7 @@ func (b b2) CheckTools() error {
 	return buildtools.CheckTools(b.BuildConfig.BuildTools...)
 }
 
-func (b b2) CleanRepo() error {
+func (b b2) Clean() error {
 	if fileio.PathExists(filepath.Join(b.PortConfig.SrcDir, "b2")) {
 		title := fmt.Sprintf("[clean %s@%s]", b.PortConfig.LibName, b.PortConfig.LibVersion)
 		executor := cmd.NewExecutor(title, "./b2 clean")
@@ -54,7 +58,7 @@ func (b b2) configured() bool {
 
 func (b b2) Configure(options []string) error {
 	// Clean build cache.
-	if err := b.CleanRepo(); err != nil {
+	if err := b.Clean(); err != nil {
 		return err
 	}
 
@@ -119,10 +123,15 @@ func (b b2) buildOptions() ([]string, error) {
 
 	// Set build type.
 	buildType := strings.ToLower(b.BuildType)
-	if buildType == "release" || buildType == "relwithdebinfo" || buildType == "minsizerel" {
+	switch buildType {
+	case "release":
 		options = append(options, "variant=release")
-	} else {
+	case "debug":
 		options = append(options, "variant=debug")
+	case "relwithdebinfo":
+		options = append(options, "variant=release debug-symbols=on")
+	case "minsizerel":
+		options = append(options, "variant=release optimization=space")
 	}
 
 	// Set build cache dir.

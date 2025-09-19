@@ -13,12 +13,16 @@ import (
 	"strings"
 )
 
-func NewMakefiles(config *BuildConfig) *makefiles {
-	return &makefiles{BuildConfig: config}
+func NewMakefiles(config *BuildConfig, optimize Optimize) *makefiles {
+	return &makefiles{
+		BuildConfig: config,
+		Optimize:    optimize,
+	}
 }
 
 type makefiles struct {
 	*BuildConfig
+	Optimize
 	msvcEnvs string
 }
 
@@ -37,7 +41,7 @@ func (m *makefiles) CheckTools() error {
 	return buildtools.CheckTools(m.BuildConfig.BuildTools...)
 }
 
-func (m makefiles) CleanRepo() error {
+func (m makefiles) Clean() error {
 	if fileio.PathExists(filepath.Join(m.PortConfig.RepoDir, ".git")) {
 		title := fmt.Sprintf("[clean %s]", m.PortConfig.nameVersionDesc())
 		executor := cmd.NewExecutor(title, "git clean -fdx && git reset --hard")
@@ -248,9 +252,41 @@ func (m makefiles) Configure(options []string) error {
 		m.PortConfig.CrossTools.SetEnvs(m.BuildConfig)
 	}
 
-	// Different Makefile projects set the build_type in inconsistent ways,
-	// Fortunately, it can be configured through CFLAGS and CXXFLAGS.
-	m.setBuildType(m.BuildType)
+	// Set optimization flags with build_type.
+	cflags := strings.Split(os.Getenv("CFLAGS"), " ")
+	cxxflags := strings.Split(os.Getenv("CXXFLAGS"), " ")
+	if m.DevDep {
+		if m.Optimize.Release != "" {
+			cflags = append(cflags, m.Optimize.Release)
+			cxxflags = append(cxxflags, m.Optimize.Release)
+		}
+	} else {
+		buildType := strings.ToLower(m.BuildType)
+		switch buildType {
+		case "release":
+			if m.Optimize.Release != "" {
+				cflags = append(cflags, m.Optimize.Release)
+				cxxflags = append(cxxflags, m.Optimize.Release)
+			}
+		case "debug":
+			if m.Optimize.Debug != "" {
+				cflags = append(cflags, m.Optimize.Debug)
+				cxxflags = append(cxxflags, m.Optimize.Debug)
+			}
+		case "relwithdebinfo":
+			if m.Optimize.RelWithDebInfo != "" {
+				cflags = append(cflags, m.Optimize.RelWithDebInfo)
+				cxxflags = append(cxxflags, m.Optimize.RelWithDebInfo)
+			}
+		case "minsizerel":
+			if m.Optimize.MinSizeRel != "" {
+				cflags = append(cflags, m.Optimize.MinSizeRel)
+				cxxflags = append(cxxflags, m.Optimize.MinSizeRel)
+			}
+		}
+	}
+	os.Setenv("CFLAGS", strings.Join(cflags, " "))
+	os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 
 	// Create build dir if not exists.
 	if !m.BuildInSource {

@@ -22,7 +22,7 @@ const (
 	visualStudio_12_2013 = "Visual Studio 12 2013 Win64"
 )
 
-func NewCMake(config *BuildConfig, generator string) *cmake {
+func NewCMake(config *BuildConfig, optimize Optimize, generator string) *cmake {
 	// Set default generator if not specified.
 	if generator == "" {
 		switch runtime.GOOS {
@@ -52,12 +52,14 @@ func NewCMake(config *BuildConfig, generator string) *cmake {
 
 	return &cmake{
 		BuildConfig: config,
+		Optimize:    optimize,
 		generator:   generator,
 	}
 }
 
 type cmake struct {
 	*BuildConfig
+	Optimize
 	generator string // e.g. Ninja, Unix Makefiles, Visual Studio 16 2019, etc.
 }
 
@@ -70,14 +72,18 @@ func (c cmake) CheckTools() error {
 	return buildtools.CheckTools(c.BuildConfig.BuildTools...)
 }
 
-func (c cmake) CleanRepo() error {
+func (c cmake) Clean() error {
 	// We do not configure cmake project in source folder.
 	return nil
 }
 
 func (c cmake) configureOptions() ([]string, error) {
-	var options = slices.Clone(c.Options)
+	var flags []string
 
+	// Format as cmake build type.
+	c.BuildType = c.formatBuildType()
+
+	var options = slices.Clone(c.Options)
 	options = append(options, "-DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON")
 
 	// Append cross-compile options only for none-runtime library.
@@ -146,8 +152,21 @@ func (c cmake) configureOptions() ([]string, error) {
 		options = append(options, fmt.Sprintf(`-DCMAKE_SYSTEM_NAME="%s"`, c.PortConfig.CrossTools.SystemName))
 
 		if c.PortConfig.CrossTools.RootFS != "" {
-			options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="--sysroot=%s ${CMAKE_C_FLAGS}"`, c.PortConfig.CrossTools.RootFS))
-			options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="--sysroot=%s ${CMAKE_CXX_FLAGS}"`, c.PortConfig.CrossTools.RootFS))
+			flags = append(flags, "--sysroot="+c.PortConfig.CrossTools.RootFS)
+		}
+
+		// Set compile optimization flags.
+		switch c.BuildType {
+		case "Release":
+			flags = append(flags, c.Optimize.Release)
+		case "Debug":
+			flags = append(flags, c.Optimize.Debug)
+		case "RelWithDebInfo":
+			flags = append(flags, c.Optimize.RelWithDebInfo)
+		case "MinSizeRel":
+			flags = append(flags, c.Optimize.MinSizeRel)
+		default:
+			return nil, fmt.Errorf("unknown build type: %s", c.BuildType)
 		}
 
 		// Windows
@@ -184,8 +203,7 @@ func (c cmake) configureOptions() ([]string, error) {
 		} else {
 			if !slices.ContainsFunc(options, func(arg string) bool {
 				return strings.Contains(arg, "CMAKE_BUILD_TYPE")
-			}) { // Format as cmake build type.
-				c.BuildType = c.formatBuildType()
+			}) {
 				options = append(options, "-DCMAKE_BUILD_TYPE="+c.BuildType)
 			}
 		}
@@ -213,6 +231,10 @@ func (c cmake) configureOptions() ([]string, error) {
 			options = append(options, libraryType.disableShared)
 		}
 	}
+
+	// Append merged flags.
+	options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s"`, strings.Join(flags, " ")))
+	options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s"`, strings.Join(flags, " ")))
 
 	// Set CMAKE_PREFIX_PATH and CMAKE_INSTALL_PREFIX.
 	options = append(options, "-DCMAKE_PREFIX_PATH="+filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder))

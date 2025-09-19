@@ -7,19 +7,23 @@ import (
 	"path/filepath"
 )
 
-func NewNoBuild(config *BuildConfig) *nobuild {
-	return &nobuild{BuildConfig: config}
+func NewNoBuild(config *BuildConfig, optimize Optimize) *nobuild {
+	return &nobuild{
+		BuildConfig: config,
+		Optimize:    optimize,
+	}
 }
 
 type nobuild struct {
 	*BuildConfig
+	Optimize
 }
 
 func (n nobuild) CheckTools() error {
 	return nil
 }
 
-func (n nobuild) CleanRepo() error {
+func (n nobuild) Clean() error {
 	if fileio.PathExists(filepath.Join(n.PortConfig.RepoDir, ".git")) {
 		title := fmt.Sprintf("[clean %s]", n.PortConfig.nameVersionDesc())
 		executor := cmd.NewExecutor(title, "git clean -fdx && git reset --hard")

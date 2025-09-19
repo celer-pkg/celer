@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 )
 
-func NewNinja(config *BuildConfig) *ninja {
+func NewNinja(config *BuildConfig, optimize Optimize) *ninja {
 	return &ninja{
-		cmake: *NewCMake(config, "ninja"),
+		cmake: *NewCMake(config, optimize, "ninja"),
 	}
 }
 
@@ -25,8 +25,8 @@ func (n ninja) CheckTools() error {
 	return buildtools.CheckTools(n.BuildConfig.BuildTools...)
 }
 
-func (n ninja) CleanRepo() error {
-	return n.cmake.CleanRepo()
+func (n ninja) Clean() error {
+	return n.cmake.Clean()
 }
 
 func (n ninja) configureOptions() ([]string, error) {

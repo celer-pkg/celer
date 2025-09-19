@@ -10,12 +10,16 @@ import (
 	"strings"
 )
 
-func NewGyp(config *BuildConfig) *gyp {
-	return &gyp{BuildConfig: config}
+func NewGyp(config *BuildConfig, optimize Optimize) *gyp {
+	return &gyp{
+		BuildConfig: config,
+		Optimize:    optimize,
+	}
 }
 
 type gyp struct {
 	*BuildConfig
+	Optimize
 }
 
 func (g gyp) Name() string {
@@ -27,7 +31,7 @@ func (g gyp) CheckTools() error {
 	return buildtools.CheckTools(g.BuildConfig.BuildTools...)
 }
 
-func (g gyp) CleanRepo() error {
+func (g gyp) Clean() error {
 	if fileio.PathExists(filepath.Join(g.PortConfig.RepoDir, ".git")) {
 		title := fmt.Sprintf("[clean %s]", g.PortConfig.nameVersionDesc())
 		executor := cmd.NewExecutor(title, "git clean -fdx && git reset --hard")
@@ -61,7 +65,42 @@ func (g gyp) Configure(options []string) error {
 		g.PortConfig.CrossTools.SetEnvs(g.BuildConfig)
 	}
 
-	g.setBuildType(g.BuildType)
+	// Set optimization flags with build_type.
+	cflags := strings.Split(os.Getenv("CFLAGS"), " ")
+	cxxflags := strings.Split(os.Getenv("CXXFLAGS"), " ")
+	if g.DevDep {
+		if g.Optimize.Release != "" {
+			cflags = append(cflags, g.Optimize.Release)
+			cxxflags = append(cxxflags, g.Optimize.Release)
+		}
+	} else {
+		buildType := strings.ToLower(g.BuildType)
+		switch buildType {
+		case "release":
+			if g.Optimize.Release != "" {
+				cflags = append(cflags, g.Optimize.Release)
+				cxxflags = append(cxxflags, g.Optimize.Release)
+			}
+		case "debug":
+			if g.Optimize.Debug != "" {
+				cflags = append(cflags, g.Optimize.Debug)
+				cxxflags = append(cxxflags, g.Optimize.Debug)
+			}
+		case "relwithdebinfo":
+			if g.Optimize.RelWithDebInfo != "" {
+				cflags = append(cflags, g.Optimize.RelWithDebInfo)
+				cxxflags = append(cxxflags, g.Optimize.RelWithDebInfo)
+			}
+		case "minsizerel":
+			if g.Optimize.MinSizeRel != "" {
+				cflags = append(cflags, g.Optimize.MinSizeRel)
+				cxxflags = append(cxxflags, g.Optimize.MinSizeRel)
+			}
+		}
+	}
+	os.Setenv("CFLAGS", strings.Join(cflags, " "))
+	os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+
 	return nil
 }
 

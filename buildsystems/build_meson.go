@@ -15,12 +15,16 @@ import (
 	"strings"
 )
 
-func NewMeson(config *BuildConfig) *meson {
-	return &meson{BuildConfig: config}
+func NewMeson(config *BuildConfig, optimize Optimize) *meson {
+	return &meson{
+		BuildConfig: config,
+		Optimize:    optimize,
+	}
 }
 
 type meson struct {
 	*BuildConfig
+	Optimize
 }
 
 func (meson) Name() string {
@@ -43,28 +47,30 @@ func (m meson) CheckTools() error {
 	return buildtools.CheckTools(m.BuildConfig.BuildTools...)
 }
 
-func (m meson) CleanRepo() error {
+func (m meson) Clean() error {
 	// We do not configure meson project in source folder.
 	return nil
 }
 
 func (m meson) configureOptions() ([]string, error) {
-	buildType := strings.ToLower(m.BuildType)
-	isRelease := buildType == "release" || buildType == "relwithdebinfo" || buildType == "minsizerel"
-
 	var options = slices.Clone(m.Options)
 
-	// Append 'BUILD_TYPE' if not contains it.
+	// Set build type.
 	if m.DevDep {
-		options = slices.DeleteFunc(options, func(element string) bool {
-			return strings.Contains(element, "--buildtype")
-		})
 		options = append(options, "--buildtype=release")
 	} else {
-		if !slices.ContainsFunc(options, func(arg string) bool {
-			return strings.Contains(arg, "--buildtype")
-		}) {
-			options = append(options, "--buildtype="+expr.If(isRelease, "release", "debug"))
+		buildType := strings.ToLower(m.BuildType)
+		switch buildType {
+		case "release":
+			options = append(options, "--buildtype=release")
+		case "debug":
+			options = append(options, "--buildtype=debug")
+		case "relwithdebinfo":
+			options = append(options, "--buildtype=debugoptimized")
+		case "minsizerel":
+			options = append(options, "--buildtype=minsize")
+		default:
+			options = append(options, "--buildtype=plain")
 		}
 	}
 

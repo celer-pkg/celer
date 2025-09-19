@@ -4,12 +4,16 @@ import (
 	"celer/buildtools"
 )
 
-func NewBazel(config *BuildConfig) *bazel {
-	return &bazel{BuildConfig: config}
+func NewBazel(config *BuildConfig, optimize Optimize) *bazel {
+	return &bazel{
+		BuildConfig: config,
+		Optimize:    optimize,
+	}
 }
 
 type bazel struct {
 	*BuildConfig
+	Optimize
 }
 
 func (b bazel) Name() string {
@@ -21,7 +25,7 @@ func (b bazel) CheckTools() error {
 	return buildtools.CheckTools(b.BuildConfig.BuildTools...)
 }
 
-func (b bazel) CleanRepo() error {
+func (b bazel) Clean() error {
 	return nil
 }
 

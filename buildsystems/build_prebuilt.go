@@ -12,14 +12,16 @@ import (
 	"strings"
 )
 
-func NewPrebuilt(config *BuildConfig) *prebuilt {
+func NewPrebuilt(config *BuildConfig, optimize Optimize) *prebuilt {
 	return &prebuilt{
 		BuildConfig: config,
+		Optimize:    optimize,
 	}
 }
 
 type prebuilt struct {
 	*BuildConfig
+	Optimize
 }
 
 func (p prebuilt) Name() string {
@@ -31,7 +33,7 @@ func (p prebuilt) CheckTools() error {
 	return buildtools.CheckTools(p.BuildConfig.BuildTools...)
 }
 
-func (p prebuilt) CleanRepo() error {
+func (p prebuilt) Clean() error {
 	// No repo to clean.
 	return nil
 }

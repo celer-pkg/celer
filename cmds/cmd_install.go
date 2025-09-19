@@ -48,7 +48,7 @@ func (i installCmd) Command() *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().StringVarP(&i.buildType, "build-type", "b", "release", "Install with specified build type.")
+	command.Flags().StringVarP(&i.buildType, "build-type", "b", i.celer.Global.BuildType, "Install with build type.")
 	command.Flags().BoolVarP(&i.dev, "dev", "d", false, "Install in dev mode.")
 	command.Flags().BoolVarP(&i.force, "force", "f", false, "Try to uninstall before installation.")
 	command.Flags().BoolVarP(&i.recurse, "recurse", "r", false, "Combine with --force, recursively reinstall dependencies.")

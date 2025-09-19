@@ -20,6 +20,13 @@ const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, ni
 
 var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "ninja", "qmake"}
 
+type Optimize struct {
+	Debug          string `toml:"debug"`
+	Release        string `toml:"release"`
+	RelWithDebInfo string `toml:"relwithdebinfo"`
+	MinSizeRel     string `toml:"minsizerel"`
+}
+
 type PortConfig struct {
 	LibName       string      // like: `ffmpeg`
 	LibVersion    string      // like: `4.4`
@@ -53,8 +60,8 @@ type buildSystem interface {
 	Name() string
 	CheckTools() error
 
-	// CleanRepo repo.
-	CleanRepo() error
+	// Clean repo.
+	Clean() error
 
 	// Clone & patch source code
 	Clone(repoUrl, repoRef, archive string) error
@@ -77,7 +84,6 @@ type buildSystem interface {
 	rollbackEnvs()
 
 	fillPlaceHolders()
-	setBuildType(buildType string)
 	getLogPath(suffix string) string
 }
 
@@ -312,8 +318,8 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 	return nil
 }
 
-func (b BuildConfig) CleanRepo() error {
-	return b.buildSystem.CleanRepo()
+func (b BuildConfig) Clean() error {
+	return b.buildSystem.Clean()
 }
 
 func (b BuildConfig) Patch() error {
@@ -542,32 +548,32 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	return nil
 }
 
-func (b *BuildConfig) InitBuildSystem() error {
+func (b *BuildConfig) InitBuildSystem(optimize Optimize) error {
 	if b.BuildSystem == "" {
 		return fmt.Errorf("build_system is empty")
 	}
 
 	switch b.BuildSystem {
 	case "nobuild":
-		b.buildSystem = NewNoBuild(b)
+		b.buildSystem = NewNoBuild(b, optimize)
 	case "gyp":
-		b.buildSystem = NewGyp(b)
+		b.buildSystem = NewGyp(b, optimize)
 	case "cmake":
-		b.buildSystem = NewCMake(b, "")
+		b.buildSystem = NewCMake(b, optimize, "")
 	case "ninja":
-		b.buildSystem = NewNinja(b)
+		b.buildSystem = NewNinja(b, optimize)
 	case "makefiles":
-		b.buildSystem = NewMakefiles(b)
+		b.buildSystem = NewMakefiles(b, optimize)
 	case "meson":
-		b.buildSystem = NewMeson(b)
+		b.buildSystem = NewMeson(b, optimize)
 	case "b2":
-		b.buildSystem = NewB2(b)
+		b.buildSystem = NewB2(b, optimize)
 	case "bazel":
-		b.buildSystem = NewBazel(b)
+		b.buildSystem = NewBazel(b, optimize)
 	case "qmake":
-		b.buildSystem = NewQMake(b)
+		b.buildSystem = NewQMake(b, optimize)
 	case "prebuilt":
-		b.buildSystem = NewPrebuilt(b)
+		b.buildSystem = NewPrebuilt(b, optimize)
 	default:
 		return fmt.Errorf("unsupported build system: %s", b.BuildSystem)
 	}
@@ -676,54 +682,6 @@ func (b *BuildConfig) fillPlaceHolders() {
 
 		if strings.Contains(argument, "${SRC_DIR}") {
 			b.Options[index] = strings.ReplaceAll(argument, "${SRC_DIR}", b.PortConfig.SrcDir)
-		}
-	}
-}
-
-func (b BuildConfig) setBuildType(buildType string) {
-	buildType = strings.ToLower(buildType)
-	isRelease := buildType == "release" || buildType == "relwithdebinfo" || buildType == "minsizerel"
-
-	if b.PortConfig.CrossTools.Name == "msvc" {
-		cl := strings.Split(os.Getenv("CL"), " ")
-		cl = slices.DeleteFunc(cl, func(element string) bool {
-			return strings.Contains(element, "/O")
-		})
-
-		if b.DevDep {
-			cl = append(cl, "/O2")
-			os.Setenv("CL", strings.Join(cl, " "))
-		} else {
-			flags := expr.If(isRelease, "/O2", "/Od")
-
-			cl = append(cl, flags)
-			os.Setenv("CL", strings.Join(cl, " "))
-		}
-	} else {
-		cflags := strings.Split(os.Getenv("CFLAGS"), " ")
-		cflags = slices.DeleteFunc(cflags, func(element string) bool {
-			element = strings.TrimSpace(element)
-			return element == "-g" || element == "-O"
-		})
-
-		cxxflags := strings.Split(os.Getenv("CXXFLAGS"), " ")
-		cxxflags = slices.DeleteFunc(cxxflags, func(element string) bool {
-			element = strings.TrimSpace(element)
-			return element == "-g" || element == "-O"
-		})
-
-		if b.DevDep {
-			cflags = append(cflags, "-O3")
-			cxxflags = append(cxxflags, "-O3")
-			os.Setenv("CFLAGS", strings.Join(cflags, " "))
-			os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
-		} else {
-			flags := expr.If(isRelease, "-O3", "-g")
-
-			cflags = append(cflags, flags)
-			cxxflags = append(cxxflags, flags)
-			os.Setenv("CFLAGS", strings.Join(cflags, " "))
-			os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 		}
 	}
 }
