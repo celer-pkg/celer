@@ -15,16 +15,16 @@ import (
 	"strings"
 )
 
-func NewMeson(config *BuildConfig, optFlags *OptFlags) *meson {
+func NewMeson(config *BuildConfig, optimize Optimize) *meson {
 	return &meson{
 		BuildConfig: config,
-		OptFlags:    optFlags,
+		Optimize:    optimize,
 	}
 }
 
 type meson struct {
 	*BuildConfig
-	*OptFlags
+	Optimize
 }
 
 func (meson) Name() string {

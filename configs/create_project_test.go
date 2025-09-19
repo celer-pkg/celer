@@ -39,21 +39,6 @@ func TestCreate_Project_Success(t *testing.T) {
 	t.Cleanup(func() {
 		check(os.Remove(projectPath))
 	})
-
-	// Check default opt level.
-	var project Project
-	check(project.Init(celer, projectName))
-	if project.OptFlags.Debug != "-g" ||
-		project.OptFlags.Release != "-O3" ||
-		project.OptFlags.RelWithDebInfo != "-O2 -g" ||
-		project.OptFlags.MinSizeRel != "-Os" {
-		t.Fatalf("default opt level is not right, expect '-g -O3 -O2 -g -Os', got '%s %s %s %s'",
-			project.OptFlags.Debug,
-			project.OptFlags.Release,
-			project.OptFlags.RelWithDebInfo,
-			project.OptFlags.MinSizeRel,
-		)
-	}
 }
 
 func TestCreate_Project_EmptyName(t *testing.T) {

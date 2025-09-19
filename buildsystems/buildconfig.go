@@ -20,7 +20,7 @@ const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, ni
 
 var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "ninja", "qmake"}
 
-type OptFlags struct {
+type Optimize struct {
 	Debug          string `toml:"debug"`
 	Release        string `toml:"release"`
 	RelWithDebInfo string `toml:"relwithdebinfo"`
@@ -548,32 +548,32 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	return nil
 }
 
-func (b *BuildConfig) InitBuildSystem(optLevel *OptFlags) error {
+func (b *BuildConfig) InitBuildSystem(optimize Optimize) error {
 	if b.BuildSystem == "" {
 		return fmt.Errorf("build_system is empty")
 	}
 
 	switch b.BuildSystem {
 	case "nobuild":
-		b.buildSystem = NewNoBuild(b, optLevel)
+		b.buildSystem = NewNoBuild(b, optimize)
 	case "gyp":
-		b.buildSystem = NewGyp(b, optLevel)
+		b.buildSystem = NewGyp(b, optimize)
 	case "cmake":
-		b.buildSystem = NewCMake(b, optLevel, "")
+		b.buildSystem = NewCMake(b, optimize, "")
 	case "ninja":
-		b.buildSystem = NewNinja(b, optLevel)
+		b.buildSystem = NewNinja(b, optimize)
 	case "makefiles":
-		b.buildSystem = NewMakefiles(b, optLevel)
+		b.buildSystem = NewMakefiles(b, optimize)
 	case "meson":
-		b.buildSystem = NewMeson(b, optLevel)
+		b.buildSystem = NewMeson(b, optimize)
 	case "b2":
-		b.buildSystem = NewB2(b, optLevel)
+		b.buildSystem = NewB2(b, optimize)
 	case "bazel":
-		b.buildSystem = NewBazel(b, optLevel)
+		b.buildSystem = NewBazel(b, optimize)
 	case "qmake":
-		b.buildSystem = NewQMake(b, optLevel)
+		b.buildSystem = NewQMake(b, optimize)
 	case "prebuilt":
-		b.buildSystem = NewPrebuilt(b, optLevel)
+		b.buildSystem = NewPrebuilt(b, optimize)
 	default:
 		return fmt.Errorf("unsupported build system: %s", b.BuildSystem)
 	}

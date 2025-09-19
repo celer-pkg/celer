@@ -4,16 +4,16 @@ import (
 	"celer/buildtools"
 )
 
-func NewBazel(config *BuildConfig, optFlags *OptFlags) *bazel {
+func NewBazel(config *BuildConfig, optimize Optimize) *bazel {
 	return &bazel{
 		BuildConfig: config,
-		OptFlags:    optFlags,
+		Optimize:    optimize,
 	}
 }
 
 type bazel struct {
 	*BuildConfig
-	*OptFlags
+	Optimize
 }
 
 func (b bazel) Name() string {

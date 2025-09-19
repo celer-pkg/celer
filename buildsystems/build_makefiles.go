@@ -13,16 +13,16 @@ import (
 	"strings"
 )
 
-func NewMakefiles(config *BuildConfig, optFlags *OptFlags) *makefiles {
+func NewMakefiles(config *BuildConfig, optimize Optimize) *makefiles {
 	return &makefiles{
 		BuildConfig: config,
-		OptFlags:    optFlags,
+		Optimize:    optimize,
 	}
 }
 
 type makefiles struct {
 	*BuildConfig
-	*OptFlags
+	Optimize
 	msvcEnvs string
 }
 
@@ -256,32 +256,32 @@ func (m makefiles) Configure(options []string) error {
 	cflags := strings.Split(os.Getenv("CFLAGS"), " ")
 	cxxflags := strings.Split(os.Getenv("CXXFLAGS"), " ")
 	if m.DevDep {
-		if m.OptFlags.Release != "" {
-			cflags = append(cflags, m.OptFlags.Release)
-			cxxflags = append(cxxflags, m.OptFlags.Release)
+		if m.Optimize.Release != "" {
+			cflags = append(cflags, m.Optimize.Release)
+			cxxflags = append(cxxflags, m.Optimize.Release)
 		}
 	} else {
 		buildType := strings.ToLower(m.BuildType)
 		switch buildType {
 		case "release":
-			if m.OptFlags.Release != "" {
-				cflags = append(cflags, m.OptFlags.Release)
-				cxxflags = append(cxxflags, m.OptFlags.Release)
+			if m.Optimize.Release != "" {
+				cflags = append(cflags, m.Optimize.Release)
+				cxxflags = append(cxxflags, m.Optimize.Release)
 			}
 		case "debug":
-			if m.OptFlags.Debug != "" {
-				cflags = append(cflags, m.OptFlags.Debug)
-				cxxflags = append(cxxflags, m.OptFlags.Debug)
+			if m.Optimize.Debug != "" {
+				cflags = append(cflags, m.Optimize.Debug)
+				cxxflags = append(cxxflags, m.Optimize.Debug)
 			}
 		case "relwithdebinfo":
-			if m.OptFlags.RelWithDebInfo != "" {
-				cflags = append(cflags, m.OptFlags.RelWithDebInfo)
-				cxxflags = append(cxxflags, m.OptFlags.RelWithDebInfo)
+			if m.Optimize.RelWithDebInfo != "" {
+				cflags = append(cflags, m.Optimize.RelWithDebInfo)
+				cxxflags = append(cxxflags, m.Optimize.RelWithDebInfo)
 			}
 		case "minsizerel":
-			if m.OptFlags.MinSizeRel != "" {
-				cflags = append(cflags, m.OptFlags.MinSizeRel)
-				cxxflags = append(cxxflags, m.OptFlags.MinSizeRel)
+			if m.Optimize.MinSizeRel != "" {
+				cflags = append(cflags, m.Optimize.MinSizeRel)
+				cxxflags = append(cxxflags, m.Optimize.MinSizeRel)
 			}
 		}
 	}

@@ -13,13 +13,13 @@ import (
 )
 
 type Project struct {
-	BuildType string                 `toml:"build_type"`
-	Ports     []string               `toml:"ports"`
-	Vars      []string               `toml:"vars"`
-	Envs      []string               `toml:"envs"`
-	Micros    []string               `toml:"micros"`
-	Flags     []string               `toml:"flags"`
-	OptFlags  *buildsystems.OptFlags `toml:"opt_flags"`
+	BuildType string                `toml:"build_type"`
+	Ports     []string              `toml:"ports"`
+	Vars      []string              `toml:"vars"`
+	Envs      []string              `toml:"envs"`
+	Micros    []string              `toml:"micros"`
+	Flags     []string              `toml:"flags"`
+	Optimize  buildsystems.Optimize `toml:"optimize"`
 
 	// Internal fields.
 	Name string `toml:"-"`
@@ -78,11 +78,11 @@ func (p Project) Write(platformPath string) error {
 	}
 
 	// Default opt level values.
-	p.OptFlags = &buildsystems.OptFlags{
-		Debug:          "-g",
-		Release:        "-O3",
-		RelWithDebInfo: "-O2 -g",
-		MinSizeRel:     "-Os",
+	p.Optimize = buildsystems.Optimize{
+		Debug:          "GCC/Clang: -g | MSVC: /MDd /Zi /Ob0 /Od /RTC1",
+		Release:        "GCC/Clang: -O3 | MSVC: /MD /O2 /Ob2 /DNDEBUG",
+		RelWithDebInfo: "GCC/Clang: -O2 -g | MSVC: /MD /Zi /O2 /Ob1 /DNDEBUG",
+		MinSizeRel:     "GCC/Clang: -Os | MSVC: /MD /O1 /Ob1 /DNDEBUG",
 	}
 
 	bytes, err := toml.Marshal(p)

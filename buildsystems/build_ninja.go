@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 )
 
-func NewNinja(config *BuildConfig, optFlags *OptFlags) *ninja {
+func NewNinja(config *BuildConfig, optimize Optimize) *ninja {
 	return &ninja{
-		cmake: *NewCMake(config, optFlags, "ninja"),
+		cmake: *NewCMake(config, optimize, "ninja"),
 	}
 }
 

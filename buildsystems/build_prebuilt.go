@@ -12,16 +12,16 @@ import (
 	"strings"
 )
 
-func NewPrebuilt(config *BuildConfig, optFlags *OptFlags) *prebuilt {
+func NewPrebuilt(config *BuildConfig, optimize Optimize) *prebuilt {
 	return &prebuilt{
 		BuildConfig: config,
-		OptFlags:    optFlags,
+		Optimize:    optimize,
 	}
 }
 
 type prebuilt struct {
 	*BuildConfig
-	*OptFlags
+	Optimize
 }
 
 func (p prebuilt) Name() string {

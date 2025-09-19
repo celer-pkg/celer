@@ -22,7 +22,7 @@ const (
 	visualStudio_12_2013 = "Visual Studio 12 2013 Win64"
 )
 
-func NewCMake(config *BuildConfig, optFlags *OptFlags, generator string) *cmake {
+func NewCMake(config *BuildConfig, optimize Optimize, generator string) *cmake {
 	// Set default generator if not specified.
 	if generator == "" {
 		switch runtime.GOOS {
@@ -52,14 +52,14 @@ func NewCMake(config *BuildConfig, optFlags *OptFlags, generator string) *cmake 
 
 	return &cmake{
 		BuildConfig: config,
-		OptFlags:    optFlags,
+		Optimize:    optimize,
 		generator:   generator,
 	}
 }
 
 type cmake struct {
 	*BuildConfig
-	*OptFlags
+	Optimize
 	generator string // e.g. Ninja, Unix Makefiles, Visual Studio 16 2019, etc.
 }
 
@@ -156,19 +156,17 @@ func (c cmake) configureOptions() ([]string, error) {
 		}
 
 		// Set compile optimization flags.
-		if c.OptFlags != nil {
-			if c.OptFlags.Debug != "" && c.BuildType == "Debug" {
-				flags = append(flags, c.OptFlags.Debug)
-			}
-			if c.OptFlags.Release != "" && c.BuildType == "Release" {
-				flags = append(flags, c.OptFlags.Release)
-			}
-			if c.OptFlags.RelWithDebInfo != "" && c.BuildType == "RelWithDebInfo" {
-				flags = append(flags, c.OptFlags.RelWithDebInfo)
-			}
-			if c.OptFlags.MinSizeRel != "" && c.BuildType == "MinSizeRel" {
-				flags = append(flags, c.OptFlags.MinSizeRel)
-			}
+		switch c.BuildType {
+		case "Release":
+			flags = append(flags, c.Optimize.Release)
+		case "Debug":
+			flags = append(flags, c.Optimize.Debug)
+		case "RelWithDebInfo":
+			flags = append(flags, c.Optimize.RelWithDebInfo)
+		case "MinSizeRel":
+			flags = append(flags, c.Optimize.MinSizeRel)
+		default:
+			return nil, fmt.Errorf("unknown build type: %s", c.BuildType)
 		}
 
 		// Windows

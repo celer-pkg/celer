@@ -10,16 +10,16 @@ import (
 	"strings"
 )
 
-func NewGyp(config *BuildConfig, optFlags *OptFlags) *gyp {
+func NewGyp(config *BuildConfig, optimize Optimize) *gyp {
 	return &gyp{
 		BuildConfig: config,
-		OptFlags:    optFlags,
+		Optimize:    optimize,
 	}
 }
 
 type gyp struct {
 	*BuildConfig
-	*OptFlags
+	Optimize
 }
 
 func (g gyp) Name() string {
@@ -69,32 +69,32 @@ func (g gyp) Configure(options []string) error {
 	cflags := strings.Split(os.Getenv("CFLAGS"), " ")
 	cxxflags := strings.Split(os.Getenv("CXXFLAGS"), " ")
 	if g.DevDep {
-		if g.OptFlags.Release != "" {
-			cflags = append(cflags, g.OptFlags.Release)
-			cxxflags = append(cxxflags, g.OptFlags.Release)
+		if g.Optimize.Release != "" {
+			cflags = append(cflags, g.Optimize.Release)
+			cxxflags = append(cxxflags, g.Optimize.Release)
 		}
 	} else {
 		buildType := strings.ToLower(g.BuildType)
 		switch buildType {
 		case "release":
-			if g.OptFlags.Release != "" {
-				cflags = append(cflags, g.OptFlags.Release)
-				cxxflags = append(cxxflags, g.OptFlags.Release)
+			if g.Optimize.Release != "" {
+				cflags = append(cflags, g.Optimize.Release)
+				cxxflags = append(cxxflags, g.Optimize.Release)
 			}
 		case "debug":
-			if g.OptFlags.Debug != "" {
-				cflags = append(cflags, g.OptFlags.Debug)
-				cxxflags = append(cxxflags, g.OptFlags.Debug)
+			if g.Optimize.Debug != "" {
+				cflags = append(cflags, g.Optimize.Debug)
+				cxxflags = append(cxxflags, g.Optimize.Debug)
 			}
 		case "relwithdebinfo":
-			if g.OptFlags.RelWithDebInfo != "" {
-				cflags = append(cflags, g.OptFlags.RelWithDebInfo)
-				cxxflags = append(cxxflags, g.OptFlags.RelWithDebInfo)
+			if g.Optimize.RelWithDebInfo != "" {
+				cflags = append(cflags, g.Optimize.RelWithDebInfo)
+				cxxflags = append(cxxflags, g.Optimize.RelWithDebInfo)
 			}
 		case "minsizerel":
-			if g.OptFlags.MinSizeRel != "" {
-				cflags = append(cflags, g.OptFlags.MinSizeRel)
-				cxxflags = append(cxxflags, g.OptFlags.MinSizeRel)
+			if g.Optimize.MinSizeRel != "" {
+				cflags = append(cflags, g.Optimize.MinSizeRel)
+				cxxflags = append(cxxflags, g.Optimize.MinSizeRel)
 			}
 		}
 	}
