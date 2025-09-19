@@ -29,7 +29,17 @@ func (i installCmd) Command() *cobra.Command {
 	// Init celer (seems cannot new celer in completion function, so moved here).
 	i.celer = configs.NewCeler()
 	if err := i.celer.Init(); err != nil {
-		configs.PrintError(err, "failed to init celer.")
+		configs.PrintError(err, "init celer error.")
+		os.Exit(1)
+	}
+
+	if err := i.celer.Platform().Setup(); err != nil {
+		configs.PrintError(err, "setup platform error.")
+		os.Exit(1)
+	}
+
+	if err := i.celer.GenerateToolchainFile(false); err != nil {
+		configs.PrintError(err, "generate toolchain file error.")
 		os.Exit(1)
 	}
 

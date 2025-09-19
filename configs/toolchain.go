@@ -75,20 +75,21 @@ func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
 
 	writeIfNotEmpty := func(content, value string) {
 		if value != "" {
-			toolchain.WriteString(fmt.Sprintf("set(%s\"%s\")\n", content, value))
+			fmt.Fprintf(toolchain, "set(%-25s%q)\n", content, "${TOOLCHAIN_DIR}/"+value)
 		}
 	}
 
 	toolchain.WriteString("\n# Set toolchain for cross-compile.\n")
-	writeIfNotEmpty("CMAKE_C_COMPILER 		", t.CC)
-	writeIfNotEmpty("CMAKE_CXX_COMPILER		", t.CXX)
-	writeIfNotEmpty("CMAKE_Fortran_COMPILER	", t.FC)
-	writeIfNotEmpty("CMAKE_RANLIB 			", t.RANLIB)
-	writeIfNotEmpty("CMAKE_AR 				", t.AR)
-	writeIfNotEmpty("CMAKE_LINKER 			", t.LD)
-	writeIfNotEmpty("CMAKE_NM 				", t.NM)
-	writeIfNotEmpty("CMAKE_OBJDUMP 			", t.OBJDUMP)
-	writeIfNotEmpty("CMAKE_STRIP 			", t.STRIP)
+	toolchain.WriteString(fmt.Sprintf("set(%-25s%q)\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath))
+	writeIfNotEmpty("CMAKE_C_COMPILER", t.CC)
+	writeIfNotEmpty("CMAKE_CXX_COMPILER", t.CXX)
+	writeIfNotEmpty("CMAKE_Fortran_COMPILER", t.FC)
+	writeIfNotEmpty("CMAKE_RANLIB", t.RANLIB)
+	writeIfNotEmpty("CMAKE_AR", t.AR)
+	writeIfNotEmpty("CMAKE_LINKER", t.LD)
+	writeIfNotEmpty("CMAKE_NM", t.NM)
+	writeIfNotEmpty("CMAKE_OBJDUMP", t.OBJDUMP)
+	writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
 
 	// Only linux may have sysroot.
 	if t.Name == "gcc" {

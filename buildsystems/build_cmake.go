@@ -84,7 +84,6 @@ func (c cmake) configureOptions() ([]string, error) {
 	c.BuildType = c.formatBuildType()
 
 	var options = slices.Clone(c.Options)
-	options = append(options, "-DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON")
 
 	// Append cross-compile options only for none-runtime library.
 	if !c.BuildConfig.DevDep {

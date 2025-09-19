@@ -28,6 +28,11 @@ func (d deployCmd) Command() *cobra.Command {
 				return
 			}
 
+			if err := d.celer.GenerateToolchainFile(true); err != nil {
+				configs.PrintError(err, "failed to generate toolchain file.")
+				return
+			}
+
 			// Override dev mode if specified.
 			buildtools.DevMode = d.devMode
 			configs.DevMode = d.devMode
@@ -50,14 +55,6 @@ func (d deployCmd) Command() *cobra.Command {
 			if err := d.celer.Deploy(); err != nil {
 				configs.PrintError(err, "failed to deploy celer.")
 				return
-			}
-
-			// In dev mode, skip generate toolchain file.
-			if !d.devMode {
-				if err := d.celer.GenerateToolchainFile(); err != nil {
-					configs.PrintError(err, "failed to generate toolchain file.")
-					return
-				}
 			}
 
 			if !d.devMode {
