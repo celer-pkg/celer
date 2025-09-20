@@ -21,7 +21,6 @@ const defaultPortsRepo = "https://github.com/celer-pkg/ports.git"
 
 var (
 	Version = "v0.0.0" // It would be set by build script.
-	DevMode bool       // In dev mode, detail message would be hide.
 	Offline bool       // In offline mode, tools and repos would not be downloaded.
 )
 
@@ -145,6 +144,7 @@ func (c *Celer) Init() error {
 	proxy.CacheGithubProxies(c.configData.Global.GithubAssetProxy, c.configData.Global.GithubRepoProxy)
 
 	// Git is required to clone/update repo.
+	buildtools.Offline = c.Global.Offline
 	if err := buildtools.CheckTools("git"); err != nil {
 		return err
 	}

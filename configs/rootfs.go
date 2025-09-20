@@ -56,11 +56,9 @@ func (r RootFS) CheckAndRepair() error {
 	}
 
 	// Print download & extract info.
-	if !DevMode {
-		location := filepath.Join(dirs.DownloadedToolsDir, folderName)
-		title := color.Sprintf(color.Green, "\n[✔] ---- Rootfs: %s\n", fileio.FileBaseName(r.Url))
-		fmt.Printf("%sLocation: %s\n", title, location)
-	}
+	location := filepath.Join(dirs.DownloadedToolsDir, folderName)
+	title := color.Sprintf(color.Green, "\n[✔] ---- Rootfs: %s\n", fileio.FileBaseName(r.Url))
+	fmt.Printf("%sLocation: %s\n", title, location)
 
 	return nil
 }

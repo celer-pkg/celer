@@ -5,39 +5,7 @@
 ## 命令语法
 
 ```shell
-celer deploy [flags]
-```
-
-## 命令选项
-
-| Option	        | Short flag | Description                                          |
-| ----------------- | ---------- | -----------------------------------------------------|
-| --build-type      | -b         | Specify build type (release/debug). Default: release |
-| --dev-mode        | -d         | Deploy in dev mode. Default: false                   |
-
-## 命令示例
-
-**1. 标准部署**
-
-```shell
 celer deploy
 ```
 
->标准部署始终在命令行中使用。
-
-**2. Dev 模式部署**
-
-```shell
-celer deploy --dev-mode/-d
-```
-
->Dev 模式部署始终在生成的**toolchain_file.cmake**中调用，并且不会覆盖**toolchain_file.cmake**。
-
-**3. 部署时指定构建类型**
-
-```shell
-celer deploy --build-type/-b debug
-```
-
->构建类型从**celer.toml**文件中读取，默认值为**release**。您也可以在命令行中指定构建类型。
-
+当部署成功后，**toolchain_file.cmake**文件将在项目根目录生成，您可以使用它来开发你的项目，并且可以选择任何支持CMake的IDE来开发，例如Visual Studio、CLion、Qt Creator、Visual Studio Code等。

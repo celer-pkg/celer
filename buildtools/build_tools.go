@@ -20,10 +20,6 @@ var (
 	//go:embed static/*
 	static embed.FS
 
-	// In dev mode, detail message would be hide,
-	// and it's value would be override by cmd_deploy.
-	DevMode bool
-
 	// In offline mode, tools would not be downloaded.
 	Offline bool
 )
@@ -181,10 +177,8 @@ func (b *buildTool) checkAndFix() error {
 	}
 
 	// Print download & extract info.
-	if !DevMode {
-		title := color.Sprintf(color.Green, "\n[✔] ---- Tool: %s\n", fileio.FileBaseName(b.Url))
-		fmt.Printf("%sLocation: %s\n", title, location)
-	}
+	title := color.Sprintf(color.Green, "\n[✔] ---- Tool: %s\n", fileio.FileBaseName(b.Url))
+	fmt.Printf("%sLocation: %s\n", title, location)
 
 	return nil
 }
