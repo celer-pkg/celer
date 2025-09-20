@@ -449,30 +449,33 @@ func (c Celer) GenerateToolchainFile(deployMode bool) error {
 		toolchain.WriteString(fmt.Sprintf("add_compile_definitions(%s)\n", item))
 	}
 
-	toolchain.WriteString("\n# Compile flags.\n")
-	toolchain.WriteString("add_compile_options(\n")
-	if c.project.Optimize.Release != "" {
-		flags := strings.Join(strings.Fields(c.project.Optimize.Release), ";")
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Release>:%s>\"\n", flags))
-	}
-	if c.project.Optimize.Debug != "" {
-		flags := strings.Join(strings.Fields(c.project.Optimize.Debug), ";")
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Debug>:%s>\"\n", flags))
-	}
-	if c.project.Optimize.RelWithDebInfo != "" {
-		flags := strings.Join(strings.Fields(c.project.Optimize.RelWithDebInfo), ";")
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", flags))
-	}
-	if c.project.Optimize.MinSizeRel != "" {
-		flags := strings.Join(strings.Fields(c.project.Optimize.MinSizeRel), ";")
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:MinSizeRel>:%s>\"\n", flags))
-	}
-	if len(c.project.Flags) > 0 {
-		for _, item := range c.project.Flags {
-			toolchain.WriteString(fmt.Sprintf("\t%q\n", item))
+	if c.project.Optimize.Release != "" || c.project.Optimize.Debug != "" ||
+		c.project.Optimize.RelWithDebInfo != "" || c.project.Optimize.MinSizeRel != "" {
+		toolchain.WriteString("\n# Compile flags.\n")
+		toolchain.WriteString("add_compile_options(\n")
+		if c.project.Optimize.Release != "" {
+			flags := strings.Join(strings.Fields(c.project.Optimize.Release), ";")
+			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Release>:%s>\"\n", flags))
 		}
+		if c.project.Optimize.Debug != "" {
+			flags := strings.Join(strings.Fields(c.project.Optimize.Debug), ";")
+			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Debug>:%s>\"\n", flags))
+		}
+		if c.project.Optimize.RelWithDebInfo != "" {
+			flags := strings.Join(strings.Fields(c.project.Optimize.RelWithDebInfo), ";")
+			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", flags))
+		}
+		if c.project.Optimize.MinSizeRel != "" {
+			flags := strings.Join(strings.Fields(c.project.Optimize.MinSizeRel), ";")
+			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:MinSizeRel>:%s>\"\n", flags))
+		}
+		if len(c.project.Flags) > 0 {
+			for _, item := range c.project.Flags {
+				toolchain.WriteString(fmt.Sprintf("\t%q\n", item))
+			}
+		}
+		toolchain.WriteString(")\n")
 	}
-	toolchain.WriteString(")\n")
 
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")

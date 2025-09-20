@@ -259,7 +259,7 @@ func (t Toolchain) compareVersion(first, second string) int {
 	return len(firstVersion) - len(secondVersion)
 }
 
-func (w *WindowsKit) Detect(msvc *msvc) error {
+func (w *WindowsKit) Detect(msvc *MSVC) error {
 	// Check if installed.
 	key, err := registry.OpenKey(registry.LOCAL_MACHINE,
 		`SOFTWARE\WOW6432Node\Microsoft\Microsoft SDKs\Windows\v10.0`,
@@ -284,8 +284,8 @@ func (w *WindowsKit) Detect(msvc *msvc) error {
 	w.Version = w.normalizeVersion(version)
 
 	binDir := filepath.Join(w.InstalledDir, "bin", w.Version, "x64")
-	msvc.MtPath = filepath.Join(binDir, "mt.exe")
-	msvc.RcPath = filepath.Join(binDir, "rc.exe")
+	msvc.MT = filepath.Join(binDir, "mt.exe")
+	msvc.RC = filepath.Join(binDir, "rc.exe")
 
 	// Append path.
 	os.Setenv("PATH", env.JoinPaths("PATH",

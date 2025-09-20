@@ -42,6 +42,7 @@ type Toolchain struct {
 	displayName string
 	rootDir     string
 	fullpath    string
+	cmakepath   string
 
 	MSVC MSVC
 }
@@ -53,22 +54,11 @@ type MSVC struct {
 }
 
 func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
-	cmakepaths := []string{
-		fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin", hostName),
-	}
-
-	cmakepath := strings.TrimPrefix(t.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
-	if cmakepath != t.fullpath {
-		cmakepaths = append(cmakepaths, fmt.Sprintf("${WORKSPACE_DIR}/%s", filepath.ToSlash(cmakepath)))
-	} else {
-		cmakepaths = append(cmakepaths, filepath.ToSlash(cmakepath))
-	}
+	t.cmakepath = fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin", hostName)
 
 	toolchain.WriteString("\n# Runtime paths.\n")
 	toolchain.WriteString("set(PATH_LIST" + "\n")
-	for _, path := range cmakepaths {
-		toolchain.WriteString(fmt.Sprintf(`	"%s"`, path) + "\n")
-	}
+	toolchain.WriteString(fmt.Sprintf(`	"%s"`, t.cmakepath) + "\n")
 	toolchain.WriteString(")\n")
 	toolchain.WriteString(fmt.Sprintf(`list(JOIN PATH_LIST "%s" PATH_STR)`, string(os.PathListSeparator)) + "\n")
 	toolchain.WriteString(fmt.Sprintf(`set(ENV{PATH} "${PATH_STR}%s$ENV{PATH}")`, string(os.PathListSeparator)) + "\n")
@@ -80,7 +70,12 @@ func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
 	}
 
 	toolchain.WriteString("\n# TOOLCHAIN for cross-compile.\n")
-	writeIfNotEmpty("TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+	cmakepath := strings.TrimPrefix(t.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
+	if t.Name == "msvc" {
+		writeIfNotEmpty("TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
+	} else {
+		writeIfNotEmpty("TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+	}
 	writeIfNotEmpty("CMAKE_SYSTEM_NAME", t.SystemName)
 	writeIfNotEmpty("CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 	writeIfNotEmpty("CMAKE_C_COMPILER", t.CC)

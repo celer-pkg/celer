@@ -344,6 +344,8 @@ func (p Port) crossTools() *buildsystems.CrossTools {
 	crossTools.Name = toolchain.Name
 	crossTools.Version = toolchain.Version
 	crossTools.Host = toolchain.Host
+	crossTools.SystemName = toolchain.SystemName
+	crossTools.SystemProcessor = toolchain.SystemProcessor
 	crossTools.CrosstoolPrefix = toolchain.CrosstoolPrefix
 
 	rootfs := p.ctx.RootFS()
