@@ -64,7 +64,7 @@ func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
 		cmakepaths = append(cmakepaths, filepath.ToSlash(cmakepath))
 	}
 
-	toolchain.WriteString("\n# Set runtime path.\n")
+	toolchain.WriteString("\n# Runtime paths.\n")
 	toolchain.WriteString("set(PATH_LIST" + "\n")
 	for _, path := range cmakepaths {
 		toolchain.WriteString(fmt.Sprintf(`	"%s"`, path) + "\n")
@@ -79,7 +79,7 @@ func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
 		}
 	}
 
-	toolchain.WriteString("\n# Set toolchain for cross-compile.\n")
+	toolchain.WriteString("\n# TOOLCHAIN for cross-compile.\n")
 	writeIfNotEmpty("TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
 	writeIfNotEmpty("CMAKE_SYSTEM_NAME", t.SystemName)
 	writeIfNotEmpty("CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
