@@ -382,9 +382,17 @@ func (c Celer) GenerateToolchainFile(deployMode bool) error {
 
 	// Pkg-config related.
 	toolchain.WriteString("\n# pkg-config search paths.\n")
-	pkgConfigPaths := []string{
-		fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin", c.platform.HostName()),
+	executablePath := fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin/pkgconf", c.platform.HostName())
+	toolchain.WriteString(fmt.Sprintf("set(%-25s %q)\n", "PKG_CONFIG_EXECUTABLE", executablePath))
+
+	var pkgConfigPaths []string
+	if deployMode {
+		libraryFolder := fmt.Sprintf("%s@%s@%s", c.Platform().Name, c.Project().Name, c.BuildType())
+		pkgConfigPaths = append(pkgConfigPaths, fmt.Sprintf("${WORKSPACE_DIR}/installed/%s/pkgconfig", libraryFolder))
+	} else {
+		pkgConfigPaths = append(pkgConfigPaths, "${WORKSPACE_DIR}/tmp/deps/lib/pkgconfig")
 	}
+
 	if c.RootFS() != nil {
 		toolchain.WriteString(`set(ENV{PKG_CONFIG_SYSROOT_DIR} "${CMAKE_SYSROOT}")` + "\n")
 
@@ -403,7 +411,7 @@ func (c Celer) GenerateToolchainFile(deployMode bool) error {
 	}
 	toolchain.WriteString(")\n")
 	toolchain.WriteString(fmt.Sprintf(`list(JOIN PKG_CONFIG_PATH "%s" PKG_CONFIG_PATH_STR)`, string(os.PathListSeparator)) + "\n")
-	toolchain.WriteString(`set(ENV{PKG_CONFIG_PATH} "${PKG_CONFIG_PATH_STR}")` + "\n")
+	toolchain.WriteString(fmt.Sprintf("set(%-25s %q)\n", "ENV{PKG_CONFIG_PATH}", "${PKG_CONFIG_PATH_STR}"))
 
 	toolchain.WriteString("\n# Library search paths.\n")
 	var dependencyDir string
@@ -419,7 +427,7 @@ func (c Celer) GenerateToolchainFile(deployMode bool) error {
 	if c.RootFS() != nil {
 		rootpaths = append(rootpaths, "${CMAKE_SYSROOT}")
 	}
-	toolchain.WriteString(fmt.Sprintf("set(CMAKE_FIND_ROOT_PATH %q)", strings.Join(rootpaths, ";")) + "\n")
+	toolchain.WriteString(fmt.Sprintf("set(%-25s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";")))
 
 	// Define global cmake vars, env vars, micro vars and compile flags.
 	for index, item := range c.project.Vars {
@@ -483,21 +491,6 @@ func (c Celer) GenerateToolchainFile(deployMode bool) error {
 		}
 		toolchain.WriteString(")\n")
 	}
-	if c.project.Optimize.Debug != "" {
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Debug>:%s>\"\n", c.project.Optimize.Debug))
-	}
-	if c.project.Optimize.RelWithDebInfo != "" {
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", c.project.Optimize.RelWithDebInfo))
-	}
-	if c.project.Optimize.MinSizeRel != "" {
-		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:MinSizeRel>:%s>\"\n", c.project.Optimize.MinSizeRel))
-	}
-	if len(c.project.Flags) > 0 {
-		for _, item := range c.project.Flags {
-			toolchain.WriteString(fmt.Sprintf("\t%q\n", item))
-		}
-	}
-	toolchain.WriteString(")\n")
 
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
