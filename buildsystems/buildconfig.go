@@ -893,9 +893,6 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	appendEnv("INCLUDE", msvcEnvs["INCLUDE"])
 	appendEnv("LIB", msvcEnvs["LIB"])
 
-	// appendEnv("CPPFLAGS", os.Getenv("CPPFLAGS"))
-	// appendEnv("LDFLAGS", os.Getenv("LDFLAGS"))
-
 	return strings.Join(envs, " "), nil
 }
 

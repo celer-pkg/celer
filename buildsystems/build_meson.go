@@ -52,6 +52,22 @@ func (m meson) Clean() error {
 	return nil
 }
 
+func (m meson) preConfigure() error {
+	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
+	if m.PortConfig.CrossTools.Name == "msvc" {
+		msvcEnvs, err := m.readMSVCEnvs()
+		if err != nil {
+			return err
+		}
+
+		os.Setenv("PATH", msvcEnvs["PATH"])
+		os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
+		os.Setenv("LIB", msvcEnvs["LIB"])
+	}
+
+	return nil
+}
+
 func (m meson) configureOptions() ([]string, error) {
 	var options = slices.Clone(m.Options)
 
