@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func NewNinja(config *BuildConfig, optimize Optimize) *ninja {
+func NewNinja(config *BuildConfig, optimize *Optimize) *ninja {
 	return &ninja{
 		cmake: *NewCMake(config, optimize, "ninja"),
 	}

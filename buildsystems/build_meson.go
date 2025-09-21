@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func NewMeson(config *BuildConfig, optimize Optimize) *meson {
+func NewMeson(config *BuildConfig, optimize *Optimize) *meson {
 	return &meson{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -24,7 +24,7 @@ func NewMeson(config *BuildConfig, optimize Optimize) *meson {
 
 type meson struct {
 	*BuildConfig
-	Optimize
+	*Optimize
 }
 
 func (meson) Name() string {

@@ -96,19 +96,18 @@ func (p *Port) Init(ctx Context, nameVersion, buildType string) error {
 		return fmt.Errorf("unmarshal port error: %w", err)
 	}
 
-	// Init build config.
-	if err := p.initBuildConfig(nameVersion); err != nil {
-		return fmt.Errorf("init build config error: %w", err)
-	}
-
-	p.MatchedConfig = p.findMatchedConfig(p.buildType)
-
 	// Set matchedConfig as prebuilt config when no config found in toml.
+	p.MatchedConfig = p.findMatchedConfig(p.buildType)
 	if p.MatchedConfig == nil {
 		return fmt.Errorf("no matched config found for %s", p.NameVersion())
 	} else if p.MatchedConfig.BuildSystem == "prebuilt" &&
 		p.MatchedConfig.Url != "" {
 		p.Package.Url = p.MatchedConfig.Url
+	}
+
+	// Init build config.
+	if err := p.initBuildConfig(nameVersion); err != nil {
+		return fmt.Errorf("init build config error: %w", err)
 	}
 
 	// Validate port.

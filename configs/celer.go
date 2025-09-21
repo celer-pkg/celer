@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"celer/buildsystems"
 	"celer/buildtools"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
@@ -35,6 +36,7 @@ type Context interface {
 	JobNum() int
 	Offline() bool
 	CacheDir() *CacheDir
+	Optimize(buildsystem, toolchain string) *buildsystems.Optimize
 }
 
 func NewCeler() *Celer {
@@ -449,24 +451,24 @@ func (c Celer) GenerateToolchainFile(deployMode bool) error {
 		toolchain.WriteString(fmt.Sprintf("add_compile_definitions(%s)\n", item))
 	}
 
-	if c.project.Optimize.Release != "" || c.project.Optimize.Debug != "" ||
-		c.project.Optimize.RelWithDebInfo != "" || c.project.Optimize.MinSizeRel != "" {
+	optimize := c.Optimize("cmake", expr.If(runtime.GOOS == "windows", "msvc", "gcc"))
+	if optimize != nil {
 		toolchain.WriteString("\n# Compile flags.\n")
 		toolchain.WriteString("add_compile_options(\n")
-		if c.project.Optimize.Release != "" {
-			flags := strings.Join(strings.Fields(c.project.Optimize.Release), ";")
+		if optimize.Release != "" {
+			flags := strings.Join(strings.Fields(optimize.Release), ";")
 			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Release>:%s>\"\n", flags))
 		}
-		if c.project.Optimize.Debug != "" {
-			flags := strings.Join(strings.Fields(c.project.Optimize.Debug), ";")
+		if optimize.Debug != "" {
+			flags := strings.Join(strings.Fields(optimize.Debug), ";")
 			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Debug>:%s>\"\n", flags))
 		}
-		if c.project.Optimize.RelWithDebInfo != "" {
-			flags := strings.Join(strings.Fields(c.project.Optimize.RelWithDebInfo), ";")
+		if optimize.RelWithDebInfo != "" {
+			flags := strings.Join(strings.Fields(optimize.RelWithDebInfo), ";")
 			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", flags))
 		}
-		if c.project.Optimize.MinSizeRel != "" {
-			flags := strings.Join(strings.Fields(c.project.Optimize.MinSizeRel), ";")
+		if optimize.MinSizeRel != "" {
+			flags := strings.Join(strings.Fields(optimize.MinSizeRel), ";")
 			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:MinSizeRel>:%s>\"\n", flags))
 		}
 		if len(c.project.Flags) > 0 {
@@ -697,4 +699,25 @@ func (c Celer) Offline() bool {
 
 func (c Celer) CacheDir() *CacheDir {
 	return c.configData.CacheDir
+}
+
+func (c Celer) Optimize(buildsystem, toolchain string) *buildsystems.Optimize {
+	if c.project.Optimize != nil {
+		return c.project.Optimize
+	}
+
+	if runtime.GOOS == "windows" {
+		if toolchain == "msvc" {
+			switch buildsystem {
+			case "cmake":
+				return c.project.OptimizeWindows
+			case "makefiles":
+				return c.project.OptimizeLinux
+			}
+		}
+	} else {
+		return c.project.OptimizeLinux
+	}
+
+	return c.project.OptimizeLinux
 }

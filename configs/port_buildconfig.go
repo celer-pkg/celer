@@ -70,10 +70,6 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 
 	if len(p.BuildConfigs) > 0 {
 		for index := range p.BuildConfigs {
-			p.BuildConfigs[index].Offline = p.ctx.Offline()
-			p.BuildConfigs[index].PortConfig = portConfig
-			p.BuildConfigs[index].DevDep = p.DevDep
-
 			// Merge ports defined in project if exists.
 			portInPorts := filepath.Join(dirs.PortsDir, p.Name, p.Version, "port.toml")
 			portInProject := filepath.Join(dirs.ConfProjectsDir, p.ctx.Project().Name, p.Name, p.Version, "port.toml")
@@ -92,7 +88,11 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 				p.mergeBuildConfig(index, portInProject.MatchedConfig)
 			}
 
-			if err := p.BuildConfigs[index].InitBuildSystem(p.ctx.Project().Optimize); err != nil {
+			p.BuildConfigs[index].Offline = p.ctx.Offline()
+			p.BuildConfigs[index].PortConfig = portConfig
+			p.BuildConfigs[index].DevDep = p.DevDep
+			p.BuildConfigs[index].Optimize = p.ctx.Optimize(p.MatchedConfig.BuildSystem, portConfig.CrossTools.Name)
+			if err := p.BuildConfigs[index].InitBuildSystem(p.BuildConfigs[index].Optimize); err != nil {
 				return err
 			}
 		}

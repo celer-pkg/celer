@@ -4,7 +4,7 @@ import (
 	"celer/buildtools"
 )
 
-func NewBazel(config *BuildConfig, optimize Optimize) *bazel {
+func NewBazel(config *BuildConfig, optimize *Optimize) *bazel {
 	return &bazel{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -13,7 +13,7 @@ func NewBazel(config *BuildConfig, optimize Optimize) *bazel {
 
 type bazel struct {
 	*BuildConfig
-	Optimize
+	*Optimize
 }
 
 func (b bazel) Name() string {
