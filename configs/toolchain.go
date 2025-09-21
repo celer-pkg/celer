@@ -65,42 +65,44 @@ func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
 
 	writeIfNotEmpty := func(key, value string) {
 		if value != "" {
-			fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", key, value)
+			fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", key, "${TOOLCHAIN_DIR}/"+value)
 		}
 	}
 
-	toolchain.WriteString("\n# TOOLCHAIN for cross-compile.\n")
+	toolchain.WriteString("\n# Toolchain for cross-compile.\n")
 	cmakepath := strings.TrimPrefix(t.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
 	if t.Name == "msvc" {
-		writeIfNotEmpty("TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
+		fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
 	} else {
-		writeIfNotEmpty("TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+		fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
 	}
-	writeIfNotEmpty("CMAKE_SYSTEM_NAME", t.SystemName)
-	writeIfNotEmpty("CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
+
+	fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "CMAKE_SYSTEM_NAME", t.SystemName)
+	fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
+
 	writeIfNotEmpty("CMAKE_C_COMPILER", t.CC)
 	writeIfNotEmpty("CMAKE_CXX_COMPILER", t.CXX)
-	writeIfNotEmpty("CMAKE_ASM_COMPILER", t.AS)
-	writeIfNotEmpty("CMAKE_Fortran_COMPILER", t.FC)
-	writeIfNotEmpty("CMAKE_RANLIB", t.RANLIB)
 	writeIfNotEmpty("CMAKE_AR", t.AR)
 	writeIfNotEmpty("CMAKE_LINKER", t.LD)
-	writeIfNotEmpty("CMAKE_NM", t.NM)
-	writeIfNotEmpty("CMAKE_OBJCOPY", t.OBJCOPY)
-	writeIfNotEmpty("CMAKE_OBJDUMP", t.OBJDUMP)
-	writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
-	writeIfNotEmpty("CMAKE_READELF", t.READELF)
 
-	// Only linux may have sysroot.
 	switch t.Name {
 	case "gcc":
+		writeIfNotEmpty("CMAKE_ASM_COMPILER", t.AS)
+		writeIfNotEmpty("CMAKE_NM", t.NM)
+		writeIfNotEmpty("CMAKE_Fortran_COMPILER", t.FC)
+		writeIfNotEmpty("CMAKE_RANLIB", t.RANLIB)
+		writeIfNotEmpty("CMAKE_OBJCOPY", t.OBJCOPY)
+		writeIfNotEmpty("CMAKE_OBJDUMP", t.OBJDUMP)
+		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
+		writeIfNotEmpty("CMAKE_READELF", t.READELF)
+
 		toolchain.WriteString("\n")
 		writeIfNotEmpty("CMAKE_C_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")
 		writeIfNotEmpty("CMAKE_CXX_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")
 	case "msvc":
-		writeIfNotEmpty("CMAKE_MT", t.MSVC.MT)
-		writeIfNotEmpty("CMAKE_RC_COMPILER_INIT", t.MSVC.RC)
-		writeIfNotEmpty("CMAKE_RC_FLAGS_INIT", "/nologo")
+		fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
+		fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
+		fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
 	}
 
 	return nil

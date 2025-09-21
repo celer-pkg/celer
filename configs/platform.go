@@ -65,6 +65,16 @@ func (p *Platform) Init(platformName string) error {
 		p.Toolchain.ctx = p.ctx
 	} else {
 		p.Toolchain.ctx = p.ctx
+
+		// WindowsKit can be detected automatically.
+		if runtime.GOOS == "windows" && p.WindowsKit == nil {
+			var windowsKit WindowsKit
+			if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
+				return fmt.Errorf("detect celer.windows_kit error: %w", err)
+			}
+			p.WindowsKit = &windowsKit
+		}
+
 		if err := p.Toolchain.Validate(); err != nil {
 			return err
 		}
@@ -161,6 +171,15 @@ func (p *Platform) Setup() error {
 	} else {
 		p.Toolchain.ctx = p.ctx
 
+		// WindowsKit can be detected automatically.
+		if runtime.GOOS == "windows" && p.WindowsKit == nil {
+			var windowsKit WindowsKit
+			if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
+				return fmt.Errorf("detect celer.windows_kit error: %w", err)
+			}
+			p.WindowsKit = &windowsKit
+		}
+
 		// Repair toolchain.
 		if err := p.Toolchain.Validate(); err != nil {
 			return fmt.Errorf("valid toolchain error: %w", err)
@@ -189,7 +208,7 @@ func (p *Platform) detectToolchain() error {
 	p.Toolchain.SystemName = runtime.GOOS
 	p.Toolchain.SystemProcessor = runtime.GOARCH
 
-	// Windows kit is only supported in Windows.
+	// WindowsKit can be detected automatically.
 	if runtime.GOOS == "windows" && p.WindowsKit == nil {
 		var windowsKit WindowsKit
 		if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
