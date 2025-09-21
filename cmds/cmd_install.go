@@ -128,9 +128,17 @@ func (i installCmd) install(nameVersion string) {
 		os.Exit(1)
 	}
 	if fromWhere != "" {
-		configs.PrintSuccess("install %s from %s successfully.", nameVersion, fromWhere)
+		if port.DevDep {
+			configs.PrintSuccess("install %s from %s as dev successfully.", nameVersion, fromWhere)
+		} else {
+			configs.PrintSuccess("install %s from %s successfully.", nameVersion, fromWhere)
+		}
 	} else {
-		configs.PrintSuccess("install %s successfully.", nameVersion)
+		if port.DevDep {
+			configs.PrintSuccess("install %s as dev successfully.", nameVersion)
+		} else {
+			configs.PrintSuccess("install %s successfully.", nameVersion)
+		}
 	}
 }
 
