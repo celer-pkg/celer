@@ -217,42 +217,28 @@ func (b *BuildConfig) setLanguageStandards() {
 func (b *BuildConfig) setEnvFlags() {
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
 
-	switch runtime.GOOS {
-	case "windows":
-		// TODO adapter later...
+	// sysroot and tmp dir.
+	if b.DevDep {
+		// Update CFLAGS/CXXFLAGS/LDFLAGS
+		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
+		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
+	} else if b.PortConfig.CrossTools.RootFS != "" {
+		// Set sysroot.
+		rootfs := b.PortConfig.CrossTools.RootFS
+		b.envBackup.setenv("SYSROOT", rootfs)
 
-	case "linux":
-		// Pkg config paths and sysroot dir.
-		if b.DevDep {
-			// Update CFLAGS/CXXFLAGS
-			includeFlag := "-isystem " + filepath.Join(tmpDepsDir, "include")
-			b.envBackup.setenv("CFLAGS", env.JoinSpace(includeFlag, os.Getenv("CFLAGS")))
-			b.envBackup.setenv("CXXFLAGS", env.JoinSpace(includeFlag, os.Getenv("CXXFLAGS")))
+		// Update CFLAGS/CXXFLAGS
+		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
+		for _, item := range b.PortConfig.CrossTools.IncludeDirs {
+			includeDir := filepath.Join(b.PortConfig.CrossTools.RootFS, item)
+			b.appendIncludeDir(includeDir)
+		}
 
-			// Update LDFLAGS
-			b.appendLibPath(filepath.Join(tmpDepsDir, "lib"))
-		} else if b.PortConfig.CrossTools.RootFS != "" {
-			// Set sysroot.
-			rootfs := b.PortConfig.CrossTools.RootFS
-			b.envBackup.setenv("SYSROOT", rootfs)
-
-			// Update CFLAGS/CXXFLAGS
-			var includeDirs []string
-			includeDirs = append(includeDirs, "-isystem "+filepath.Join(tmpDepsDir, "include"))
-			for _, item := range b.PortConfig.CrossTools.IncludeDirs {
-				includeDir := filepath.Join(b.PortConfig.CrossTools.RootFS, item)
-				includeDirs = append(includeDirs, "-isystem "+includeDir)
-			}
-			includeFlags := strings.Join(includeDirs, " ")
-			b.envBackup.setenv("CFLAGS", env.JoinSpace(includeFlags, os.Getenv("CFLAGS")))
-			b.envBackup.setenv("CXXFLAGS", env.JoinSpace(includeFlags, os.Getenv("CXXFLAGS")))
-
-			// Update LDFLAGS
-			b.appendLibPath(filepath.Join(tmpDepsDir, "lib"))
-			for _, item := range b.PortConfig.CrossTools.LibDirs {
-				libDir := filepath.Join(b.PortConfig.CrossTools.RootFS, item)
-				b.appendLibPath(libDir)
-			}
+		// Update LDFLAGS
+		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
+		for _, item := range b.PortConfig.CrossTools.LibDirs {
+			libDir := filepath.Join(b.PortConfig.CrossTools.RootFS, item)
+			b.appendLibDir(libDir)
 		}
 	}
 }
@@ -261,22 +247,51 @@ func (b BuildConfig) rollbackEnvs() {
 	b.envBackup.rollback()
 }
 
-func (b *BuildConfig) appendLibPath(libDir string) {
+func (b *BuildConfig) appendIncludeDir(includeDir string) {
+	var newAppended = false
+	includeDir = "-isystem " + includeDir
+
+	cflags := strings.Fields(os.Getenv("CFLAGS"))
+	cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
+
+	// Append include dir if not exists.
+	if !slices.Contains(cflags, includeDir) {
+		cflags = append(cflags, includeDir)
+		newAppended = true
+	}
+	if !slices.Contains(cxxflags, includeDir) {
+		cxxflags = append(cxxflags, includeDir)
+		newAppended = true
+	}
+
+	// Update environment variable with modified flags.
+	if newAppended {
+		b.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
+		b.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+	}
+}
+
+func (b *BuildConfig) appendLibDir(libDir string) {
+	var newAppended = false
+
 	ldflags := os.Getenv("LDFLAGS")
 	parts := strings.Fields(ldflags)
 
 	lFlag := "-L" + libDir
-	rpathFlag := "-Wl,-rpath-link=" + libDir
-	rpathFlagv2 := "-Wl,-rpath-link," + libDir
+	rFlag := "-Wl,-rpath-link," + libDir
 
 	// Add -L/rpath-link flag.
 	if !slices.Contains(parts, lFlag) {
 		parts = append(parts, lFlag)
+		newAppended = true
 	}
-	if !slices.Contains(parts, rpathFlag) && !slices.Contains(parts, rpathFlagv2) {
-		parts = append(parts, rpathFlag)
+	if !slices.Contains(parts, rFlag) {
+		parts = append(parts, rFlag)
+		newAppended = true
 	}
 
 	// Update environment variable with modified flags.
-	b.envBackup.setenv("LDFLAGS", strings.Join(parts, " "))
+	if newAppended {
+		b.envBackup.setenv("LDFLAGS", strings.Join(parts, " "))
+	}
 }
