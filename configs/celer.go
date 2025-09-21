@@ -100,6 +100,11 @@ func (c *Celer) Init() error {
 		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
 			return err
 		}
+
+		// No platform specified, setup will auto detect native toolchain.
+		if err := c.platform.Setup(); err != nil {
+			return err
+		}
 	} else {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
