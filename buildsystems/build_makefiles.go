@@ -253,7 +253,7 @@ func (m makefiles) Configure(options []string) error {
 	}
 
 	// Set optimization flags with build_type.
-	if m.Optimize != nil {
+	if m.Optimize != nil && runtime.GOOS != "windows" {
 		cflags := strings.Fields(os.Getenv("CFLAGS"))
 		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
 		if m.DevDep {
@@ -286,10 +286,8 @@ func (m makefiles) Configure(options []string) error {
 				}
 			}
 		}
-		if runtime.GOOS != "windows" {
-			os.Setenv("CFLAGS", strings.Join(cflags, " "))
-			os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
-		}
+		os.Setenv("CFLAGS", strings.Join(cflags, " "))
+		os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 	}
 
 	// Create build dir if not exists.

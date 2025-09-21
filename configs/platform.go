@@ -62,8 +62,17 @@ func (p *Platform) Init(platformName string) error {
 		if err := p.detectToolchain(); err != nil {
 			return err
 		}
+		p.Toolchain.ctx = p.ctx
+	} else {
+		p.Toolchain.ctx = p.ctx
+		if err := p.Toolchain.Validate(); err != nil {
+			return err
+		}
+
+		if err := p.Toolchain.CheckAndRepair(); err != nil {
+			return err
+		}
 	}
-	p.Toolchain.ctx = p.ctx
 
 	// Only for Windows MSVC.
 	if p.Toolchain.Name == "msvc" {

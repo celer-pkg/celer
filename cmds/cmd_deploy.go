@@ -5,6 +5,7 @@ import (
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/expr"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -22,12 +23,17 @@ func (d deployCmd) Command() *cobra.Command {
 			d.celer = configs.NewCeler()
 			if err := d.celer.Init(); err != nil {
 				configs.PrintError(err, "failed to init celer.")
-				return
+				os.Exit(1)
+			}
+
+			if err := d.celer.Platform().Setup(); err != nil {
+				configs.PrintError(err, "setup platform error.")
+				os.Exit(1)
 			}
 
 			if err := d.celer.GenerateToolchainFile(true); err != nil {
 				configs.PrintError(err, "failed to generate toolchain file.")
-				return
+				os.Exit(1)
 			}
 
 			// Set offline mode.
@@ -37,12 +43,12 @@ func (d deployCmd) Command() *cobra.Command {
 			// Check circular dependency and version conflict.
 			if err := d.checkProject(); err != nil {
 				configs.PrintError(err, "check circular dependency and version conflict failed.")
-				return
+				os.Exit(1)
 			}
 
 			if err := d.celer.Deploy(); err != nil {
 				configs.PrintError(err, "failed to deploy celer.")
-				return
+				os.Exit(1)
 			}
 
 			projectName := expr.If(d.celer.Global.Project == "", "unnamed", d.celer.Global.Project)

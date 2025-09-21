@@ -198,6 +198,13 @@ func (m meson) Install(options []string) error {
 
 func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 	var buffers bytes.Buffer
+
+	buffers.WriteString("[build_machine]\n")
+	buffers.WriteString(fmt.Sprintf("system = '%s'\n", strings.ToLower(runtime.GOOS)))
+	buffers.WriteString(fmt.Sprintf("cpu_family = '%s'\n", "x86_64"))
+	buffers.WriteString(fmt.Sprintf("cpu = '%s'\n", "x86_64"))
+	buffers.WriteString("endian = 'little'\n\n")
+
 	buffers.WriteString("[host_machine]\n")
 	buffers.WriteString(fmt.Sprintf("system = '%s'\n", strings.ToLower(crosstool.SystemName)))
 	buffers.WriteString(fmt.Sprintf("cpu_family = '%s'\n", crosstool.SystemProcessor))
@@ -206,8 +213,15 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 
 	buffers.WriteString("\n[binaries]\n")
 	pkgconfPath := filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
-	buffers.WriteString(fmt.Sprintf("pkgconfig = '%s'\n", pkgconfPath))
-	buffers.WriteString(fmt.Sprintf("pkg-config = '%s'\n", pkgconfPath))
+
+	if m.PortConfig.LibName == "pkgconf" {
+		buffers.WriteString("pkgconfig = 'false'\n")
+		buffers.WriteString("pkg-config = 'false'\n")
+	} else {
+		buffers.WriteString(fmt.Sprintf("pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath)))
+		buffers.WriteString(fmt.Sprintf("pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath)))
+	}
+
 	buffers.WriteString("cmake = 'cmake'\n")
 	buffers.WriteString(fmt.Sprintf("c = '%s'\n", crosstool.CC))
 	buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", crosstool.CXX))
@@ -243,7 +257,7 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 	)
 
 	// This allows the bin to locate the libraries in the relative lib dir.
-	if runtime.GOOS == "linux" {
+	if m.PortConfig.CrossTools.Name == "gcc" {
 		linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
 	}
 
@@ -256,30 +270,27 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 			includeDir := filepath.Join(crosstool.RootFS, item)
 
 			switch runtime.GOOS {
-			case "linux", "darwin":
+			case "windows":
+				if len(includeArgs) == 0 {
+					includeArgs = append(includeArgs, fmt.Sprintf("'/I %q'", includeDir))
+				} else {
+					includeArgs = append(includeArgs, fmt.Sprintf("\t"+"'/I %q'", includeDir))
+				}
+
+			default:
 				if len(includeArgs) == 0 {
 					includeArgs = append(includeArgs, fmt.Sprintf("'-isystem %s'", includeDir))
 				} else {
 					includeArgs = append(includeArgs, fmt.Sprintf("\t"+"'-isystem %s'", includeDir))
 				}
-
-			case "windows":
-				if len(includeArgs) == 0 {
-					includeArgs = append(includeArgs, fmt.Sprintf("'/I%s'", includeDir))
-				} else {
-					includeArgs = append(includeArgs, fmt.Sprintf("\t"+"'/I%s'", includeDir))
-				}
-
-			default:
-				panic(fmt.Sprintf("unexpected os: %s", runtime.GOOS))
 			}
 		}
 
 		// Allow meson to locate libraries in rootfs.
 		for _, item := range crosstool.LibDirs {
 			libDir := filepath.Join(crosstool.RootFS, item)
-			switch runtime.GOOS {
-			case "linux", "darwin":
+			switch m.PortConfig.CrossTools.Name {
+			case "gcc":
 				if len(linkArgs) == 0 {
 					linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", libDir))
 					linkArgs = append(linkArgs, fmt.Sprintf(`'-Wl,-rpath-link=%s'`, libDir))
@@ -288,7 +299,7 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 					linkArgs = append(linkArgs, fmt.Sprintf("\t"+`'-Wl,-rpath-link=%s'`, libDir))
 				}
 
-			case "windows":
+			case "msvc":
 				if len(linkArgs) == 0 {
 					linkArgs = append(linkArgs, fmt.Sprintf("'/LIBPATH:%s'", libDir))
 				} else {
@@ -303,21 +314,17 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 
 	// Allow meson to locate headers of dependecies.
 	depIncludeDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "include")
-	if len(includeArgs) == 0 {
-		includeArgs = append(includeArgs, fmt.Sprintf("'-isystem%s'", depIncludeDir))
-	} else {
-		includeArgs = append(includeArgs, fmt.Sprintf("\t"+"'-isystem%s'", depIncludeDir))
-	}
+	m.appendIncludeArgs(&includeArgs, depIncludeDir)
 
 	// Allow meson to locate libraries of dependecies.
-	if runtime.GOOS == "linux" {
+	if m.PortConfig.CrossTools.Name == "gcc" {
 		depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
 		if len(linkArgs) == 0 {
 			linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", depLibDir))
-			linkArgs = append(linkArgs, fmt.Sprintf(`'-Wl,-rpath-link=%s'`, depLibDir))
+			linkArgs = append(linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, depLibDir))
 		} else {
 			linkArgs = append(linkArgs, fmt.Sprintf("\t"+"'-L%s'", depLibDir))
-			linkArgs = append(linkArgs, fmt.Sprintf("\t"+`'-Wl,-rpath-link=%s'`, depLibDir))
+			linkArgs = append(linkArgs, fmt.Sprintf("\t"+`'-Wl,-rpath-link,%s'`, depLibDir))
 		}
 	}
 
@@ -334,9 +341,30 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 	return crossFilePath, nil
 }
 
+func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
+	switch m.PortConfig.CrossTools.Name {
+	case "gcc":
+		if len(*includeArgs) == 0 {
+			*includeArgs = append(*includeArgs, fmt.Sprintf("'-isystem %s'", includeDir))
+		} else {
+			*includeArgs = append(*includeArgs, fmt.Sprintf("\t"+"'-isystem %s'", includeDir))
+		}
+
+	case "msvc":
+		if len(*includeArgs) == 0 {
+			*includeArgs = append(*includeArgs, fmt.Sprintf("'/I %q'", filepath.ToSlash(includeDir)))
+		} else {
+			*includeArgs = append(*includeArgs, fmt.Sprintf("\t"+"'/I %q'", filepath.ToSlash(includeDir)))
+		}
+
+	default:
+		panic(fmt.Sprintf("unexpected cross tool: %s", m.PortConfig.CrossTools.Name))
+	}
+}
+
 func (m meson) nativeCrossTool() CrossTools {
-	switch runtime.GOOS {
-	case "windows":
+	switch m.PortConfig.CrossTools.Name {
+	case "msvc":
 		return CrossTools{
 			Native:          true,
 			Name:            "msvc",
@@ -346,9 +374,13 @@ func (m meson) nativeCrossTool() CrossTools {
 			CXX:             "cl.exe",
 			AR:              "lib.exe",
 			LD:              "link.exe",
+			MSVC:            m.PortConfig.CrossTools.MSVC,
+			IncludeDirs:     m.PortConfig.CrossTools.IncludeDirs,
+			LibDirs:         m.PortConfig.CrossTools.LibDirs,
+			Fullpath:        m.PortConfig.CrossTools.Fullpath,
 		}
 
-	case "linux":
+	case "gcc":
 		return CrossTools{
 			Native:          true,
 			Name:            "gcc",
@@ -361,6 +393,6 @@ func (m meson) nativeCrossTool() CrossTools {
 		}
 
 	default:
-		panic("unsupported operating system: " + runtime.GOOS)
+		panic("unsupported cross tool: " + m.PortConfig.CrossTools.Name)
 	}
 }

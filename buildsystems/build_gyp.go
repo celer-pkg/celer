@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -66,7 +67,7 @@ func (g gyp) Configure(options []string) error {
 	}
 
 	// Set optimization flags with build_type.
-	if g.Optimize != nil {
+	if g.Optimize != nil && runtime.GOOS != "windows" {
 		cflags := strings.Fields(os.Getenv("CFLAGS"))
 		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
 		if g.DevDep {

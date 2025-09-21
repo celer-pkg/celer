@@ -17,7 +17,7 @@ func main() {
 		color.Printf(color.Red, "Init celer error: %s.\n", err)
 		os.Exit(1)
 	} else if celer.Offline() {
-		color.Println(color.Yellow, "\n================ Warning: currently you're in offline mode. ================")
+		color.Println(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================")
 	}
 
 	// Execute celer command.

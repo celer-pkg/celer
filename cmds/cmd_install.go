@@ -75,7 +75,7 @@ func (i installCmd) install(nameVersion string) {
 
 	if err := i.celer.Platform().Setup(); err != nil {
 		configs.PrintError(err, "setup platform error:")
-		return
+		os.Exit(1)
 	}
 
 	// In Windows PowerShell, when handling completion,
@@ -86,14 +86,14 @@ func (i installCmd) install(nameVersion string) {
 	parts := strings.Split(nameVersion, "@")
 	if len(parts) != 2 {
 		configs.PrintError(fmt.Errorf("invalid name and version"), "install %s failed.", nameVersion)
-		return
+		os.Exit(1)
 	}
 
 	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().Name, parts[0], parts[1], "port.toml")
 	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		configs.PrintError(fmt.Errorf("port %s is not found", nameVersion), "%s install failed.", nameVersion)
-		return
+		os.Exit(1)
 	}
 
 	// Install the port.
@@ -105,27 +105,27 @@ func (i installCmd) install(nameVersion string) {
 	port.CacheToken = i.cacheToken
 	if err := port.Init(i.celer, nameVersion, i.buildType); err != nil {
 		configs.PrintError(err, "init %s failed.", nameVersion)
-		return
+		os.Exit(1)
 	}
 
 	// Check circular dependence.
 	depcheck := depcheck.NewDepCheck()
 	if err := depcheck.CheckCircular(i.celer, port); err != nil {
 		configs.PrintError(err, "check circular dependence failed.")
-		return
+		os.Exit(1)
 	}
 
 	// Check version conflict.
 	if err := depcheck.CheckConflict(i.celer, port); err != nil {
 		configs.PrintError(err, "check version conflict failed.")
-		return
+		os.Exit(1)
 	}
 
 	// Do install.
 	fromWhere, err := port.Install()
 	if err != nil {
 		configs.PrintError(err, "install %s failed.", nameVersion)
-		return
+		os.Exit(1)
 	}
 	if fromWhere != "" {
 		configs.PrintSuccess("install %s from %s successfully.", nameVersion, fromWhere)
