@@ -478,6 +478,21 @@ func (c Celer) GenerateToolchainFile(deployMode bool) error {
 		}
 		toolchain.WriteString(")\n")
 	}
+	if c.project.Optimize.Debug != "" {
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Debug>:%s>\"\n", c.project.Optimize.Debug))
+	}
+	if c.project.Optimize.RelWithDebInfo != "" {
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", c.project.Optimize.RelWithDebInfo))
+	}
+	if c.project.Optimize.MinSizeRel != "" {
+		toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:MinSizeRel>:%s>\"\n", c.project.Optimize.MinSizeRel))
+	}
+	if len(c.project.Flags) > 0 {
+		for _, item := range c.project.Flags {
+			toolchain.WriteString(fmt.Sprintf("\t%q\n", item))
+		}
+	}
+	toolchain.WriteString(")\n")
 
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
