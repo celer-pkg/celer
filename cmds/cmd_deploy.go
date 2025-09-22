@@ -31,11 +31,6 @@ func (d deployCmd) Command() *cobra.Command {
 				os.Exit(1)
 			}
 
-			if err := d.celer.GenerateToolchainFile(true); err != nil {
-				configs.PrintError(err, "failed to generate toolchain file.")
-				os.Exit(1)
-			}
-
 			// Set offline mode.
 			buildtools.Offline = d.celer.Global.Offline
 			configs.Offline = d.celer.Global.Offline

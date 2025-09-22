@@ -57,28 +57,30 @@ func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
 	t.cmakepath = fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin", hostName)
 
 	toolchain.WriteString("\n# Runtime paths.\n")
-	toolchain.WriteString("set(PATH_LIST" + "\n")
-	toolchain.WriteString(fmt.Sprintf(`	"%s"`, t.cmakepath) + "\n")
+	toolchain.WriteString(`get_filename_component(WORKSPACE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)` + "\n")
+	toolchain.WriteString("set(PATH_LIST\n")
+	toolchain.WriteString(fmt.Sprintf("\t%q\n", t.cmakepath))
 	toolchain.WriteString(")\n")
-	toolchain.WriteString(fmt.Sprintf(`list(JOIN PATH_LIST "%s" PATH_STR)`, string(os.PathListSeparator)) + "\n")
+	toolchain.WriteString(fmt.Sprintf("list(JOIN PATH_LIST %q PATH_STR)\n", string(os.PathListSeparator)))
 	toolchain.WriteString(fmt.Sprintf(`set(ENV{PATH} "${PATH_STR}%s$ENV{PATH}")`, string(os.PathListSeparator)) + "\n")
 
 	writeIfNotEmpty := func(key, value string) {
 		if value != "" {
-			fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", key, "${TOOLCHAIN_DIR}/"+value)
+			fmt.Fprintf(toolchain, "set(%-25s%q)\n", key, "${TOOLCHAIN_DIR}/"+value)
 		}
 	}
+
+	toolchain.WriteString("\n# Target information for cross-compile.\n")
+	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_NAME", t.SystemName)
+	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
 	toolchain.WriteString("\n# Toolchain for cross-compile.\n")
 	cmakepath := strings.TrimPrefix(t.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
 	if t.Name == "msvc" {
-		fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
+		fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
 	} else {
-		fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+		fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
 	}
-
-	fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "CMAKE_SYSTEM_NAME", t.SystemName)
-	fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
 	writeIfNotEmpty("CMAKE_C_COMPILER", t.CC)
 	writeIfNotEmpty("CMAKE_CXX_COMPILER", t.CXX)
@@ -97,12 +99,13 @@ func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
 		writeIfNotEmpty("CMAKE_READELF", t.READELF)
 
 		toolchain.WriteString("\n")
-		writeIfNotEmpty("CMAKE_C_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")
-		writeIfNotEmpty("CMAKE_CXX_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")
+
+		fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_C_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")
+		fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_CXX_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")
 	case "msvc":
-		fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
-		fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
-		fmt.Fprintf(toolchain, "set(%-25s\"%s\")\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
 	}
 
 	return nil

@@ -195,6 +195,11 @@ func (p *Platform) Setup() error {
 		p.Toolchain.MSVC.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
 	}
 
+	// Generate toolchain file.
+	if err := p.ctx.GenerateToolchainFile(true); err != nil {
+		return fmt.Errorf("generate toolchain file error: %w", err)
+	}
+
 	return nil
 }
 

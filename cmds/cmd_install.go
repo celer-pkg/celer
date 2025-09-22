@@ -42,11 +42,6 @@ func (i installCmd) Command() *cobra.Command {
 				os.Exit(1)
 			}
 
-			if err := i.celer.GenerateToolchainFile(false); err != nil {
-				configs.PrintError(err, "generate toolchain file error.")
-				os.Exit(1)
-			}
-
 			// Set offline mode.
 			buildtools.Offline = i.celer.Global.Offline
 			configs.Offline = i.celer.Global.Offline
