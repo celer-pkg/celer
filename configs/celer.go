@@ -612,19 +612,22 @@ func (c Celer) GenerateToolchainFile() error {
 		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
 	}
 
-	platformProject := c.Global.Platform + "@" + c.Global.Project + "@" + strings.ToLower(c.Global.BuildType)
-	dependencyDir := "${WORKSPACE_DIR}/installed/" + platformProject
-	// dependencyDir = "${WORKSPACE_DIR}/tmp/deps"
-
+	// Write pkg config.
 	c.writePkgConfig(&toolchain)
 
 	// Set CMAKE_FIND_ROOT_PATH.
+	platformProject := c.Global.Platform + "@" + c.Global.Project + "@" + strings.ToLower(c.Global.BuildType)
+	dependencyDir := "${WORKSPACE_DIR}/installed/" + platformProject
 	var rootpaths = []string{dependencyDir}
 	if c.RootFS() != nil {
 		rootpaths = append(rootpaths, "${CMAKE_SYSROOT}")
 	}
 	toolchain.WriteString("\n# Library search paths.\n")
-	toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";")))
+	toolchain.WriteString("if(DEFINED CMAKE_FIND_ROOT_PATH)\n")
+	toolchain.WriteString("\tset(CMAKE_FIND_ROOT_PATH \"${CMAKE_FIND_ROOT_PATH}\")\n")
+	toolchain.WriteString("else()\n")
+	toolchain.WriteString(fmt.Sprintf("\tset(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";")))
+	toolchain.WriteString("endif()\n")
 
 	// Define global cmake vars, env vars, micro vars and compile flags.
 	for index, item := range c.project.Vars {

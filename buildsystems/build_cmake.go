@@ -86,6 +86,9 @@ func (c cmake) configureOptions() ([]string, error) {
 		options = append(options, fmt.Sprintf("-DCMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir))
 	}
 
+	// Set CMAKE_INSTALL_PREFIX.
+	options = append(options, "-DCMAKE_INSTALL_PREFIX="+c.PortConfig.PackageDir)
+
 	if c.PortConfig.CrossTools.Name == "msvc" {
 		// MSVC doesn't support set `CMAKE_BUILD_TYPE` or `--config` during configure.
 		options = slices.DeleteFunc(options, func(element string) bool {
@@ -118,9 +121,12 @@ func (c cmake) configureOptions() ([]string, error) {
 		}
 	}
 
-	// Set CMAKE_PREFIX_PATH and CMAKE_INSTALL_PREFIX.
-	options = append(options, "-DCMAKE_PREFIX_PATH="+filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder))
-	options = append(options, "-DCMAKE_INSTALL_PREFIX="+c.PortConfig.PackageDir)
+	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.
+	findRootPaths := []string{filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder)}
+	if c.PortConfig.CrossTools.RootFS != "" {
+		findRootPaths = append(findRootPaths, c.PortConfig.CrossTools.RootFS)
+	}
+	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(findRootPaths, ";"))
 
 	// Replace placeholders.
 	for index, value := range options {
