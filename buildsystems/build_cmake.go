@@ -164,7 +164,7 @@ func (c cmake) Configure(options []string) error {
 	if c.generator == "" {
 		command = fmt.Sprintf("cmake -S%s -B%s %s", c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
 	} else {
-		command = fmt.Sprintf(`cmake -G"%s" -S%s -B%s %s`, c.generator, c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
+		command = fmt.Sprintf("cmake -G%q -S%s -B%s %s", c.generator, c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
 	}
 
 	// Execute configure.

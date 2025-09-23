@@ -196,7 +196,7 @@ func (p *Platform) Setup() error {
 	}
 
 	// Generate toolchain file.
-	if err := p.ctx.GenerateToolchainFile(true); err != nil {
+	if err := p.ctx.GenerateToolchainFile(); err != nil {
 		return fmt.Errorf("generate toolchain file error: %w", err)
 	}
 
