@@ -126,7 +126,7 @@ func (c cmake) configureOptions() ([]string, error) {
 	if c.PortConfig.CrossTools.RootFS != "" {
 		findRootPaths = append(findRootPaths, c.PortConfig.CrossTools.RootFS)
 	}
-	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(findRootPaths, ";"))
+	options = append(options, fmt.Sprintf("-DCMAKE_FIND_ROOT_PATH=%q", strings.Join(findRootPaths, ";")))
 
 	// Replace placeholders.
 	for index, value := range options {

@@ -10,6 +10,7 @@
 **/testdata
 **/cachedir
 **toolchain_file.cmake
+**/__debug_*
 *.exe
 celer
 celer.toml
