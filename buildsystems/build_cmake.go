@@ -19,10 +19,9 @@ const (
 	visualStudio_16_2019 = "Visual Studio 16 2019"
 	visualStudio_15_2017 = "Visual Studio 15 2017 Win64"
 	visualStudio_14_2015 = "Visual Studio 14 2015 Win64"
-	visualStudio_12_2013 = "Visual Studio 12 2013 Win64"
 )
 
-func NewCMake(config *BuildConfig, optimize Optimize, generator string) *cmake {
+func NewCMake(config *BuildConfig, optimize *Optimize, generator string) *cmake {
 	// Set default generator if not specified.
 	if generator == "" {
 		switch runtime.GOOS {
@@ -59,7 +58,7 @@ func NewCMake(config *BuildConfig, optimize Optimize, generator string) *cmake {
 
 type cmake struct {
 	*BuildConfig
-	Optimize
+	*Optimize
 	generator string // e.g. Ninja, Unix Makefiles, Visual Studio 16 2019, etc.
 }
 
@@ -78,140 +77,30 @@ func (c cmake) Clean() error {
 }
 
 func (c cmake) configureOptions() ([]string, error) {
-	var flags []string
-
 	// Format as cmake build type.
 	c.BuildType = c.formatBuildType()
 
 	var options = slices.Clone(c.Options)
-	options = append(options, "-DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON")
 
-	// Append cross-compile options only for none-runtime library.
 	if !c.BuildConfig.DevDep {
-		// Remove options that we want to override.
-		options = slices.DeleteFunc(options, func(element string) bool {
-			return strings.Contains(element, "-DCMAKE_SYSTEM_PROCESSOR=") ||
-				strings.Contains(element, "-DCMAKE_SYSTEM_NAME=") ||
-				strings.Contains(element, "-DCMAKE_C_FLAGS=") ||
-				strings.Contains(element, "-DCMAKE_CXX_FLAGS=") ||
-				strings.Contains(element, "-DCMAKE_FIND_ROOT_PATH=") ||
-				strings.Contains(element, "-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=") ||
-				strings.Contains(element, "-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=") ||
-				strings.Contains(element, "-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=") ||
-				strings.Contains(element, "-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=")
-		})
-
-		// Set build tools.
-		ccPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.CC)
-		options = append(options, fmt.Sprintf(`-DCMAKE_C_COMPILER="%s"`, ccPath))
-
-		cxxPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.CXX)
-		options = append(options, fmt.Sprintf(`-DCMAKE_CXX_COMPILER="%s"`, cxxPath))
-		if c.PortConfig.CrossTools.AS != "" {
-			asmPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.AS)
-			options = append(options, fmt.Sprintf(`-DCMAKE_ASM_COMPILER="%s"`, asmPath))
-		}
-		if c.PortConfig.CrossTools.FC != "" {
-			fcPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.FC)
-			options = append(options, fmt.Sprintf(`-DCMAKE_Fortran_COMPILER="%s"`, fcPath))
-		}
-		if c.PortConfig.CrossTools.RANLIB != "" {
-			ranlibPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.RANLIB)
-			options = append(options, fmt.Sprintf(`-DCMAKE_RANLIB="%s"`, ranlibPath))
-		}
-		if c.PortConfig.CrossTools.AR != "" {
-			arPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.AR)
-			options = append(options, fmt.Sprintf(`-DCMAKE_AR="%s"`, arPath))
-		}
-		if c.PortConfig.CrossTools.LD != "" {
-			ldPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.LD)
-			options = append(options, fmt.Sprintf(`-DCMAKE_LINKER="%s"`, ldPath))
-		}
-		if c.PortConfig.CrossTools.NM != "" {
-			nmPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.NM)
-			options = append(options, fmt.Sprintf(`-DCMAKE_NM="%s"`, nmPath))
-		}
-		if c.PortConfig.CrossTools.OBJCOPY != "" {
-			objcopyPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.OBJCOPY)
-			options = append(options, "-DCMAKE_OBJCOPY="+objcopyPath)
-		}
-		if c.PortConfig.CrossTools.OBJDUMP != "" {
-			objdumpPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.OBJDUMP)
-			options = append(options, fmt.Sprintf(`-DCMAKE_OBJDUMP="%s"`, objdumpPath))
-		}
-		if c.PortConfig.CrossTools.STRIP != "" {
-			stripPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.STRIP)
-			options = append(options, fmt.Sprintf(`-DCMAKE_STRIP="%s"`, stripPath))
-		}
-		if c.PortConfig.CrossTools.READELF != "" {
-			readelfPath := filepath.Join(c.PortConfig.CrossTools.Fullpath, c.PortConfig.CrossTools.READELF)
-			options = append(options, fmt.Sprintf(`-DCMAKE_READELF="%s"`, readelfPath))
-		}
-
-		options = append(options, fmt.Sprintf(`-DCMAKE_SYSTEM_PROCESSOR="%s"`, c.PortConfig.CrossTools.SystemProcessor))
-		options = append(options, fmt.Sprintf(`-DCMAKE_SYSTEM_NAME="%s"`, c.PortConfig.CrossTools.SystemName))
-
-		if c.PortConfig.CrossTools.RootFS != "" {
-			flags = append(flags, "--sysroot="+c.PortConfig.CrossTools.RootFS)
-		}
-
-		// Set compile optimization flags.
-		switch c.BuildType {
-		case "Release":
-			flags = append(flags, c.Optimize.Release)
-		case "Debug":
-			flags = append(flags, c.Optimize.Debug)
-		case "RelWithDebInfo":
-			flags = append(flags, c.Optimize.RelWithDebInfo)
-		case "MinSizeRel":
-			flags = append(flags, c.Optimize.MinSizeRel)
-		default:
-			return nil, fmt.Errorf("unknown build type: %s", c.BuildType)
-		}
-
-		// Windows
-		switch c.PortConfig.CrossTools.Name {
-		case "gcc":
-			options = append(options, fmt.Sprintf(`-DCMAKE_FIND_ROOT_PATH="%s"`, fmt.Sprintf("%s;%s",
-				c.PortConfig.CrossTools.RootFS, filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder))))
-			options = append(options, `-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM="NEVER"`)
-			options = append(options, `-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY="ONLY"`)
-			options = append(options, `-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE="ONLY"`)
-			options = append(options, `-DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE="ONLY"`)
-		case "msvc":
-			options = append(options, fmt.Sprintf(`-DCMAKE_MT="%s"`, c.PortConfig.CrossTools.MSVC.MT))
-			options = append(options, fmt.Sprintf(`-DCMAKE_RC_COMPILER_INIT="%s"`, c.PortConfig.CrossTools.MSVC.RC))
-			options = append(options, `-DCMAKE_RC_FLAGS_INIT="/nologo"`)
-
-		default:
-			return nil, fmt.Errorf("unsupported cross-tools: %s", c.PortConfig.CrossTools.Name)
-		}
+		options = append(options, fmt.Sprintf("-DCMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir))
 	}
 
+	// Set CMAKE_INSTALL_PREFIX.
+	options = append(options, "-DCMAKE_INSTALL_PREFIX="+c.PortConfig.PackageDir)
+
 	if c.PortConfig.CrossTools.Name == "msvc" {
-		// MSVC doesn't support set CMAKE_BUILD_TYPE or --config during configure.
+		// MSVC doesn't support set `CMAKE_BUILD_TYPE` or `--config` during configure.
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.Contains(element, "CMAKE_BUILD_TYPE") || strings.Contains(element, "--config")
 		})
 	} else {
-		// Append 'CMAKE_BUILD_TYPE' if not contains it.
+		// Append `CMAKE_BUILD_TYPE` if not contains it.
 		if c.DevDep {
-			options = slices.DeleteFunc(options, func(element string) bool {
-				return strings.Contains(element, "CMAKE_BUILD_TYPE")
-			})
 			options = append(options, "-DCMAKE_BUILD_TYPE=Release")
 		} else {
-			if !slices.ContainsFunc(options, func(arg string) bool {
-				return strings.Contains(arg, "CMAKE_BUILD_TYPE")
-			}) {
-				options = append(options, "-DCMAKE_BUILD_TYPE="+c.BuildType)
-			}
+			options = append(options, "-DCMAKE_BUILD_TYPE="+c.BuildType)
 		}
-	}
-
-	// This allows the bin to locate the libraries in the relative lib dir.
-	if strings.ToLower(c.PortConfig.CrossTools.SystemName) == "linux" {
-		options = append(options, `-DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib"`)
 	}
 
 	// Set build library type.
@@ -232,13 +121,12 @@ func (c cmake) configureOptions() ([]string, error) {
 		}
 	}
 
-	// Append merged flags.
-	options = append(options, fmt.Sprintf(`-DCMAKE_C_FLAGS="%s"`, strings.Join(flags, " ")))
-	options = append(options, fmt.Sprintf(`-DCMAKE_CXX_FLAGS="%s"`, strings.Join(flags, " ")))
-
-	// Set CMAKE_PREFIX_PATH and CMAKE_INSTALL_PREFIX.
-	options = append(options, "-DCMAKE_PREFIX_PATH="+filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder))
-	options = append(options, "-DCMAKE_INSTALL_PREFIX="+c.PortConfig.PackageDir)
+	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.
+	findRootPaths := []string{filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder)}
+	if c.PortConfig.CrossTools.RootFS != "" {
+		findRootPaths = append(findRootPaths, c.PortConfig.CrossTools.RootFS)
+	}
+	options = append(options, fmt.Sprintf("-DCMAKE_FIND_ROOT_PATH=%q", strings.Join(findRootPaths, ";")))
 
 	// Replace placeholders.
 	for index, value := range options {
@@ -282,7 +170,7 @@ func (c cmake) Configure(options []string) error {
 	if c.generator == "" {
 		command = fmt.Sprintf("cmake -S%s -B%s %s", c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
 	} else {
-		command = fmt.Sprintf(`cmake -G"%s" -S%s -B%s %s`, c.generator, c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
+		command = fmt.Sprintf("cmake -G%q -S%s -B%s %s", c.generator, c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
 	}
 
 	// Execute configure.

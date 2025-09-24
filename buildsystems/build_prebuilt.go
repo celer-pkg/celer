@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func NewPrebuilt(config *BuildConfig, optimize Optimize) *prebuilt {
+func NewPrebuilt(config *BuildConfig, optimize *Optimize) *prebuilt {
 	return &prebuilt{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -21,7 +21,7 @@ func NewPrebuilt(config *BuildConfig, optimize Optimize) *prebuilt {
 
 type prebuilt struct {
 	*BuildConfig
-	Optimize
+	*Optimize
 }
 
 func (p prebuilt) Name() string {

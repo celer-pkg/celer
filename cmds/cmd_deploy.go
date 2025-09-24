@@ -5,15 +5,13 @@ import (
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/expr"
-	"strings"
+	"os"
 
 	"github.com/spf13/cobra"
 )
 
 type deployCmd struct {
-	celer     *configs.Celer
-	devMode   bool
-	buildType string
+	celer *configs.Celer
 }
 
 func (d deployCmd) Command() *cobra.Command {
@@ -25,52 +23,33 @@ func (d deployCmd) Command() *cobra.Command {
 			d.celer = configs.NewCeler()
 			if err := d.celer.Init(); err != nil {
 				configs.PrintError(err, "failed to init celer.")
-				return
+				os.Exit(1)
 			}
 
-			// Override dev mode if specified.
-			buildtools.DevMode = d.devMode
-			configs.DevMode = d.devMode
+			if err := d.celer.Platform().Setup(); err != nil {
+				configs.PrintError(err, "setup platform error.")
+				os.Exit(1)
+			}
 
 			// Set offline mode.
 			buildtools.Offline = d.celer.Global.Offline
 			configs.Offline = d.celer.Global.Offline
 
-			// Override build_type if specified.
-			if d.buildType != "" {
-				d.celer.Global.BuildType = d.buildType
-			}
-
 			// Check circular dependency and version conflict.
 			if err := d.checkProject(); err != nil {
 				configs.PrintError(err, "check circular dependency and version conflict failed.")
-				return
+				os.Exit(1)
 			}
 
 			if err := d.celer.Deploy(); err != nil {
 				configs.PrintError(err, "failed to deploy celer.")
-				return
+				os.Exit(1)
 			}
 
-			// In dev mode, skip generate toolchain file.
-			if !d.devMode {
-				if err := d.celer.GenerateToolchainFile(); err != nil {
-					configs.PrintError(err, "failed to generate toolchain file.")
-					return
-				}
-			}
-
-			if !d.devMode {
-				projectName := expr.If(d.celer.Global.Project == "", "unnamed", d.celer.Global.Project)
-				configs.PrintSuccess("celer is ready for project: %s.", projectName)
-			}
+			projectName := expr.If(d.celer.Global.Project == "", "unnamed", d.celer.Global.Project)
+			configs.PrintSuccess("The deployment is ready for project: %s.", projectName)
 		},
-		ValidArgsFunction: d.completion,
 	}
-
-	// Register flags.
-	command.Flags().BoolVarP(&d.devMode, "dev-mode", "d", false, "deploy in dev mode.")
-	command.Flags().StringVarP(&d.buildType, "build-type", "b", "release", "deploy with build type.")
 
 	return command
 }
@@ -99,14 +78,4 @@ func (d deployCmd) checkProject() error {
 	}
 
 	return nil
-}
-
-func (d deployCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	var suggestions []string
-	for _, flag := range []string{"--dev", "-d", "--build-type", "-b"} {
-		if strings.HasPrefix(flag, toComplete) {
-			suggestions = append(suggestions, flag)
-		}
-	}
-	return suggestions, cobra.ShellCompDirectiveNoFileComp
 }

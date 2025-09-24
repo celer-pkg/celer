@@ -33,7 +33,7 @@ func (p Port) Install() (string, error) {
 			}
 		} else {
 			// Don't show installed info when building in host is not supported.
-			if !DevMode && p.IsHostSupported() {
+			if p.IsHostSupported() {
 				title := color.Sprintf(color.Green, "\n[✔] ---- package: %s\n", p.NameVersion())
 				fmt.Printf("%sLocation: %s\n", title, installedDir)
 			}

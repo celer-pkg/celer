@@ -12,13 +12,13 @@ import (
 	"strings"
 )
 
-func NewQMake(config *BuildConfig, optimize Optimize) *qmake {
+func NewQMake(config *BuildConfig, optimize *Optimize) *qmake {
 	return &qmake{BuildConfig: config, Optimize: optimize}
 }
 
 type qmake struct {
 	*BuildConfig
-	Optimize
+	*Optimize
 }
 
 func (qmake) Name() string {
@@ -103,40 +103,42 @@ func (m qmake) Configure(options []string) error {
 	}
 
 	// Set optimization flags with build_type.
-	cflags := strings.Split(os.Getenv("CFLAGS"), " ")
-	cxxflags := strings.Split(os.Getenv("CXXFLAGS"), " ")
-	if m.DevDep {
-		if m.Optimize.Release != "" {
-			cflags = append(cflags, m.Optimize.Release)
-			cxxflags = append(cxxflags, m.Optimize.Release)
-		}
-	} else {
-		buildType := strings.ToLower(m.BuildType)
-		switch buildType {
-		case "release":
+	if m.Optimize != nil {
+		cflags := strings.Fields(os.Getenv("CFLAGS"))
+		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
+		if m.DevDep {
 			if m.Optimize.Release != "" {
 				cflags = append(cflags, m.Optimize.Release)
 				cxxflags = append(cxxflags, m.Optimize.Release)
 			}
-		case "debug":
-			if m.Optimize.Debug != "" {
-				cflags = append(cflags, m.Optimize.Debug)
-				cxxflags = append(cxxflags, m.Optimize.Debug)
-			}
-		case "relwithdebinfo":
-			if m.Optimize.RelWithDebInfo != "" {
-				cflags = append(cflags, m.Optimize.RelWithDebInfo)
-				cxxflags = append(cxxflags, m.Optimize.RelWithDebInfo)
-			}
-		case "minsizerel":
-			if m.Optimize.MinSizeRel != "" {
-				cflags = append(cflags, m.Optimize.MinSizeRel)
-				cxxflags = append(cxxflags, m.Optimize.MinSizeRel)
+		} else {
+			buildType := strings.ToLower(m.BuildType)
+			switch buildType {
+			case "release":
+				if m.Optimize.Release != "" {
+					cflags = append(cflags, m.Optimize.Release)
+					cxxflags = append(cxxflags, m.Optimize.Release)
+				}
+			case "debug":
+				if m.Optimize.Debug != "" {
+					cflags = append(cflags, m.Optimize.Debug)
+					cxxflags = append(cxxflags, m.Optimize.Debug)
+				}
+			case "relwithdebinfo":
+				if m.Optimize.RelWithDebInfo != "" {
+					cflags = append(cflags, m.Optimize.RelWithDebInfo)
+					cxxflags = append(cxxflags, m.Optimize.RelWithDebInfo)
+				}
+			case "minsizerel":
+				if m.Optimize.MinSizeRel != "" {
+					cflags = append(cflags, m.Optimize.MinSizeRel)
+					cxxflags = append(cxxflags, m.Optimize.MinSizeRel)
+				}
 			}
 		}
+		os.Setenv("CFLAGS", strings.Join(cflags, " "))
+		os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 	}
-	os.Setenv("CFLAGS", strings.Join(cflags, " "))
-	os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 
 	// Create build dir if not exists.
 	if !m.BuildInSource {

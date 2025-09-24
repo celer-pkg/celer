@@ -96,19 +96,18 @@ func (p *Port) Init(ctx Context, nameVersion, buildType string) error {
 		return fmt.Errorf("unmarshal port error: %w", err)
 	}
 
-	// Init build config.
-	if err := p.initBuildConfig(nameVersion); err != nil {
-		return fmt.Errorf("init build config error: %w", err)
-	}
-
-	p.MatchedConfig = p.findMatchedConfig(p.buildType)
-
 	// Set matchedConfig as prebuilt config when no config found in toml.
+	p.MatchedConfig = p.findMatchedConfig(p.buildType)
 	if p.MatchedConfig == nil {
 		return fmt.Errorf("no matched config found for %s", p.NameVersion())
 	} else if p.MatchedConfig.BuildSystem == "prebuilt" &&
 		p.MatchedConfig.Url != "" {
 		p.Package.Url = p.MatchedConfig.Url
+	}
+
+	// Init build config.
+	if err := p.initBuildConfig(nameVersion); err != nil {
+		return fmt.Errorf("init build config error: %w", err)
 	}
 
 	// Validate port.
@@ -338,16 +337,14 @@ func (p Port) crossTools() *buildsystems.CrossTools {
 		return nil
 	}
 
-	crossTools := buildsystems.CrossTools{
-		SystemName:      p.ctx.SystemName(),
-		SystemProcessor: p.ctx.SystemProcessor(),
-	}
-
+	var crossTools buildsystems.CrossTools
 	crossTools.Native = p.Native || toolchain.Name == "msvc" ||
 		(toolchain.Name == "gcc" && toolchain.Path == "/usr/bin")
 	crossTools.Name = toolchain.Name
 	crossTools.Version = toolchain.Version
 	crossTools.Host = toolchain.Host
+	crossTools.SystemName = toolchain.SystemName
+	crossTools.SystemProcessor = toolchain.SystemProcessor
 	crossTools.CrosstoolPrefix = toolchain.CrosstoolPrefix
 
 	rootfs := p.ctx.RootFS()
@@ -374,9 +371,9 @@ func (p Port) crossTools() *buildsystems.CrossTools {
 	crossTools.READELF = toolchain.READELF
 
 	// For windows MSVC.
-	crossTools.MSVC.VCVars = toolchain.msvc.VCVars
-	crossTools.MSVC.MT = toolchain.msvc.MtPath
-	crossTools.MSVC.RC = toolchain.msvc.RcPath
+	crossTools.MSVC.VCVars = toolchain.MSVC.VCVars
+	crossTools.MSVC.MT = toolchain.MSVC.MT
+	crossTools.MSVC.RC = toolchain.MSVC.RC
 
 	return &crossTools
 }

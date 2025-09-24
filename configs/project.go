@@ -13,13 +13,15 @@ import (
 )
 
 type Project struct {
-	BuildType string                `toml:"build_type"`
-	Ports     []string              `toml:"ports"`
-	Vars      []string              `toml:"vars"`
-	Envs      []string              `toml:"envs"`
-	Micros    []string              `toml:"micros"`
-	Flags     []string              `toml:"flags"`
-	Optimize  buildsystems.Optimize `toml:"optimize"`
+	BuildType       string                 `toml:"build_type"`
+	Ports           []string               `toml:"ports"`
+	Vars            []string               `toml:"vars"`
+	Envs            []string               `toml:"envs"`
+	Micros          []string               `toml:"micros"`
+	Flags           []string               `toml:"flags"`
+	OptimizeLinux   *buildsystems.Optimize `toml:"optimize_linux"`
+	OptimizeWindows *buildsystems.Optimize `toml:"optimize_windows"`
+	Optimize        *buildsystems.Optimize `toml:"optimize"`
 
 	// Internal fields.
 	Name string `toml:"-"`
@@ -57,6 +59,7 @@ func (p *Project) Init(ctx Context, projectName string) error {
 
 	// Set values of internal fields.
 	p.Name = projectName
+
 	return nil
 }
 
@@ -78,11 +81,18 @@ func (p Project) Write(platformPath string) error {
 	}
 
 	// Default opt level values.
-	p.Optimize = buildsystems.Optimize{
-		Debug:          "GCC/Clang: -g | MSVC: /MDd /Zi /Ob0 /Od /RTC1",
-		Release:        "GCC/Clang: -O3 | MSVC: /MD /O2 /Ob2 /DNDEBUG",
-		RelWithDebInfo: "GCC/Clang: -O2 -g | MSVC: /MD /Zi /O2 /Ob1 /DNDEBUG",
-		MinSizeRel:     "GCC/Clang: -Os | MSVC: /MD /O1 /Ob1 /DNDEBUG",
+	p.OptimizeWindows = &buildsystems.Optimize{
+		Debug:          "/MDd /Zi /Ob0 /Od /RTC1",
+		Release:        "/MD /O2 /Ob2 /DNDEBUG",
+		RelWithDebInfo: "/MD /Zi /O2 /Ob1 /DNDEBUG",
+		MinSizeRel:     "/MD /O1 /Ob1 /DNDEBUG",
+	}
+
+	p.OptimizeLinux = &buildsystems.Optimize{
+		Debug:          "-g",
+		Release:        "-O3",
+		RelWithDebInfo: "-O2 -g",
+		MinSizeRel:     "-Os",
 	}
 
 	bytes, err := toml.Marshal(p)

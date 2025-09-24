@@ -56,11 +56,9 @@ func (r RootFS) CheckAndRepair() error {
 	}
 
 	// Print download & extract info.
-	if !DevMode {
-		location := filepath.Join(dirs.DownloadedToolsDir, folderName)
-		title := color.Sprintf(color.Green, "\n[✔] ---- Rootfs: %s\n", fileio.FileBaseName(r.Url))
-		fmt.Printf("%sLocation: %s\n", title, location)
-	}
+	location := filepath.Join(dirs.DownloadedToolsDir, folderName)
+	title := color.Sprintf(color.Green, "\n[✔] ---- Rootfs: %s\n", fileio.FileBaseName(r.Url))
+	fmt.Printf("%sLocation: %s\n", title, location)
 
 	return nil
 }
@@ -68,9 +66,8 @@ func (r RootFS) CheckAndRepair() error {
 func (r RootFS) generate(toolchain *strings.Builder) error {
 	rootfsPath := "${WORKSPACE_DIR}/" + strings.TrimPrefix(r.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
 	fmt.Fprintf(toolchain, `
-# Set sysroot for cross-compile.
+# SYSROOT for cross-compile.
 set(CMAKE_SYSROOT "%s")
-list(APPEND CMAKE_FIND_ROOT_PATH "${CMAKE_SYSROOT}")
 
 # Search programs in the host environment.
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)

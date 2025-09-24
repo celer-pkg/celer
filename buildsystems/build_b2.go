@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-func NewB2(config *BuildConfig, optimize Optimize) *b2 {
+func NewB2(config *BuildConfig, optimize *Optimize) *b2 {
 	return &b2{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -25,7 +25,7 @@ func NewB2(config *BuildConfig, optimize Optimize) *b2 {
 
 type b2 struct {
 	*BuildConfig
-	Optimize
+	*Optimize
 }
 
 func (b b2) Name() string {

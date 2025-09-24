@@ -129,10 +129,8 @@ func (t Toolchain) CheckAndRepair() error {
 	}
 
 	// Print download & extract info.
-	if !DevMode {
-		title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)
-		fmt.Printf("%sLocation: %s\n", title, t.rootDir)
-	}
+	title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)
+	fmt.Printf("%sLocation: %s\n", title, t.rootDir)
 	return nil
 }
 
@@ -170,6 +168,6 @@ func (t *Toolchain) Detect() error {
 }
 
 // Detect no msvc in linux.
-func (w *WindowsKit) Detect(msvc *msvc) error {
+func (w *WindowsKit) Detect(msvc *MSVC) error {
 	return nil
 }

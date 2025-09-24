@@ -229,6 +229,7 @@ type BuildConfig struct {
 	DevDep      bool       `toml:"-"`
 	PortConfig  PortConfig `toml:"-"`
 	BuildType   string     `toml:"-"`
+	Optimize    *Optimize  `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
 }
@@ -548,7 +549,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	return nil
 }
 
-func (b *BuildConfig) InitBuildSystem(optimize Optimize) error {
+func (b *BuildConfig) InitBuildSystem(optimize *Optimize) error {
 	if b.BuildSystem == "" {
 		return fmt.Errorf("build_system is empty")
 	}
@@ -768,43 +769,129 @@ func (b BuildConfig) getLogPath(suffix string) string {
 
 // msvcEnvs provider the MSVC environment variables required by msys2.
 func (b BuildConfig) msvcEnvs() (string, error) {
+	// Append envs if exist.
+	var envs []string
+	var appendEnv = func(envKey, envValue string) {
+		if envValue != "" {
+			envs = append(envs, fmt.Sprintf(`%s="%s"`, envKey, envValue))
+		}
+	}
+
+	var cflags, cxxflags, ldflags []string
+
+	// Set optimization flags with build_type.
+	if b.Optimize != nil {
+		if b.DevDep {
+			if b.Optimize.Release != "" {
+				cflags = append(cflags, b.Optimize.Release)
+				cxxflags = append(cxxflags, b.Optimize.Release)
+			}
+		} else {
+			buildType := strings.ToLower(b.BuildType)
+			switch buildType {
+			case "release":
+				if b.Optimize.Release != "" {
+					cflags = append(cflags, b.Optimize.Release)
+					cxxflags = append(cxxflags, b.Optimize.Release)
+				}
+			case "debug":
+				if b.Optimize.Debug != "" {
+					cflags = append(cflags, b.Optimize.Debug)
+					cxxflags = append(cxxflags, b.Optimize.Debug)
+				}
+			case "relwithdebinfo":
+				if b.Optimize.RelWithDebInfo != "" {
+					cflags = append(cflags, b.Optimize.RelWithDebInfo)
+					cxxflags = append(cxxflags, b.Optimize.RelWithDebInfo)
+				}
+			case "minsizerel":
+				if b.Optimize.MinSizeRel != "" {
+					cflags = append(cflags, b.Optimize.MinSizeRel)
+					cxxflags = append(cxxflags, b.Optimize.MinSizeRel)
+				}
+			}
+		}
+	}
+
+	// Set CFLAGS/CXXFLAGS/LDFLAGS.
+	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+	var appendIncludeDir = func(includeDir string) {
+		includeDir = fileio.ToCygpath(includeDir)
+		includeFlag := "-isystem " + includeDir
+		cflags = append(cflags, includeFlag)
+		cxxflags = append(cxxflags, includeFlag)
+	}
+	var appendLibDir = func(libdir string) {
+		libdir = fileio.ToCygpath(libdir)
+		lFlag := "-L" + libdir
+		rFlag := "-Wl,-rpath-link," + libdir
+
+		// Add -L/rpath-link flag.
+		if !slices.Contains(ldflags, lFlag) {
+			ldflags = append(ldflags, lFlag)
+		}
+		if !slices.Contains(ldflags, rFlag) {
+			ldflags = append(ldflags, rFlag)
+		}
+	}
+
+	// sysroot and tmp dir.
+	if b.DevDep {
+		// Append CFLAGS/CXXFLAGS/LDFLAGS
+		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
+		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
+	} else if b.PortConfig.CrossTools.RootFS != "" {
+		// Update CFLAGS/CXXFLAGS
+		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
+		for _, dir := range b.PortConfig.CrossTools.IncludeDirs {
+			appendIncludeDir(filepath.Join(b.PortConfig.CrossTools.RootFS, dir))
+		}
+
+		// Append LDFLAGS
+		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
+		for _, dir := range b.PortConfig.CrossTools.LibDirs {
+			appendLibDir(filepath.Join(b.PortConfig.CrossTools.RootFS, dir))
+		}
+	}
+	appendEnv("CFLAGS", strings.Join(cflags, " "))
+	appendEnv("CXXFLAGS", strings.Join(cxxflags, " "))
+	appendEnv("LDFLAGS", strings.Join(ldflags, " "))
+
+	// pkg-config
+	var (
+		configPaths   []string
+		configLibDirs []string
+		pathDivider   string
+		sysrootDir    string
+	)
+	configPaths = []string{
+		fileio.ToCygpath(filepath.Join(tmpDepsDir, "lib", "pkgconfig")),
+		fileio.ToCygpath(filepath.Join(tmpDepsDir, "share", "pkgconfig")),
+	}
+	sysrootDir = fileio.ToCygpath(tmpDepsDir)
+	pathDivider = ":"
+
+	// Set merged pkgconfig envs.
+	appendEnv("PKG_CONFIG_PATH", strings.Join(configPaths, pathDivider))
+	appendEnv("PKG_CONFIG_LIBDIR", strings.Join(configLibDirs, pathDivider))
+	appendEnv("PKG_CONFIG_SYSROOT_DIR", sysrootDir)
+
 	// Load MSVC environment variables.
 	msvcEnvs, err := b.readMSVCEnvs()
 	if err != nil {
 		return "", err
 	}
 
-	// Convert windows PATH to linux PATH.
+	// Append MSVC related envs.
 	parts := strings.Split(os.Getenv("PATH"), ";")
 	msvcPaths := strings.Split(msvcEnvs["PATH"], ";")
 	parts = append(parts, msvcPaths...)
-
 	for index, path := range parts {
 		parts[index] = fileio.ToCygpath(path)
 	}
-
-	var envs []string
-	envs = append(envs, fmt.Sprintf(`PATH="%s:${PATH}"`, strings.Join(parts, ":")))
-
-	// Provider envs if exist.
-	var appendEnv = func(envKey, envValue string) {
-		if envValue != "" {
-			envs = append(envs, fmt.Sprintf(`%s="%s"`, envKey, envValue))
-		}
-	}
-	appendEnv("PKG_CONFIG_PATH", os.Getenv("PKG_CONFIG_PATH"))
-	appendEnv("PKG_CONFIG_SYSROOT_DIR", os.Getenv("PKG_CONFIG_SYSROOT_DIR"))
-	appendEnv("ACLOCAL_PATH", os.Getenv("ACLOCAL_PATH"))
-	appendEnv("CFLAGS", os.Getenv("CFLAGS"))
-	appendEnv("CXXFLAGS", os.Getenv("CXXFLAGS"))
-	appendEnv("CPPFLAGS", os.Getenv("CPPFLAGS"))
-	appendEnv("LDFLAGS", os.Getenv("LDFLAGS"))
+	appendEnv("PATH", fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
 	appendEnv("INCLUDE", msvcEnvs["INCLUDE"])
 	appendEnv("LIB", msvcEnvs["LIB"])
-	appendEnv("CC", msvcEnvs["CC"])
-	appendEnv("CXX", msvcEnvs["CXX"])
-	appendEnv("LD", msvcEnvs["LD"])
-	appendEnv("AR", msvcEnvs["AR"])
 
 	return strings.Join(envs, " "), nil
 }
@@ -820,7 +907,6 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 
 	// Parse environment variables from output.
 	var msvcEnvs = make(map[string]string)
-
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)

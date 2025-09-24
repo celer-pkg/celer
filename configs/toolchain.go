@@ -42,59 +42,70 @@ type Toolchain struct {
 	displayName string
 	rootDir     string
 	fullpath    string
+	cmakepath   string
 
-	msvc msvc
+	MSVC MSVC
 }
 
-type msvc struct {
+type MSVC struct {
 	VCVars string
-	MtPath string
-	RcPath string
+	MT     string
+	RC     string
 }
 
 func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
-	cmakepaths := []string{
-		fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin", hostName),
-	}
+	t.cmakepath = fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin", hostName)
 
-	cmakepath := strings.TrimPrefix(t.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
-	if cmakepath != t.fullpath {
-		cmakepaths = append(cmakepaths, fmt.Sprintf("${WORKSPACE_DIR}/%s", filepath.ToSlash(cmakepath)))
-	} else {
-		cmakepaths = append(cmakepaths, filepath.ToSlash(cmakepath))
-	}
-
-	toolchain.WriteString("\n# Set runtime path.\n")
-	toolchain.WriteString("set(PATH_LIST" + "\n")
-	for _, path := range cmakepaths {
-		toolchain.WriteString(fmt.Sprintf(`	"%s"`, path) + "\n")
-	}
+	toolchain.WriteString("\n# Runtime paths.\n")
+	toolchain.WriteString(`get_filename_component(WORKSPACE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)` + "\n")
+	toolchain.WriteString("set(PATH_LIST\n")
+	toolchain.WriteString(fmt.Sprintf("\t%q\n", t.cmakepath))
 	toolchain.WriteString(")\n")
-	toolchain.WriteString(fmt.Sprintf(`list(JOIN PATH_LIST "%s" PATH_STR)`, string(os.PathListSeparator)) + "\n")
+	toolchain.WriteString(fmt.Sprintf("list(JOIN PATH_LIST %q PATH_STR)\n", string(os.PathListSeparator)))
 	toolchain.WriteString(fmt.Sprintf(`set(ENV{PATH} "${PATH_STR}%s$ENV{PATH}")`, string(os.PathListSeparator)) + "\n")
 
-	writeIfNotEmpty := func(content, value string) {
+	writeIfNotEmpty := func(key, value string) {
 		if value != "" {
-			toolchain.WriteString(fmt.Sprintf("set(%s\"%s\")\n", content, value))
+			fmt.Fprintf(toolchain, "set(%-25s%q)\n", key, "${TOOLCHAIN_DIR}/"+value)
 		}
 	}
 
-	toolchain.WriteString("\n# Set toolchain for cross-compile.\n")
-	writeIfNotEmpty("CMAKE_C_COMPILER 		", t.CC)
-	writeIfNotEmpty("CMAKE_CXX_COMPILER		", t.CXX)
-	writeIfNotEmpty("CMAKE_Fortran_COMPILER	", t.FC)
-	writeIfNotEmpty("CMAKE_RANLIB 			", t.RANLIB)
-	writeIfNotEmpty("CMAKE_AR 				", t.AR)
-	writeIfNotEmpty("CMAKE_LINKER 			", t.LD)
-	writeIfNotEmpty("CMAKE_NM 				", t.NM)
-	writeIfNotEmpty("CMAKE_OBJDUMP 			", t.OBJDUMP)
-	writeIfNotEmpty("CMAKE_STRIP 			", t.STRIP)
+	toolchain.WriteString("\n# Target information for cross-compile.\n")
+	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_NAME", t.SystemName)
+	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
-	// Only linux may have sysroot.
-	if t.Name == "gcc" {
+	toolchain.WriteString("\n# Toolchain for cross-compile.\n")
+	cmakepath := strings.TrimPrefix(t.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
+	if t.Name == "msvc" {
+		fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
+	} else {
+		fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+	}
+
+	writeIfNotEmpty("CMAKE_C_COMPILER", t.CC)
+	writeIfNotEmpty("CMAKE_CXX_COMPILER", t.CXX)
+	writeIfNotEmpty("CMAKE_AR", t.AR)
+	writeIfNotEmpty("CMAKE_LINKER", t.LD)
+
+	switch t.Name {
+	case "gcc":
+		writeIfNotEmpty("CMAKE_ASM_COMPILER", t.AS)
+		writeIfNotEmpty("CMAKE_NM", t.NM)
+		writeIfNotEmpty("CMAKE_Fortran_COMPILER", t.FC)
+		writeIfNotEmpty("CMAKE_RANLIB", t.RANLIB)
+		writeIfNotEmpty("CMAKE_OBJCOPY", t.OBJCOPY)
+		writeIfNotEmpty("CMAKE_OBJDUMP", t.OBJDUMP)
+		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
+		writeIfNotEmpty("CMAKE_READELF", t.READELF)
+
 		toolchain.WriteString("\n")
-		toolchain.WriteString(`set(CMAKE_C_FLAGS "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")` + "\n")
-		toolchain.WriteString(`set(CMAKE_CXX_FLAGS "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")` + "\n")
+
+		fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_C_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")
+		fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_CXX_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")
+	case "msvc":
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
 	}
 
 	return nil

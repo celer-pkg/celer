@@ -26,22 +26,26 @@ type installCmd struct {
 }
 
 func (i installCmd) Command() *cobra.Command {
-	// Init celer (seems cannot new celer in completion function, so moved here).
 	i.celer = configs.NewCeler()
 	if err := i.celer.Init(); err != nil {
-		configs.PrintError(err, "failed to init celer.")
+		configs.PrintError(err, "init celer error.")
 		os.Exit(1)
 	}
-
-	// Set offline mode.
-	buildtools.Offline = i.celer.Global.Offline
-	configs.Offline = i.celer.Global.Offline
 
 	command := &cobra.Command{
 		Use:   "install",
 		Short: "Install a package.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := i.celer.Platform().Setup(); err != nil {
+				configs.PrintError(err, "setup platform error.")
+				os.Exit(1)
+			}
+
+			// Set offline mode.
+			buildtools.Offline = i.celer.Global.Offline
+			configs.Offline = i.celer.Global.Offline
+
 			i.install(args[0])
 		},
 		ValidArgsFunction: i.completion,
@@ -66,7 +70,7 @@ func (i installCmd) install(nameVersion string) {
 
 	if err := i.celer.Platform().Setup(); err != nil {
 		configs.PrintError(err, "setup platform error:")
-		return
+		os.Exit(1)
 	}
 
 	// In Windows PowerShell, when handling completion,
@@ -77,14 +81,14 @@ func (i installCmd) install(nameVersion string) {
 	parts := strings.Split(nameVersion, "@")
 	if len(parts) != 2 {
 		configs.PrintError(fmt.Errorf("invalid name and version"), "install %s failed.", nameVersion)
-		return
+		os.Exit(1)
 	}
 
 	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().Name, parts[0], parts[1], "port.toml")
 	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		configs.PrintError(fmt.Errorf("port %s is not found", nameVersion), "%s install failed.", nameVersion)
-		return
+		os.Exit(1)
 	}
 
 	// Install the port.
@@ -96,32 +100,40 @@ func (i installCmd) install(nameVersion string) {
 	port.CacheToken = i.cacheToken
 	if err := port.Init(i.celer, nameVersion, i.buildType); err != nil {
 		configs.PrintError(err, "init %s failed.", nameVersion)
-		return
+		os.Exit(1)
 	}
 
 	// Check circular dependence.
 	depcheck := depcheck.NewDepCheck()
 	if err := depcheck.CheckCircular(i.celer, port); err != nil {
 		configs.PrintError(err, "check circular dependence failed.")
-		return
+		os.Exit(1)
 	}
 
 	// Check version conflict.
 	if err := depcheck.CheckConflict(i.celer, port); err != nil {
 		configs.PrintError(err, "check version conflict failed.")
-		return
+		os.Exit(1)
 	}
 
 	// Do install.
 	fromWhere, err := port.Install()
 	if err != nil {
 		configs.PrintError(err, "install %s failed.", nameVersion)
-		return
+		os.Exit(1)
 	}
 	if fromWhere != "" {
-		configs.PrintSuccess("install %s from %s successfully.", nameVersion, fromWhere)
+		if port.DevDep {
+			configs.PrintSuccess("install %s from %s as dev successfully.", nameVersion, fromWhere)
+		} else {
+			configs.PrintSuccess("install %s from %s successfully.", nameVersion, fromWhere)
+		}
 	} else {
-		configs.PrintSuccess("install %s successfully.", nameVersion)
+		if port.DevDep {
+			configs.PrintSuccess("install %s as dev successfully.", nameVersion)
+		} else {
+			configs.PrintSuccess("install %s successfully.", nameVersion)
+		}
 	}
 }
 
