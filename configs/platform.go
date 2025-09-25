@@ -57,38 +57,6 @@ func (p *Platform) Init(platformName string) error {
 		p.RootFS.ctx = p.ctx
 	}
 
-	// Detect toolchain if not specified in platform toml.
-	if p.Toolchain == nil {
-		if err := p.detectToolchain(); err != nil {
-			return err
-		}
-		p.Toolchain.ctx = p.ctx
-	} else {
-		p.Toolchain.ctx = p.ctx
-
-		// WindowsKit can be detected automatically.
-		if runtime.GOOS == "windows" && p.WindowsKit == nil {
-			var windowsKit WindowsKit
-			if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
-				return fmt.Errorf("detect celer.windows_kit error: %w", err)
-			}
-			p.WindowsKit = &windowsKit
-		}
-
-		if err := p.Toolchain.Validate(); err != nil {
-			return err
-		}
-
-		if err := p.Toolchain.CheckAndRepair(); err != nil {
-			return err
-		}
-	}
-
-	// Only for Windows MSVC.
-	if p.Toolchain.Name == "msvc" {
-		p.Toolchain.MSVC.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
-	}
-
 	return nil
 }
 
