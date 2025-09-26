@@ -40,7 +40,7 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -110,7 +110,7 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var glogPort Port
@@ -191,7 +191,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -258,7 +258,7 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 	check(celer.SetCacheDir("", "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -298,7 +298,7 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, ""))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -338,7 +338,7 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -378,7 +378,7 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -418,7 +418,7 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -472,7 +472,7 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port

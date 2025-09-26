@@ -32,20 +32,15 @@ func (i installCmd) Command() *cobra.Command {
 		os.Exit(1)
 	}
 
+	// Set offline mode.
+	buildtools.Offline = i.celer.Global.Offline
+	configs.Offline = i.celer.Global.Offline
+
 	command := &cobra.Command{
 		Use:   "install",
 		Short: "Install a package.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := i.celer.Platform().Setup(); err != nil {
-				configs.PrintError(err, "setup platform error.")
-				os.Exit(1)
-			}
-
-			// Set offline mode.
-			buildtools.Offline = i.celer.Global.Offline
-			configs.Offline = i.celer.Global.Offline
-
 			i.install(args[0])
 		},
 		ValidArgsFunction: i.completion,

@@ -34,7 +34,7 @@ func TestInstall_Global_BuildType_Release_Success(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -88,7 +88,7 @@ func TestInstall_Global_BuildType_Debug_Success(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -142,7 +142,7 @@ func TestInstall_Private_BuildType_Debug_Success(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -195,7 +195,7 @@ func TestInstall_Private_BuildType_Release_Success(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port

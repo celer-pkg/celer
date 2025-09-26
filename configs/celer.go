@@ -102,7 +102,7 @@ func (c *Celer) Init() error {
 			return err
 		}
 
-		// No platform specified, setup will auto detect native toolchain.
+		// Auto detect native toolchain for different os.
 		if err := c.platform.detectToolchain(); err != nil {
 			return err
 		}

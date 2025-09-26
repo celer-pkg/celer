@@ -33,7 +33,7 @@ func TestInstall_From_Package_Success(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -86,7 +86,7 @@ func TestInstall_From_Package_Failed(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
