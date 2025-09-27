@@ -149,16 +149,7 @@ func (p Port) Installed() (bool, error) {
 		// Remove installed package if build config changed.
 		localMeta := string(metaBytes)
 		if localMeta != newMeta {
-			color.Printf(color.Green, "\n================ remove overdue package: metas don't match for %s: ================\n", p.NameVersion())
-			color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local meta: <<<<<<<<<<<<<<<<<")
-			color.Println(color.Blue, newMeta)
-			color.Println(color.Green, ">>>>>>>>>>>>>>>>> New meta <<<<<<<<<<<<<<<<<")
-			color.Println(color.Blue, newMeta)
-
-			if err := p.Remove(false, true, true); err != nil {
-				return false, err
-			}
-
+			color.Printf(color.Yellow, "\n================ The outdated package of %s will be removed on next install. ================", p.NameVersion())
 			return false, nil
 		}
 	}

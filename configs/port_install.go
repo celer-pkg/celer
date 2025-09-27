@@ -291,22 +291,36 @@ func (p Port) installFromPackage() (bool, error) {
 		return false, fmt.Errorf("calculate meta of %s error: %w", p.NameVersion(), err)
 	}
 
-	// Remove overdue package.
+	// Remove outdated package.
+	var metaFileBackup string
 	localMeta := string(metaBytes)
 	if localMeta != newMeta {
-		color.Printf(color.Green, "================ remove overdue package: metas don't match for %s: ================\n", p.NameVersion())
-		color.Println(color.Green, ">>>>>>>>>>>>>>>>> Local meta: <<<<<<<<<<<<<<<<<")
-		color.Println(color.Blue, newMeta)
-		color.Println(color.Green, ">>>>>>>>>>>>>>>>> New meta: <<<<<<<<<<<<<<<<<")
-		color.Println(color.Blue, newMeta)
+		color.Printf(color.Yellow, "\n================ The outdated package of %s will be removed now. ================", p.NameVersion())
 
-		if err := p.Remove(false, false, false); err != nil {
-			return false, fmt.Errorf("remove overdue package error: %w", err)
+		// Backup installed meta file to tmp dir.
+		metaFileBackup = filepath.Join(dirs.TmpDir, filepath.Base(p.metaFile)+".old")
+		if err := fileio.CopyFile(p.metaFile, metaFileBackup); err != nil {
+			return false, fmt.Errorf("backup meta file error: %w", err)
+		}
+
+		// Remove outdated package and install from source again.
+		if err := p.Remove(false, true, true); err != nil {
+			return false, fmt.Errorf("remove outdated package error: %w", err)
+		}
+		if err := p.doInstallFromSource(); err != nil {
+			return false, fmt.Errorf("install from package error: %w", err)
 		}
 	}
 
 	if err := p.doInstallFromPackage(p.installedDir); err != nil {
 		return false, fmt.Errorf("install from package error: %w", err)
+	}
+
+	// Restore meta file for compare difference when debug.
+	if metaFileBackup != "" {
+		if err := os.Rename(metaFileBackup, p.metaFile+".old"); err != nil {
+			return false, fmt.Errorf("restore meta file error: %w", err)
+		}
 	}
 
 	if err := p.writeTraceFile("package"); err != nil {
