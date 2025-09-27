@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"os"
 	"strings"
@@ -16,22 +15,12 @@ type createCmd struct {
 	port     string
 }
 
-func (c createCmd) Command() *cobra.Command {
+func (c createCmd) Command(celer *configs.Celer) *cobra.Command {
+	c.celer = celer
 	command := &cobra.Command{
 		Use:   "create",
 		Short: "Create a platform, project, or port.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			c.celer = configs.NewCeler()
-			if err := c.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
-			// Set offline mode.
-			buildtools.Offline = c.celer.Global.Offline
-			configs.Offline = c.celer.Global.Offline
-
 			if c.platform != "" {
 				c.createPlatform(c.platform)
 			} else if c.project != "" {

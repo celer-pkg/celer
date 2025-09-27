@@ -48,45 +48,17 @@ func (p *Platform) Init(platformName string) error {
 		return fmt.Errorf("read error: %w", err)
 	}
 
-	// RootFS maybe nil when platform is native.
 	if p.RootFS != nil {
+		p.RootFS.ctx = p.ctx
 		if err := p.RootFS.Validate(); err != nil {
 			return err
 		}
-
-		p.RootFS.ctx = p.ctx
 	}
-
-	// Detect toolchain if not specified in platform toml.
-	if p.Toolchain == nil {
-		if err := p.detectToolchain(); err != nil {
-			return err
-		}
+	if p.Toolchain != nil {
 		p.Toolchain.ctx = p.ctx
-	} else {
-		p.Toolchain.ctx = p.ctx
-
-		// WindowsKit can be detected automatically.
-		if runtime.GOOS == "windows" && p.WindowsKit == nil {
-			var windowsKit WindowsKit
-			if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
-				return fmt.Errorf("detect celer.windows_kit error: %w", err)
-			}
-			p.WindowsKit = &windowsKit
-		}
-
 		if err := p.Toolchain.Validate(); err != nil {
 			return err
 		}
-
-		if err := p.Toolchain.CheckAndRepair(); err != nil {
-			return err
-		}
-	}
-
-	// Only for Windows MSVC.
-	if p.Toolchain.Name == "msvc" {
-		p.Toolchain.MSVC.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
 	}
 
 	return nil
@@ -149,45 +121,30 @@ func (p Platform) Write(platformPath string) error {
 	return os.WriteFile(platformPath, bytes, os.ModePerm)
 }
 
+// Setup build envs.
 func (p *Platform) Setup() error {
 	// Repair rootfs if not empty.
 	if p.RootFS != nil {
-		if err := p.RootFS.Validate(); err != nil {
-			return fmt.Errorf("valid rootfs error: %w", err)
-		}
-
 		if err := p.RootFS.CheckAndRepair(); err != nil {
 			return fmt.Errorf("check and repair rootfs error: %w", err)
 		}
-
-		p.RootFS.ctx = p.ctx
 	}
 
+	// WindowsKit can be detected automatically.
+	if runtime.GOOS == "windows" && p.WindowsKit == nil {
+		var windowsKit WindowsKit
+		if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
+			return fmt.Errorf("detect celer.windows_kit error: %w", err)
+		}
+		p.WindowsKit = &windowsKit
+	}
+
+	// Repair toolchain.
 	if p.Toolchain == nil {
-		// Auto detect native toolchain for different os.
-		if err := p.detectToolchain(); err != nil {
-			return err
-		}
-	} else {
-		p.Toolchain.ctx = p.ctx
-
-		// WindowsKit can be detected automatically.
-		if runtime.GOOS == "windows" && p.WindowsKit == nil {
-			var windowsKit WindowsKit
-			if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
-				return fmt.Errorf("detect celer.windows_kit error: %w", err)
-			}
-			p.WindowsKit = &windowsKit
-		}
-
-		// Repair toolchain.
-		if err := p.Toolchain.Validate(); err != nil {
-			return fmt.Errorf("valid toolchain error: %w", err)
-		}
-
-		if err := p.Toolchain.CheckAndRepair(); err != nil {
-			return fmt.Errorf("check and repair toolchain error: %w", err)
-		}
+		panic("Toolchain should not be empty, it may specified in platform or automatically detected.")
+	}
+	if err := p.Toolchain.CheckAndRepair(); err != nil {
+		return fmt.Errorf("check and repair toolchain error: %w", err)
 	}
 
 	// Only for Windows MSVC.

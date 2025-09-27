@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -17,22 +16,13 @@ type searchCmd struct {
 	celer *configs.Celer
 }
 
-func (s searchCmd) Command() *cobra.Command {
+func (s searchCmd) Command(celer *configs.Celer) *cobra.Command {
+	s.celer = celer
 	command := &cobra.Command{
 		Use:   "search",
 		Short: "Search matched ports.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			s.celer = configs.NewCeler()
-			if err := s.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
-			// Set offline mode.
-			buildtools.Offline = s.celer.Global.Offline
-			configs.Offline = s.celer.Global.Offline
-
 			libraries, err := s.search(args[0])
 			if err != nil {
 				configs.PrintError(err, "failed to search available ports.")

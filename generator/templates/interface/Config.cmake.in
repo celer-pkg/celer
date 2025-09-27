@@ -1,0 +1,30 @@
+# CMake Config file for @LIBNAME@
+# It defines the following variables
+#  @LIBNAME@_INCLUDE_DIRS - include directories for @LIBNAME@
+#  @LIBNAME@_LIBRARIES    - libraries to link against
+#  @LIBNAME@_FOUND        - found flag
+
+# Compute the installation prefix relative to this file.
+get_filename_component(_IMPORT_PREFIX "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+get_filename_component(_IMPORT_PREFIX "${_IMPORT_PREFIX}" PATH)
+if(_IMPORT_PREFIX STREQUAL "/")
+    set(_IMPORT_PREFIX "")
+endif()
+
+set(@LIBNAME@_LIBRARIES
+@LIBRARIES@
+)
+
+# Create imported target @NAMESPACE@::@LIBNAME@
+if (NOT TARGET @NAMESPACE@::@LIBNAME@)
+    add_library(@NAMESPACE@::@LIBNAME@ INTERFACE IMPORTED)
+
+    set_target_properties(@NAMESPACE@::@LIBNAME@ PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${_IMPORT_PREFIX}/include"
+        INTERFACE_LINK_LIBRARIES "${@LIBNAME@_LIBRARIES}"
+    )
+endif()
+
+set(@LIBNAME@_FOUND true)

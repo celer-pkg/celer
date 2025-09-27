@@ -28,7 +28,7 @@ func TestCreate_Project_Success(t *testing.T) {
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
-	const projectName = "test_project_03"
+	const projectName = "test_project_test"
 	check(celer.CreateProject(projectName))
 
 	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")

@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"celer/pkgs/expr"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,26 +12,31 @@ type configVersion struct {
 	cmakeConfig cmakeConfig
 }
 
-func (g *configVersion) generate(installedDir string) error {
-	if g.cmakeConfig.Libname == "" {
+func (c *configVersion) generate(installedDir string) error {
+	if c.cmakeConfig.Libname == "" {
 		return fmt.Errorf("lib name is empty")
 	}
 
-	if g.cmakeConfig.Version == "" {
-		g.cmakeConfig.Version = "0.0.0"
+	if c.cmakeConfig.Version == "" {
+		c.cmakeConfig.Version = "0.0.0"
 	}
 
-	bytes, err := templates.ReadFile("templates/ConfigVersion.cmake.in")
+	template := expr.If(c.cmakeConfig.Libtype == "interface",
+		"templates/interface/ConfigVersion.cmake.in",
+		"templates/ConfigVersion.cmake.in",
+	)
+	bytes, err := templates.ReadFile(template)
 	if err != nil {
 		return err
 	}
 
 	// Replace the placeholders with the actual values.
 	content := string(bytes)
-	content = strings.ReplaceAll(content, "@VERSION@", g.cmakeConfig.Version)
+	content = strings.ReplaceAll(content, "@VERSION@", c.cmakeConfig.Version)
+	content = strings.ReplaceAll(content, "@LIB_NAME@", c.cmakeConfig.Libname)
 
 	// Make dirs for writing file.
-	filePath := filepath.Join(installedDir, "lib", "cmake", g.cmakeConfig.Namespace, g.cmakeConfig.Namespace+"ConfigVersion.cmake")
+	filePath := filepath.Join(installedDir, "lib", "cmake", c.cmakeConfig.Namespace, c.cmakeConfig.Namespace+"ConfigVersion.cmake")
 	if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
 		return err
 	}

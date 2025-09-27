@@ -33,7 +33,7 @@ func TestInstall_BuildSystem_MakeFiles(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -85,7 +85,7 @@ func TestInstall_BuildSystem_CMake(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -137,7 +137,7 @@ func TestInstall_BuildSystem_B2(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -188,7 +188,7 @@ func TestInstall_BuildSystem_GYP(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -239,7 +239,7 @@ func TestInstall_BuildSystem_Meson(t *testing.T) {
 	check(celer.SetProject("test_project_01"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -289,6 +289,8 @@ func TestInstall_BuildSystem_Prebuilt(t *testing.T) {
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetPlatform("x86_64-linux-ubuntu-22.04"))
 	check(celer.SetProject("test_project_02"))
+
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port
@@ -334,7 +336,7 @@ func TestInstall_BuildSystem_Nobuild(t *testing.T) {
 	check(celer.SetProject("test_project_02"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
-	// Setup build environment.
+	// Setup build envs.
 	check(celer.Platform().Setup())
 
 	var port Port

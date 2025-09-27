@@ -24,7 +24,7 @@ type integrateCmd struct {
 	remove     bool
 }
 
-func (i integrateCmd) Command() *cobra.Command {
+func (i integrateCmd) Command(celer *configs.Celer) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "integrate",
 		Short: "Integrate tab completion.",

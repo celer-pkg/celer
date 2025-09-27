@@ -22,22 +22,12 @@ type updateCmd struct {
 	force     bool
 }
 
-func (u updateCmd) Command() *cobra.Command {
+func (u updateCmd) Command(celer *configs.Celer) *cobra.Command {
+	u.celer = celer
 	command := &cobra.Command{
 		Use:   "update",
 		Short: "Update conf repo, ports config repo or third-party repo.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			u.celer = configs.NewCeler()
-			if err := u.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
-			// Set offline mode.
-			buildtools.Offline = u.celer.Global.Offline
-			configs.Offline = u.celer.Global.Offline
-
 			// Make sure git is available.
 			if err := buildtools.CheckTools("git"); err != nil {
 				configs.PrintError(err, "failed to check git tools.")
@@ -101,7 +91,7 @@ func (u updateCmd) updatePorts(targets []string) error {
 func (u updateCmd) updatePortRepo(nameVersion string) error {
 	// Read port file.
 	var port configs.Port
-	if err := port.Init(u.celer, nameVersion, "release"); err != nil {
+	if err := port.Init(u.celer, nameVersion, u.celer.Global.BuildType); err != nil {
 		return fmt.Errorf("%s: %w", nameVersion, err)
 	}
 

@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -18,22 +17,13 @@ type dependCmd struct {
 	dev   bool
 }
 
-func (d dependCmd) Command() *cobra.Command {
+func (d dependCmd) Command(celer *configs.Celer) *cobra.Command {
+	d.celer = celer
 	command := &cobra.Command{
 		Use:   "depend",
 		Short: "Query the dependent libraries.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			d.celer = configs.NewCeler()
-			if err := d.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
-			// Set offline mode.
-			buildtools.Offline = d.celer.Global.Offline
-			configs.Offline = d.celer.Global.Offline
-
 			libraries, err := d.query(args[0])
 			if err != nil {
 				configs.PrintError(err, "failed to query dependent libraries.")

@@ -1,0 +1,8 @@
+## @LIB_NAME@ CMake configuration version file
+
+# library version
+set (PACKAGE_VERSION "@VERSION@")
+
+message(=============================================================)
+message("-- @LIB_NAME@ version : ${PACKAGE_VERSION}")
+message(=============================================================)
