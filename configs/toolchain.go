@@ -38,13 +38,12 @@ type Toolchain struct {
 	READELF string `toml:"readelf,omitempty"` // Read ELF file.
 
 	// Internal fields.
+	MSVC        MSVC `toml:"-"`
 	ctx         Context
 	displayName string
 	rootDir     string
 	fullpath    string
 	cmakepath   string
-
-	MSVC MSVC
 }
 
 type MSVC struct {
