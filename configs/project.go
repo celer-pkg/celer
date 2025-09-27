@@ -13,6 +13,7 @@ import (
 )
 
 type Project struct {
+	Platform        string                 `toml:"platform,omitempty"`
 	BuildType       string                 `toml:"build_type"`
 	Ports           []string               `toml:"ports"`
 	Vars            []string               `toml:"vars"`

@@ -44,6 +44,15 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 				}
 				configs.PrintSuccess("current project: %s.", c.project)
 
+				// Auto configure platform.
+				if c.celer.Project().Platform != "" && c.celer.Global.Platform == "" {
+					if err := c.celer.SetPlatform(c.celer.Project().Platform); err != nil {
+						configs.PrintError(err, "failed to set platform: %s.", c.celer.Global.Platform)
+						os.Exit(1)
+					}
+					configs.PrintSuccess("platform is auto configured to %s defined in current project.", c.celer.Global.Platform)
+				}
+
 			case c.buildType != "":
 				if err := c.celer.SetBuildType(c.buildType); err != nil {
 					configs.PrintError(err, "failed to set build type: %s.", c.buildType)
