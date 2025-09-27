@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -24,21 +23,12 @@ type configureCmd struct {
 	cacheToken string
 }
 
-func (c configureCmd) Command() *cobra.Command {
+func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
+	c.celer = celer
 	command := &cobra.Command{
 		Use:   "configure",
 		Short: "Configure to change gloabal settings.",
 		Run: func(cmd *cobra.Command, args []string) {
-			c.celer = configs.NewCeler()
-			if err := c.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
-			// Set offline mode.
-			buildtools.Offline = c.celer.Global.Offline
-			configs.Offline = c.celer.Global.Offline
-
 			switch {
 			case c.platform != "":
 				if err := c.celer.SetPlatform(c.platform); err != nil {

@@ -11,7 +11,7 @@ import (
 
 type versionCmd struct{}
 
-func (v versionCmd) Command() *cobra.Command {
+func (v versionCmd) Command(celer *configs.Celer) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Version",

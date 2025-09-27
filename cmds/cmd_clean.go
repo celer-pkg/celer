@@ -24,22 +24,12 @@ type cleanCmd struct {
 	cleaned []string
 }
 
-func (c cleanCmd) Command() *cobra.Command {
+func (c cleanCmd) Command(celer *configs.Celer) *cobra.Command {
+	c.celer = celer
 	command := &cobra.Command{
 		Use:   "clean",
 		Short: "Clean build cache for package or project",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			c.celer = configs.NewCeler()
-			if err := c.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
-			// Set offline mode.
-			buildtools.Offline = c.celer.Global.Offline
-			configs.Offline = c.celer.Global.Offline
-
 			if c.all {
 				if err := c.cleanAll(); err != nil {
 					configs.PrintError(err, "failed to clean all packages.")

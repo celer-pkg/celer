@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"celer/pkgs/expr"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,38 +12,58 @@ type config struct {
 	cmakeConfig cmakeConfig
 }
 
-func (g *config) generate(installedDir string) error {
-	if g.cmakeConfig.Libname == "" {
+func (c *config) generate(installedDir string) error {
+	if c.cmakeConfig.Libname == "" {
 		return fmt.Errorf("lib name is empty")
 	}
 
 	// Set namespace to libName if it is empty.
-	if g.cmakeConfig.Namespace == "" {
-		g.cmakeConfig.Namespace = g.cmakeConfig.Libname
+	if c.cmakeConfig.Namespace == "" {
+		c.cmakeConfig.Namespace = c.cmakeConfig.Libname
 	}
 
-	bytes, err := templates.ReadFile("templates/Config.cmake.in")
+	var template string
+	if c.cmakeConfig.Libtype == "interface" {
+		template = expr.If(len(c.cmakeConfig.Libraries) == 0,
+			"templates/interface/ConfigHeadOnly.cmake.in",
+			"templates/interface/Config.cmake.in",
+		)
+	} else {
+		template = "templates/Config.cmake.in"
+	}
+
+	bytes, err := templates.ReadFile(template)
 	if err != nil {
 		return err
 	}
 
 	// Replace the placeholders with the actual values.
-	libNameUpper := strings.ReplaceAll(g.cmakeConfig.Libname, "-", "_")
+	libNameUpper := strings.ReplaceAll(c.cmakeConfig.Libname, "-", "_")
 	libNameUpper = strings.ToUpper(libNameUpper)
 
 	content := string(bytes)
-	content = strings.ReplaceAll(content, "@LIBNAME@", g.cmakeConfig.Libname)
+	content = strings.ReplaceAll(content, "@LIBNAME@", c.cmakeConfig.Libname)
 	content = strings.ReplaceAll(content, "@LIBNAME_UPPER@", libNameUpper)
-	content = strings.ReplaceAll(content, "@NAMESPACE@", g.cmakeConfig.Namespace)
+	content = strings.ReplaceAll(content, "@NAMESPACE@", c.cmakeConfig.Namespace)
 
-	if len(g.cmakeConfig.Components) > 0 {
-		content = strings.ReplaceAll(content, "@CONFIG_OR_MODULE_FILE@", g.cmakeConfig.Namespace+"Modules.cmake")
+	if c.cmakeConfig.Libtype == "interface" {
+		if len(c.cmakeConfig.Libraries) > 0 {
+			var libraries []string
+			for _, lib := range c.cmakeConfig.Libraries {
+				libraries = append(libraries, fmt.Sprintf("\t"+`"${_IMPORT_PREFIX}/lib/%s"`, lib))
+			}
+			content = strings.ReplaceAll(content, "@LIBRARIES@", strings.Join(libraries, "\n"))
+		}
 	} else {
-		content = strings.ReplaceAll(content, "@CONFIG_OR_MODULE_FILE@", g.cmakeConfig.Namespace+"Targets.cmake")
+		if len(c.cmakeConfig.Components) > 0 {
+			content = strings.ReplaceAll(content, "@CONFIG_OR_MODULE_FILE@", c.cmakeConfig.Namespace+"Modules.cmake")
+		} else {
+			content = strings.ReplaceAll(content, "@CONFIG_OR_MODULE_FILE@", c.cmakeConfig.Namespace+"Targets.cmake")
+		}
 	}
 
 	// Mkdirs for writing file.
-	filePath := filepath.Join(installedDir, "lib", "cmake", g.cmakeConfig.Namespace, g.cmakeConfig.Namespace+"config.cmake")
+	filePath := filepath.Join(installedDir, "lib", "cmake", c.cmakeConfig.Namespace, c.cmakeConfig.Namespace+"config.cmake")
 	if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
 		return err
 	}

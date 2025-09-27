@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/dirs"
@@ -25,17 +24,8 @@ type installCmd struct {
 	cacheToken string
 }
 
-func (i installCmd) Command() *cobra.Command {
-	i.celer = configs.NewCeler()
-	if err := i.celer.Init(); err != nil {
-		configs.PrintError(err, "init celer error.")
-		os.Exit(1)
-	}
-
-	// Set offline mode.
-	buildtools.Offline = i.celer.Global.Offline
-	configs.Offline = i.celer.Global.Offline
-
+func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
+	i.celer = celer
 	command := &cobra.Command{
 		Use:   "install",
 		Short: "Install a package.",

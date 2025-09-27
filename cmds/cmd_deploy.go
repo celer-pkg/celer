@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/expr"
@@ -14,26 +13,16 @@ type deployCmd struct {
 	celer *configs.Celer
 }
 
-func (d deployCmd) Command() *cobra.Command {
+func (d deployCmd) Command(celer *configs.Celer) *cobra.Command {
+	d.celer = celer
 	command := &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy with selected platform and project.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			d.celer = configs.NewCeler()
-			if err := d.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				os.Exit(1)
-			}
-
 			if err := d.celer.Platform().Setup(); err != nil {
 				configs.PrintError(err, "setup platform error.")
 				os.Exit(1)
 			}
-
-			// Set offline mode.
-			buildtools.Offline = d.celer.Global.Offline
-			configs.Offline = d.celer.Global.Offline
 
 			// Check circular dependency and version conflict.
 			if err := d.checkProject(); err != nil {

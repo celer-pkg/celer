@@ -1,6 +1,8 @@
 package cmds
 
 import (
+	"celer/buildtools"
+	"celer/configs"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -8,7 +10,7 @@ import (
 
 // Interface for command.
 type Command interface {
-	Command() *cobra.Command
+	Command(celer *configs.Celer) *cobra.Command
 }
 
 var rootCmd = &cobra.Command{
@@ -43,6 +45,15 @@ var rootCmd = &cobra.Command{
 
 // Execute register all commands and executes the command.
 func Execute() error {
+	celer := configs.NewCeler()
+	if err := celer.Init(); err != nil {
+		return err
+	}
+
+	// Set offline mode.
+	buildtools.Offline = celer.Global.Offline
+	configs.Offline = celer.Global.Offline
+
 	commands := []Command{
 		versionCmd{},
 		initCmd{},
@@ -62,7 +73,7 @@ func Execute() error {
 
 	// Register commands.
 	for _, cmd := range commands {
-		rootCmd.AddCommand(cmd.Command())
+		rootCmd.AddCommand(cmd.Command(celer))
 	}
 
 	return rootCmd.Execute()

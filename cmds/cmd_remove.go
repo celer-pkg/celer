@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -21,23 +20,13 @@ type removeCmd struct {
 	removeCache bool
 }
 
-func (r removeCmd) Command() *cobra.Command {
+func (r removeCmd) Command(celer *configs.Celer) *cobra.Command {
+	r.celer = celer
 	command := &cobra.Command{
 		Use:   "remove",
 		Short: "Remove a package.",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			r.celer = configs.NewCeler()
-			if err := r.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
-			// Set offline mode.
-			buildtools.Offline = r.celer.Global.Offline
-			configs.Offline = r.celer.Global.Offline
-
 			// Use build_type from `celer.toml` if not specified.
 			if r.buildType == "" {
 				r.buildType = r.celer.BuildType()
@@ -54,7 +43,7 @@ func (r removeCmd) Command() *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().StringVarP(&r.buildType, "build-type", "b", "release", "uninstall package with specified build type.")
+	command.Flags().StringVarP(&r.buildType, "build-type", "b", r.celer.Global.BuildType, "uninstall package with specified build type.")
 	command.Flags().BoolVarP(&r.removeCache, "remove-cache", "c", false, "uninstall package along with build cache.")
 	command.Flags().BoolVarP(&r.recurse, "recurse", "r", false, "uninstall package along with its depedencies.")
 	command.Flags().BoolVarP(&r.purge, "purge", "p", false, "uninstall package along with its package files.")

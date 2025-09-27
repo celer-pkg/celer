@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/dirs"
@@ -29,22 +28,13 @@ type treeCmd struct {
 	hideDevDep bool
 }
 
-func (t treeCmd) Command() *cobra.Command {
+func (t treeCmd) Command(celer *configs.Celer) *cobra.Command {
+	t.celer = celer
 	command := &cobra.Command{
 		Use:   "tree",
 		Short: "Show the dependencies of a port or a project.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			t.celer = configs.NewCeler()
-			if err := t.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
-			// Set offline mode.
-			buildtools.Offline = t.celer.Global.Offline
-			configs.Offline = t.celer.Global.Offline
-
 			t.tree(args[0])
 		},
 		ValidArgsFunction: t.completion,

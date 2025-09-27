@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"fmt"
@@ -20,22 +19,12 @@ type autoremoveCmd struct {
 	removeCache        bool
 }
 
-func (a autoremoveCmd) Command() *cobra.Command {
+func (a autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
+	a.celer = celer
 	command := &cobra.Command{
 		Use:   "autoremove",
 		Short: "Tidy up installation directory - removing project's unnecessary files.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Init celer.
-			a.celer = configs.NewCeler()
-			if err := a.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
-			}
-
-			// Set offline mode.
-			buildtools.Offline = a.celer.Global.Offline
-			configs.Offline = a.celer.Global.Offline
-
 			if err := a.autoremove(); err != nil {
 				configs.PrintError(err, "failed to autoremove.")
 				return
