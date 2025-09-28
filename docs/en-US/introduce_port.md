@@ -16,7 +16,7 @@ supported_hosts     = [...]                 # optional field
 
 [[build_configs]]
 pattern             = "*linux*"             # optional field, default is "*"
-build_system        = "cmake"               # should be **cmake**, **makefiles**, **b2**, **ninja**, **meson**, etc.
+build_system        = "cmake"               # should be **cmake**, **makefiles**, **b2**, **meson**, etc.
 build_tools         = [...]                 # optional field
 library_type        = "shared"              # optional field, should be **shared**, **static**, and default is **shared**.
 build_shared        = "--with-shared"       # optional field
@@ -85,7 +85,7 @@ The following are fields and their descriptions:
 
 ### 1.2.2 build_system
 
-&emsp;&emsp;Different build tools vary significantly in their cross-compilation configurations. To simplify usage, Celer abstracts them into unified buildsystem options, currently supporting **b2**, **cmake**, **gyp**, **makefiles**, **meson**, and **ninja**. Future versions will extend support to more tools like **bazel**, **msbuild**, and **scons**.
+&emsp;&emsp;Different build tools vary significantly in their cross-compilation configurations. To simplify usage, Celer abstracts them into unified buildsystem options, currently supporting **b2**, **cmake**, **gyp**, **makefiles** and **meson**. Future versions will extend support to more tools like **bazel**, **msbuild**, and **scons**.
 
 ### 1.2.3 build_tools
 

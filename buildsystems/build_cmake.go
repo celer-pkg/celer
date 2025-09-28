@@ -21,45 +21,16 @@ const (
 	visualStudio_14_2015 = "Visual Studio 14 2015 Win64"
 )
 
-func NewCMake(config *BuildConfig, optimize *Optimize, generator string) *cmake {
-	// Set default generator if not specified.
-	if generator == "" {
-		switch runtime.GOOS {
-		case "darwin":
-			generator = "Xcode"
-		case "linux":
-			generator = "Unix Makefiles"
-		case "windows":
-			msvcGenerator, err := detectMSVCGenerator()
-			if err != nil {
-				color.Printf(color.Red, err.Error())
-				return nil
-			}
-			generator = msvcGenerator
-		}
-	}
-
-	// Format generator name.
-	switch strings.ToLower(generator) {
-	case "ninja":
-		generator = "Ninja"
-	case "makefiles":
-		generator = "Unix Makefiles"
-	case "xcode":
-		generator = "Xcode"
-	}
-
+func NewCMake(config *BuildConfig, optimize *Optimize) *cmake {
 	return &cmake{
 		BuildConfig: config,
 		Optimize:    optimize,
-		generator:   generator,
 	}
 }
 
 type cmake struct {
 	*BuildConfig
 	*Optimize
-	generator string // e.g. Ninja, Unix Makefiles, Visual Studio 16 2019, etc.
 }
 
 func (c cmake) Name() string {
@@ -68,6 +39,9 @@ func (c cmake) Name() string {
 
 func (c cmake) CheckTools() error {
 	c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "git", "cmake")
+	if c.CMakeGenerator == "Ninja" {
+		c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "ninja")
+	}
 	return buildtools.CheckTools(c.BuildConfig.BuildTools...)
 }
 
@@ -137,17 +111,28 @@ func (c cmake) configureOptions() ([]string, error) {
 }
 
 func (c cmake) configured() bool {
-	switch c.PortConfig.CrossTools.Name {
-	case "msvc":
+	if err := c.detectGenerator(); err != nil {
+		color.Printf(color.Red, "Detect generator error: %s\n", err)
+		return false
+	}
+
+	switch c.CMakeGenerator {
+	case "Ninja":
+		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
+		buildFile := filepath.Join(c.PortConfig.BuildDir, "build.ninja")
+		ruluesFile := filepath.Join(c.PortConfig.BuildDir, "rules.ninja")
+		return fileio.PathExists(cmakeCache) && fileio.PathExists(buildFile) && fileio.PathExists(ruluesFile)
+
+	case "Unix Makefiles":
+		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
+		makefile := filepath.Join(c.PortConfig.BuildDir, "Makefile")
+		return fileio.PathExists(cmakeCache) && fileio.PathExists(makefile)
+
+	case visualStudio_17_2022, visualStudio_16_2019, visualStudio_15_2017, visualStudio_14_2015:
 		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
 		slnFile := filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".sln")
 		vcxprojFile := filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".vcxproj")
 		return fileio.PathExists(cmakeCache) && fileio.PathExists(slnFile) && fileio.PathExists(vcxprojFile)
-
-	case "gcc":
-		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
-		makefile := filepath.Join(c.PortConfig.BuildDir, "Makefile")
-		return fileio.PathExists(cmakeCache) && fileio.PathExists(makefile)
 	}
 
 	return false
@@ -167,10 +152,10 @@ func (c cmake) Configure(options []string) error {
 	// Assemble args into a single command string.
 	joinedArgs := strings.Join(options, " ")
 	var command string
-	if c.generator == "" {
+	if c.CMakeGenerator == "" {
 		command = fmt.Sprintf("cmake -S%s -B%s %s", c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
 	} else {
-		command = fmt.Sprintf("cmake -G%q -S%s -B%s %s", c.generator, c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
+		command = fmt.Sprintf("cmake -G%q -S%s -B%s %s", c.CMakeGenerator, c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
 	}
 
 	// Execute configure.
@@ -258,6 +243,29 @@ func (c cmake) formatBuildType() string {
 	default:
 		return "Release"
 	}
+}
+
+func (c *cmake) detectGenerator() error {
+	if c.CMakeGenerator == "" {
+		switch runtime.GOOS {
+		case "darwin":
+			c.CMakeGenerator = "Xcode"
+		case "linux":
+			c.CMakeGenerator = "Unix Makefiles"
+		case "windows":
+			msvcGenerator, err := detectMSVCGenerator()
+			if err != nil {
+				return err
+			}
+			c.CMakeGenerator = msvcGenerator
+		}
+	} else if c.CMakeGenerator != "Ninja" &&
+		c.CMakeGenerator != "Unix Makefiles" &&
+		c.CMakeGenerator != "Xcode" {
+		return fmt.Errorf("unsupported cmake generator: %q", c.CMakeGenerator)
+	}
+
+	return nil
 }
 
 func detectMSVCGenerator() (string, error) {

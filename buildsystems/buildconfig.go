@@ -16,9 +16,9 @@ import (
 	"strings"
 )
 
-const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, ninja, qmake"
+const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, qmake"
 
-var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "ninja", "qmake"}
+var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "qmake"}
 
 type Optimize struct {
 	Debug          string `toml:"debug"`
@@ -103,6 +103,12 @@ type BuildConfig struct {
 	BuildSystem_Windows string `toml:"build_system_windows,omitempty"`
 	BuildSystem_Linux   string `toml:"build_system_linux,omitempty"`
 	BuildSystem_Darwin  string `toml:"build_system_darwin,omitempty"`
+
+	// CMakeGenerator
+	CMakeGenerator         string `toml:"cmake_generator,omitempty"`
+	CMakeGenerator_Windows string `toml:"cmake_generator_windows,omitempty"`
+	CMakeGenerator_Linux   string `toml:"cmake_generator_linux,omitempty"`
+	CMakeGenerator_Darwin  string `toml:"cmake_generator_darwin,omitempty"`
 
 	// Build Tools
 	BuildTools         []string `toml:"build_tools,omitempty"`
@@ -563,9 +569,7 @@ func (b *BuildConfig) InitBuildSystem(optimize *Optimize) error {
 	case "gyp":
 		b.buildSystem = NewGyp(b, optimize)
 	case "cmake":
-		b.buildSystem = NewCMake(b, optimize, "")
-	case "ninja":
-		b.buildSystem = NewNinja(b, optimize)
+		b.buildSystem = NewCMake(b, optimize)
 	case "makefiles":
 		b.buildSystem = NewMakefiles(b, optimize)
 	case "meson":

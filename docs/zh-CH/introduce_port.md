@@ -16,7 +16,7 @@ supported_hosts     = [...]                 # optional field
 
 [[build_configs]]
 pattern             = "*linux*"             # optional field, default is "*"
-build_system        = "cmake"               # should be **cmake**, **makefiles**, **b2**, **ninja**, **meson**, etc.
+build_system        = "cmake"               # should be **cmake**, **makefiles**, **b2**, **meson**, etc.
 build_tools         = [...]                 # optional field
 library_type        = "shared"              # optional field, should be **shared**, **static**, and default is **shared**.
 build_shared        = "--with-shared"       # optional field
@@ -85,7 +85,7 @@ options = [
 
 ### 1.2.2 build_system
 
-&emsp;&emsp;不同的构建工具在交叉编译配置上有显著差异。为了简化使用，Celer 抽象出统一的构建系统选项，目前支持 **b2**, **cmake**, **gyp**, **makefiles**, **meson**, 和 **ninja**。未来版本将扩展支持更多工具，如 **bazel**, **msbuild** 和 **scons**等。 
+&emsp;&emsp;不同的构建工具在交叉编译配置上有显著差异。为了简化使用，Celer 抽象出统一的构建系统选项，目前支持 **b2**, **cmake**, **gyp**, **makefiles**, 和**meson**。未来版本将扩展支持更多工具，如 **bazel**, **msbuild** 和 **scons**等。 
 
 ### 1.2.3 build_tools
 

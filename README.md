@@ -12,7 +12,7 @@
 | Feature | Description |
 | --- | --- |
 | **Download/configure build tools** | Automatically download and configure tools based on the selected platform and target libraries. |
-| **Host libraries compiled by various build tools** | Support building and hosting libraries that based on **cmake**, **makefiles**, **ninja**, **meson**, etc. |
+| **Host libraries compiled by various build tools** | Support building and hosting libraries that based on **cmake**, **makefiles**, **meson**, etc. |
 | **Generate CMake configs** | Celer can generate CMake configs for none-CMake-based project. |
 | **Build artifacts cache managerment** | Celer supports precise build artifact management with a shared folder on the local network.This can avoid redundant compilation and improve development efficiency. Furthermore, Celer supports retrieving the artifact of a library without source code. This is quite usefull for some private libraries. |
 | **Projects management and customization of third-party Libraries** | Celer supports multi-project management, allowing project-specific customization of third-party libraries, including version and compilation options. It also enables the management of internal libraries within each project's folder. |

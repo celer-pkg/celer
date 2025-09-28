@@ -11,6 +11,7 @@ func (b *BuildConfig) mergePlatform() {
 	switch b.buildTarget() {
 	case "windows":
 		b.BuildSystem = expr.If(b.BuildSystem_Windows != "", b.BuildSystem_Windows, b.BuildSystem)
+		b.CMakeGenerator = expr.If(b.CMakeGenerator_Windows != "", b.CMakeGenerator_Windows, b.CMakeGenerator)
 		b.BuildTools = expr.If(len(b.BuildTools_Windows) > 0, b.BuildTools_Windows, b.BuildTools)
 		b.LibraryType = expr.If(b.LibraryType_Windows != "", b.LibraryType_Windows, b.LibraryType)
 		b.BuildShared = expr.If(len(b.BuildShared_Windows) > 0, b.BuildShared_Windows, b.BuildShared)
@@ -36,6 +37,7 @@ func (b *BuildConfig) mergePlatform() {
 
 	case "linux":
 		b.BuildSystem = expr.If(b.BuildSystem_Linux != "", b.BuildSystem_Linux, b.BuildSystem)
+		b.CMakeGenerator = expr.If(b.CMakeGenerator_Linux != "", b.CMakeGenerator_Linux, b.CMakeGenerator)
 		b.BuildTools = expr.If(len(b.BuildTools_Linux) > 0, b.BuildTools_Linux, b.BuildTools)
 		b.LibraryType = expr.If(b.LibraryType_Linux != "", b.LibraryType_Linux, b.LibraryType)
 		b.BuildShared = expr.If(len(b.BuildShared_Linux) > 0, b.BuildShared_Linux, b.BuildShared)
@@ -61,6 +63,7 @@ func (b *BuildConfig) mergePlatform() {
 
 	case "darwin":
 		b.BuildSystem = expr.If(b.BuildSystem_Darwin != "", b.BuildSystem_Darwin, b.BuildSystem)
+		b.CMakeGenerator = expr.If(b.CMakeGenerator_Darwin != "", b.CMakeGenerator_Darwin, b.CMakeGenerator)
 		b.BuildTools = expr.If(len(b.BuildTools_Darwin) > 0, b.BuildTools_Darwin, b.BuildTools)
 		b.LibraryType = expr.If(b.LibraryType_Darwin != "", b.LibraryType_Darwin, b.LibraryType)
 		b.BuildShared = expr.If(len(b.BuildShared_Darwin) > 0, b.BuildShared_Darwin, b.BuildShared)
