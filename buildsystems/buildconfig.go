@@ -16,9 +16,9 @@ import (
 	"strings"
 )
 
-const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, ninja, qmake"
+const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, qmake"
 
-var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "ninja", "qmake"}
+var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "qmake"}
 
 type Optimize struct {
 	Debug          string `toml:"debug"`
@@ -570,8 +570,6 @@ func (b *BuildConfig) InitBuildSystem(optimize *Optimize) error {
 		b.buildSystem = NewGyp(b, optimize)
 	case "cmake":
 		b.buildSystem = NewCMake(b, optimize)
-	case "ninja":
-		b.buildSystem = NewNinja(b, optimize)
 	case "makefiles":
 		b.buildSystem = NewMakefiles(b, optimize)
 	case "meson":
