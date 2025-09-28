@@ -95,9 +95,9 @@ func (b b2) Configure(options []string) error {
 		for scanner.Scan() {
 			line := scanner.Text()
 			if strings.Contains(line, "using gcc ;") {
-				line = fmt.Sprintf("using gcc : : %sg++ ;", b.PortConfig.CrossTools.CrosstoolPrefix)
+				line = fmt.Sprintf("using gcc : : %sg++ ;", b.PortConfig.Toolchain.CrosstoolPrefix)
 			} else if strings.Contains(line, "using msvc ;") {
-				line = fmt.Sprintf("using msvc : %s : %s ;", b.msvcVersion(), b.PortConfig.CrossTools.CXX)
+				line = fmt.Sprintf("using msvc : %s : %s ;", b.msvcVersion(), b.PortConfig.Toolchain.CXX)
 			}
 			buffer.WriteString(line + "\n")
 		}
@@ -115,7 +115,7 @@ func (b b2) buildOptions() ([]string, error) {
 	var options = slices.Clone(b.Options)
 
 	// MSVC need to specify its version extactly.
-	if b.PortConfig.CrossTools.Name == "msvc" {
+	if b.PortConfig.Toolchain.Name == "msvc" {
 		options = append(options, fmt.Sprintf("toolset=msvc-%s architecture=x86 address-model=64 install", b.msvcVersion()))
 	} else {
 		options = append(options, "toolset=gcc install")
@@ -194,9 +194,9 @@ func (b b2) Install(options []string) error {
 
 func (b b2) msvcVersion() string {
 	// Split by "." to get major, minor, patch
-	parts := strings.Split(b.PortConfig.CrossTools.Version, ".")
+	parts := strings.Split(b.PortConfig.Toolchain.Version, ".")
 	if len(parts) < 2 {
-		panic(fmt.Errorf("invalid MSVC version format: %s", b.PortConfig.CrossTools.Version))
+		panic(fmt.Errorf("invalid MSVC version format: %s", b.PortConfig.Toolchain.Version))
 	}
 
 	// Parse major and minor

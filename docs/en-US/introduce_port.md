@@ -118,8 +118,8 @@ When **library_type** is set to **shared**, try to read the value in **build_sha
 ### 1.2.6 c_standard, cxx_standard
 
 &emsp;&emsp;Optional, default is empty, they are used to specify the c and c++ standard respectively.
-- c_standard's candicated values：**C89**、**C99**、**C11**、**C17**；  
-- cxx_standard's candicated values：**C++98**、**C++03**、**C++11**、**C++14**、**C++17**、**C++20**；
+- c_standard's candicated values：**c90**, **c99**, **c11**, **c17**, **c23**；  
+- cxx_standard's candicated values：**c++11**、**c++14**、**c++17**、**c++20**；
 
 ### 1.2.7 envs
 &emsp;&emsp;Optional, you can define some environment variables here, such as **CXXFLAGS=-fPIC**, or even compile some libraries need to set specified environment variables, such as: the **libxext** library needs to set the environment variable: **"xorg_cv_malloc0_returns_null=yes"** when cross-compiling to the aarch64 platform, the purpose is to mask the compiler check error report;  

@@ -130,7 +130,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	}
 
 	// Remove common cross compile args for native build.
-	if m.PortConfig.CrossTools.Native || m.BuildConfig.DevDep {
+	if m.PortConfig.Toolchain.Native || m.BuildConfig.DevDep {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.HasPrefix(element, "--host=") ||
 				strings.HasPrefix(element, "--sysroot=") ||
@@ -143,7 +143,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 		})
 	} else {
 		if m.shouldAddHost(options) {
-			options = append(options, fmt.Sprintf("--host=%s", m.PortConfig.CrossTools.Host))
+			options = append(options, fmt.Sprintf("--host=%s", m.PortConfig.Toolchain.Host))
 		}
 	}
 
@@ -246,10 +246,10 @@ func (m makefiles) Configure(options []string) error {
 	}
 
 	// In windows, we set msvc related environments.
-	if m.DevDep && m.PortConfig.CrossTools.Name != "msvc" {
-		m.PortConfig.CrossTools.ClearEnvs()
+	if m.DevDep && m.PortConfig.Toolchain.Name != "msvc" {
+		m.PortConfig.Toolchain.ClearEnvs()
 	} else {
-		m.PortConfig.CrossTools.SetEnvs(m.BuildConfig)
+		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)
 	}
 
 	// Set optimization flags with build_type.

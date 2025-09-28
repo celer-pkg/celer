@@ -28,22 +28,22 @@ type Optimize struct {
 }
 
 type PortConfig struct {
-	LibName       string      // like: `ffmpeg`
-	LibVersion    string      // like: `4.4`
-	Archive       string      // like: `ffmpeg-4.4.tar.xz`
-	Url           string      // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
-	HostName      string      // like: `x86_64-linux`, `x86_64-windows`
-	ProjectName   string      // toml filename in conf/projects.
-	CrossTools    *CrossTools // cross tools like CC, CXX, FC, RANLIB, AR, LD, NM, OBJDUMP, STRIP
-	SrcDir        string      // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
-	RepoDir       string      // for example: ${workspace}/buildtrees/icu@75.1/src
-	BuildDir      string      // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
-	PackageDir    string      // for example: ${workspace}/packages/ffmpeg-3.4.13-x86_64-linux-20.04-Release
-	LibraryFolder string      // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
-	IncludeDirs   []string    // headers not in standard include path.
-	LibDirs       []string    // libs not in standard lib path.
-	JobNum        int         // number of jobs to run in parallel
-	DevDep        bool        // whether dev dependency
+	LibName       string     // like: `ffmpeg`
+	LibVersion    string     // like: `4.4`
+	Archive       string     // like: `ffmpeg-4.4.tar.xz`
+	Url           string     // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
+	HostName      string     // like: `x86_64-linux`, `x86_64-windows`
+	ProjectName   string     // toml filename in conf/projects.
+	Toolchain     *Toolchain // same with `Toolchain` in config/toolchain.go
+	SrcDir        string     // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
+	RepoDir       string     // for example: ${workspace}/buildtrees/icu@75.1/src
+	BuildDir      string     // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
+	PackageDir    string     // for example: ${workspace}/packages/ffmpeg-3.4.13-x86_64-linux-20.04-Release
+	LibraryFolder string     // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
+	IncludeDirs   []string   // headers not in standard include path.
+	LibDirs       []string   // libs not in standard lib path.
+	JobNum        int        // number of jobs to run in parallel
+	DevDep        bool       // whether dev dependency
 }
 
 func (p PortConfig) nameVersionDesc() string {
@@ -428,29 +428,29 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	b.fillPlaceHolders()
 
 	// nobuild config do not have crosstool.
-	if b.PortConfig.CrossTools != nil {
+	if b.PortConfig.Toolchain != nil {
 		b.setupEnvs()
 		defer b.rollbackEnvs()
 
 		// Create a symlink in the sysroot that points to the installed directory,
 		// then the pc file would be found by other libraries.
-		if b.PortConfig.CrossTools.RootFS != "" {
+		if b.PortConfig.Toolchain.RootFS != "" {
 			// This symblink is used to find library via toolchain_file.cmake
 			if err := b.checkSymlink(dirs.InstalledDir,
-				filepath.Join(b.PortConfig.CrossTools.RootFS, "installed"),
+				filepath.Join(b.PortConfig.Toolchain.RootFS, "installed"),
 			); err != nil {
 				return err
 			}
 
 			// Create tmp dir in rootfs if not exist.
-			rootfsTmp := filepath.Join(b.PortConfig.CrossTools.RootFS, "tmp")
+			rootfsTmp := filepath.Join(b.PortConfig.Toolchain.RootFS, "tmp")
 			if err := os.MkdirAll(rootfsTmp, os.ModePerm); err != nil {
 				return err
 			}
 
 			// This symblink is used to find library during build.
 			if err := b.checkSymlink(dirs.TmpDepsDir,
-				filepath.Join(b.PortConfig.CrossTools.RootFS, "tmp", "deps")); err != nil {
+				filepath.Join(b.PortConfig.Toolchain.RootFS, "tmp", "deps")); err != nil {
 				return err
 			}
 		}
@@ -527,7 +527,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	}
 
 	// Fixup pkg config files.
-	var prefix = expr.If(b.PortConfig.CrossTools.RootFS == "" || b.DevDep,
+	var prefix = expr.If(b.PortConfig.Toolchain.RootFS == "" || b.DevDep,
 		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.HostName+"-dev"),
 		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.LibraryFolder),
 	)
@@ -541,13 +541,13 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	if b.buildSystem.Name() == "prebuilt" {
 		b.LibraryType = "interface"
 	}
-	cmakeConfig, err := generator.FindMatchedConfig(portDir, preferedPortDir, b.PortConfig.CrossTools.SystemName, b.LibraryType)
+	cmakeConfig, err := generator.FindMatchedConfig(portDir, preferedPortDir, b.PortConfig.Toolchain.SystemName, b.LibraryType)
 	if err != nil {
 		return fmt.Errorf("find matched config %s error: %w", b.PortConfig.nameVersionDesc(), err)
 	}
 	if cmakeConfig != nil {
 		cmakeConfig.Version = b.PortConfig.LibVersion
-		cmakeConfig.SystemName = b.PortConfig.CrossTools.SystemName
+		cmakeConfig.SystemName = b.PortConfig.Toolchain.SystemName
 		cmakeConfig.Libname = b.PortConfig.LibName
 		cmakeConfig.BuildType = b.BuildType
 		if err := cmakeConfig.Generate(b.PortConfig.PackageDir); err != nil {
@@ -647,7 +647,7 @@ func (b *BuildConfig) fillPlaceHolders() {
 			if b.DevDep {
 				b.Options = slices.Delete(b.Options, index, index+1)
 			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${HOST}", b.PortConfig.CrossTools.Host)
+				b.Options[index] = strings.ReplaceAll(argument, "${HOST}", b.PortConfig.Toolchain.Host)
 			}
 		}
 
@@ -655,7 +655,7 @@ func (b *BuildConfig) fillPlaceHolders() {
 			if b.DevDep {
 				b.Options = slices.Delete(b.Options, index, index+1)
 			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${SYSTEM_NAME}", strings.ToLower(b.PortConfig.CrossTools.SystemName))
+				b.Options[index] = strings.ReplaceAll(argument, "${SYSTEM_NAME}", strings.ToLower(b.PortConfig.Toolchain.SystemName))
 			}
 		}
 
@@ -663,7 +663,7 @@ func (b *BuildConfig) fillPlaceHolders() {
 			if b.DevDep {
 				b.Options = slices.Delete(b.Options, index, index+1)
 			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${SYSTEM_PROCESSOR}", b.PortConfig.CrossTools.SystemProcessor)
+				b.Options[index] = strings.ReplaceAll(argument, "${SYSTEM_PROCESSOR}", b.PortConfig.Toolchain.SystemProcessor)
 			}
 		}
 
@@ -671,7 +671,7 @@ func (b *BuildConfig) fillPlaceHolders() {
 			if b.DevDep {
 				b.Options = slices.Delete(b.Options, index, index+1)
 			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${SYSROOT}", b.PortConfig.CrossTools.RootFS)
+				b.Options[index] = strings.ReplaceAll(argument, "${SYSROOT}", b.PortConfig.Toolchain.RootFS)
 			}
 		}
 
@@ -679,7 +679,7 @@ func (b *BuildConfig) fillPlaceHolders() {
 			if b.DevDep {
 				b.Options = slices.Delete(b.Options, index, index+1)
 			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${CROSSTOOL_PREFIX}", b.PortConfig.CrossTools.CrosstoolPrefix)
+				b.Options[index] = strings.ReplaceAll(argument, "${CROSSTOOL_PREFIX}", b.PortConfig.Toolchain.CrosstoolPrefix)
 			}
 		}
 
@@ -742,11 +742,11 @@ func (b BuildConfig) replaceSource(archive, url string) error {
 }
 
 func (b BuildConfig) replaceHolders(content string) string {
-	content = strings.ReplaceAll(content, "${SYSTEM_NAME}", b.PortConfig.CrossTools.SystemName)
-	content = strings.ReplaceAll(content, "${HOST}", b.PortConfig.CrossTools.Host)
-	content = strings.ReplaceAll(content, "${SYSTEM_PROCESSOR}", b.PortConfig.CrossTools.SystemProcessor)
-	content = strings.ReplaceAll(content, "${SYSROOT}", b.PortConfig.CrossTools.RootFS)
-	content = strings.ReplaceAll(content, "${CROSSTOOL_PREFIX}", b.PortConfig.CrossTools.CrosstoolPrefix)
+	content = strings.ReplaceAll(content, "${SYSTEM_NAME}", b.PortConfig.Toolchain.SystemName)
+	content = strings.ReplaceAll(content, "${HOST}", b.PortConfig.Toolchain.Host)
+	content = strings.ReplaceAll(content, "${SYSTEM_PROCESSOR}", b.PortConfig.Toolchain.SystemProcessor)
+	content = strings.ReplaceAll(content, "${SYSROOT}", b.PortConfig.Toolchain.RootFS)
+	content = strings.ReplaceAll(content, "${CROSSTOOL_PREFIX}", b.PortConfig.Toolchain.CrosstoolPrefix)
 	content = strings.ReplaceAll(content, "${BUILD_DIR}", b.PortConfig.BuildDir)
 	content = strings.ReplaceAll(content, "${PACKAGE_DIR}", b.PortConfig.PackageDir)
 	content = strings.ReplaceAll(content, "${DEPS_DEV_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev"))
@@ -847,17 +847,17 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 		// Append CFLAGS/CXXFLAGS/LDFLAGS
 		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
-	} else if b.PortConfig.CrossTools.RootFS != "" {
+	} else if b.PortConfig.Toolchain.RootFS != "" {
 		// Update CFLAGS/CXXFLAGS
 		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
-		for _, dir := range b.PortConfig.CrossTools.IncludeDirs {
-			appendIncludeDir(filepath.Join(b.PortConfig.CrossTools.RootFS, dir))
+		for _, dir := range b.PortConfig.Toolchain.IncludeDirs {
+			appendIncludeDir(filepath.Join(b.PortConfig.Toolchain.RootFS, dir))
 		}
 
 		// Append LDFLAGS
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
-		for _, dir := range b.PortConfig.CrossTools.LibDirs {
-			appendLibDir(filepath.Join(b.PortConfig.CrossTools.RootFS, dir))
+		for _, dir := range b.PortConfig.Toolchain.LibDirs {
+			appendLibDir(filepath.Join(b.PortConfig.Toolchain.RootFS, dir))
 		}
 	}
 	appendEnv("CFLAGS", strings.Join(cflags, " "))
@@ -905,7 +905,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 
 func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 	// Read MSVC environment variables.
-	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.CrossTools.MSVC.VCVars)
+	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.Toolchain.MSVC.VCVars)
 	executor := cmd.NewExecutor("read msvc envs", command)
 	output, err := executor.ExecuteOutput()
 	if err != nil {

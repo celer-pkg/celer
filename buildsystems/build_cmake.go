@@ -63,7 +63,7 @@ func (c cmake) configureOptions() ([]string, error) {
 	// Set CMAKE_INSTALL_PREFIX.
 	options = append(options, "-DCMAKE_INSTALL_PREFIX="+c.PortConfig.PackageDir)
 
-	if c.PortConfig.CrossTools.Name == "msvc" {
+	if c.PortConfig.Toolchain.Name == "msvc" {
 		// MSVC doesn't support set `CMAKE_BUILD_TYPE` or `--config` during configure.
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.Contains(element, "CMAKE_BUILD_TYPE") || strings.Contains(element, "--config")
@@ -97,8 +97,8 @@ func (c cmake) configureOptions() ([]string, error) {
 
 	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.
 	findRootPaths := []string{filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder)}
-	if c.PortConfig.CrossTools.RootFS != "" {
-		findRootPaths = append(findRootPaths, c.PortConfig.CrossTools.RootFS)
+	if c.PortConfig.Toolchain.RootFS != "" {
+		findRootPaths = append(findRootPaths, c.PortConfig.Toolchain.RootFS)
 	}
 	options = append(options, fmt.Sprintf("-DCMAKE_FIND_ROOT_PATH=%q", strings.Join(findRootPaths, ";")))
 
@@ -173,7 +173,7 @@ func (c cmake) Configure(options []string) error {
 func (c cmake) buildOptions() ([]string, error) {
 	// CMAKE_BUILD_TYPE is useless for MSVC, use --config Debug/Relase instead.
 	var options []string
-	if c.PortConfig.CrossTools.Name == "msvc" {
+	if c.PortConfig.Toolchain.Name == "msvc" {
 		c.BuildType = c.formatBuildType()
 		options = append(options, "--config", c.BuildType)
 	}
@@ -201,7 +201,7 @@ func (c cmake) Build(options []string) error {
 func (c cmake) installOptions() ([]string, error) {
 	// CMAKE_BUILD_TYPE is useless for MSVC, use --config Debug/Relase instead.
 	var options []string
-	if c.PortConfig.CrossTools.Name == "msvc" {
+	if c.PortConfig.Toolchain.Name == "msvc" {
 		c.BuildType = c.formatBuildType()
 		options = append(options, "--config", c.BuildType)
 	}

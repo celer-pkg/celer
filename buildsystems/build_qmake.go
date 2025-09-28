@@ -58,7 +58,7 @@ func (m qmake) configureOptions() ([]string, error) {
 	var options = slices.Clone(m.Options)
 
 	// Remove common cross compile args for native build.
-	if m.PortConfig.CrossTools.Native || m.BuildConfig.DevDep {
+	if m.PortConfig.Toolchain.Native || m.BuildConfig.DevDep {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.Contains(element, "-sysroot=")
 		})
@@ -96,10 +96,10 @@ func (m qmake) configured() bool {
 
 func (m qmake) Configure(options []string) error {
 	// In windows, we set msvc related environments.
-	if m.DevDep && m.PortConfig.CrossTools.Name != "msvc" {
-		m.PortConfig.CrossTools.ClearEnvs()
+	if m.DevDep && m.PortConfig.Toolchain.Name != "msvc" {
+		m.PortConfig.Toolchain.ClearEnvs()
 	} else {
-		m.PortConfig.CrossTools.SetEnvs(m.BuildConfig)
+		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)
 	}
 
 	// Set optimization flags with build_type.

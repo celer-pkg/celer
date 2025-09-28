@@ -19,6 +19,10 @@ type Toolchain struct {
 	Host            string `toml:"host"`              // It would be "x86_64-linux-gnu", "aarch64-linux-gnu" and so on.
 	CrosstoolPrefix string `toml:"crosstool_prefix"`  // It would be like "x86_64-linux-gnu-"
 
+	// C/C++ standard.
+	CStandard   string `toml:"c_standard,omitempty"`
+	CXXStandard string `toml:"cxx_standard,omitempty"`
+
 	// Mandatory fields.
 	CC  string `toml:"cc"`  // C language compiler.
 	CXX string `toml:"cxx"` // C++ language compiler.
@@ -105,6 +109,21 @@ func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
+	}
+
+	// Write C/C++ language standard.
+	if t.CStandard != "" || t.CXXStandard != "" {
+		toolchain.WriteString("\n# C/CXX language standard.\n")
+
+		if t.CStandard != "" {
+			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_C_STANDARD", strings.TrimPrefix(t.CStandard, "c"))
+			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_C_STANDARD_REQUIRED", "ON")
+		}
+
+		if t.CXXStandard != "" {
+			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_CXX_STANDARD", strings.TrimPrefix(t.CXXStandard, "c++"))
+			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_CXX_STANDARD_REQUIRED", "ON")
+		}
 	}
 
 	return nil

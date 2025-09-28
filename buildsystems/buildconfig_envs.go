@@ -4,6 +4,7 @@ import (
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
@@ -87,7 +88,7 @@ func (b *BuildConfig) setupEnvs() {
 	}
 
 	// This allows the bin to locate the libraries in the relative lib dir.
-	if strings.ToLower(b.PortConfig.CrossTools.SystemName) == "linux" &&
+	if strings.ToLower(b.PortConfig.Toolchain.SystemName) == "linux" &&
 		b.buildSystem.Name() == "makefiles" {
 		b.envBackup.setenv("LDFLAGS", env.JoinSpace("-Wl,-rpath=\\$$ORIGIN/../lib", os.Getenv("LDFLAGS")))
 	}
@@ -159,19 +160,19 @@ func (b BuildConfig) setupPkgConfig() {
 			// to make sure pkgconf can work, we need to create a virtual rootfs for pkgconf.
 			sysrootDir = dirs.WorkspaceDir
 			pathDivider = ":"
-		} else if b.PortConfig.CrossTools.RootFS != "" {
+		} else if b.PortConfig.Toolchain.RootFS != "" {
 			// PKG_CONFIG related.
-			for _, configPath := range b.PortConfig.CrossTools.PkgConfigPath {
+			for _, configPath := range b.PortConfig.Toolchain.PkgConfigPath {
 				configLibDirs = append(configLibDirs, filepath.Join(
-					b.PortConfig.CrossTools.RootFS, configPath,
+					b.PortConfig.Toolchain.RootFS, configPath,
 				))
 			}
 
-			sysrootDir = b.PortConfig.CrossTools.RootFS
+			sysrootDir = b.PortConfig.Toolchain.RootFS
 			pathDivider = ":"
 
 			// Tmpdeps dir is a symlink in rootfs.
-			rootfs := b.PortConfig.CrossTools.RootFS
+			rootfs := b.PortConfig.Toolchain.RootFS
 			tmpDepsDir := filepath.Join(rootfs, "tmp", "deps", b.PortConfig.LibraryFolder)
 
 			// Append pkgconfig with tmp/deps directory.
@@ -190,25 +191,31 @@ func (b BuildConfig) setupPkgConfig() {
 
 func (b *BuildConfig) setLanguageStandards() {
 	// Set C standard.
-	if b.CStandard != "" {
+	cstandard := expr.If(b.CStandard != "", b.CStandard, b.PortConfig.Toolchain.CStandard)
+	if cstandard != "" {
 		var cflag string
-		switch b.PortConfig.CrossTools.Name {
+		switch b.PortConfig.Toolchain.Name {
 		case "msvc":
 			cflag = "/std:" + b.CStandard
 		case "gcc":
 			cflag = "-std=" + b.CStandard
+		default:
+			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
 		}
 		b.envBackup.setenv("CFLAGS", env.JoinSpace(cflag, os.Getenv("CFLAGS")))
 	}
 
 	// Set C++ standard.
-	if b.CXXStandard != "" {
+	cxxstandard := expr.If(b.CXXStandard != "", b.CXXStandard, b.PortConfig.Toolchain.CXXStandard)
+	if cxxstandard != "" {
 		var cxxflag string
-		switch b.PortConfig.CrossTools.Name {
+		switch b.PortConfig.Toolchain.Name {
 		case "msvc":
 			cxxflag = "/std:" + b.CXXStandard
 		case "gcc":
 			cxxflag = "-std=" + b.CXXStandard
+		default:
+			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
 		}
 		b.envBackup.setenv("CXXFLAGS", env.JoinSpace(cxxflag, os.Getenv("CXXFLAGS")))
 	}
@@ -222,22 +229,22 @@ func (b *BuildConfig) setEnvFlags() {
 		// Update CFLAGS/CXXFLAGS/LDFLAGS
 		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
-	} else if b.PortConfig.CrossTools.RootFS != "" {
+	} else if b.PortConfig.Toolchain.RootFS != "" {
 		// Set sysroot.
-		rootfs := b.PortConfig.CrossTools.RootFS
+		rootfs := b.PortConfig.Toolchain.RootFS
 		b.envBackup.setenv("SYSROOT", rootfs)
 
 		// Update CFLAGS/CXXFLAGS
 		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
-		for _, item := range b.PortConfig.CrossTools.IncludeDirs {
-			includeDir := filepath.Join(b.PortConfig.CrossTools.RootFS, item)
+		for _, item := range b.PortConfig.Toolchain.IncludeDirs {
+			includeDir := filepath.Join(b.PortConfig.Toolchain.RootFS, item)
 			b.appendIncludeDir(includeDir)
 		}
 
 		// Update LDFLAGS
 		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
-		for _, item := range b.PortConfig.CrossTools.LibDirs {
-			libDir := filepath.Join(b.PortConfig.CrossTools.RootFS, item)
+		for _, item := range b.PortConfig.Toolchain.LibDirs {
+			libDir := filepath.Join(b.PortConfig.Toolchain.RootFS, item)
 			b.appendLibDir(libDir)
 		}
 	}
