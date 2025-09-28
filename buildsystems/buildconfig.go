@@ -104,6 +104,12 @@ type BuildConfig struct {
 	BuildSystem_Linux   string `toml:"build_system_linux,omitempty"`
 	BuildSystem_Darwin  string `toml:"build_system_darwin,omitempty"`
 
+	// CMakeGenerator
+	CMakeGenerator         string `toml:"cmake_generator,omitempty"`
+	CMakeGenerator_Windows string `toml:"cmake_generator_windows,omitempty"`
+	CMakeGenerator_Linux   string `toml:"cmake_generator_linux,omitempty"`
+	CMakeGenerator_Darwin  string `toml:"cmake_generator_darwin,omitempty"`
+
 	// Build Tools
 	BuildTools         []string `toml:"build_tools,omitempty"`
 	BuildTools_Windows []string `toml:"build_tools_windows,omitempty"`
@@ -563,7 +569,7 @@ func (b *BuildConfig) InitBuildSystem(optimize *Optimize) error {
 	case "gyp":
 		b.buildSystem = NewGyp(b, optimize)
 	case "cmake":
-		b.buildSystem = NewCMake(b, optimize, "")
+		b.buildSystem = NewCMake(b, optimize)
 	case "ninja":
 		b.buildSystem = NewNinja(b, optimize)
 	case "makefiles":
