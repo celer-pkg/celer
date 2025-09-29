@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestConfigure_JobNum(t *testing.T) {
+func TestConfigure_Jobs(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -26,14 +26,14 @@ func TestConfigure_JobNum(t *testing.T) {
 	celer := NewCeler()
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
-	check(celer.SetJobNum(4))
+	check(celer.SetJobs(4))
 
-	if celer.JobNum() != 4 {
-		t.Fatalf("job num should be `4`")
+	if celer.Jobs() != 4 {
+		t.Fatalf("jobs should be `4`")
 	}
 }
 
-func TestConfigure_JobNum_Invalid(t *testing.T) {
+func TestConfigure_Jobs_Invalid(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -53,7 +53,7 @@ func TestConfigure_JobNum_Invalid(t *testing.T) {
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 
-	if err := celer.SetJobNum(-1); err != ErrInvalidJobNum {
-		t.Fatal(ErrInvalidJobNum)
+	if err := celer.SetJobs(-1); err != ErrInvalidJobs {
+		t.Fatal(ErrInvalidJobs)
 	}
 }

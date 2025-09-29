@@ -54,7 +54,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		PackageDir:    p.packageDir,
 		LibraryFolder: libraryFolder,
 		DevDep:        p.DevDep,
-		JobNum:        p.ctx.JobNum(),
+		Jobs:          p.ctx.Jobs(),
 		RepoDir:       filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 	}
 

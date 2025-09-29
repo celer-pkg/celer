@@ -22,7 +22,7 @@ type installCmd struct {
 	recurse    bool
 	storeCache bool
 	cacheToken string
-	jobNum     int
+	jobs       int
 	verbose    bool
 }
 
@@ -46,7 +46,7 @@ func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
 	flags.BoolVarP(&i.recurse, "recurse", "r", false, "Combine with --force, recursively reinstall dependencies.")
 	flags.BoolVarP(&i.storeCache, "store-cache", "s", false, "Store artifact into cache after installation.")
 	flags.StringVarP(&i.cacheToken, "cache-token", "t", "", "Combine with --store-cache, specify cache token.")
-	flags.IntVarP(&i.jobNum, "jobs", "j", i.celer.JobNum(), "The number of jobs to run in parallel.")
+	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "The number of jobs to run in parallel.")
 	flags.BoolVarP(&i.verbose, "verbose", "v", false, "Verbose detail information.")
 
 	return command
@@ -57,8 +57,8 @@ func (i installCmd) install(nameVersion string) {
 	if i.buildType != "" {
 		i.celer.Global.BuildType = i.buildType
 	}
-	if i.jobNum != i.celer.Global.JobNum {
-		i.celer.Global.JobNum = i.jobNum
+	if i.jobs != i.celer.Global.Jobs {
+		i.celer.Global.Jobs = i.jobs
 	}
 	i.celer.Global.Verbose = i.verbose
 
@@ -174,7 +174,7 @@ func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete str
 		"--force", "-f",
 		"--recurse", "-r",
 		"--store-cache", "-s",
-		"--job-num", "-j",
+		"--jobs", "-j",
 		"--verbose", "-v",
 	}
 

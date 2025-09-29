@@ -163,7 +163,7 @@ func (m meson) Configure(options []string) error {
 
 func (m meson) Build(options []string) error {
 	// Assemble command.
-	command := fmt.Sprintf("meson compile -C %s -j %d", m.PortConfig.BuildDir, m.PortConfig.JobNum)
+	command := fmt.Sprintf("meson compile -C %s -j %d", m.PortConfig.BuildDir, m.PortConfig.Jobs)
 
 	// Execute build.
 	logPath := m.getLogPath("build")

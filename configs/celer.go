@@ -33,7 +33,7 @@ type Context interface {
 	Toolchain() *Toolchain
 	WindowsKit() *WindowsKit
 	RootFS() *RootFS
-	JobNum() int
+	Jobs() int
 	Offline() bool
 	CacheDir() *CacheDir
 	Verbose() bool
@@ -45,7 +45,7 @@ func NewCeler() *Celer {
 	return &Celer{
 		configData: configData{
 			Global: global{
-				JobNum:    runtime.NumCPU(),
+				Jobs:      runtime.NumCPU(),
 				BuildType: "Release",
 			},
 		},
@@ -64,7 +64,7 @@ type global struct {
 	ConfRepo         string `toml:"conf_repo"`
 	Platform         string `toml:"platform"`
 	Project          string `toml:"project"`
-	JobNum           int    `toml:"job_num"`
+	Jobs             int    `toml:"jobs"`
 	BuildType        string `toml:"build_type"`
 	Offline          bool   `toml:"offline"`
 	Verbose          bool   `toml:"verbose"`
@@ -89,7 +89,7 @@ func (c *Celer) Init() error {
 
 		// Default global values.
 		c.configData.Global = global{
-			JobNum:    runtime.NumCPU(),
+			Jobs:      runtime.NumCPU(),
 			BuildType: "release",
 			Offline:   false,
 		}
@@ -205,16 +205,16 @@ func (c *Celer) SetBuildType(buildtype string) error {
 	return nil
 }
 
-func (c *Celer) SetJobNum(jobNum int) error {
-	if jobNum < 0 {
-		return ErrInvalidJobNum
+func (c *Celer) SetJobs(jobs int) error {
+	if jobs < 0 {
+		return ErrInvalidJobs
 	}
 
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
-	c.configData.Global.JobNum = jobNum
+	c.configData.Global.Jobs = jobs
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -376,8 +376,8 @@ func (c *Celer) readOrCreate() error {
 			return err
 		}
 
-		if c.Global.JobNum == 0 {
-			c.Global.JobNum = runtime.NumCPU()
+		if c.Global.Jobs == 0 {
+			c.Global.Jobs = runtime.NumCPU()
 		}
 
 		if c.Global.BuildType == "" {
@@ -401,8 +401,8 @@ func (c *Celer) readOrCreate() error {
 			return err
 		}
 
-		if c.Global.JobNum == 0 {
-			c.Global.JobNum = runtime.NumCPU()
+		if c.Global.Jobs == 0 {
+			c.Global.Jobs = runtime.NumCPU()
 		}
 
 		if c.Global.BuildType == "" {
@@ -558,8 +558,8 @@ func (c Celer) RootFS() *RootFS {
 	return c.platform.RootFS
 }
 
-func (c Celer) JobNum() int {
-	return c.Global.JobNum
+func (c Celer) Jobs() int {
+	return c.Global.Jobs
 }
 
 func (c Celer) Offline() bool {

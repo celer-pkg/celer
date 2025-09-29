@@ -12,7 +12,7 @@
 conf_repo = "https://gitee.com/phil-zhang/celer_conf.git"
 platform = "x86_64-linux-ubuntu-20.04.5"
 project = "project_01"
-job_num = 32
+jobs = 32
 
 [cache_dir]
 dir = "/home/test/celer_cache"
@@ -27,7 +27,7 @@ dir = "/home/test/celer_cache"
 conf_repo = "https://gitee.com/phil-zhang/celer_conf.git"
 platform = "x86_64-linux-ubuntu-20.04.5"
 project = "project_01"
-job_num = 32
+jobs = 32
 
 [cache_dir]
 dir = "/home/test/celer_cache"

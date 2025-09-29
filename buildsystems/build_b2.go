@@ -172,7 +172,7 @@ func (b b2) buildOptions() ([]string, error) {
 func (b b2) Build(options []string) error {
 	// Assemble command.
 	joinedArgs := strings.Join(options, " ")
-	command := fmt.Sprintf("%s/b2 %s -j %d", b.PortConfig.SrcDir, joinedArgs, b.PortConfig.JobNum)
+	command := fmt.Sprintf("%s/b2 %s -j %d", b.PortConfig.SrcDir, joinedArgs, b.PortConfig.Jobs)
 
 	// Execute build.
 	logPath := b.getLogPath("build")

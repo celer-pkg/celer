@@ -189,7 +189,7 @@ func (c cmake) buildOptions() ([]string, error) {
 func (c cmake) Build(options []string) error {
 	// Assemble command.
 	joinedOptions := strings.Join(options, " ")
-	command := fmt.Sprintf("cmake --build %s %s --parallel %d", c.PortConfig.BuildDir, joinedOptions, c.PortConfig.JobNum)
+	command := fmt.Sprintf("cmake --build %s %s --parallel %d", c.PortConfig.BuildDir, joinedOptions, c.PortConfig.Jobs)
 
 	// Execute build.
 	logPath := c.getLogPath("build")

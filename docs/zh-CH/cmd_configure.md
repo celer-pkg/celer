@@ -17,7 +17,7 @@ celer configure [flags]
 | --build-type	    | 配置构建类型.	                            |
 | --cache-dir       | 配置缓存目录.                             |
 | --cache-token	    | 配置缓存令牌.                             |
-| --job-num         | 配置并发任务数.                           |
+| --jobs            | 配置并发任务数.                           |
 | --offline         | 配置离线模式.                             |
 
 ## 命令示例
@@ -58,7 +58,7 @@ celer configure --cache-dir /home/xxx/cache --cache-token token_12345
 **5. 配置并发任务数**
 
 ```shell
-celer configure --job-num x
+celer configure --jobs 8
 ```
 
 >并发任务数必须大于0。

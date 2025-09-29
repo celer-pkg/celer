@@ -87,7 +87,7 @@ Then the **celer.toml** file will be generated in the workspace directory:
   conf_repo = "https://github.com/celer-pkg/test-conf.git"
   platform = ""
   project = ""
-  job_num = 16
+  jobs = 16
   build_type = "release"
 ```
 
@@ -110,7 +110,7 @@ celer configure --project=test_project_02
   conf_repo = "https://github.com/celer-pkg/test-conf.git"
   platform = "aarch64-linux-gnu-gcc-9.2"
   project = "test_project_02"
-  job_num = 16
+  jobs = 16
   build_type = "release"
 
 [cache_dir]
@@ -124,7 +124,7 @@ celer configure --project=test_project_02
 | conf_repo |  用于保存平台和项目配置的仓库URL |
 | platform |  当前工作空间所选的平台，当为空时，Celer会使用检测本地工具链来编译您的库和项目。 |
 | project |  当前工作空间所选的项目，当为空时，会创建一个名为“unname”的项目。 |
-| job_num |  Celer编译时使用的最大CPU核心数，默认值为您CPU的核心数。 |
+| jobs |  Celer编译时使用的最大CPU核心数，默认值为您CPU的核心数。 |
 | build_type | 默认值为 **release**，您也可以将其设置为 **debug**。 |
 | cache_dir | Celer支持缓存构建工件，这可以避免重复编译。[你可以将其配置为本地目录或LAN中的共享文件夹](./introduce_cache_artifacts.md)。 |
 

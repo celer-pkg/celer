@@ -17,7 +17,7 @@ celer configure [flags]
 | --build-type	    | configure build type.	                               |
 | --cache-dir       | configure cache dir.                                 |
 | --cache-token	    | configure cache token.                               |
-| --job-num         | configure job num.                                   |
+| --jobs            | configure jobs.                                      |
 | --offline         | configure offline mode.                              |
 
 ## Usage Examples
@@ -54,10 +54,10 @@ celer configure --cache-dir /home/xxx/cache --cache-token token_12345
 
 >You can confiure --cache-dir and --cache-token at the same time or individually.
 
-**5. Configure job num**
+**5. Configure jobs**
 
 ```shell
-celer configure --job-num x
+celer configure --jobs 8
 ```
 
 >The job number must be greater than zero.

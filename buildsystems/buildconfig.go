@@ -42,7 +42,7 @@ type PortConfig struct {
 	LibraryFolder string     // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
 	IncludeDirs   []string   // headers not in standard include path.
 	LibDirs       []string   // libs not in standard lib path.
-	JobNum        int        // number of jobs to run in parallel
+	Jobs          int        // number of jobs to run in parallel
 	DevDep        bool       // whether dev dependency
 }
 

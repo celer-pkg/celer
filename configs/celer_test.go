@@ -31,8 +31,8 @@ func TestCeler_Init_NewConfig(t *testing.T) {
 	if buildType := celer.BuildType(); buildType != "release" {
 		t.Errorf("BuildType() = %v, want release", buildType)
 	}
-	if jobNum := celer.JobNum(); jobNum <= 0 {
-		t.Errorf("JobNum() = %v, want positive number", jobNum)
+	if jobs := celer.Jobs(); jobs <= 0 {
+		t.Errorf("Jobs() = %v, want positive number", jobs)
 	}
 }
 
@@ -49,7 +49,7 @@ func TestCeler_Init_ExistingConfig(t *testing.T) {
 	// Create a test config.
 	existingConfig := `[global]
 	build_type = "debug"
-	job_num = 4
+	jobs = 4
 	platform = ""
 	project = ""`
 
@@ -69,8 +69,8 @@ func TestCeler_Init_ExistingConfig(t *testing.T) {
 	if buildType := celer.BuildType(); buildType != "debug" {
 		t.Errorf("BuildType() = %v, want debug", buildType)
 	}
-	if jobNum := celer.JobNum(); jobNum != 4 {
-		t.Errorf("JobNum() = %v, want 4", jobNum)
+	if jobs := celer.Jobs(); jobs != 4 {
+		t.Errorf("Jobs() = %v, want 4", jobs)
 	}
 }
 
