@@ -42,7 +42,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	p.tmpDepsDir = filepath.Join(dirs.TmpDepsDir, libraryFolder)
 
 	portConfig := buildsystems.PortConfig{
-		CrossTools:    p.crossTools(),
+		Toolchain:     p.toolchain(),
 		LibName:       p.Name,
 		LibVersion:    p.Version,
 		Archive:       p.Package.Archive,
@@ -91,7 +91,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 			p.BuildConfigs[index].Offline = p.ctx.Offline()
 			p.BuildConfigs[index].PortConfig = portConfig
 			p.BuildConfigs[index].DevDep = p.DevDep
-			p.BuildConfigs[index].Optimize = p.ctx.Optimize(p.MatchedConfig.BuildSystem, portConfig.CrossTools.Name)
+			p.BuildConfigs[index].Optimize = p.ctx.Optimize(p.MatchedConfig.BuildSystem, portConfig.Toolchain.Name)
 			if err := p.BuildConfigs[index].InitBuildSystem(p.BuildConfigs[index].Optimize); err != nil {
 				return err
 			}

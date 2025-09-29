@@ -61,9 +61,9 @@ func (g gyp) configured() bool {
 
 func (g gyp) Configure(options []string) error {
 	if g.DevDep {
-		g.PortConfig.CrossTools.ClearEnvs()
+		g.PortConfig.Toolchain.ClearEnvs()
 	} else {
-		g.PortConfig.CrossTools.SetEnvs(g.BuildConfig)
+		g.PortConfig.Toolchain.SetEnvs(g.BuildConfig)
 	}
 
 	// Set optimization flags with build_type.

@@ -322,49 +322,50 @@ func (p Port) checkPatternMatch(pattern string) bool {
 	return platformName == pattern
 }
 
-func (p Port) crossTools() *buildsystems.CrossTools {
+func (p Port) toolchain() *buildsystems.Toolchain {
 	toolchain := p.ctx.Toolchain()
 	if toolchain == nil {
 		return nil
 	}
 
-	var crossTools buildsystems.CrossTools
-	crossTools.Native = p.Native || toolchain.Name == "msvc" ||
+	var bsToolchain buildsystems.Toolchain
+	bsToolchain.Native = p.Native || toolchain.Name == "msvc" ||
 		(toolchain.Name == "gcc" && toolchain.Path == "/usr/bin")
-	crossTools.Name = toolchain.Name
-	crossTools.Version = toolchain.Version
-	crossTools.Host = toolchain.Host
-	crossTools.SystemName = toolchain.SystemName
-	crossTools.SystemProcessor = toolchain.SystemProcessor
-	crossTools.CrosstoolPrefix = toolchain.CrosstoolPrefix
+	bsToolchain.Name = toolchain.Name
+	bsToolchain.Version = toolchain.Version
+	bsToolchain.Host = toolchain.Host
+	bsToolchain.SystemName = toolchain.SystemName
+	bsToolchain.SystemProcessor = toolchain.SystemProcessor
+	bsToolchain.CrosstoolPrefix = toolchain.CrosstoolPrefix
+	bsToolchain.CStandard = toolchain.CStandard
+	bsToolchain.CXXStandard = toolchain.CXXStandard
 
 	rootfs := p.ctx.RootFS()
 	if rootfs != nil {
-		crossTools.RootFS = rootfs.fullpath
-		crossTools.PkgConfigPath = rootfs.PkgConfigPath
-		crossTools.IncludeDirs = rootfs.IncludeDirs
-		crossTools.LibDirs = rootfs.LibDirs
+		bsToolchain.RootFS = rootfs.fullpath
+		bsToolchain.PkgConfigPath = rootfs.PkgConfigPath
+		bsToolchain.IncludeDirs = rootfs.IncludeDirs
+		bsToolchain.LibDirs = rootfs.LibDirs
 	}
 
-	crossTools.Fullpath = toolchain.fullpath
-	crossTools.CC = toolchain.CC
-	crossTools.CXX = toolchain.CXX
-	crossTools.LD = toolchain.LD
-	crossTools.AS = toolchain.AS
-	crossTools.FC = toolchain.FC
-	crossTools.AR = toolchain.AR
-	crossTools.RANLIB = toolchain.RANLIB
-
-	crossTools.NM = toolchain.NM
-	crossTools.OBJCOPY = toolchain.OBJCOPY
-	crossTools.OBJDUMP = toolchain.OBJDUMP
-	crossTools.STRIP = toolchain.STRIP
-	crossTools.READELF = toolchain.READELF
+	bsToolchain.Fullpath = toolchain.fullpath
+	bsToolchain.CC = toolchain.CC
+	bsToolchain.CXX = toolchain.CXX
+	bsToolchain.LD = toolchain.LD
+	bsToolchain.AS = toolchain.AS
+	bsToolchain.FC = toolchain.FC
+	bsToolchain.AR = toolchain.AR
+	bsToolchain.RANLIB = toolchain.RANLIB
+	bsToolchain.NM = toolchain.NM
+	bsToolchain.OBJCOPY = toolchain.OBJCOPY
+	bsToolchain.OBJDUMP = toolchain.OBJDUMP
+	bsToolchain.STRIP = toolchain.STRIP
+	bsToolchain.READELF = toolchain.READELF
 
 	// For windows MSVC.
-	crossTools.MSVC.VCVars = toolchain.MSVC.VCVars
-	crossTools.MSVC.MT = toolchain.MSVC.MT
-	crossTools.MSVC.RC = toolchain.MSVC.RC
+	bsToolchain.MSVC.VCVars = toolchain.MSVC.VCVars
+	bsToolchain.MSVC.MT = toolchain.MSVC.MT
+	bsToolchain.MSVC.RC = toolchain.MSVC.RC
 
-	return &crossTools
+	return &bsToolchain
 }

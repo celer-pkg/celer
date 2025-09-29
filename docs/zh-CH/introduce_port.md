@@ -116,8 +116,8 @@ options = [
 ### 1.2.6 c_standard, cxx_standard
 
 &emsp;&emsp;可选配置，默认值为空，分别用于指定 c 和 c++ 标准。
-- c_standard 的候选值：**C89**、**C99**、**C11**、**C17**；  
-- cxx_standard 的候选值：**C++98**、**C++03**、**C++11**、**C++14**、**C++17**、**C++20**；
+- c_standard 的候选值：**c90**, **c99**, **c11**, **c17**, **c23**;
+- cxx_standard 的候选值：**c++11**、**c++14**、**c++17**、**c++20**；
 
 ### 1.2.7 envs
 &emsp;&emsp;可选配置，默认值为空，用于定义一些环境变量，例如 **CXXFLAGS=-fPIC**，或者甚至编译一些库需要设置指定的环境变量，例如：**libxext** 库在交叉编译到 aarch64 平台时需要设置环境变量：**"xorg_cv_malloc0_returns_null=yes"**，目的是屏蔽编译器检查错误报告；  

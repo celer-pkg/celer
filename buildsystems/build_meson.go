@@ -54,7 +54,7 @@ func (m meson) Clean() error {
 
 func (m meson) preConfigure() error {
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
-	if m.PortConfig.CrossTools.Name == "msvc" {
+	if m.PortConfig.Toolchain.Name == "msvc" {
 		msvcEnvs, err := m.readMSVCEnvs()
 		if err != nil {
 			return err
@@ -129,10 +129,10 @@ func (m meson) configured() bool {
 
 func (m meson) Configure(options []string) error {
 	// In windows, we set msvc related environments.
-	if m.DevDep && m.PortConfig.CrossTools.Name != "msvc" {
-		m.PortConfig.CrossTools.ClearEnvs()
+	if m.DevDep && m.PortConfig.Toolchain.Name != "msvc" {
+		m.PortConfig.Toolchain.ClearEnvs()
 	} else {
-		m.PortConfig.CrossTools.SetEnvs(m.BuildConfig)
+		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)
 	}
 
 	// Create build dir if not exists.
@@ -141,7 +141,7 @@ func (m meson) Configure(options []string) error {
 	}
 
 	// Assemble command.
-	crossFile, err := m.generateCrossFile(expr.If(m.BuildConfig.DevDep, m.nativeCrossTool(), *m.PortConfig.CrossTools))
+	crossFile, err := m.generateCrossFile(expr.If(m.BuildConfig.DevDep, m.nativeCrossTool(), *m.PortConfig.Toolchain))
 	if err != nil {
 		return fmt.Errorf("generate cross_file.toml for meson: %v", err)
 	}
@@ -196,7 +196,7 @@ func (m meson) Install(options []string) error {
 	return nil
 }
 
-func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
+func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	var buffers bytes.Buffer
 
 	buffers.WriteString("[build_machine]\n")
@@ -206,9 +206,9 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 	buffers.WriteString("endian = 'little'\n\n")
 
 	buffers.WriteString("[host_machine]\n")
-	buffers.WriteString(fmt.Sprintf("system = '%s'\n", strings.ToLower(crosstool.SystemName)))
-	buffers.WriteString(fmt.Sprintf("cpu_family = '%s'\n", crosstool.SystemProcessor))
-	buffers.WriteString(fmt.Sprintf("cpu = '%s'\n", crosstool.SystemProcessor))
+	buffers.WriteString(fmt.Sprintf("system = '%s'\n", strings.ToLower(toolchain.SystemName)))
+	buffers.WriteString(fmt.Sprintf("cpu_family = '%s'\n", toolchain.SystemProcessor))
+	buffers.WriteString(fmt.Sprintf("cpu = '%s'\n", toolchain.SystemProcessor))
 	buffers.WriteString("endian = 'little'\n")
 
 	buffers.WriteString("\n[binaries]\n")
@@ -223,29 +223,29 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 	}
 
 	buffers.WriteString("cmake = 'cmake'\n")
-	buffers.WriteString(fmt.Sprintf("c = '%s'\n", crosstool.CC))
-	buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", crosstool.CXX))
+	buffers.WriteString(fmt.Sprintf("c = '%s'\n", toolchain.CC))
+	buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", toolchain.CXX))
 
-	if crosstool.FC != "" {
-		buffers.WriteString(fmt.Sprintf("fc = '%s'\n", crosstool.FC))
+	if toolchain.FC != "" {
+		buffers.WriteString(fmt.Sprintf("fc = '%s'\n", toolchain.FC))
 	}
-	if crosstool.RANLIB != "" {
-		buffers.WriteString(fmt.Sprintf("ranlib = '%s'\n", crosstool.RANLIB))
+	if toolchain.RANLIB != "" {
+		buffers.WriteString(fmt.Sprintf("ranlib = '%s'\n", toolchain.RANLIB))
 	}
-	if crosstool.AR != "" {
-		buffers.WriteString(fmt.Sprintf("ar = '%s'\n", crosstool.AR))
+	if toolchain.AR != "" {
+		buffers.WriteString(fmt.Sprintf("ar = '%s'\n", toolchain.AR))
 	}
-	if crosstool.LD != "" {
-		buffers.WriteString(fmt.Sprintf("ld = '%s'\n", crosstool.LD))
+	if toolchain.LD != "" {
+		buffers.WriteString(fmt.Sprintf("ld = '%s'\n", toolchain.LD))
 	}
-	if crosstool.NM != "" {
-		buffers.WriteString(fmt.Sprintf("nm = '%s'\n", crosstool.NM))
+	if toolchain.NM != "" {
+		buffers.WriteString(fmt.Sprintf("nm = '%s'\n", toolchain.NM))
 	}
-	if crosstool.OBJDUMP != "" {
-		buffers.WriteString(fmt.Sprintf("objdump = '%s'\n", crosstool.OBJDUMP))
+	if toolchain.OBJDUMP != "" {
+		buffers.WriteString(fmt.Sprintf("objdump = '%s'\n", toolchain.OBJDUMP))
 	}
-	if crosstool.STRIP != "" {
-		buffers.WriteString(fmt.Sprintf("strip = '%s'\n", crosstool.STRIP))
+	if toolchain.STRIP != "" {
+		buffers.WriteString(fmt.Sprintf("strip = '%s'\n", toolchain.STRIP))
 	}
 
 	buffers.WriteString("\n[properties]\n")
@@ -257,17 +257,17 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 	)
 
 	// This allows the bin to locate the libraries in the relative lib dir.
-	if m.PortConfig.CrossTools.Name == "gcc" {
+	if m.PortConfig.Toolchain.Name == "gcc" {
 		linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
 	}
 
-	if !m.DevDep && crosstool.RootFS != "" {
+	if !m.DevDep && toolchain.RootFS != "" {
 		// In meson, `sys_root` will be joined as the suffix with
 		// the prefix in .pc files to locate libraries.
-		buffers.WriteString(fmt.Sprintf("sys_root = '%s'\n", crosstool.RootFS))
+		buffers.WriteString(fmt.Sprintf("sys_root = '%s'\n", toolchain.RootFS))
 
-		for _, item := range crosstool.IncludeDirs {
-			includeDir := filepath.Join(crosstool.RootFS, item)
+		for _, item := range toolchain.IncludeDirs {
+			includeDir := filepath.Join(toolchain.RootFS, item)
 
 			switch runtime.GOOS {
 			case "windows":
@@ -287,9 +287,9 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 		}
 
 		// Allow meson to locate libraries in rootfs.
-		for _, item := range crosstool.LibDirs {
-			libDir := filepath.Join(crosstool.RootFS, item)
-			switch m.PortConfig.CrossTools.Name {
+		for _, item := range toolchain.LibDirs {
+			libDir := filepath.Join(toolchain.RootFS, item)
+			switch m.PortConfig.Toolchain.Name {
 			case "gcc":
 				if len(linkArgs) == 0 {
 					linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", libDir))
@@ -317,7 +317,7 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 	m.appendIncludeArgs(&includeArgs, depIncludeDir)
 
 	// Allow meson to locate libraries of dependecies.
-	if m.PortConfig.CrossTools.Name == "gcc" {
+	if m.PortConfig.Toolchain.Name == "gcc" {
 		depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
 		if len(linkArgs) == 0 {
 			linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", depLibDir))
@@ -342,7 +342,7 @@ func (m meson) generateCrossFile(crosstool CrossTools) (string, error) {
 }
 
 func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
-	switch m.PortConfig.CrossTools.Name {
+	switch m.PortConfig.Toolchain.Name {
 	case "gcc":
 		if len(*includeArgs) == 0 {
 			*includeArgs = append(*includeArgs, fmt.Sprintf("'-isystem %s'", includeDir))
@@ -358,14 +358,14 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 		}
 
 	default:
-		panic(fmt.Sprintf("unexpected cross tool: %s", m.PortConfig.CrossTools.Name))
+		panic(fmt.Sprintf("unexpected cross tool: %s", m.PortConfig.Toolchain.Name))
 	}
 }
 
-func (m meson) nativeCrossTool() CrossTools {
-	switch m.PortConfig.CrossTools.Name {
+func (m meson) nativeCrossTool() Toolchain {
+	switch m.PortConfig.Toolchain.Name {
 	case "msvc":
-		return CrossTools{
+		return Toolchain{
 			Native:          true,
 			Name:            "msvc",
 			SystemName:      "Windows",
@@ -374,14 +374,14 @@ func (m meson) nativeCrossTool() CrossTools {
 			CXX:             "cl.exe",
 			AR:              "lib.exe",
 			LD:              "link.exe",
-			MSVC:            m.PortConfig.CrossTools.MSVC,
-			IncludeDirs:     m.PortConfig.CrossTools.IncludeDirs,
-			LibDirs:         m.PortConfig.CrossTools.LibDirs,
-			Fullpath:        m.PortConfig.CrossTools.Fullpath,
+			MSVC:            m.PortConfig.Toolchain.MSVC,
+			IncludeDirs:     m.PortConfig.Toolchain.IncludeDirs,
+			LibDirs:         m.PortConfig.Toolchain.LibDirs,
+			Fullpath:        m.PortConfig.Toolchain.Fullpath,
 		}
 
 	case "gcc":
-		return CrossTools{
+		return Toolchain{
 			Native:          true,
 			Name:            "gcc",
 			SystemName:      "Linux",
@@ -393,6 +393,6 @@ func (m meson) nativeCrossTool() CrossTools {
 		}
 
 	default:
-		panic("unsupported cross tool: " + m.PortConfig.CrossTools.Name)
+		panic("unsupported cross tool: " + m.PortConfig.Toolchain.Name)
 	}
 }
