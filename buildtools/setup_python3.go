@@ -29,13 +29,14 @@ func SetupPython3(extraTools *[]string) error {
 	}()
 
 	// Validate python3 in windows only, since linux always has builtin python always.
-	if runtime.GOOS == "windows" {
+	switch runtime.GOOS {
+	case "windows":
 		python := python3{}
 		if err := python.validate(); err != nil {
 			return err
 		}
 		Python3 = &python
-	} else if runtime.GOOS == "linux" {
+	case "linux":
 		Python3 = &python3{
 			Path:    "/usr/bin/python3",
 			rootDir: "/usr/bin",
