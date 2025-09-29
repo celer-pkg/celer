@@ -28,26 +28,43 @@ var (
 func CheckTools(requiredTools ...string) error {
 	tools := slices.Clone(requiredTools)
 
-	// Read toml file.
+	// Read and decode static file.
 	bytes, err := static.ReadFile(fmt.Sprintf("static/x86_64-%s.toml", runtime.GOOS))
 	if err != nil {
 		return err
 	}
-
-	// Decode toml file.
-	var buildTools buildTools
+	var buildTools BuildTools
 	if err := toml.Unmarshal(bytes, &buildTools); err != nil {
 		return err
 	}
 
-	// Validate tool also if tool's package is inside.
+	confToolsFile := filepath.Join(dirs.WorkspaceDir, "conf", "buildtools", "x86_64-"+runtime.GOOS+".toml")
+	if fileio.PathExists(confToolsFile) {
+		bytes, err := os.ReadFile(confToolsFile)
+		if err != nil {
+			return err
+		}
+		var confBuildTools BuildTools
+		if err := toml.Unmarshal(bytes, &confBuildTools); err != nil {
+			return err
+		}
+		buildTools = buildTools.merge(confBuildTools)
+	}
+
+	// Check if need to install python3 and msys2.
 	for _, tool := range tools {
-		if strings.Count(tool, ":") == 1 && strings.HasPrefix(tool, "msys2:") &&
-			!slices.Contains(tools, "msys2") {
+		len := strings.Count(tool, ":")
+		if len == 0 {
+			continue
+		}
+		if len != 1 {
+			return fmt.Errorf("invalid tool format: %s", tool)
+		}
+
+		if strings.HasPrefix(tool, "msys2:") && !slices.Contains(tools, "msys2") {
 			tools = append(tools, "msys2")
 		}
-		if strings.Count(tool, ":") == 1 && strings.HasPrefix(tool, "python3:") &&
-			!slices.Contains(tools, "python3") {
+		if strings.HasPrefix(tool, "python3:") && !slices.Contains(tools, "python3") {
 			tools = append(tools, "python3")
 		}
 	}
@@ -77,7 +94,7 @@ func CheckTools(requiredTools ...string) error {
 		}
 	}
 
-	// Remove builtin tools from requiredTools.
+	// Keep tools that not managed by buildTools.
 	tools = slices.DeleteFunc(tools, func(element string) bool {
 		return buildTools.contains(element)
 	})
@@ -183,11 +200,11 @@ func (b *buildTool) checkAndFix() error {
 	return nil
 }
 
-type buildTools struct {
+type BuildTools struct {
 	BuildTools []buildTool `toml:"build_tools"`
 }
 
-func (b buildTools) findTool(name string) *buildTool {
+func (b BuildTools) findTool(name string) *buildTool {
 	for index, tool := range b.BuildTools {
 		if tool.Name == name {
 			return &b.BuildTools[index]
@@ -196,11 +213,23 @@ func (b buildTools) findTool(name string) *buildTool {
 	return nil
 }
 
-func (b buildTools) contains(name string) bool {
+func (b BuildTools) contains(name string) bool {
 	for _, tool := range b.BuildTools {
 		if tool.Name == name {
 			return true
 		}
 	}
 	return false
+}
+
+func (b BuildTools) merge(buildTools BuildTools) BuildTools {
+	for index, tool := range buildTools.BuildTools {
+		if !b.contains(tool.Name) {
+			b.BuildTools = append(b.BuildTools, tool)
+		} else {
+			b.BuildTools[index] = tool
+		}
+	}
+
+	return b
 }

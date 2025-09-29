@@ -37,9 +37,10 @@ func CheckSystemTools(tools []string) error {
 		}
 
 		joined := strings.Join(missing, " ")
-		if runtime.GOOS == "linux" {
+		switch runtime.GOOS {
+		case "linux":
 			return fmt.Errorf("%s, please install it with `sudo apt install %s`", summary, joined)
-		} else if runtime.GOOS == "darwin" {
+		case "darwin":
 			return fmt.Errorf("%s, please install it with `brew install %s`", joined, joined)
 		}
 	}
