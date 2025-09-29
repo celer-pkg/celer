@@ -692,6 +692,9 @@ func (c Celer) GenerateToolchainFile() error {
 		toolchain.WriteString(")\n")
 	}
 
+	toolchain.WriteString("\n# Build parallel level.\n")
+	toolchain.WriteString(fmt.Sprintf("set(%-27s%d)\n", "CMAKE_BUILD_PARALLEL_LEVEL", c.Global.JobNum))
+
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
 	if err := os.WriteFile(toolchainPath, []byte(toolchain.String()), os.ModePerm); err != nil {
