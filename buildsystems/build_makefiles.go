@@ -336,9 +336,9 @@ func (m makefiles) Build(options []string) error {
 	// Assemble command.
 	var command string
 	if runtime.GOOS == "windows" {
-		command = expr.If(configureWithPerl, "nmake", fmt.Sprintf("make -j %d", m.PortConfig.JobNum))
+		command = expr.If(configureWithPerl, "nmake", fmt.Sprintf("make -j %d", m.PortConfig.Jobs))
 	} else {
-		command = fmt.Sprintf("make -j %d", m.PortConfig.JobNum)
+		command = fmt.Sprintf("make -j %d", m.PortConfig.Jobs)
 	}
 
 	// Execute build.

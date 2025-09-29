@@ -17,7 +17,7 @@ type configureCmd struct {
 	platform   string
 	project    string
 	buildType  string
-	jobNum     int
+	jobs       int
 	offline    bool
 	cacheDir   string
 	cacheToken string
@@ -60,12 +60,12 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 				}
 				configs.PrintSuccess("current build type: %s.", c.buildType)
 
-			case c.jobNum != -1:
-				if err := c.celer.SetJobNum(c.jobNum); err != nil {
-					configs.PrintError(err, "failed to set job num: %d.", c.jobNum)
+			case c.jobs != -1:
+				if err := c.celer.SetJobs(c.jobs); err != nil {
+					configs.PrintError(err, "failed to set job num: %d.", c.jobs)
 					os.Exit(1)
 				}
-				configs.PrintSuccess("current job num: %d.", c.jobNum)
+				configs.PrintSuccess("current job num: %d.", c.jobs)
 
 			case c.offline != c.celer.Global.Offline:
 				if err := c.celer.SetOffline(c.offline); err != nil {
@@ -96,7 +96,7 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	command.Flags().StringVar(&c.platform, "platform", "", "configure platform.")
 	command.Flags().StringVar(&c.project, "project", "", "configure project.")
 	command.Flags().StringVar(&c.buildType, "build-type", "", "configure build type.")
-	command.Flags().IntVar(&c.jobNum, "job-num", -1, "configure job num.")
+	command.Flags().IntVar(&c.jobs, "jobs", -1, "configure jobs.")
 	command.Flags().BoolVar(&c.offline, "offline", false, "configure offline mode.")
 	command.Flags().StringVar(&c.cacheDir, "cache-dir", "", "configure cache dir.")
 	command.Flags().StringVar(&c.cacheToken, "cache-token", "", "configure cache token.")
@@ -120,7 +120,7 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
 
-	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "job-num", "cache-dir", "offline")
+	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "cache-dir", "offline")
 	return command
 }
 
@@ -153,7 +153,7 @@ func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete s
 		"--platform",
 		"--project",
 		"--build-type",
-		"--job-num",
+		"--jobs",
 		"--offline",
 		"--cache-dir",
 		"--cache-token",

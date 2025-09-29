@@ -22,6 +22,8 @@ type installCmd struct {
 	recurse    bool
 	storeCache bool
 	cacheToken string
+	jobs       int
+	verbose    bool
 }
 
 func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -37,21 +39,28 @@ func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().StringVarP(&i.buildType, "build-type", "b", i.celer.Global.BuildType, "Install with build type.")
-	command.Flags().BoolVarP(&i.dev, "dev", "d", false, "Install in dev mode.")
-	command.Flags().BoolVarP(&i.force, "force", "f", false, "Try to uninstall before installation.")
-	command.Flags().BoolVarP(&i.recurse, "recurse", "r", false, "Combine with --force, recursively reinstall dependencies.")
-	command.Flags().BoolVarP(&i.storeCache, "store-cache", "s", false, "Store artifact into cache after installation.")
-	command.Flags().StringVarP(&i.cacheToken, "cache-token", "t", "", "Combine with --store-cache, specify cache token.")
+	flags := command.Flags()
+	flags.StringVarP(&i.buildType, "build-type", "b", i.celer.Global.BuildType, "Install with build type.")
+	flags.BoolVarP(&i.dev, "dev", "d", false, "Install in dev mode.")
+	flags.BoolVarP(&i.force, "force", "f", false, "Try to uninstall before installation.")
+	flags.BoolVarP(&i.recurse, "recurse", "r", false, "Combine with --force, recursively reinstall dependencies.")
+	flags.BoolVarP(&i.storeCache, "store-cache", "s", false, "Store artifact into cache after installation.")
+	flags.StringVarP(&i.cacheToken, "cache-token", "t", "", "Combine with --store-cache, specify cache token.")
+	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "The number of jobs to run in parallel.")
+	flags.BoolVarP(&i.verbose, "verbose", "v", false, "Verbose detail information.")
 
 	return command
 }
 
 func (i installCmd) install(nameVersion string) {
-	// Use build_type from `celer.toml` if not specified.
-	if i.buildType == "" {
-		i.buildType = i.celer.Global.BuildType
+	// Overwrite global config.
+	if i.buildType != "" {
+		i.celer.Global.BuildType = i.buildType
 	}
+	if i.jobs != i.celer.Global.Jobs {
+		i.celer.Global.Jobs = i.jobs
+	}
+	i.celer.Global.Verbose = i.verbose
 
 	if err := i.celer.Platform().Setup(); err != nil {
 		configs.PrintError(err, "setup platform error:")
@@ -165,6 +174,8 @@ func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete str
 		"--force", "-f",
 		"--recurse", "-r",
 		"--store-cache", "-s",
+		"--jobs", "-j",
+		"--verbose", "-v",
 	}
 
 	for _, flag := range commands {

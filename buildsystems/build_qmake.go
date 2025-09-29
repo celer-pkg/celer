@@ -167,7 +167,7 @@ func (m qmake) buildOptions() ([]string, error) {
 
 func (m qmake) Build(options []string) error {
 	// Assemble command.
-	command := fmt.Sprintf("make -j %d", m.PortConfig.JobNum)
+	command := fmt.Sprintf("make -j %d", m.PortConfig.Jobs)
 
 	// Execute build.
 	title := fmt.Sprintf("[build %s]", m.PortConfig.nameVersionDesc())

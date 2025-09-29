@@ -33,9 +33,10 @@ type Context interface {
 	Toolchain() *Toolchain
 	WindowsKit() *WindowsKit
 	RootFS() *RootFS
-	JobNum() int
+	Jobs() int
 	Offline() bool
 	CacheDir() *CacheDir
+	Verbose() bool
 	Optimize(buildsystem, toolchain string) *buildsystems.Optimize
 	GenerateToolchainFile() error
 }
@@ -44,7 +45,7 @@ func NewCeler() *Celer {
 	return &Celer{
 		configData: configData{
 			Global: global{
-				JobNum:    runtime.NumCPU(),
+				Jobs:      runtime.NumCPU(),
 				BuildType: "Release",
 			},
 		},
@@ -63,9 +64,10 @@ type global struct {
 	ConfRepo         string `toml:"conf_repo"`
 	Platform         string `toml:"platform"`
 	Project          string `toml:"project"`
-	JobNum           int    `toml:"job_num"`
+	Jobs             int    `toml:"jobs"`
 	BuildType        string `toml:"build_type"`
 	Offline          bool   `toml:"offline"`
+	Verbose          bool   `toml:"verbose"`
 	GithubAssetProxy string `toml:"github_asset_proxy,omitempty"`
 	GithubRepoProxy  string `toml:"github_repo_proxy,omitempty"`
 }
@@ -87,7 +89,7 @@ func (c *Celer) Init() error {
 
 		// Default global values.
 		c.configData.Global = global{
-			JobNum:    runtime.NumCPU(),
+			Jobs:      runtime.NumCPU(),
 			BuildType: "release",
 			Offline:   false,
 		}
@@ -203,16 +205,16 @@ func (c *Celer) SetBuildType(buildtype string) error {
 	return nil
 }
 
-func (c *Celer) SetJobNum(jobNum int) error {
-	if jobNum < 0 {
-		return ErrInvalidJobNum
+func (c *Celer) SetJobs(jobs int) error {
+	if jobs < 0 {
+		return ErrInvalidJobs
 	}
 
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
-	c.configData.Global.JobNum = jobNum
+	c.configData.Global.Jobs = jobs
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -374,8 +376,8 @@ func (c *Celer) readOrCreate() error {
 			return err
 		}
 
-		if c.Global.JobNum == 0 {
-			c.Global.JobNum = runtime.NumCPU()
+		if c.Global.Jobs == 0 {
+			c.Global.Jobs = runtime.NumCPU()
 		}
 
 		if c.Global.BuildType == "" {
@@ -399,8 +401,8 @@ func (c *Celer) readOrCreate() error {
 			return err
 		}
 
-		if c.Global.JobNum == 0 {
-			c.Global.JobNum = runtime.NumCPU()
+		if c.Global.Jobs == 0 {
+			c.Global.Jobs = runtime.NumCPU()
 		}
 
 		if c.Global.BuildType == "" {
@@ -556,8 +558,8 @@ func (c Celer) RootFS() *RootFS {
 	return c.platform.RootFS
 }
 
-func (c Celer) JobNum() int {
-	return c.Global.JobNum
+func (c Celer) Jobs() int {
+	return c.Global.Jobs
 }
 
 func (c Celer) Offline() bool {
@@ -566,6 +568,10 @@ func (c Celer) Offline() bool {
 
 func (c Celer) CacheDir() *CacheDir {
 	return c.configData.CacheDir
+}
+
+func (c Celer) Verbose() bool {
+	return c.configData.Global.Verbose
 }
 
 func (c Celer) Optimize(buildsystem, toolchain string) *buildsystems.Optimize {
@@ -604,12 +610,6 @@ func (c Celer) GenerateToolchainFile() error {
 		if err := rootfs.generate(&toolchain); err != nil {
 			return err
 		}
-	}
-
-	// Executable search library in relative path.
-	if c.Toolchain().Name == "gcc" {
-		toolchain.WriteString("\n# Executables can find shared libraries in relative path.\n")
-		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
 	}
 
 	// Write pkg config.
@@ -691,6 +691,12 @@ func (c Celer) GenerateToolchainFile() error {
 		}
 		toolchain.WriteString(")\n")
 	}
+
+	toolchain.WriteString("\n")
+	if c.Toolchain().Name == "gcc" {
+		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
+	}
+	toolchain.WriteString(fmt.Sprintf("set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON"))
 
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")

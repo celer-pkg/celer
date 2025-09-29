@@ -367,5 +367,6 @@ func (p Port) toolchain() *buildsystems.Toolchain {
 	bsToolchain.MSVC.MT = toolchain.MSVC.MT
 	bsToolchain.MSVC.RC = toolchain.MSVC.RC
 
+	bsToolchain.Verbose = p.ctx.Verbose()
 	return &bsToolchain
 }

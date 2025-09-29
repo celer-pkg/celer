@@ -102,6 +102,11 @@ func (c cmake) configureOptions() ([]string, error) {
 	}
 	options = append(options, fmt.Sprintf("-DCMAKE_FIND_ROOT_PATH=%q", strings.Join(findRootPaths, ";")))
 
+	// Enable verbose makefile.
+	if c.PortConfig.Toolchain.Verbose {
+		options = append(options, "-DCMAKE_VERBOSE_MAKEFILE=ON")
+	}
+
 	// Replace placeholders.
 	for index, value := range options {
 		options[index] = c.replaceHolders(value)
@@ -184,7 +189,7 @@ func (c cmake) buildOptions() ([]string, error) {
 func (c cmake) Build(options []string) error {
 	// Assemble command.
 	joinedOptions := strings.Join(options, " ")
-	command := fmt.Sprintf("cmake --build %s %s --parallel %d", c.PortConfig.BuildDir, joinedOptions, c.PortConfig.JobNum)
+	command := fmt.Sprintf("cmake --build %s %s --parallel %d", c.PortConfig.BuildDir, joinedOptions, c.PortConfig.Jobs)
 
 	// Execute build.
 	logPath := c.getLogPath("build")

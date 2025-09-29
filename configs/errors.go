@@ -9,7 +9,7 @@ var (
 	ErrOffline = fileio.ErrOffline
 
 	ErrInvalidBuildType = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
-	ErrInvalidJobNum    = errors.New("invalid job num, must be greater than 0")
+	ErrInvalidJobs      = errors.New("invalid jobs, must be greater than 0")
 
 	ErrCacheDirNotConfigured   = errors.New("cache dir is not configured in celer.toml")
 	ErrCacheDirNotExist        = errors.New("cache dir not exist")

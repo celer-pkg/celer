@@ -83,7 +83,7 @@ Then the **celer.toml** file will be generated in the workspace directory:
   conf_repo = "https://github.com/celer-pkg/test-conf.git"
   platform = ""
   project = ""
-  job_num = 16
+  jobs = 16
   build_type = "release"
 ```
 
@@ -106,7 +106,7 @@ Then the **celer.toml** file would be updated as below:
   conf_repo = "https://github.com/celer-pkg/test-conf.git"
   platform = "aarch64-linux-gnu-gcc-9.2"
   project = "test_project_02"
-  job_num = 16
+  jobs = 16
   build_type = "release"
 
 [cache_dir]
@@ -120,7 +120,7 @@ The following are fields and their descriptions:
 | conf_repo |  Url of repo used to save configurations of platforms and projects |
 | platform | Selected platform for current workspace, when it's empty, celer will use detect local toolchain to compile your libraires and projects. |
 | project | Selected project for current workspace, When it's empty, there'll be a project name called "unname". |
-| job_num | The max cpu cores for celer to compile, default is the number of cores of your cpu. |
+| jobs | The max cpu cores for celer to compile, default is the number of cores of your cpu. |
 | build_type | Default is **release**, you can also set it to **debug**. |
 | cache_dir | Celer supports cache build artifact, which can avoid redundant compilation. [You can configure it as a local directory or a shared folder in the LAN](./introduce_cache_artifacts.md). |
 
