@@ -35,8 +35,8 @@ type Toolchain struct {
 	STRIP           string
 	READELF         string
 
-	// Works for windows only.
-	MSVC msvc
+	MSVC    msvc
+	Verbose bool
 }
 
 type msvc struct {

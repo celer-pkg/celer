@@ -23,6 +23,7 @@ type installCmd struct {
 	storeCache bool
 	cacheToken string
 	jobNum     int
+	verbose    bool
 }
 
 func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -46,6 +47,7 @@ func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
 	flags.BoolVarP(&i.storeCache, "store-cache", "s", false, "Store artifact into cache after installation.")
 	flags.StringVarP(&i.cacheToken, "cache-token", "t", "", "Combine with --store-cache, specify cache token.")
 	flags.IntVarP(&i.jobNum, "jobs", "j", i.celer.JobNum(), "The number of jobs to run in parallel.")
+	flags.BoolVarP(&i.verbose, "verbose", "v", false, "Verbose detail information.")
 
 	return command
 }
@@ -58,6 +60,7 @@ func (i installCmd) install(nameVersion string) {
 	if i.jobNum != i.celer.Global.JobNum {
 		i.celer.Global.JobNum = i.jobNum
 	}
+	i.celer.Global.Verbose = i.verbose
 
 	if err := i.celer.Platform().Setup(); err != nil {
 		configs.PrintError(err, "setup platform error:")
@@ -172,6 +175,7 @@ func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete str
 		"--recurse", "-r",
 		"--store-cache", "-s",
 		"--job-num", "-j",
+		"--verbose", "-v",
 	}
 
 	for _, flag := range commands {

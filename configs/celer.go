@@ -36,6 +36,7 @@ type Context interface {
 	JobNum() int
 	Offline() bool
 	CacheDir() *CacheDir
+	Verbose() bool
 	Optimize(buildsystem, toolchain string) *buildsystems.Optimize
 	GenerateToolchainFile() error
 }
@@ -66,6 +67,7 @@ type global struct {
 	JobNum           int    `toml:"job_num"`
 	BuildType        string `toml:"build_type"`
 	Offline          bool   `toml:"offline"`
+	Verbose          bool   `toml:"verbose"`
 	GithubAssetProxy string `toml:"github_asset_proxy,omitempty"`
 	GithubRepoProxy  string `toml:"github_repo_proxy,omitempty"`
 }
@@ -568,6 +570,10 @@ func (c Celer) CacheDir() *CacheDir {
 	return c.configData.CacheDir
 }
 
+func (c Celer) Verbose() bool {
+	return c.configData.Global.Verbose
+}
+
 func (c Celer) Optimize(buildsystem, toolchain string) *buildsystems.Optimize {
 	if c.project.Optimize != nil {
 		return c.project.Optimize
@@ -691,7 +697,6 @@ func (c Celer) GenerateToolchainFile() error {
 		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
 	}
 	toolchain.WriteString(fmt.Sprintf("set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON"))
-	toolchain.WriteString(fmt.Sprintf("set(%-30s%d)\n", "CMAKE_BUILD_PARALLEL_LEVEL", c.Global.JobNum))
 
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
