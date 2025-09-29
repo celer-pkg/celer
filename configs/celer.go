@@ -606,12 +606,6 @@ func (c Celer) GenerateToolchainFile() error {
 		}
 	}
 
-	// Executable search library in relative path.
-	if c.Toolchain().Name == "gcc" {
-		toolchain.WriteString("\n# Executables can find shared libraries in relative path.\n")
-		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
-	}
-
 	// Write pkg config.
 	c.writePkgConfig(&toolchain)
 
@@ -692,8 +686,12 @@ func (c Celer) GenerateToolchainFile() error {
 		toolchain.WriteString(")\n")
 	}
 
-	toolchain.WriteString("\n# Build parallel level.\n")
-	toolchain.WriteString(fmt.Sprintf("set(%-27s%d)\n", "CMAKE_BUILD_PARALLEL_LEVEL", c.Global.JobNum))
+	toolchain.WriteString("\n")
+	if c.Toolchain().Name == "gcc" {
+		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
+	}
+	toolchain.WriteString(fmt.Sprintf("set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON"))
+	toolchain.WriteString(fmt.Sprintf("set(%-30s%d)\n", "CMAKE_BUILD_PARALLEL_LEVEL", c.Global.JobNum))
 
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
