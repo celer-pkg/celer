@@ -19,6 +19,7 @@ type configureCmd struct {
 	buildType  string
 	jobs       int
 	offline    bool
+	verbose    bool
 	cacheDir   string
 	cacheToken string
 }
@@ -74,6 +75,13 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 				}
 				configs.PrintSuccess("current offline mode: %s.", expr.If(c.offline, "true", "false"))
 
+			case c.verbose != c.celer.Verbose():
+				if err := c.celer.SetVerbose(c.verbose); err != nil {
+					configs.PrintError(err, "failed to set verbose mode: %s.", expr.If(c.verbose, "true", "false"))
+					os.Exit(1)
+				}
+				configs.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
+
 			case c.cacheDir != "" || c.cacheToken != "":
 				cacheDir := expr.If(c.cacheDir != "", c.cacheDir, c.celer.CacheDir().Dir)
 				cacheToken := expr.If(c.cacheToken != "", c.cacheToken, c.celer.CacheDir().Token)
@@ -93,13 +101,15 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().StringVar(&c.platform, "platform", "", "configure platform.")
-	command.Flags().StringVar(&c.project, "project", "", "configure project.")
-	command.Flags().StringVar(&c.buildType, "build-type", "", "configure build type.")
-	command.Flags().IntVar(&c.jobs, "jobs", -1, "configure jobs.")
-	command.Flags().BoolVar(&c.offline, "offline", false, "configure offline mode.")
-	command.Flags().StringVar(&c.cacheDir, "cache-dir", "", "configure cache dir.")
-	command.Flags().StringVar(&c.cacheToken, "cache-token", "", "configure cache token.")
+	flags := command.Flags()
+	flags.StringVar(&c.platform, "platform", "", "configure platform.")
+	flags.StringVar(&c.project, "project", "", "configure project.")
+	flags.StringVar(&c.buildType, "build-type", "", "configure build type.")
+	flags.IntVar(&c.jobs, "jobs", -1, "configure jobs.")
+	flags.BoolVar(&c.offline, "offline", false, "configure offline mode.")
+	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
+	flags.StringVar(&c.cacheDir, "cache-dir", "", "configure cache dir.")
+	flags.StringVar(&c.cacheToken, "cache-token", "", "configure cache token.")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -120,7 +130,7 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
 
-	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "cache-dir", "offline")
+	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose", "cache-dir")
 	return command
 }
 
@@ -155,12 +165,9 @@ func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete s
 		"--build-type",
 		"--jobs",
 		"--offline",
+		"--verbose",
 		"--cache-dir",
 		"--cache-token",
-		"--opt-level-Debug",
-		"--opt-level-Release",
-		"--opt-level-RelWithDebInfo",
-		"--opt-level-MinSizeRel",
 	}
 
 	var suggestions []string

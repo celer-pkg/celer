@@ -10,15 +10,16 @@ celer configure [flags]
 
 ## Command Options
 
-| Option	        | Description                                          |
-| ----------------- | -----------------------------------------------------|
-| --platform	    | configure platform.	                               |
-| --project 	    | configure project.	                               |
-| --build-type	    | configure build type.	                               |
-| --cache-dir       | configure cache dir.                                 |
-| --cache-token	    | configure cache token.                               |
-| --jobs            | configure jobs.                                      |
-| --offline         | configure offline mode.                              |
+| Option	        | Description                |
+| ----------------- | ---------------------------|
+| --platform	    | configure platform.	     |
+| --project 	    | configure project.	     |
+| --build-type	    | configure build type.	     |
+| --cache-dir       | configure cache dir.       |
+| --cache-token	    | configure cache token.     |
+| --jobs            | configure jobs.            |
+| --offline         | configure offline mode.    |
+| --verbose         | configure verbose mode.    |
 
 ## Usage Examples
 
@@ -69,6 +70,15 @@ celer configure --offline true|false
 ```
 
 > The default offline mode is `false`.
+
+
+**7. Configure verbose**
+
+```shell
+celer configure --verbose true|false
+```
+
+> The default verbose mode is `false`.
 
 
 

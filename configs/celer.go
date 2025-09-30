@@ -291,6 +291,19 @@ func (c *Celer) SetOffline(offline bool) error {
 	return nil
 }
 
+func (c *Celer) SetVerbose(vebose bool) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	c.Global.Verbose = vebose
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Celer) SetCacheDir(dir, token string) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
