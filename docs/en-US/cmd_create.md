@@ -10,11 +10,11 @@ celer create [flags]
 
 ## Command Options
 
-| Option	        | Description                                          |
-| ----------------- | -----------------------------------------------------|
-| --platform	    | create a new platform.	                           |
-| --project 	    | create a new project.	                               |
-| --port	        | create a new port.	                               |
+| Option	        | Description              |
+| ----------------- | -------------------------|
+| --platform	    | create a new platform.   |
+| --project 	    | create a new project.	   |
+| --port	        | create a new port.	   |
 
 ## Usage Examples
 

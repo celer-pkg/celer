@@ -10,11 +10,11 @@ celer create [flags]
 
 ## 命令选项
 
-| 选项	            | 描述                       |
-| ----------------- | --------------------------|
-| --platform	    | 创建一个新的平台。	       |
-| --project 	    | 创建一个新的项目。	       |
-| --port	        | 创建一个新的端口。	       |
+| Option	        | Description              |
+| ----------------- | -------------------------|
+| --platform	    | create a new platform.   |
+| --project 	    | create a new project.	   |
+| --port	        | create a new port.	   |
 
 ## 使用实例
 

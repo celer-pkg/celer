@@ -727,7 +727,7 @@ func (c Celer) writePkgConfig(toolchain *strings.Builder) {
 		sysrootDir    string
 	)
 
-	libraryFolder := fmt.Sprintf("%s@%s@%s", c.Platform().Name, c.Project().Name, c.BuildType())
+	libraryFolder := fmt.Sprintf("%s@%s@%s", c.Platform().Name, c.Project().Name, strings.ToLower(c.BuildType()))
 	installedDir := filepath.Join("${WORKSPACE_DIR}/installed", libraryFolder)
 
 	switch runtime.GOOS {
@@ -783,7 +783,7 @@ func (c Celer) writePkgConfig(toolchain *strings.Builder) {
 	if len(configPaths) > 0 {
 		toolchain.WriteString("set(PKG_CONFIG_PATH" + "\n")
 		for _, path := range configPaths {
-			toolchain.WriteString(fmt.Sprintf(`	"%s"`, strings.ToLower(path)) + "\n")
+			toolchain.WriteString(fmt.Sprintf("\t%q", path) + "\n")
 		}
 		toolchain.WriteString(")\n")
 		toolchain.WriteString(fmt.Sprintf(`list(JOIN PKG_CONFIG_PATH "%s" PKG_CONFIG_PATH_STR)`, string(os.PathListSeparator)) + "\n")
