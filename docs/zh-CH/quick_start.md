@@ -32,6 +32,9 @@ git clone https://github.com/celer-pkg/celer.git
 
 ```
 conf
+├── buildtools
+│   ├── x86_64-linux.toml
+│   └── x86_64-windows.toml
 ├── platforms
 │   ├── aarch64-linux-gnu-gcc-9.2.toml
 │   ├── x86_64-linux-ubuntu-20.04.toml
@@ -61,11 +64,12 @@ conf
 
 以下是conf文件和它们的描述：
 
-| 文件 | 描述 |
-| ----- | ---------- |
-| platforms/*.toml | 定义平台，包括工具链和根文件系统。 |
-| projects/*.toml  | 定义项目，包括依赖项、CMake变量、C++宏和构建选项。|
-| projects/*/port.toml | 用于覆盖项目特定的第三方库版本、自定义构建参数和定义项目的私有库。 |
+| 文件                   | 描述 |
+| --------------------- | ---------- |
+| buildtools/*.toml     | 定义一些三方库在编译期间需要的额外工具 |
+| platforms/*.toml      | 定义平台，包括工具链和根文件系统。 |
+| projects/*.toml       | 定义项目，包括依赖项、CMake变量、C++宏和构建选项。|
+| projects/*/port.toml  | 用于覆盖项目特定的第三方库版本、自定义构建参数和定义项目的私有库。 |
 
 >**Note:**  
 &emsp;&emsp;虽然**conf**是Celer推荐的配置方式，但是Celer也可以在没有**conf**的情况下工作。在这种情况下，我们只能使用Celer来构建本地工具链的第三方库：
@@ -89,6 +93,8 @@ Then the **celer.toml** file will be generated in the workspace directory:
   project = ""
   jobs = 16
   build_type = "release"
+  offline = false
+  verbose = false
 ```
 
 >**Tips:**  
@@ -112,6 +118,8 @@ celer configure --project=test_project_02
   project = "test_project_02"
   jobs = 16
   build_type = "release"
+  offline = false
+  verbose = false
 
 [cache_dir]
   dir = "/home/phil/celer_cache"
@@ -126,6 +134,8 @@ celer configure --project=test_project_02
 | project |  当前工作空间所选的项目，当为空时，会创建一个名为“unname”的项目。 |
 | jobs |  Celer编译时使用的最大CPU核心数，默认值为您CPU的核心数。 |
 | build_type | 默认值为 **release**，您也可以将其设置为 **debug**。 |
+| offline | 在offline模式下，celer将不再尝试更新仓库和下载资源。|
+| verbose | 在verbose模式下，celer将生成更详细的编译日志。|
 | cache_dir | Celer支持缓存构建工件，这可以避免重复编译。[你可以将其配置为本地目录或LAN中的共享文件夹](./advance_cache_artifacts.md)。 |
 
 ## 5. 部署 Celer

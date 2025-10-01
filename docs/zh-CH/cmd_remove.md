@@ -10,41 +10,41 @@ celer remove [name@version] [flags]
 
 ## 标志
 
-| 标志 | 速记 | 描述 |
-| ---- | --------- | ----------- |
-| --build-type | -b | Uninstall a package with the specified build type (default: "release"). |
-| --dev | -d | Uninstall a development-mode package (used for dev dependencies). |
-| --purge | -f | Aggressive removal: Delete the package along with all its associated files (e.g., configs, data). |
-| --recurse | -r | Recursive removal: Uninstall the package and its dependencies (if no other packages require them). |
-| --remove-cache | -c | Clean build cache: Remove cached build artifacts for the package. |
+| Flag              | Shorthand | Description                                               |
+| ----------------- | --------- | --------------------------------------------------------- |
+| --build-type      | -b        | uninstall package with build type(default: "release").    |
+| --dev             | -d        | uninstall package for dev mode.                           |
+| --purge           | -f        | uninstall package along with its package files.           |
+| --recurse         | -r        | uninstall package along with its depedencies.             |
+| --remove-cache    | -c        | uninstall package along with build cache.                 |
 
 ## 用法示例
 
-**1. 基本移除**
+### 1. 基本移除
 
 ```shell
 celer remove ffmpeg@5.1.6
 ```
 
-**2. 移除依赖项**
+### 2. 移除安装的库，同时删除已安装的依赖库
 
 ```shell
 celer remove ffmpeg@5.1.6 --recurse/-r
 ```
 
-**3. 完全删除软件包**
+### 3. 删除安装的库，同时包含它的package目录
 
 ```shell
 celer remove ffmpeg@5.1.6 --purge/-p
 ```
 
-**4. 移除开发模式软件包**
+### 4. 移除开发模式软件包
 
 ```shell
 celer remove ffmpeg@5.1.6 --dev/-d
 ```
 
-**5. 移除软件包并清理构建缓存**
+### 5. 移除软件包并清理构建缓存
 
 ```shell
 celer remove ffmpeg@5.1.6 --remove-cache/-c

@@ -4,9 +4,8 @@
 
 ## 支持的 Shell
 
-- Bash (Linux/macOS)
+- Bash (Linux)
 - PowerShell (Windows)
-- Zsh (macOS/Linux)
 
 ## 命令语法
 

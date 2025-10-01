@@ -10,9 +10,9 @@ celer tree [package_name|project_name] [flags]
 
 ## 命令选项
 
-| 选项	        | 描述                                          |
-| ----------------- | -----------------------------------------------------|
-| --hide-dev	    | Hide dev dependencies.	                           |
+| Option	        | Description                   |
+| ----------------- | ------------------------------|
+| --hide-dev	    | Hide dev dependencies.	    |
 
 ## 用法示例
 

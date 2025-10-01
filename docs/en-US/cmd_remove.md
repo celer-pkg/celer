@@ -1,6 +1,6 @@
 # Remove command
 
-&emsp;&emsp;The remove command uninstalls a specified package from your system. It provides flexible removal options including dependency cleanup, build cache deletion, and development-mode package handling.
+&emsp;&emsp;The remove command enable uninstall packages from installed directory. It provides flexible removal options including dependency cleanup, build cache deletion and dev-mode package handling.
 
 ## Command Syntax
 
@@ -10,41 +10,41 @@ celer remove [name@version] [flags]
 
 ## Flags
 
-| Flag | Shorthand | Description |
-| ---- | --------- | ----------- |
-| --build-type | -b | Uninstall a package with the specified build type (default: "release"). |
-| --dev | -d | Uninstall a development-mode package (used for dev dependencies). |
-| --purge | -f | Aggressive removal: Delete the package along with all its associated files (e.g., configs, data). |
-| --recurse | -r | Recursive removal: Uninstall the package and its dependencies (if no other packages require them). |
-| --remove-cache | -c | Clean build cache: Remove cached build artifacts for the package. |
+| Flag              | Shorthand | Description                                               |
+| ----------------- | --------- | --------------------------------------------------------- |
+| --build-type      | -b        | uninstall package with build type(default: "release").    |
+| --dev             | -d        | uninstall package for dev mode.                           |
+| --purge           | -f        | uninstall package along with its package files.           |
+| --recurse         | -r        | uninstall package along with its depedencies.             |
+| --remove-cache    | -c        | uninstall package along with build cache.                 |
 
 ## Usage Examples
 
-**1. Basic removal**
+### 1. Basic removal
 
 ```shell
 celer remove ffmpeg@5.1.6
 ```
 
-**2. Remove with dependencies**
+### 2. Remove package along with dependencies
 
 ```shell
 celer remove ffmpeg@5.1.6 --recurse/-r
 ```
 
-**3. Purge package completely**
+### 3. Remove package along with its package
 
 ```shell
 celer remove ffmpeg@5.1.6 --purge/-p
 ```
 
-**4. Remove dev runtime mode package**
+### 4. Remove dev runtime mode package
 
 ```shell
 celer remove ffmpeg@5.1.6 --dev/-d
 ```
 
-**5. Remove package and clean build cache**
+### 5. Remove package and remove build cache
 
 ```shell
 celer remove ffmpeg@5.1.6 --remove-cache/-c

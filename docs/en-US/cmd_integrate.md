@@ -2,11 +2,10 @@
 
 &emsp;&emsp;The integrate command enables intelligent tab completion for Celer in your shell environment, significantly improving command-line productivity.
 
-## Supported Shells
+## Current supported Shells
 
-- Bash (Linux/macOS)
+- Bash (Linux)
 - PowerShell (Windows)
-- Zsh (macOS/Linux)
 
 ## Command Syntax
 

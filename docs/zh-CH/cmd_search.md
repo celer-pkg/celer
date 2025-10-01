@@ -10,7 +10,7 @@ celer search [flags]
 
 ## 用法示例
 
-**1. 按名称精确搜索**
+### 1. 按名称精确搜索
 
 ```shell
 celer search ffmpeg@5.1.6
@@ -21,7 +21,7 @@ celer search ffmpeg@5.1.6
 ffmpeg@5.1.6
 ```
 
-**2. 按模式搜索**
+### 2. 按模式搜索
 
 ```shell
 ./celer search open*
