@@ -31,8 +31,8 @@
 
 高级功能：
 
-- [生成 CMake 配置文件](./introduce_generate_cmake_config.md)
-- [缓存构建产物](./introduce_cache_artifacts.md)
+- [生成 CMake 配置文件](./advance_generate_cmake_config.md)
+- [缓存构建产物](./advance_cache_artifacts.md)
 
 支持的命令列表：
 

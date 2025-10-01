@@ -1,4 +1,4 @@
-# Cache artifacts
+# Advancement of cache artifacts
 
 &emsp;&emsp;Although third-party libraries can be compiled from source code, the compilation of numerous C/C++ libraries often takes a long time, which can severely impact project development efficiency. Fortunately, Celer supports precise cache management of build artifacts, effectively preventing the same libraries from being repeatedly compiled with identical requirements.  
 &emsp;&emsp;Furthermore, Celer supports retrievuing build artifacts of libraries without cloning their source code, this can be very useable for private libraries.

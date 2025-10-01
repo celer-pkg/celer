@@ -122,7 +122,7 @@ The following are fields and their descriptions:
 | project | Selected project for current workspace, When it's empty, there'll be a project name called "unname". |
 | jobs | The max cpu cores for celer to compile, default is the number of cores of your cpu. |
 | build_type | Default is **release**, you can also set it to **debug**. |
-| cache_dir | Celer supports cache build artifact, which can avoid redundant compilation. [You can configure it as a local directory or a shared folder in the LAN](./introduce_cache_artifacts.md). |
+| cache_dir | Celer supports cache build artifact, which can avoid redundant compilation. [You can configure it as a local directory or a shared folder in the LAN](./advance_cache_artifacts.md). |
 
 ## 5. Depoy Celer
 

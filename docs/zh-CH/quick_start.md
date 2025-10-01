@@ -126,7 +126,7 @@ celer configure --project=test_project_02
 | project |  当前工作空间所选的项目，当为空时，会创建一个名为“unname”的项目。 |
 | jobs |  Celer编译时使用的最大CPU核心数，默认值为您CPU的核心数。 |
 | build_type | 默认值为 **release**，您也可以将其设置为 **debug**。 |
-| cache_dir | Celer支持缓存构建工件，这可以避免重复编译。[你可以将其配置为本地目录或LAN中的共享文件夹](./introduce_cache_artifacts.md)。 |
+| cache_dir | Celer支持缓存构建工件，这可以避免重复编译。[你可以将其配置为本地目录或LAN中的共享文件夹](./advance_cache_artifacts.md)。 |
 
 ## 5. 部署 Celer
 

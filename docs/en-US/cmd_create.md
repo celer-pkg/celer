@@ -28,7 +28,7 @@ celer create --platform x86_64-linux-xxxx
 >The generated file is located in the **conf/platforms** directory.  
 >Then you need to open the generated file and configure it according to your target environment.
 
-For the details, you can read the [introduction of the platform](./introduce_platform.md).
+For the details, you can read the [advancement of the platform](./advance_platform.md).
 
 ### 2. Create a new project
 
@@ -39,7 +39,7 @@ celer create --project xxxx
 >The generated file is located in the **conf/projects** directory.   
 >Then you need to open the generated file and configure it with your target project.
 
-For the details, you can read the [introduction of the project](./introduce_project.md).
+For the details, you can read the [advancement of the project](./advance_project.md).
 
 ### 3. Create a new port
 
@@ -49,4 +49,4 @@ celer create --port xxxx
 
 >After creating the port, you need to open the generated file and configure it with your target library. The generated file is located in the **workspace/ports/glog/0.6.0/port.toml** directory.
 
-For the details, you can read the [introduction of the port](./introduce_port.md).
+For the details, you can read the [advancement of the port](./advance_port.md).

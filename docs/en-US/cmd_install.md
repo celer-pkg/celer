@@ -12,45 +12,54 @@ celer install [package_name] [flags]
 
 | Option	        | Short flag | Description                                              |
 | ----------------- | ---------- | ---------------------------------------------------------|
-| --build-type	    | -b	     | Install with specified build type, default is release.   |
-| --dev             | -d         | Install in dev mode.                                     |
-| --force	        | -f	     | Try to uninstall before installation.                    |
-| --recurse	        | -r	     | Combine with --force, recursively reinstall dependencies.|
-| --store-cache     | -s         | Store artifact into cache after installation.            |
-| --cache-token     | -t         | Combine with --store-cache, specify cache token.         |
+| --build-type	    | -b	     | install with specified build type, default is release.   |
+| --dev             | -d         | install in dev mode.                                     |
+| --force	        | -f	     | try to uninstall before installation.                    |
+| --jobs	        | -j	     | build with specified cpu jobs when install.              |
+| --recurse	        | -r	     | combine with --force, recursively reinstall dependencies.|
+| --store-cache     | -s         | store artifact into cache after installation.            |
+| --cache-token     | -t         | combine with --store-cache, specify cache token.         |
 
 ## Usage Examples
 
-**1. Standard Installation:**
+### 1. Standard Installation
 
 ```shell
 celer install ffmpeg@5.1.6
 ```
 
-**2. Install in dev mode:**
+### 2. Install in dev mode
 
 ```shell
 celer install pkgconf@2.4.3 --dev/-d  
 ```
 
-**3. Install forcibly:**
+### 3. Install forcibly
 
 ```shell
 celer install ffmpeg@5.1.6 --force/-f
 ```
 >Removes installed package and configure, build, install again.
 
-**4. Recursively reinstall dependencies:**
+### 4. Install with specified jobs
+
+```shell
+celer install ffmpeg@5.1.6 --jobs/-j 8
+```
+
+### 5. Recursively reinstall dependencies
 
 ```shell
 celer install ffmpeg@5.1.6 --force/-f --recurse/-r
 ```
 
-**5. Store artifact into cache after installation:**
+### 6. Store artifact into cache after installation
 
 ```shell
 celer install ffmpeg@5.1.6 --store-cache/-f --cache-token/-t token_xxx
 ```
+
+>There will be a file named **token** in the root of **cache_dir**, cache will be stored only when token is verified.
 
 ## Structure of installed directory
 

@@ -40,14 +40,14 @@ func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
 
 	// Register flags.
 	flags := command.Flags()
-	flags.StringVarP(&i.buildType, "build-type", "b", i.celer.Global.BuildType, "Install with build type.")
-	flags.BoolVarP(&i.dev, "dev", "d", false, "Install in dev mode.")
-	flags.BoolVarP(&i.force, "force", "f", false, "Try to uninstall before installation.")
-	flags.BoolVarP(&i.recurse, "recurse", "r", false, "Combine with --force, recursively reinstall dependencies.")
-	flags.BoolVarP(&i.storeCache, "store-cache", "s", false, "Store artifact into cache after installation.")
-	flags.StringVarP(&i.cacheToken, "cache-token", "t", "", "Combine with --store-cache, specify cache token.")
-	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "The number of jobs to run in parallel.")
-	flags.BoolVarP(&i.verbose, "verbose", "v", false, "Verbose detail information.")
+	flags.StringVarP(&i.buildType, "build-type", "b", i.celer.Global.BuildType, "install with build type.")
+	flags.BoolVarP(&i.dev, "dev", "d", false, "install in dev mode.")
+	flags.BoolVarP(&i.force, "force", "f", false, "try to uninstall before installation.")
+	flags.BoolVarP(&i.recurse, "recurse", "r", false, "combine with --force, recursively reinstall dependencies.")
+	flags.BoolVarP(&i.storeCache, "store-cache", "s", false, "store artifact into cache after installation.")
+	flags.StringVarP(&i.cacheToken, "cache-token", "t", "", "combine with --store-cache, specify cache token.")
+	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "the number of jobs to run in parallel.")
+	flags.BoolVarP(&i.verbose, "verbose", "v", false, "verbose detail information.")
 
 	return command
 }

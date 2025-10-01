@@ -31,8 +31,8 @@ We have docs to guide you in using Celer:
 
 Advanced features:
 
-- [Generate cmake configs.](./docs/en-US/introduce_generate_cmake_config.md)
-- [Cache build artifacts.](./docs/en-US/introduce_cache_artifacts.md)
+- [Generate cmake configs.](./docs/en-US/advance_generate_cmake_config.md)
+- [Cache build artifacts.](./docs/en-US/advance_cache_artifacts.md)
 
 Supported commands:
 

@@ -1,4 +1,4 @@
-# Why reinvent Celer
+# Why Celer
 
 &emsp;&emsp;Currently, maybe you have known several well-known C/C++ package management tools, such as Conan, Vcpkg, and XMake (from China). These tools offer powerful package management features and have been growing rapidly. However, there're still some Critical problems not unresolved, including:
 

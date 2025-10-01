@@ -1,6 +1,6 @@
-# Introduce to platform
+# Advancement of patform
 
-&emsp;&emsp;Platform configure files are stored in **conf/platforms** directory, these files defines the `toolchain` and `rootfs` required by this platform.  
+&emsp;&emsp;Platform files are stored in **conf/platforms** directory, these files defines the `toolchain` and `rootfs` required by this platform.  
 
 ## 1. Platform toml file
 
