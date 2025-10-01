@@ -38,10 +38,9 @@ Supported commands:
 
 | Command                               | Description                                                            |
 | ------------------------------------- | ---------------------------------------------------------------------- |
-| [about](./cmd_about.md)               | About Celer.                                                           |
 | [autoremove](./cmd_autoremove.md)     | Tidy up installation directory - removing project's unnecessary files. |
 | [clean](./cmd_clean.md)               | Remove build cache and clean repo for packages or projects.            |
-| [configure](./cmd_configure.md)       | Configure to change gloabal settings.                                         |
+| [configure](./cmd_configure.md)       | Configure to change gloabal settings.                                  |
 | [create](./cmd_create.md)             | Create a platform, project or port.                                    |
 | [deploy](./cmd_deploy.md)             | Deploy with selected platform and project.                             |
 | [init](./quick_start.md#3-setup-conf) | Init with conf repo.                                                   |
@@ -51,6 +50,7 @@ Supported commands:
 | [search](./cmd_search.md)             | Search matched ports.                                                  |
 | [tree](./cmd_tree.md)                 | Show the dependencies of a port or a project.                          |
 | [update](./cmd_update.md)             | Update conf repo, ports config repo or third-party repo.               |
+| [version](./cmd_version.md)           | Show version info of celer.                                            |
 
 # Contribute
 

@@ -36,9 +36,8 @@
 
 支持的命令列表：
 
-| 命令                               | 描述                                  |
+| 命令                                   | 描述                                  |
 | ------------------------------------- | --------------------------------- |
-| [about](./cmd_about.md)               | 显示Celer版本信息。 |
 | [autoremove](./cmd_autoremove.md)     | 清理安装目录 - 移除项目不必要的文件。|
 | [clean](./cmd_clean.md)               | 移除构建缓存和清理项目的仓库。|
 | [configure](./cmd_configfure.md)      | 修改workspace的全局配置。|
@@ -51,6 +50,7 @@
 | [search](./cmd_search.md)             | 搜索库库。|
 | [tree](./cmd_tree.md)                 | 显示三方库或项目的依赖关系。| 
 | [update](./cmd_update.md)             | 更新配置仓库、端口配置仓库或第三方仓库。|
+| [version](./cmd_version.md)           | 显示Celer版本信息。 |
 
 # 贡献
 
