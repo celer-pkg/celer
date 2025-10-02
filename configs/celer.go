@@ -5,6 +5,7 @@ import (
 	"celer/buildtools"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
+	"celer/pkgs/encrypt"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/proxy"
@@ -311,16 +312,29 @@ func (c *Celer) SetCacheDir(dir, token string) error {
 
 	if c.configData.CacheDir != nil {
 		dir = expr.If(dir != "", dir, c.configData.CacheDir.Dir)
-		token = expr.If(token != "", token, c.configData.CacheDir.Token)
-
 		if !fileio.PathExists(dir) {
 			return ErrCacheDirNotExist
 		}
 	}
 
+	if token != "" {
+		tokenFile := filepath.Join(dir, "token")
+		if fileio.PathExists(tokenFile) {
+			return ErrCacheTokenExist
+		}
+
+		// Token of cache dir should be encrypted.
+		bytes, err := encrypt.EncodePassword(token)
+		if err != nil {
+			return fmt.Errorf("encode cache token: %w", err)
+		}
+		if err := os.WriteFile(tokenFile, bytes, os.ModePerm); err != nil {
+			return fmt.Errorf("write cache token: %w", err)
+		}
+	}
+
 	c.configData.CacheDir = &CacheDir{
-		Dir:   dir,
-		Token: token,
+		Dir: dir,
 	}
 	if err := c.save(); err != nil {
 		return err

@@ -2,6 +2,7 @@ package configs
 
 import (
 	"celer/pkgs/dirs"
+	"celer/pkgs/encrypt"
 	"errors"
 	"os"
 	"path/filepath"
@@ -38,7 +39,7 @@ func TestConfigure_CacheDir_Success(t *testing.T) {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
 	}
 
-	if celer2.CacheDir().Token != "token_123456" {
+	if !encrypt.CheckPassword(dirs.TestCacheDir, "token_123456") {
 		t.Fatalf("cache token should be `token_123456`")
 	}
 }

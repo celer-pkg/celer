@@ -84,17 +84,12 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 
 			case c.cacheDir != "" || c.cacheToken != "":
 				cacheDir := expr.If(c.cacheDir != "", c.cacheDir, c.celer.CacheDir().Dir)
-				cacheToken := expr.If(c.cacheToken != "", c.cacheToken, c.celer.CacheDir().Token)
-
-				if err := c.celer.SetCacheDir(cacheDir, cacheToken); err != nil {
-					configs.PrintError(err, "failed to set cache dir: %s, token: %s.", cacheDir, cacheToken)
+				if err := c.celer.SetCacheDir(cacheDir, c.cacheToken); err != nil {
+					configs.PrintError(err, "failed to set cache dir: %s.", cacheDir)
 					os.Exit(1)
 				}
 
-				configs.PrintSuccess("current cache dir: %s, token: %s.",
-					expr.If(cacheDir != "", cacheDir, "empty"),
-					expr.If(cacheToken != "", cacheToken, "empty"),
-				)
+				configs.PrintSuccess("current cache dir: %s.", expr.If(cacheDir != "", cacheDir, "empty"))
 			}
 		},
 		ValidArgsFunction: c.completion,

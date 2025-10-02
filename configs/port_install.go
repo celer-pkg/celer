@@ -3,6 +3,7 @@ package configs
 import (
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
+	"celer/pkgs/encrypt"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -164,7 +165,7 @@ func (p Port) doInstallFromSource() error {
 			return ErrCacheDirNotConfigured
 		}
 
-		if cacheDir.Token == "" {
+		if !fileio.PathExists(filepath.Join(cacheDir.Dir, "token")) {
 			return ErrCacheTokenNotConfigured
 		}
 
@@ -172,7 +173,7 @@ func (p Port) doInstallFromSource() error {
 			return ErrCacheTokenNotSpecified
 		}
 
-		if p.CacheToken != cacheDir.Token {
+		if !encrypt.CheckPassword(cacheDir.Dir, p.CacheToken) {
 			return ErrCacheTokenNotMatch
 		}
 

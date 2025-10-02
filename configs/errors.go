@@ -13,6 +13,7 @@ var (
 
 	ErrCacheDirNotConfigured   = errors.New("cache dir is not configured in celer.toml")
 	ErrCacheDirNotExist        = errors.New("cache dir not exist")
+	ErrCacheTokenExist         = errors.New("cache token already exist, if you want to change it, please remove it first manually")
 	ErrCacheTokenNotConfigured = errors.New("cache token is not configured in celer.toml")
 	ErrCacheTokenNotSpecified  = errors.New("cache token is not specified with `--cache-token`")
 	ErrCacheTokenNotMatch      = errors.New(
