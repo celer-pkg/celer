@@ -19,25 +19,25 @@ celer update [flags]
 
 ## Usage Examples
 
-**1. Update the workspace conf repository**
+### 1. Update the conf repository
 
 ```shell
 celer update --conf-repo/-c
 ```
 
-**2. Update the ports repository**
+### 2. Update the ports repository
 
 ```shell
 celer update --ports-repo/-p
 ```
 
-**3. Update the source of ports repository**
+### 3. Update the source of ports repository
 
 ```shell
 celer update ffmpeg@3.4.13
 ```
 
-**4. Update with combination of --force and --recurse**
+### 4. Update with combination of --force and --recurse
 
 ```shell
 celer update --force/-f --recurse/-r ffmpeg@3.4.13

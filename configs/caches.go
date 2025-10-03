@@ -10,8 +10,7 @@ import (
 )
 
 type CacheDir struct {
-	Dir   string `toml:"dir"`
-	Token string `toml:"token,omitempty"`
+	Dir string `toml:"dir"`
 }
 
 func (c CacheDir) Validate() error {

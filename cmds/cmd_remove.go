@@ -43,7 +43,7 @@ func (r removeCmd) Command(celer *configs.Celer) *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().StringVarP(&r.buildType, "build-type", "b", r.celer.Global.BuildType, "uninstall package with specified build type.")
+	command.Flags().StringVarP(&r.buildType, "build-type", "b", r.celer.Global.BuildType, "uninstall package with build type.")
 	command.Flags().BoolVarP(&r.removeCache, "remove-cache", "c", false, "uninstall package along with build cache.")
 	command.Flags().BoolVarP(&r.recurse, "recurse", "r", false, "uninstall package along with its depedencies.")
 	command.Flags().BoolVarP(&r.purge, "purge", "p", false, "uninstall package along with its package files.")

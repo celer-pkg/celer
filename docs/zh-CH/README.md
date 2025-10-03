@@ -5,7 +5,7 @@
 # Celer诞生的背景
 
 &emsp;&emsp;CMake 已成为 C/C++ 项目构建的主流选择，尤其在跨平台编译场景中表现突出。尽管 CMake 在管理构建流程（包括配置、编译和安装）方面表现出色，但其核心功能主要聚焦于依赖项定位（通过 find_package 实现），而非更高层次的包管理任务。在实际开发过程中，许多额外繁琐工作仍超出 CMake 的职责范围，例如： **克隆库源码和配置编译期间需要的工具**，**组织第三方库之间的依赖关系**， **配置交叉编译环境**等等。  
-&emsp;&emsp;实际上，Celer 的核心功能在于按需动态生成 **toolchain_file.cmake** 文件。该文件会通过相对路径配置所有必需的构建工具，并指定库搜索路径以隔离系统库的干扰。这意味着在生成 **toolchain_file.cmake** 之前，所有准备工作都已由 Celer 自动完成——这也正是我们重新打造 Celer 而非直接采用其他 C/C++ 包管理工具的核心[**原因**](./why_reinvent_celer.md)之一。
+&emsp;&emsp;实际上，Celer 的核心功能在于按需动态生成 **toolchain_file.cmake** 文件。该文件会通过相对路径配置所有必需的构建工具，并指定库搜索路径以隔离系统库的干扰。这意味着在生成 **toolchain_file.cmake** 之前，所有准备工作都已由 Celer 自动完成——这也正是重新打造 Celer 而非直接采用其他 C/C++ 包管理工具的核心[**原因**](./why_celer.md)之一。
 
 # 主要功能：
 
@@ -22,7 +22,7 @@
 
 # 快速开始
 
-我们提供了详细的文档来帮助您使用 Celer：
+这里提供了详细的文档来帮助您使用 Celer：
 
 - [快速开始](./quick_start.md)
 - [如何添加新平台](./cmd_create.md#1-创建一个新的平台)
@@ -31,14 +31,13 @@
 
 高级功能：
 
-- [生成 CMake 配置文件](./introduce_generate_cmake_config.md)
-- [缓存构建产物](./introduce_cache_artifacts.md)
+- [生成 CMake 配置文件](./advance_generate_cmake_config.md)
+- [缓存构建产物](./advance_cache_artifacts.md)
 
 支持的命令列表：
 
-| 命令                               | 描述                                  |
+| 命令                                   | 描述                                  |
 | ------------------------------------- | --------------------------------- |
-| [about](./cmd_about.md)               | 显示Celer版本信息。 |
 | [autoremove](./cmd_autoremove.md)     | 清理安装目录 - 移除项目不必要的文件。|
 | [clean](./cmd_clean.md)               | 移除构建缓存和清理项目的仓库。|
 | [configure](./cmd_configfure.md)      | 修改workspace的全局配置。|
@@ -51,6 +50,7 @@
 | [search](./cmd_search.md)             | 搜索库库。|
 | [tree](./cmd_tree.md)                 | 显示三方库或项目的依赖关系。| 
 | [update](./cmd_update.md)             | 更新配置仓库、端口配置仓库或第三方仓库。|
+| [version](./cmd_version.md)           | 显示Celer版本信息。 |
 
 # 贡献
 

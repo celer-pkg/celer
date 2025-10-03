@@ -1,4 +1,4 @@
-# Introduce project
+# Advancement of project
 
 &emsp;&emsp;Each project has its own features, such as the dependencies of the project, the global cmake variables, the environment variables, the C/C++ macros, and the compile options. Celer recommends defining a respective configuration file for each project to describe the features of the project.
 

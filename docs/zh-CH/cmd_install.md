@@ -12,39 +12,54 @@ celer install [package_name] [flags]
 
 | Option	        | Short flag | Description                                              |
 | ----------------- | ---------- | ---------------------------------------------------------|
-| --build-type	    | -b	     | Specify build type, default is release.                  |
-| --dev             | -d         | Install as dev runtime dependency.                       |
-| --force	        | -f	     | Uninstall and install again.                             |
-| --recurse	        | -r	     | Combine with --force, recursively reinstall dependencies.|
-| --store-cache     | -s         | Store artifact into cache after installation.            |
-| --cache-token     | -t         | Combine with --store-cache, specify cache token.         |
+| --build-type	    | -b	     | install with specified build type, default is release.   |
+| --dev             | -d         | install in dev mode.                                     |
+| --force	        | -f	     | try to uninstall before installation.                    |
+| --jobs	        | -j	     | build with specified cpu jobs when install.              |
+| --recurse	        | -r	     | combine with --force, recursively reinstall dependencies.|
+| --store-cache     | -s         | store artifact into cache after installation.            |
+| --cache-token     | -t         | combine with --store-cache, specify cache token.         |
 
 ## 命令示例
 
-**1. 标准安装**
+### 1. 标准安装
 
 ```shell
 celer install ffmpeg@5.1.6
 ```
 
-**2. 安装为开发时依赖项**
+### 2. 安装为开发时依赖项
 
 ```shell
 celer install pkgconf@2.4.3 --dev  
 ```
 
-**3. 强制安装**
+### 3. 强制安装
 
 ```shell
 celer install ffmpeg@5.1.6 --force/-f
 ```
 >移除已安装的软件包并重新配置、构建和安装。
 
-**4. 强制重新安装，包含依赖项**
+### 4. 编译时候指定cpu核数
 
 ```shell
-celer install ffmpeg@5.1.6 --force/-f --recurse/-r --cache-token/-t token_xxx
+celer install ffmpeg@5.1.6 --jobs/-j 8
 ```
+
+### 5. 强制重新安装，包含依赖项
+
+```shell
+celer install ffmpeg@5.1.6 --force/-f --recurse/-r
+```
+
+### 6. 指定安装后同时将库存入缓存
+
+```shell
+celer install ffmpeg@5.1.6 --store-cache --cache-token/-t token_xxx
+```
+
+>在**cache_dir**的根目录下存储了一个叫**token**的文本，它记录了用于校验的token，token校验通过才允许上传编译产物缓存。
 
 ## 安装目录结构
 

@@ -31,14 +31,13 @@ We have docs to guide you in using Celer:
 
 Advanced features:
 
-- [Generate cmake configs.](./docs/en-US/introduce_generate_cmake_config.md)
-- [Cache build artifacts.](./docs/en-US/introduce_cache_artifacts.md)
+- [Generate cmake configs.](./docs/en-US/advance_generate_cmake_config.md)
+- [Cache build artifacts.](./docs/en-US/advance_cache_artifacts.md)
 
 Supported commands:
 
 | Command                                         | Description                                                                   |
 | ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| [about](./docs/en-US/cmd_about.md)              | About Celer.                                                                  |
 | [autoremove](./docs/en-US/cmd_autoremove.md)    | Tidy up installation directory - removing project's unnecessary files.        |
 | [clean](./docs/en-US/cmd_clean.md)              | Remove build cache and clean repo for packages or projects.                   |
 | [configure](./docs/en-US/cmd_configure.md)      | Configure to change gloabal settings.                                         |
@@ -51,6 +50,7 @@ Supported commands:
 | [search](./docs/en-US/cmd_search.md)            | Search matched ports.                                                         |
 | [tree](./docs/en-US/cmd_tree.md)                | Show the dependencies of a port or a project.                                 |
 | [update](./docs/en-US/cmd_update.md)            | Update conf repo, ports config repo or third-party repo.                      |
+| [version](./docs/en-US/cmd_version.md)          | Show version info of celer.                                                   |
 
 # Contribute
 

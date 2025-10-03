@@ -19,25 +19,25 @@ celer update [flags]
 
 ## 用法示例
 
-**1. 更新 conf 仓库**
+### 1. 更新 conf 仓库
 
 ```shell
 celer update --conf-repo/-c
 ```
 
-**2. 更新三方库配置托管仓库**
+### 2. 更新三方库配置托管仓库
 
 ```shell
 celer update --ports-repo/-p
 ```
 
-**3. 更新三方库的源码仓库**
+### 3. 更新三方库的源码仓库
 
 ```shell
 celer update ffmpeg@3.4.13
 ```
 
-**4. 使用 --force 和 --recurse 组合更新**
+### 4. 使用 --force 和 --recurse 组合更新
 
 ```shell
 celer update --force/-f --recurse/-r ffmpeg@3.4.13

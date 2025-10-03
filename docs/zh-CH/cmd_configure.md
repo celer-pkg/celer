@@ -10,15 +10,16 @@ celer configure [flags]
 
 ## 命令选项
 
-| 选项	        | 描述                                          |
-| ----------------- | -----------------------------------------|
-| --platform	    | 配置平台.	                                |
-| --project 	    | 配置项目.	                                |
-| --build-type	    | 配置构建类型.	                            |
-| --cache-dir       | 配置缓存目录.                             |
-| --cache-token	    | 配置缓存令牌.                             |
-| --jobs            | 配置并发任务数.                           |
-| --offline         | 配置离线模式.                             |
+| Option	        | Description                |
+| ----------------- | ---------------------------|
+| --platform	    | configure platform.	     |
+| --project 	    | configure project.	     |
+| --build-type	    | configure build type.	     |
+| --cache-dir       | configure cache dir.       |
+| --cache-token	    | configure cache token.     |
+| --jobs            | configure jobs.            |
+| --offline         | configure offline mode.    |
+| --verbose         | configure verbose mode.    |
 
 ## 命令示例
 
@@ -70,3 +71,11 @@ celer configure --offline true|false
 ```
 
 > 默认的离线模式是`false`。
+
+**7. 配置详细日志模式**
+
+```shell
+celer configure --verbose true|false
+```
+
+> 默认的详细日志模式是`false`。

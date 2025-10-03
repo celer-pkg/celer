@@ -10,11 +10,11 @@ celer create [flags]
 
 ## 命令选项
 
-| 选项	            | 描述                       |
-| ----------------- | --------------------------|
-| --platform	    | 创建一个新的平台。	       |
-| --project 	    | 创建一个新的项目。	       |
-| --port	        | 创建一个新的端口。	       |
+| Option	        | Description              |
+| ----------------- | -------------------------|
+| --platform	    | create a new platform.   |
+| --project 	    | create a new project.	   |
+| --port	        | create a new port.	   |
 
 ## 使用实例
 
@@ -28,7 +28,7 @@ celer create --platform x86_64-linux-xxxx
 >生成的文件位于 **conf/platforms** 目录下；  
 >然后需要根据目标环境打开生成的文件进行配置。
 
-关于平台的详细信息，请参考 [平台介绍](./introduce_platform.md)。
+关于平台的详细信息，请参考 [平台介绍](./advance_platform.md)。
 
 ### 2. 创建一个新的项目
 
@@ -39,7 +39,7 @@ celer create --project xxxx
 >生成的文件位于 **conf/projects** 目录下；  
 >然后需要根据目标项目打开生成的文件进行配置。
 
-关于项目的详细信息，请参考 [项目介绍](./introduce_project.md)。
+关于项目的详细信息，请参考 [项目介绍](./advance_project.md)。
 
 ### 3. 创建一个新的端口
 
@@ -49,4 +49,4 @@ celer create --port xxxx
 
 >当创建端口后，需要根据目标库打开生成的文件进行配置。生成的文件位于 **workspace/ports/glog/0.6.0/port.toml** 目录下。
 
-关于端口的详细信息，请参考 [端口介绍](./introduce_port.md)。
+关于端口的详细信息，请参考 [端口介绍](./advance_port.md)。

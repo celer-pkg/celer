@@ -1,6 +1,6 @@
 # 三方库端口介绍
 
-&emsp;&emsp;Celer 使用一个 git 仓库来管理第三方库的配置文件。这个仓库不断扩展，旨在支持越来越多的 C/C++ 第三方库。
+&emsp;&emsp;Celer 使用一个 git 仓库来管理三方库的配置文件。这个仓库不断扩展，旨在支持越来越多的 C/C++ 第三方库。
 
 ## 1. port.toml 介绍
 
@@ -10,13 +10,14 @@
 [package]
 url                 = "https://github.com/google/glog.git"
 ref                 = "v0.6.0"
-archive             = ""                    # optional field, it works only when url is not a git url.
+archive             = ""                    # optional field, it works only when url is not a git repo url.
 src_dir             = "xxx"                 # optional field
 supported_hosts     = [...]                 # optional field
 
 [[build_configs]]
-pattern             = "*linux*"             # optional field, default is "*"
-build_system        = "cmake"               # should be **cmake**, **makefiles**, **b2**, **meson**, etc.
+pattern             = "*linux*"             # optional field, default is empty.
+build_system        = "cmake"               # mandertory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
+cmake_generator     = []                    # optional field, should be "Ninja", "Unix Makefiles", "Visual Studio xxx"
 build_tools         = [...]                 # optional field
 library_type        = "shared"              # optional field, should be **shared**, **static**, and default is **shared**.
 build_shared        = "--with-shared"       # optional field
@@ -87,18 +88,22 @@ options = [
 
 &emsp;&emsp;不同的构建工具在交叉编译配置上有显著差异。为了简化使用，Celer 抽象出统一的构建系统选项，目前支持 **b2**, **cmake**, **gyp**, **makefiles**, 和**meson**。未来版本将扩展支持更多工具，如 **bazel**, **msbuild** 和 **scons**等。 
 
-### 1.2.3 build_tools
+### 1.2.3 cmake_generator
+
+&emsp;&emsp;CMake在configure能根据不同的系统生成Unix Makefiles， Xcodee 或者 Visual Studio xxx等构建文件，同时也支持手动制定构建工具，它的值为： **Ninja**, **Unix Makefiles**, **Visual Studio xxxx**.
+
+### 1.2.4 build_tools
 
 &emsp;&emsp;**build_tools** 是一个可选字段，用于指定一些库需要本地安装的额外工具，例如：ruby、perl、甚至通过 pip3 安装的额外 python 库，例如：["ruby", "perl", "python3:setuptools"]。
 
 >**Tip:**  
 &emsp;&emsp;实际上，Celer 已内置支持多种构建工具，包括：Windows 版的 CMake、MinGit、strawberry-perl、msys2、vswhere 等。虽然这些工具大多不支持用户配置，但当切换不同的构建系统时，Celer 会自动将它们加入构建工具列表。例如在 Windows 上使用 makefiles 编译时，msys2 就会被自动添加到构建工具中。
 
-### 1.2.4 library_type
+### 1.2.5 library_type
 
 &emsp;&emsp;可选配置，用于指定库的类型，默认值为 **shared**，候选值为 **shared** 和 **static**，分别表示动态库和静态库。
 
-### 1.2.5 build_shared，build_static
+### 1.2.6 build_shared，build_static
 
 &emsp;&emsp;可选配置，部分较旧的 makefiles 项目不支持通过 --enable-shared 编译动态库，而是使用 --with-shared 参数。为灵活兼容此类情况，特保留此配置项。您或许会对此处的配置感到困惑，但幸运的是，build_shared 的默认值会根据不同的 buildsystem 自动适配，通常只需在需要时才覆盖指定值。build_shared 与 build_static 的默认值如下：
 
@@ -113,41 +118,41 @@ options = [
 
 当 **library_type** 被设置为 **shared** 时，尝试读取 **build_shared** 中的值作为编译选项参数，否则读取 **build_static** 中的值作为编译选项参数。
 
-### 1.2.6 c_standard, cxx_standard
+### 1.2.7 c_standard, cxx_standard
 
 &emsp;&emsp;可选配置，默认值为空，分别用于指定 c 和 c++ 标准。
 - c_standard 的候选值：**c90**, **c99**, **c11**, **c17**, **c23**;
 - cxx_standard 的候选值：**c++11**、**c++14**、**c++17**、**c++20**；
 
-### 1.2.7 envs
+### 1.2.8 envs
 &emsp;&emsp;可选配置，默认值为空，用于定义一些环境变量，例如 **CXXFLAGS=-fPIC**，或者甚至编译一些库需要设置指定的环境变量，例如：**libxext** 库在交叉编译到 aarch64 平台时需要设置环境变量：**"xorg_cv_malloc0_returns_null=yes"**，目的是屏蔽编译器检查错误报告；  
 &emsp;&emsp;此外需注意，每个库的 toml 文件虽然支持定义 envs 环境变量，但在实际编译过程中，这些环境变量彼此完全独立——每当一个库编译完成时，其 toml 文件中定义的 envs 会从当前进程中被清除。当编译下一个库时，若对应的 toml 文件定义了新的 envs，则会重新设置新的环境变量。
 
-### 1.2.8 patches
+### 1.2.9 patches
 
 &emsp;&emsp;可选配置，默认值为空，用于定义一些补丁文件，例如：某些库的源代码包含问题，导致编译错误。传统上，这需要手动修改源代码并重新编译。为了避免手动干预，我们可以为这些修改创建修复补丁。您可以将多个补丁文件（git 补丁或 Linux 补丁格式均支持）放在端口版本目录中。由于此字段接受数组，因此可以定义多个补丁。Celer 会尝试在每个 configure 步骤之前自动应用这些补丁。
 
-### 1.2.9 build_in_source
+### 1.2.10 build_in_source
 
 &emsp;&emsp;可选配置，默认值为空，用于指定一些库需要在源代码目录中进行配置和构建，例如：**NASM**、**Boost** 等库。注意：此 **build_in_source** 选项主要适用于 makefiles 项目。  
 >需注意：b2 构建已经被封装为专用的构建系统（即 buildsystem = "b2"）。
 
-### 1.2.10 autogen_options
+### 1.2.11 autogen_options
 
 &emsp;&emsp;可选配置，默认值为空，用于指定一些库需要在源代码目录中运行 **./autogen.sh** 脚本，例如：**NASM**、**Boost** 等库。注意：此 **autogen_options** 选项主要适用于 makefiles 项目。
 
-### 1.2.11 dependencies
+### 1.2.12 dependencies
 
 &emsp;&emsp; 可选配置，默认为空，若当前第三方库在编译时依赖其他第三方库，需在此处定义。这些依赖库将在当前库之前完成编译安装。需注意格式必须为 name@version，且必须显式指定依赖库的版本号。
 
-### 1.2.12 dev_dependencies
+### 1.2.13 dev_dependencies
 &emsp;&emsp;可选配置，默认为空，与 dependencies 类似，但此处定义的第三方库依赖项是编译期间所需的工具。例如：许多 makefiles 项目在配置前需要 autoconf、nasm 等工具。所有在 dev_dependencies 中定义的库都将使用本地工具链编译器进行编译安装，它们会被安装到特定目录（如 installed/x86_64-linux-dev），且 installed/x86_64-linux-dev/bin 路径将自动加入 PATH 环境变量，确保编译期间可访问这些工具。
 
 >为什么需要 **dev_dependencies**:   
 >- 避免手动使用 **sudo apt install xxx** 安装一些本地工具。  
 >- 当编译一个第三方库的新版本时，即使你使用 **apt** 安装了这些工具，仍然可能遇到 **autoconf** 版本过低的错误。在这种情况下，你需要手动下载工具的源代码，本地编译安装，而不是污染系统环境。
 
-### 1.2.13 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
+### 1.2.14 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
 
 &emsp;&emsp;可选配置，默认为空，某些库可能存在代码问题导致编译失败时，可通过补丁修复源码。对于相对较小的问题（如输出文件名错误），可在 post_install 中添加修正命令；同理，若其他阶段出现文件相关问题，也可在对应步骤进行预处理或后处理调整。典型案例如 libffi 库在 Windows 上无法直接编译通过——必须通过多项预处理和后处理步骤才能使其正常工作。
 
@@ -172,7 +177,7 @@ options = [
 
 > 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。更多详情请参考 [动态变量](#3-动态变量)。
 
-### 1.2.14 options
+### 1.2.15 options
 
 &emsp;&emsp;可选配置，默认值为空，当编译第三方库时，通常会有许多选项需要启用或禁用。我们可以在这里定义它们，例如 **-DBUILD_TESTING=OFF**；
 

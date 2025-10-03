@@ -5,7 +5,7 @@
 # The background of Celer
 
 &emsp;&emsp;CMake has become the mainstream build system for compiling C/C++ projects, particularly for cross-compiling. While CMake excels at managing the build process—including configuration, compilation, and installation—it primarily focuses on locating dependencies (via **find_package**) rather than handling higher-level package management tasks. In real-world development, many additional tedious tasks fall outside CMake's responsibilities, such as: **clone repos and setup build tools**, **organize dependencies between third-party libraries**, **setup cross-compilation environment**, etc.  
-&emsp;&emsp;Celer's core functionality dynamically generates a `toolchain_file.cmake`, configuring the required build tools with relative paths and specifying library search paths to prevent system libraries from being detected. This means that all the work required is handled by Celer before generating the `toolchain_file.cmake`, this is one of the [**REASONS**](./why_reinvent_celer.md) why Celer was reinvented, rather than relying on other C/C++ package managers.
+&emsp;&emsp;Celer's core functionality dynamically generates a `toolchain_file.cmake`, configuring the required build tools with relative paths and specifying library search paths to prevent system libraries from being detected. This means that all the work required is handled by Celer before generating the `toolchain_file.cmake`, this is one of the [**REASONS**](./why_celer.md) why Celer was reinvented, rather than relying on other C/C++ package managers.
 
 # Key features
 
@@ -31,17 +31,16 @@ We have docs to guide you in using Celer:
 
 Advanced features:
 
-- [Generate cmake configs.](./introduce_generate_cmake_config.md)
-- [Cache build artifacts.](./introduce_cache_artifacts.md)
+- [Generate cmake configs.](./advance_generate_cmake_config.md)
+- [Cache build artifacts.](./advance_cache_artifacts.md)
 
 Supported commands:
 
 | Command                               | Description                                                            |
 | ------------------------------------- | ---------------------------------------------------------------------- |
-| [about](./cmd_about.md)               | About Celer.                                                           |
 | [autoremove](./cmd_autoremove.md)     | Tidy up installation directory - removing project's unnecessary files. |
 | [clean](./cmd_clean.md)               | Remove build cache and clean repo for packages or projects.            |
-| [configure](./cmd_configure.md)       | Configure to change gloabal settings.                                         |
+| [configure](./cmd_configure.md)       | Configure to change gloabal settings.                                  |
 | [create](./cmd_create.md)             | Create a platform, project or port.                                    |
 | [deploy](./cmd_deploy.md)             | Deploy with selected platform and project.                             |
 | [init](./quick_start.md#3-setup-conf) | Init with conf repo.                                                   |
@@ -51,6 +50,7 @@ Supported commands:
 | [search](./cmd_search.md)             | Search matched ports.                                                  |
 | [tree](./cmd_tree.md)                 | Show the dependencies of a port or a project.                          |
 | [update](./cmd_update.md)             | Update conf repo, ports config repo or third-party repo.               |
+| [version](./cmd_version.md)           | Show version info of celer.                                            |
 
 # Contribute
 

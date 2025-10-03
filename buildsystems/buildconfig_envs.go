@@ -196,9 +196,9 @@ func (b *BuildConfig) setLanguageStandards() {
 		var cflag string
 		switch b.PortConfig.Toolchain.Name {
 		case "msvc":
-			cflag = "/std:" + b.CStandard
+			cflag = "/std:" + cstandard
 		case "gcc":
-			cflag = "-std=" + b.CStandard
+			cflag = "-std=" + cstandard
 		default:
 			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
 		}
@@ -211,9 +211,9 @@ func (b *BuildConfig) setLanguageStandards() {
 		var cxxflag string
 		switch b.PortConfig.Toolchain.Name {
 		case "msvc":
-			cxxflag = "/std:" + b.CXXStandard
+			cxxflag = "/std:" + cxxstandard
 		case "gcc":
-			cxxflag = "-std=" + b.CXXStandard
+			cxxflag = "-std=" + cxxstandard
 		default:
 			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
 		}
