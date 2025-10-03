@@ -77,7 +77,7 @@ The following are conf files and their descriptions:
 To setup conf, run:
 
 ```
-celer setup --url=https://github.com/celer-pkg/test-conf.git
+celer init --url=https://github.com/celer-pkg/test-conf.git
 ```
 
 Then the **celer.toml** file will be generated in the workspace directory:

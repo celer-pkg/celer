@@ -81,7 +81,7 @@ conf
 要设置conf，请运行以下命令：
 
 ```shell
-celer setup --url=https://github.com/celer-pkg/test-conf.git
+celer init --url=https://github.com/celer-pkg/test-conf.git
 ```
 
 Then the **celer.toml** file will be generated in the workspace directory:
