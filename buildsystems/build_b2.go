@@ -34,13 +34,13 @@ func (b b2) Name() string {
 
 func (b b2) CheckTools() error {
 	b.BuildConfig.BuildTools = append(b.BuildConfig.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(b.BuildConfig.Offline, b.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(b.Offline, b.Proxy, b.BuildConfig.BuildTools...)
 }
 
 func (b b2) Clean() error {
 	if fileio.PathExists(filepath.Join(b.PortConfig.SrcDir, "b2")) {
 		title := fmt.Sprintf("[clean %s@%s]", b.PortConfig.LibName, b.PortConfig.LibVersion)
-		executor := cmd.NewExecutor(title, "./b2 clean")
+		executor := cmd.NewExecutor(title, "b2", "clean")
 		executor.SetWorkDir(b.PortConfig.SrcDir)
 		if err := executor.Execute(); err != nil {
 			return err
@@ -63,12 +63,7 @@ func (b b2) Configure(options []string) error {
 	}
 
 	// Join options into a string.
-	var configure string
-	if runtime.GOOS == "windows" {
-		configure = fmt.Sprintf("%s/bootstrap.bat", b.PortConfig.SrcDir)
-	} else {
-		configure = fmt.Sprintf("%s/bootstrap.sh", b.PortConfig.SrcDir)
-	}
+	configure := expr.If(runtime.GOOS == "windows", "bootstrap.bat", "bootstrap.sh")
 
 	// Execute configure.
 	logPath := b.getLogPath("configure")

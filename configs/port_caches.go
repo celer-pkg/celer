@@ -6,7 +6,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"crypto/sha256"
 	"fmt"
 	"path/filepath"
@@ -82,7 +81,7 @@ func (p Port) Commit(nameVersion string) (string, error) {
 
 	// Get commit hash or archive checksum.
 	if strings.HasSuffix(port.Package.Url, ".git") {
-		commit, err := git.ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
+		commit, err := p.ctx.Git().ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
 		if err != nil {
 			return "", fmt.Errorf("read git commit hash error: %w", err)
 		}

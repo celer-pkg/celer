@@ -28,16 +28,14 @@ func (g gyp) Name() string {
 }
 
 func (g gyp) CheckTools() error {
-	g.BuildConfig.BuildTools = append(g.BuildConfig.BuildTools, "git", "cmake", "python3:gyp-next", "ninja")
-	return buildtools.CheckTools(g.BuildConfig.Offline, g.BuildConfig.BuildTools...)
+	g.BuildTools = append(g.BuildTools, "git", "cmake", "python3:gyp-next", "ninja")
+	return buildtools.CheckTools(g.Offline, g.Proxy, g.BuildConfig.BuildTools...)
 }
 
 func (g gyp) Clean() error {
 	if fileio.PathExists(filepath.Join(g.PortConfig.RepoDir, ".git")) {
 		title := fmt.Sprintf("[clean %s]", g.PortConfig.nameVersionDesc())
-		executor := cmd.NewExecutor(title, "git clean -fdx && git reset --hard")
-		executor.SetWorkDir(g.PortConfig.RepoDir)
-		if err := executor.Execute(); err != nil {
+		if err := g.Git.Clean(title, g.PortConfig.RepoDir); err != nil {
 			return err
 		}
 	} else {

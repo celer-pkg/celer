@@ -4,7 +4,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"errors"
 	"os"
 	"path/filepath"
@@ -428,7 +427,7 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 	check(port.installFromSource())
 
 	// Read commit.
-	commit, err := git.ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
+	commit, err := celer.Git().ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
 	check(err)
 
 	// Remove installed and src dir.

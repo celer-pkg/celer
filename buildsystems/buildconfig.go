@@ -8,6 +8,7 @@ import (
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
+	"celer/pkgs/proxy"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -231,13 +232,15 @@ type BuildConfig struct {
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
 	// Internal fields
-	Offline     bool       `toml:"-"`
-	DevDep      bool       `toml:"-"`
-	PortConfig  PortConfig `toml:"-"`
-	BuildType   string     `toml:"-"`
-	Optimize    *Optimize  `toml:"-"`
+	Offline     bool         `toml:"-"`
+	Proxy       *proxy.Proxy `toml:"-"`
+	DevDep      bool         `toml:"-"`
+	PortConfig  PortConfig   `toml:"-"`
+	BuildType   string       `toml:"-"`
+	Optimize    *Optimize    `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
+	Git         git.Git
 }
 
 func (b BuildConfig) Validate() error {
@@ -289,7 +292,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		if !fileio.PathExists(b.PortConfig.RepoDir) {
 			// Clone repo.
 			title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
-			if err := git.CloneRepo(title, repoUrl, repoRef, b.PortConfig.RepoDir); err != nil {
+			if err := b.Git.CloneRepo(title, repoUrl, repoRef, b.PortConfig.RepoDir); err != nil {
 				return err
 			}
 		}
@@ -298,7 +301,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
 		repair := fileio.NewRepair(repoUrl, archive, ".", destDir)
-		if err := repair.CheckAndRepair(b.Offline); err != nil {
+		if err := repair.CheckAndRepair(b.Offline, b.Proxy); err != nil {
 			return err
 		}
 
@@ -316,7 +319,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 
 		// Init as git repo for tracking file change.
 		if b.buildSystem.Name() != "prebuilt" {
-			if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
+			if err := b.Git.InitRepo(destDir, "init for tracking file change"); err != nil {
 				return err
 			}
 		}
@@ -333,7 +336,7 @@ func (b BuildConfig) Patch() error {
 	if len(b.Patches) > 0 {
 		// In windows, msys2 is required to apply patch .
 		if runtime.GOOS == "windows" {
-			if err := buildtools.CheckTools(b.Offline, "msys2"); err != nil {
+			if err := buildtools.CheckTools(b.Offline, b.Proxy, "msys2"); err != nil {
 				return err
 			}
 		}
@@ -359,7 +362,7 @@ func (b BuildConfig) Patch() error {
 			}
 
 			// Apply patch (linux patch or git patch).
-			if err := git.ApplyPatch(b.PortConfig.RepoDir, b.PortConfig.RepoDir, patchPath); err != nil {
+			if err := b.Git.ApplyPatch(b.PortConfig.RepoDir, b.PortConfig.RepoDir, patchPath); err != nil {
 				return err
 			}
 		}
@@ -459,7 +462,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	// Clone repo, the repo maybe already cloned during computer hash.
 	if !fileio.PathExists(b.PortConfig.RepoDir) {
 		if err := b.buildSystem.Clone(url, ref, archive); err != nil {
-			message := expr.If(strings.HasSuffix(url, ".git"), "clone", "download")
+			message := expr.If(strings.HasSuffix(url, ".git"), "clone error", "download error")
 			return fmt.Errorf("%s %s: %w", message, b.PortConfig.nameVersionDesc(), err)
 		}
 	}
@@ -714,7 +717,7 @@ func (b BuildConfig) replaceSource(archive, url string) error {
 	// Check and repair resource.
 	archive = expr.If(archive == "", filepath.Base(url), archive)
 	repair := fileio.NewRepair(url, archive, ".", b.PortConfig.RepoDir)
-	if err := repair.CheckAndRepair(b.Offline); err != nil {
+	if err := repair.CheckAndRepair(b.Offline, b.Proxy); err != nil {
 		replaceFailed = true
 		return err
 	}
@@ -734,7 +737,7 @@ func (b BuildConfig) replaceSource(archive, url string) error {
 	}
 
 	// Init as git repo for tracking file change.
-	if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
+	if err := b.Git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
 		return err
 	}
 

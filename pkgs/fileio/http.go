@@ -1,15 +1,10 @@
 package fileio
 
 import (
+	"celer/pkgs/proxy"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
-)
-
-var (
-	ProxyAddress string
-	ProxyPort    int
 )
 
 // CheckAvailable checks if the given URL is accessible.
@@ -41,17 +36,10 @@ func CheckAvailable(filePath string) error {
 }
 
 // FileSize returns the size of the file at the given URL.
-func FileSize(downloadUrl string) (int64, error) {
+func FileSize(proxy *proxy.Proxy, downloadUrl string) (int64, error) {
 	var client *http.Client
-	if ProxyAddress != "" && ProxyPort != 0 {
-		client = &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(&url.URL{
-					Scheme: "http",
-					Host:   fmt.Sprintf("%s:%d", ProxyAddress, ProxyPort),
-				}),
-			},
-		}
+	if proxy != nil {
+		client = proxy.HttpClient()
 	} else {
 		client = http.DefaultClient
 	}

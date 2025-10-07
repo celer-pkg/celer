@@ -3,61 +3,58 @@ package git
 import (
 	"bufio"
 	"celer/pkgs/cmd"
-	"celer/pkgs/fileio"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
 )
 
 // CloneRepo clone git repo.
-func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
+func (g Git) CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 	// ============ Clone default branch ============
 	if repoRef == "" {
-		command := fmt.Sprintf("%s clone %s --recursive %s", gitCmd(), repoUrl, repoDir)
-		return cmd.NewExecutor(title, command).Execute()
+		args := append(g.proxyArgs(), "clone", "--recursive", repoUrl, repoDir)
+		return cmd.NewExecutor(title, "git", args...).Execute()
 	}
 
 	// ============ Clone specific branch ============
-	isBranch, err := CheckIfRemoteBranch(repoUrl, repoRef)
+	isBranch, err := g.CheckIfRemoteBranch(repoUrl, repoRef)
 	if err != nil {
 		return fmt.Errorf("check if remote branch error: %w", err)
 	}
 	if isBranch {
-		command := fmt.Sprintf("%s clone --branch %s %s --recursive %s", gitCmd(), repoRef, repoUrl, repoDir)
-		return cmd.NewExecutor(title, command).Execute()
+		args := append(g.proxyArgs(), "clone", "--branch", repoRef, "--recursive", repoUrl, repoDir)
+		return cmd.NewExecutor(title, "git", args...).Execute()
 	}
 
 	// ============ Clone specific tag ============
-	isTag, err := CheckIfRemoteTag(repoUrl, repoRef)
+	isTag, err := g.CheckIfRemoteTag(repoUrl, repoRef)
 	if err != nil {
 		return fmt.Errorf("check if remote tag error: %w", err)
 	}
 	if isTag {
-		command := fmt.Sprintf("%s clone --tag %s %s --recursive %s", gitCmd(), repoRef, repoUrl, repoDir)
-		return cmd.NewExecutor(title, command).Execute()
+		cloneArgs := append(g.proxyArgs(), "clone", "--tag", repoRef, "--recursive", repoUrl, repoDir)
+		return cmd.NewExecutor(title, "git", cloneArgs...).Execute()
 	}
-
 	// ============ Clone and checkout commit ============
-	command := fmt.Sprintf("%s clone %s %s", gitCmd(), repoUrl, repoDir)
-	if err := cmd.NewExecutor(title, command).Execute(); err != nil {
+	cloneArgs := append(g.proxyArgs(), "clone", repoUrl, repoDir)
+	if err := cmd.NewExecutor(title, "git", cloneArgs...).Execute(); err != nil {
 		return fmt.Errorf("clone git repo error: %w", err)
 	}
 
 	// Checkout repo to commit.
-	command = fmt.Sprintf("%s reset --hard %s", gitCmd(), repoRef)
-	executor := cmd.NewExecutor(title+" (reset to commit)", command)
+	resetArgs := append(g.proxyArgs(), "reset", "--hard", repoRef)
+	executor := cmd.NewExecutor(title+" (reset to commit)", "git", resetArgs...)
 	executor.SetWorkDir(repoDir)
 	if err := executor.Execute(); err != nil {
 		return fmt.Errorf("reset --hard error: %w", err)
 	}
 
 	// Update submodules.
-	if fileio.PathExists(filepath.Join(repoDir, ".gitmodules")) {
-		command = fmt.Sprintf("%s submodule update --init --recursive", gitCmd())
-		executor = cmd.NewExecutor(title+" (clone submodule)", command)
+	if pathExists(filepath.Join(repoDir, ".gitmodules")) {
+		updateArgs := append(g.proxyArgs(), "submodule", "update", "--init", "--recursive")
+		executor = cmd.NewExecutor(title+" (clone submodule)", "git", updateArgs...)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
 			return fmt.Errorf("update submodules error: %w", err)
@@ -68,9 +65,9 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 }
 
 // UpdateRepo update git repo.
-func UpdateRepo(title, repoRef, repoDir string, force bool) error {
+func (g Git) UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	// Check if repo is modified.
-	modified, err := IsModified(repoDir)
+	modified, err := g.IsModified(repoDir)
 	if err != nil {
 		return err
 	}
@@ -82,52 +79,48 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 
 	// Get default branch if repoRef is empty.
 	if repoRef == "" {
-		branch, err := DefaultBranch(repoDir)
+		branch, err := g.DefaultBranch(repoDir)
 		if err != nil {
 			return err
 		}
 		repoRef = branch
 	}
 
-	var commands []string
-	commands = append(commands, fmt.Sprintf("%s reset --hard && git clean -xfd", gitCmd()))
-
-	updateRepo := func(commands []string) error {
-		commandLine := strings.Join(commands, " && ")
-		executor := cmd.NewExecutor(title, commandLine)
-		executor.SetWorkDir(repoDir)
-		return executor.Execute()
-	}
-
 	// Update to branch.
-	isBranch, err := CheckIfRemoteBranch(repoDir, repoRef)
+	isBranch, err := g.CheckIfRemoteBranch(repoDir, repoRef)
 	if err != nil {
 		return err
 	}
 	if isBranch {
-		commands = append(commands, fmt.Sprintf("%s fetch origin %s", gitCmd(), repoRef))
-		commands = append(commands, fmt.Sprintf("%s checkout -B %s origin/%s", gitCmd(), repoRef, repoRef))
-		commands = append(commands, fmt.Sprintf("%s pull origin %s", gitCmd(), repoRef))
-		return updateRepo(commands)
+		var commands []string
+		commands = append(commands, "reset --hard")
+		commands = append(commands, "clean -xfd")
+		commands = append(commands, fmt.Sprintf("%s fetch origin %s", g.proxyArgs(), repoRef))
+		commands = append(commands, fmt.Sprintf("%s checkout -B %s origin/%s", g.proxyArgs(), repoRef, repoRef))
+		commands = append(commands, fmt.Sprintf("%s pull origin %s", g.proxyArgs(), repoRef))
+		return g.Execute(title, repoDir, commands)
 	}
 
-	// update to tag.
-	isTag, err := CheckIfRemoteTag(repoDir, repoRef)
+	// Update to tag.
+	isTag, err := g.CheckIfRemoteTag(repoDir, repoRef)
 	if err != nil {
 		return err
 	}
 	if isTag {
-		commands = append(commands, fmt.Sprintf("%s tag -d %s || true", gitCmd(), repoRef))
-		commands = append(commands, fmt.Sprintf("%s fetch --tags origin", gitCmd()))
-		commands = append(commands, fmt.Sprintf("%s checkout %s", gitCmd(), repoRef))
-		return updateRepo(commands)
+		var commands []string
+		commands = append(commands, "reset --hard")
+		commands = append(commands, "clean -xfd")
+		commands = append(commands, fmt.Sprintf("%s tag -d %s || true", g.proxyArgs(), repoRef))
+		commands = append(commands, fmt.Sprintf("%s fetch --tags origin", g.proxyArgs()))
+		commands = append(commands, fmt.Sprintf("%s checkout %s", g.proxyArgs(), repoRef))
+		return g.Execute(title, repoDir, commands)
 	}
 
 	return fmt.Errorf("invalid repoRef: %s", repoRef)
 }
 
 // CherryPick cherry-pick patches.
-func CherryPick(title, srcDir string, patches []string) error {
+func (g Git) CherryPick(title, srcDir string, patches []string) error {
 	// Change to source dir to execute git command.
 	if err := os.Chdir(srcDir); err != nil {
 		return err
@@ -135,14 +128,13 @@ func CherryPick(title, srcDir string, patches []string) error {
 
 	// Execute patch command.
 	var commands []string
-	commands = append(commands, fmt.Sprintf("%s -C %s fetch origin", gitCmd(), srcDir))
+	commands = append(commands, fmt.Sprintf("%s fetch origin", g.proxyArgs()))
 
 	for _, patch := range patches {
-		commands = append(commands, fmt.Sprintf("%s cherry-pick %s", gitCmd(), patch))
+		commands = append(commands, fmt.Sprintf("cherry-pick %s", patch))
 	}
 
-	commandLine := strings.Join(commands, " && ")
-	if err := cmd.NewExecutor(title, commandLine).Execute(); err != nil {
+	if err := g.Execute(title, srcDir, commands); err != nil {
 		return err
 	}
 
@@ -150,22 +142,21 @@ func CherryPick(title, srcDir string, patches []string) error {
 }
 
 // Rebase rebase patches.
-func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
+func (g Git) Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 	// Change to source dir to execute git command.
 	if err := os.Chdir(srcDir); err != nil {
 		return err
 	}
 
 	var commands []string
-	commands = append(commands, fmt.Sprintf("%s -C %s fetch origin", gitCmd(), srcDir))
+	commands = append(commands, fmt.Sprintf("%s fetch origin", g.proxyArgs()))
 
 	for _, ref := range rebaseRefs {
-		commands = append(commands, fmt.Sprintf("%s checkout %s", gitCmd(), ref))
-		commands = append(commands, fmt.Sprintf("%s rebase %s", gitCmd(), repoRef))
+		commands = append(commands, fmt.Sprintf("checkout %s", ref))
+		commands = append(commands, fmt.Sprintf("rebase %s", repoRef))
 	}
 
-	commandLine := strings.Join(commands, " && ")
-	if err := cmd.NewExecutor(title, commandLine).Execute(); err != nil {
+	if err := g.Execute(title, srcDir, commands); err != nil {
 		return err
 	}
 
@@ -173,20 +164,11 @@ func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 }
 
 // Clean clean git repo.
-func Clean(repoDir string) error {
-	// git reset --hard
-	resetCmd := exec.Command(gitCmd(), "reset", "--hard")
-	resetCmd.Stdout = os.Stdout
-	resetCmd.Stderr = os.Stderr
-	if err := resetCmd.Run(); err != nil {
-		return err
-	}
-
-	// git clean -xfd
-	cleanCmd := exec.Command(gitCmd(), "clean", "-xfd")
-	cleanCmd.Stdout = os.Stdout
-	cleanCmd.Stderr = os.Stderr
-	if err := cleanCmd.Run(); err != nil {
+func (g Git) Clean(title, repoDir string) error {
+	var commands []string
+	commands = append(commands, "reset --hard")
+	commands = append(commands, "clean -xfd")
+	if err := g.Execute(title, repoDir, commands); err != nil {
 		return err
 	}
 
@@ -194,12 +176,12 @@ func Clean(repoDir string) error {
 }
 
 // ApplyPatch apply git patch.
-func ApplyPatch(port, repoDir, patchFile string) error {
+func (g Git) ApplyPatch(port, repoDir, patchFile string) error {
 	patchFileName := filepath.Base(patchFile)
 
 	// Check if patched already.
 	recordFilePath := filepath.Join(repoDir, ".patched")
-	if fileio.PathExists(recordFilePath) {
+	if pathExists(recordFilePath) {
 		bytes, err := os.ReadFile(recordFilePath)
 		if err != nil {
 			return fmt.Errorf("cannot read .patched: %w", err)
@@ -234,18 +216,18 @@ func ApplyPatch(port, repoDir, patchFile string) error {
 	}
 
 	if gitBatch {
-		command := fmt.Sprintf("%s apply --ignore-space-change --ignore-whitespace -v %s", gitCmd(), patchFile)
 		title := fmt.Sprintf("[patch %s]", port)
-		executor := cmd.NewExecutor(title, command)
+		args := []string{"apply", "--ignore-space-change", "--ignore-whitespace", "-v", patchFile}
+		executor := cmd.NewExecutor(title, "git", args...)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
 			return err
 		}
 	} else {
 		// Others, assume it's a regular patch file.
-		command := fmt.Sprintf("patch -Np1 -i %s", patchFile)
 		title := fmt.Sprintf("[patch %s]", port)
-		executor := cmd.NewExecutor(title, command)
+		args := []string{"patch", "-Np1", "-i", patchFile}
+		executor := cmd.NewExecutor(title, "git", args...)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
 			return err
@@ -263,4 +245,12 @@ func ApplyPatch(port, repoDir, patchFile string) error {
 		return fmt.Errorf("cannot write %s into .patched: %w", patchFileName, err)
 	}
 	return nil
+}
+
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	return !os.IsNotExist(err)
 }

@@ -8,6 +8,8 @@ import (
 	"celer/pkgs/encrypt"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"celer/pkgs/git"
+	"celer/pkgs/proxy"
 	"errors"
 	"fmt"
 	"os"
@@ -25,6 +27,8 @@ var (
 )
 
 type Context interface {
+	Git() git.Git
+	Proxy() *proxy.Proxy
 	Version() string
 	Platform() *Platform
 	Project() *Project
@@ -57,6 +61,7 @@ type Celer struct {
 	// Internal fields.
 	platform Platform
 	project  Project
+	git      git.Git
 }
 
 type global struct {
@@ -70,14 +75,9 @@ type global struct {
 }
 
 type configData struct {
-	Global   global    `toml:"global"`
-	Proxy    *proxy    `toml:"proxy,omitempty"`
-	CacheDir *CacheDir `toml:"cache_dir"`
-}
-
-type proxy struct {
-	Address string `toml:"address,omitempty"`
-	Port    int    `toml:"port,omitempty"`
+	Global   global       `toml:"global"`
+	Proxy    *proxy.Proxy `toml:"proxy,omitempty"`
+	CacheDir *CacheDir    `toml:"cache_dir"`
 }
 
 func (c *Celer) Init() error {
@@ -153,8 +153,13 @@ func (c *Celer) Init() error {
 		c.project.Name = "unnamed"
 	}
 
+	// Set git proxy.
+	if c.configData.Proxy != nil {
+		c.git = git.NewGit(c.configData.Proxy)
+	}
+
 	// Git is required to clone/update repo.
-	if err := buildtools.CheckTools(c.Offline(), "git"); err != nil {
+	if err := buildtools.CheckTools(c.Offline(), c.Proxy(), "git"); err != nil {
 		return err
 	}
 
@@ -452,41 +457,32 @@ func (c Celer) save() error {
 	return nil
 }
 
-func (c Celer) updateConfRepo(repo, branch string) error {
+func (c Celer) updateConfRepo(repoUrl, branch string) error {
 	// Extracted clone function for reusability.
 	cloneFunc := func(workDir string) error {
 		if err := os.RemoveAll(workDir); err != nil {
 			return err
 		}
 
-		var commands []string
-		commands = append(commands, fmt.Sprintf("git clone %s %s", repo, workDir))
-		commandLine := strings.Join(commands, " && ")
-		executor := cmd.NewExecutor("[clone]", commandLine)
-		executor.SetWorkDir(dirs.WorkspaceDir)
-		return executor.Execute()
+		return c.Git().CloneRepo("[clone conf repo]", repoUrl, branch, workDir)
 	}
 
 	// Extracted update function for reusability.
 	updateFunc := func(workDir string) error {
 		var commands []string
-		commands = append(commands, "git reset --hard && git clean -xfd")
-		commands = append(commands, "git fetch")
+		commands = append(commands, "reset --hard")
+		commands = append(commands, "clean -xfd")
+		commands = append(commands, "fetch")
 		if branch != "" {
-			commands = append(commands, fmt.Sprintf("git checkout %s", branch))
+			commands = append(commands, fmt.Sprintf("checkout %s", branch))
 		}
-		commands = append(commands, "git pull")
+		commands = append(commands, "pull")
 
 		// Execute clone command.
-		commandLine := strings.Join(commands, " && ")
-		executor := cmd.NewExecutor("[update conf repo]", commandLine)
-		executor.SetWorkDir(workDir)
-		output, err := executor.ExecuteOutput()
-		if err != nil {
+		if err := c.Git().Execute("[update conf repo]", workDir, commands); err != nil {
 			return err
 		}
 
-		fmt.Println(output)
 		return nil
 	}
 
@@ -495,7 +491,7 @@ func (c Celer) updateConfRepo(repo, branch string) error {
 	if fileio.PathExists(confDir) {
 		if fileio.PathExists(filepath.Join(confDir, ".git")) {
 			return updateFunc(confDir)
-		} else if repo != "" {
+		} else if repoUrl != "" {
 			return cloneFunc(confDir)
 		} else {
 			return fmt.Errorf("conf repo url is empty")
@@ -554,6 +550,13 @@ func (c Celer) clonePorts() error {
 }
 
 // ======================= celer context implementation ====================== //
+
+func (c *Celer) Git() git.Git {
+	return c.git
+}
+func (c *Celer) Proxy() *proxy.Proxy {
+	return c.configData.Proxy
+}
 
 func (c *Celer) Version() string {
 	return Version

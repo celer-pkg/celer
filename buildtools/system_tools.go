@@ -66,7 +66,7 @@ func isLibraryInstalled(libraryName string) (bool, error) {
 }
 
 func getOSType() (string, error) {
-	executor := cmd.NewExecutor("", "cat /etc/os-release")
+	executor := cmd.NewExecutor("", "cat", "/etc/os-release")
 	out, err := executor.ExecuteOutput()
 	if err != nil {
 		return "", fmt.Errorf("read /etc/os-release error: %w", err)
@@ -86,7 +86,7 @@ func getOSType() (string, error) {
 
 func checkDebianLibrary(libraryName string) (bool, error) {
 	// Use dpkg -l to check if the library is installed.
-	executor := cmd.NewExecutor("", "dpkg -l "+libraryName)
+	executor := cmd.NewExecutor("", "dpkg", "-l", libraryName)
 	out, err := executor.ExecuteOutput()
 	if err != nil {
 		// If not installed, dpkg -l will return exit status 1.
@@ -106,7 +106,7 @@ func checkDebianLibrary(libraryName string) (bool, error) {
 
 func checkRedHatLibrary(libraryName string) (bool, error) {
 	// Use rpm -q to check if the library is installed
-	executor := cmd.NewExecutor("", "rpm -q "+libraryName)
+	executor := cmd.NewExecutor("", "rpm", "-q", libraryName)
 	out, err := executor.ExecuteOutput()
 	if err != nil {
 		return false, fmt.Errorf("cannot run rpm -q: %v", err)

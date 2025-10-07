@@ -3,6 +3,7 @@ package fileio
 import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
+	"celer/pkgs/proxy"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,7 +25,7 @@ func (d *downloader) SetArchive(archive string) *downloader {
 	return d
 }
 
-func (d downloader) Start() (downloaded string, err error) {
+func (d downloader) Start(proxy *proxy.Proxy) (downloaded string, err error) {
 	req, err := http.NewRequest("GET", d.url, nil)
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)
@@ -36,7 +37,13 @@ func (d downloader) Start() (downloaded string, err error) {
 	req.Header.Set("Connection", "keep-alive")
 
 	// Do http request.
-	resp, err := http.DefaultClient.Do(req)
+	var client *http.Client
+	if proxy != nil {
+		client = proxy.HttpClient()
+	} else {
+		client = http.DefaultClient
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 // CheckIfLocalBranch check if repoRef is a branch.
-func CheckIfLocalBranch(repoDir, repoRef string) (bool, error) {
+func (g Git) CheckIfLocalBranch(repoDir, repoRef string) (bool, error) {
 	// Also can call `git symbolic-ref --short HEAD`
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	cmd.Dir = repoDir
@@ -20,7 +20,7 @@ func CheckIfLocalBranch(repoDir, repoRef string) (bool, error) {
 }
 
 // CheckIfLocalTag check if repoRef is a tag.
-func CheckIfLocalTag(repoDir, repoRef string) (bool, error) {
+func (g Git) CheckIfLocalTag(repoDir, repoRef string) (bool, error) {
 	cmd := exec.Command("git", "describe", "--exact-match", "--tags", "HEAD")
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
@@ -31,7 +31,7 @@ func CheckIfLocalTag(repoDir, repoRef string) (bool, error) {
 }
 
 // CheckIfLocalCommit check if repoRef is a commit.
-func CheckIfLocalCommit(repoDir, repoRef string) (bool, error) {
+func (g Git) CheckIfLocalCommit(repoDir, repoRef string) (bool, error) {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
@@ -42,7 +42,7 @@ func CheckIfLocalCommit(repoDir, repoRef string) (bool, error) {
 }
 
 // IsModified check if repo is modified.
-func IsModified(repoDir string) (bool, error) {
+func (g Git) IsModified(repoDir string) (bool, error) {
 	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -53,7 +53,7 @@ func IsModified(repoDir string) (bool, error) {
 }
 
 // ReadLocalCommit read git commit hash.
-func ReadLocalCommit(repoDir string) (string, error) {
+func (g Git) ReadLocalCommit(repoDir string) (string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -64,7 +64,7 @@ func ReadLocalCommit(repoDir string) (string, error) {
 }
 
 // DefaultBranch read git default branch.
-func DefaultBranch(repoDir string) (string, error) {
+func (g Git) DefaultBranch(repoDir string) (string, error) {
 	cmd := exec.Command("git", "remote", "show", "origin")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -84,7 +84,7 @@ func DefaultBranch(repoDir string) (string, error) {
 	return "", fmt.Errorf("default branch not found")
 }
 
-func BranchOfLocal(repoDir string) (string, error) {
+func (g Git) BranchOfLocal(repoDir string) (string, error) {
 	command := exec.Command("git", "-C", repoDir, "rev-parse", "--abbrev-ref", "HEAD")
 	output, err := command.CombinedOutput()
 	if err != nil {
@@ -93,7 +93,7 @@ func BranchOfLocal(repoDir string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-func InitRepo(repoDir, message string) error {
+func (g Git) InitRepo(repoDir, message string) error {
 	cmd := exec.Command("git", "init")
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()

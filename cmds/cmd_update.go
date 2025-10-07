@@ -5,7 +5,6 @@ import (
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,7 +28,7 @@ func (u updateCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Update conf repo, ports config repo or third-party repo.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Make sure git is available.
-			if err := buildtools.CheckTools(u.celer.Offline(), "git"); err != nil {
+			if err := buildtools.CheckTools(u.celer.Offline(), u.celer.Proxy(), "git"); err != nil {
 				configs.PrintError(err, "failed to check git tools.")
 				return
 			}
@@ -64,13 +63,13 @@ func (u updateCmd) Command(celer *configs.Celer) *cobra.Command {
 func (u updateCmd) updateConfRepo() error {
 	title := "[update conf repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	return git.UpdateRepo(title, "", repoDir, u.force)
+	return u.celer.Git().UpdateRepo(title, "", repoDir, u.force)
 }
 
 func (u updateCmd) updatePortsRepo() error {
 	title := "[update ports repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	return git.UpdateRepo(title, "", repoDir, u.force)
+	return u.celer.Git().UpdateRepo(title, "", repoDir, u.force)
 }
 
 func (u updateCmd) updatePorts(targets []string) error {
@@ -117,7 +116,7 @@ func (u updateCmd) updatePortRepo(nameVersion string) error {
 
 	// Update port.
 	title := fmt.Sprintf("[update %s]", nameVersion)
-	if err := git.UpdateRepo(title, port.Package.Ref, srcDir, u.force); err != nil {
+	if err := u.celer.Git().UpdateRepo(title, port.Package.Ref, srcDir, u.force); err != nil {
 		return err
 	}
 

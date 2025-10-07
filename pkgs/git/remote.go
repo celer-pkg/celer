@@ -6,22 +6,10 @@ import (
 	"strings"
 )
 
-var (
-	ProxyAddress string
-	ProxyPort    int
-)
-
-func gitCmd() string {
-	if ProxyAddress != "" && ProxyPort != 0 {
-		proxy := fmt.Sprintf("%s:%d", ProxyAddress, ProxyPort)
-		return fmt.Sprintf("git -c http.proxy=http://%s -c https.proxy=https://%s", proxy, proxy)
-	}
-	return "git"
-}
-
 // CheckIfRemoteBranch check if repoRef is a branch.
-func CheckIfRemoteBranch(repoUrl, repoRef string) (bool, error) {
-	cmd := exec.Command(gitCmd(), "ls-remote", "--heads", repoUrl, repoRef)
+func (g Git) CheckIfRemoteBranch(repoUrl, repoRef string) (bool, error) {
+	args := append(g.proxyArgs(), "ls-remote", "--heads", repoUrl, repoRef)
+	cmd := exec.Command("git", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return false, err
@@ -30,8 +18,9 @@ func CheckIfRemoteBranch(repoUrl, repoRef string) (bool, error) {
 }
 
 // CheckIfRemoteTag check if repoRef is a tag.
-func CheckIfRemoteTag(repoUrl, repoRef string) (bool, error) {
-	cmd := exec.Command(gitCmd(), "ls-remote", "--tags", repoUrl, repoRef+"^{}")
+func (g Git) CheckIfRemoteTag(repoUrl, repoRef string) (bool, error) {
+	args := append(g.proxyArgs(), "ls-remote", "--tags", repoUrl, repoRef+"^{}")
+	cmd := exec.Command("git", args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return false, err
@@ -40,14 +29,15 @@ func CheckIfRemoteTag(repoUrl, repoRef string) (bool, error) {
 }
 
 // ReadLocalCommit read git commit.
-func ReadRemoteCommit(repoUrl, repoRef string) (string, error) {
+func (g Git) ReadRemoteCommit(repoUrl, repoRef string) (string, error) {
 	// Try to get latest commit of branch.
-	isBranch, err := CheckIfRemoteBranch(repoUrl, repoRef)
+	isBranch, err := g.CheckIfRemoteBranch(repoUrl, repoRef)
 	if err != nil {
 		return "", fmt.Errorf("check if remote branch error: %w", err)
 	}
 	if isBranch {
-		cmd := exec.Command(gitCmd(), "ls-remote", repoUrl, "refs/heads/"+repoRef)
+		args := append(g.proxyArgs(), "ls-remote", repoUrl, "refs/heads/"+repoRef)
+		cmd := exec.Command("git", args...)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			return "", fmt.Errorf("read git commit hash error: %w", err)
@@ -62,12 +52,13 @@ func ReadRemoteCommit(repoUrl, repoRef string) (string, error) {
 	}
 
 	// Try to get latest commit of tag.
-	isTag, err := CheckIfRemoteTag(repoUrl, repoRef)
+	isTag, err := g.CheckIfRemoteTag(repoUrl, repoRef)
 	if err != nil {
 		return "", fmt.Errorf("check if remote tag error: %w", err)
 	}
 	if isTag {
-		cmd := exec.Command(gitCmd(), "ls-remote", repoUrl, "refs/tags/"+repoRef)
+		args := append(g.proxyArgs(), "ls-remote", repoUrl, "refs/tags/"+repoRef)
+		cmd := exec.Command("git", args...)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			return "", fmt.Errorf("read git commit hash error: %w", err)

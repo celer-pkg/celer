@@ -124,7 +124,7 @@ func (t Toolchain) CheckAndRepair() error {
 	// Check and repair resource.
 	archiveName := expr.If(t.Archive != "", t.Archive, filepath.Base(t.Url))
 	repair := fileio.NewRepair(t.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-	if err := repair.CheckAndRepair(t.ctx.Offline()); err != nil {
+	if err := repair.CheckAndRepair(t.ctx.Offline(), t.ctx.Proxy()); err != nil {
 		return err
 	}
 
@@ -136,7 +136,7 @@ func (t Toolchain) CheckAndRepair() error {
 
 // Detect detect local installed gcc.
 func (t *Toolchain) Detect() error {
-	if err := buildtools.CheckTools("build-essential"); err != nil {
+	if err := buildtools.CheckTools(t.ctx.Offline(), t.ctx.Proxy(), "build-essential"); err != nil {
 		return fmt.Errorf("build-essential is not available: %w", err)
 	}
 

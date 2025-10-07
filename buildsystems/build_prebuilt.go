@@ -28,8 +28,8 @@ func (p prebuilt) Name() string {
 }
 
 func (p prebuilt) CheckTools() error {
-	p.BuildConfig.BuildTools = append(p.BuildConfig.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(p.BuildConfig.Offline, p.BuildConfig.BuildTools...)
+	p.BuildTools = append(p.BuildTools, "git", "cmake")
+	return buildtools.CheckTools(p.Offline, p.Proxy, p.BuildTools...)
 }
 
 func (p prebuilt) Clean() error {
@@ -51,7 +51,7 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 			// Check and repair resource.
 			archive = expr.If(archive == "", filepath.Base(url), archive)
 			repair := fileio.NewRepair(url, archive, ".", p.PortConfig.PackageDir)
-			if err := repair.CheckAndRepair(p.Offline); err != nil && err != fileio.ErrOffline {
+			if err := repair.CheckAndRepair(p.Offline, p.Proxy); err != nil && err != fileio.ErrOffline {
 				return err
 			}
 

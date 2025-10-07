@@ -5,8 +5,6 @@ import (
 	"celer/configs"
 	"celer/envs"
 	"celer/pkgs/color"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"os"
 )
 
@@ -20,14 +18,6 @@ func main() {
 		os.Exit(1)
 	} else if celer.Offline() {
 		color.Println(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================")
-	}
-
-	// Set proxy.
-	if celer.Proxy != nil {
-		git.ProxyAddress = celer.Proxy.Address
-		git.ProxyPort = celer.Proxy.Port
-		fileio.ProxyAddress = celer.Proxy.Address
-		fileio.ProxyPort = celer.Proxy.Port
 	}
 
 	// Execute celer command.

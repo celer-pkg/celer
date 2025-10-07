@@ -6,11 +6,13 @@ import (
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
+	"celer/pkgs/proxy"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 )
 
@@ -42,7 +44,7 @@ func (c cmake) CheckTools() error {
 	if c.CMakeGenerator == "Ninja" {
 		c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "ninja")
 	}
-	return buildtools.CheckTools(c.BuildConfig.Offline, c.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(c.Offline, c.Proxy, c.BuildTools...)
 }
 
 func (c cmake) Clean() error {
@@ -100,7 +102,7 @@ func (c cmake) configureOptions() ([]string, error) {
 	if c.PortConfig.Toolchain.RootFS != "" {
 		findRootPaths = append(findRootPaths, c.PortConfig.Toolchain.RootFS)
 	}
-	options = append(options, fmt.Sprintf("-DCMAKE_FIND_ROOT_PATH=%q", strings.Join(findRootPaths, ";")))
+	options = append(options, fmt.Sprintf("-DCMAKE_FIND_ROOT_PATH=%q", filepath.ToSlash(strings.Join(findRootPaths, ";"))))
 
 	// Enable verbose makefile.
 	if c.PortConfig.Toolchain.Verbose {
@@ -155,18 +157,21 @@ func (c cmake) Configure(options []string) error {
 	}
 
 	// Assemble args into a single command string.
-	joinedArgs := strings.Join(options, " ")
-	var command string
+	var args []string
 	if c.CMakeGenerator == "" {
-		command = fmt.Sprintf("cmake -S%s -B%s %s", c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
+		args = append(args, "-S", c.PortConfig.SrcDir)
+		args = append(args, "-B", c.PortConfig.BuildDir)
 	} else {
-		command = fmt.Sprintf("cmake -G%q -S%s -B%s %s", c.CMakeGenerator, c.PortConfig.SrcDir, c.PortConfig.BuildDir, joinedArgs)
+		args = append(args, "-G", c.CMakeGenerator)
+		args = append(args, "-S", c.PortConfig.SrcDir)
+		args = append(args, "-B", c.PortConfig.BuildDir)
 	}
+	args = append(args, options...)
 
 	// Execute configure.
 	logPath := c.getLogPath("configure")
 	title := fmt.Sprintf("[configure %s]", c.PortConfig.nameVersionDesc())
-	executor := cmd.NewExecutor(title, command)
+	executor := cmd.NewExecutor(title, "cmake", args...)
 	executor.SetLogPath(logPath)
 	if err := executor.Execute(); err != nil {
 		return err
@@ -187,14 +192,16 @@ func (c cmake) buildOptions() ([]string, error) {
 }
 
 func (c cmake) Build(options []string) error {
-	// Assemble command.
-	joinedOptions := strings.Join(options, " ")
-	command := fmt.Sprintf("cmake --build %s %s --parallel %d", c.PortConfig.BuildDir, joinedOptions, c.PortConfig.Jobs)
+	// Assemble args.
+	var args []string
+	args = append(args, "--build", c.PortConfig.BuildDir)
+	args = append(args, options...)
+	args = append(args, "--parallel", strconv.Itoa(c.PortConfig.Jobs))
 
 	// Execute build.
 	logPath := c.getLogPath("build")
 	title := fmt.Sprintf("[build %s@%s]", c.PortConfig.LibName, c.PortConfig.LibVersion)
-	executor := cmd.NewExecutor(title, command)
+	executor := cmd.NewExecutor(title, "cmake", args...)
 	executor.SetLogPath(logPath)
 	if err := executor.Execute(); err != nil {
 		return err
@@ -215,14 +222,15 @@ func (c cmake) installOptions() ([]string, error) {
 }
 
 func (c cmake) Install(options []string) error {
-	// Assemble command.
-	joinedOptions := strings.Join(options, " ")
-	command := fmt.Sprintf("cmake --install %s %s", c.PortConfig.BuildDir, joinedOptions)
+	// Assemble args.
+	var args []string
+	args = append(args, "--install", c.PortConfig.BuildDir)
+	args = append(args, options...)
 
 	// Execute install.
 	logPath := c.getLogPath("install")
 	title := fmt.Sprintf("[install %s@%s]", c.PortConfig.LibName, c.PortConfig.LibVersion)
-	executor := cmd.NewExecutor(title, command)
+	executor := cmd.NewExecutor(title, "cmake", args...)
 	executor.SetLogPath(logPath)
 	if err := executor.Execute(); err != nil {
 		return err
@@ -258,7 +266,7 @@ func (c *cmake) detectGenerator() error {
 		case "linux":
 			c.CMakeGenerator = "Unix Makefiles"
 		case "windows":
-			msvcGenerator, err := detectMSVCGenerator(c.BuildConfig.Offline)
+			msvcGenerator, err := detectMSVCGenerator(c.BuildConfig.Offline, c.BuildConfig.Proxy)
 			if err != nil {
 				return err
 			}
@@ -273,14 +281,18 @@ func (c *cmake) detectGenerator() error {
 	return nil
 }
 
-func detectMSVCGenerator(offline bool) (string, error) {
-	if err := buildtools.CheckTools(offline, "vswhere"); err != nil {
+func detectMSVCGenerator(offline bool, proxy *proxy.Proxy) (string, error) {
+	if err := buildtools.CheckTools(offline, proxy, "vswhere"); err != nil {
 		return "", fmt.Errorf("check tool vswhere error: %w", err)
 	}
 
 	// Query all available msvc installation paths.
-	command := "vswhere -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath"
-	exector := cmd.NewExecutor("", command)
+	args := []string{
+		"-products", "*",
+		"-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+		"-property", "installationPath",
+	}
+	exector := cmd.NewExecutor("", "vswhere", args...)
 	output, err := exector.ExecuteOutput()
 	if err != nil {
 		return "", err
