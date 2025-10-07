@@ -333,7 +333,7 @@ func (b BuildConfig) Patch() error {
 	if len(b.Patches) > 0 {
 		// In windows, msys2 is required to apply patch .
 		if runtime.GOOS == "windows" {
-			if err := buildtools.CheckTools("msys2"); err != nil {
+			if err := buildtools.CheckTools(b.Offline, "msys2"); err != nil {
 				return err
 			}
 		}

@@ -44,7 +44,7 @@ func (m meson) CheckTools() error {
 		m.BuildConfig.BuildTools = append(m.BuildConfig.BuildTools, "python3:meson")
 	}
 
-	return buildtools.CheckTools(m.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(m.BuildConfig.Offline, m.BuildConfig.BuildTools...)
 }
 
 func (m meson) Clean() error {

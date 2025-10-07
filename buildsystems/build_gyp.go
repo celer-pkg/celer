@@ -29,7 +29,7 @@ func (g gyp) Name() string {
 
 func (g gyp) CheckTools() error {
 	g.BuildConfig.BuildTools = append(g.BuildConfig.BuildTools, "git", "cmake", "python3:gyp-next", "ninja")
-	return buildtools.CheckTools(g.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(g.BuildConfig.Offline, g.BuildConfig.BuildTools...)
 }
 
 func (g gyp) Clean() error {

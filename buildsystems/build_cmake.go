@@ -42,7 +42,7 @@ func (c cmake) CheckTools() error {
 	if c.CMakeGenerator == "Ninja" {
 		c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "ninja")
 	}
-	return buildtools.CheckTools(c.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(c.BuildConfig.Offline, c.BuildConfig.BuildTools...)
 }
 
 func (c cmake) Clean() error {
@@ -258,7 +258,7 @@ func (c *cmake) detectGenerator() error {
 		case "linux":
 			c.CMakeGenerator = "Unix Makefiles"
 		case "windows":
-			msvcGenerator, err := detectMSVCGenerator()
+			msvcGenerator, err := detectMSVCGenerator(c.BuildConfig.Offline)
 			if err != nil {
 				return err
 			}
@@ -273,8 +273,8 @@ func (c *cmake) detectGenerator() error {
 	return nil
 }
 
-func detectMSVCGenerator() (string, error) {
-	if err := buildtools.CheckTools("vswhere"); err != nil {
+func detectMSVCGenerator(offline bool) (string, error) {
+	if err := buildtools.CheckTools(offline, "vswhere"); err != nil {
 		return "", fmt.Errorf("check tool vswhere error: %w", err)
 	}
 

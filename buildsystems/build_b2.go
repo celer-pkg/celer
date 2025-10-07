@@ -34,7 +34,7 @@ func (b b2) Name() string {
 
 func (b b2) CheckTools() error {
 	b.BuildConfig.BuildTools = append(b.BuildConfig.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(b.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(b.BuildConfig.Offline, b.BuildConfig.BuildTools...)
 }
 
 func (b b2) Clean() error {

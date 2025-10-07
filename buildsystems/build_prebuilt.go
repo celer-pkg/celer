@@ -5,7 +5,6 @@ import (
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
-	"celer/pkgs/proxy"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -30,7 +29,7 @@ func (p prebuilt) Name() string {
 
 func (p prebuilt) CheckTools() error {
 	p.BuildConfig.BuildTools = append(p.BuildConfig.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(p.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(p.BuildConfig.Offline, p.BuildConfig.BuildTools...)
 }
 
 func (p prebuilt) Clean() error {
@@ -42,14 +41,8 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 	// Clone repo only when source dir not exists.
 	if !fileio.PathExists(p.PortConfig.RepoDir) {
 		if strings.HasSuffix(url, ".git") {
-			// Try to hack github repo url with proxy url.
-			redirectedUrl, err := proxy.HackRepoUrl(url)
-			if err != nil {
-				return err
-			}
-
 			// Clone repo.
-			command := fmt.Sprintf("git clone --branch %s %s %s --recursive", ref, redirectedUrl, p.PortConfig.PackageDir)
+			command := fmt.Sprintf("git clone --branch %s %s %s --recursive", ref, url, p.PortConfig.PackageDir)
 			title := fmt.Sprintf("[clone %s]", p.PortConfig.nameVersionDesc())
 			if err := cmd.NewExecutor(title, command).Execute(); err != nil {
 				return err

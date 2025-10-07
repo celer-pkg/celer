@@ -29,7 +29,7 @@ func (u updateCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Update conf repo, ports config repo or third-party repo.",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Make sure git is available.
-			if err := buildtools.CheckTools("git"); err != nil {
+			if err := buildtools.CheckTools(u.celer.Offline(), "git"); err != nil {
 				configs.PrintError(err, "failed to check git tools.")
 				return
 			}

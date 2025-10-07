@@ -38,7 +38,7 @@ func (m *makefiles) CheckTools() error {
 	}
 
 	m.BuildConfig.BuildTools = append(m.BuildConfig.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(m.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(m.BuildConfig.Offline, m.BuildConfig.BuildTools...)
 }
 
 func (m makefiles) Clean() error {

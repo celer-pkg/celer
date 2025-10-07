@@ -1,10 +1,15 @@
 package fileio
 
 import (
-	"celer/pkgs/proxy"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
+)
+
+var (
+	ProxyAddress string
+	ProxyPort    int
 )
 
 // CheckAvailable checks if the given URL is accessible.
@@ -36,12 +41,22 @@ func CheckAvailable(filePath string) error {
 }
 
 // FileSize returns the size of the file at the given URL.
-func FileSize(url string) (int64, error) {
-	// Try to hack github asset url with proxy url.
-	url = proxy.HackAssetkUrl(url)
+func FileSize(downloadUrl string) (int64, error) {
+	var client *http.Client
+	if ProxyAddress != "" && ProxyPort != 0 {
+		client = &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(&url.URL{
+					Scheme: "http",
+					Host:   fmt.Sprintf("%s:%d", ProxyAddress, ProxyPort),
+				}),
+			},
+		}
+	} else {
+		client = http.DefaultClient
+	}
 
-	client := http.DefaultClient
-	resp, err := client.Head(url)
+	resp, err := client.Head(downloadUrl)
 	if err != nil {
 		return 0, err
 	}

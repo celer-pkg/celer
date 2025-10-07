@@ -3,7 +3,6 @@ package fileio
 import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
-	"celer/pkgs/proxy"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,9 +25,6 @@ func (d *downloader) SetArchive(archive string) *downloader {
 }
 
 func (d downloader) Start() (downloaded string, err error) {
-	// Try to hack github asset url with proxy url.
-	d.url = proxy.HackAssetkUrl(d.url)
-
 	req, err := http.NewRequest("GET", d.url, nil)
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)

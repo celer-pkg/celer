@@ -8,7 +8,6 @@ import (
 	"celer/pkgs/encrypt"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
-	"celer/pkgs/proxy"
 	"errors"
 	"fmt"
 	"os"
@@ -23,7 +22,6 @@ const defaultPortsRepo = "https://github.com/celer-pkg/ports.git"
 
 var (
 	Version = "v0.0.0" // It would be set by build script.
-	Offline bool       // In offline mode, tools and repos would not be downloaded.
 )
 
 type Context interface {
@@ -62,20 +60,24 @@ type Celer struct {
 }
 
 type global struct {
-	ConfRepo         string `toml:"conf_repo"`
-	Platform         string `toml:"platform"`
-	Project          string `toml:"project"`
-	Jobs             int    `toml:"jobs"`
-	BuildType        string `toml:"build_type"`
-	Offline          bool   `toml:"offline"`
-	Verbose          bool   `toml:"verbose"`
-	GithubAssetProxy string `toml:"github_asset_proxy,omitempty"`
-	GithubRepoProxy  string `toml:"github_repo_proxy,omitempty"`
+	ConfRepo  string `toml:"conf_repo"`
+	Platform  string `toml:"platform"`
+	Project   string `toml:"project"`
+	Jobs      int    `toml:"jobs"`
+	BuildType string `toml:"build_type"`
+	Offline   bool   `toml:"offline"`
+	Verbose   bool   `toml:"verbose"`
 }
 
 type configData struct {
 	Global   global    `toml:"global"`
+	Proxy    *proxy    `toml:"proxy,omitempty"`
 	CacheDir *CacheDir `toml:"cache_dir"`
+}
+
+type proxy struct {
+	Address string `toml:"address,omitempty"`
+	Port    int    `toml:"port,omitempty"`
 }
 
 func (c *Celer) Init() error {
@@ -151,12 +153,8 @@ func (c *Celer) Init() error {
 		c.project.Name = "unnamed"
 	}
 
-	// Cache github proxies globally.
-	proxy.CacheGithubProxies(c.configData.Global.GithubAssetProxy, c.configData.Global.GithubRepoProxy)
-
 	// Git is required to clone/update repo.
-	buildtools.Offline = c.Global.Offline
-	if err := buildtools.CheckTools("git"); err != nil {
+	if err := buildtools.CheckTools(c.Offline(), "git"); err != nil {
 		return err
 	}
 
@@ -541,7 +539,7 @@ func (c Celer) clonePorts() error {
 
 		// Clone ports repo.
 		if c.Global.Offline {
-			PrintWarning(errors.New("offline is on"), "skip clone ports repo")
+			PrintWarning(errors.New("offline is on"), "cloning ports repo is skipped")
 			return nil
 		}
 
