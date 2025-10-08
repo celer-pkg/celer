@@ -22,6 +22,8 @@ type configureCmd struct {
 	verbose    bool
 	cacheDir   string
 	cacheToken string
+	proxyHost  string
+	proxyPort  int
 }
 
 func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -31,14 +33,14 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Configure to change gloabal settings.",
 		Run: func(cmd *cobra.Command, args []string) {
 			switch {
-			case c.platform != "":
+			case c.platform != c.celer.Global.Platform:
 				if err := c.celer.SetPlatform(c.platform); err != nil {
 					configs.PrintError(err, "failed to set platform: %s.", c.platform)
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current platform: %s.", c.platform)
 
-			case c.project != "":
+			case c.project != c.celer.Global.Project:
 				if err := c.celer.SetProject(c.project); err != nil {
 					configs.PrintError(err, "failed to set project: %s.", c.project)
 					os.Exit(1)
@@ -54,14 +56,14 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 					configs.PrintSuccess("platform is auto configured to %s defined in current project.", c.celer.Global.Platform)
 				}
 
-			case c.buildType != "":
+			case c.buildType != c.celer.Global.BuildType:
 				if err := c.celer.SetBuildType(c.buildType); err != nil {
 					configs.PrintError(err, "failed to set build type: %s.", c.buildType)
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current build type: %s.", c.buildType)
 
-			case c.jobs != -1:
+			case c.jobs != c.celer.Global.Jobs:
 				if err := c.celer.SetJobs(c.jobs); err != nil {
 					configs.PrintError(err, "failed to set job num: %d.", c.jobs)
 					os.Exit(1)
@@ -88,8 +90,14 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 					configs.PrintError(err, "failed to set cache dir: %s.", cacheDir)
 					os.Exit(1)
 				}
-
 				configs.PrintSuccess("current cache dir: %s.", expr.If(cacheDir != "", cacheDir, "empty"))
+
+			case c.proxyHost != "" || c.proxyPort != -1:
+				if err := c.celer.SetProxy(c.proxyHost, c.proxyPort); err != nil {
+					configs.PrintError(err, "failed to set proxy: %s:%d.", c.proxyHost, c.proxyPort)
+					os.Exit(1)
+				}
+				configs.PrintSuccess("current proxy: %s:%d.", c.proxyHost, c.proxyPort)
 			}
 		},
 		ValidArgsFunction: c.completion,
@@ -97,14 +105,16 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 
 	// Register flags.
 	flags := command.Flags()
-	flags.StringVar(&c.platform, "platform", "", "configure platform.")
-	flags.StringVar(&c.project, "project", "", "configure project.")
-	flags.StringVar(&c.buildType, "build-type", "", "configure build type.")
-	flags.IntVar(&c.jobs, "jobs", -1, "configure jobs.")
-	flags.BoolVar(&c.offline, "offline", false, "configure offline mode.")
-	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
+	flags.StringVar(&c.platform, "platform", c.celer.Global.Platform, "configure platform.")
+	flags.StringVar(&c.project, "project", c.celer.Global.Project, "configure project.")
+	flags.StringVar(&c.buildType, "build-type", c.celer.Global.BuildType, "configure build type.")
+	flags.IntVar(&c.jobs, "jobs", c.celer.Global.Jobs, "configure jobs.")
+	flags.BoolVar(&c.offline, "offline", c.celer.Global.Offline, "configure offline mode.")
+	flags.BoolVar(&c.verbose, "verbose", c.celer.Global.Verbose, "configure verbose mode.")
 	flags.StringVar(&c.cacheDir, "cache-dir", "", "configure cache dir.")
 	flags.StringVar(&c.cacheToken, "cache-token", "", "configure cache token.")
+	flags.StringVar(&c.proxyHost, "proxy-host", "", "configure proxy host.")
+	flags.IntVar(&c.proxyPort, "proxy-port", -1, "configure proxy port.")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -163,6 +173,8 @@ func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete s
 		"--verbose",
 		"--cache-dir",
 		"--cache-token",
+		"--proxy-host",
+		"--proxy-port",
 	}
 
 	var suggestions []string

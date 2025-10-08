@@ -346,6 +346,22 @@ func (c *Celer) SetCacheDir(dir, token string) error {
 	return nil
 }
 
+func (c *Celer) SetProxy(host string, port int) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	c.configData.Proxy = &proxy.Proxy{
+		Host: host,
+		Port: port,
+	}
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c Celer) CreatePort(nameVersion string) error {
 	parts := strings.Split(nameVersion, "@")
 	if len(parts) != 2 {
