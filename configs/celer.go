@@ -92,9 +92,10 @@ func (c *Celer) Init() error {
 
 		// Default global values.
 		c.configData.Global = global{
+			BuildType: "Release",
 			Jobs:      runtime.NumCPU(),
-			BuildType: "release",
 			Offline:   false,
+			Verbose:   false,
 		}
 
 		// Create celer conf file with default values.
