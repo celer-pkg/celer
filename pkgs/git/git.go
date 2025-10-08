@@ -23,17 +23,15 @@ func NewGit(proxy *proxy.Proxy) Git {
 	return Git{proxy: proxy}
 }
 
-func (g Git) Execute(title, workDir string, commands []string) error {
-	for _, command := range commands {
-		var args []string
-		args = append(args, g.proxyArgs()...)
-		args = append(args, command)
+func (g Git) Execute(title, workDir string, args ...string) error {
+	var execArgs []string
+	execArgs = append(execArgs, g.proxyArgs()...)
+	execArgs = append(execArgs, args...)
 
-		executor := cmd.NewExecutor(title, "git", args...)
-		executor.SetWorkDir(workDir)
-		if err := executor.Execute(); err != nil {
-			return err
-		}
+	executor := cmd.NewExecutor(title, "git", execArgs...)
+	executor.SetWorkDir(workDir)
+	if err := executor.Execute(); err != nil {
+		return err
 	}
 
 	return nil

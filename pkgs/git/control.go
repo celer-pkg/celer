@@ -92,13 +92,21 @@ func (g Git) UpdateRepo(title, repoRef, repoDir string, force bool) error {
 		return err
 	}
 	if isBranch {
-		var commands []string
-		commands = append(commands, "reset --hard")
-		commands = append(commands, "clean -xfd")
-		commands = append(commands, fmt.Sprintf("%s fetch origin %s", g.proxyArgs(), repoRef))
-		commands = append(commands, fmt.Sprintf("%s checkout -B %s origin/%s", g.proxyArgs(), repoRef, repoRef))
-		commands = append(commands, fmt.Sprintf("%s pull origin %s", g.proxyArgs(), repoRef))
-		return g.Execute(title, repoDir, commands)
+		if err := g.Execute(title, repoDir, "reset", "--hard"); err != nil {
+			return err
+		}
+		if err := g.Execute(title, repoDir, "clean", "-xfd"); err != nil {
+			return err
+		}
+		if err := g.Execute(title, repoDir, "fetch", "origin", repoRef); err != nil {
+			return err
+		}
+		if err := g.Execute(title, repoDir, "checkout", "-B", repoRef, "origin/"+repoRef); err != nil {
+			return err
+		}
+		if err := g.Execute(title, repoDir, "pull", "origin", repoRef); err != nil {
+			return err
+		}
 	}
 
 	// Update to tag.
@@ -107,13 +115,21 @@ func (g Git) UpdateRepo(title, repoRef, repoDir string, force bool) error {
 		return err
 	}
 	if isTag {
-		var commands []string
-		commands = append(commands, "reset --hard")
-		commands = append(commands, "clean -xfd")
-		commands = append(commands, fmt.Sprintf("%s tag -d %s || true", g.proxyArgs(), repoRef))
-		commands = append(commands, fmt.Sprintf("%s fetch --tags origin", g.proxyArgs()))
-		commands = append(commands, fmt.Sprintf("%s checkout %s", g.proxyArgs(), repoRef))
-		return g.Execute(title, repoDir, commands)
+		if err := g.Execute(title, repoDir, "reset", "--hard"); err != nil {
+			return err
+		}
+		if err := g.Execute(title, repoDir, "clean", "-xfd"); err != nil {
+			return err
+		}
+		if err := g.Execute(title, repoDir, "tag", "-d", repoRef, "||", "true"); err != nil {
+			return err
+		}
+		if err := g.Execute(title, repoDir, "fetch", "--tags", "origin"); err != nil {
+			return err
+		}
+		if err := g.Execute(title, repoDir, "checkout", repoRef); err != nil {
+			return err
+		}
 	}
 
 	return fmt.Errorf("invalid repoRef: %s", repoRef)
@@ -127,15 +143,14 @@ func (g Git) CherryPick(title, srcDir string, patches []string) error {
 	}
 
 	// Execute patch command.
-	var commands []string
-	commands = append(commands, fmt.Sprintf("%s fetch origin", g.proxyArgs()))
-
-	for _, patch := range patches {
-		commands = append(commands, fmt.Sprintf("cherry-pick %s", patch))
+	if err := g.Execute(title, srcDir, "fetch"); err != nil {
+		return err
 	}
 
-	if err := g.Execute(title, srcDir, commands); err != nil {
-		return err
+	for _, patch := range patches {
+		if err := g.Execute(title, srcDir, "cherry-pick", patch); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -148,16 +163,18 @@ func (g Git) Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 		return err
 	}
 
-	var commands []string
-	commands = append(commands, fmt.Sprintf("%s fetch origin", g.proxyArgs()))
-
-	for _, ref := range rebaseRefs {
-		commands = append(commands, fmt.Sprintf("checkout %s", ref))
-		commands = append(commands, fmt.Sprintf("rebase %s", repoRef))
+	if err := g.Execute(title, srcDir, "fetch"); err != nil {
+		return err
 	}
 
-	if err := g.Execute(title, srcDir, commands); err != nil {
-		return err
+	for _, rebaseRef := range rebaseRefs {
+		if err := g.Execute(title, srcDir, "checkout", rebaseRef); err != nil {
+			return err
+		}
+
+		if err := g.Execute(title, srcDir, "rebase", repoRef); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -165,10 +182,10 @@ func (g Git) Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 
 // Clean clean git repo.
 func (g Git) Clean(title, repoDir string) error {
-	var commands []string
-	commands = append(commands, "reset --hard")
-	commands = append(commands, "clean -xfd")
-	if err := g.Execute(title, repoDir, commands); err != nil {
+	if err := g.Execute(title, repoDir, "reset", "--hard"); err != nil {
+		return err
+	}
+	if err := g.Execute(title, repoDir, "clean", "-xfd"); err != nil {
 		return err
 	}
 

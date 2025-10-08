@@ -296,7 +296,7 @@ func (p Port) installFromPackage() (bool, error) {
 	var metaFileBackup string
 	localMeta := string(metaBytes)
 	if localMeta != newMeta {
-		color.Printf(color.Yellow, "\n================ The outdated package of %s will be removed now. ================", p.NameVersion())
+		color.Printf(color.Yellow, "\n================ The outdated package of %s will be removed now. ================\n", p.NameVersion())
 
 		// Backup installed meta file to tmp dir.
 		metaFileBackup = filepath.Join(dirs.TmpDir, filepath.Base(p.metaFile)+".old")

@@ -469,17 +469,22 @@ func (c Celer) updateConfRepo(repoUrl, branch string) error {
 
 	// Extracted update function for reusability.
 	updateFunc := func(workDir string) error {
-		var commands []string
-		commands = append(commands, "reset --hard")
-		commands = append(commands, "clean -xfd")
-		commands = append(commands, "fetch")
-		if branch != "" {
-			commands = append(commands, fmt.Sprintf("checkout %s", branch))
+		if err := c.git.Clean("[update conf repo]", workDir); err != nil {
+			return err
 		}
-		commands = append(commands, "pull")
-
-		// Execute clone command.
-		if err := c.Git().Execute("[update conf repo]", workDir, commands); err != nil {
+		if err := c.git.Execute("", workDir, "fetch"); err != nil {
+			return err
+		}
+		if branch != "" {
+			if err := c.git.Execute("", workDir, "checkout", branch); err != nil {
+				return err
+			}
+		} else {
+			if err := c.git.Execute("", workDir, "checkout"); err != nil {
+				return err
+			}
+		}
+		if err := c.git.Execute("", workDir, "pull"); err != nil {
 			return err
 		}
 
