@@ -77,7 +77,7 @@ type global struct {
 type configData struct {
 	Global   global       `toml:"global"`
 	Proxy    *proxy.Proxy `toml:"proxy,omitempty"`
-	CacheDir *CacheDir    `toml:"cache_dir"`
+	CacheDir *CacheDir    `toml:"cache_dir,omitempty"`
 }
 
 func (c *Celer) Init() error {
