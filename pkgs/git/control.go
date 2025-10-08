@@ -34,7 +34,7 @@ func (g Git) CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 		return fmt.Errorf("check if remote tag error: %w", err)
 	}
 	if isTag {
-		cloneArgs := append(g.proxyArgs(), "clone", "--tag", repoRef, "--recursive", repoUrl, repoDir)
+		cloneArgs := append(g.proxyArgs(), "clone", "--branch", repoRef, repoUrl, "--recursive", repoDir)
 		return cmd.NewExecutor(title, "git", cloneArgs...).Execute()
 	}
 	// ============ Clone and checkout commit ============
@@ -243,8 +243,8 @@ func (g Git) ApplyPatch(port, repoDir, patchFile string) error {
 	} else {
 		// Others, assume it's a regular patch file.
 		title := fmt.Sprintf("[patch %s]", port)
-		args := []string{"patch", "-Np1", "-i", patchFile}
-		executor := cmd.NewExecutor(title, "git", args...)
+		args := []string{"-Np1", "-i", patchFile}
+		executor := cmd.NewExecutor(title, "patch", args...)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
 			return err

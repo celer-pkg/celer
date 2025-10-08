@@ -63,7 +63,7 @@ func (b b2) Configure(options []string) error {
 	}
 
 	// Join options into a string.
-	configure := expr.If(runtime.GOOS == "windows", "bootstrap.bat", "bootstrap.sh")
+	configure := expr.If(runtime.GOOS == "windows", "./bootstrap.bat", "./bootstrap.sh")
 
 	// Execute configure.
 	logPath := b.getLogPath("configure")
