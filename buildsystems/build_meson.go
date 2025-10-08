@@ -32,19 +32,19 @@ func (meson) Name() string {
 }
 
 func (m meson) CheckTools() error {
-	m.BuildConfig.BuildTools = append(m.BuildConfig.BuildTools, "git", "ninja", "cmake")
+	m.BuildTools = append(m.BuildTools, "git", "ninja", "cmake")
 
 	switch runtime.GOOS {
 	case "windows":
-		m.BuildConfig.BuildTools = append(m.BuildConfig.BuildTools,
+		m.BuildTools = append(m.BuildTools,
 			"python3",
 			"python3:meson",
 		)
 	case "linux":
-		m.BuildConfig.BuildTools = append(m.BuildConfig.BuildTools, "python3:meson")
+		m.BuildTools = append(m.BuildTools, "python3:meson")
 	}
 
-	return buildtools.CheckTools(m.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(m.Offline, m.Proxy, m.BuildTools...)
 }
 
 func (m meson) Clean() error {

@@ -36,12 +36,15 @@ func CheckAvailable(filePath string) error {
 }
 
 // FileSize returns the size of the file at the given URL.
-func FileSize(url string) (int64, error) {
-	// Try to hack github asset url with proxy url.
-	url = proxy.HackAssetkUrl(url)
+func FileSize(proxy *proxy.Proxy, downloadUrl string) (int64, error) {
+	var client *http.Client
+	if proxy != nil {
+		client = proxy.HttpClient()
+	} else {
+		client = http.DefaultClient
+	}
 
-	client := http.DefaultClient
-	resp, err := client.Head(url)
+	resp, err := client.Head(downloadUrl)
 	if err != nil {
 		return 0, err
 	}

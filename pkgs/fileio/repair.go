@@ -2,6 +2,7 @@ package fileio
 
 import (
 	"celer/pkgs/dirs"
+	"celer/pkgs/proxy"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -26,10 +27,12 @@ type Repair struct {
 	folder     string
 	destDir    string
 	offline    bool
+	proxy      *proxy.Proxy
 }
 
-func (r *Repair) CheckAndRepair(offline bool) error {
+func (r *Repair) CheckAndRepair(offline bool, proxy *proxy.Proxy) error {
 	r.offline = offline
+	r.proxy = proxy
 
 	switch {
 	case strings.HasPrefix(r.downloader.url, "http"), strings.HasPrefix(r.downloader.url, "ftp"):
@@ -130,7 +133,7 @@ func (r Repair) download(url, archive string) (override bool, err error) {
 		}
 
 		// Redownload if remote file size and local file size not match.
-		fileSize, err := FileSize(url)
+		fileSize, err := FileSize(r.proxy, url)
 		if err != nil {
 			return false, fmt.Errorf("get remote file size: %w", err)
 		}
@@ -141,7 +144,7 @@ func (r Repair) download(url, archive string) (override bool, err error) {
 
 		// Not every remote file has size, so we need to check if fileSize is greater than 0.
 		if fileSize > 0 && info.Size() != fileSize {
-			if _, err := r.downloader.Start(); err != nil {
+			if _, err := r.downloader.Start(r.proxy); err != nil {
 				return false, fmt.Errorf("%s: download: %w", archive, err)
 			}
 			return true, nil
@@ -154,8 +157,8 @@ func (r Repair) download(url, archive string) (override bool, err error) {
 			return false, ErrOffline
 		}
 
-		if _, err := r.downloader.Start(); err != nil {
-			return false, fmt.Errorf("%s: download: %w", archive, err)
+		if _, err := r.downloader.Start(r.proxy); err != nil {
+			return false, fmt.Errorf("%s: download error: %w", archive, err)
 		}
 
 		return true, nil

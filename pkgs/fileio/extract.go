@@ -35,48 +35,77 @@ func Extract(archiveFile, destDir string) error {
 		}
 	}()
 
-	var command string
-	tarPath := expr.If(runtime.GOOS == "windows", "C:/Windows/System32/tar.exe", "/usr/bin/tar")
-
-	switch {
-	case strings.HasSuffix(archiveFile, ".tar.gz"),
-		strings.HasSuffix(archiveFile, ".tgz"):
-		command = fmt.Sprintf("%s -zxf %s -C %s", tarPath, archiveFile, destDir)
-
-	case strings.HasSuffix(archiveFile, ".tar.xz"):
-		command = fmt.Sprintf("%s -xf %s -C %s", tarPath, archiveFile, destDir)
-
-	case strings.HasSuffix(archiveFile, ".tar.bz2"):
-		command = fmt.Sprintf("%s -xjf %s -C %s", tarPath, archiveFile, destDir)
-
-	case strings.HasSuffix(archiveFile, ".zip"):
-		// In windows, tar support extract zip file.
-		if runtime.GOOS == "windows" {
-			command = fmt.Sprintf("C:/Windows/System32/tar.exe -xf %s -C %s", archiveFile, destDir)
-		} else {
-			command = fmt.Sprintf("unzip %s -d %s", archiveFile, destDir)
-		}
-
-	case strings.HasSuffix(archiveFile, ".7z"):
-		command = fmt.Sprintf("7z x %s -o %s", archiveFile, destDir)
-
-	case strings.HasSuffix(archiveFile, ".exe"):
-		command = fmt.Sprintf("%s -o %s -y", archiveFile, destDir)
-
-	default:
-		extractFailed = true
-		return fmt.Errorf("unsupported archive file type: %s", archiveFile)
-	}
-
 	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
 		extractFailed = true
 		return fmt.Errorf("mkdir for extract: %w", err)
 	}
 
-	executor := cmd.NewExecutor("", command)
-	if err := executor.Execute(); err != nil {
+	// var command string
+	tarPath := expr.If(runtime.GOOS == "windows", "C:/Windows/System32/tar.exe", "/usr/bin/tar")
+
+	switch {
+	case strings.HasSuffix(archiveFile, ".tar.gz"),
+		strings.HasSuffix(archiveFile, ".tgz"):
+		args := []string{"-zxf", archiveFile, "-C", destDir}
+		executor := cmd.NewExecutor("", tarPath, args...)
+		if err := executor.Execute(); err != nil {
+			extractFailed = true
+			return fmt.Errorf("extract: %w", err)
+		}
+
+	case strings.HasSuffix(archiveFile, ".tar.xz"):
+		args := []string{"-xf", archiveFile, "-C", destDir}
+		executor := cmd.NewExecutor("", tarPath, args...)
+		if err := executor.Execute(); err != nil {
+			extractFailed = true
+			return fmt.Errorf("extract: %w", err)
+		}
+
+	case strings.HasSuffix(archiveFile, ".tar.bz2"):
+		args := []string{"-xjf", archiveFile, "-C", destDir}
+		executor := cmd.NewExecutor("", tarPath, args...)
+		if err := executor.Execute(); err != nil {
+			extractFailed = true
+			return fmt.Errorf("extract: %w", err)
+		}
+
+	case strings.HasSuffix(archiveFile, ".zip"):
+		// In windows, tar support extract zip file.
+		if runtime.GOOS == "windows" {
+			args := []string{"-xf", archiveFile, "-C", destDir}
+			executor := cmd.NewExecutor("", tarPath, args...)
+			if err := executor.Execute(); err != nil {
+				extractFailed = true
+				return fmt.Errorf("extract: %w", err)
+			}
+		} else {
+			args := []string{archiveFile, "-d", destDir}
+			executor := cmd.NewExecutor("", "unzip", args...)
+			if err := executor.Execute(); err != nil {
+				extractFailed = true
+				return fmt.Errorf("extract: %w", err)
+			}
+		}
+
+	case strings.HasSuffix(archiveFile, ".7z"):
+		args := []string{"x", archiveFile, "-o", destDir}
+		executor := cmd.NewExecutor("", "7z", args...)
+		if err := executor.Execute(); err != nil {
+			extractFailed = true
+			return fmt.Errorf("extract: %w", err)
+		}
+
+	case strings.HasSuffix(archiveFile, ".exe"):
+		args := []string{archiveFile, "-o", destDir, "-y"}
+		executor := cmd.NewExecutor("", archiveFile, args...)
+		if err := executor.Execute(); err != nil {
+			extractFailed = true
+			return fmt.Errorf("extract: %w", err)
+		}
+
+	default:
 		extractFailed = true
-		return fmt.Errorf("extract: %w", err)
+		return fmt.Errorf("unsupported archive file type: %s", archiveFile)
 	}
 
 	return nil

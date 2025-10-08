@@ -293,7 +293,6 @@ func (p Port) validate() error {
 
 func (p Port) checkPatternMatch(pattern string) bool {
 	pattern = strings.TrimSpace(pattern)
-
 	if pattern == "" || pattern == "*" {
 		return true
 	}

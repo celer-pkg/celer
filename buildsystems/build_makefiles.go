@@ -5,6 +5,7 @@ import (
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -34,19 +35,17 @@ func (m *makefiles) CheckTools() error {
 	if runtime.GOOS == "windows" {
 		configureWithPerl := m.shouldConfigureWithPerl()
 		tool := expr.If(configureWithPerl, "strawberry-perl", "msys2")
-		m.BuildConfig.BuildTools = append(m.BuildConfig.BuildTools, tool)
+		m.BuildTools = append(m.BuildTools, tool)
 	}
 
-	m.BuildConfig.BuildTools = append(m.BuildConfig.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(m.BuildConfig.BuildTools...)
+	m.BuildTools = append(m.BuildTools, "git", "cmake")
+	return buildtools.CheckTools(m.Offline, m.Proxy, m.BuildTools...)
 }
 
 func (m makefiles) Clean() error {
 	if fileio.PathExists(filepath.Join(m.PortConfig.RepoDir, ".git")) {
 		title := fmt.Sprintf("[clean %s]", m.PortConfig.nameVersionDesc())
-		executor := cmd.NewExecutor(title, "git clean -fdx && git reset --hard")
-		executor.SetWorkDir(m.PortConfig.RepoDir)
-		if err := executor.Execute(); err != nil {
+		if err := git.Clean(title, m.PortConfig.RepoDir); err != nil {
 			return err
 		}
 	} else if m.BuildInSource {
@@ -69,15 +68,15 @@ func (m *makefiles) preConfigure() error {
 	}
 
 	// Execute pre configure scripts.
-	for _, script := range m.PreConfigure {
-		script = strings.TrimSpace(script)
-		if script == "" {
+	for _, command := range m.PreConfigure {
+		command = strings.TrimSpace(command)
+		if command == "" {
 			continue
 		}
 
 		title := fmt.Sprintf("[post confiure %s]", m.PortConfig.nameVersionDesc())
-		script = m.replaceHolders(script)
-		executor := cmd.NewExecutor(title, script)
+		command = m.replaceHolders(command)
+		executor := cmd.NewExecutor(title, command)
 		executor.MSYS2Env(runtime.GOOS == "windows")
 		if err := executor.Execute(); err != nil {
 			return err

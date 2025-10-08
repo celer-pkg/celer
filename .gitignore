@@ -11,6 +11,7 @@
 **/cachedir
 **toolchain_file.cmake
 **/__debug_*
+**/token
 *.exe
 celer
 celer.toml

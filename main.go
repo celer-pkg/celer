@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Execute celer command.
-	if err := cmds.Execute(); err != nil {
+	if err := cmds.Execute(celer); err != nil {
 		color.Printf(color.Red, "Execute command error: %s.\n", err)
 		os.Exit(1)
 	}

@@ -10,21 +10,24 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type Executor struct {
 	msys2Env bool
 	title    string
-	command  string
+	cmd      string
+	args     []string
 	msvcEnvs string
 	workDir  string
 	logPath  string
 }
 
-func NewExecutor(title, command string) *Executor {
+func NewExecutor(title string, cmd string, args ...string) *Executor {
 	return &Executor{
 		title:   title,
-		command: command,
+		cmd:     cmd,
+		args:    args,
 		workDir: "",
 		logPath: "",
 	}
@@ -67,18 +70,17 @@ func (e Executor) Execute() error {
 
 func (e Executor) doExecute(buffer *bytes.Buffer) error {
 	if e.title != "" {
-		color.Printf(color.Blue, "\n%s: %s\n", e.title, e.command)
+		color.Printf(color.Blue, "\n%s: %s\n", e.title, e.cmd+" "+strings.Join(e.args, " "))
 	}
 
-	// Set msvc envs if specified.
-	if e.msvcEnvs != "" {
-		e.command = e.msvcEnvs + " && " + e.command
+	var cmd *exec.Cmd
+	if len(e.args) == 0 {
+		cmd = exec.Command("bash", "-c", e.cmd)
+	} else {
+		cmd = exec.Command(e.cmd, e.args...)
 	}
 
-	// Create command for windows and unix like.
-	cmd := exec.Command("bash", "-c", e.command)
 	cmd.Env = os.Environ()
-
 	cmd.Dir = e.workDir
 	cmd.Stdin = os.Stdin
 
@@ -101,7 +103,7 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 		io.WriteString(logFile, fmt.Sprintf("Environment:\n%s\n", buffer.String()))
 
 		// Write command summary as header content of file.
-		io.WriteString(logFile, fmt.Sprintf("%s: %s\n\n", e.title, e.command))
+		io.WriteString(logFile, fmt.Sprintf("%s: %s\n\n", e.title, e.cmd))
 
 		cmd.Stdout = io.MultiWriter(os.Stdout, logFile)
 		cmd.Stderr = io.MultiWriter(os.Stderr, logFile)

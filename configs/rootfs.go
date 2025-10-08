@@ -51,7 +51,7 @@ func (r RootFS) CheckAndRepair() error {
 	// Check and repair resource.
 	archiveName := expr.If(r.Archive != "", r.Archive, filepath.Base(r.Url))
 	repair := fileio.NewRepair(r.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-	if err := repair.CheckAndRepair(r.ctx.Offline()); err != nil {
+	if err := repair.CheckAndRepair(r.ctx.Offline(), r.ctx.Proxy()); err != nil {
 		return err
 	}
 

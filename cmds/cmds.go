@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"strings"
 
@@ -44,16 +43,7 @@ var rootCmd = &cobra.Command{
 }
 
 // Execute register all commands and executes the command.
-func Execute() error {
-	celer := configs.NewCeler()
-	if err := celer.Init(); err != nil {
-		return err
-	}
-
-	// Set offline mode.
-	buildtools.Offline = celer.Global.Offline
-	configs.Offline = celer.Global.Offline
-
+func Execute(celer *configs.Celer) error {
 	commands := []Command{
 		versionCmd{},
 		initCmd{},

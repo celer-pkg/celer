@@ -10,22 +10,25 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 )
 
 type Executor struct {
 	msys2Env bool
 	title    string
-	command  string
+	cmd      string
+	args     []string
 	msvcEnvs string
 	workDir  string
 	logPath  string
 }
 
-func NewExecutor(title, command string) *Executor {
+func NewExecutor(title string, cmd string, args ...string) *Executor {
 	return &Executor{
 		title:   title,
-		command: command,
+		cmd:     cmd,
+		args:    args,
 		workDir: "",
 		logPath: "",
 	}
@@ -67,29 +70,33 @@ func (e Executor) Execute() error {
 }
 
 func (e Executor) doExecute(buffer *bytes.Buffer) error {
-	if e.title != "" {
-		fmt.Print(color.Sprintf(color.Blue, "\n%s: %s\n", e.title, e.command))
-	}
-
-	// Set msvc envs if specified.
-	if e.msvcEnvs != "" {
-		e.command = e.msvcEnvs + " " + e.command
-	}
-
 	// Create command for windows and unix like.
+	if e.title != "" {
+		fmt.Print(color.Sprintf(color.Blue, "\n%s: %s\n", e.title, e.cmd+" "+strings.Join(e.args, " ")))
+	}
+
 	var cmd *exec.Cmd
 	if e.msys2Env {
-		cmd = exec.Command("bash", "-lc", e.command)
+		var args []string
+		args = append(args, e.msvcEnvs)
+		args = append(args, e.cmd)
+
+		cmd = exec.Command("bash", "-lc", strings.Join(args, " "))
 		cmd.Env = append(os.Environ(),
 			"MSYSTEM=MINGW64",              // Set environment as MinGW64.
 			"CHERE_INVOKING=1",             // Preserve the current working directory.
 			"MSYS=winsymlinks:nativestric", // Allow creating symblink in windows.
 		)
 	} else {
-		cmd = exec.Command("cmd")
-		cmd.SysProcAttr = &syscall.SysProcAttr{
-			CmdLine:    fmt.Sprintf(`/c %s`, e.command),
-			HideWindow: true,
+		if len(e.args) == 0 {
+			cmd = exec.Command("cmd")
+			cmd.SysProcAttr = &syscall.SysProcAttr{
+				CmdLine:    fmt.Sprintf(`/c %s`, e.cmd),
+				HideWindow: true,
+			}
+			cmd.Env = os.Environ()
+		} else {
+			cmd = exec.Command(e.cmd, e.args...)
 		}
 		cmd.Env = os.Environ()
 	}
@@ -116,7 +123,7 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 		io.WriteString(logFile, fmt.Sprintf("Environment:\n%s\n", buffer.String()))
 
 		// Write command summary as header content of file.
-		io.WriteString(logFile, fmt.Sprintf("%s: %s\n\n", e.title, e.command))
+		io.WriteString(logFile, fmt.Sprintf("%s: %s\n\n", e.title, e.args))
 
 		cmd.Stdout = io.MultiWriter(os.Stdout, logFile)
 		cmd.Stderr = io.MultiWriter(os.Stderr, logFile)
@@ -134,3 +141,62 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 
 	return nil
 }
+
+// func (e Executor) loadMSVCEnv() (string, error) {
+// 	vcvars := `C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat`
+
+// 	// Print all environment variables about msvc.
+// 	var out bytes.Buffer
+// 	cmd := exec.Command("cmd", "/c", "call", vcvars, "x64", "&&", "set")
+// 	cmd.Stdout = &out
+// 	cmd.Stderr = &out
+// 	if err := cmd.Run(); err != nil {
+// 		return "", fmt.Errorf("failed to call vcvarsall: %v\noutput: %s", err, out.String())
+// 	}
+
+// 	// Parse environment variables from output.
+// 	var envs []string
+
+// 	lines := strings.Split(out.String(), "\n")
+// 	for _, line := range lines {
+// 		line = strings.TrimSpace(line)
+// 		if line != "" && strings.Contains(line, "=") {
+// 			parts := strings.Split(line, "=")
+// 			key := parts[0]
+// 			value := parts[1]
+// 			if !strings.Contains(key, "PATH=") {
+// 				continue
+// 			}
+
+// 			if strings.Contains(value, ";") {
+// 				parts := strings.Split(value, ";")
+// 				for index, part := range parts {
+// 					parts[index] = toCygpath(part)
+// 				}
+// 				envs = append(envs, fmt.Sprintf(`%s="%s"`, key, strings.Join(parts, ":")))
+// 			} else {
+// 				value = toCygpath(value)
+// 				envs = append(envs, fmt.Sprintf(`%s="%s"`, key, value))
+// 			}
+// 		}
+// 	}
+
+// 	return strings.Join(envs, " "), nil
+// }
+
+// func toCygpath(path string) string {
+// 	if runtime.GOOS == "windows" {
+// 		path = filepath.Clean(path)
+// 		path = filepath.ToSlash(path)
+
+// 		// Handle disk driver（for example: `C:/` → `/c/`）
+// 		if len(path) >= 2 && path[1] == ':' {
+// 			drive := strings.ToLower(string(path[0]))
+// 			path = "/" + drive + path[2:]
+// 		}
+
+// 		return path
+// 	}
+
+// 	return path
+// }

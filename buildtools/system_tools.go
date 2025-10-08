@@ -66,16 +66,16 @@ func isLibraryInstalled(libraryName string) (bool, error) {
 }
 
 func getOSType() (string, error) {
-	executor := cmd.NewExecutor("", "cat /etc/os-release")
+	executor := cmd.NewExecutor("", "cat", "/etc/os-release")
 	out, err := executor.ExecuteOutput()
 	if err != nil {
 		return "", fmt.Errorf("read /etc/os-release error: %w", err)
 	}
 
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
-		if strings.HasPrefix(line, "ID=") {
-			id := strings.TrimPrefix(line, "ID=")
+	lines := strings.SplitSeq(string(out), "\n")
+	for line := range lines {
+		if after, ok := strings.CutPrefix(line, "ID="); ok {
+			id := after
 			id = strings.Trim(id, `"`)
 			return id, nil
 		}
@@ -86,7 +86,7 @@ func getOSType() (string, error) {
 
 func checkDebianLibrary(libraryName string) (bool, error) {
 	// Use dpkg -l to check if the library is installed.
-	executor := cmd.NewExecutor("", "dpkg -l "+libraryName)
+	executor := cmd.NewExecutor("", "dpkg", "-l", libraryName)
 	out, err := executor.ExecuteOutput()
 	if err != nil {
 		// If not installed, dpkg -l will return exit status 1.
@@ -94,8 +94,8 @@ func checkDebianLibrary(libraryName string) (bool, error) {
 	}
 
 	// Check if the library is installed.
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(string(out), "\n")
+	for line := range lines {
 		if strings.HasPrefix(line, "ii") && strings.Contains(line, libraryName) {
 			return true, nil
 		}
@@ -106,7 +106,7 @@ func checkDebianLibrary(libraryName string) (bool, error) {
 
 func checkRedHatLibrary(libraryName string) (bool, error) {
 	// Use rpm -q to check if the library is installed
-	executor := cmd.NewExecutor("", "rpm -q "+libraryName)
+	executor := cmd.NewExecutor("", "rpm", "-q", libraryName)
 	out, err := executor.ExecuteOutput()
 	if err != nil {
 		return false, fmt.Errorf("cannot run rpm -q: %v", err)

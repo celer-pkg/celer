@@ -28,8 +28,8 @@ func TestCeler_Init_NewConfig(t *testing.T) {
 	if !fileio.PathExists(celerPath) {
 		t.Error("celer.toml should be created")
 	}
-	if buildType := celer.BuildType(); buildType != "release" {
-		t.Errorf("BuildType() = %v, want release", buildType)
+	if buildType := celer.BuildType(); buildType != "Release" {
+		t.Errorf("BuildType() = %v, want Release", buildType)
 	}
 	if jobs := celer.Jobs(); jobs <= 0 {
 		t.Errorf("Jobs() = %v, want positive number", jobs)

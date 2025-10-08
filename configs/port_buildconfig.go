@@ -89,6 +89,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 			}
 
 			p.BuildConfigs[index].Offline = p.ctx.Offline()
+			p.BuildConfigs[index].Proxy = p.ctx.Proxy()
 			p.BuildConfigs[index].PortConfig = portConfig
 			p.BuildConfigs[index].DevDep = p.DevDep
 			p.BuildConfigs[index].Optimize = p.ctx.Optimize(p.MatchedConfig.BuildSystem, portConfig.Toolchain.Name)

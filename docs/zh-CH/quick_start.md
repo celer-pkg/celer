@@ -78,7 +78,7 @@ conf
 >
 >- 在Linux中，Celer会自动使用本地安装的x86_64 gcc/g++工具链。
 
-要设置conf，请运行以下命令：
+要配置conf，请运行以下命令：
 
 ```shell
 celer init --url=https://github.com/celer-pkg/test-conf.git
@@ -105,7 +105,7 @@ Then the **celer.toml** file will be generated in the workspace directory:
 **platform** 和 **project** 是两个组合，它们可以自由组合。例如，尽管目标环境是 **aarch64-linux**，但你可以选择在 **x86_64-linux** 平台上编译/开发/调试。
 
 ```shell
-celer configure --platform=x86_64-linux-20.04
+celer configure --platform=x86_64-linux-ubuntu-22.04
 celer configure --project=test_project_02
 ```
 
