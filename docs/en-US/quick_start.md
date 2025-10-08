@@ -101,7 +101,7 @@ Then the **celer.toml** file will be generated in the workspace directory:
 **platform** and **project** are two combinations, they can be freely combined. For example, although the target environment is **aarch64-linux**, you can choose to compile/develop/debug in the **x86_64-linux** platform.
 
 ```shell
-celer configure --platform=x86_64-linux-20.04
+celer configure --platform=x86_64-linux-ubuntu-22.04
 celer configure --project=test_project_02
 ```
 
