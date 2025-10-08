@@ -22,7 +22,7 @@ git clone https://github.com/celer-pkg/celer.git
   export GOPROXY=https://goproxy.cn
   ```
 
->**Note:** 未来，当Celer发布稳定版本时，用户可以直接下载预构建的二进制文件，跳过前两步。
+>**Note:** 目前已经发布稳定版本，用户可以直接下载预构建的二进制文件，跳过前两步。
 
 ## 3. 配置 conf
 
@@ -84,6 +84,12 @@ conf
 celer init --url=https://github.com/celer-pkg/test-conf.git
 ```
 
+**🚩🚩🚩🚩If you're in China, you may need to set proxy for celer, like this: 🚩🚩🚩🚩**
+
+```shell
+celer configure --proxy-host 127.0.0.1 --proxy-port 7890
+```
+
 Then the **celer.toml** file will be generated in the workspace directory:
 
 ```toml
@@ -95,6 +101,10 @@ Then the **celer.toml** file will be generated in the workspace directory:
   build_type = "release"
   offline = false
   verbose = false
+
+[proxy]
+  host = "127.0.0.1"
+  port = 7890
 ```
 
 >**Tips:**  

@@ -20,7 +20,7 @@ git clone https://github.com/celer-pkg/celer.git
   export GOPROXY=https://goproxy.cn
   ```
 
->**Note:** When a stable version is released, users can directly download the pre-built binaries, skipping the first two steps.
+>**Note:** Currently stable versions are released, you can directly download the pre-built binaries, skipping the first two steps.
 
 ## 3. Setup conf
 
@@ -80,6 +80,12 @@ To setup conf, run:
 celer init --url=https://github.com/celer-pkg/test-conf.git
 ```
 
+**🚩🚩🚩🚩If you're in China, you may need to set proxy for celer, like this: 🚩🚩🚩🚩**
+
+```shell
+celer configure --proxy-host 127.0.0.1 --proxy-port 7890
+```
+
 Then the **celer.toml** file will be generated in the workspace directory:
 
 ```toml
@@ -91,10 +97,14 @@ Then the **celer.toml** file will be generated in the workspace directory:
   build_type = "release"
   offline = false
   verbose = false
+
+[proxy]
+  host = "127.0.0.1"
+  port = 7890
 ```
 
 >**Tips:**  
->  **https://github.com/celer-pkg/test-conf.git** is a test conf repo, you can use it to experience celer, and you can also create your own conf repo as a reference.
+> **https://github.com/celer-pkg/test-conf.git** is a test conf repo, you can use it to experience celer, and you can also create your own conf repo as a reference.
 
 ## 4. Configure platform or project
 
