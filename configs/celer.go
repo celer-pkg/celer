@@ -155,6 +155,8 @@ func (c *Celer) Init() error {
 	// Set global proxy.
 	if c.configData.Proxy != nil {
 		os.Setenv("all_proxy", fmt.Sprintf("http://%s:%d", c.configData.Proxy.Host, c.configData.Proxy.Port))
+	} else {
+		os.Unsetenv("all_proxy")
 	}
 
 	// Git is required to clone/update repo.
