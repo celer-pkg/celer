@@ -348,6 +348,13 @@ func (c *Celer) SetCacheDir(dir, token string) error {
 }
 
 func (c *Celer) SetProxy(host string, port int) error {
+	if strings.TrimSpace(host) == "" {
+		return ErrProxyInvalidHost
+	}
+	if port <= 0 {
+		return ErrProxyInvalidPort
+	}
+
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
@@ -486,22 +493,22 @@ func (c Celer) updateConfRepo(repoUrl, branch string) error {
 
 	// Extracted update function for reusability.
 	updateFunc := func(workDir string) error {
-		if err := c.git.Clean("[update conf repo]", workDir); err != nil {
+		if err := c.git.Clean("[update conf repo: step1]", workDir); err != nil {
 			return err
 		}
-		if err := c.git.Execute("", workDir, "fetch"); err != nil {
+		if err := c.git.Execute("[update conf repo: step2]", workDir, "fetch"); err != nil {
 			return err
 		}
 		if branch != "" {
-			if err := c.git.Execute("", workDir, "checkout", branch); err != nil {
+			if err := c.git.Execute("[update conf repo: step3]", workDir, "checkout", branch); err != nil {
 				return err
 			}
 		} else {
-			if err := c.git.Execute("", workDir, "checkout"); err != nil {
+			if err := c.git.Execute("[update conf repo: step3]", workDir, "checkout"); err != nil {
 				return err
 			}
 		}
-		if err := c.git.Execute("", workDir, "pull"); err != nil {
+		if err := c.git.Execute("[update conf repo: step4]", workDir, "pull"); err != nil {
 			return err
 		}
 
