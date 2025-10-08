@@ -68,10 +68,10 @@ type global struct {
 	ConfRepo  string `toml:"conf_repo"`
 	Platform  string `toml:"platform"`
 	Project   string `toml:"project"`
-	Jobs      int    `toml:"jobs"`
 	BuildType string `toml:"build_type"`
-	Offline   bool   `toml:"offline"`
+	Jobs      int    `toml:"jobs"`
 	Verbose   bool   `toml:"verbose"`
+	Offline   bool   `toml:"offline"`
 }
 
 type configData struct {
