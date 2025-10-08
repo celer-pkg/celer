@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -18,6 +19,9 @@ func (p Proxy) HttpClient() *http.Client {
 				Scheme: "http",
 				Host:   fmt.Sprintf("%s:%d", p.Host, p.Port),
 			}),
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: false,
+			},
 		},
 	}
 }

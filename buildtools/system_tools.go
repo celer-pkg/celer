@@ -72,10 +72,10 @@ func getOSType() (string, error) {
 		return "", fmt.Errorf("read /etc/os-release error: %w", err)
 	}
 
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
-		if strings.HasPrefix(line, "ID=") {
-			id := strings.TrimPrefix(line, "ID=")
+	lines := strings.SplitSeq(string(out), "\n")
+	for line := range lines {
+		if after, ok := strings.CutPrefix(line, "ID="); ok {
+			id := after
 			id = strings.Trim(id, `"`)
 			return id, nil
 		}
@@ -94,8 +94,8 @@ func checkDebianLibrary(libraryName string) (bool, error) {
 	}
 
 	// Check if the library is installed.
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(string(out), "\n")
+	for line := range lines {
 		if strings.HasPrefix(line, "ii") && strings.Contains(line, libraryName) {
 			return true, nil
 		}
