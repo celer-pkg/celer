@@ -88,7 +88,6 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 				p.mergeBuildConfig(index, portInProject.MatchedConfig)
 			}
 
-			p.BuildConfigs[index].Git = p.ctx.Git()
 			p.BuildConfigs[index].Offline = p.ctx.Offline()
 			p.BuildConfigs[index].Proxy = p.ctx.Proxy()
 			p.BuildConfigs[index].PortConfig = portConfig

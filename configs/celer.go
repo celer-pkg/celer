@@ -27,7 +27,6 @@ var (
 )
 
 type Context interface {
-	Git() git.Git
 	Proxy() *proxy.Proxy
 	Version() string
 	Platform() *Platform
@@ -61,7 +60,6 @@ type Celer struct {
 	// Internal fields.
 	platform Platform
 	project  Project
-	git      git.Git
 }
 
 type global struct {
@@ -154,9 +152,9 @@ func (c *Celer) Init() error {
 		c.project.Name = "unnamed"
 	}
 
-	// Set git proxy.
+	// Set global proxy.
 	if c.configData.Proxy != nil {
-		c.git = git.NewGit(c.configData.Proxy)
+		os.Setenv("all_proxy", fmt.Sprintf("http://%s:%d", c.configData.Proxy.Host, c.configData.Proxy.Port))
 	}
 
 	// Git is required to clone/update repo.
@@ -488,27 +486,28 @@ func (c Celer) updateConfRepo(repoUrl, branch string) error {
 			return err
 		}
 
-		return c.Git().CloneRepo("[clone conf repo]", repoUrl, branch, workDir)
+		return git.CloneRepo("[clone conf repo]", repoUrl, branch, workDir)
 	}
 
 	// Extracted update function for reusability.
 	updateFunc := func(workDir string) error {
-		if err := c.git.Clean("[update conf repo: step1]", workDir); err != nil {
-			return err
-		}
-		if err := c.git.Execute("[update conf repo: step2]", workDir, "fetch"); err != nil {
-			return err
-		}
+		var commands []string
+		commands = append(commands, "git reset --hard")
+		commands = append(commands, "git clean -dfx")
+		commands = append(commands, "git fetch origin")
+
 		if branch != "" {
-			if err := c.git.Execute("[update conf repo: step3]", workDir, "checkout", branch); err != nil {
-				return err
-			}
+			commands = append(commands, fmt.Sprintf("git checkout %s", branch))
 		} else {
-			if err := c.git.Execute("[update conf repo: step3]", workDir, "checkout"); err != nil {
-				return err
-			}
+			commands = append(commands, "git checkout")
 		}
-		if err := c.git.Execute("[update conf repo: step4]", workDir, "pull"); err != nil {
+
+		commands = append(commands, "git pull")
+
+		commandLine := strings.Join(commands, " && ")
+		executor := cmd.NewExecutor("[update conf repo]", commandLine)
+		executor.SetWorkDir(workDir)
+		if err := executor.Execute(); err != nil {
 			return err
 		}
 
@@ -580,9 +579,6 @@ func (c Celer) clonePorts() error {
 
 // ======================= celer context implementation ====================== //
 
-func (c *Celer) Git() git.Git {
-	return c.git
-}
 func (c *Celer) Proxy() *proxy.Proxy {
 	return c.configData.Proxy
 }

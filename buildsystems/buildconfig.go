@@ -240,7 +240,6 @@ type BuildConfig struct {
 	Optimize    *Optimize    `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
-	Git         git.Git
 }
 
 func (b BuildConfig) Validate() error {
@@ -292,7 +291,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		if !fileio.PathExists(b.PortConfig.RepoDir) {
 			// Clone repo.
 			title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
-			if err := b.Git.CloneRepo(title, repoUrl, repoRef, b.PortConfig.RepoDir); err != nil {
+			if err := git.CloneRepo(title, repoUrl, repoRef, b.PortConfig.RepoDir); err != nil {
 				return err
 			}
 		}
@@ -319,7 +318,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 
 		// Init as git repo for tracking file change.
 		if b.buildSystem.Name() != "prebuilt" {
-			if err := b.Git.InitRepo(destDir, "init for tracking file change"); err != nil {
+			if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
 				return err
 			}
 		}
@@ -362,7 +361,7 @@ func (b BuildConfig) Patch() error {
 			}
 
 			// Apply patch (linux patch or git patch).
-			if err := b.Git.ApplyPatch(b.PortConfig.RepoDir, b.PortConfig.RepoDir, patchPath); err != nil {
+			if err := git.ApplyPatch(b.PortConfig.RepoDir, b.PortConfig.RepoDir, patchPath); err != nil {
 				return err
 			}
 		}
@@ -737,7 +736,7 @@ func (b BuildConfig) replaceSource(archive, url string) error {
 	}
 
 	// Init as git repo for tracking file change.
-	if err := b.Git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
+	if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
 		return err
 	}
 

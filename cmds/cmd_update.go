@@ -5,6 +5,7 @@ import (
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
+	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -63,13 +64,13 @@ func (u updateCmd) Command(celer *configs.Celer) *cobra.Command {
 func (u updateCmd) updateConfRepo() error {
 	title := "[update conf repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	return u.celer.Git().UpdateRepo(title, "", repoDir, u.force)
+	return git.UpdateRepo(title, "", repoDir, u.force)
 }
 
 func (u updateCmd) updatePortsRepo() error {
 	title := "[update ports repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	return u.celer.Git().UpdateRepo(title, "", repoDir, u.force)
+	return git.UpdateRepo(title, "", repoDir, u.force)
 }
 
 func (u updateCmd) updatePorts(targets []string) error {
@@ -116,7 +117,7 @@ func (u updateCmd) updatePortRepo(nameVersion string) error {
 
 	// Update port.
 	title := fmt.Sprintf("[update %s]", nameVersion)
-	if err := u.celer.Git().UpdateRepo(title, port.Package.Ref, srcDir, u.force); err != nil {
+	if err := git.UpdateRepo(title, port.Package.Ref, srcDir, u.force); err != nil {
 		return err
 	}
 

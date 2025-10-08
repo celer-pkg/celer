@@ -4,6 +4,7 @@ import (
 	"celer/buildtools"
 	"celer/pkgs/cmd"
 	"celer/pkgs/fileio"
+	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -35,7 +36,7 @@ func (g gyp) CheckTools() error {
 func (g gyp) Clean() error {
 	if fileio.PathExists(filepath.Join(g.PortConfig.RepoDir, ".git")) {
 		title := fmt.Sprintf("[clean %s]", g.PortConfig.nameVersionDesc())
-		if err := g.Git.Clean(title, g.PortConfig.RepoDir); err != nil {
+		if err := git.Clean(title, g.PortConfig.RepoDir); err != nil {
 			return err
 		}
 	} else {
