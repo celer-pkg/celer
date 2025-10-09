@@ -4,7 +4,6 @@ package configs
 
 import (
 	"celer/buildtools"
-	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
 	"celer/pkgs/expr"
@@ -129,8 +128,8 @@ func (t Toolchain) CheckAndRepair() error {
 	}
 
 	// Print download & extract info.
-	title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)
-	fmt.Printf("%sLocation: %s\n", title, t.rootDir)
+	// title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)
+	// fmt.Printf("%sLocation: %s\n", title, t.rootDir)
 	return nil
 }
 

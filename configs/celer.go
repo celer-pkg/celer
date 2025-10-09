@@ -10,7 +10,6 @@ import (
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
 	"celer/pkgs/proxy"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -564,15 +563,19 @@ func (c Celer) clonePorts() error {
 		}
 
 		// Clone ports repo.
-		if c.Global.Offline {
-			PrintWarning(errors.New("offline is on"), "cloning ports repo is skipped")
-			return nil
+		if !c.Global.Offline {
+			return fmt.Errorf("offline is on, cloning ports is aborted")
 		}
 
-		command := fmt.Sprintf("git clone %s %s", c.portsRepoUrl(), portsDir)
+		portsRepoUrl := c.portsRepoUrl()
+		// if err := fileio.CheckAvailable(portsRepoUrl); err != nil {
+		// 	return fmt.Errorf("%s is not accessible, cloning ports is aborted", portsRepoUrl)
+		// }
+
+		command := fmt.Sprintf("git clone %s %s", portsRepoUrl, portsDir)
 		executor := cmd.NewExecutor("[clone ports]", command)
 		if err := executor.Execute(); err != nil {
-			return fmt.Errorf("`https://github.com/celer-pkg/ports.git` is not available, but your can change the default ports repo in celer.toml: %w", err)
+			return err
 		}
 	}
 
