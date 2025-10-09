@@ -80,7 +80,7 @@ To setup conf, run:
 celer init --url=https://github.com/celer-pkg/test-conf.git
 ```
 
-**🚩🚩🚩🚩If you're in China, you may need to set proxy for celer, like this: 🚩🚩🚩🚩**
+**🚩If you're in China, you may need to set proxy for celer as below: 🚩**
 
 ```shell
 celer configure --proxy-host 127.0.0.1 --proxy-port 7890
