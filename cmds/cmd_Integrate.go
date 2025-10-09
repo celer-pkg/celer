@@ -32,19 +32,19 @@ func (i integrateCmd) Command(celer *configs.Celer) *cobra.Command {
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
 				configs.PrintError(err, "cannot get home dir.")
-				return
+				os.Exit(1)
 			}
 
 			if i.remove {
 				if err := i.doRemove(homeDir); err != nil {
 					configs.PrintError(err, "tab completion remove failed.")
-					return
+					os.Exit(1)
 				}
 				configs.PrintSuccess("tab completion is removed.")
 			} else {
 				if err := i.installToSystem(homeDir); err != nil {
 					configs.PrintError(err, "tab completion install failed.")
-					return
+					os.Exit(1)
 				}
 				configs.PrintSuccess("tab completion is integrated.")
 			}

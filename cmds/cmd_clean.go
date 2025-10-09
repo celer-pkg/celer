@@ -30,21 +30,26 @@ func (c cleanCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "clean",
 		Short: "Clean build cache for package or project",
 		Run: func(cmd *cobra.Command, args []string) {
+			// Handler celer error inside.
+			if c.celer.HandleError() {
+				os.Exit(1)
+			}
+
 			if c.all {
 				if err := c.cleanAll(); err != nil {
 					configs.PrintError(err, "failed to clean all packages.")
-					return
+					os.Exit(1)
 				}
 				configs.PrintSuccess("all packages cleaned.")
 			} else {
 				if len(args) == 0 {
 					configs.PrintError(errors.New("no package or project specified"), "failed to collect port infos.")
-					return
+					os.Exit(1)
 				}
 
 				if err := c.clean(args); err != nil {
 					configs.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
-					return
+					os.Exit(1)
 				}
 			}
 		},

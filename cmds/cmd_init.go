@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"celer/configs"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -19,9 +20,14 @@ func (i initCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "init",
 		Short: "Init with conf repo.",
 		Run: func(cmd *cobra.Command, args []string) {
+			// Handler celer error inside.
+			if i.celer.HandleError() {
+				os.Exit(1)
+			}
+
 			if err := i.celer.SetConfRepo(i.url, i.branch); err != nil {
 				configs.PrintError(err, "failed to init celer: %s.", err)
-				return
+				os.Exit(1)
 			}
 
 			configs.PrintSuccess("initialize successfully.")

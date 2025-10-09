@@ -6,6 +6,7 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -23,10 +24,15 @@ func (s searchCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Search matched ports.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			// Handler celer error inside.
+			if s.celer.HandleError() {
+				os.Exit(1)
+			}
+
 			libraries, err := s.search(args[0])
 			if err != nil {
 				configs.PrintError(err, "failed to search available ports.")
-				return
+				os.Exit(1)
 			}
 
 			if len(libraries) > 0 {

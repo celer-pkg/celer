@@ -43,7 +43,7 @@ var rootCmd = &cobra.Command{
 }
 
 // Execute register all commands and executes the command.
-func Execute(celer *configs.Celer) error {
+func Execute() error {
 	commands := []Command{
 		versionCmd{},
 		initCmd{},
@@ -60,6 +60,10 @@ func Execute(celer *configs.Celer) error {
 		dependCmd{},
 		searchCmd{},
 	}
+
+	// Init celer and cache error inside.
+	celer := configs.NewCeler()
+	celer.Init()
 
 	// Register commands.
 	for _, cmd := range commands {

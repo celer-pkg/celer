@@ -27,6 +27,11 @@ func (r removeCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Remove a package.",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			// Handler celer error inside.
+			if r.celer.HandleError() {
+				os.Exit(1)
+			}
+
 			// Use build_type from `celer.toml` if not specified.
 			if r.buildType == "" {
 				r.buildType = r.celer.BuildType()
@@ -34,7 +39,7 @@ func (r removeCmd) Command(celer *configs.Celer) *cobra.Command {
 
 			if err := r.remove(args); err != nil {
 				configs.PrintError(err, "failed to remove %s.", strings.Join(args, ", "))
-				return
+				os.Exit(1)
 			}
 
 			configs.PrintSuccess("remove %s successfully.", strings.Join(args, ", "))

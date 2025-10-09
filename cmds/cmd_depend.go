@@ -6,6 +6,7 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -24,6 +25,11 @@ func (d dependCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Query the dependent libraries.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			// Handler celer error inside.
+			if d.celer.HandleError() {
+				os.Exit(1)
+			}
+
 			libraries, err := d.query(args[0])
 			if err != nil {
 				configs.PrintError(err, "failed to query dependent libraries.")

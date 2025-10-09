@@ -4,6 +4,7 @@ package configs
 
 import (
 	"celer/buildtools"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
 	"celer/pkgs/expr"
@@ -112,7 +113,7 @@ func (t *Toolchain) Validate() error {
 	return nil
 }
 
-func (t Toolchain) CheckAndRepair() error {
+func (t Toolchain) CheckAndRepair(silent bool) error {
 	// Default folder name is the first folder name of archive name.
 	// but it can be specified by archive name.
 	folderName := strings.Split(t.Path, string(filepath.Separator))[0]
@@ -127,9 +128,12 @@ func (t Toolchain) CheckAndRepair() error {
 		return err
 	}
 
-	// Print download & extract info.
-	// title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)
-	// fmt.Printf("%sLocation: %s\n", title, t.rootDir)
+	if !silent {
+		// Print download & extract info.
+		title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)
+		fmt.Printf("%sLocation: %s\n", title, t.rootDir)
+	}
+
 	return nil
 }
 
@@ -159,7 +163,7 @@ func (t *Toolchain) Detect() error {
 		return err
 	}
 
-	if err := t.CheckAndRepair(); err != nil {
+	if err := t.CheckAndRepair(true); err != nil {
 		return err
 	}
 

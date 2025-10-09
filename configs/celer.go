@@ -4,6 +4,7 @@ import (
 	"celer/buildsystems"
 	"celer/buildtools"
 	"celer/pkgs/cmd"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/encrypt"
 	"celer/pkgs/expr"
@@ -59,6 +60,7 @@ type Celer struct {
 	// Internal fields.
 	platform Platform
 	project  Project
+	err      error
 }
 
 type global struct {
@@ -77,6 +79,7 @@ type configData struct {
 	CacheDir *CacheDir    `toml:"cache_dir,omitempty"`
 }
 
+// Init init celer and cache error inside.
 func (c *Celer) Init() error {
 	c.platform.ctx = c
 
@@ -84,6 +87,7 @@ func (c *Celer) Init() error {
 	if !fileio.PathExists(configPath) {
 		// Create conf dir if not exists.
 		if err := os.MkdirAll(filepath.Dir(configPath), os.ModePerm); err != nil {
+			c.err = err
 			return err
 		}
 
@@ -98,21 +102,25 @@ func (c *Celer) Init() error {
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
 		if err != nil {
+			c.err = err
 			return fmt.Errorf("marshal celer conf error: %w", err)
 		}
 
 		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
+			c.err = err
 			return err
 		}
 
 		// Auto detect native toolchain for different os.
 		if err := c.platform.detectToolchain(); err != nil {
+			c.err = err
 			return err
 		}
 	} else {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
 		if err != nil {
+			c.err = err
 			return err
 		}
 		if err := toml.Unmarshal(bytes, c); err != nil {
@@ -122,6 +130,7 @@ func (c *Celer) Init() error {
 		// Validate cache dirs.
 		if c.configData.CacheDir != nil {
 			if err := c.configData.CacheDir.Validate(); err != nil {
+				c.err = err
 				return err
 			}
 		}
@@ -129,11 +138,13 @@ func (c *Celer) Init() error {
 		// Init platform with platform name.
 		if c.configData.Global.Platform != "" {
 			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
+				c.err = err
 				return err
 			}
 		} else {
 			// Auto detect native toolchain for different os.
 			if err := c.platform.detectToolchain(); err != nil {
+				c.err = err
 				return err
 			}
 		}
@@ -141,6 +152,7 @@ func (c *Celer) Init() error {
 		// Init project with project name.
 		if c.configData.Global.Project != "" {
 			if err := c.project.Init(c, c.configData.Global.Project); err != nil {
+				c.err = err
 				return err
 			}
 		}
@@ -160,11 +172,13 @@ func (c *Celer) Init() error {
 
 	// Git is required to clone/update repo.
 	if err := buildtools.CheckTools(c.Offline(), c.Proxy(), "git"); err != nil {
+		c.err = err
 		return err
 	}
 
 	// Clone ports repo if empty.
 	if err := c.clonePorts(); err != nil {
+		c.err = err
 		return err
 	}
 
@@ -563,14 +577,14 @@ func (c Celer) clonePorts() error {
 		}
 
 		// Clone ports repo.
-		if !c.Global.Offline {
+		if c.Global.Offline {
 			return fmt.Errorf("offline is on, cloning ports is aborted")
 		}
 
 		portsRepoUrl := c.portsRepoUrl()
-		// if err := fileio.CheckAvailable(portsRepoUrl); err != nil {
-		// 	return fmt.Errorf("%s is not accessible, cloning ports is aborted", portsRepoUrl)
-		// }
+		if err := fileio.CheckAccessible(portsRepoUrl); err != nil {
+			return fmt.Errorf("%s is not accessible, cloning ports is aborted", portsRepoUrl)
+		}
 
 		command := fmt.Sprintf("git clone %s %s", portsRepoUrl, portsDir)
 		executor := cmd.NewExecutor("[clone ports]", command)
@@ -763,6 +777,18 @@ func (c Celer) GenerateToolchainFile() error {
 	}
 
 	return nil
+}
+
+func (c Celer) HandleError() bool {
+	// Handler celer init error and warning offline.
+	if c.err != nil {
+		color.Printf(color.Red, "Init celer error: %s.\n", c.err)
+		return true
+	} else if c.Global.Offline {
+		color.Println(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================\n")
+	}
+
+	return false
 }
 
 func (c Celer) writePkgConfig(toolchain *strings.Builder) {

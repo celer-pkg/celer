@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// CheckAvailable checks if the given URL is accessible.
-func CheckAvailable(url string) error {
+// CheckAccessible checks if the given URL is accessible.
+func CheckAccessible(url string) error {
 	if after, ok := strings.CutPrefix(url, "file:///"); ok {
 		url = after
 		if !PathExists(url) {

@@ -35,6 +35,11 @@ func (t treeCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Show the dependencies of a port or a project.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			// Handler celer error inside.
+			if t.celer.HandleError() {
+				os.Exit(1)
+			}
+
 			t.tree(args[0])
 		},
 		ValidArgsFunction: t.completion,
