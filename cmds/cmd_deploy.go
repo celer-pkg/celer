@@ -19,8 +19,7 @@ func (d deployCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "deploy",
 		Short: "Deploy with selected platform and project.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Handler celer error inside.
-			if d.celer.HandleError() {
+			if d.celer.CheckInitResult() {
 				os.Exit(1)
 			}
 

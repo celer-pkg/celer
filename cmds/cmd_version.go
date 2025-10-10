@@ -19,8 +19,7 @@ func (v versionCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "version",
 		Short: "Version",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Handler celer error inside.
-			if v.celer.HandleError() {
+			if v.celer.CheckInitResult() {
 				return
 			}
 

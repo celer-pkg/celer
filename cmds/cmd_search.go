@@ -24,8 +24,7 @@ func (s searchCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Search matched ports.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Handler celer error inside.
-			if s.celer.HandleError() {
+			if s.celer.CheckInitResult() {
 				os.Exit(1)
 			}
 

@@ -21,8 +21,7 @@ func (c createCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "create",
 		Short: "Create a platform, project, or port.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Handler celer error inside.
-			if c.celer.HandleError() {
+			if c.celer.CheckInitResult() {
 				os.Exit(1)
 			}
 

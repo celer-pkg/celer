@@ -26,8 +26,7 @@ func (a autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "autoremove",
 		Short: "Tidy up installation directory - removing project's unnecessary files.",
 		Run: func(cmd *cobra.Command, args []string) {
-			// Handler celer error inside.
-			if a.celer.HandleError() {
+			if a.celer.CheckInitResult() {
 				os.Exit(1)
 			}
 

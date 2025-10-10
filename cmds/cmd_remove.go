@@ -27,8 +27,7 @@ func (r removeCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Remove a package.",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			// Handler celer error inside.
-			if r.celer.HandleError() {
+			if r.celer.CheckInitResult() {
 				os.Exit(1)
 			}
 
