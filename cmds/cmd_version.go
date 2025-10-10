@@ -9,20 +9,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type versionCmd struct{}
+type versionCmd struct {
+	celer *configs.Celer
+}
 
 func (v versionCmd) Command(celer *configs.Celer) *cobra.Command {
+	v.celer = celer
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Version",
 		Run: func(cmd *cobra.Command, args []string) {
+			if v.celer.CheckInitResult() {
+				return
+			}
+
 			v.version()
 		},
 	}
 }
 
 func (v versionCmd) version() {
-	celer := configs.NewCeler()
 	toolchainPath, _ := filepath.Abs("toolchain_file.cmake")
 	toolchainPath = color.Sprintf(color.Magenta, "%s", toolchainPath)
 
@@ -32,7 +38,7 @@ func (v versionCmd) version() {
 		"How to apply it in your cmake project: \n"+
 		"option1: %s\n"+
 		"option2: %s\n\n",
-		celer.Version(),
+		v.celer.Version(),
 		color.Sprintf(color.Blue, "set(CMAKE_TOOLCHAIN_FILE \"%s\")", toolchainPath),
 		color.Sprintf(color.Blue, "cmake .. -DCMAKE_TOOLCHAIN_FILE=%s", toolchainPath),
 	)

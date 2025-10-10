@@ -143,7 +143,7 @@ func (p *Platform) Setup() error {
 	if p.Toolchain == nil {
 		panic("Toolchain should not be empty, it may specified in platform or automatically detected.")
 	}
-	if err := p.Toolchain.CheckAndRepair(); err != nil {
+	if err := p.Toolchain.CheckAndRepair(false); err != nil {
 		return fmt.Errorf("check and repair toolchain error: %w", err)
 	}
 

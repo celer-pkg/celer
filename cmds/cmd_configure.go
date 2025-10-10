@@ -32,6 +32,10 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "configure",
 		Short: "Configure to change gloabal settings.",
 		Run: func(cmd *cobra.Command, args []string) {
+			if c.celer.CheckInitResult() {
+				os.Exit(1)
+			}
+
 			switch {
 			case c.platform != c.celer.Global.Platform:
 				if err := c.celer.SetPlatform(c.platform); err != nil {

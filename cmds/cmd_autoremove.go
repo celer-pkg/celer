@@ -4,6 +4,7 @@ import (
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"fmt"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -25,9 +26,13 @@ func (a autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "autoremove",
 		Short: "Tidy up installation directory - removing project's unnecessary files.",
 		Run: func(cmd *cobra.Command, args []string) {
+			if a.celer.CheckInitResult() {
+				os.Exit(1)
+			}
+
 			if err := a.autoremove(); err != nil {
 				configs.PrintError(err, "failed to autoremove.")
-				return
+				os.Exit(1)
 			}
 
 			configs.PrintSuccess("autoremove successfully.")

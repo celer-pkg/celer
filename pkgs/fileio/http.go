@@ -5,23 +5,29 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
-// CheckAvailable checks if the given URL is accessible.
-func CheckAvailable(filePath string) error {
-	if strings.HasPrefix(filePath, "file:///") {
-		filePath = strings.TrimPrefix(filePath, "file:///")
-		if !PathExists(filePath) {
-			return fmt.Errorf("file not exists: %s", filePath)
+// CheckAccessible checks if the given URL is accessible.
+func CheckAccessible(url string) error {
+	if after, ok := strings.CutPrefix(url, "file:///"); ok {
+		url = after
+		if !PathExists(url) {
+			return fmt.Errorf("file not exists: %s", url)
 		}
 
 		return nil
 	}
 
-	client := http.DefaultClient
+	client := http.Client{
+		Timeout: 3 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return nil
+		},
+	}
 
 	// Check URL availability using HEAD request.
-	resp, err := client.Head(filePath)
+	resp, err := client.Head(url)
 	if err != nil {
 		return err
 	}
