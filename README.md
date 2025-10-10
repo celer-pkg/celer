@@ -5,7 +5,7 @@
 # The background of Celer
 
 &emsp;&emsp;CMake has become the mainstream build system for compiling C/C++ projects, particularly for cross-compiling. While CMake excels at managing the build process—including configuration, compilation, and installation—it primarily focuses on locating dependencies (via **find_package**) rather than handling higher-level package management tasks. In real-world development, many additional tedious tasks fall outside CMake's responsibilities, such as: **clone repos and setup build tools**, **organize dependencies between third-party libraries**, **setup cross-compilation environment**, etc.  
-&emsp;&emsp;Celer's core functionality dynamically generates a `toolchain_file.cmake`, configuring the required build tools with relative paths and specifying library search paths to prevent system libraries from being detected. This means that all the work required is handled by Celer before generating the `toolchain_file.cmake`, this is one of the [**REASONS**](./docs/en-US/why_reinvent_celer.md) why Celer was reinvented, rather than relying on other C/C++ package managers.
+&emsp;&emsp;Celer's core functionality dynamically generates a `toolchain_file.cmake`, configuring the required build tools with relative paths and specifying library search paths to prevent system libraries from being detected. This means that all the work required is handled by Celer before generating the `toolchain_file.cmake`, this is one of the [**REASONS**](./docs/en-US/why_celer.md) why Celer was reinvented, rather than relying on other C/C++ package managers.
 
 # Key features
 
