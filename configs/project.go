@@ -2,6 +2,7 @@ package configs
 
 import (
 	"celer/buildsystems"
+	"celer/context"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 )
 
 type Project struct {
-	Platform        string                 `toml:"platform,omitempty"`
+	DefaultPlatform string                 `toml:"default_platform,omitempty"`
 	BuildType       string                 `toml:"build_type"`
 	Ports           []string               `toml:"ports"`
 	Vars            []string               `toml:"vars"`
@@ -26,10 +27,10 @@ type Project struct {
 
 	// Internal fields.
 	Name string `toml:"-"`
-	ctx  Context
+	ctx  context.Context
 }
 
-func (p *Project) Init(ctx Context, projectName string) error {
+func (p Project) Init(ctx context.Context, projectName string) error {
 	p.ctx = ctx
 
 	// Check if project name is empty.
@@ -113,6 +114,18 @@ func (p Project) Write(platformPath string) error {
 	}
 
 	return os.WriteFile(platformPath, bytes, os.ModePerm)
+}
+
+func (p Project) GetName() string {
+	return p.Name
+}
+
+func (p Project) GetDefaultPlatform() string {
+	return p.DefaultPlatform
+}
+
+func (p Project) GetPorts() []string {
+	return p.Ports
 }
 
 func (p Project) Deploy() error {

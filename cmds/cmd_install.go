@@ -82,7 +82,7 @@ func (i installCmd) install(nameVersion string) {
 		os.Exit(1)
 	}
 
-	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().Name, parts[0], parts[1], "port.toml")
+	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName(), parts[0], parts[1], "port.toml")
 	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		configs.PrintError(fmt.Errorf("port %s is not found", nameVersion), "%s install failed.", nameVersion)
@@ -166,7 +166,7 @@ func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete str
 		i.buildSuggestions(&suggestions, dirs.PortsDir, toComplete)
 	}
 
-	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().Name)
+	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName())
 	if fileio.PathExists(projectPortsDir) {
 		i.buildSuggestions(&suggestions, projectPortsDir, toComplete)
 	}

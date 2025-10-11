@@ -4,6 +4,7 @@ package configs
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -144,7 +145,7 @@ func (t *Toolchain) Validate() error {
 	return nil
 }
 
-func (t *Toolchain) CheckAndRepair() error {
+func (t *Toolchain) CheckAndRepair(silent bool) error {
 	// Default folder name is the first folder name of archive name,
 	// but it can be specified by archive name.
 	folderName := strings.Split(t.Path, string(filepath.Separator))[0]
@@ -203,7 +204,7 @@ func (t *Toolchain) Detect() error {
 		return err
 	}
 
-	if err := t.CheckAndRepair(); err != nil {
+	if err := t.CheckAndRepair(true); err != nil {
 		return err
 	}
 
@@ -257,7 +258,7 @@ func (t Toolchain) compareVersion(first, second string) int {
 	return len(firstVersion) - len(secondVersion)
 }
 
-func (w *WindowsKit) Detect(msvc *MSVC) error {
+func (w *WindowsKit) Detect(msvc *context.MSVC) error {
 	// Check if installed.
 	key, err := registry.OpenKey(registry.LOCAL_MACHINE,
 		`SOFTWARE\WOW6432Node\Microsoft\Microsoft SDKs\Windows\v10.0`,

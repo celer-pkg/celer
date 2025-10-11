@@ -2,6 +2,7 @@ package configs
 
 import (
 	"celer/buildsystems"
+	"celer/context"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -48,7 +49,7 @@ type Port struct {
 	StoreCache bool   `toml:"-"`
 	CacheToken string `toml:"-"`
 
-	ctx          Context
+	ctx          context.Context
 	buildType    string
 	packageDir   string
 	installedDir string
@@ -61,7 +62,7 @@ func (p Port) NameVersion() string {
 	return p.Name + "@" + p.Version
 }
 
-func (p *Port) Init(ctx Context, nameVersion, buildType string) error {
+func (p *Port) Init(ctx context.Context, nameVersion, buildType string) error {
 	p.ctx = ctx
 	p.buildType = strings.ToLower(buildType)
 
@@ -77,7 +78,7 @@ func (p *Port) Init(ctx Context, nameVersion, buildType string) error {
 	p.Version = parts[1]
 
 	// Read name and version.
-	portInProject := filepath.Join(dirs.ConfProjectsDir, ctx.Project().Name, parts[0], parts[1], "port.toml")
+	portInProject := filepath.Join(dirs.ConfProjectsDir, ctx.Project().GetName(), parts[0], parts[1], "port.toml")
 	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		if p.Parent != "" {
@@ -244,7 +245,7 @@ func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]stri
 		}
 
 		if p.DevDep {
-			files = append(files, filepath.Join(p.ctx.Platform().HostName()+"-dev", relativePath))
+			files = append(files, filepath.Join(p.ctx.Platform().GetHostName()+"-dev", relativePath))
 		} else {
 			platformProject := fmt.Sprintf("%s@%s@%s", platformName, projectName, p.buildType)
 			files = append(files, filepath.Join(platformProject, relativePath))
@@ -299,9 +300,9 @@ func (p Port) checkPatternMatch(pattern string) bool {
 
 	// For dev mode, we change platformName to x86_64-windows-dev, x86_64-macos-dev, x86_64-linux-dev,
 	// then we can match the most like pattern.
-	platformName := p.ctx.Platform().Name
+	platformName := p.ctx.Platform().GetName()
 	if p.DevDep {
-		platformName = p.ctx.Platform().HostName() + "-dev"
+		platformName = p.ctx.Platform().GetHostName() + "-dev"
 	} else if platformName == "" { // If empty, set as host system name.
 		platformName = "*" + runtime.GOOS + "*"
 	}
@@ -328,43 +329,43 @@ func (p Port) toolchain() *buildsystems.Toolchain {
 	}
 
 	var bsToolchain buildsystems.Toolchain
-	bsToolchain.Native = p.Native || toolchain.Name == "msvc" ||
-		(toolchain.Name == "gcc" && toolchain.Path == "/usr/bin")
-	bsToolchain.Name = toolchain.Name
-	bsToolchain.Version = toolchain.Version
-	bsToolchain.Host = toolchain.Host
-	bsToolchain.SystemName = toolchain.SystemName
-	bsToolchain.SystemProcessor = toolchain.SystemProcessor
-	bsToolchain.CrosstoolPrefix = toolchain.CrosstoolPrefix
-	bsToolchain.CStandard = toolchain.CStandard
-	bsToolchain.CXXStandard = toolchain.CXXStandard
+	bsToolchain.Native = p.Native || toolchain.GetName() == "msvc" ||
+		(toolchain.GetName() == "gcc" && toolchain.GetPath() == "/usr/bin")
+	bsToolchain.Name = toolchain.GetName()
+	bsToolchain.Version = toolchain.GetVersion()
+	bsToolchain.Host = toolchain.GetHost()
+	bsToolchain.SystemName = toolchain.GetSystemName()
+	bsToolchain.SystemProcessor = toolchain.GetSystemProcessor()
+	bsToolchain.CrosstoolPrefix = toolchain.GetCrosstoolPrefix()
+	bsToolchain.CStandard = toolchain.GetCStandard()
+	bsToolchain.CXXStandard = toolchain.GetCXXStandard()
 
 	rootfs := p.ctx.RootFS()
 	if rootfs != nil {
-		bsToolchain.RootFS = rootfs.fullpath
-		bsToolchain.PkgConfigPath = rootfs.PkgConfigPath
-		bsToolchain.IncludeDirs = rootfs.IncludeDirs
-		bsToolchain.LibDirs = rootfs.LibDirs
+		bsToolchain.RootFS = rootfs.GetFullPath()
+		bsToolchain.PkgConfigPath = rootfs.GetPkgConfigPath()
+		bsToolchain.IncludeDirs = rootfs.GetIncludeDirs()
+		bsToolchain.LibDirs = rootfs.GetLibDirs()
 	}
 
-	bsToolchain.Fullpath = toolchain.fullpath
-	bsToolchain.CC = toolchain.CC
-	bsToolchain.CXX = toolchain.CXX
-	bsToolchain.LD = toolchain.LD
-	bsToolchain.AS = toolchain.AS
-	bsToolchain.FC = toolchain.FC
-	bsToolchain.AR = toolchain.AR
-	bsToolchain.RANLIB = toolchain.RANLIB
-	bsToolchain.NM = toolchain.NM
-	bsToolchain.OBJCOPY = toolchain.OBJCOPY
-	bsToolchain.OBJDUMP = toolchain.OBJDUMP
-	bsToolchain.STRIP = toolchain.STRIP
-	bsToolchain.READELF = toolchain.READELF
+	bsToolchain.Fullpath = toolchain.GetFullPath()
+	bsToolchain.CC = toolchain.GetCC()
+	bsToolchain.CXX = toolchain.GetCXX()
+	bsToolchain.LD = toolchain.GetLD()
+	bsToolchain.AS = toolchain.GetAS()
+	bsToolchain.FC = toolchain.GetFC()
+	bsToolchain.AR = toolchain.GetAR()
+	bsToolchain.RANLIB = toolchain.GetRANLIB()
+	bsToolchain.NM = toolchain.GetNM()
+	bsToolchain.OBJCOPY = toolchain.GetOBJCOPY()
+	bsToolchain.OBJDUMP = toolchain.GetOBJDUMP()
+	bsToolchain.STRIP = toolchain.GetSTRIP()
+	bsToolchain.READELF = toolchain.GetREADELF()
 
 	// For windows MSVC.
-	bsToolchain.MSVC.VCVars = toolchain.MSVC.VCVars
-	bsToolchain.MSVC.MT = toolchain.MSVC.MT
-	bsToolchain.MSVC.RC = toolchain.MSVC.RC
+	bsToolchain.MSVC.VCVars = toolchain.GetMSVC().VCVars
+	bsToolchain.MSVC.MT = toolchain.GetMSVC().MT
+	bsToolchain.MSVC.RC = toolchain.GetMSVC().RC
 
 	bsToolchain.Verbose = p.ctx.Verbose()
 	return &bsToolchain

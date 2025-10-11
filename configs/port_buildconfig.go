@@ -15,18 +15,18 @@ import (
 
 func (p *Port) initBuildConfig(nameVersion string) error {
 	buildType := strings.ToLower(p.buildType)
-	hostName := p.ctx.Platform().HostName()
-	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().Name, p.ctx.Project().Name, buildType)
+	hostName := p.ctx.Platform().GetHostName()
+	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType)
 
 	buildFolder := expr.If(p.DevDep,
 		filepath.Join(nameVersion, hostName+"-dev"),
-		filepath.Join(nameVersion, fmt.Sprintf("%s-%s-%s", p.ctx.Platform().Name, p.ctx.Project().Name, buildType)),
+		filepath.Join(nameVersion, fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType)),
 	)
 	libraryFolder := expr.If(p.DevDep, hostName+"-dev",
-		fmt.Sprintf("%s@%s@%s", p.ctx.Platform().Name, p.ctx.Project().Name, buildType),
+		fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType),
 	)
 	packageFolder := expr.If(p.DevDep, nameVersion+"@"+hostName+"-dev",
-		fmt.Sprintf("%s@%s@%s@%s", nameVersion, p.ctx.Platform().Name, p.ctx.Project().Name, buildType),
+		fmt.Sprintf("%s@%s@%s@%s", nameVersion, p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType),
 	)
 	p.traceFile = expr.If(p.DevDep,
 		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+hostName+"-dev.trace"),
@@ -47,8 +47,8 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		LibVersion:    p.Version,
 		Archive:       p.Package.Archive,
 		Url:           p.Package.Url,
-		ProjectName:   p.ctx.Project().Name,
-		HostName:      p.ctx.Platform().HostName(),
+		ProjectName:   p.ctx.Project().GetName(),
+		HostName:      p.ctx.Platform().GetHostName(),
 		SrcDir:        filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 		BuildDir:      filepath.Join(dirs.WorkspaceDir, "buildtrees", buildFolder),
 		PackageDir:    p.packageDir,
@@ -64,15 +64,15 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	}
 
 	if p.ctx.RootFS() != nil {
-		portConfig.IncludeDirs = p.ctx.RootFS().IncludeDirs
-		portConfig.LibDirs = p.ctx.RootFS().LibDirs
+		portConfig.IncludeDirs = p.ctx.RootFS().GetIncludeDirs()
+		portConfig.LibDirs = p.ctx.RootFS().GetLibDirs()
 	}
 
 	if len(p.BuildConfigs) > 0 {
 		for index := range p.BuildConfigs {
 			// Merge ports defined in project if exists.
 			portInPorts := filepath.Join(dirs.PortsDir, p.Name, p.Version, "port.toml")
-			portInProject := filepath.Join(dirs.ConfProjectsDir, p.ctx.Project().Name, p.Name, p.Version, "port.toml")
+			portInProject := filepath.Join(dirs.ConfProjectsDir, p.ctx.Project().GetName(), p.Name, p.Version, "port.toml")
 			if fileio.PathExists(portInPorts) && fileio.PathExists(portInProject) {
 				bytes, err := os.ReadFile(portInProject)
 				if err != nil {

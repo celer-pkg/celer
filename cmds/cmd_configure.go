@@ -52,8 +52,9 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 				configs.PrintSuccess("current project: %s.", c.project)
 
 				// Auto configure platform.
-				if c.celer.Project().Platform != "" && c.celer.Global.Platform == "" {
-					if err := c.celer.SetPlatform(c.celer.Project().Platform); err != nil {
+				defaultPlatform := c.celer.Project().GetDefaultPlatform()
+				if defaultPlatform != "" && c.celer.Global.Platform == "" {
+					if err := c.celer.SetPlatform(defaultPlatform); err != nil {
 						configs.PrintError(err, "failed to set platform: %s.", c.celer.Global.Platform)
 						os.Exit(1)
 					}
@@ -89,7 +90,7 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 				configs.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 
 			case c.cacheDir != "" || c.cacheToken != "":
-				cacheDir := expr.If(c.cacheDir != "", c.cacheDir, c.celer.CacheDir().Dir)
+				cacheDir := expr.If(c.cacheDir != "", c.cacheDir, c.celer.CacheDir().GetDir())
 				if err := c.celer.SetCacheDir(cacheDir, c.cacheToken); err != nil {
 					configs.PrintError(err, "failed to set cache dir: %s.", cacheDir)
 					os.Exit(1)

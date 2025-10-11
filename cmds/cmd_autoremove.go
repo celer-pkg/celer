@@ -48,7 +48,7 @@ func (a autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 
 func (a *autoremoveCmd) autoremove() error {
 	// Collect packages/devPackages that belongs to project.
-	for _, nameVersion := range a.celer.Project().Ports {
+	for _, nameVersion := range a.celer.Project().GetPorts() {
 		if err := a.collectProjectPackages(nameVersion); err != nil {
 			return err
 		}
@@ -143,14 +143,14 @@ func (a *autoremoveCmd) collectProjectDevPackages(nameVersion string) error {
 }
 
 func (a autoremoveCmd) installedPackages() ([]string, []string, error) {
-	libraryFolder := fmt.Sprintf("%s@%s@%s", a.celer.Platform().Name,
-		a.celer.Project().Name, strings.ToLower(a.celer.BuildType()))
+	libraryFolder := fmt.Sprintf("%s@%s@%s", a.celer.Platform().GetName(),
+		a.celer.Project().GetName(), strings.ToLower(a.celer.BuildType()))
 	depPkgs, err := a.readPackages(libraryFolder)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	devLibraryFolder := a.celer.Platform().HostName() + "-dev"
+	devLibraryFolder := a.celer.Platform().GetHostName() + "-dev"
 	devDepPkgs, err := a.readPackages(devLibraryFolder)
 	if err != nil {
 		return nil, nil, err
