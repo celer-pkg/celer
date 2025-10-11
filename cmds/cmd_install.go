@@ -33,7 +33,7 @@ func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Install a package.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if i.celer.CheckInitResult() {
+			if i.celer.HandleInitError() {
 				os.Exit(1)
 			}
 

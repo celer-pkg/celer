@@ -95,11 +95,6 @@ func (c *Celer) Init() error {
 		if c.initErr = os.WriteFile(configPath, bytes, os.ModePerm); c.initErr != nil {
 			return c.initErr
 		}
-
-		// Auto detect native toolchain for different os.
-		if c.initErr = c.platform.detectToolchain(); c.initErr != nil {
-			return c.initErr
-		}
 	} else {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
@@ -148,16 +143,6 @@ func (c *Celer) Init() error {
 		os.Setenv("all_proxy", fmt.Sprintf("http://%s:%d", c.configData.Proxy.Host, c.configData.Proxy.Port))
 	} else {
 		os.Unsetenv("all_proxy")
-	}
-
-	// Git is required to clone/update repo.
-	if c.initErr = buildtools.CheckTools(c, "git"); c.initErr != nil {
-		return c.initErr
-	}
-
-	// Clone ports repo if empty.
-	if c.initErr = c.clonePorts(); c.initErr != nil {
-		return c.initErr
 	}
 
 	return nil
@@ -754,13 +739,33 @@ func (c Celer) GenerateToolchainFile() error {
 	return nil
 }
 
-// CheckInitResult check celer init result and warning offline.
-func (c Celer) CheckInitResult() bool {
+// HandleInitError check celer init result and warning offline, return true if error.
+func (c Celer) HandleInitError() bool {
 	if c.initErr != nil {
 		color.Printf(color.Red, "Init celer error: %s.\n", c.initErr)
 		return true
 	} else if c.Global.Offline {
 		color.Println(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================\n")
+	}
+
+	// Auto detect native toolchain for different os.
+	if c.platform.Toolchain == nil {
+		if err := c.platform.detectToolchain(); err != nil {
+			color.Println(color.Red, err.Error())
+			return true
+		}
+	}
+
+	// Git is required to clone/update repo.
+	if err := buildtools.CheckTools(c, "git"); err != nil {
+		color.Println(color.Red, err.Error())
+		return true
+	}
+
+	// Clone ports repo if empty.
+	if err := c.clonePorts(); err != nil {
+		color.Println(color.Red, err.Error())
+		return true
 	}
 
 	return false
