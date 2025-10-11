@@ -2,6 +2,7 @@ package buildsystems
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -12,13 +13,13 @@ import (
 	"strings"
 )
 
-func NewQMake(config *BuildConfig, optimize *Optimize) *qmake {
+func NewQMake(config *BuildConfig, optimize *context.Optimize) *qmake {
 	return &qmake{BuildConfig: config, Optimize: optimize}
 }
 
 type qmake struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 }
 
 func (qmake) Name() string {
@@ -27,7 +28,7 @@ func (qmake) Name() string {
 
 func (m *qmake) CheckTools() error {
 	m.BuildTools = append(m.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(m.Offline, m.Proxy, m.BuildTools...)
+	return buildtools.CheckTools(m.Ctx, m.BuildTools...)
 }
 
 func (q qmake) Clean() error {

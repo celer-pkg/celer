@@ -1,13 +1,14 @@
 package buildsystems
 
 import (
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/fileio"
 	"fmt"
 	"path/filepath"
 )
 
-func NewNoBuild(config *BuildConfig, optimize *Optimize) *nobuild {
+func NewNoBuild(config *BuildConfig, optimize *context.Optimize) *nobuild {
 	return &nobuild{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -16,7 +17,7 @@ func NewNoBuild(config *BuildConfig, optimize *Optimize) *nobuild {
 
 type nobuild struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 }
 
 func (n nobuild) CheckTools() error {

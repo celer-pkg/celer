@@ -35,7 +35,7 @@ func TestConfigure_CacheDir_Success(t *testing.T) {
 
 	celer2 := NewCeler()
 	check(celer2.Init())
-	if celer2.CacheDir().Dir != dirs.TestCacheDir {
+	if celer2.CacheDir().GetDir() != dirs.TestCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
 	}
 

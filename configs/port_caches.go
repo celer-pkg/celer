@@ -32,8 +32,8 @@ func (p Port) meta2hash(metaData string) string {
 func (p Port) buildMeta(commit string) (string, error) {
 	cachePort := caches.Port{
 		NameVersion: p.NameVersion(),
-		Platform:    p.ctx.Platform().Name,
-		Project:     p.ctx.Project().Name,
+		Platform:    p.ctx.Platform().GetName(),
+		Project:     p.ctx.Project().GetName(),
 		DevDep:      p.DevDep,
 		BuildConfig: *p.MatchedConfig,
 		Callbacks:   p,
@@ -45,7 +45,7 @@ func (p Port) buildMeta(commit string) (string, error) {
 func (c Port) GenPlatformTomlString() (string, error) {
 	bytes, err := toml.Marshal(c.ctx.Platform())
 	if err != nil {
-		return "", fmt.Errorf("marshal platform %s error: %w", c.ctx.Platform().Name, err)
+		return "", fmt.Errorf("marshal platform %s error: %w", c.ctx.Platform().GetName(), err)
 	}
 	return string(bytes), nil
 }

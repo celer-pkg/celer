@@ -2,6 +2,7 @@ package depcheck
 
 import (
 	"celer/configs"
+	"celer/context"
 	"celer/pkgs/expr"
 	"fmt"
 	"log"
@@ -23,7 +24,7 @@ type versionInfo struct {
 
 type depcheck struct {
 	debugMode    bool
-	ctx          configs.Context
+	ctx          context.Context
 	versionInfos map[string][]versionInfo
 	visited      map[string]bool
 	path         []string
@@ -35,7 +36,7 @@ func (d depcheck) log(format string, v ...any) {
 	}
 }
 
-func (d *depcheck) CheckConflict(ctx configs.Context, ports ...configs.Port) error {
+func (d *depcheck) CheckConflict(ctx context.Context, ports ...configs.Port) error {
 	d.ctx = ctx
 	d.versionInfos = make(map[string][]versionInfo)
 
@@ -44,7 +45,7 @@ func (d *depcheck) CheckConflict(ctx configs.Context, ports ...configs.Port) err
 		// Update cached version infos or add new version info.
 		newVersionInfo := versionInfo{
 			version: port.Version,
-			parent:  ctx.Project().Name,
+			parent:  ctx.Project().GetName(),
 			devDep:  false,
 		}
 		if infos, ok := d.versionInfos[port.Name]; ok {
@@ -87,7 +88,7 @@ func (d *depcheck) CheckConflict(ctx configs.Context, ports ...configs.Port) err
 }
 
 // CheckCircular check if have circular dependency in port.
-func (d *depcheck) CheckCircular(ctx configs.Context, port configs.Port) error {
+func (d *depcheck) CheckCircular(ctx context.Context, port configs.Port) error {
 	d.ctx = ctx
 	d.versionInfos = make(map[string][]versionInfo)
 	d.visited = make(map[string]bool)

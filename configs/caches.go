@@ -116,3 +116,7 @@ func (c CacheDir) Exist(platformName, projectName, buildType, nameVersion, hash 
 	metaFilePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, "meta", hash+".meta")
 	return fileio.PathExists(archivePath) && fileio.PathExists(metaFilePath)
 }
+
+func (c CacheDir) GetDir() string {
+	return c.Dir
+}

@@ -2,6 +2,7 @@ package buildsystems
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
@@ -12,7 +13,7 @@ import (
 	"strings"
 )
 
-func NewGyp(config *BuildConfig, optimize *Optimize) *gyp {
+func NewGyp(config *BuildConfig, optimize *context.Optimize) *gyp {
 	return &gyp{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -21,7 +22,7 @@ func NewGyp(config *BuildConfig, optimize *Optimize) *gyp {
 
 type gyp struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 }
 
 func (g gyp) Name() string {
@@ -30,7 +31,7 @@ func (g gyp) Name() string {
 
 func (g gyp) CheckTools() error {
 	g.BuildTools = append(g.BuildTools, "git", "cmake", "python3:gyp-next", "ninja")
-	return buildtools.CheckTools(g.Offline, g.Proxy, g.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(g.Ctx, g.BuildConfig.BuildTools...)
 }
 
 func (g gyp) Clean() error {

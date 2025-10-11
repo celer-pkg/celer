@@ -2,6 +2,7 @@ package buildsystems
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-func NewPrebuilt(config *BuildConfig, optimize *Optimize) *prebuilt {
+func NewPrebuilt(config *BuildConfig, optimize *context.Optimize) *prebuilt {
 	return &prebuilt{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -20,7 +21,7 @@ func NewPrebuilt(config *BuildConfig, optimize *Optimize) *prebuilt {
 
 type prebuilt struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 }
 
 func (p prebuilt) Name() string {
@@ -29,7 +30,7 @@ func (p prebuilt) Name() string {
 
 func (p prebuilt) CheckTools() error {
 	p.BuildTools = append(p.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(p.Offline, p.Proxy, p.BuildTools...)
+	return buildtools.CheckTools(p.Ctx, p.BuildTools...)
 }
 
 func (p prebuilt) Clean() error {
@@ -51,7 +52,7 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 			// Check and repair resource.
 			archive = expr.If(archive == "", filepath.Base(url), archive)
 			repair := fileio.NewRepair(url, archive, ".", p.PortConfig.PackageDir)
-			if err := repair.CheckAndRepair(p.Offline, p.Proxy); err != nil && err != fileio.ErrOffline {
+			if err := repair.CheckAndRepair(p.Ctx); err != nil && err != fileio.ErrOffline {
 				return err
 			}
 

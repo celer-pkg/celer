@@ -19,7 +19,7 @@ func (d deployCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "deploy",
 		Short: "Deploy with selected platform and project.",
 		Run: func(cmd *cobra.Command, args []string) {
-			if d.celer.CheckInitResult() {
+			if d.celer.HandleInitError() {
 				os.Exit(1)
 			}
 
@@ -51,7 +51,7 @@ func (d deployCmd) checkProject() error {
 	depcheck := depcheck.NewDepCheck()
 
 	var ports []configs.Port
-	for _, nameVersion := range d.celer.Project().Ports {
+	for _, nameVersion := range d.celer.Project().GetPorts() {
 		var port configs.Port
 		if err := port.Init(d.celer, nameVersion, d.celer.Global.BuildType); err != nil {
 			return err

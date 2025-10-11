@@ -1,9 +1,10 @@
 package fileio
 
 import (
+	"celer/context"
 	"celer/pkgs/dirs"
-	"celer/pkgs/proxy"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,16 +24,16 @@ func NewRepair(url, archive, folder, destDir string) *Repair {
 }
 
 type Repair struct {
+	ctx        context.Context
+	httpClient *http.Client
 	downloader downloader
 	folder     string
 	destDir    string
-	offline    bool
-	proxy      *proxy.Proxy
 }
 
-func (r *Repair) CheckAndRepair(offline bool, proxy *proxy.Proxy) error {
-	r.offline = offline
-	r.proxy = proxy
+func (r *Repair) CheckAndRepair(ctx context.Context) error {
+	r.ctx = ctx
+	r.httpClient = httpClient(r.ctx.Proxy())
 
 	switch {
 	case strings.HasPrefix(r.downloader.url, "http"), strings.HasPrefix(r.downloader.url, "ftp"):
@@ -128,12 +129,12 @@ func (r Repair) download(url, archive string) (override bool, err error) {
 	downloaded := filepath.Join(dirs.DownloadedDir, archive)
 	if PathExists(downloaded) {
 		// Skip checking filesize and re-download.
-		if r.offline {
+		if r.ctx.Offline() {
 			return false, nil
 		}
 
 		// Redownload if remote file size and local file size not match.
-		fileSize, err := FileSize(r.proxy, url)
+		fileSize, err := FileSize(r.httpClient, url)
 		if err != nil {
 			return false, fmt.Errorf("get remote file size: %w", err)
 		}
@@ -144,7 +145,7 @@ func (r Repair) download(url, archive string) (override bool, err error) {
 
 		// Not every remote file has size, so we need to check if fileSize is greater than 0.
 		if fileSize > 0 && info.Size() != fileSize {
-			if _, err := r.downloader.Start(r.proxy); err != nil {
+			if _, err := r.downloader.Start(r.httpClient); err != nil {
 				return false, fmt.Errorf("%s: download: %w", archive, err)
 			}
 			return true, nil
@@ -153,11 +154,11 @@ func (r Repair) download(url, archive string) (override bool, err error) {
 		return false, nil
 	} else {
 		// Skip downloading in offline mode.
-		if r.offline {
+		if r.ctx.Offline() {
 			return false, ErrOffline
 		}
 
-		if _, err := r.downloader.Start(r.proxy); err != nil {
+		if _, err := r.downloader.Start(r.httpClient); err != nil {
 			return false, fmt.Errorf("%s: download error: %w", archive, err)
 		}
 
