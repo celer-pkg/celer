@@ -30,7 +30,7 @@ type Project struct {
 	ctx  context.Context
 }
 
-func (p Project) Init(ctx context.Context, projectName string) error {
+func (p *Project) Init(ctx context.Context, projectName string) error {
 	p.ctx = ctx
 
 	// Check if project name is empty.

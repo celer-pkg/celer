@@ -582,11 +582,11 @@ func (c Celer) Version() string {
 }
 
 func (c Celer) Platform() context.Platform {
-	return c.platform
+	return &c.platform
 }
 
 func (c Celer) Project() context.Project {
-	return c.project
+	return &c.project
 }
 
 func (c Celer) BuildType() string {
@@ -602,6 +602,11 @@ func (c Celer) WindowsKit() context.WindowsKit {
 }
 
 func (c Celer) RootFS() context.RootFS {
+	// Must return exactly nil if RootFS is none.
+	// otherwise, the result of RootFS() will not be nil.
+	if c.platform.RootFS == nil {
+		return nil
+	}
 	return c.platform.RootFS
 }
 
@@ -614,6 +619,11 @@ func (c Celer) Offline() bool {
 }
 
 func (c Celer) CacheDir() context.CacheDir {
+	// Must return exactly nil if cache dir is none.
+	// otherwise, the result of CacheDir() will not be nil.
+	if c.configData.CacheDir == nil {
+		return nil
+	}
 	return c.configData.CacheDir
 }
 

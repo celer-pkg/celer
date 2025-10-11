@@ -4,6 +4,7 @@ package configs
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
@@ -171,6 +172,6 @@ func (t *Toolchain) Detect() error {
 }
 
 // Detect no msvc in linux.
-func (w *WindowsKit) Detect(msvc *MSVC) error {
+func (w *WindowsKit) Detect(msvc *context.MSVC) error {
 	return nil
 }

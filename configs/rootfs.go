@@ -41,7 +41,7 @@ func (r *RootFS) Validate() error {
 	return nil
 }
 
-func (r RootFS) CheckAndRepair() error {
+func (r *RootFS) CheckAndRepair() error {
 	// Default folder name is the first folder name of archive name.
 	// but it can be specified by archive name.
 	folderName := strings.Split(r.Path, string(filepath.Separator))[0]

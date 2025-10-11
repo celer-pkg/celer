@@ -24,7 +24,7 @@ type Platform struct {
 	ctx  context.Context
 }
 
-func (p Platform) Init(platformName string) error {
+func (p *Platform) Init(platformName string) error {
 	// Init internal fields.
 	p.Name = platformName
 
@@ -107,7 +107,7 @@ func (p Platform) GetWindowsKit() context.WindowsKit {
 	return p.WindowsKit
 }
 
-func (p Platform) Write(platformPath string) error {
+func (p *Platform) Write(platformPath string) error {
 	// Create empty platform.
 	p.RootFS = &RootFS{
 		PkgConfigPath: []string{},
@@ -135,7 +135,7 @@ func (p Platform) Write(platformPath string) error {
 }
 
 // Setup build envs.
-func (p Platform) Setup() error {
+func (p *Platform) Setup() error {
 	// Repair rootfs if not empty.
 	if p.RootFS != nil {
 		if err := p.RootFS.CheckAndRepair(); err != nil {
