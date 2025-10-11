@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"celer/buildsystems"
 	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
@@ -11,7 +10,6 @@ import (
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
-	"celer/pkgs/proxy"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -58,9 +56,9 @@ type global struct {
 }
 
 type configData struct {
-	Global   global       `toml:"global"`
-	Proxy    *proxy.Proxy `toml:"proxy,omitempty"`
-	CacheDir *CacheDir    `toml:"cache_dir,omitempty"`
+	Global   global         `toml:"global"`
+	Proxy    *context.Proxy `toml:"proxy,omitempty"`
+	CacheDir *CacheDir      `toml:"cache_dir,omitempty"`
 }
 
 // Init init celer and cache error inside.
@@ -347,7 +345,7 @@ func (c *Celer) SetProxy(host string, port int) error {
 		return err
 	}
 
-	c.configData.Proxy = &proxy.Proxy{
+	c.configData.Proxy = &context.Proxy{
 		Host: host,
 		Port: port,
 	}
@@ -573,7 +571,7 @@ func (c Celer) clonePorts() error {
 
 // ======================= celer context implementation ====================== //
 
-func (c Celer) Proxy() *proxy.Proxy {
+func (c Celer) Proxy() *context.Proxy {
 	return c.configData.Proxy
 }
 
@@ -631,7 +629,7 @@ func (c Celer) Verbose() bool {
 	return c.configData.Global.Verbose
 }
 
-func (c Celer) Optimize(buildsystem, toolchain string) *buildsystems.Optimize {
+func (c Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 	if c.project.Optimize != nil {
 		return c.project.Optimize
 	}

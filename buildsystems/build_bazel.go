@@ -2,9 +2,10 @@ package buildsystems
 
 import (
 	"celer/buildtools"
+	"celer/context"
 )
 
-func NewBazel(config *BuildConfig, optimize *Optimize) *bazel {
+func NewBazel(config *BuildConfig, optimize *context.Optimize) *bazel {
 	return &bazel{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -13,7 +14,7 @@ func NewBazel(config *BuildConfig, optimize *Optimize) *bazel {
 
 type bazel struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 }
 
 func (b bazel) Name() string {

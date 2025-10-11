@@ -2,13 +2,13 @@ package buildsystems
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/generator"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
-	"celer/pkgs/proxy"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -20,13 +20,6 @@ import (
 const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, qmake"
 
 var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "qmake"}
-
-type Optimize struct {
-	Debug          string `toml:"debug"`
-	Release        string `toml:"release"`
-	RelWithDebInfo string `toml:"relwithdebinfo"`
-	MinSizeRel     string `toml:"minsizerel"`
-}
 
 type PortConfig struct {
 	LibName       string     // like: `ffmpeg`
@@ -232,12 +225,12 @@ type BuildConfig struct {
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
 	// Internal fields
-	Offline     bool         `toml:"-"`
-	Proxy       *proxy.Proxy `toml:"-"`
-	DevDep      bool         `toml:"-"`
-	PortConfig  PortConfig   `toml:"-"`
-	BuildType   string       `toml:"-"`
-	Optimize    *Optimize    `toml:"-"`
+	Offline     bool              `toml:"-"`
+	Proxy       *context.Proxy    `toml:"-"`
+	DevDep      bool              `toml:"-"`
+	PortConfig  PortConfig        `toml:"-"`
+	BuildType   string            `toml:"-"`
+	Optimize    *context.Optimize `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
 }
@@ -560,7 +553,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	return nil
 }
 
-func (b *BuildConfig) InitBuildSystem(optimize *Optimize) error {
+func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 	if b.BuildSystem == "" {
 		return fmt.Errorf("build_system is empty")
 	}

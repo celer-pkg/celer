@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"celer/buildsystems"
 	"celer/context"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -14,16 +13,16 @@ import (
 )
 
 type Project struct {
-	DefaultPlatform string                 `toml:"default_platform,omitempty"`
-	BuildType       string                 `toml:"build_type"`
-	Ports           []string               `toml:"ports"`
-	Vars            []string               `toml:"vars"`
-	Envs            []string               `toml:"envs"`
-	Micros          []string               `toml:"micros"`
-	Flags           []string               `toml:"flags"`
-	OptimizeLinux   *buildsystems.Optimize `toml:"optimize_linux"`
-	OptimizeWindows *buildsystems.Optimize `toml:"optimize_windows"`
-	Optimize        *buildsystems.Optimize `toml:"optimize"`
+	DefaultPlatform string            `toml:"default_platform,omitempty"`
+	BuildType       string            `toml:"build_type"`
+	Ports           []string          `toml:"ports"`
+	Vars            []string          `toml:"vars"`
+	Envs            []string          `toml:"envs"`
+	Micros          []string          `toml:"micros"`
+	Flags           []string          `toml:"flags"`
+	OptimizeLinux   *context.Optimize `toml:"optimize_linux"`
+	OptimizeWindows *context.Optimize `toml:"optimize_windows"`
+	Optimize        *context.Optimize `toml:"optimize"`
 
 	// Internal fields.
 	Name string `toml:"-"`
@@ -83,14 +82,14 @@ func (p Project) Write(platformPath string) error {
 	}
 
 	// Default opt level values.
-	p.OptimizeWindows = &buildsystems.Optimize{
+	p.OptimizeWindows = &context.Optimize{
 		Debug:          "/MDd /Zi /Ob0 /Od /RTC1",
 		Release:        "/MD /O2 /Ob2 /DNDEBUG",
 		RelWithDebInfo: "/MD /Zi /O2 /Ob1 /DNDEBUG",
 		MinSizeRel:     "/MD /O1 /Ob1 /DNDEBUG",
 	}
 
-	p.OptimizeLinux = &buildsystems.Optimize{
+	p.OptimizeLinux = &context.Optimize{
 		Debug:          "-g",
 		Release:        "-O3",
 		RelWithDebInfo: "-O2 -g",

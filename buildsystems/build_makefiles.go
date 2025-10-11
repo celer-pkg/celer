@@ -2,6 +2,7 @@ package buildsystems
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -14,7 +15,7 @@ import (
 	"strings"
 )
 
-func NewMakefiles(config *BuildConfig, optimize *Optimize) *makefiles {
+func NewMakefiles(config *BuildConfig, optimize *context.Optimize) *makefiles {
 	return &makefiles{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -23,7 +24,7 @@ func NewMakefiles(config *BuildConfig, optimize *Optimize) *makefiles {
 
 type makefiles struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 	msvcEnvs string
 }
 

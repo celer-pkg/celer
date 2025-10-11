@@ -2,6 +2,7 @@ package buildsystems
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-func NewPrebuilt(config *BuildConfig, optimize *Optimize) *prebuilt {
+func NewPrebuilt(config *BuildConfig, optimize *context.Optimize) *prebuilt {
 	return &prebuilt{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -20,7 +21,7 @@ func NewPrebuilt(config *BuildConfig, optimize *Optimize) *prebuilt {
 
 type prebuilt struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 }
 
 func (p prebuilt) Name() string {

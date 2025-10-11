@@ -1,11 +1,11 @@
 package buildtools
 
 import (
+	"celer/context"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
 	"celer/pkgs/fileio"
-	"celer/pkgs/proxy"
 	"embed"
 	"fmt"
 	"os"
@@ -23,7 +23,7 @@ var (
 )
 
 // CheckTools checks if tools exist and repair them if necessary.
-func CheckTools(offline bool, proxy *proxy.Proxy, requiredTools ...string) error {
+func CheckTools(offline bool, proxy *context.Proxy, requiredTools ...string) error {
 	tools := slices.Clone(requiredTools)
 
 	// Read and decode static file.
@@ -132,7 +132,7 @@ type buildTool struct {
 	fullpaths  []string
 	cmakepaths []string
 	offline    bool
-	proxy      *proxy.Proxy
+	proxy      *context.Proxy
 }
 
 func (b *buildTool) validate() error {
@@ -204,7 +204,7 @@ type BuildTools struct {
 	BuildTools []buildTool `toml:"build_tools"`
 }
 
-func (b BuildTools) findTool(offline bool, proxy *proxy.Proxy, name string) *buildTool {
+func (b BuildTools) findTool(offline bool, proxy *context.Proxy, name string) *buildTool {
 	for index, tool := range b.BuildTools {
 		if tool.Name == name {
 			b.BuildTools[index].offline = offline

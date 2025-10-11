@@ -1,8 +1,8 @@
 package fileio
 
 import (
+	"celer/context"
 	"celer/pkgs/dirs"
-	"celer/pkgs/proxy"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -27,10 +27,10 @@ type Repair struct {
 	folder     string
 	destDir    string
 	offline    bool
-	proxy      *proxy.Proxy
+	proxy      *context.Proxy
 }
 
-func (r *Repair) CheckAndRepair(offline bool, proxy *proxy.Proxy) error {
+func (r *Repair) CheckAndRepair(offline bool, proxy *context.Proxy) error {
 	r.offline = offline
 	r.proxy = proxy
 

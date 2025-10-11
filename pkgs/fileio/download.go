@@ -1,9 +1,9 @@
 package fileio
 
 import (
+	"celer/context"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
-	"celer/pkgs/proxy"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,7 +25,7 @@ func (d *downloader) SetArchive(archive string) *downloader {
 	return d
 }
 
-func (d downloader) Start(proxy *proxy.Proxy) (downloaded string, err error) {
+func (d downloader) Start(proxy *context.Proxy) (downloaded string, err error) {
 	req, err := http.NewRequest("GET", d.url, nil)
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)

@@ -1,7 +1,7 @@
 package fileio
 
 import (
-	"celer/pkgs/proxy"
+	"celer/context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -42,7 +42,7 @@ func CheckAccessible(url string) error {
 }
 
 // FileSize returns the size of the file at the given URL.
-func FileSize(proxy *proxy.Proxy, downloadUrl string) (int64, error) {
+func FileSize(proxy *context.Proxy, downloadUrl string) (int64, error) {
 	var client *http.Client
 	if proxy != nil {
 		client = proxy.HttpClient()
