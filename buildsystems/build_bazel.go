@@ -23,7 +23,7 @@ func (b bazel) Name() string {
 
 func (b bazel) CheckTools() error {
 	b.BuildConfig.BuildTools = append(b.BuildConfig.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(b.Offline, b.Proxy, b.BuildTools...)
+	return buildtools.CheckTools(b.Ctx, b.BuildTools...)
 }
 
 func (b bazel) Clean() error {

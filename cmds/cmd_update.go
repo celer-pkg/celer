@@ -33,7 +33,7 @@ func (u updateCmd) Command(celer *configs.Celer) *cobra.Command {
 			}
 
 			// Make sure git is available.
-			if err := buildtools.CheckTools(u.celer.Offline(), u.celer.Proxy(), "git"); err != nil {
+			if err := buildtools.CheckTools(u.celer, "git"); err != nil {
 				configs.PrintError(err, "failed to check git tools.")
 				os.Exit(1)
 			}

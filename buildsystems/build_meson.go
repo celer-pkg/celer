@@ -45,7 +45,7 @@ func (m meson) CheckTools() error {
 		m.BuildTools = append(m.BuildTools, "python3:meson")
 	}
 
-	return buildtools.CheckTools(m.Offline, m.Proxy, m.BuildTools...)
+	return buildtools.CheckTools(m.Ctx, m.BuildTools...)
 }
 
 func (m meson) Clean() error {

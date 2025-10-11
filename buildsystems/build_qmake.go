@@ -28,7 +28,7 @@ func (qmake) Name() string {
 
 func (m *qmake) CheckTools() error {
 	m.BuildTools = append(m.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(m.Offline, m.Proxy, m.BuildTools...)
+	return buildtools.CheckTools(m.Ctx, m.BuildTools...)
 }
 
 func (q qmake) Clean() error {

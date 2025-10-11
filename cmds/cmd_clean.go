@@ -65,7 +65,7 @@ func (c cleanCmd) Command(celer *configs.Celer) *cobra.Command {
 
 func (c *cleanCmd) clean(targets []string) error {
 	// git is required when clean port.
-	if err := buildtools.CheckTools(c.celer.Offline(), c.celer.Proxy(), "git"); err != nil {
+	if err := buildtools.CheckTools(c.celer, "git"); err != nil {
 		return err
 	}
 

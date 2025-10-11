@@ -323,7 +323,7 @@ func (p Port) checkPatternMatch(pattern string) bool {
 }
 
 func (p Port) toolchain() *buildsystems.Toolchain {
-	toolchain := p.ctx.Toolchain()
+	toolchain := p.ctx.Platform().GetToolchain()
 	if toolchain == nil {
 		return nil
 	}

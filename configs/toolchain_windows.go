@@ -158,7 +158,7 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 
 	// Check and repair resource.
 	repair := fileio.NewRepair(t.Url, archive, folderName, dirs.DownloadedToolsDir)
-	if err := repair.CheckAndRepair(t.ctx.Offline(), t.ctx.Proxy()); err != nil {
+	if err := repair.CheckAndRepair(t.ctx); err != nil {
 		return err
 	}
 
@@ -170,7 +170,7 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 
 // Detect detect local installed MSVC.
 func (t *Toolchain) Detect() error {
-	if err := buildtools.CheckTools(t.ctx.Offline(), t.ctx.Proxy(), "vswhere"); err != nil {
+	if err := buildtools.CheckTools(t.ctx, "vswhere"); err != nil {
 		return fmt.Errorf("vswhere is not available: %w", err)
 	}
 

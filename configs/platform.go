@@ -103,10 +103,6 @@ func (p Platform) GetToolchain() context.Toolchain {
 	return p.Toolchain
 }
 
-func (p Platform) GetWindowsKit() context.WindowsKit {
-	return p.WindowsKit
-}
-
 func (p *Platform) Write(platformPath string) error {
 	// Create empty platform.
 	p.RootFS = &RootFS{

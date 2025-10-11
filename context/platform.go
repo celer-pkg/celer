@@ -7,15 +7,14 @@ type Platform interface {
 	GetName() string
 	GetHostName() string
 	GetToolchain() Toolchain
-	GetWindowsKit() WindowsKit
 	Write(platformPath string) error
 	Setup() error
 }
 
 type Toolchain interface {
-	Generate(toolchain *strings.Builder, hostName string) error
 	GetName() string
 	GetPath() string
+	GetFullPath() string
 	GetVersion() string
 	GetHost() string
 	GetSystemName() string
@@ -23,7 +22,6 @@ type Toolchain interface {
 	GetCrosstoolPrefix() string
 	GetCStandard() string
 	GetCXXStandard() string
-	GetFullPath() string
 	GetCC() string
 	GetCXX() string
 	GetLD() string
@@ -37,6 +35,7 @@ type Toolchain interface {
 	GetSTRIP() string
 	GetREADELF() string
 	GetMSVC() *MSVC
+	Generate(toolchain *strings.Builder, hostName string) error
 }
 
 type RootFS interface {

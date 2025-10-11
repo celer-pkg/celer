@@ -55,10 +55,15 @@ type global struct {
 	Offline   bool   `toml:"offline"`
 }
 
+type Proxy struct {
+	Host string `toml:"host"`
+	Port int    `toml:"port"`
+}
+
 type configData struct {
-	Global   global         `toml:"global"`
-	Proxy    *context.Proxy `toml:"proxy,omitempty"`
-	CacheDir *CacheDir      `toml:"cache_dir,omitempty"`
+	Global   global    `toml:"global"`
+	Proxy    *Proxy    `toml:"proxy,omitempty"`
+	CacheDir *CacheDir `toml:"cache_dir,omitempty"`
 }
 
 // Init init celer and cache error inside.
@@ -146,7 +151,7 @@ func (c *Celer) Init() error {
 	}
 
 	// Git is required to clone/update repo.
-	if c.initErr = buildtools.CheckTools(c.Offline(), c.Proxy(), "git"); c.initErr != nil {
+	if c.initErr = buildtools.CheckTools(c, "git"); c.initErr != nil {
 		return c.initErr
 	}
 
@@ -345,7 +350,7 @@ func (c *Celer) SetProxy(host string, port int) error {
 		return err
 	}
 
-	c.configData.Proxy = &context.Proxy{
+	c.configData.Proxy = &Proxy{
 		Host: host,
 		Port: port,
 	}
@@ -571,8 +576,12 @@ func (c Celer) clonePorts() error {
 
 // ======================= celer context implementation ====================== //
 
-func (c Celer) Proxy() *context.Proxy {
-	return c.configData.Proxy
+func (c Celer) Proxy() (host string, port int) {
+	if c.configData.Proxy != nil {
+		return c.configData.Proxy.Host, c.configData.Proxy.Port
+	}
+
+	return "", 0
 }
 
 func (c Celer) Version() string {
@@ -589,14 +598,6 @@ func (c Celer) Project() context.Project {
 
 func (c Celer) BuildType() string {
 	return c.configData.Global.BuildType
-}
-
-func (c Celer) Toolchain() context.Toolchain {
-	return c.platform.GetToolchain()
-}
-
-func (c Celer) WindowsKit() context.WindowsKit {
-	return c.platform.GetWindowsKit()
 }
 
 func (c Celer) RootFS() context.RootFS {
@@ -634,17 +635,8 @@ func (c Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 		return c.project.Optimize
 	}
 
-	if runtime.GOOS == "windows" {
-		if toolchain == "msvc" {
-			switch buildsystem {
-			case "cmake":
-				return c.project.OptimizeWindows
-			case "makefiles":
-				return c.project.OptimizeLinux
-			}
-		}
-	} else {
-		return c.project.OptimizeLinux
+	if runtime.GOOS == "windows" && toolchain == "msvc" && buildsystem == "cmake" {
+		return c.project.OptimizeWindows
 	}
 
 	return c.project.OptimizeLinux
@@ -748,7 +740,7 @@ func (c Celer) GenerateToolchainFile() error {
 	}
 
 	toolchain.WriteString("\n")
-	if c.Toolchain().GetName() == "gcc" {
+	if c.Platform().GetToolchain().GetName() == "gcc" {
 		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
 	}
 	toolchain.WriteString(fmt.Sprintf("set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON"))

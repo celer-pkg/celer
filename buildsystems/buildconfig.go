@@ -225,8 +225,7 @@ type BuildConfig struct {
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
 	// Internal fields
-	Offline     bool              `toml:"-"`
-	Proxy       *context.Proxy    `toml:"-"`
+	Ctx         context.Context   `toml:"-"`
 	DevDep      bool              `toml:"-"`
 	PortConfig  PortConfig        `toml:"-"`
 	BuildType   string            `toml:"-"`
@@ -293,7 +292,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
 		repair := fileio.NewRepair(repoUrl, archive, ".", destDir)
-		if err := repair.CheckAndRepair(b.Offline, b.Proxy); err != nil {
+		if err := repair.CheckAndRepair(b.Ctx); err != nil {
 			return err
 		}
 
@@ -328,7 +327,7 @@ func (b BuildConfig) Patch() error {
 	if len(b.Patches) > 0 {
 		// In windows, msys2 is required to apply patch .
 		if runtime.GOOS == "windows" {
-			if err := buildtools.CheckTools(b.Offline, b.Proxy, "msys2"); err != nil {
+			if err := buildtools.CheckTools(b.Ctx, "msys2"); err != nil {
 				return err
 			}
 		}
@@ -709,7 +708,7 @@ func (b BuildConfig) replaceSource(archive, url string) error {
 	// Check and repair resource.
 	archive = expr.If(archive == "", filepath.Base(url), archive)
 	repair := fileio.NewRepair(url, archive, ".", b.PortConfig.RepoDir)
-	if err := repair.CheckAndRepair(b.Offline, b.Proxy); err != nil {
+	if err := repair.CheckAndRepair(b.Ctx); err != nil {
 		replaceFailed = true
 		return err
 	}

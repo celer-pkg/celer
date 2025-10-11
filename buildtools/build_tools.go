@@ -23,7 +23,7 @@ var (
 )
 
 // CheckTools checks if tools exist and repair them if necessary.
-func CheckTools(offline bool, proxy *context.Proxy, requiredTools ...string) error {
+func CheckTools(ctx context.Context, requiredTools ...string) error {
 	tools := slices.Clone(requiredTools)
 
 	// Read and decode static file.
@@ -81,7 +81,7 @@ func CheckTools(offline bool, proxy *context.Proxy, requiredTools ...string) err
 		}
 
 		// Find tool and validate it.
-		if tool := buildTools.findTool(offline, proxy, tool); tool != nil {
+		if tool := buildTools.findTool(ctx, tool); tool != nil {
 			if err := tool.validate(); err != nil {
 				return err
 			}
@@ -131,8 +131,7 @@ type buildTool struct {
 	rootDir    string
 	fullpaths  []string
 	cmakepaths []string
-	offline    bool
-	proxy      *context.Proxy
+	ctx        context.Context
 }
 
 func (b *buildTool) validate() error {
@@ -189,7 +188,7 @@ func (b *buildTool) checkAndFix() error {
 	location := filepath.Join(dirs.DownloadedToolsDir, b.Name)
 	repair := fileio.NewRepair(b.Url, archiveName, folderName, dirs.DownloadedToolsDir)
 
-	if err := repair.CheckAndRepair(b.offline, b.proxy); err != nil {
+	if err := repair.CheckAndRepair(b.ctx); err != nil {
 		return err
 	}
 
@@ -204,11 +203,10 @@ type BuildTools struct {
 	BuildTools []buildTool `toml:"build_tools"`
 }
 
-func (b BuildTools) findTool(offline bool, proxy *context.Proxy, name string) *buildTool {
+func (b BuildTools) findTool(ctx context.Context, name string) *buildTool {
 	for index, tool := range b.BuildTools {
 		if tool.Name == name {
-			b.BuildTools[index].offline = offline
-			b.BuildTools[index].proxy = proxy
+			b.BuildTools[index].ctx = ctx
 			return &b.BuildTools[index]
 		}
 	}
