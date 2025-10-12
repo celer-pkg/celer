@@ -331,7 +331,7 @@ func (c *Celer) SetCacheDir(dir, token string) error {
 		}
 
 		// Token of cache dir should be encrypted.
-		bytes, err := encrypt.EncodePassword(token)
+		bytes, err := encrypt.Encode(token)
 		if err != nil {
 			return fmt.Errorf("encode cache token: %w", err)
 		}

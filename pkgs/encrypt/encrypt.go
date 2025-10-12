@@ -8,19 +8,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func EncodePassword(password string) ([]byte, error) {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func Encode(content string) ([]byte, error) {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(content), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 	return hashed, nil
 }
 
-func CheckPassword(cacheDir, password string) bool {
-	bytes, err := os.ReadFile(filepath.Join(cacheDir, "token"))
+func CheckToken(tokenDir, encoded string) bool {
+	bytes, err := os.ReadFile(filepath.Join(tokenDir, "token"))
 	if err != nil {
-		color.Printf(color.Yellow, "failed to read cache token.\n %s", err)
+		color.Printf(color.Yellow, "failed to read token:\n %s", err)
 		return false
 	}
-	return bcrypt.CompareHashAndPassword(bytes, []byte(password)) == nil
+	return bcrypt.CompareHashAndPassword(bytes, []byte(encoded)) == nil
 }

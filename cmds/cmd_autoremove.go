@@ -27,12 +27,12 @@ func (a autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Tidy up installation directory - removing project's unnecessary files.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := a.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer\n %s.", err)
+				configs.PrintError(err, "failed to init celer.")
 				os.Exit(1)
 			}
 
 			if err := a.autoremove(); err != nil {
-				configs.PrintError(err, "failed to autoremove\n %s.", err)
+				configs.PrintError(err, "failed to autoremove.")
 				os.Exit(1)
 			}
 

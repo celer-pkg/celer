@@ -177,7 +177,7 @@ func (p Port) doInstallFromSource() error {
 			return ErrCacheTokenNotSpecified
 		}
 
-		if !encrypt.CheckPassword(cacheDir.GetDir(), p.CacheToken) {
+		if !encrypt.CheckToken(cacheDir.GetDir(), p.CacheToken) {
 			return ErrCacheTokenNotMatch
 		}
 
