@@ -34,7 +34,7 @@ func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := i.celer.Init(); err != nil {
-				configs.PrintError(err, "init celer error: %s.", err)
+				configs.PrintError(err, "failed to init celer.")
 				os.Exit(1)
 			}
 
@@ -68,7 +68,7 @@ func (i installCmd) install(nameVersion string) {
 	i.celer.Global.Verbose = i.verbose
 
 	if err := i.celer.Platform().Setup(); err != nil {
-		configs.PrintError(err, "setup platform error:")
+		configs.PrintError(err, "failed to setup platform.")
 		os.Exit(1)
 	}
 
@@ -79,14 +79,14 @@ func (i installCmd) install(nameVersion string) {
 
 	parts := strings.Split(nameVersion, "@")
 	if len(parts) != 2 {
-		configs.PrintError(fmt.Errorf("invalid name and version"), "install %s failed.", nameVersion)
+		configs.PrintError(fmt.Errorf("invalid name and version"), "failed to install %s.", nameVersion)
 		os.Exit(1)
 	}
 
 	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName(), parts[0], parts[1], "port.toml")
 	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
-		configs.PrintError(fmt.Errorf("port %s is not found", nameVersion), "%s install failed.", nameVersion)
+		configs.PrintError(fmt.Errorf("port %s is not found", nameVersion), "failed to install %s.", nameVersion)
 		os.Exit(1)
 	}
 
@@ -98,27 +98,27 @@ func (i installCmd) install(nameVersion string) {
 	port.StoreCache = i.storeCache
 	port.CacheToken = i.cacheToken
 	if err := port.Init(i.celer, nameVersion, i.buildType); err != nil {
-		configs.PrintError(err, "init %s failed.", nameVersion)
+		configs.PrintError(err, "failed to init %s.", nameVersion)
 		os.Exit(1)
 	}
 
 	// Check circular dependence.
 	depcheck := depcheck.NewDepCheck()
 	if err := depcheck.CheckCircular(i.celer, port); err != nil {
-		configs.PrintError(err, "check circular dependence failed.")
+		configs.PrintError(err, "failed to check circular dependence.")
 		os.Exit(1)
 	}
 
 	// Check version conflict.
 	if err := depcheck.CheckConflict(i.celer, port); err != nil {
-		configs.PrintError(err, "check version conflict failed.")
+		configs.PrintError(err, "failed to check version conflict.")
 		os.Exit(1)
 	}
 
 	// Do install.
 	fromWhere, err := port.Install()
 	if err != nil {
-		configs.PrintError(err, "install %s failed.", nameVersion)
+		configs.PrintError(err, "failed to install %s.", nameVersion)
 		os.Exit(1)
 	}
 	if fromWhere != "" {
@@ -155,7 +155,7 @@ func (i installCmd) buildSuggestions(suggestions *[]string, portDir string, toCo
 		return nil
 	})
 	if err != nil {
-		configs.PrintError(err, "failed to read %s: %s.\n", portDir, err)
+		configs.PrintError(err, "failed to read %s.\n %s.\n", portDir, err)
 		os.Exit(1)
 	}
 }

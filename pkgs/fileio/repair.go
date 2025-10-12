@@ -55,15 +55,15 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 			if strings.HasSuffix(downloaded, ".exe") {
 				destFile := filepath.Join(destDir, filepath.Base(downloaded))
 				if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-					return fmt.Errorf("%s: mkdir error: %w", destDir, err)
+					return fmt.Errorf("failed to mkdir %s.\n %w", destDir, err)
 				}
 				if err := CopyFile(downloaded, destFile); err != nil {
-					return fmt.Errorf("%s: rename error: %w", downloaded, err)
+					return fmt.Errorf("failed to rename %s.\n %w", downloaded, err)
 				}
 			} else {
 				// Extract archive file.
 				if err := Extract(downloaded, destDir); err != nil {
-					return fmt.Errorf("%s: extract error: %w", downloaded, err)
+					return fmt.Errorf("failed to extract %s.\n %w", downloaded, err)
 				}
 
 				// Check if has nested folder (handling case where there's an nested folder).
@@ -159,7 +159,7 @@ func (r Repair) download(url, archive string) (override bool, err error) {
 		}
 
 		if _, err := r.downloader.Start(r.httpClient); err != nil {
-			return false, fmt.Errorf("%s: download error: %w", archive, err)
+			return false, fmt.Errorf("failed to download %s.\n %w", archive, err)
 		}
 
 		return true, nil

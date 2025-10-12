@@ -119,7 +119,7 @@ func (c cmake) configureOptions() ([]string, error) {
 
 func (c cmake) configured() bool {
 	if err := c.detectGenerator(); err != nil {
-		color.Printf(color.Red, "Detect generator error: %s\n", err)
+		color.Printf(color.Red, "failed to detect generator.\n %s\n", err)
 		return false
 	}
 
@@ -283,7 +283,7 @@ func (c *cmake) detectGenerator() error {
 
 func detectMSVCGenerator(ctx context.Context) (string, error) {
 	if err := buildtools.CheckTools(ctx, "vswhere"); err != nil {
-		return "", fmt.Errorf("check tool vswhere error: %w", err)
+		return "", fmt.Errorf("check tool vswhere failed: %w", err)
 	}
 
 	// Query all available msvc installation paths.

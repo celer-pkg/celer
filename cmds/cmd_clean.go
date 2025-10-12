@@ -31,7 +31,7 @@ func (c cleanCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Clean build cache for package or project",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := c.celer.Init(); err != nil {
-				configs.PrintError(err, "init celer error: %s.", err)
+				configs.PrintError(err, "faild to init celer.")
 				os.Exit(1)
 			}
 

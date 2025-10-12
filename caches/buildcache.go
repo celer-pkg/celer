@@ -78,7 +78,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	} else {
 		commit, err := p.Callbacks.Commit(p.NameVersion)
 		if err != nil {
-			return "", fmt.Errorf("get commit of port %s error: %s", p.NameVersion, err)
+			return "", fmt.Errorf("failed to get commit of port %s\n %s", p.NameVersion, err)
 		}
 		p.writeDivider(&buffer, p.Parents, p.NameVersion, "commit")
 		buffer.WriteString(commit + "\n")

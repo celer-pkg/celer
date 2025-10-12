@@ -89,7 +89,7 @@ func (c *Celer) preInit() {
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
 		if err != nil {
-			c.initErr = fmt.Errorf("marshal conf error: %w", err)
+			c.initErr = fmt.Errorf("failed to marshal conf.\n %w", err)
 			return
 		}
 
@@ -100,7 +100,7 @@ func (c *Celer) preInit() {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
 		if err != nil {
-			c.initErr = fmt.Errorf("read conf error: %w", err)
+			c.initErr = fmt.Errorf("failed to read conf.\n %w", err)
 			return
 		}
 		if c.initErr = toml.Unmarshal(bytes, c); c.initErr != nil {

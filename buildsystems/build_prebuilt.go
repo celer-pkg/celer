@@ -59,7 +59,7 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 			// Move extracted files to source dir.
 			entities, err := os.ReadDir(p.PortConfig.PackageDir)
 			if err != nil || len(entities) == 0 {
-				return fmt.Errorf("cannot find extracted files under tmp dir")
+				return fmt.Errorf("failed to find extracted files under tmp dir")
 			}
 			if len(entities) == 1 {
 				srcDir := filepath.Join(p.PortConfig.PackageDir, entities[0].Name())

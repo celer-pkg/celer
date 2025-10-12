@@ -25,7 +25,7 @@ func (s searchCmd) Command(celer *configs.Celer) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := s.celer.Init(); err != nil {
-				configs.PrintError(err, "init celer error: %s.", err)
+				configs.PrintError(err, "failed to init celer.")
 				os.Exit(1)
 			}
 

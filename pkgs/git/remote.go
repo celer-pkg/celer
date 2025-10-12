@@ -33,14 +33,14 @@ func ReadRemoteCommit(repoUrl, repoRef string) (string, error) {
 	// Try to get latest commit of branch.
 	isBranch, err := CheckIfRemoteBranch(repoUrl, repoRef)
 	if err != nil {
-		return "", fmt.Errorf("check if remote branch error: %w", err)
+		return "", fmt.Errorf("failed to check if remote branch.\n %w", err)
 	}
 	if isBranch {
 		command := fmt.Sprintf("git ls-remote %s %s", repoUrl, "refs/heads/"+repoRef)
 		executor := cmd.NewExecutor("", command)
 		output, err := executor.ExecuteOutput()
 		if err != nil {
-			return "", fmt.Errorf("read git commit hash error: %w", err)
+			return "", fmt.Errorf("failed to read git commit hash.\n %w", err)
 		}
 
 		fields := strings.Fields(string(output))
@@ -54,14 +54,14 @@ func ReadRemoteCommit(repoUrl, repoRef string) (string, error) {
 	// Try to get latest commit of tag.
 	isTag, err := CheckIfRemoteTag(repoUrl, repoRef)
 	if err != nil {
-		return "", fmt.Errorf("check if remote tag error: %w", err)
+		return "", fmt.Errorf("failed to check if remote tag.\n %w", err)
 	}
 	if isTag {
 		command := fmt.Sprintf("git ls-remote %s %s", repoUrl, "refs/tags/"+repoRef)
 		executor := cmd.NewExecutor("", command)
 		output, err := executor.ExecuteOutput()
 		if err != nil {
-			return "", fmt.Errorf("read git commit hash error: %w", err)
+			return "", fmt.Errorf("failed to read git commit hash.\n %w", err)
 		}
 
 		fields := strings.Fields(string(output))

@@ -19,7 +19,7 @@ func EncodePassword(password string) ([]byte, error) {
 func CheckPassword(cacheDir, password string) bool {
 	bytes, err := os.ReadFile(filepath.Join(cacheDir, "token"))
 	if err != nil {
-		color.Printf(color.Yellow, "read cache token error: %s", err)
+		color.Printf(color.Yellow, "failed to read cache token.\n %s", err)
 		return false
 	}
 	return bcrypt.CompareHashAndPassword(bytes, []byte(password)) == nil
