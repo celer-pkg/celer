@@ -61,9 +61,8 @@ func Execute() error {
 		searchCmd{},
 	}
 
-	// Init celer and cache error inside.
+	// Create celer but init it in command.
 	celer := configs.NewCeler()
-	celer.Init()
 
 	// Register commands.
 	for _, cmd := range commands {

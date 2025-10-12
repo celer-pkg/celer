@@ -19,23 +19,16 @@ import (
 )
 
 type integrateCmd struct {
-	celer      *configs.Celer
 	powershell bool
 	bash       bool
 	remove     bool
 }
 
 func (i integrateCmd) Command(celer *configs.Celer) *cobra.Command {
-	i.celer = celer
 	command := &cobra.Command{
 		Use:   "integrate",
 		Short: "Integrate tab completion.",
 		Run: func(cobraCmd *cobra.Command, args []string) {
-			if err := i.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				os.Exit(1)
-			}
-
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
 				configs.PrintError(err, "failed to get home dir.")
