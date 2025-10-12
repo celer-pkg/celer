@@ -3,6 +3,7 @@ package buildsystems
 import (
 	"bytes"
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -15,7 +16,7 @@ import (
 	"strings"
 )
 
-func NewMeson(config *BuildConfig, optimize *Optimize) *meson {
+func NewMeson(config *BuildConfig, optimize *context.Optimize) *meson {
 	return &meson{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -24,7 +25,7 @@ func NewMeson(config *BuildConfig, optimize *Optimize) *meson {
 
 type meson struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 }
 
 func (meson) Name() string {
@@ -44,7 +45,7 @@ func (m meson) CheckTools() error {
 		m.BuildTools = append(m.BuildTools, "python3:meson")
 	}
 
-	return buildtools.CheckTools(m.Offline, m.Proxy, m.BuildTools...)
+	return buildtools.CheckTools(m.Ctx, m.BuildTools...)
 }
 
 func (m meson) Clean() error {

@@ -20,7 +20,8 @@ func (i initCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "init",
 		Short: "Init with conf repo.",
 		Run: func(cmd *cobra.Command, args []string) {
-			if i.celer.CheckInitResult() {
+			if err := i.celer.Init(); err != nil {
+				configs.PrintError(err, "init celer error: %s.", err)
 				os.Exit(1)
 			}
 

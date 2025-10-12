@@ -25,7 +25,8 @@ func (d dependCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Query the dependent libraries.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if d.celer.CheckInitResult() {
+			if err := d.celer.Init(); err != nil {
+				configs.PrintError(err, "init celer error: %s.", err)
 				os.Exit(1)
 			}
 

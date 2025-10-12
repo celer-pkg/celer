@@ -2,11 +2,11 @@ package buildsystems
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
-	"celer/pkgs/proxy"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,7 +23,7 @@ const (
 	visualStudio_14_2015 = "Visual Studio 14 2015 Win64"
 )
 
-func NewCMake(config *BuildConfig, optimize *Optimize) *cmake {
+func NewCMake(config *BuildConfig, optimize *context.Optimize) *cmake {
 	return &cmake{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -32,7 +32,7 @@ func NewCMake(config *BuildConfig, optimize *Optimize) *cmake {
 
 type cmake struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 }
 
 func (c cmake) Name() string {
@@ -44,7 +44,7 @@ func (c cmake) CheckTools() error {
 	if c.CMakeGenerator == "Ninja" {
 		c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "ninja")
 	}
-	return buildtools.CheckTools(c.Offline, c.Proxy, c.BuildTools...)
+	return buildtools.CheckTools(c.Ctx, c.BuildTools...)
 }
 
 func (c cmake) Clean() error {
@@ -266,7 +266,7 @@ func (c *cmake) detectGenerator() error {
 		case "linux":
 			c.CMakeGenerator = "Unix Makefiles"
 		case "windows":
-			msvcGenerator, err := detectMSVCGenerator(c.BuildConfig.Offline, c.BuildConfig.Proxy)
+			msvcGenerator, err := detectMSVCGenerator(c.Ctx)
 			if err != nil {
 				return err
 			}
@@ -281,8 +281,8 @@ func (c *cmake) detectGenerator() error {
 	return nil
 }
 
-func detectMSVCGenerator(offline bool, proxy *proxy.Proxy) (string, error) {
-	if err := buildtools.CheckTools(offline, proxy, "vswhere"); err != nil {
+func detectMSVCGenerator(ctx context.Context) (string, error) {
+	if err := buildtools.CheckTools(ctx, "vswhere"); err != nil {
 		return "", fmt.Errorf("check tool vswhere error: %w", err)
 	}
 

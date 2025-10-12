@@ -1,9 +1,10 @@
 package fileio
 
 import (
-	"celer/pkgs/proxy"
+	"crypto/tls"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -42,19 +43,30 @@ func CheckAccessible(url string) error {
 }
 
 // FileSize returns the size of the file at the given URL.
-func FileSize(proxy *proxy.Proxy, downloadUrl string) (int64, error) {
-	var client *http.Client
-	if proxy != nil {
-		client = proxy.HttpClient()
-	} else {
-		client = http.DefaultClient
-	}
-
-	resp, err := client.Head(downloadUrl)
+func FileSize(httpClient *http.Client, downloadUrl string) (int64, error) {
+	resp, err := httpClient.Head(downloadUrl)
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Body.Close()
 
+	defer resp.Body.Close()
 	return resp.ContentLength, nil
+}
+
+func httpClient(host string, port int) *http.Client {
+	if host == "" || port == 0 {
+		return http.DefaultClient
+	}
+
+	return &http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyURL(&url.URL{
+				Scheme: "http",
+				Host:   fmt.Sprintf("%s:%d", host, port),
+			}),
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: false,
+			},
+		},
+	}
 }

@@ -35,7 +35,8 @@ func (t treeCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Show the dependencies of a port or a project.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if t.celer.CheckInitResult() {
+			if err := t.celer.Init(); err != nil {
+				configs.PrintError(err, "init celer error: %s.", err)
 				os.Exit(1)
 			}
 

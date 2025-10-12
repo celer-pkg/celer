@@ -1,8 +1,8 @@
 package configs
 
 import (
-	"celer/buildsystems"
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -10,7 +10,6 @@ import (
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
-	"celer/pkgs/proxy"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -26,25 +25,8 @@ var (
 	Version = "v0.0.0" // It would be set by build script.
 )
 
-type Context interface {
-	Proxy() *proxy.Proxy
-	Version() string
-	Platform() *Platform
-	Project() *Project
-	BuildType() string
-	Toolchain() *Toolchain
-	WindowsKit() *WindowsKit
-	RootFS() *RootFS
-	Jobs() int
-	Offline() bool
-	CacheDir() *CacheDir
-	Verbose() bool
-	Optimize(buildsystem, toolchain string) *buildsystems.Optimize
-	GenerateToolchainFile() error
-}
-
 func NewCeler() *Celer {
-	return &Celer{
+	celer := &Celer{
 		configData: configData{
 			Global: global{
 				Jobs:      runtime.NumCPU(),
@@ -52,6 +34,8 @@ func NewCeler() *Celer {
 			},
 		},
 	}
+	celer.preInit()
+	return celer
 }
 
 type Celer struct {
@@ -73,21 +57,25 @@ type global struct {
 	Offline   bool   `toml:"offline"`
 }
 
-type configData struct {
-	Global   global       `toml:"global"`
-	Proxy    *proxy.Proxy `toml:"proxy,omitempty"`
-	CacheDir *CacheDir    `toml:"cache_dir,omitempty"`
+type Proxy struct {
+	Host string `toml:"host"`
+	Port int    `toml:"port"`
 }
 
-// Init init celer and cache error inside.
-func (c *Celer) Init() error {
+type configData struct {
+	Global   global    `toml:"global"`
+	Proxy    *Proxy    `toml:"proxy,omitempty"`
+	CacheDir *CacheDir `toml:"cache_dir,omitempty"`
+}
+
+func (c *Celer) preInit() {
 	c.platform.ctx = c
 
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 	if !fileio.PathExists(configPath) {
 		// Create conf dir if not exists.
 		if c.initErr = os.MkdirAll(filepath.Dir(configPath), os.ModePerm); c.initErr != nil {
-			return c.initErr
+			return
 		}
 
 		// Default global values.
@@ -101,52 +89,47 @@ func (c *Celer) Init() error {
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
 		if err != nil {
-			c.initErr = err
-			return fmt.Errorf("marshal celer conf error: %w", err)
+			c.initErr = fmt.Errorf("marshal conf error: %w", err)
+			return
 		}
 
 		if c.initErr = os.WriteFile(configPath, bytes, os.ModePerm); c.initErr != nil {
-			return c.initErr
-		}
-
-		// Auto detect native toolchain for different os.
-		if c.initErr = c.platform.detectToolchain(); c.initErr != nil {
-			return c.initErr
+			return
 		}
 	} else {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
 		if err != nil {
-			c.initErr = err
-			return err
+			c.initErr = fmt.Errorf("read conf error: %w", err)
+			return
 		}
 		if c.initErr = toml.Unmarshal(bytes, c); c.initErr != nil {
-			return c.initErr
+			return
 		}
 
 		// Validate cache dirs.
 		if c.configData.CacheDir != nil {
 			if c.initErr = c.configData.CacheDir.Validate(); c.initErr != nil {
-				return c.initErr
+				return
 			}
 		}
 
 		// Init platform with platform name.
 		if c.configData.Global.Platform != "" {
 			if c.initErr = c.platform.Init(c.configData.Global.Platform); c.initErr != nil {
-				return c.initErr
+				return
 			}
 		} else {
 			// Auto detect native toolchain for different os.
 			if c.initErr = c.platform.detectToolchain(); c.initErr != nil {
-				return c.initErr
+				return
 			}
 		}
 
 		// Init project with project name.
 		if c.configData.Global.Project != "" {
 			if c.initErr = c.project.Init(c, c.configData.Global.Project); c.initErr != nil {
-				return c.initErr
+				return
 			}
 		}
 	}
@@ -162,15 +145,31 @@ func (c *Celer) Init() error {
 	} else {
 		os.Unsetenv("all_proxy")
 	}
+}
+
+// Init init celer and cache error inside.
+func (c *Celer) Init() error {
+	if c.initErr != nil {
+		return c.initErr
+	} else if c.Global.Offline {
+		color.Println(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================\n")
+	}
+
+	// Auto detect native toolchain for different os.
+	if c.platform.Toolchain == nil {
+		if err := c.platform.detectToolchain(); err != nil {
+			return err
+		}
+	}
 
 	// Git is required to clone/update repo.
-	if c.initErr = buildtools.CheckTools(c.Offline(), c.Proxy(), "git"); c.initErr != nil {
-		return c.initErr
+	if err := buildtools.CheckTools(c, "git"); err != nil {
+		return err
 	}
 
 	// Clone ports repo if empty.
-	if c.initErr = c.clonePorts(); c.initErr != nil {
-		return c.initErr
+	if err := c.clonePorts(); err != nil {
+		return err
 	}
 
 	return nil
@@ -363,7 +362,7 @@ func (c *Celer) SetProxy(host string, port int) error {
 		return err
 	}
 
-	c.configData.Proxy = &proxy.Proxy{
+	c.configData.Proxy = &Proxy{
 		Host: host,
 		Port: port,
 	}
@@ -589,19 +588,23 @@ func (c Celer) clonePorts() error {
 
 // ======================= celer context implementation ====================== //
 
-func (c *Celer) Proxy() *proxy.Proxy {
-	return c.configData.Proxy
+func (c Celer) Proxy() (host string, port int) {
+	if c.configData.Proxy != nil {
+		return c.configData.Proxy.Host, c.configData.Proxy.Port
+	}
+
+	return "", 0
 }
 
-func (c *Celer) Version() string {
+func (c Celer) Version() string {
 	return Version
 }
 
-func (c *Celer) Platform() *Platform {
+func (c Celer) Platform() context.Platform {
 	return &c.platform
 }
 
-func (c Celer) Project() *Project {
+func (c Celer) Project() context.Project {
 	return &c.project
 }
 
@@ -609,15 +612,12 @@ func (c Celer) BuildType() string {
 	return c.configData.Global.BuildType
 }
 
-func (c *Celer) Toolchain() *Toolchain {
-	return c.platform.Toolchain
-}
-
-func (c Celer) WindowsKit() *WindowsKit {
-	return c.platform.WindowsKit
-}
-
-func (c Celer) RootFS() *RootFS {
+func (c Celer) RootFS() context.RootFS {
+	// Must return exactly nil if RootFS is none.
+	// otherwise, the result of RootFS() will not be nil.
+	if c.platform.RootFS == nil {
+		return nil
+	}
 	return c.platform.RootFS
 }
 
@@ -629,7 +629,12 @@ func (c Celer) Offline() bool {
 	return c.Global.Offline
 }
 
-func (c Celer) CacheDir() *CacheDir {
+func (c Celer) CacheDir() context.CacheDir {
+	// Must return exactly nil if cache dir is none.
+	// otherwise, the result of CacheDir() will not be nil.
+	if c.configData.CacheDir == nil {
+		return nil
+	}
 	return c.configData.CacheDir
 }
 
@@ -637,22 +642,13 @@ func (c Celer) Verbose() bool {
 	return c.configData.Global.Verbose
 }
 
-func (c Celer) Optimize(buildsystem, toolchain string) *buildsystems.Optimize {
+func (c Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 	if c.project.Optimize != nil {
 		return c.project.Optimize
 	}
 
-	if runtime.GOOS == "windows" {
-		if toolchain == "msvc" {
-			switch buildsystem {
-			case "cmake":
-				return c.project.OptimizeWindows
-			case "makefiles":
-				return c.project.OptimizeLinux
-			}
-		}
-	} else {
-		return c.project.OptimizeLinux
+	if runtime.GOOS == "windows" && toolchain == "msvc" && buildsystem == "cmake" {
+		return c.project.OptimizeWindows
 	}
 
 	return c.project.OptimizeLinux
@@ -663,14 +659,14 @@ func (c Celer) GenerateToolchainFile() error {
 	toolchain.WriteString("# ========= WARNING: This toolchain file is generated by celer. ========= #\n")
 
 	// Toolchain related.
-	if err := c.platform.Toolchain.generate(&toolchain, c.platform.HostName()); err != nil {
+	if err := c.platform.Toolchain.Generate(&toolchain, c.platform.GetHostName()); err != nil {
 		return err
 	}
 
 	// Rootfs related.
 	rootfs := c.RootFS()
 	if rootfs != nil {
-		if err := rootfs.generate(&toolchain); err != nil {
+		if err := rootfs.Generate(&toolchain); err != nil {
 			return err
 		}
 	}
@@ -756,7 +752,7 @@ func (c Celer) GenerateToolchainFile() error {
 	}
 
 	toolchain.WriteString("\n")
-	if c.Toolchain().Name == "gcc" {
+	if c.Platform().GetToolchain().GetName() == "gcc" {
 		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
 	}
 	toolchain.WriteString(fmt.Sprintf("set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON"))
@@ -770,18 +766,6 @@ func (c Celer) GenerateToolchainFile() error {
 	return nil
 }
 
-// CheckInitResult check celer init result and warning offline.
-func (c Celer) CheckInitResult() bool {
-	if c.initErr != nil {
-		color.Printf(color.Red, "Init celer error: %s.\n", c.initErr)
-		return true
-	} else if c.Global.Offline {
-		color.Println(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================\n")
-	}
-
-	return false
-}
-
 func (c Celer) writePkgConfig(toolchain *strings.Builder) {
 	var (
 		configPaths   []string
@@ -789,7 +773,7 @@ func (c Celer) writePkgConfig(toolchain *strings.Builder) {
 		sysrootDir    string
 	)
 
-	libraryFolder := fmt.Sprintf("%s@%s@%s", c.Platform().Name, c.Project().Name, strings.ToLower(c.BuildType()))
+	libraryFolder := fmt.Sprintf("%s@%s@%s", c.Platform().GetName(), c.Project().GetName(), strings.ToLower(c.BuildType()))
 	installedDir := filepath.Join("${WORKSPACE_DIR}/installed", libraryFolder)
 
 	switch runtime.GOOS {
@@ -804,7 +788,7 @@ func (c Celer) writePkgConfig(toolchain *strings.Builder) {
 		// Target directory.
 		var targetDir string
 		if c.RootFS() != nil {
-			for _, configPath := range c.RootFS().PkgConfigPath {
+			for _, configPath := range c.RootFS().GetPkgConfigPath() {
 				configLibDirs = append(configLibDirs, filepath.Join("${CMAKE_SYSROOT}", configPath))
 			}
 
@@ -824,7 +808,7 @@ func (c Celer) writePkgConfig(toolchain *strings.Builder) {
 	}
 
 	toolchain.WriteString("\n# pkg-config search paths.\n")
-	executablePath := fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin/pkgconf", c.platform.HostName())
+	executablePath := fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin/pkgconf", c.platform.GetHostName())
 	toolchain.WriteString(fmt.Sprintf("set(%-28s%q)\n", "PKG_CONFIG_EXECUTABLE", executablePath))
 
 	// PKG_CONFIG_SYSROOT_DIR

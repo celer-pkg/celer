@@ -16,9 +16,9 @@ import (
 // Install install a port and tell me where it was installed from.
 func (p Port) Install() (string, error) {
 	installedDir := expr.If(p.DevDep,
-		filepath.Join(dirs.InstalledDir, p.ctx.Platform().HostName()+"-dev"),
+		filepath.Join(dirs.InstalledDir, p.ctx.Platform().GetHostName()+"-dev"),
 		filepath.Join(dirs.InstalledDir,
-			p.ctx.Platform().Name+"@"+p.ctx.Project().Name+"@"+p.buildType),
+			p.ctx.Platform().GetName()+"@"+p.ctx.Project().GetName()+"@"+p.buildType),
 	)
 
 	// Check if installed already.
@@ -102,7 +102,8 @@ func (p Port) Install() (string, error) {
 
 func (p Port) doInstallFromCache() (bool, error) {
 	// No cache dir configured, skip it.
-	if p.ctx.CacheDir() == nil {
+	cacheDir := p.ctx.CacheDir()
+	if cacheDir == nil {
 		return false, nil
 	}
 
@@ -131,9 +132,9 @@ func (p Port) doInstallFromCache() (bool, error) {
 	}
 
 	// Read cache file and extract them to package dir.
-	if ok, err := p.ctx.CacheDir().Read(
-		p.ctx.Platform().Name,
-		p.ctx.Project().Name,
+	if ok, err := cacheDir.Read(
+		p.ctx.Platform().GetName(),
+		p.ctx.Project().GetName(),
 		p.buildType,
 		p.NameVersion(),
 		buildhash+".tar.gz",
@@ -159,13 +160,16 @@ func (p Port) doInstallFromSource() error {
 	}()
 
 	var writeCacheAfterInstall bool
-	cacheDir := p.ctx.CacheDir()
 	if p.StoreCache {
-		if cacheDir == nil || cacheDir.Dir == "" {
+		cacheDir := p.ctx.CacheDir()
+		if cacheDir == nil {
+			return ErrCacheDirNotConfigured
+		}
+		if cacheDir.GetDir() == "" {
 			return ErrCacheDirNotConfigured
 		}
 
-		if !fileio.PathExists(filepath.Join(cacheDir.Dir, "token")) {
+		if !fileio.PathExists(filepath.Join(cacheDir.GetDir(), "token")) {
 			return ErrCacheTokenNotConfigured
 		}
 
@@ -173,7 +177,7 @@ func (p Port) doInstallFromSource() error {
 			return ErrCacheTokenNotSpecified
 		}
 
-		if !encrypt.CheckPassword(cacheDir.Dir, p.CacheToken) {
+		if !encrypt.CheckPassword(cacheDir.GetDir(), p.CacheToken) {
 			return ErrCacheTokenNotMatch
 		}
 
@@ -205,6 +209,13 @@ func (p Port) doInstallFromSource() error {
 
 		// Store cache after installation.
 		if writeCacheAfterInstall {
+			if p.ctx.CacheDir() == nil {
+				return ErrCacheDirNotConfigured
+			}
+			cacheDir := p.ctx.CacheDir()
+			if cacheDir.GetDir() == "" {
+				return ErrCacheDirNotConfigured
+			}
 			if err := cacheDir.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 				return err
 			}
@@ -218,18 +229,18 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	// Check and repair current port.
 	packageFiles, err := p.PackageFiles(
 		p.packageDir,
-		p.ctx.Platform().Name,
-		p.ctx.Project().Name,
+		p.ctx.Platform().GetName(),
+		p.ctx.Project().GetName(),
 	)
 	if err != nil {
 		return err
 	}
 
 	// Copy files from package to installed dir.
-	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().Name, p.ctx.Project().Name, p.buildType)
+	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.buildType)
 	for _, file := range packageFiles {
 		if p.DevDep {
-			file = strings.TrimPrefix(file, p.ctx.Platform().HostName()+"-dev"+string(os.PathSeparator))
+			file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
 		} else {
 			file = strings.TrimPrefix(file, filepath.Join(platformProject, string(os.PathSeparator)))
 		}
@@ -347,7 +358,14 @@ func (p Port) installFromCache() (bool, error) {
 			return false, err
 		}
 
-		fromDir := p.ctx.CacheDir().Dir
+		cacheDir := p.ctx.CacheDir()
+		if cacheDir == nil {
+			return false, ErrCacheDirNotConfigured
+		}
+		if cacheDir.GetDir() == "" {
+			return false, ErrCacheDirNotConfigured
+		}
+		fromDir := cacheDir.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("cache [%s]", fromDir))
 	} else if p.Package.Commit != "" {
 		return false, ErrCacheNotFoundWithCommit
@@ -449,7 +467,7 @@ func (p Port) providerTmpDeps() error {
 
 		// Fixup pkg config files.
 		var prefix = expr.If(p.toolchain().RootFS == "" || p.DevDep,
-			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().HostName()+"-dev"),
+			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().GetHostName()+"-dev"),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
 		)
 		if err := fileio.FixupPkgConfig(p.packageDir, prefix); err != nil {
@@ -490,7 +508,7 @@ func (p Port) providerTmpDeps() error {
 
 		// Fixup pkg config files.
 		var prefix = expr.If(p.toolchain().RootFS == "" || p.DevDep,
-			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().HostName()+"-dev"),
+			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().GetHostName()+"-dev"),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
 		)
 		if err := fileio.FixupPkgConfig(port.tmpDepsDir, prefix); err != nil {
@@ -515,7 +533,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	if err := os.MkdirAll(filepath.Dir(p.traceFile), os.ModePerm); err != nil {
 		return fmt.Errorf("create trace dir error: %w", err)
 	}
-	packageFiles, err := p.PackageFiles(p.packageDir, p.ctx.Platform().Name, p.ctx.Project().Name)
+	packageFiles, err := p.PackageFiles(p.packageDir, p.ctx.Platform().GetName(), p.ctx.Project().GetName())
 	if err != nil {
 		return fmt.Errorf("get package files error: %w", err)
 	}

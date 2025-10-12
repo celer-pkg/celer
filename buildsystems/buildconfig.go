@@ -2,13 +2,13 @@ package buildsystems
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/generator"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
-	"celer/pkgs/proxy"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -20,13 +20,6 @@ import (
 const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, qmake"
 
 var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "qmake"}
-
-type Optimize struct {
-	Debug          string `toml:"debug"`
-	Release        string `toml:"release"`
-	RelWithDebInfo string `toml:"relwithdebinfo"`
-	MinSizeRel     string `toml:"minsizerel"`
-}
 
 type PortConfig struct {
 	LibName       string     // like: `ffmpeg`
@@ -232,12 +225,11 @@ type BuildConfig struct {
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
 	// Internal fields
-	Offline     bool         `toml:"-"`
-	Proxy       *proxy.Proxy `toml:"-"`
-	DevDep      bool         `toml:"-"`
-	PortConfig  PortConfig   `toml:"-"`
-	BuildType   string       `toml:"-"`
-	Optimize    *Optimize    `toml:"-"`
+	Ctx         context.Context   `toml:"-"`
+	DevDep      bool              `toml:"-"`
+	PortConfig  PortConfig        `toml:"-"`
+	BuildType   string            `toml:"-"`
+	Optimize    *context.Optimize `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
 }
@@ -300,7 +292,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
 		repair := fileio.NewRepair(repoUrl, archive, ".", destDir)
-		if err := repair.CheckAndRepair(b.Offline, b.Proxy); err != nil {
+		if err := repair.CheckAndRepair(b.Ctx); err != nil {
 			return err
 		}
 
@@ -335,7 +327,7 @@ func (b BuildConfig) Patch() error {
 	if len(b.Patches) > 0 {
 		// In windows, msys2 is required to apply patch .
 		if runtime.GOOS == "windows" {
-			if err := buildtools.CheckTools(b.Offline, b.Proxy, "msys2"); err != nil {
+			if err := buildtools.CheckTools(b.Ctx, "msys2"); err != nil {
 				return err
 			}
 		}
@@ -560,7 +552,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	return nil
 }
 
-func (b *BuildConfig) InitBuildSystem(optimize *Optimize) error {
+func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 	if b.BuildSystem == "" {
 		return fmt.Errorf("build_system is empty")
 	}
@@ -716,7 +708,7 @@ func (b BuildConfig) replaceSource(archive, url string) error {
 	// Check and repair resource.
 	archive = expr.If(archive == "", filepath.Base(url), archive)
 	repair := fileio.NewRepair(url, archive, ".", b.PortConfig.RepoDir)
-	if err := repair.CheckAndRepair(b.Offline, b.Proxy); err != nil {
+	if err := repair.CheckAndRepair(b.Ctx); err != nil {
 		replaceFailed = true
 		return err
 	}

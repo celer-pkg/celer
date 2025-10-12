@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"celer/context"
 	"celer/pkgs/dirs"
 	"fmt"
 	"os"
@@ -42,21 +43,110 @@ type Toolchain struct {
 	READELF string `toml:"readelf,omitempty"` // Read ELF file.
 
 	// Internal fields.
-	MSVC        MSVC `toml:"-"`
-	ctx         Context
+	MSVC        context.MSVC `toml:"-"`
+	ctx         context.Context
 	displayName string
 	rootDir     string
 	fullpath    string
 	cmakepath   string
 }
 
-type MSVC struct {
-	VCVars string
-	MT     string
-	RC     string
+func (t Toolchain) GetName() string {
+	return t.Name
 }
 
-func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
+func (t Toolchain) GetHost() string {
+	return t.Host
+}
+
+func (t Toolchain) GetVersion() string {
+	return t.Version
+}
+
+func (t Toolchain) GetPath() string {
+	return t.Path
+}
+
+func (t Toolchain) GetSystemName() string {
+	return t.SystemName
+}
+
+func (t Toolchain) GetSystemProcessor() string {
+	return t.SystemProcessor
+}
+
+func (t Toolchain) GetCrosstoolPrefix() string {
+	return t.CrosstoolPrefix
+}
+
+func (t Toolchain) GetCStandard() string {
+	return t.CStandard
+}
+
+func (t Toolchain) GetCXXStandard() string {
+	return t.CXXStandard
+}
+
+func (t Toolchain) GetCC() string {
+	return t.CC
+}
+
+func (t Toolchain) GetCXX() string {
+	return t.CXX
+}
+
+func (t Toolchain) GetAR() string {
+	return t.AR
+}
+
+func (t Toolchain) GetLD() string {
+	return t.LD
+}
+
+func (t Toolchain) GetAS() string {
+	return t.AS
+}
+
+func (t Toolchain) GetFC() string {
+	return t.FC
+}
+
+func (t Toolchain) GetRANLIB() string {
+	return t.RANLIB
+}
+
+func (t Toolchain) GetNM() string {
+	return t.NM
+}
+
+func (t Toolchain) GetOBJCOPY() string {
+	return t.OBJCOPY
+}
+
+func (t Toolchain) GetOBJDUMP() string {
+	return t.OBJDUMP
+}
+
+func (t Toolchain) GetSTRIP() string {
+	return t.STRIP
+}
+
+func (t Toolchain) GetREADELF() string {
+	return t.READELF
+}
+func (t Toolchain) GetMSVC() *context.MSVC {
+	return &t.MSVC
+}
+
+func (t Toolchain) GetFullPath() string {
+	return t.fullpath
+}
+
+func (t Toolchain) GetCrosstoolPrefixPath() string {
+	return filepath.Join(t.fullpath, t.CrosstoolPrefix)
+}
+
+func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 	t.cmakepath = fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin", hostName)
 
 	toolchain.WriteString("\n# Runtime paths.\n")

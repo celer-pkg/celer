@@ -33,11 +33,11 @@ func TestConfigure_Proxy_Success(t *testing.T) {
 
 	celer2 := NewCeler()
 	check(celer2.Init())
-	if celer2.Proxy().Host != "127.0.0.1" {
+	host, port := celer2.Proxy()
+	if host != "127.0.0.1" {
 		t.Fatalf("proxy host should be `%s`", "127.0.0.1")
 	}
-
-	if celer2.Proxy().Port != 7890 {
+	if port != 7890 {
 		t.Fatalf("proxy port should be `%d`", 7890)
 	}
 }

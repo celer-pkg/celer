@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -16,7 +17,7 @@ import (
 	"strings"
 )
 
-func NewB2(config *BuildConfig, optimize *Optimize) *b2 {
+func NewB2(config *BuildConfig, optimize *context.Optimize) *b2 {
 	return &b2{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -25,7 +26,7 @@ func NewB2(config *BuildConfig, optimize *Optimize) *b2 {
 
 type b2 struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 }
 
 func (b b2) Name() string {
@@ -34,7 +35,7 @@ func (b b2) Name() string {
 
 func (b b2) CheckTools() error {
 	b.BuildConfig.BuildTools = append(b.BuildConfig.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(b.Offline, b.Proxy, b.BuildConfig.BuildTools...)
+	return buildtools.CheckTools(b.Ctx, b.BuildConfig.BuildTools...)
 }
 
 func (b b2) Clean() error {

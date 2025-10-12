@@ -4,6 +4,7 @@ package configs
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
@@ -124,7 +125,7 @@ func (t Toolchain) CheckAndRepair(silent bool) error {
 	// Check and repair resource.
 	archiveName := expr.If(t.Archive != "", t.Archive, filepath.Base(t.Url))
 	repair := fileio.NewRepair(t.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-	if err := repair.CheckAndRepair(t.ctx.Offline(), t.ctx.Proxy()); err != nil {
+	if err := repair.CheckAndRepair(t.ctx); err != nil {
 		return err
 	}
 
@@ -139,7 +140,7 @@ func (t Toolchain) CheckAndRepair(silent bool) error {
 
 // Detect detect local installed gcc.
 func (t *Toolchain) Detect() error {
-	if err := buildtools.CheckTools(t.ctx.Offline(), t.ctx.Proxy(), "build-essential"); err != nil {
+	if err := buildtools.CheckTools(t.ctx, "build-essential"); err != nil {
 		return fmt.Errorf("build-essential is not available: %w", err)
 	}
 
@@ -171,6 +172,6 @@ func (t *Toolchain) Detect() error {
 }
 
 // Detect no msvc in linux.
-func (w *WindowsKit) Detect(msvc *MSVC) error {
+func (w *WindowsKit) Detect(msvc *context.MSVC) error {
 	return nil
 }

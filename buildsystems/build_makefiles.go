@@ -2,6 +2,7 @@ package buildsystems
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -14,7 +15,7 @@ import (
 	"strings"
 )
 
-func NewMakefiles(config *BuildConfig, optimize *Optimize) *makefiles {
+func NewMakefiles(config *BuildConfig, optimize *context.Optimize) *makefiles {
 	return &makefiles{
 		BuildConfig: config,
 		Optimize:    optimize,
@@ -23,7 +24,7 @@ func NewMakefiles(config *BuildConfig, optimize *Optimize) *makefiles {
 
 type makefiles struct {
 	*BuildConfig
-	*Optimize
+	*context.Optimize
 	msvcEnvs string
 }
 
@@ -39,7 +40,7 @@ func (m *makefiles) CheckTools() error {
 	}
 
 	m.BuildTools = append(m.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(m.Offline, m.Proxy, m.BuildTools...)
+	return buildtools.CheckTools(m.Ctx, m.BuildTools...)
 }
 
 func (m makefiles) Clean() error {

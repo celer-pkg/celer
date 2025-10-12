@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"celer/context"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -21,7 +22,7 @@ type RootFS struct {
 
 	// Internal fields.
 	fullpath string
-	ctx      Context
+	ctx      context.Context
 }
 
 func (r *RootFS) Validate() error {
@@ -40,7 +41,7 @@ func (r *RootFS) Validate() error {
 	return nil
 }
 
-func (r RootFS) CheckAndRepair() error {
+func (r *RootFS) CheckAndRepair() error {
 	// Default folder name is the first folder name of archive name.
 	// but it can be specified by archive name.
 	folderName := strings.Split(r.Path, string(filepath.Separator))[0]
@@ -51,7 +52,7 @@ func (r RootFS) CheckAndRepair() error {
 	// Check and repair resource.
 	archiveName := expr.If(r.Archive != "", r.Archive, filepath.Base(r.Url))
 	repair := fileio.NewRepair(r.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-	if err := repair.CheckAndRepair(r.ctx.Offline(), r.ctx.Proxy()); err != nil {
+	if err := repair.CheckAndRepair(r.ctx); err != nil {
 		return err
 	}
 
@@ -63,7 +64,23 @@ func (r RootFS) CheckAndRepair() error {
 	return nil
 }
 
-func (r RootFS) generate(toolchain *strings.Builder) error {
+func (r RootFS) GetFullPath() string {
+	return r.fullpath
+}
+
+func (r RootFS) GetPkgConfigPath() []string {
+	return r.PkgConfigPath
+}
+
+func (r RootFS) GetIncludeDirs() []string {
+	return r.IncludeDirs
+}
+
+func (r RootFS) GetLibDirs() []string {
+	return r.LibDirs
+}
+
+func (r RootFS) Generate(toolchain *strings.Builder) error {
 	rootfsPath := "${WORKSPACE_DIR}/" + strings.TrimPrefix(r.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
 	fmt.Fprintf(toolchain, `
 # SYSROOT for cross-compile.
