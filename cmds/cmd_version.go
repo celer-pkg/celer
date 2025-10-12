@@ -4,7 +4,6 @@ import (
 	"celer/configs"
 	"celer/pkgs/color"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -20,11 +19,6 @@ func (v versionCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "version",
 		Short: "Version",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := v.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				os.Exit(1)
-			}
-
 			v.version()
 		},
 	}
