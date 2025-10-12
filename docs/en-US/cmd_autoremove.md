@@ -32,5 +32,5 @@ celer autoremove --purge/-p
 **3. Autoremove along with their packages and build cache.**
 
 ```shell
-celer autoremove --purge/-p --remove-cache/-c  
+celer autoremove --purge/-p --build-cache/-c  
 ```

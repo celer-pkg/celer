@@ -12,12 +12,12 @@ import (
 )
 
 type removeCmd struct {
-	celer       *configs.Celer
-	buildType   string
-	dev         bool
-	purge       bool
-	recurse     bool
-	removeCache bool
+	celer      *configs.Celer
+	buildType  string
+	dev        bool
+	purge      bool
+	recurse    bool
+	buildCache bool
 }
 
 func (r removeCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -49,7 +49,7 @@ func (r removeCmd) Command(celer *configs.Celer) *cobra.Command {
 
 	// Register flags.
 	command.Flags().StringVarP(&r.buildType, "build-type", "b", r.celer.Global.BuildType, "uninstall package with build type.")
-	command.Flags().BoolVarP(&r.removeCache, "remove-cache", "c", false, "uninstall package along with build cache.")
+	command.Flags().BoolVarP(&r.buildCache, "build-cache", "c", false, "uninstall package along with build cache.")
 	command.Flags().BoolVarP(&r.recurse, "recurse", "r", false, "uninstall package along with its depedencies.")
 	command.Flags().BoolVarP(&r.purge, "purge", "p", false, "uninstall package along with its package files.")
 	command.Flags().BoolVarP(&r.dev, "dev", "d", false, "uninstall package for dev mode.")
@@ -65,7 +65,7 @@ func (r removeCmd) remove(nameVersions []string) error {
 		if err := port.Init(r.celer, nameVersion, r.buildType); err != nil {
 			return err
 		}
-		if err := port.Remove(r.recurse, r.purge, r.removeCache); err != nil {
+		if err := port.Remove(r.recurse, r.purge, r.buildCache); err != nil {
 			return err
 		}
 	}
@@ -93,7 +93,7 @@ func (r removeCmd) completion(cmd *cobra.Command, args []string, toComplete stri
 
 		flags := []string{
 			"--build-type", "-b",
-			"--remove-cache", "-c",
+			"--build-cache", "-c",
 			"--recurse", "-r",
 			"--purge", "-p",
 			"--dev", "-d",

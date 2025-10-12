@@ -32,5 +32,5 @@ celer autoremove --purge/-p
 **3. 移除当前项目不需要的库文件，同时删除对应的package目录，以及它们的构建缓存**
 
 ```shell
-celer autoremove --purge/-p --remove-cache/-c  
+celer autoremove --purge/-p --build-cache/-c  
 ```
