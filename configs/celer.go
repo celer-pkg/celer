@@ -26,7 +26,7 @@ var (
 )
 
 func NewCeler() *Celer {
-	celer := &Celer{
+	return &Celer{
 		configData: configData{
 			Global: global{
 				Jobs:      runtime.NumCPU(),
@@ -34,8 +34,6 @@ func NewCeler() *Celer {
 			},
 		},
 	}
-	celer.preInit()
-	return celer
 }
 
 type Celer struct {
@@ -44,7 +42,6 @@ type Celer struct {
 	// Internal fields.
 	platform Platform
 	project  Project
-	initErr  error
 }
 
 type global struct {
@@ -68,14 +65,14 @@ type configData struct {
 	CacheDir *CacheDir `toml:"cache_dir,omitempty"`
 }
 
-func (c *Celer) preInit() {
+func (c *Celer) Init() error {
 	c.platform.ctx = c
 
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 	if !fileio.PathExists(configPath) {
 		// Create conf dir if not exists.
-		if c.initErr = os.MkdirAll(filepath.Dir(configPath), os.ModePerm); c.initErr != nil {
-			return
+		if err := os.MkdirAll(filepath.Dir(configPath), os.ModePerm); err != nil {
+			return err
 		}
 
 		// Default global values.
@@ -89,47 +86,50 @@ func (c *Celer) preInit() {
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
 		if err != nil {
-			c.initErr = fmt.Errorf("failed to marshal conf.\n %w", err)
-			return
+			return fmt.Errorf("failed to marshal conf.\n %w", err)
 		}
 
-		if c.initErr = os.WriteFile(configPath, bytes, os.ModePerm); c.initErr != nil {
-			return
+		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
+			return err
+		}
+
+		// Auto detect native toolchain.
+		if err := c.platform.detectToolchain(); err != nil {
+			return err
 		}
 	} else {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
 		if err != nil {
-			c.initErr = fmt.Errorf("failed to read conf.\n %w", err)
-			return
+			return fmt.Errorf("failed to read conf.\n %w", err)
 		}
-		if c.initErr = toml.Unmarshal(bytes, c); c.initErr != nil {
-			return
+		if err := toml.Unmarshal(bytes, c); err != nil {
+			return fmt.Errorf("failed to unmarshal conf.\n %w", err)
 		}
 
 		// Validate cache dirs.
 		if c.configData.CacheDir != nil {
-			if c.initErr = c.configData.CacheDir.Validate(); c.initErr != nil {
-				return
+			if err := c.configData.CacheDir.Validate(); err != nil {
+				return err
 			}
 		}
 
 		// Init platform with platform name.
 		if c.configData.Global.Platform != "" {
-			if c.initErr = c.platform.Init(c.configData.Global.Platform); c.initErr != nil {
-				return
+			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
+				return err
 			}
 		} else {
 			// Auto detect native toolchain for different os.
-			if c.initErr = c.platform.detectToolchain(); c.initErr != nil {
-				return
+			if err := c.platform.detectToolchain(); err != nil {
+				return err
 			}
 		}
 
 		// Init project with project name.
 		if c.configData.Global.Project != "" {
-			if c.initErr = c.project.Init(c, c.configData.Global.Project); c.initErr != nil {
-				return
+			if err := c.project.Init(c, c.configData.Global.Project); err != nil {
+				return err
 			}
 		}
 	}
@@ -145,21 +145,9 @@ func (c *Celer) preInit() {
 	} else {
 		os.Unsetenv("all_proxy")
 	}
-}
 
-// Init init celer and cache error inside.
-func (c *Celer) Init() error {
-	if c.initErr != nil {
-		return c.initErr
-	} else if c.Global.Offline {
+	if c.Global.Offline {
 		color.Println(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================\n")
-	}
-
-	// Auto detect native toolchain for different os.
-	if c.platform.Toolchain == nil {
-		if err := c.platform.detectToolchain(); err != nil {
-			return err
-		}
 	}
 
 	// Git is required to clone/update repo.

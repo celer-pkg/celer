@@ -155,7 +155,7 @@ func (r Repair) download(url, archive string) (override bool, err error) {
 	} else {
 		// Skip downloading in offline mode.
 		if r.ctx.Offline() {
-			return false, ErrOffline
+			return false, fmt.Errorf("you're in offline mode")
 		}
 
 		if _, err := r.downloader.Start(r.httpClient); err != nil {

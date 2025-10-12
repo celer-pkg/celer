@@ -1,12 +1,11 @@
 package configs
 
 import (
-	"celer/pkgs/fileio"
 	"errors"
 )
 
 var (
-	ErrOffline = fileio.ErrOffline
+	ErrOffline = errors.New("currently, you're in offline mode")
 
 	ErrInvalidBuildType = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
 	ErrInvalidJobs      = errors.New("invalid jobs, must be greater than 0")

@@ -29,9 +29,7 @@ func TestConfigure_Project(t *testing.T) {
 
 	t.Run("configure project success", func(t *testing.T) {
 		const projectName = "test_project_01"
-		if err := celer.SetProject(projectName); err != nil {
-			t.Fatal(err)
-		}
+		check(celer.SetProject(projectName))
 		if celer.project.Name != projectName {
 			t.Fatalf("project should be `%s`", projectName)
 		}

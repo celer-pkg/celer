@@ -52,7 +52,7 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 			// Check and repair resource.
 			archive = expr.If(archive == "", filepath.Base(url), archive)
 			repair := fileio.NewRepair(url, archive, ".", p.PortConfig.PackageDir)
-			if err := repair.CheckAndRepair(p.Ctx); err != nil && err != fileio.ErrOffline {
+			if err := repair.CheckAndRepair(p.Ctx); err != nil {
 				return err
 			}
 
