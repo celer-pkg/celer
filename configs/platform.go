@@ -46,7 +46,7 @@ func (p *Platform) Init(platformName string) error {
 		return err
 	}
 	if err := toml.Unmarshal(bytes, p); err != nil {
-		return fmt.Errorf("read error: %w", err)
+		return fmt.Errorf("failed to read %s.\n %w", platformPath, err)
 	}
 
 	if p.RootFS != nil {
@@ -135,7 +135,7 @@ func (p *Platform) Setup() error {
 	// Repair rootfs if not empty.
 	if p.RootFS != nil {
 		if err := p.RootFS.CheckAndRepair(); err != nil {
-			return fmt.Errorf("check and repair rootfs error: %w", err)
+			return fmt.Errorf("failed to check and repair rootfs.\n %w", err)
 		}
 	}
 
@@ -143,7 +143,7 @@ func (p *Platform) Setup() error {
 	if runtime.GOOS == "windows" && p.WindowsKit == nil {
 		var windowsKit WindowsKit
 		if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
-			return fmt.Errorf("detect celer.windows_kit error: %w", err)
+			return fmt.Errorf("failed to detect celer.windows_kit.\n: %w", err)
 		}
 		p.WindowsKit = &windowsKit
 	}
@@ -153,7 +153,7 @@ func (p *Platform) Setup() error {
 		panic("Toolchain should not be empty, it may specified in platform or automatically detected.")
 	}
 	if err := p.Toolchain.CheckAndRepair(false); err != nil {
-		return fmt.Errorf("check and repair toolchain error: %w", err)
+		return fmt.Errorf("failed to check and repair toolchain.\n %w", err)
 	}
 
 	// Only for Windows MSVC.
@@ -163,7 +163,7 @@ func (p *Platform) Setup() error {
 
 	// Generate toolchain file.
 	if err := p.ctx.GenerateToolchainFile(); err != nil {
-		return fmt.Errorf("generate toolchain file error: %w", err)
+		return fmt.Errorf("failed to generate toolchain file.\n %w", err)
 	}
 
 	return nil
@@ -183,7 +183,7 @@ func (p *Platform) detectToolchain() error {
 	if runtime.GOOS == "windows" && p.WindowsKit == nil {
 		var windowsKit WindowsKit
 		if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
-			return fmt.Errorf("detect celer.windows_kit error: %w", err)
+			return fmt.Errorf("failed to detect celer.windows_kit.\n %w", err)
 		}
 		p.WindowsKit = &windowsKit
 	}

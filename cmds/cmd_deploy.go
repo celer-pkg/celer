@@ -20,7 +20,7 @@ func (d deployCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Deploy with selected platform and project.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := d.celer.Init(); err != nil {
-				configs.PrintError(err, "init celer error: %s.", err)
+				configs.PrintError(err, "failed to init celer.")
 				os.Exit(1)
 			}
 
@@ -31,7 +31,7 @@ func (d deployCmd) Command(celer *configs.Celer) *cobra.Command {
 
 			// Check circular dependency and version conflict.
 			if err := d.checkProject(); err != nil {
-				configs.PrintError(err, "check circular dependency and version conflict failed.")
+				configs.PrintError(err, "failed to check circular dependency and version conflict.")
 				os.Exit(1)
 			}
 

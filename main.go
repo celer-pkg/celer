@@ -13,7 +13,7 @@ func main() {
 
 	// Execute command.
 	if err := cmds.Execute(); err != nil {
-		color.Printf(color.Red, "Execute command error: %s.\n", err)
+		color.Printf(color.Red, "failed to execute command:\n %s.\n", err)
 		os.Exit(1)
 	}
 }

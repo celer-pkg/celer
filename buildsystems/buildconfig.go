@@ -299,7 +299,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		// Move extracted files to repo dir.
 		entities, err := os.ReadDir(destDir)
 		if err != nil || len(entities) == 0 {
-			return fmt.Errorf("cannot find extracted files under repo dir")
+			return fmt.Errorf("failed to find extracted files under repo dir")
 		}
 		if len(entities) == 1 {
 			srcDir := filepath.Join(destDir, entities[0].Name())
@@ -368,7 +368,7 @@ func (b BuildConfig) Patch() error {
 
 		entities, err := os.ReadDir(portDir)
 		if err != nil {
-			return fmt.Errorf("cannot read port dir: %s", portDir)
+			return fmt.Errorf("failed to read port dir: %s", portDir)
 		}
 		for _, entity := range entities {
 			if entity.Name() != "port.toml" &&
@@ -379,7 +379,7 @@ func (b BuildConfig) Patch() error {
 				destFile := filepath.Join(b.PortConfig.SrcDir, entity.Name())
 				if !fileio.PathExists(destFile) {
 					if err := fileio.CopyFile(srcFile, destFile); err != nil {
-						return fmt.Errorf("patch files error: %w", err)
+						return fmt.Errorf("failed to patch files.\n %w", err)
 					}
 				}
 			}
@@ -388,11 +388,11 @@ func (b BuildConfig) Patch() error {
 	}
 	portDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
 	if err := overrideFiles(portDir); err != nil {
-		return fmt.Errorf("override files from port dir error: %w", err)
+		return fmt.Errorf("failed to override files from port dir.\n %w", err)
 	}
 	projectPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
 	if err := overrideFiles(projectPortDir); err != nil {
-		return fmt.Errorf("override files from project port dir error: %w", err)
+		return fmt.Errorf("failed to override files from project port dir.\n %w", err)
 	}
 
 	return nil
@@ -415,7 +415,7 @@ func (b BuildConfig) installOptions() ([]string, error) {
 
 func (b BuildConfig) Install(url, ref, archive string) error {
 	if err := b.buildSystem.CheckTools(); err != nil {
-		return fmt.Errorf("check tools for %s error: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("failed to check tools for %s.\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
 	// Replace placeholders with real value, like ${HOST}, ${SYSROOT} etc.
@@ -466,58 +466,58 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	// Configure related steps.
 	if !b.buildSystem.configured() {
 		if err := b.buildSystem.preConfigure(); err != nil {
-			return fmt.Errorf("pre configure %s error: %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("failed to pre configure %s.\n %w", b.PortConfig.nameVersionDesc(), err)
 		}
 		configureOptions, err := b.buildSystem.configureOptions()
 		if err != nil {
-			return fmt.Errorf("configure %s error: %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("configure %s -> %w", b.PortConfig.nameVersionDesc(), err)
 		}
 		if err := b.buildSystem.Configure(configureOptions); err != nil {
-			return fmt.Errorf("configure %s error: %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("configure %s\n %w", b.PortConfig.nameVersionDesc(), err)
 		}
 		if err := b.buildSystem.postConfigure(); err != nil {
-			return fmt.Errorf("post configure %s error: %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("post configure %s\n %w", b.PortConfig.nameVersionDesc(), err)
 		}
 	}
 
 	// Build related steps.
 	if err := b.buildSystem.preBuild(); err != nil {
-		return fmt.Errorf("pre build %s error: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("pre build %s\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 	buildOptions, err := b.buildSystem.buildOptions()
 	if err != nil {
-		return fmt.Errorf("get build options %s error: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("get build options %s\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 	if err := b.buildSystem.Build(buildOptions); err != nil {
 		// Some third-party need extra steps to fix build. For example: nspr.
 		if len(b.FixBuild) > 0 {
 			if err := b.buildSystem.fixBuild(); err != nil {
-				return fmt.Errorf("fix build %s error: %w", b.PortConfig.nameVersionDesc(), err)
+				return fmt.Errorf("fix build %s\n %w", b.PortConfig.nameVersionDesc(), err)
 			}
 			if err := b.buildSystem.Build(buildOptions); err != nil {
-				return fmt.Errorf("build %s again error: %w", b.PortConfig.nameVersionDesc(), err)
+				return fmt.Errorf("build %s again\n %w", b.PortConfig.nameVersionDesc(), err)
 			}
 		} else {
-			return fmt.Errorf("build %s error: %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("build %s\n %w", b.PortConfig.nameVersionDesc(), err)
 		}
 	}
 	if err := b.buildSystem.postBuild(); err != nil {
-		return fmt.Errorf("post build %s error: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("post build %s\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
 	// Install related steps.
 	if err := b.buildSystem.preInstall(); err != nil {
-		return fmt.Errorf("pre install %s error: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("pre install %s\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 	installOptions, err := b.buildSystem.installOptions()
 	if err != nil {
-		return fmt.Errorf("get install options %s error: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("get install options %s\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 	if err := b.buildSystem.Install(installOptions); err != nil {
-		return fmt.Errorf("install %s error: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("install %s\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 	if err := b.buildSystem.postInstall(); err != nil {
-		return fmt.Errorf("post install %s error: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("post install %s\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
 	// Fixup pkg config files.
@@ -526,7 +526,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.LibraryFolder),
 	)
 	if err := fileio.FixupPkgConfig(b.PortConfig.PackageDir, prefix); err != nil {
-		return fmt.Errorf("fixup pkg-config error: %w", err)
+		return fmt.Errorf("fixup pkg-config\n %w", err)
 	}
 
 	// Generate cmake configs.
@@ -537,7 +537,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	}
 	cmakeConfig, err := generator.FindMatchedConfig(portDir, preferedPortDir, b.PortConfig.Toolchain.SystemName, b.LibraryType)
 	if err != nil {
-		return fmt.Errorf("find matched config %s error: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("find matched config %s\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 	if cmakeConfig != nil {
 		cmakeConfig.Version = b.PortConfig.LibVersion
@@ -591,10 +591,10 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 	createSymlink := func(src, dest string) error {
 		relPath, err := filepath.Rel(filepath.Dir(dest), src)
 		if err != nil {
-			return fmt.Errorf("compute relative path error: %w", err)
+			return fmt.Errorf("compute relative path\n %w", err)
 		}
 		if err := os.Symlink(relPath, dest); err != nil {
-			return fmt.Errorf("create symlink error: %w", err)
+			return fmt.Errorf("create symlink\n %w", err)
 		}
 		return nil
 	}
@@ -717,7 +717,7 @@ func (b BuildConfig) replaceSource(archive, url string) error {
 	entities, err := os.ReadDir(b.PortConfig.RepoDir)
 	if err != nil || len(entities) == 0 {
 		replaceFailed = true
-		return fmt.Errorf("cannot find extracted files under tmp dir")
+		return fmt.Errorf("failed to find extracted files under tmp dir")
 	}
 	if len(entities) == 1 {
 		srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())

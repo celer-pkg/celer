@@ -69,7 +69,7 @@ func getOSType() (string, error) {
 	executor := cmd.NewExecutor("", "cat", "/etc/os-release")
 	out, err := executor.ExecuteOutput()
 	if err != nil {
-		return "", fmt.Errorf("read /etc/os-release error: %w", err)
+		return "", fmt.Errorf("failed to read /etc/os-release\n %w", err)
 	}
 
 	lines := strings.SplitSeq(string(out), "\n")
@@ -109,7 +109,7 @@ func checkRedHatLibrary(libraryName string) (bool, error) {
 	executor := cmd.NewExecutor("", "rpm", "-q", libraryName)
 	out, err := executor.ExecuteOutput()
 	if err != nil {
-		return false, fmt.Errorf("cannot run rpm -q: %v", err)
+		return false, fmt.Errorf("failed to run rpm -q: %v", err)
 	}
 
 	// Check if the library is installed.

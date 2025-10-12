@@ -91,7 +91,7 @@ func (p *python3) findInstalledVersion() error {
 	executor := cmd.NewExecutor("", "where py.exe")
 	output, err := executor.ExecuteOutput()
 	if err != nil {
-		return fmt.Errorf("find py.exe error: %w", notFoundErr)
+		return fmt.Errorf("failed to find py.exe\n %w", notFoundErr)
 	}
 	if strings.Contains(output, "INFO: Could not find files for the given pattern(s).") {
 		return fmt.Errorf("no py.exe found in your windows os")

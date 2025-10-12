@@ -21,7 +21,7 @@ func (v versionCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Version",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := v.celer.Init(); err != nil {
-				configs.PrintError(err, "init celer error: %s.", err)
+				configs.PrintError(err, "failed to init celer.")
 				os.Exit(1)
 			}
 

@@ -89,12 +89,13 @@ func (p *Port) Init(ctx context.Context, nameVersion, buildType string) error {
 	}
 
 	// Decode TOML.
-	bytes, err := os.ReadFile(expr.If(!fileio.PathExists(portInPorts), portInProject, portInPorts))
+	portPath := expr.If(!fileio.PathExists(portInPorts), portInProject, portInPorts)
+	bytes, err := os.ReadFile(portPath)
 	if err != nil {
-		return fmt.Errorf("read port error: %w", err)
+		return fmt.Errorf("failed to read %s.\n %w", portPath, err)
 	}
 	if err := toml.Unmarshal(bytes, p); err != nil {
-		return fmt.Errorf("unmarshal port error: %w", err)
+		return fmt.Errorf("failed to unmarshal %s.\n %w", portPath, err)
 	}
 
 	// Set matchedConfig as prebuilt config when no config found in toml.
@@ -108,12 +109,12 @@ func (p *Port) Init(ctx context.Context, nameVersion, buildType string) error {
 
 	// Init build config.
 	if err := p.initBuildConfig(nameVersion); err != nil {
-		return fmt.Errorf("init build config error: %w", err)
+		return fmt.Errorf("failed to init build config.\n %w", err)
 	}
 
 	// Validate port.
 	if err := p.validate(); err != nil {
-		return fmt.Errorf("validate port error: %w", err)
+		return fmt.Errorf("failed to validate %s.\n %w", portPath, err)
 	}
 
 	return nil

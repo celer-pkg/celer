@@ -32,13 +32,13 @@ func (i integrateCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Integrate tab completion.",
 		Run: func(cobraCmd *cobra.Command, args []string) {
 			if err := i.celer.Init(); err != nil {
-				configs.PrintError(err, "init celer error: %s.", err)
+				configs.PrintError(err, "failed to init celer.")
 				os.Exit(1)
 			}
 
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
-				configs.PrintError(err, "cannot get home dir.")
+				configs.PrintError(err, "failed to get home dir.")
 				os.Exit(1)
 			}
 
@@ -80,13 +80,13 @@ func (i integrateCmd) doRemove(homeDir string) error {
 		modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
 		celerDir := filepath.Join(modulesDir, "celer")
 		if err := os.RemoveAll(celerDir); err != nil {
-			return fmt.Errorf("remove celer module error: %w", err)
+			return fmt.Errorf("failed to remove celer module.\n %w", err)
 		}
 
 		// Remove celer.exe
 		binDir := filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "celer")
 		if err := os.RemoveAll(binDir); err != nil {
-			return fmt.Errorf("remove celer.exe error: %w", err)
+			return fmt.Errorf("failed to remove celer.exe.\n %w", err)
 		}
 
 		// Remove celer_completion.ps1 from profile.ps1.
@@ -188,11 +188,11 @@ func (i integrateCmd) installCompletion(homeDir string) error {
 		celerProfile := filepath.Join(modulesDir, "celer", "celer_completion.ps1")
 		profilePath := filepath.Join(filepath.Dir(modulesDir), "profile.ps1")
 		if err := os.MkdirAll(filepath.Dir(celerProfile), os.ModePerm); err != nil {
-			return fmt.Errorf("create PowerShell Modules dir error: %w", err)
+			return fmt.Errorf("failed to create PowerShell Modules dir.\n %w", err)
 		}
 
 		if err := fileio.MoveFile(filePath, celerProfile); err != nil {
-			return fmt.Errorf("move PowerShell completion file error: %w", err)
+			return fmt.Errorf("failed to move PowerShell completion file.\n %w", err)
 		}
 
 		// Append completion file path to profile.
@@ -200,14 +200,14 @@ func (i integrateCmd) installCompletion(homeDir string) error {
 			// Add completion script to if not contains.
 			profile, err := os.OpenFile(profilePath, os.O_CREATE|os.O_RDWR, os.ModePerm)
 			if err != nil {
-				return fmt.Errorf("open or create PowerShell profile error: %w", err)
+				return fmt.Errorf("failed to open or create PowerShell profile.\n %w", err)
 			}
 			defer profile.Close()
 
 			// Read profile content.
 			content, err := os.ReadFile(profilePath)
 			if err != nil {
-				return fmt.Errorf("read PowerShell profile error: %w", err)
+				return fmt.Errorf("failed to read PowerShell profile.\n %w", err)
 			}
 
 			lines := strings.Split(string(content), "\n")
@@ -219,7 +219,7 @@ func (i integrateCmd) installCompletion(homeDir string) error {
 		} else {
 			content := fmt.Sprintf(". %s", celerProfile)
 			if err := os.WriteFile(profilePath, []byte(content), os.ModePerm); err != nil {
-				return fmt.Errorf("write PowerShell profile error: %w", err)
+				return fmt.Errorf("failed to write PowerShell profile.\n %w", err)
 			}
 		}
 	}
@@ -229,7 +229,7 @@ func (i integrateCmd) installCompletion(homeDir string) error {
 
 func (i integrateCmd) generateCompletionFile() (string, error) {
 	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return "", fmt.Errorf("create clean tmp dir error: %w", err)
+		return "", fmt.Errorf("failed to create clean tmp dir.\n %w", err)
 	}
 
 	var (
@@ -262,12 +262,12 @@ func (i integrateCmd) generateCompletionFile() (string, error) {
 	// Generate completion file.
 	file, err := os.Create(filePath)
 	if err != nil {
-		return "", fmt.Errorf("create completion file error: %w", err)
+		return "", fmt.Errorf("failed to create completion file.\n %w", err)
 	}
 	defer file.Close()
 
 	if err := genFunc(file); err != nil {
-		return "", fmt.Errorf("generate completion file error: %w", err)
+		return "", fmt.Errorf("failed to generate completion file.\n %w", err)
 	}
 
 	return filePath, nil
@@ -276,14 +276,14 @@ func (i integrateCmd) generateCompletionFile() (string, error) {
 func (i integrateCmd) installExecutable(homeDir string) error {
 	path, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("get celer's path error: %w", err)
+		return fmt.Errorf("failed to get celer's path.\n %w", err)
 	}
 
 	switch runtime.GOOS {
 	case "linux":
 		// Copy into `~/.local/bin`
 		if err := i.executeCmd("cp", path, filepath.Join(homeDir, ".local/bin")); err != nil {
-			return fmt.Errorf("cp celer to `/usr/local/bin` error: %w", err)
+			return fmt.Errorf("failed to copy celer to `/usr/local/bin`.\n %w", err)
 		}
 
 		fmt.Println("[integrate] celer --> ~/.local/bin")
@@ -292,17 +292,17 @@ func (i integrateCmd) installExecutable(homeDir string) error {
 		// Copy into `~/AppData/Local/celer`
 		destionation := filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "celer", "celer.exe")
 		if err := os.MkdirAll(filepath.Dir(destionation), os.ModePerm); err != nil {
-			return fmt.Errorf("create celer.exe destination dir error: %w", err)
+			return fmt.Errorf("failed to create celer.exe destination dir.\n %w", err)
 		}
 		if err := fileio.CopyFile(path, destionation); err != nil {
-			return fmt.Errorf("cp celer.exe to `%s` error: %w", destionation, err)
+			return fmt.Errorf("failed to copy celer.exe to `%s`.\n %w", destionation, err)
 		}
 
 		// Add celer.exe to PATH if it's not already there.
 		pathEnv := os.Getenv("PATH")
 		if !strings.Contains(pathEnv, filepath.Dir(destionation)) {
 			if err := i.executeCmd("setx", "PATH", "%PATH%;"+filepath.Dir(destionation)); err != nil {
-				return fmt.Errorf("add celer dir to PATH error: %w", err)
+				return fmt.Errorf("failed to add celer dir to PATH.\n %w", err)
 			}
 		}
 

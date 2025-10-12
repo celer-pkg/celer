@@ -103,7 +103,7 @@ func (c CacheDir) Remove(platformName, projectName, buildType, nameVersion strin
 	pacakgeDir := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion)
 	if fileio.PathExists(pacakgeDir) {
 		if err := os.RemoveAll(pacakgeDir); err != nil {
-			return fmt.Errorf("remove cache package %s error: %w", pacakgeDir, err)
+			return fmt.Errorf("failed toremove cache package %s.\n %w", pacakgeDir, err)
 		}
 	}
 

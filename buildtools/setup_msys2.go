@@ -287,12 +287,12 @@ func (m msys2) removeFile(file string) error {
 	pattern := filepath.ToSlash(filepath.Join(m.rootDir, "/*/usr/bin/"+file))
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
-		return fmt.Errorf("glob syntax error: %w", err)
+		return fmt.Errorf("glob syntax\n %w", err)
 	}
 
 	for _, match := range matches {
 		if err := os.Remove(match); err != nil {
-			return fmt.Errorf("remove %s error: %w", file, err)
+			return fmt.Errorf("remove %s\n %w", file, err)
 		}
 	}
 

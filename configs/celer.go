@@ -89,7 +89,7 @@ func (c *Celer) preInit() {
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
 		if err != nil {
-			c.initErr = fmt.Errorf("marshal conf error: %w", err)
+			c.initErr = fmt.Errorf("failed to marshal conf.\n %w", err)
 			return
 		}
 
@@ -100,7 +100,7 @@ func (c *Celer) preInit() {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
 		if err != nil {
-			c.initErr = fmt.Errorf("read conf error: %w", err)
+			c.initErr = fmt.Errorf("failed to read conf.\n %w", err)
 			return
 		}
 		if c.initErr = toml.Unmarshal(bytes, c); c.initErr != nil {
@@ -331,7 +331,7 @@ func (c *Celer) SetCacheDir(dir, token string) error {
 		}
 
 		// Token of cache dir should be encrypted.
-		bytes, err := encrypt.EncodePassword(token)
+		bytes, err := encrypt.Encode(token)
 		if err != nil {
 			return fmt.Errorf("encode cache token: %w", err)
 		}
