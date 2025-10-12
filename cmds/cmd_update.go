@@ -28,7 +28,8 @@ func (u updateCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "update",
 		Short: "Update conf repo, ports config repo or third-party repo.",
 		Run: func(cmd *cobra.Command, args []string) {
-			if u.celer.HandleInitError() {
+			if err := u.celer.Init(); err != nil {
+				configs.PrintError(err, "init celer error: %s.", err)
 				os.Exit(1)
 			}
 

@@ -32,7 +32,8 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "configure",
 		Short: "Configure to change gloabal settings.",
 		Run: func(cmd *cobra.Command, args []string) {
-			if c.celer.HandleInitError() {
+			if err := c.celer.Init(); err != nil {
+				configs.PrintError(err, "init celer error: %s.", err)
 				os.Exit(1)
 			}
 
