@@ -38,14 +38,14 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 			}
 
 			switch {
-			case c.platform != c.celer.Global.Platform:
+			case c.platform != "" && c.platform != c.celer.Global.Platform:
 				if err := c.celer.SetPlatform(c.platform); err != nil {
 					configs.PrintError(err, "failed to set platform: %s.", c.platform)
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current platform: %s.", c.platform)
 
-			case c.project != c.celer.Global.Project:
+			case c.project != "" && c.project != c.celer.Global.Project:
 				if err := c.celer.SetProject(c.project); err != nil {
 					configs.PrintError(err, "failed to set project: %s.", c.project)
 					os.Exit(1)
@@ -62,14 +62,14 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 					configs.PrintSuccess("platform is auto configured to %s defined in current project.", c.celer.Global.Platform)
 				}
 
-			case c.buildType != c.celer.Global.BuildType:
+			case c.buildType != "" && c.buildType != c.celer.Global.BuildType:
 				if err := c.celer.SetBuildType(c.buildType); err != nil {
 					configs.PrintError(err, "failed to set build type: %s.", c.buildType)
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current build type: %s.", c.buildType)
 
-			case c.jobs != c.celer.Global.Jobs:
+			case c.jobs > 0 && c.jobs != c.celer.Global.Jobs:
 				if err := c.celer.SetJobs(c.jobs); err != nil {
 					configs.PrintError(err, "failed to set job num: %d.", c.jobs)
 					os.Exit(1)

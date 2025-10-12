@@ -163,8 +163,10 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 	}
 
 	// Print download & extract info.
-	title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)
-	fmt.Printf("%sLocation: %s\n", title, t.rootDir)
+	if !silent {
+		title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)
+		fmt.Printf("%sLocation: %s\n", title, t.rootDir)
+	}
 	return nil
 }
 
