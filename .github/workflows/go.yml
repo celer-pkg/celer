@@ -32,3 +32,4 @@ jobs:
         go test -v ./depcheck/... -timeout 1h
         go test -v ./configs/... -timeout 1h
         go test -v ./pkgs/git/... -timeout 1h
+        go test -v ./cmds/... -timeout 1h
