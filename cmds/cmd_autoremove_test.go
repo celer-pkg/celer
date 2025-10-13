@@ -41,7 +41,6 @@ func TestAutoRemove(t *testing.T) {
 
 	// Check packages.
 	expectedPackages := map[string]bool{
-		"glog@0.6.0":   true,
 		"gflags@2.2.2": true,
 		"x264@stable":  true,
 	}
@@ -72,6 +71,12 @@ func TestAutoRemove(t *testing.T) {
 	}
 
 	check(celer.Deploy())
+
+	var port configs.Port
+	var options configs.InstallOptions
+	check(port.Init(celer, "x264@stable", celer.BuildType()))
+	_, err := port.Install(options)
+	check(err)
 
 	packages, devPackages, err := autoremoveCmd.installedPackages()
 	check(err)

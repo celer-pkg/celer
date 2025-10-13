@@ -128,12 +128,16 @@ func (p Project) GetPorts() []string {
 }
 
 func (p Project) Deploy() error {
+	options := InstallOptions{
+		Force:   true,
+		Recurse: true,
+	}
 	for _, nameVersion := range p.Ports {
 		var port Port
 		if err := port.Init(p.ctx, nameVersion, p.BuildType); err != nil {
 			return fmt.Errorf("%s: %w", nameVersion, err)
 		}
-		if _, err := port.Install(); err != nil {
+		if _, err := port.Install(options); err != nil {
 			return fmt.Errorf("%s: %w", nameVersion, err)
 		}
 	}

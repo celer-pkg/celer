@@ -93,10 +93,6 @@ func (i installCmd) install(nameVersion string) {
 	// Install the port.
 	var port configs.Port
 	port.DevDep = i.dev
-	port.Reinstall = i.force
-	port.Recurse = i.recurse
-	port.StoreCache = i.storeCache
-	port.CacheToken = i.cacheToken
 	if err := port.Init(i.celer, nameVersion, i.buildType); err != nil {
 		configs.PrintError(err, "failed to init %s.", nameVersion)
 		os.Exit(1)
@@ -116,7 +112,13 @@ func (i installCmd) install(nameVersion string) {
 	}
 
 	// Do install.
-	fromWhere, err := port.Install()
+	options := configs.InstallOptions{
+		Force:      i.force,
+		Recurse:    i.recurse,
+		StoreCache: i.storeCache,
+		CacheToken: i.cacheToken,
+	}
+	fromWhere, err := port.Install(options)
 	if err != nil {
 		configs.PrintError(err, "failed to install %s.", nameVersion)
 		os.Exit(1)
