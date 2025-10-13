@@ -143,21 +143,21 @@ func (a *autoremoveCmd) collectProjectDevPackages(nameVersion string) error {
 	return nil
 }
 
-func (a autoremoveCmd) installedPackages() ([]string, []string, error) {
+func (a autoremoveCmd) installedPackages() (packages []string, devPackages []string, err error) {
 	libraryFolder := fmt.Sprintf("%s@%s@%s", a.celer.Platform().GetName(),
 		a.celer.Project().GetName(), strings.ToLower(a.celer.BuildType()))
-	depPkgs, err := a.readPackages(libraryFolder)
+	packages, err = a.readPackages(libraryFolder)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	devLibraryFolder := a.celer.Platform().GetHostName() + "-dev"
-	devDepPkgs, err := a.readPackages(devLibraryFolder)
+	devPackages, err = a.readPackages(devLibraryFolder)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return depPkgs, devDepPkgs, nil
+	return
 }
 
 func (a autoremoveCmd) readPackages(libraryFolder string) ([]string, error) {

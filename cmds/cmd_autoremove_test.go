@@ -3,12 +3,13 @@ package cmds
 import (
 	"celer/configs"
 	"celer/pkgs/dirs"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
-func TestCollectProjectPackages(t *testing.T) {
+func TestAutoRemove(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -69,4 +70,12 @@ func TestCollectProjectPackages(t *testing.T) {
 			t.Fatalf("unexpected dev package: %s", nameVersion)
 		}
 	}
+
+	check(celer.Deploy())
+
+	packages, devPackages, err := autoremoveCmd.installedPackages()
+	check(err)
+
+	fmt.Println(packages)
+	fmt.Println(devPackages)
 }
