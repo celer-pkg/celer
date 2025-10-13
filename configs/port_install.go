@@ -421,8 +421,9 @@ func (p Port) installDependencies() error {
 
 	// Check and repair dependencies.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
-		if strings.HasPrefix(nameVersion, p.Name) {
-			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), nameVersion)
+		name := strings.Split(nameVersion, "@")[0]
+		if name == p.Name {
+			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), name)
 		}
 
 		// Check and repair dependency.
@@ -484,7 +485,8 @@ func (p Port) providerTmpDeps() error {
 	}
 
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
-		if strings.HasPrefix(nameVersion, p.Name) {
+		name := strings.Split(nameVersion, "@")[0]
+		if name == p.Name {
 			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), nameVersion)
 		}
 
