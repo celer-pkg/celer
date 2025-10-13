@@ -39,7 +39,7 @@ func TestInstall_BuildSystem_MakeFiles(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "x264@stable", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
 	var packageDir string
@@ -92,7 +92,7 @@ func TestInstall_BuildSystem_CMake(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "glog@0.6.0", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
 	var packageDir string
@@ -145,7 +145,7 @@ func TestInstall_BuildSystem_B2(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "boost@1.87.0", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
 	var packageDir string
@@ -197,7 +197,7 @@ func TestInstall_BuildSystem_GYP(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "nss@3.55", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
 	var packageDir string
@@ -249,7 +249,7 @@ func TestInstall_BuildSystem_Meson(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "pixman@0.44.2", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
 	var packageDir string
@@ -301,7 +301,7 @@ func TestInstall_BuildSystem_Prebuilt(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "prebuilt-x264@stable", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
 	packageDir := filepath.Join(dirs.PackagesDir, "prebuilt-x264@stable@x86_64-linux-ubuntu-22.04@test_project_02@release")
@@ -348,7 +348,7 @@ func TestInstall_BuildSystem_Nobuild(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "gnulib@master", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
 		t.Fatal("src dir cannot found")

@@ -49,7 +49,7 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check package.
 	var packageDir string
@@ -67,14 +67,14 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	check(os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir))
 
 	// Install from package should fail.
-	installed, err := port.installFromPackage(options)
+	installed, err := port.InstallFromPackage(options)
 	check(err)
 	if installed {
 		t.Fatal("should install failed from package")
 	}
 
 	// Install from cache should success.
-	installed, err = port.installFromCache(options)
+	installed, err = port.InstallFromCache(options)
 	check(err)
 	if !installed {
 		t.Fatal("should install successfully from cache")
@@ -121,7 +121,7 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(glogPort.Init(celer, "glog@0.6.0", celer.BuildType()))
-	check(glogPort.installFromSource(options))
+	check(glogPort.InstallFromSource(options))
 
 	var glogPackageDir, gflagsPackageDir string
 	if runtime.GOOS == "windows" {
@@ -140,14 +140,14 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 	check(os.RemoveAll(glogPort.MatchedConfig.PortConfig.RepoDir))
 
 	// Install from package should fail.
-	installed, err := glogPort.installFromPackage(options)
+	installed, err := glogPort.InstallFromPackage(options)
 	check(err)
 	if installed {
 		t.Fatal("should install failed from package")
 	}
 
 	// Install from cache should success.
-	installed, err = glogPort.installFromCache(options)
+	installed, err = glogPort.InstallFromCache(options)
 	check(err)
 	if !installed {
 		t.Fatal("should install successfully from cache")
@@ -204,7 +204,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, "prebuilt-x264@stable", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check package & repo.
 	packageDir := filepath.Join(dirs.PackagesDir, "prebuilt-x264@stable@x86_64-linux-ubuntu-22.04@test_project_02@release")
@@ -219,14 +219,14 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	check(port.Remove(true, true, true))
 
 	// Install from package should fail.
-	installed, err := port.installFromPackage(options)
+	installed, err := port.InstallFromPackage(options)
 	check(err)
 	if installed {
 		t.Fatal("should install failed from package")
 	}
 
 	// Install from cache should success.
-	installed, err = port.installFromCache(options)
+	installed, err = port.InstallFromCache(options)
 	check(err)
 	if !installed {
 		t.Fatal("should install successfully from cache")
@@ -273,7 +273,7 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	if err := port.installFromSource(options); err != ErrCacheDirNotConfigured {
+	if err := port.InstallFromSource(options); err != ErrCacheDirNotConfigured {
 		t.Fatal("should return ErrCacheDirNotConfigured")
 	}
 }
@@ -315,7 +315,7 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	if err := port.installFromSource(options); err != ErrCacheTokenNotConfigured {
+	if err := port.InstallFromSource(options); err != ErrCacheTokenNotConfigured {
 		t.Fatal("should return ErrCacheTokenNotConfigured")
 	}
 }
@@ -357,7 +357,7 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 		CacheToken: "", // Token not specified
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	if err := port.installFromSource(options); err != ErrCacheTokenNotSpecified {
+	if err := port.InstallFromSource(options); err != ErrCacheTokenNotSpecified {
 		t.Fatal("should return ErrCacheTokenNotSpecified")
 	}
 }
@@ -399,7 +399,7 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 		CacheToken: "token_654321", // Token not match.
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	if err := port.installFromSource(options); err != ErrCacheTokenNotMatch {
+	if err := port.InstallFromSource(options); err != ErrCacheTokenNotMatch {
 		t.Fatal("should return ErrCacheTokenNotMatch")
 	}
 }
@@ -441,7 +441,7 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Read commit.
 	commit, err := git.ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
@@ -453,7 +453,7 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 
 	// Install from cache with commit.
 	port.Package.Commit = commit
-	installed, err := port.installFromCache(options)
+	installed, err := port.InstallFromCache(options)
 	check(err)
 	if !installed {
 		t.Fatal("should be installed from cache")
@@ -497,7 +497,7 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Remove installed and src dir.
 	check(port.Remove(true, true, true))
@@ -505,7 +505,7 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 
 	// Install from cache with not matched commit.
 	port.Package.Commit = "not_matched_commit_xxxxxx"
-	installed, err := port.installFromCache(options)
+	installed, err := port.InstallFromCache(options)
 	if err == nil || !errors.Is(err, ErrCacheNotFoundWithCommit) {
 		t.Fatal("should return ErrCacheNotFoundWithCommit")
 	}

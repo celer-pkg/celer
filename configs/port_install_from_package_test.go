@@ -39,7 +39,7 @@ func TestInstall_From_Package_Success(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	var packageDir string
 	if runtime.GOOS == "windows" {
@@ -52,7 +52,7 @@ func TestInstall_From_Package_Success(t *testing.T) {
 	}
 	check(port.Remove(true, false, true))
 
-	installed, err := port.installFromPackage(options)
+	installed, err := port.InstallFromPackage(options)
 	check(err)
 
 	t.Cleanup(func() {
@@ -93,7 +93,7 @@ func TestInstall_From_Package_Failed(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	var packageDir string
 	if runtime.GOOS == "windows" {
@@ -106,7 +106,7 @@ func TestInstall_From_Package_Failed(t *testing.T) {
 	}
 	check(port.Remove(true, true, true))
 
-	installed, err := port.installFromPackage(options)
+	installed, err := port.InstallFromPackage(options)
 	check(err)
 	if installed {
 		t.Fatal("it should be failed to install from package.")

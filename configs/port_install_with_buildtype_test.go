@@ -40,7 +40,7 @@ func TestInstall_Global_BuildType_Release_Success(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
 	var packageDir string
@@ -95,7 +95,7 @@ func TestInstall_Global_BuildType_Debug_Success(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
 	var packageDir string
@@ -150,7 +150,7 @@ func TestInstall_Private_BuildType_Debug_Success(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "eigen@3.4.0", "Debug"))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
 	var packageDir string
@@ -204,7 +204,7 @@ func TestInstall_Private_BuildType_Release_Success(t *testing.T) {
 	var port Port
 	var options InstallOptions
 	check(port.Init(celer, "eigen@3.4.0", "Release"))
-	check(port.installFromSource(options))
+	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
 	var packageDir string

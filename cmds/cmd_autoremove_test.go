@@ -3,9 +3,9 @@ package cmds
 import (
 	"celer/configs"
 	"celer/pkgs/dirs"
-	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 )
 
@@ -16,6 +16,18 @@ func TestAutoRemove(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+	}
+
+	var equals = func(list1, list2 []string) bool {
+		if len(list1) != len(list2) {
+			return false
+		}
+		for _, item := range list1 {
+			if !slices.Contains(list2, item) {
+				return false
+			}
+		}
+		return true
 	}
 
 	t.Cleanup(func() {
@@ -39,48 +51,34 @@ func TestAutoRemove(t *testing.T) {
 		check(autoremoveCmd.collectProjectDevPackages(nameVersion))
 	}
 
+	check(celer.Deploy())
+
+	// The sqlite3 will be autoremoved later.
+	var port configs.Port
+	var options configs.InstallOptions
+	check(port.Init(celer, "sqlite3@3.49.0", celer.BuildType()))
+	check(port.InstallFromSource(options))
+
+	check(autoremoveCmd.autoremove(true, true))
+
 	// Check packages.
-	expectedPackages := map[string]bool{
-		"gflags@2.2.2": true,
-		"x264@stable":  true,
+	expectedPackages := []string{
+		"gflags@2.2.2",
+		"x264@stable",
 	}
-	if len(autoremoveCmd.projectPackages) != len(expectedPackages) {
-		t.Fatalf("expected %d packages, got %d", len(expectedPackages), len(autoremoveCmd.projectPackages))
-	}
-	for _, nameVersion := range autoremoveCmd.projectPackages {
-		if !expectedPackages[nameVersion] {
-			t.Fatalf("unexpected package: %s", nameVersion)
-		}
+	if !equals(expectedPackages, autoremoveCmd.projectPackages) {
+		t.Fatalf("expected %v, got %v", expectedPackages, autoremoveCmd.projectPackages)
 	}
 
 	// Check dev packages.
-	expectedDevPackages := map[string]bool{
-		"nasm@2.16.03":  true,
-		"automake@1.18": true,
-		"autoconf@2.72": true,
-		"m4@1.4.19":     true,
-		"libtool@2.5.4": true,
+	expectedDevPackages := []string{
+		"nasm@2.16.03",
+		"automake@1.18",
+		"autoconf@2.72",
+		"m4@1.4.19",
+		"libtool@2.5.4",
 	}
-	if len(autoremoveCmd.projectDevPackages) != len(expectedDevPackages) {
-		t.Fatalf("expected %d dev packages, got %d", len(expectedDevPackages), len(autoremoveCmd.projectDevPackages))
+	if !equals(expectedDevPackages, autoremoveCmd.projectDevPackages) {
+		t.Fatalf("expected %v, got %v", expectedDevPackages, autoremoveCmd.projectDevPackages)
 	}
-	for _, nameVersion := range autoremoveCmd.projectDevPackages {
-		if !expectedDevPackages[nameVersion] {
-			t.Fatalf("unexpected dev package: %s", nameVersion)
-		}
-	}
-
-	check(celer.Deploy())
-
-	var port configs.Port
-	var options configs.InstallOptions
-	check(port.Init(celer, "x264@stable", celer.BuildType()))
-	_, err := port.Install(options)
-	check(err)
-
-	packages, devPackages, err := autoremoveCmd.installedPackages()
-	check(err)
-
-	fmt.Println(packages)
-	fmt.Println(devPackages)
 }

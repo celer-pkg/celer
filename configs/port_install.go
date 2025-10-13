@@ -67,7 +67,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	// No config found, install as prebuilt.
 	if len(p.BuildConfigs) == 0 ||
 		(p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "") {
-		if err := p.installFromSource(options); err != nil {
+		if err := p.InstallFromSource(options); err != nil {
 			return "", err
 		}
 		if len(p.BuildConfigs) == 0 {
@@ -77,7 +77,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	}
 
 	// 1. try to install from package.
-	if installed, err := p.installFromPackage(options); err != nil {
+	if installed, err := p.InstallFromPackage(options); err != nil {
 		return "", err
 	} else if installed {
 		return "package", nil
@@ -85,7 +85,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 
 	// 2. try to install from cache.
 	if !options.StoreCache && !options.Force {
-		if installed, err := p.installFromCache(options); err != nil {
+		if installed, err := p.InstallFromCache(options); err != nil {
 			return "", err
 		} else if installed {
 			return "cache", nil
@@ -93,7 +93,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	}
 
 	// 3. try to install from source.
-	if err := p.installFromSource(options); err != nil {
+	if err := p.InstallFromSource(options); err != nil {
 		return "", err
 	}
 
@@ -265,7 +265,7 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	return nil
 }
 
-func (p Port) installFromPackage(options InstallOptions) (bool, error) {
+func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	// No package no install.
 	if !fileio.PathExists(p.MatchedConfig.PortConfig.PackageDir) {
 		return false, nil
@@ -320,7 +320,7 @@ func (p Port) installFromPackage(options InstallOptions) (bool, error) {
 			return false, fmt.Errorf("failed to remove outdated package.\n %w", err)
 		}
 		if err := p.doInstallFromSource(options); err != nil {
-			return false, fmt.Errorf("failed to install from package.\n %w", err)
+			return false, fmt.Errorf("failed to install from source.\n %w", err)
 		}
 	}
 
@@ -342,7 +342,7 @@ func (p Port) installFromPackage(options InstallOptions) (bool, error) {
 	return true, nil
 }
 
-func (p Port) installFromCache(options InstallOptions) (bool, error) {
+func (p Port) InstallFromCache(options InstallOptions) (bool, error) {
 	installed, err := p.doInstallFromCache(options)
 	if err != nil {
 		return false, fmt.Errorf("failed to install from cache.\n %w", err)
@@ -374,7 +374,7 @@ func (p Port) installFromCache(options InstallOptions) (bool, error) {
 	return false, nil
 }
 
-func (p Port) installFromSource(options InstallOptions) error {
+func (p Port) InstallFromSource(options InstallOptions) error {
 	if err := p.installDependencies(options); err != nil {
 		return err
 	}
