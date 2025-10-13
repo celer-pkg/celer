@@ -39,7 +39,7 @@ func TestAutoRemove(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/add_test_cases"))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform("x86_64-linux-ubuntu-22.04"))
 	check(celer.SetProject("test_project_autoremove"))
