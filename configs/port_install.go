@@ -311,6 +311,10 @@ func (p Port) installFromPackage() (bool, error) {
 
 		// Backup installed meta file to tmp dir.
 		metaFileBackup = filepath.Join(dirs.TmpDir, filepath.Base(p.metaFile)+".old")
+		if err := os.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
+			return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
+		}
+
 		if err := fileio.CopyFile(p.metaFile, metaFileBackup); err != nil {
 			return false, fmt.Errorf("failed to backup meta file.\n %w", err)
 		}
