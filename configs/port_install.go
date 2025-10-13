@@ -311,6 +311,10 @@ func (p Port) installFromPackage() (bool, error) {
 
 		// Backup installed meta file to tmp dir.
 		metaFileBackup = filepath.Join(dirs.TmpDir, filepath.Base(p.metaFile)+".old")
+		if err := os.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
+			return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
+		}
+
 		if err := fileio.CopyFile(p.metaFile, metaFileBackup); err != nil {
 			return false, fmt.Errorf("failed to backup meta file.\n %w", err)
 		}
@@ -421,8 +425,9 @@ func (p Port) installDependencies() error {
 
 	// Check and repair dependencies.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
-		if strings.HasPrefix(nameVersion, p.Name) {
-			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), nameVersion)
+		name := strings.Split(nameVersion, "@")[0]
+		if name == p.Name {
+			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), name)
 		}
 
 		// Check and repair dependency.
@@ -484,7 +489,8 @@ func (p Port) providerTmpDeps() error {
 	}
 
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
-		if strings.HasPrefix(nameVersion, p.Name) {
+		name := strings.Split(nameVersion, "@")[0]
+		if name == p.Name {
 			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), nameVersion)
 		}
 
