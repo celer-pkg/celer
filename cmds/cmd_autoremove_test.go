@@ -87,8 +87,9 @@ func TestAutoRemove(t *testing.T) {
 	}
 
 	var (
-		packageDir = fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, portNameVersion, platform, project, strings.ToLower(celer.BuildType()))
-		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, strings.ToLower(celer.BuildType()))
+		buildType  = strings.ToLower(celer.BuildType())
+		packageDir = fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, portNameVersion, platform, project, buildType)
+		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
 	)
 
 	t.Run("autoremove with purge", func(t *testing.T) {
@@ -101,7 +102,9 @@ func TestAutoRemove(t *testing.T) {
 			check(port.Remove(true, true, true))
 		})
 
-		check(autoremoveCmd.autoremove(false, true))
+		autoremoveCmd.purge = false
+		autoremoveCmd.buildCache = true
+		check(autoremoveCmd.autoremove())
 		check(validatePackages(autoremoveCmd.packages, autoremoveCmd.devPackages))
 
 		if fileio.PathExists(packageDir) {
@@ -119,7 +122,9 @@ func TestAutoRemove(t *testing.T) {
 		check(port.Init(celer, portNameVersion, celer.BuildType()))
 		check(port.InstallFromSource(options))
 
-		check(autoremoveCmd.autoremove(true, false))
+		autoremoveCmd.purge = true
+		autoremoveCmd.buildCache = false
+		check(autoremoveCmd.autoremove())
 		check(validatePackages(autoremoveCmd.packages, autoremoveCmd.devPackages))
 
 		t.Cleanup(func() {

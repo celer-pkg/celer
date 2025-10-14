@@ -47,7 +47,7 @@ func (c cleanCmd) Command(celer *configs.Celer) *cobra.Command {
 					os.Exit(1)
 				}
 
-				if err := c.clean(args); err != nil {
+				if err := c.clean(args...); err != nil {
 					configs.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
 					os.Exit(1)
 				}
@@ -64,7 +64,7 @@ func (c cleanCmd) Command(celer *configs.Celer) *cobra.Command {
 	return command
 }
 
-func (c *cleanCmd) clean(targets []string) error {
+func (c *cleanCmd) clean(targets ...string) error {
 	// git is required when clean port.
 	if err := buildtools.CheckTools(c.celer, "git"); err != nil {
 		return err
