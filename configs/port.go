@@ -32,6 +32,7 @@ type InstallOptions struct {
 
 type RemoveOptions struct {
 	Purge      bool
+	Recurse    bool
 	BuildCache bool
 }
 

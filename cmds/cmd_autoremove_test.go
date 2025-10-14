@@ -99,7 +99,12 @@ func TestAutoRemove(t *testing.T) {
 		check(port.InstallFromSource(options))
 
 		t.Cleanup(func() {
-			check(port.Remove(true, true, true))
+			remoteOptions := configs.RemoveOptions{
+				Purge:      true,
+				Recurse:    true,
+				BuildCache: true,
+			}
+			check(port.Remove(remoteOptions))
 		})
 
 		autoremoveCmd.purge = true
@@ -128,7 +133,12 @@ func TestAutoRemove(t *testing.T) {
 		check(validatePackages(autoremoveCmd.packages, autoremoveCmd.devPackages))
 
 		t.Cleanup(func() {
-			check(port.Remove(true, true, true))
+			remoteOptions := configs.RemoveOptions{
+				Purge:      true,
+				Recurse:    true,
+				BuildCache: true,
+			}
+			check(port.Remove(remoteOptions))
 		})
 
 		if !fileio.PathExists(packageDir) {

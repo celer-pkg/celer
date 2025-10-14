@@ -1,6 +1,7 @@
-package configs
+package cmds
 
 import (
+	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -31,7 +32,7 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
 
 	// Init celer.
-	celer := NewCeler()
+	celer := configs.NewCeler()
 	check(celer.Init())
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
@@ -43,13 +44,13 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	// Setup build envs.
 	check(celer.Platform().Setup())
 
-	var port Port
-	var options = InstallOptions{
+	var port configs.Port
+	var installOptions = configs.InstallOptions{
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	check(port.InstallFromSource(options))
+	check(port.InstallFromSource(installOptions))
 
 	// Check package.
 	var packageDir string
@@ -63,28 +64,33 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	}
 
 	// Totally remove port and src.
-	check(port.Remove(true, true, true))
+	var removeOptions = configs.RemoveOptions{
+		Purge:      true,
+		Recurse:    true,
+		BuildCache: true,
+	}
+	check(port.Remove(removeOptions))
 	check(os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir))
 
 	// Install from package should fail.
-	installed, err := port.InstallFromPackage(options)
+	installed, err := port.InstallFromPackage(installOptions)
 	check(err)
 	if installed {
 		t.Fatal("should install failed from package")
 	}
 
 	// Install from cache should success.
-	installed, err = port.InstallFromCache(options)
+	installed, err = port.InstallFromCache(installOptions)
 	check(err)
 	if !installed {
 		t.Fatal("should install successfully from cache")
 	}
 
 	// Clean up.
-	check(port.Remove(true, true, true))
+	check(port.Remove(removeOptions))
 }
 
-func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
+func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -103,7 +109,7 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
 
 	// Init celer.
-	celer := NewCeler()
+	celer := configs.NewCeler()
 	check(celer.Init())
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
@@ -115,8 +121,8 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 	// Setup build envs.
 	check(celer.Platform().Setup())
 
-	var glogPort Port
-	var options = InstallOptions{
+	var glogPort configs.Port
+	var options = configs.InstallOptions{
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
@@ -136,7 +142,12 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 	}
 
 	// Totally remove port and src.
-	check(glogPort.Remove(true, true, true))
+	var removeOptions = configs.RemoveOptions{
+		Purge:      true,
+		Recurse:    true,
+		BuildCache: true,
+	}
+	check(glogPort.Remove(removeOptions))
 	check(os.RemoveAll(glogPort.MatchedConfig.PortConfig.RepoDir))
 
 	// Install from package should fail.
@@ -154,7 +165,7 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 	}
 
 	// gflags should also be installed from cache.
-	var gflagsPort Port
+	var gflagsPort configs.Port
 	check(gflagsPort.Init(celer, "gflags@2.2.2", celer.BuildType()))
 	installed, err = gflagsPort.Installed()
 	check(err)
@@ -163,8 +174,8 @@ func TestInstall_CacheDir_WithDependencies_Success(t *testing.T) {
 	}
 
 	// Clean up.
-	check(glogPort.Remove(true, true, true))
-	check(gflagsPort.Remove(true, true, true))
+	check(glogPort.Remove(removeOptions))
+	check(gflagsPort.Remove(removeOptions))
 }
 
 func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
@@ -186,7 +197,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
 
 	// Init celer.
-	celer := NewCeler()
+	celer := configs.NewCeler()
 	check(celer.Init())
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
@@ -198,8 +209,8 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	// Setup build envs.
 	check(celer.Platform().Setup())
 
-	var port Port
-	var options = InstallOptions{
+	var port configs.Port
+	var options = configs.InstallOptions{
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
@@ -216,7 +227,12 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	}
 
 	// Totally remove port.
-	check(port.Remove(true, true, true))
+	var removeOptions = configs.RemoveOptions{
+		Purge:      true,
+		Recurse:    true,
+		BuildCache: true,
+	}
+	check(port.Remove(removeOptions))
 
 	// Install from package should fail.
 	installed, err := port.InstallFromPackage(options)
@@ -233,7 +249,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	}
 
 	// Clean up.
-	check(port.Remove(true, true, true))
+	check(port.Remove(removeOptions))
 }
 
 func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
@@ -255,7 +271,7 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
 
 	// Init celer.
-	celer := NewCeler()
+	celer := configs.NewCeler()
 	check(celer.Init())
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
@@ -267,13 +283,13 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 	// Setup build envs.
 	check(celer.Platform().Setup())
 
-	var port Port
-	var options = InstallOptions{
+	var port configs.Port
+	var options = configs.InstallOptions{
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	if err := port.InstallFromSource(options); err != ErrCacheDirNotConfigured {
+	if err := port.InstallFromSource(options); err != configs.ErrCacheDirNotConfigured {
 		t.Fatal("should return ErrCacheDirNotConfigured")
 	}
 }
@@ -297,7 +313,7 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
 
 	// Init celer.
-	celer := NewCeler()
+	celer := configs.NewCeler()
 	check(celer.Init())
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
@@ -309,13 +325,13 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 	// Setup build envs.
 	check(celer.Platform().Setup())
 
-	var port Port
-	var options = InstallOptions{
+	var port configs.Port
+	var options = configs.InstallOptions{
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	if err := port.InstallFromSource(options); err != ErrCacheTokenNotConfigured {
+	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotConfigured {
 		t.Fatal("should return ErrCacheTokenNotConfigured")
 	}
 }
@@ -339,7 +355,7 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
 
 	// Init celer.
-	celer := NewCeler()
+	celer := configs.NewCeler()
 	check(celer.Init())
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
@@ -351,13 +367,13 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 	// Setup build envs.
 	check(celer.Platform().Setup())
 
-	var port Port
-	var options = InstallOptions{
+	var port configs.Port
+	var options = configs.InstallOptions{
 		StoreCache: true,
 		CacheToken: "", // Token not specified
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	if err := port.InstallFromSource(options); err != ErrCacheTokenNotSpecified {
+	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotSpecified {
 		t.Fatal("should return ErrCacheTokenNotSpecified")
 	}
 }
@@ -381,7 +397,7 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
 
 	// Init celer.
-	celer := NewCeler()
+	celer := configs.NewCeler()
 	check(celer.Init())
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
@@ -393,13 +409,13 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 	// Setup build envs.
 	check(celer.Platform().Setup())
 
-	var port Port
-	var options = InstallOptions{
+	var port configs.Port
+	var options = configs.InstallOptions{
 		StoreCache: true,
 		CacheToken: "token_654321", // Token not match.
 	}
 	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
-	if err := port.InstallFromSource(options); err != ErrCacheTokenNotMatch {
+	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotMatch {
 		t.Fatal("should return ErrCacheTokenNotMatch")
 	}
 }
@@ -423,7 +439,7 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
 
 	// Init celer.
-	celer := NewCeler()
+	celer := configs.NewCeler()
 	check(celer.Init())
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
@@ -435,8 +451,8 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 	// Setup build envs.
 	check(celer.Platform().Setup())
 
-	var port Port
-	var options = InstallOptions{
+	var port configs.Port
+	var options = configs.InstallOptions{
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
@@ -448,7 +464,12 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 	check(err)
 
 	// Remove installed and src dir.
-	check(port.Remove(true, true, true))
+	removeOptions := configs.RemoveOptions{
+		Purge:      true,
+		Recurse:    true,
+		BuildCache: true,
+	}
+	check(port.Remove(removeOptions))
 	check(os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir))
 
 	// Install from cache with commit.
@@ -479,7 +500,7 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
 
 	// Init celer.
-	celer := NewCeler()
+	celer := configs.NewCeler()
 	check(celer.Init())
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
@@ -491,8 +512,8 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 	// Setup build envs.
 	check(celer.Platform().Setup())
 
-	var port Port
-	var options = InstallOptions{
+	var port configs.Port
+	var options = configs.InstallOptions{
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
@@ -500,13 +521,18 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 	check(port.InstallFromSource(options))
 
 	// Remove installed and src dir.
-	check(port.Remove(true, true, true))
+	removeOptions := configs.RemoveOptions{
+		Purge:      true,
+		Recurse:    true,
+		BuildCache: true,
+	}
+	check(port.Remove(removeOptions))
 	check(os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir))
 
 	// Install from cache with not matched commit.
 	port.Package.Commit = "not_matched_commit_xxxxxx"
 	installed, err := port.InstallFromCache(options)
-	if err == nil || !errors.Is(err, ErrCacheNotFoundWithCommit) {
+	if err == nil || !errors.Is(err, configs.ErrCacheNotFoundWithCommit) {
 		t.Fatal("should return ErrCacheNotFoundWithCommit")
 	}
 	if installed {

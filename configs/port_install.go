@@ -29,7 +29,12 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 
 	if installed {
 		if options.Force {
-			if err := p.Remove(options.Recurse, true, true); err != nil {
+			remoteOptions := RemoveOptions{
+				Purge:      true,
+				Recurse:    options.Recurse,
+				BuildCache: true,
+			}
+			if err := p.Remove(remoteOptions); err != nil {
 				return "", err
 			}
 		} else {
@@ -320,7 +325,12 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 		}
 
 		// Remove outdated package and install from source again.
-		if err := p.Remove(false, true, true); err != nil {
+		remoteOptions := RemoveOptions{
+			Purge:      true,
+			Recurse:    false,
+			BuildCache: true,
+		}
+		if err := p.Remove(remoteOptions); err != nil {
 			return false, fmt.Errorf("failed to remove outdated package.\n %w", err)
 		}
 		if err := p.doInstallFromSource(options); err != nil {

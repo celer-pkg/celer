@@ -33,7 +33,7 @@ func (d dependCmd) Command(celer *configs.Celer) *cobra.Command {
 			libraries, err := d.query(args[0])
 			if err != nil {
 				configs.PrintError(err, "failed to query dependent libraries.")
-				return
+				os.Exit(1)
 			}
 
 			color.Println(color.Cyan, "[Dependency Libraries]:")

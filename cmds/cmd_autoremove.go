@@ -76,7 +76,12 @@ func (a *autoremoveCmd) autoremove() error {
 		if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
 			return err
 		}
-		if err := port.Remove(false, a.purge, a.buildCache); err != nil {
+		remoteOptions := configs.RemoveOptions{
+			Purge:      a.purge,
+			Recurse:    false,
+			BuildCache: a.buildCache,
+		}
+		if err := port.Remove(remoteOptions); err != nil {
 			return err
 		}
 	}
@@ -94,7 +99,12 @@ func (a *autoremoveCmd) autoremove() error {
 		if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
 			return err
 		}
-		if err := port.Remove(false, a.purge, a.buildCache); err != nil {
+		remoteOptions := configs.RemoveOptions{
+			Purge:      a.purge,
+			Recurse:    false,
+			BuildCache: a.buildCache,
+		}
+		if err := port.Remove(remoteOptions); err != nil {
 			return err
 		}
 	}
