@@ -92,7 +92,7 @@ func TestAutoRemove(t *testing.T) {
 		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
 	)
 
-	t.Run("autoremove_with_purge", func(t *testing.T) {
+	t.Run("autoremove with purge", func(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
 		check(port.Init(celer, portNameVersion, celer.BuildType()))
@@ -116,7 +116,7 @@ func TestAutoRemove(t *testing.T) {
 		}
 	})
 
-	t.Run("autoremove_with_build_cache", func(t *testing.T) {
+	t.Run("autoremove with build cache", func(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
 		check(port.Init(celer, portNameVersion, celer.BuildType()))
