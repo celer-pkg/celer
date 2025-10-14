@@ -16,7 +16,7 @@ celer remove [name@version] [flags]
 | --dev             | -d        | uninstall package for dev mode.                           |
 | --purge           | -f        | uninstall package along with its package files.           |
 | --recurse         | -r        | uninstall package along with its depedencies.             |
-| --remove-cache    | -c        | uninstall package along with build cache.                 |
+| --build-cache    | -c        | uninstall package along with build cache.                 |
 
 ## Usage Examples
 
@@ -47,5 +47,5 @@ celer remove ffmpeg@5.1.6 --dev/-d
 ### 5. Remove package and remove build cache
 
 ```shell
-celer remove ffmpeg@5.1.6 --remove-cache/-c
+celer remove ffmpeg@5.1.6 --build-cache/-c
 ```

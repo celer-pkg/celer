@@ -20,6 +20,21 @@ import (
 // preparedTmpDeps is used to store prepared deps.
 var preparedTmpDeps []string
 
+type InstallOptions struct {
+	// Reinstall options.
+	Force   bool
+	Recurse bool
+
+	// Cache options.
+	StoreCache bool
+	CacheToken string
+}
+
+type RemoveOptions struct {
+	Purge      bool
+	BuildCache bool
+}
+
 type Package struct {
 	Url            string   `toml:"url"`
 	Ref            string   `toml:"ref"`
@@ -40,14 +55,6 @@ type Port struct {
 	DevDep        bool                      `toml:"-"`
 	Native        bool                      `toml:"-"`
 	MatchedConfig *buildsystems.BuildConfig `toml:"-"`
-
-	// Reinstall fields.
-	Reinstall bool `toml:"-"`
-	Recurse   bool `toml:"-"`
-
-	// Cached fields.
-	StoreCache bool   `toml:"-"`
-	CacheToken string `toml:"-"`
 
 	ctx          context.Context
 	buildType    string

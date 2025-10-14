@@ -14,7 +14,7 @@ import (
 )
 
 // Install install a port and tell me where it was installed from.
-func (p Port) Install() (string, error) {
+func (p *Port) Install(options InstallOptions) (string, error) {
 	installedDir := expr.If(p.DevDep,
 		filepath.Join(dirs.InstalledDir, p.ctx.Platform().GetHostName()+"-dev"),
 		filepath.Join(dirs.InstalledDir,
@@ -28,8 +28,8 @@ func (p Port) Install() (string, error) {
 	}
 
 	if installed {
-		if p.Reinstall {
-			if err := p.Remove(p.Recurse, true, true); err != nil {
+		if options.Force {
+			if err := p.Remove(options.Recurse, true, true); err != nil {
 				return "", err
 			}
 		} else {
@@ -42,7 +42,7 @@ func (p Port) Install() (string, error) {
 		}
 	} else {
 		// Remove build cache and logs.
-		if p.Reinstall {
+		if options.Force {
 			if err := os.RemoveAll(p.MatchedConfig.PortConfig.BuildDir); err != nil {
 				return "", fmt.Errorf("failed to remove build cache.\n %w", err)
 			}
@@ -67,7 +67,7 @@ func (p Port) Install() (string, error) {
 	// No config found, install as prebuilt.
 	if len(p.BuildConfigs) == 0 ||
 		(p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "") {
-		if err := p.installFromSource(); err != nil {
+		if err := p.InstallFromSource(options); err != nil {
 			return "", err
 		}
 		if len(p.BuildConfigs) == 0 {
@@ -77,15 +77,15 @@ func (p Port) Install() (string, error) {
 	}
 
 	// 1. try to install from package.
-	if installed, err := p.installFromPackage(); err != nil {
+	if installed, err := p.InstallFromPackage(options); err != nil {
 		return "", err
 	} else if installed {
 		return "package", nil
 	}
 
 	// 2. try to install from cache.
-	if !p.StoreCache && !p.Reinstall {
-		if installed, err := p.installFromCache(); err != nil {
+	if !options.StoreCache && !options.Force {
+		if installed, err := p.InstallFromCache(options); err != nil {
 			return "", err
 		} else if installed {
 			return "cache", nil
@@ -93,14 +93,14 @@ func (p Port) Install() (string, error) {
 	}
 
 	// 3. try to install from source.
-	if err := p.installFromSource(); err != nil {
+	if err := p.InstallFromSource(options); err != nil {
 		return "", err
 	}
 
 	return "source", nil
 }
 
-func (p Port) doInstallFromCache() (bool, error) {
+func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
 	// No cache dir configured, skip it.
 	cacheDir := p.ctx.CacheDir()
 	if cacheDir == nil {
@@ -115,7 +115,7 @@ func (p Port) doInstallFromCache() (bool, error) {
 		if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
 			return false, err
 		}
-		if _, err := port.Install(); err != nil {
+		if _, err := port.Install(options); err != nil {
 			return false, err
 		}
 	}
@@ -148,7 +148,7 @@ func (p Port) doInstallFromCache() (bool, error) {
 	return false, nil
 }
 
-func (p Port) doInstallFromSource() error {
+func (p Port) doInstallFromSource(options InstallOptions) error {
 	var installFailed bool
 	defer func() {
 		// Remove package dir if install failed.
@@ -160,7 +160,7 @@ func (p Port) doInstallFromSource() error {
 	}()
 
 	var writeCacheAfterInstall bool
-	if p.StoreCache {
+	if options.StoreCache {
 		cacheDir := p.ctx.CacheDir()
 		if cacheDir == nil {
 			return ErrCacheDirNotConfigured
@@ -173,11 +173,11 @@ func (p Port) doInstallFromSource() error {
 			return ErrCacheTokenNotConfigured
 		}
 
-		if p.CacheToken == "" {
+		if options.CacheToken == "" {
 			return ErrCacheTokenNotSpecified
 		}
 
-		if !encrypt.CheckToken(cacheDir.GetDir(), p.CacheToken) {
+		if !encrypt.CheckToken(cacheDir.GetDir(), options.CacheToken) {
 			return ErrCacheTokenNotMatch
 		}
 
@@ -265,14 +265,14 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	return nil
 }
 
-func (p Port) installFromPackage() (bool, error) {
+func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	// No package no install.
 	if !fileio.PathExists(p.MatchedConfig.PortConfig.PackageDir) {
 		return false, nil
 	}
 
 	// Install dependencies/dev_dependencies.
-	if err := p.installDependencies(); err != nil {
+	if err := p.installDependencies(options); err != nil {
 		return false, err
 	}
 
@@ -323,8 +323,8 @@ func (p Port) installFromPackage() (bool, error) {
 		if err := p.Remove(false, true, true); err != nil {
 			return false, fmt.Errorf("failed to remove outdated package.\n %w", err)
 		}
-		if err := p.doInstallFromSource(); err != nil {
-			return false, fmt.Errorf("failed to install from package.\n %w", err)
+		if err := p.doInstallFromSource(options); err != nil {
+			return false, fmt.Errorf("failed to install from source.\n %w", err)
 		}
 	}
 
@@ -346,15 +346,15 @@ func (p Port) installFromPackage() (bool, error) {
 	return true, nil
 }
 
-func (p Port) installFromCache() (bool, error) {
-	installed, err := p.doInstallFromCache()
+func (p Port) InstallFromCache(options InstallOptions) (bool, error) {
+	installed, err := p.doInstallFromCache(options)
 	if err != nil {
 		return false, fmt.Errorf("failed to install from cache.\n %w", err)
 	}
 
 	if installed {
 		// Install dependencies/dev_dependencies also.
-		if err := p.installDependencies(); err != nil {
+		if err := p.installDependencies(options); err != nil {
 			return false, err
 		}
 
@@ -378,8 +378,8 @@ func (p Port) installFromCache() (bool, error) {
 	return false, nil
 }
 
-func (p Port) installFromSource() error {
-	if err := p.installDependencies(); err != nil {
+func (p Port) InstallFromSource(options InstallOptions) error {
+	if err := p.installDependencies(options); err != nil {
 		return err
 	}
 
@@ -392,7 +392,7 @@ func (p Port) installFromSource() error {
 		}
 	}
 
-	if err := p.doInstallFromSource(); err != nil {
+	if err := p.doInstallFromSource(options); err != nil {
 		return err
 	}
 	if err := p.doInstallFromPackage(p.installedDir); err != nil {
@@ -402,7 +402,7 @@ func (p Port) installFromSource() error {
 	return p.writeTraceFile("source")
 }
 
-func (p Port) installDependencies() error {
+func (p Port) installDependencies(options InstallOptions) error {
 	// Check and repair dev_dependencies.
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Skip self.
@@ -418,7 +418,7 @@ func (p Port) installDependencies() error {
 		if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
 			return err
 		}
-		if _, err := port.Install(); err != nil {
+		if _, err := port.Install(options); err != nil {
 			return err
 		}
 	}
@@ -437,7 +437,7 @@ func (p Port) installDependencies() error {
 		if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
 			return err
 		}
-		if _, err := port.Install(); err != nil {
+		if _, err := port.Install(options); err != nil {
 			return err
 		}
 	}
