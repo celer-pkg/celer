@@ -92,7 +92,7 @@ func TestAutoRemove(t *testing.T) {
 		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
 	)
 
-	t.Run("autoremove with purge", func(t *testing.T) {
+	t.Run("autoremove_with_purge", func(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
 		check(port.Init(celer, portNameVersion, celer.BuildType()))
@@ -102,8 +102,8 @@ func TestAutoRemove(t *testing.T) {
 			check(port.Remove(true, true, true))
 		})
 
-		autoremoveCmd.purge = false
-		autoremoveCmd.buildCache = true
+		autoremoveCmd.purge = true
+		autoremoveCmd.buildCache = false
 		check(autoremoveCmd.autoremove())
 		check(validatePackages(autoremoveCmd.packages, autoremoveCmd.devPackages))
 
@@ -116,14 +116,14 @@ func TestAutoRemove(t *testing.T) {
 		}
 	})
 
-	t.Run("autoremove with build-cache", func(t *testing.T) {
+	t.Run("autoremove_with_build_cache", func(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
 		check(port.Init(celer, portNameVersion, celer.BuildType()))
 		check(port.InstallFromSource(options))
 
-		autoremoveCmd.purge = true
-		autoremoveCmd.buildCache = false
+		autoremoveCmd.purge = false
+		autoremoveCmd.buildCache = true
 		check(autoremoveCmd.autoremove())
 		check(validatePackages(autoremoveCmd.packages, autoremoveCmd.devPackages))
 
