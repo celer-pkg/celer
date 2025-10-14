@@ -13,11 +13,11 @@ import (
 )
 
 type autoremoveCmd struct {
-	celer              *configs.Celer
-	projectPackages    []string
-	projectDevPackages []string
-	purge              bool
-	buildCache         bool
+	celer       *configs.Celer
+	packages    []string
+	devPackages []string
+	purge       bool
+	buildCache  bool
 }
 
 func (a autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -50,10 +50,10 @@ func (a autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 func (a *autoremoveCmd) autoremove(buildCache, purge bool) error {
 	// Collect packages/devPackages that belongs to project.
 	for _, nameVersion := range a.celer.Project().GetPorts() {
-		if err := a.collectProjectPackages(nameVersion); err != nil {
+		if err := a.collectPackages(nameVersion); err != nil {
 			return err
 		}
-		if err := a.collectProjectDevPackages(nameVersion); err != nil {
+		if err := a.collectDevPackages(nameVersion); err != nil {
 			return err
 		}
 	}
@@ -67,7 +67,7 @@ func (a *autoremoveCmd) autoremove(buildCache, purge bool) error {
 	// Remove packages that do not belongs to project.
 	for _, nameVersion := range depPackages {
 		// Skip if required by current project.
-		if slices.Contains(a.projectPackages, nameVersion) {
+		if slices.Contains(a.packages, nameVersion) {
 			continue
 		}
 
@@ -84,7 +84,7 @@ func (a *autoremoveCmd) autoremove(buildCache, purge bool) error {
 	// Remove dev_packages not required by current project any more.
 	for _, nameVersion := range devDepPackages {
 		// Skip if required by current project.
-		if slices.Contains(a.projectDevPackages, nameVersion) {
+		if slices.Contains(a.devPackages, nameVersion) {
 			continue
 		}
 
@@ -102,21 +102,21 @@ func (a *autoremoveCmd) autoremove(buildCache, purge bool) error {
 	return nil
 }
 
-func (a *autoremoveCmd) collectProjectPackages(nameVersion string) error {
+func (a *autoremoveCmd) collectPackages(nameVersion string) error {
 	var port configs.Port
 	if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
 		return err
 	}
 
 	// Add if not added before.
-	if !slices.Contains(a.projectPackages, nameVersion) {
-		a.projectPackages = append(a.projectPackages, nameVersion)
+	if !slices.Contains(a.packages, nameVersion) {
+		a.packages = append(a.packages, nameVersion)
 	}
 
 	for _, depNameVersion := range port.MatchedConfig.Dependencies {
-		if !slices.Contains(a.projectPackages, depNameVersion) {
-			a.projectPackages = append(a.projectPackages, depNameVersion)
-			if err := a.collectProjectPackages(depNameVersion); err != nil {
+		if !slices.Contains(a.packages, depNameVersion) {
+			a.packages = append(a.packages, depNameVersion)
+			if err := a.collectPackages(depNameVersion); err != nil {
 				return err
 			}
 		}
@@ -125,16 +125,16 @@ func (a *autoremoveCmd) collectProjectPackages(nameVersion string) error {
 	return nil
 }
 
-func (a *autoremoveCmd) collectProjectDevPackages(nameVersion string) error {
+func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 	var port configs.Port
 	if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
 		return err
 	}
 
 	for _, devDepNameVersion := range port.MatchedConfig.DevDependencies {
-		if !slices.Contains(a.projectDevPackages, devDepNameVersion) {
-			a.projectDevPackages = append(a.projectDevPackages, devDepNameVersion)
-			if err := a.collectProjectDevPackages(devDepNameVersion); err != nil {
+		if !slices.Contains(a.devPackages, devDepNameVersion) {
+			a.devPackages = append(a.devPackages, devDepNameVersion)
+			if err := a.collectDevPackages(devDepNameVersion); err != nil {
 				return err
 			}
 		}
