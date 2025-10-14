@@ -31,7 +31,7 @@ func (a autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 				os.Exit(1)
 			}
 
-			if err := a.autoremove(a.buildCache, a.purge); err != nil {
+			if err := a.autoremove(); err != nil {
 				configs.PrintError(err, "failed to autoremove.")
 				os.Exit(1)
 			}
@@ -47,7 +47,7 @@ func (a autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 	return command
 }
 
-func (a *autoremoveCmd) autoremove(buildCache, purge bool) error {
+func (a *autoremoveCmd) autoremove() error {
 	// Collect packages/devPackages that belongs to project.
 	for _, nameVersion := range a.celer.Project().GetPorts() {
 		if err := a.collectPackages(nameVersion); err != nil {
@@ -76,7 +76,7 @@ func (a *autoremoveCmd) autoremove(buildCache, purge bool) error {
 		if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
 			return err
 		}
-		if err := port.Remove(false, purge, buildCache); err != nil {
+		if err := port.Remove(false, a.purge, a.buildCache); err != nil {
 			return err
 		}
 	}
@@ -94,7 +94,7 @@ func (a *autoremoveCmd) autoremove(buildCache, purge bool) error {
 		if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
 			return err
 		}
-		if err := port.Remove(false, purge, buildCache); err != nil {
+		if err := port.Remove(false, a.purge, a.buildCache); err != nil {
 			return err
 		}
 	}
