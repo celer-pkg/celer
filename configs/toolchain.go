@@ -169,10 +169,16 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 
 	toolchain.WriteString("\n# Toolchain for cross-compile.\n")
 	cmakepath := strings.TrimPrefix(t.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
-	if t.Name == "msvc" {
+
+	switch t.Name {
+	case "msvc":
 		fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
-	} else {
-		fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+	case "gcc":
+		if t.Path == "/usr/bin" {
+			fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "/usr/bin")
+		} else {
+			fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+		}
 	}
 
 	writeIfNotEmpty("CMAKE_C_COMPILER", t.CC)
