@@ -55,7 +55,7 @@ func TestCreate(t *testing.T) {
 
 	// ============= Create project ============= //
 	t.Run("Create project success", func(t *testing.T) {
-		const projectName = "test_project_test"
+		const projectName = "project_test_create"
 		check(celer.CreateProject(projectName))
 
 		projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")

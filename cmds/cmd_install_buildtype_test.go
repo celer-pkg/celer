@@ -32,7 +32,7 @@ func TestInstall_BuildType(t *testing.T) {
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
-	check(celer.SetProject("test_project_01"))
+	check(celer.SetProject("project_test_01"))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -48,9 +48,9 @@ func TestInstall_BuildType(t *testing.T) {
 		// Check if package dir exists.
 		var packageDir string
 		if runtime.GOOS == "windows" {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@test_project_01@release")
+			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@project_test_01@release")
 		} else {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@test_project_01@release")
+			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@project_test_01@release")
 		}
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package dir cannot found")
@@ -84,9 +84,9 @@ func TestInstall_BuildType(t *testing.T) {
 		// Check if package dir exists.
 		var packageDir string
 		if runtime.GOOS == "windows" {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@test_project_01@debug")
+			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@project_test_01@debug")
 		} else {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@test_project_01@debug")
+			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@project_test_01@debug")
 		}
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package dir cannot found")
@@ -120,9 +120,9 @@ func TestInstall_BuildType(t *testing.T) {
 		// Check if package dir exists.
 		var packageDir string
 		if runtime.GOOS == "windows" {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@test_project_01@release")
+			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@project_test_01@release")
 		} else {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@test_project_01@release")
+			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@project_test_01@release")
 		}
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package dir cannot found")
@@ -155,9 +155,9 @@ func TestInstall_BuildType(t *testing.T) {
 		// Check if package dir exists.
 		var packageDir string
 		if runtime.GOOS == "windows" {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@test_project_01@debug")
+			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@project_test_01@debug")
 		} else {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@test_project_01@debug")
+			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@project_test_01@debug")
 		}
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package dir cannot found")

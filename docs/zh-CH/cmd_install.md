@@ -68,16 +68,16 @@ celer install ffmpeg@5.1.6 --store-cache --cache-token/-t token_xxx
     ├── celer
     │   ├── hash
     │   │   ├── nasm@2.16.03@x86_64-windows-dev.hash
-    │   │   └── x264@stable@x86_64-windows-msvc-14.44@test_project_02@release.hash
+    │   │   └── x264@stable@x86_64-windows-msvc-14.44@project_test_02@release.hash
     │   └── info
     │       ├── nasm@2.16.03@x86_64-windows-dev.trace
-    │       └── x264@stable@x86_64-windows-msvc-14.44@test_project_02@release.trace
+    │       └── x264@stable@x86_64-windows-msvc-14.44@project_test_02@release.trace
     ├── x86_64-windows-dev
     │   ├── LICENSE
     │   └── bin
     │       ├── nasm.exe
     │       └── ndisasm.exe
-    └── x86_64-windows-msvc-14.44@test_project_02@release
+    └── x86_64-windows-msvc-14.44@project_test_02@release
         ├── bin
         │   ├── libx264-164.dll
         │   └── x264.exe
@@ -108,6 +108,6 @@ celer install ffmpeg@5.1.6 --store-cache --cache-token/-t token_xxx
 
 &emsp;&emsp;许多第三方库在编译时需要额外工具（例如x264需要NASM）。Celer通过将这类工具安装至该目录来管理相关依赖，同时会自动将installed/x86_64-windows-dev/bin路径添加至PATH环境变量。在Linux系统下，Celer还会从源码编译安装autoconf、automake、m4、libtool和gettext等工具至此目录。
 
-**4. installed/x86_64-windows-msvc-14.44@test_project_02@release** 
+**4. installed/x86_64-windows-msvc-14.44@project_test_02@release** 
 
 &emsp;&emsp;所有第三方库的编译产物将存储在此目录下。在 **toolchain_file.cmake** 中，`CMAKE_PREFIX_PATH` 会被设置为该目录，以便CMake能够在该目录下找到第三方库。

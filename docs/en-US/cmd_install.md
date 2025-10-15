@@ -68,16 +68,16 @@ celer install ffmpeg@5.1.6 --store-cache/-f --cache-token/-t token_xxx
     ├── celer
     │   ├── hash
     │   │   ├── nasm@2.16.03@x86_64-windows-dev.hash
-    │   │   └── x264@stable@x86_64-windows-msvc-14.44@test_project_02@release.hash
+    │   │   └── x264@stable@x86_64-windows-msvc-14.44@project_test_02@release.hash
     │   └── info
     │       ├── nasm@2.16.03@x86_64-windows-dev.trace
-    │       └── x264@stable@x86_64-windows-msvc-14.44@test_project_02@release.trace
+    │       └── x264@stable@x86_64-windows-msvc-14.44@project_test_02@release.trace
     ├── x86_64-windows-dev
     │   ├── LICENSE
     │   └── bin
     │       ├── nasm.exe
     │       └── ndisasm.exe
-    └── x86_64-windows-msvc-14.44@test_project_02@release
+    └── x86_64-windows-msvc-14.44@project_test_02@release
         ├── bin
         │   ├── libx264-164.dll
         │   └── x264.exe
@@ -105,5 +105,5 @@ celer install ffmpeg@5.1.6 --store-cache/-f --cache-token/-t token_xxx
 **3. installed/x86_64-windows-dev**   
 &emsp;&emsp;Many third-party libraries require extra tools(e.g., NASM for x264) during compilation. Celer manages such dependencies by installing these tools into this kind of directory. Celer would also adds this `installed/x86_64-windows-dev/bin` path in to PATH environment variable. On Linux, it also compiles and installs autoconf, automake, m4, libtool, and gettext from source into this folder. 
 
-**4. installed/x86_64-windows-msvc-14.44@test_project_02@release**   
+**4. installed/x86_64-windows-msvc-14.44@project_test_02@release**   
 &emsp;&emsp;All compiled artifacts of third-party libraries will be stored in this kind of folder. In the `toolchain_file.cmake`, the `CMAKE_PREFIX_PATH` will be set to this folder, so that CMake can find the third-party libraries in this folder.

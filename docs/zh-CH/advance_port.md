@@ -190,9 +190,9 @@ options = [
 | ${SYSTEM_PROCESSOR} | 系统处理器架构，例如：**x86_64**。 |
 | ${SYSROOT} | 系统根目录，例如：**/usr/x86_64-linux**。 |
 | ${CROSS_PREFIX} | 交叉编译前缀，例如：**x86_64-linux-**。 |
-| ${BUILD_DIR} | 编译目录，例如：**buildtrees\x264@stable\x86_64-windows-test_project_02-release**。 |
+| ${BUILD_DIR} | 编译目录，例如：**buildtrees\x264@stable\x86_64-windows-project_test_02-release**。 |
 | ${HOST_NAME} | 主机名称，例如：**x86_64-windows**。 |
-| ${PACKAGE_DIR} | 包目录，例如：**packages\x264@stable@x86_64-windows@test_project_02@release**。 |
+| ${PACKAGE_DIR} | 包目录，例如：**packages\x264@stable@x86_64-windows@project_test_02@release**。 |
 | ${BUILDTREES_DIR} | 编译目录，例如：**buildtrees**。 |
 | ${REPO_DIR} | 仓库目录，例如：**buildtrees\x264@stable\src**。 |
 | ${DEPS_DIR} | 依赖目录，例如：**tmp/deps**。 |

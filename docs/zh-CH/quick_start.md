@@ -41,15 +41,15 @@ conf
 │   ├── x86_64-linux-ubuntu-22.04.toml
 │   └── x86_64-windows-msvc-14.44.toml
 └── projects
-    ├── test_project_01 --------------- project_01's dependencies
+    ├── project_test_01 --------------- project_01's dependencies
     │   ├── boost --------------------- override public build options
     │   │   └── 1.87.0
     │   │       └── port.toml
     │   └── sqlite3 ------------------- override public build options
     │       └── 3.49.0
     │           └── port.toml
-    ├── test_project_01.toml ---------- project_01
-    ├── test_project_02 --------------- project_02's dependencies
+    ├── project_test_01.toml ---------- project_01
+    ├── project_test_02 --------------- project_02's dependencies
     │   ├── ffmpeg -------------------- override public build options
     │   │   └── 5.1.6
     │   │       └── port.toml
@@ -57,7 +57,7 @@ conf
     │   │   └── port.toml
     │   └── lib_002 ------------------- project_02's private library
     │       └── port.toml
-    └── test_project_02.toml ---------- project_02
+    └── project_test_02.toml ---------- project_02
 ```
 
 >关于如何创建新的**platform**、**project**和**port**，你可以参考：[**add platform**](./cmd_create.md#1-创建一个新的平台)、[**add project**](./cmd_create.md#2-创建一个新的项目)和[**add port**](./cmd_create.md#3-创建一个新的端口)。
@@ -116,7 +116,7 @@ Then the **celer.toml** file will be generated in the workspace directory:
 
 ```shell
 celer configure --platform=x86_64-linux-ubuntu-22.04
-celer configure --project=test_project_02
+celer configure --project=project_test_02
 ```
 
 经过配置后，**celer.toml** 文件会更新为以下内容：
@@ -125,7 +125,7 @@ celer configure --project=test_project_02
 [global]
   conf_repo = "https://github.com/celer-pkg/test-conf.git"
   platform = "aarch64-linux-gnu-gcc-9.2"
-  project = "test_project_02"
+  project = "project_test_02"
   jobs = 16
   build_type = "release"
   offline = false

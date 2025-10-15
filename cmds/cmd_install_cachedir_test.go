@@ -37,7 +37,7 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("test_project_01"))
+	check(celer.SetProject("project_test_01"))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
@@ -55,9 +55,9 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	// Check package.
 	var packageDir string
 	if runtime.GOOS == "windows" {
-		packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@test_project_01@release")
+		packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@project_test_01@release")
 	} else {
-		packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@test_project_01@release")
+		packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@project_test_01@release")
 	}
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found")
@@ -114,7 +114,7 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("test_project_01"))
+	check(celer.SetProject("project_test_01"))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
@@ -131,11 +131,11 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 
 	var glogPackageDir, gflagsPackageDir string
 	if runtime.GOOS == "windows" {
-		glogPackageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-windows-msvc-14.44@test_project_01@release")
-		gflagsPackageDir = filepath.Join(dirs.PackagesDir, "gflags@2.2.2@x86_64-windows-msvc-14.44@test_project_01@release")
+		glogPackageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-windows-msvc-14.44@project_test_01@release")
+		gflagsPackageDir = filepath.Join(dirs.PackagesDir, "gflags@2.2.2@x86_64-windows-msvc-14.44@project_test_01@release")
 	} else {
-		glogPackageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-linux-ubuntu-22.04@test_project_01@release")
-		gflagsPackageDir = filepath.Join(dirs.PackagesDir, "gflags@2.2.2@x86_64-linux-ubuntu-22.04@test_project_01@release")
+		glogPackageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-linux-ubuntu-22.04@project_test_01@release")
+		gflagsPackageDir = filepath.Join(dirs.PackagesDir, "gflags@2.2.2@x86_64-linux-ubuntu-22.04@project_test_01@release")
 	}
 	if !fileio.PathExists(glogPackageDir) || !fileio.PathExists(gflagsPackageDir) {
 		t.Fatal("gflags or glog package cannot found")
@@ -202,7 +202,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("test_project_02"))
+	check(celer.SetProject("project_test_02"))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
@@ -218,7 +218,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	check(port.InstallFromSource(options))
 
 	// Check package & repo.
-	packageDir := filepath.Join(dirs.PackagesDir, "prebuilt-x264@stable@x86_64-linux-ubuntu-22.04@test_project_02@release")
+	packageDir := filepath.Join(dirs.PackagesDir, "prebuilt-x264@stable@x86_64-linux-ubuntu-22.04@project_test_02@release")
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found")
 	}
@@ -276,7 +276,7 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("test_project_01"))
+	check(celer.SetProject("project_test_01"))
 	check(celer.SetCacheDir("", "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
@@ -318,7 +318,7 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("test_project_01"))
+	check(celer.SetProject("project_test_01"))
 	check(celer.SetCacheDir(dirs.TestCacheDir, ""))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
@@ -360,7 +360,7 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("test_project_01"))
+	check(celer.SetProject("project_test_01"))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
@@ -402,7 +402,7 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("test_project_01"))
+	check(celer.SetProject("project_test_01"))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
@@ -444,7 +444,7 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("test_project_01"))
+	check(celer.SetProject("project_test_01"))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
@@ -505,7 +505,7 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("test_project_01"))
+	check(celer.SetProject("project_test_01"))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
 
