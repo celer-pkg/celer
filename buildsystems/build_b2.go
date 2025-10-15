@@ -41,7 +41,7 @@ func (b b2) CheckTools() error {
 func (b b2) Clean() error {
 	if fileio.PathExists(filepath.Join(b.PortConfig.SrcDir, "b2")) {
 		title := fmt.Sprintf("[clean %s@%s]", b.PortConfig.LibName, b.PortConfig.LibVersion)
-		executor := cmd.NewExecutor(title, "b2", "clean")
+		executor := cmd.NewExecutor(title, "./b2", "clean")
 		executor.SetWorkDir(b.PortConfig.SrcDir)
 		if err := executor.Execute(); err != nil {
 			return err

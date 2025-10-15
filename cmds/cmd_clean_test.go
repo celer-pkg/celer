@@ -30,7 +30,7 @@ func TestClean(t *testing.T) {
 	// Init celer.
 	const (
 		platform = "x86_64-linux-ubuntu-22.04"
-		project  = "test_project_clean"
+		project  = "project_test_clean"
 	)
 
 	celer := configs.NewCeler()
