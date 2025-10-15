@@ -45,10 +45,11 @@ func TestInstall_Buildsystems(t *testing.T) {
 			nameVersion   = "x264@stable"
 			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
 			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, strings.ToLower(celer.BuildType()))
+
+			port    configs.Port
+			options configs.InstallOptions
 		)
 
-		var port configs.Port
-		var options configs.InstallOptions
 		check(port.Init(celer, nameVersion, celer.BuildType()))
 		check(port.InstallFromSource(options))
 
@@ -76,18 +77,20 @@ func TestInstall_Buildsystems(t *testing.T) {
 	})
 
 	t.Run("install cmake", func(t *testing.T) {
-		var port configs.Port
-		var options configs.InstallOptions
-		check(port.Init(celer, "glog@0.6.0", celer.BuildType()))
+		var (
+			nameVersion   = "glog@0.6.0"
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, strings.ToLower(celer.BuildType()))
+
+			port    configs.Port
+			options configs.InstallOptions
+		)
+
+		check(port.Init(celer, nameVersion, celer.BuildType()))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
-		var packageDir string
-		if runtime.GOOS == "windows" {
-			packageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-windows-msvc-14.44@project_test_01@release")
-		} else {
-			packageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-linux-ubuntu-22.04@project_test_01@release")
-		}
+		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
 
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package dir cannot found")
@@ -110,18 +113,20 @@ func TestInstall_Buildsystems(t *testing.T) {
 	})
 
 	t.Run("install b2", func(t *testing.T) {
-		var port configs.Port
-		var options configs.InstallOptions
-		check(port.Init(celer, "boost@1.87.0", celer.BuildType()))
+		var (
+			nameVersion   = "boost@1.87.0"
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, strings.ToLower(celer.BuildType()))
+
+			port    configs.Port
+			options configs.InstallOptions
+		)
+
+		check(port.Init(celer, nameVersion, celer.BuildType()))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
-		var packageDir string
-		if runtime.GOOS == "windows" {
-			packageDir = filepath.Join(dirs.PackagesDir, "boost@1.87.0@x86_64-windows-msvc-14.44@project_test_01@release")
-		} else {
-			packageDir = filepath.Join(dirs.PackagesDir, "boost@1.87.0@x86_64-linux-ubuntu-22.04@project_test_01@release")
-		}
+		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package dir cannot found")
 		}
@@ -143,18 +148,20 @@ func TestInstall_Buildsystems(t *testing.T) {
 	})
 
 	t.Run("install gyp", func(t *testing.T) {
-		var port configs.Port
-		var options configs.InstallOptions
-		check(port.Init(celer, "nss@3.55", celer.BuildType()))
+		var (
+			nameVersion   = "nss@3.55"
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, strings.ToLower(celer.BuildType()))
+
+			port    configs.Port
+			options configs.InstallOptions
+		)
+
+		check(port.Init(celer, nameVersion, celer.BuildType()))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
-		var packageDir string
-		if runtime.GOOS == "windows" {
-			packageDir = filepath.Join(dirs.PackagesDir, "nss@3.55@x86_64-windows-msvc-14.44@project_test_01@release")
-		} else {
-			packageDir = filepath.Join(dirs.PackagesDir, "nss@3.55@x86_64-linux-ubuntu-22.04@project_test_01@release")
-		}
+		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package cannot found")
 		}
@@ -176,18 +183,20 @@ func TestInstall_Buildsystems(t *testing.T) {
 	})
 
 	t.Run("install meson", func(t *testing.T) {
-		var port configs.Port
-		var options configs.InstallOptions
-		check(port.Init(celer, "pixman@0.44.2", celer.BuildType()))
+		var (
+			nameVersion   = "pixman@0.44.2"
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, strings.ToLower(celer.BuildType()))
+
+			port    configs.Port
+			options configs.InstallOptions
+		)
+
+		check(port.Init(celer, nameVersion, celer.BuildType()))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
-		var packageDir string
-		if runtime.GOOS == "windows" {
-			packageDir = filepath.Join(dirs.PackagesDir, "pixman@0.44.2@x86_64-windows-msvc-14.44@project_test_01@release")
-		} else {
-			packageDir = filepath.Join(dirs.PackagesDir, "pixman@0.44.2@x86_64-linux-ubuntu-22.04@project_test_01@release")
-		}
+		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package dir cannot found")
 		}
@@ -209,13 +218,20 @@ func TestInstall_Buildsystems(t *testing.T) {
 	})
 
 	t.Run("install prebuilt", func(t *testing.T) {
-		var port configs.Port
-		var options configs.InstallOptions
+		var (
+			nameVersion   = "prebuilt-x264@stable"
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, strings.ToLower(celer.BuildType()))
+
+			port    configs.Port
+			options configs.InstallOptions
+		)
+
 		check(port.Init(celer, "prebuilt-x264@stable", celer.BuildType()))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
-		packageDir := filepath.Join(dirs.PackagesDir, "prebuilt-x264@stable@x86_64-linux-ubuntu-22.04@project_test_02@release")
+		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package cannot found")
 		}
@@ -237,9 +253,14 @@ func TestInstall_Buildsystems(t *testing.T) {
 	})
 
 	t.Run("install nobuild", func(t *testing.T) {
-		var port configs.Port
-		var options configs.InstallOptions
-		check(port.Init(celer, "gnulib@master", celer.BuildType()))
+		var (
+			nameVersion = "gnulib@master"
+
+			port    configs.Port
+			options configs.InstallOptions
+		)
+
+		check(port.Init(celer, nameVersion, celer.BuildType()))
 		check(port.InstallFromSource(options))
 
 		if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {

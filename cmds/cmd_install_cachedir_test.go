@@ -7,9 +7,11 @@ import (
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -35,11 +37,17 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	celer := configs.NewCeler()
 	check(celer.Init())
 
+	var (
+		nameVersion = "eigen@3.4.0"
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		project     = "project_test_install"
+	)
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_01"))
+	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetPlatform(platform))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -49,16 +57,15 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+	check(port.Init(celer, nameVersion, celer.BuildType()))
 	check(port.InstallFromSource(installOptions))
 
 	// Check package.
-	var packageDir string
-	if runtime.GOOS == "windows" {
-		packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@project_test_01@release")
-	} else {
-		packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@project_test_01@release")
-	}
+	packageDir := fmt.Sprintf("%s/%s@%s@%s@%s",
+		dirs.PackagesDir, nameVersion,
+		platform, project,
+		strings.ToLower(celer.BuildType()),
+	)
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found")
 	}
@@ -112,11 +119,17 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 	celer := configs.NewCeler()
 	check(celer.Init())
 
+	var (
+		nameVersion = "glog@0.6.0"
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		project     = "project_test_install"
+	)
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_01"))
+	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetPlatform(platform))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -126,17 +139,16 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(glogPort.Init(celer, "glog@0.6.0", celer.BuildType()))
+	check(glogPort.Init(celer, nameVersion, celer.BuildType()))
 	check(glogPort.InstallFromSource(options))
 
-	var glogPackageDir, gflagsPackageDir string
-	if runtime.GOOS == "windows" {
-		glogPackageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-windows-msvc-14.44@project_test_01@release")
-		gflagsPackageDir = filepath.Join(dirs.PackagesDir, "gflags@2.2.2@x86_64-windows-msvc-14.44@project_test_01@release")
-	} else {
-		glogPackageDir = filepath.Join(dirs.PackagesDir, "glog@0.6.0@x86_64-linux-ubuntu-22.04@project_test_01@release")
-		gflagsPackageDir = filepath.Join(dirs.PackagesDir, "gflags@2.2.2@x86_64-linux-ubuntu-22.04@project_test_01@release")
+	packageDir := func(nameVersion string) string {
+		return fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, nameVersion,
+			platform, project, strings.ToLower(celer.BuildType()))
 	}
+	glogPackageDir := packageDir("glog@0.6.0")
+	gflagsPackageDir := packageDir("gflags@2.2.2")
+
 	if !fileio.PathExists(glogPackageDir) || !fileio.PathExists(gflagsPackageDir) {
 		t.Fatal("gflags or glog package cannot found")
 	}
@@ -200,11 +212,17 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	celer := configs.NewCeler()
 	check(celer.Init())
 
+	var (
+		nameVersion = "prebuilt-x264@stable"
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		project     = "project_test_install"
+	)
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_02"))
+	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetPlatform(platform))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -214,11 +232,16 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, "prebuilt-x264@stable", celer.BuildType()))
+	check(port.Init(celer, nameVersion, celer.BuildType()))
 	check(port.InstallFromSource(options))
 
 	// Check package & repo.
-	packageDir := filepath.Join(dirs.PackagesDir, "prebuilt-x264@stable@x86_64-linux-ubuntu-22.04@project_test_02@release")
+	packageDir := fmt.Sprintf("%s/%s@%s@%s@%s",
+		dirs.PackagesDir, nameVersion,
+		platform, project,
+		strings.ToLower(celer.BuildType()),
+	)
+
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found")
 	}
@@ -274,11 +297,17 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 	celer := configs.NewCeler()
 	check(celer.Init())
 
+	var (
+		nameVersion = "eigen@3.4.0"
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		project     = "project_test_install"
+	)
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_01"))
+	check(celer.SetProject(project))
 	check(celer.SetCacheDir("", "token_123456"))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetPlatform(platform))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -288,7 +317,7 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+	check(port.Init(celer, nameVersion, celer.BuildType()))
 	if err := port.InstallFromSource(options); err != configs.ErrCacheDirNotConfigured {
 		t.Fatal("should return ErrCacheDirNotConfigured")
 	}
@@ -316,11 +345,17 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 	celer := configs.NewCeler()
 	check(celer.Init())
 
+	var (
+		nameVersion = "eigen@3.4.0"
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		project     = "project_test_install"
+	)
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_01"))
+	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, ""))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetPlatform(platform))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -330,7 +365,7 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+	check(port.Init(celer, nameVersion, celer.BuildType()))
 	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotConfigured {
 		t.Fatal("should return ErrCacheTokenNotConfigured")
 	}
@@ -358,11 +393,17 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 	celer := configs.NewCeler()
 	check(celer.Init())
 
+	var (
+		nameVersion = "eigen@3.4.0"
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		project     = "project_test_install"
+	)
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_01"))
+	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetPlatform(platform))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -372,7 +413,7 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "", // Token not specified
 	}
-	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+	check(port.Init(celer, nameVersion, celer.BuildType()))
 	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotSpecified {
 		t.Fatal("should return ErrCacheTokenNotSpecified")
 	}
@@ -400,11 +441,17 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 	celer := configs.NewCeler()
 	check(celer.Init())
 
+	var (
+		nameVersion = "eigen@3.4.0"
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		project     = "project_test_install"
+	)
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_01"))
+	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetPlatform(platform))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -414,7 +461,7 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_654321", // Token not match.
 	}
-	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+	check(port.Init(celer, nameVersion, celer.BuildType()))
 	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotMatch {
 		t.Fatal("should return ErrCacheTokenNotMatch")
 	}
@@ -442,11 +489,17 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 	celer := configs.NewCeler()
 	check(celer.Init())
 
+	var (
+		nameVersion = "eigen@3.4.0"
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		project     = "project_test_install"
+	)
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_01"))
+	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetPlatform(platform))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -456,7 +509,7 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+	check(port.Init(celer, nameVersion, celer.BuildType()))
 	check(port.InstallFromSource(options))
 
 	// Read commit.
@@ -503,11 +556,17 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 	celer := configs.NewCeler()
 	check(celer.Init())
 
+	var (
+		nameVersion = "eigen@3.4.0"
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		project     = "project_test_install"
+	)
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetProject("project_test_01"))
+	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetPlatform(platform))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -517,7 +576,7 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+	check(port.Init(celer, nameVersion, celer.BuildType()))
 	check(port.InstallFromSource(options))
 
 	// Remove installed and src dir.

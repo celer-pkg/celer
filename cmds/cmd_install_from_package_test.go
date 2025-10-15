@@ -5,9 +5,11 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -29,10 +31,21 @@ func TestInstall_FromPackage(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
+
+	var (
+		nameVersion = "eigen@3.4.0"
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		project     = "project_test_install"
+		packageDir  = fmt.Sprintf("%s/%s@%s@%s@%s",
+			dirs.PackagesDir, nameVersion, platform, project,
+			strings.ToLower(celer.BuildType()),
+		)
+	)
+
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
-	check(celer.SetProject("project_test_01"))
+	check(celer.SetPlatform(platform))
+	check(celer.SetProject(project))
 
 	// Setup build envs.
 	check(celer.Platform().Setup())
@@ -40,15 +53,9 @@ func TestInstall_FromPackage(t *testing.T) {
 	t.Run("install success", func(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
-		check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+		check(port.Init(celer, nameVersion, celer.BuildType()))
 		check(port.InstallFromSource(options))
 
-		var packageDir string
-		if runtime.GOOS == "windows" {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@project_test_01@release")
-		} else {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@project_test_01@release")
-		}
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package cannot found")
 		}
@@ -80,15 +87,9 @@ func TestInstall_FromPackage(t *testing.T) {
 	t.Run("install failed", func(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
-		check(port.Init(celer, "eigen@3.4.0", celer.BuildType()))
+		check(port.Init(celer, nameVersion, celer.BuildType()))
 		check(port.InstallFromSource(options))
 
-		var packageDir string
-		if runtime.GOOS == "windows" {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-windows-msvc-14.44@project_test_01@release")
-		} else {
-			packageDir = filepath.Join(dirs.PackagesDir, "eigen@3.4.0@x86_64-linux-ubuntu-22.04@project_test_01@release")
-		}
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package cannot found")
 		}
