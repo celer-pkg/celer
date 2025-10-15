@@ -50,7 +50,7 @@ func (c *config) generate(installedDir string) error {
 		if len(c.cmakeConfig.Libraries) > 0 {
 			var libraries []string
 			for _, lib := range c.cmakeConfig.Libraries {
-				libraries = append(libraries, fmt.Sprintf("\t"+`"${_IMPORT_PREFIX}/lib/%s"`, lib))
+				libraries = append(libraries, fmt.Sprintf(`    "${_IMPORT_PREFIX}/lib/%s"`, lib))
 			}
 			content = strings.ReplaceAll(content, "@LIBRARIES@", strings.Join(libraries, "\n"))
 		}

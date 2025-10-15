@@ -667,9 +667,9 @@ func (c Celer) GenerateToolchainFile() error {
 	}
 	toolchain.WriteString("\n# Library search paths.\n")
 	toolchain.WriteString("if(DEFINED CMAKE_FIND_ROOT_PATH)\n")
-	toolchain.WriteString("\tset(CMAKE_FIND_ROOT_PATH \"${CMAKE_FIND_ROOT_PATH}\")\n")
+	toolchain.WriteString("    set(CMAKE_FIND_ROOT_PATH \"${CMAKE_FIND_ROOT_PATH}\")\n")
 	toolchain.WriteString("else()\n")
-	toolchain.WriteString(fmt.Sprintf("\tset(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";")))
+	toolchain.WriteString(fmt.Sprintf("    set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";")))
 	toolchain.WriteString("endif()\n")
 
 	// Define global cmake vars, env vars, micro vars and compile flags.
@@ -713,23 +713,23 @@ func (c Celer) GenerateToolchainFile() error {
 		toolchain.WriteString("add_compile_options(\n")
 		if optimize.Release != "" {
 			flags := strings.Join(strings.Fields(optimize.Release), ";")
-			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Release>:%s>\"\n", flags))
+			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:Release>:%s>\"\n", flags))
 		}
 		if optimize.Debug != "" {
 			flags := strings.Join(strings.Fields(optimize.Debug), ";")
-			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:Debug>:%s>\"\n", flags))
+			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:Debug>:%s>\"\n", flags))
 		}
 		if optimize.RelWithDebInfo != "" {
 			flags := strings.Join(strings.Fields(optimize.RelWithDebInfo), ";")
-			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", flags))
+			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", flags))
 		}
 		if optimize.MinSizeRel != "" {
 			flags := strings.Join(strings.Fields(optimize.MinSizeRel), ";")
-			toolchain.WriteString(fmt.Sprintf("\t\"$<$<CONFIG:MinSizeRel>:%s>\"\n", flags))
+			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:MinSizeRel>:%s>\"\n", flags))
 		}
 		if len(c.project.Flags) > 0 {
 			for _, item := range c.project.Flags {
-				toolchain.WriteString(fmt.Sprintf("\t%q\n", item))
+				toolchain.WriteString(fmt.Sprintf("    %q\n", item))
 			}
 		}
 		toolchain.WriteString(")\n")
@@ -813,7 +813,7 @@ func (c Celer) writePkgConfig(toolchain *strings.Builder) {
 	if len(configPaths) > 0 {
 		toolchain.WriteString("set(PKG_CONFIG_PATH" + "\n")
 		for _, path := range configPaths {
-			toolchain.WriteString(fmt.Sprintf("\t%q", path) + "\n")
+			toolchain.WriteString(fmt.Sprintf("    %q", path) + "\n")
 		}
 		toolchain.WriteString(")\n")
 		toolchain.WriteString(fmt.Sprintf(`list(JOIN PKG_CONFIG_PATH "%s" PKG_CONFIG_PATH_STR)`, string(os.PathListSeparator)) + "\n")

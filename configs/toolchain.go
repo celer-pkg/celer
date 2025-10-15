@@ -152,7 +152,7 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 	toolchain.WriteString("\n# Runtime paths.\n")
 	toolchain.WriteString(`get_filename_component(WORKSPACE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)` + "\n")
 	toolchain.WriteString("set(PATH_LIST\n")
-	toolchain.WriteString(fmt.Sprintf("\t%q\n", t.cmakepath))
+	toolchain.WriteString(fmt.Sprintf("    %q\n", t.cmakepath))
 	toolchain.WriteString(")\n")
 	toolchain.WriteString(fmt.Sprintf("list(JOIN PATH_LIST %q PATH_STR)\n", string(os.PathListSeparator)))
 	toolchain.WriteString(fmt.Sprintf(`set(ENV{PATH} "${PATH_STR}%s$ENV{PATH}")`, string(os.PathListSeparator)) + "\n")
