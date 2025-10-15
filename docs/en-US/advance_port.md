@@ -196,7 +196,7 @@ options = [
 | ${CROSS_PREFIX} | Its the value of **toolchain.crosstool_prefix** that defined in the platform file. |
 | ${BUILD_DIR} | It's the value of path pointing to the current library's compile directory in the buildtrees directory. |
 | ${HOST_NAME} | It's the value of **toolchain.host_name** that defined in the platform file. |
-| ${PACKAGE_DIR} | It's the value of path pointing to the current library's package directory, such as: **packages\x264@stable@x86_64-windows@test_project_02@release**. |
+| ${PACKAGE_DIR} | It's the value of path pointing to the current library's package directory, such as: **packages\x264@stable@x86_64-windows@project_test_02@release**. |
 | ${BUILDTREES_DIR} | It's the value of path pointing to the buildtrees root directory in the workspace. |
 | ${REPO_DIR} | It's the value of path pointing to the current library source code directory, such as: **buildtrees\x264@stable\src**. |
 | ${DEPS_DIR} | It's the value of path pointing to the **tmp/deps** directory. |

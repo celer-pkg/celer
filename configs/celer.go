@@ -382,12 +382,8 @@ func (c Celer) CreatePort(nameVersion string) error {
 
 func (c *Celer) SetConfRepo(url, branch string) error {
 	// No repo url specifeid, maybe want to update repo only.
-	if strings.TrimSpace(url) == "" {
-		return c.updateConfRepo("", branch)
-	} else {
-		if err := c.updateConfRepo(url, branch); err != nil {
-			return err
-		}
+	if err := c.updateConfRepo(url, branch); err != nil {
+		return err
 	}
 
 	if err := c.readOrCreate(); err != nil {

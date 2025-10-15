@@ -58,6 +58,12 @@ func (r removeCmd) Command(celer *configs.Celer) *cobra.Command {
 }
 
 func (r removeCmd) remove(nameVersions []string) error {
+	removeOptions := configs.RemoveOptions{
+		Purge:      r.purge,
+		Recurse:    r.recurse,
+		BuildCache: r.buildCache,
+	}
+
 	for _, nameVersion := range nameVersions {
 		var port configs.Port
 		port.DevDep = r.dev
@@ -65,7 +71,7 @@ func (r removeCmd) remove(nameVersions []string) error {
 		if err := port.Init(r.celer, nameVersion, r.buildType); err != nil {
 			return err
 		}
-		if err := port.Remove(r.recurse, r.purge, r.buildCache); err != nil {
+		if err := port.Remove(removeOptions); err != nil {
 			return err
 		}
 	}

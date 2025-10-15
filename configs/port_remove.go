@@ -12,11 +12,11 @@ import (
 	"strings"
 )
 
-func (p Port) Remove(recurse, purge, removeBuildCache bool) error {
+func (p Port) Remove(options RemoveOptions) error {
 	matchedConfig := p.MatchedConfig
 
 	// Try to remove dependencies firstly.
-	if recurse {
+	if options.Recurse {
 		removeFunc := func(nameVersion string, devDep bool) error {
 			// Skip self dependency.
 			if devDep == p.DevDep && nameVersion == p.NameVersion() {
@@ -32,7 +32,7 @@ func (p Port) Remove(recurse, purge, removeBuildCache bool) error {
 			}
 
 			// Remove dependency.
-			if err := port.Remove(recurse, purge, removeBuildCache); err != nil {
+			if err := port.Remove(options); err != nil {
 				return fmt.Errorf("failed to remove dependency %s.\n %w", nameVersion, err)
 			}
 
@@ -59,14 +59,14 @@ func (p Port) Remove(recurse, purge, removeBuildCache bool) error {
 	}
 
 	// Remove port's package files.
-	if purge {
+	if options.Purge {
 		if err := p.removePackage(); err != nil {
 			return fmt.Errorf("failed to remove package.\n %w", err)
 		}
 	}
 
 	// Remove build cache and logs.
-	if removeBuildCache {
+	if options.BuildCache {
 		if err := os.RemoveAll(matchedConfig.PortConfig.BuildDir); err != nil {
 			return fmt.Errorf("failed to remove build cache.\n %w", err)
 		}

@@ -64,7 +64,7 @@ func TestConfigure(t *testing.T) {
 
 	// ============= Configure project ============= //
 	t.Run("configure project success", func(t *testing.T) {
-		const projectName = "test_project_01"
+		const projectName = "project_test_01"
 		check(celer.SetProject(projectName))
 		if celer.Project().GetName() != projectName {
 			t.Fatalf("project should be `%s`", projectName)
