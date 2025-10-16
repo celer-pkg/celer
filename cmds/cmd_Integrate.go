@@ -21,6 +21,7 @@ import (
 type integrateCmd struct {
 	powershell bool
 	bash       bool
+	zsh        bool
 	remove     bool
 }
 
@@ -56,8 +57,9 @@ func (i integrateCmd) Command(celer *configs.Celer) *cobra.Command {
 	command.Flags().BoolVar(&i.remove, "remove", false, "remove tab completion.")
 	command.Flags().BoolVar(&i.powershell, "powershell", false, "integrate tab completion for powershell.")
 	command.Flags().BoolVar(&i.bash, "bash", false, "integrate tab completion for bash.")
+	command.Flags().BoolVar(&i.zsh, "zsh", false, "integrate tab completion for zsh.")
 
-	command.MarkFlagsMutuallyExclusive("powershell", "bash")
+	command.MarkFlagsMutuallyExclusive("powershell", "bash", "zsh")
 
 	return command
 }
@@ -137,8 +139,20 @@ func (i integrateCmd) doRemove(homeDir string) error {
 		cmd.Stdin = os.Stdin
 		cmd.Run()
 
+	case i.zsh:
+		if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+			return fmt.Errorf("zsh completion is only supported on linux and macOS")
+		}
+		// Remove zsh completion file
+		fmt.Println("[integrate] rm -f ~/.local/share/zsh/site-functions/_celer")
+		cmd := exec.Command("rm", "-f", filepath.Join(homeDir, ".local/share/zsh/site-functions/_celer"))
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Stdin = os.Stdin
+		cmd.Run()
+
 	default:
-		return fmt.Errorf("no --bash or --powershell specified to integrate")
+		return fmt.Errorf("no --bash, --zsh or --powershell specified to integrate")
 	}
 
 	return nil
@@ -167,6 +181,17 @@ func (i integrateCmd) installCompletion(homeDir string) error {
 	case i.bash:
 		// Install completion file to `~/.local/share/bash-completion/completions`
 		destination := filepath.Join(homeDir, ".local", "share", "bash-completion", "completions", "celer")
+		if err := os.MkdirAll(filepath.Dir(destination), os.ModePerm); err != nil {
+			return err
+		}
+		if err := fileio.MoveFile(filePath, destination); err != nil {
+			return err
+		}
+		fmt.Printf("[integrate] completion --> %s\n", destination)
+
+	case i.zsh:
+		// Install completion file to `~/.local/share/zsh/site-functions/_celer`
+		destination := filepath.Join(homeDir, ".local", "share", "zsh", "site-functions", "_celer")
 		if err := os.MkdirAll(filepath.Dir(destination), os.ModePerm); err != nil {
 			return err
 		}
@@ -240,6 +265,14 @@ func (i integrateCmd) generateCompletionFile() (string, error) {
 		filePath = filepath.Join(dirs.TmpFilesDir, "celer")
 		genFunc = rootCmd.GenBashCompletion
 
+	case i.zsh:
+		if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+			return "", fmt.Errorf("zsh completion is only supported on linux and macOS")
+		}
+
+		filePath = filepath.Join(dirs.TmpFilesDir, "_celer")
+		genFunc = rootCmd.GenZshCompletion
+
 	case i.powershell:
 		if runtime.GOOS != "windows" {
 			return "", fmt.Errorf("powershell completion is only supported on windows")
@@ -249,7 +282,7 @@ func (i integrateCmd) generateCompletionFile() (string, error) {
 		genFunc = rootCmd.GenPowerShellCompletionWithDesc
 
 	default:
-		return "", fmt.Errorf("no --bash or --powershell specified to integrate")
+		return "", fmt.Errorf("no --bash, --zsh or --powershell specified to integrate")
 	}
 
 	// Generate completion file.
@@ -273,10 +306,10 @@ func (i integrateCmd) installExecutable(homeDir string) error {
 	}
 
 	switch runtime.GOOS {
-	case "linux":
+	case "linux", "darwin":
 		// Copy into `~/.local/bin`
 		if err := i.executeCmd("cp", path, filepath.Join(homeDir, ".local/bin")); err != nil {
-			return fmt.Errorf("failed to copy celer to `/usr/local/bin`.\n %w", err)
+			return fmt.Errorf("failed to copy celer to ~/.local/bin.\n %w", err)
 		}
 
 		fmt.Println("[integrate] celer --> ~/.local/bin")
@@ -315,7 +348,7 @@ func (i integrateCmd) executeCmd(name string, args ...string) error {
 
 func (i integrateCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	for _, flag := range []string{"--powershell", "--bash", "--remove"} {
+	for _, flag := range []string{"--powershell", "--bash", "--zsh", "--remove"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}
