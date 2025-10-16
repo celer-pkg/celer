@@ -1,6 +1,7 @@
 package buildsystems
 
 import (
+	"celer/context"
 	"celer/pkgs/expr"
 	"os"
 )
@@ -35,14 +36,7 @@ type Toolchain struct {
 	STRIP           string
 	READELF         string
 
-	MSVC    msvc
-	Verbose bool
-}
-
-type msvc struct {
-	VCVars string
-	MT     string
-	RC     string
+	MSVC context.MSVC
 }
 
 func (t Toolchain) SetEnvs(buildConfig *BuildConfig) {

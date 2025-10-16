@@ -105,7 +105,7 @@ func (c cmake) configureOptions() ([]string, error) {
 	options = append(options, fmt.Sprintf("-DCMAKE_FIND_ROOT_PATH=%q", filepath.ToSlash(strings.Join(findRootPaths, ";"))))
 
 	// Enable verbose makefile.
-	if c.PortConfig.Toolchain.Verbose {
+	if c.Ctx.Verbose() {
 		options = append(options, "-DCMAKE_VERBOSE_MAKEFILE=ON")
 	}
 

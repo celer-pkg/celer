@@ -29,7 +29,7 @@ func NewCeler() *Celer {
 	return &Celer{
 		configData: configData{
 			Global: global{
-				Jobs:      runtime.NumCPU(),
+				Jobs:      runtime.NumCPU() - 1,
 				BuildType: "Release",
 			},
 		},
@@ -78,7 +78,7 @@ func (c *Celer) Init() error {
 		// Default global values.
 		c.configData.Global = global{
 			BuildType: "Release",
-			Jobs:      runtime.NumCPU(),
+			Jobs:      runtime.NumCPU() - 1,
 			Offline:   false,
 			Verbose:   false,
 		}
