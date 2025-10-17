@@ -15,11 +15,11 @@ celer integrate [--bash|--powershell]
 
 ## Command Options
 
-| Option	    | Description	                                                    |
-| ------------- | ----------------------------------------------------------------- |
-| --bash	    | Enable tab completion for Bash shell	                            |
-| --powershell	| Enable tab completion for PowerShell	                            |
-| --remove	    | Combing with --bash and --powershell to remove tab completions	|
+| Option	    | Description	                                                            |
+| ------------- | ------------------------------------------------------------------------- |
+| --bash	    | Enable tab completion for Bash shell	                                    |
+| --powershell	| Enable tab completion for PowerShell	                                    |
+| --unregister  | Combing with --bash and --powershell to unregister tab completions	    |
 
 ## Usage Examples
 
@@ -32,13 +32,13 @@ celer integrate --bash
 celer integrate --powershell
 ```
 
-**2. Remove tab completion**
+**2. Unregister tab completion**
 
-To remove all Celer shell completions, use the --remove option:
+To unregister all Celer shell completions, use the --unregister option:
 
 ```shell
-celer integrate --bash --remove
-celer integrate --powershell --remove
+celer integrate --bash --unregister
+celer integrate --powershell --unregister
 ```
 
 > **Note:**   

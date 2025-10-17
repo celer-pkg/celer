@@ -15,11 +15,11 @@ celer integrate [--bash|--powershell]
 
 ## 命令选项
 
-| Option	    | Description	                                                    |
-| ------------- | ----------------------------------------------------------------- |
-| --bash	    | Enable tab completion for Bash shell	                            |
-| --powershell	| Enable tab completion for PowerShell	                            |
-| --remove	    | Combing with --bash and --powershell to remove tab completions	|
+| Option	    | Description	                                                            |
+| ------------- | ------------------------------------------------------------------------- |
+| --bash	    | Enable tab completion for Bash shell	                                    |
+| --powershell	| Enable tab completion for PowerShell	                                    |
+| --unregister  | Combing with --bash and --powershell to unregister tab completions	    |
 
 ## 用法示例
 
@@ -34,11 +34,11 @@ celer integrate --powershell
 
 **2. 移除 Tab 补全**
 
-要移除所有 Celer shell 补全，请使用 --remove 选项：
+要移除所有 Celer shell 补全，请使用 --unregister 选项：
 
 ```shell
-celer integrate --bash --remove
-celer integrate --powershell --remove
+celer integrate --bash --unregister
+celer integrate --powershell --unregister
 ```
 
 > **Note:**   
