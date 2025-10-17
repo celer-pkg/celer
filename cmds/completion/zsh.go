@@ -8,68 +8,82 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-type ZshCompletion struct {
-	registerLine string
+type zsh struct {
+	homeDir        string
+	registerFpath  string
+	registerBinary string
+	rootCmd        *cobra.Command
 }
 
-func (z ZshCompletion) Register(homeDir string) error {
-	if err := z.installBinary(homeDir); err != nil {
+func (z zsh) Register() error {
+	if err := z.installBinary(); err != nil {
 		return fmt.Errorf("failed to install zsh binary.\n %w", err)
 	}
-	if err := z.installCompletion(nil, homeDir); err != nil {
+	if err := z.installCompletion(); err != nil {
 		return fmt.Errorf("failed to install zsh completion.\n %w", err)
 	}
-	if err := z.registerRunCommand(homeDir); err != nil {
+	if err := z.registerRunCommand(); err != nil {
 		return fmt.Errorf("failed to add run command to zshrc.\n %w", err)
 	}
 
 	return nil
 }
 
-func (z ZshCompletion) Unregister(homeDir string) error {
-	if err := z.uninstallBinary(homeDir); err != nil {
+func (z zsh) Unregister() error {
+	if err := z.uninstallBinary(); err != nil {
 		return fmt.Errorf("failed to uninstall zsh binary.\n %w", err)
 	}
-	if err := z.uninstallCompletion(homeDir); err != nil {
+	if err := z.uninstallCompletion(); err != nil {
 		return fmt.Errorf("failed to uninstall zsh completion.\n %w", err)
 	}
-	if err := z.unregisterRunCommand(homeDir); err != nil {
+	if err := z.unregisterRunCommand(); err != nil {
 		return fmt.Errorf("failed to remove run command from zshrc.\n %w", err)
 	}
 
 	return nil
 }
 
-func (z ZshCompletion) installBinary(homeDir string) error {
+func (z zsh) installBinary() error {
 	executable, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to get celer's path.\n %w", err)
 	}
 
-	switch runtime.GOOS {
-	case "linux", "darwin":
-		// Copy into `~/.local/bin`
-		if fileio.CopyFile(executable, filepath.Join(homeDir, ".local/bin")); err != nil {
-			return fmt.Errorf("failed to copy celer to ~/.local/bin.\n %w", err)
-		}
-
-		fmt.Println("[integrate] celer --> ~/.local/bin")
+	// Copy into `~/.local/bin`
+	if err := fileio.CopyFile(executable, filepath.Join(z.homeDir, ".local/bin/celer")); err != nil {
+		return fmt.Errorf("failed to copy celer to ~/.local/bin.\n %w", err)
 	}
 
+	// Check if already contains the line.
+	zshrcPath := filepath.Join(z.homeDir, ".zshrc")
+	content, err := os.ReadFile(zshrcPath)
+	if err != nil {
+		return fmt.Errorf("failed to read ~/.zshrc.\n %w", err)
+	}
+	if strings.Contains(string(content), z.registerBinary) {
+		return nil
+	}
+
+	// Append `export PATH=~/.local/bin:$PATH` to top of .zshrc
+	file, err := os.ReadFile(zshrcPath)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to read ~/.zshrc: %w", err)
+	}
+	newContent := z.registerBinary + "\n" + string(file)
+	if err := os.WriteFile(zshrcPath, []byte(newContent), os.ModePerm); err != nil {
+		return fmt.Errorf("failed to write to ~/.zshrc: %w", err)
+	}
+
+	fmt.Println("[integrate] celer --> ~/.local/bin")
 	return nil
 }
 
-func (z ZshCompletion) installCompletion(cmd *cobra.Command, homeDir string) error {
-	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
-		return fmt.Errorf("zsh completion is only supported on linux and macOS")
-	}
-
+func (z zsh) installCompletion() error {
 	if err := dirs.CleanTmpFilesDir(); err != nil {
 		return fmt.Errorf("failed to create clean tmp dir.\n %w", err)
 	}
@@ -82,12 +96,12 @@ func (z ZshCompletion) installCompletion(cmd *cobra.Command, homeDir string) err
 	}
 	defer file.Close()
 
-	if err := cmd.GenZshCompletion(file); err != nil {
+	if err := z.rootCmd.GenZshCompletion(file); err != nil {
 		return fmt.Errorf("failed to generate zsh completion file.\n %w", err)
 	}
 
 	// Install completion file to `~/.local/share/zsh/site-functions/_celer`
-	destination := filepath.Join(homeDir, ".local", "share", "zsh", "site-functions", "_celer")
+	destination := filepath.Join(z.homeDir, ".local", "share", "zsh", "site-functions", "_celer")
 	if err := os.MkdirAll(filepath.Dir(destination), os.ModePerm); err != nil {
 		return err
 	}
@@ -95,7 +109,7 @@ func (z ZshCompletion) installCompletion(cmd *cobra.Command, homeDir string) err
 		return err
 	}
 
-	if err := z.registerRunCommand(homeDir); err != nil {
+	if err := z.registerRunCommand(); err != nil {
 		return err
 	}
 
@@ -103,61 +117,72 @@ func (z ZshCompletion) installCompletion(cmd *cobra.Command, homeDir string) err
 	return nil
 }
 
-func (z ZshCompletion) uninstallCompletion(homeDir string) error {
+func (z zsh) uninstallCompletion() error {
 	fmt.Println("[integrate] rm -f ~/.local/share/zsh/site-functions/_celer")
-	if err := os.Remove(filepath.Join(homeDir, ".local/share/zsh/site-functions/_celer")); err != nil {
+	if err := os.Remove(filepath.Join(z.homeDir, ".local/share/zsh/site-functions/_celer")); err != nil {
 		return fmt.Errorf("failed to remove zsh completion file.\n %w", err)
 	}
 
 	return nil
 }
 
-func (z ZshCompletion) uninstallBinary(homeDir string) error {
-	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
-		return fmt.Errorf("zsh completion is only supported on linux and macOS")
-	}
-
+func (z zsh) uninstallBinary() error {
 	// Remove celer binary.
 	fmt.Println("[integrate] rm -f ~/.local/bin/celer")
-	if err := os.Remove(filepath.Join(homeDir, ".local/bin/celer")); err != nil {
+	if err := os.Remove(filepath.Join(z.homeDir, ".local/bin/celer")); err != nil {
 		return fmt.Errorf("failed to remove celer binary.\n %w", err)
 	}
 
 	return nil
 }
 
-func (z ZshCompletion) registerRunCommand(homeDir string) error {
-	zshrcPath := filepath.Join(homeDir, ".zshrc")
+func (z zsh) registerRunCommand() error {
+	zshrcPath := filepath.Join(z.homeDir, ".zshrc")
 	if !fileio.PathExists(zshrcPath) {
 		return fmt.Errorf("no .zshrc file found in home dir")
 	}
 
-	// Check if already contains the line.
+	// Check if already contains the fpath.
 	content, err := os.ReadFile(zshrcPath)
 	if err != nil {
 		return fmt.Errorf("failed to read ~/.zshrc.\n %w", err)
 	}
-	if strings.Contains(string(content), z.registerLine) {
+	if strings.Contains(string(content), z.registerFpath) {
 		return nil
 	}
 
-	// Append to end of .bashrc
-	file, err := os.OpenFile(zshrcPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// Append fpath to the bottom of `export PATH=#HOME/.local/bin:$PATH`
+	file, err := os.Open(zshrcPath)
 	if err != nil {
-		return fmt.Errorf("failed to open ~/.bashrc: %w", err)
+		return err
 	}
 	defer file.Close()
 
-	if _, err := file.WriteString("\n" + z.registerLine); err != nil {
-		return fmt.Errorf("failed to write to ~/.bashrc.\n %w", err)
+	var buffer bytes.Buffer
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == z.registerBinary {
+			buffer.WriteString(line + "\n" + z.registerFpath + "\n\n")
+		} else {
+			buffer.WriteString(line + "\n")
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	// Write back to .zshrc
+	if err := os.WriteFile(zshrcPath, buffer.Bytes(), os.ModePerm); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (z ZshCompletion) unregisterRunCommand(homeDir string) error {
+func (z zsh) unregisterRunCommand() error {
 	// Check if .zshrc exists
-	zshrcPath := filepath.Join(homeDir, ".zshrc")
+	zshrcPath := filepath.Join(z.homeDir, ".zshrc")
 	if !fileio.PathExists(zshrcPath) {
 		return fmt.Errorf("no .zshrc file found in home dir")
 	}
@@ -174,7 +199,7 @@ func (z ZshCompletion) unregisterRunCommand(homeDir string) error {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if line != z.registerLine {
+		if line != z.registerFpath {
 			buffer.WriteString(line + "\n")
 		}
 	}
@@ -190,8 +215,11 @@ func (z ZshCompletion) unregisterRunCommand(homeDir string) error {
 	return nil
 }
 
-func NewZshCompletion() ZshCompletion {
-	return ZshCompletion{
-		registerLine: "fpath=(~/.local/share/zsh/site-functions $fpath) # added by celer",
+func NewZshCompletion(homeDir string, rootCmd *cobra.Command) zsh {
+	return zsh{
+		homeDir:        homeDir,
+		registerFpath:  "fpath=($HOME/.local/share/zsh/site-functions $fpath) # added by celer",
+		registerBinary: "export PATH=$HOME/.local/bin:$PATH # added by celer",
+		rootCmd:        rootCmd,
 	}
 }

@@ -1,17 +1,15 @@
 package completion
 
-import "github.com/spf13/cobra"
+type Completion interface {
+	Register() error
+	Unregister() error
 
-type completion interface {
-	Register(homeDir string) error
-	Unregister(homeDir string) error
+	installBinary() error
+	uninstallBinary() error
 
-	installBinary(homeDir string) error
-	uninstallBinary(homeDir string) error
-
-	installCompletion(cmd *cobra.Command, homeDir string) error
-	uninstallCompletion(homeDir string) error
+	installCompletion() error
+	uninstallCompletion() error
 
 	registerRunCommand() error
-	unregisterRunCommand(homeDir string) error
+	unregisterRunCommand() error
 }

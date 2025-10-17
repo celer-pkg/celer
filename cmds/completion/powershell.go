@@ -9,46 +9,47 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-type PowerShellCompletion struct {
-	registerLine string
+type powershell struct {
+	homeDir        string
+	registerBinary string
+	rootCmd        *cobra.Command
 }
 
-func (p PowerShellCompletion) Register(homeDir string) error {
-	if err := p.installBinary(homeDir); err != nil {
+func (p powershell) Register() error {
+	if err := p.installBinary(); err != nil {
 		return fmt.Errorf("failed to install powershell binary.\n %w", err)
 	}
-	if err := p.installCompletion(nil, homeDir); err != nil {
+	if err := p.installCompletion(); err != nil {
 		return fmt.Errorf("failed to install powershell completion.\n %w", err)
 	}
-	if err := p.registerRunCommand(homeDir); err != nil {
+	if err := p.registerRunCommand(); err != nil {
 		return fmt.Errorf("failed to add run command to powershell profile.\n %w", err)
 	}
 
 	return nil
 }
 
-func (p PowerShellCompletion) Unregister(homeDir string) error {
-	if err := p.uninstallBinary(homeDir); err != nil {
+func (p powershell) Unregister() error {
+	if err := p.uninstallBinary(); err != nil {
 		return fmt.Errorf("failed to uninstall powershell binary.\n %w", err)
 	}
-	if err := p.uninstallCompletion(homeDir); err != nil {
+	if err := p.uninstallCompletion(); err != nil {
 		return fmt.Errorf("failed to uninstall powershell completion.\n %w", err)
 	}
-	if err := p.unregisterRunCommand(homeDir); err != nil {
+	if err := p.unregisterRunCommand(); err != nil {
 		return fmt.Errorf("failed to remove run command from powershell profile.\n %w", err)
 	}
 
 	return nil
 }
 
-func (p PowerShellCompletion) installBinary(homeDir string) error {
+func (p powershell) installBinary() error {
 	// Copy into `~/AppData/Local/celer`
 	executable, err := os.Executable()
 	if err != nil {
@@ -75,11 +76,7 @@ func (p PowerShellCompletion) installBinary(homeDir string) error {
 	return nil
 }
 
-func (p PowerShellCompletion) installCompletion(cmd *cobra.Command, homeDir string) error {
-	if runtime.GOOS != "windows" {
-		return fmt.Errorf("powershell completion is only supported on windows")
-	}
-
+func (p powershell) installCompletion() error {
 	if err := dirs.CleanTmpFilesDir(); err != nil {
 		return fmt.Errorf("failed to create clean tmp dir.\n %w", err)
 	}
@@ -92,23 +89,26 @@ func (p PowerShellCompletion) installCompletion(cmd *cobra.Command, homeDir stri
 	}
 	defer file.Close()
 
-	if err := cmd.GenPowerShellCompletion(file); err != nil {
+	if err := p.rootCmd.GenPowerShellCompletion(file); err != nil {
 		return fmt.Errorf("failed to generate powershell completion file.\n %w", err)
 	}
 
 	return nil
 }
 
-func (p PowerShellCompletion) uninstallCompletion(homeDir string) error {
+func (p powershell) uninstallCompletion() error {
+	// Unregister completion ps file.
+	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
+	celerDir := filepath.Join(modulesDir, "celer")
+	if err := os.RemoveAll(celerDir); err != nil {
+		return fmt.Errorf("failed to unregister celer module.\n %w", err)
+	}
 
+	fmt.Println("[integrate] celer --> ~/Documents/WindowsPowerShell/Modules")
 	return nil
 }
 
-func (p PowerShellCompletion) uninstallBinary(homeDir string) error {
-	if runtime.GOOS != "windows" {
-		return fmt.Errorf("powershell completion is only supported on windows")
-	}
-
+func (p powershell) uninstallBinary() error {
 	// Unregister completion ps file.
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
 	celerDir := filepath.Join(modulesDir, "celer")
@@ -125,7 +125,7 @@ func (p PowerShellCompletion) uninstallBinary(homeDir string) error {
 	return nil
 }
 
-func (p PowerShellCompletion) registerRunCommand(homeDir string) error {
+func (p powershell) registerRunCommand() error {
 	// Install completion file to `~/Documents/WindowsPowerShell/Modules`
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
 	celerRcFile := filepath.Join(modulesDir, "celer", "celer_completion.ps1")
@@ -157,8 +157,8 @@ func (p PowerShellCompletion) registerRunCommand(homeDir string) error {
 		lines := strings.Split(string(content), "\n")
 
 		// Add completion script to profile if not contains.
-		if !slices.Contains(lines, p.registerLine) {
-			profile.WriteString(p.registerLine + "\n")
+		if !slices.Contains(lines, p.registerBinary) {
+			profile.WriteString(p.registerBinary + "\n")
 		}
 	} else {
 		content := fmt.Sprintf(". %s", celerRcFile)
@@ -170,7 +170,7 @@ func (p PowerShellCompletion) registerRunCommand(homeDir string) error {
 	return nil
 }
 
-func (p PowerShellCompletion) unregisterRunCommand(homeDir string) error {
+func (p powershell) unregisterRunCommand() error {
 	// Remove celer_completion.ps1 from profile.ps1.
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
 	profilePath := filepath.Join(filepath.Dir(modulesDir), "profile.ps1")
@@ -184,7 +184,7 @@ func (p PowerShellCompletion) unregisterRunCommand(homeDir string) error {
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			line := scanner.Text()
-			if !strings.HasPrefix(line, p.registerLine) {
+			if !strings.HasPrefix(line, p.registerBinary) {
 				buffer.WriteString(line + "\n")
 			}
 		}
@@ -207,7 +207,7 @@ func (p PowerShellCompletion) unregisterRunCommand(homeDir string) error {
 	return nil
 }
 
-func (p PowerShellCompletion) executeCmd(name string, args ...string) error {
+func (p powershell) executeCmd(name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -215,8 +215,10 @@ func (p PowerShellCompletion) executeCmd(name string, args ...string) error {
 	return cmd.Run()
 }
 
-func NewPowerShellCompletion() PowerShellCompletion {
-	return PowerShellCompletion{
-		registerLine: ". $HOME\\Documents\\WindowsPowerShell\\Modules\\celer\\celer_completion.ps1 # added by celer",
+func NewPowerShellCompletion(homeDir string, rootCmd *cobra.Command) powershell {
+	return powershell{
+		homeDir:        homeDir,
+		rootCmd:        rootCmd,
+		registerBinary: ". $HOME\\Documents\\WindowsPowerShell\\Modules\\celer\\celer_completion.ps1 # added by celer",
 	}
 }

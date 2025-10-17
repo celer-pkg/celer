@@ -8,67 +8,82 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-type BashCompletion struct {
-	registerLine string
+type bash struct {
+	homeDir        string
+	rootCmd        *cobra.Command
+	registerBinary string
 }
 
-func (b BashCompletion) Register(homeDir string) error {
-	if err := b.installBinary(homeDir); err != nil {
+func (b bash) Register() error {
+	if err := b.installBinary(); err != nil {
 		return fmt.Errorf("failed to install bash binary.\n %w", err)
 	}
-	if err := b.installCompletion(nil, homeDir); err != nil {
+	if err := b.installCompletion(); err != nil {
 		return fmt.Errorf("failed to install bash completion.\n %w", err)
 	}
-	if err := b.registerRunCommand(homeDir); err != nil {
+	if err := b.registerRunCommand(); err != nil {
 		return fmt.Errorf("failed to add run command to bashrc.\n %w", err)
 	}
 
 	return nil
 }
 
-func (b BashCompletion) Unregister(homeDir string) error {
-	if err := b.uninstallBinary(homeDir); err != nil {
+func (b bash) Unregister() error {
+	if err := b.uninstallBinary(); err != nil {
 		return fmt.Errorf("failed to uninstall bash binary.\n %w", err)
 	}
-	if err := b.uninstallCompletion(homeDir); err != nil {
+	if err := b.uninstallCompletion(); err != nil {
 		return fmt.Errorf("failed to uninstall bash completion.\n %w", err)
 	}
-	if err := b.unregisterRunCommand(homeDir); err != nil {
+	if err := b.unregisterRunCommand(); err != nil {
 		return fmt.Errorf("failed to remove run command from bashrc.\n %w", err)
 	}
 
 	return nil
 }
 
-func (b BashCompletion) installBinary(homeDir string) error {
+func (b bash) installBinary() error {
 	executable, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to get celer's path.\n %w", err)
 	}
 
-	switch runtime.GOOS {
-	case "linux", "darwin":
-		// Copy into `~/.local/bin`
-		if fileio.CopyFile(executable, filepath.Join(homeDir, ".local/bin")); err != nil {
-			return fmt.Errorf("failed to copy celer to ~/.local/bin.\n %w", err)
-		}
-
-		fmt.Println("[integrate] celer --> ~/.local/bin")
+	// Copy into `~/.local/bin`
+	if err := fileio.CopyFile(executable, filepath.Join(b.homeDir, ".local/bin/celer")); err != nil {
+		return fmt.Errorf("failed to copy celer to ~/.local/bin.\n %w", err)
 	}
+
+	// Check if already contains the line.
+	bashrcPath := filepath.Join(b.homeDir, ".bashrc")
+	content, err := os.ReadFile(bashrcPath)
+	if err != nil {
+		return fmt.Errorf("failed to read ~/.bashrc.\n %w", err)
+	}
+	if strings.Contains(string(content), b.registerBinary) {
+		return nil
+	}
+
+	// Append to `export PATH=~/.local/bin:$PATH` to end of .bashrc
+	file, err := os.OpenFile(bashrcPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return fmt.Errorf("failed to open ~/.bashrc: %w", err)
+	}
+	defer file.Close()
+
+	if _, err := file.WriteString("\n" + b.registerBinary); err != nil {
+		return fmt.Errorf("failed to write to ~/.bashrc.\n %w", err)
+	}
+
+	fmt.Println("[integrate] celer --> ~/.local/bin")
 	return nil
 }
 
-func (b BashCompletion) installCompletion(cmd *cobra.Command, homeDir string) error {
-	if runtime.GOOS != "linux" {
-		return fmt.Errorf("bash completion is only supported on linux")
-	}
-
+func (b bash) installCompletion() error {
 	if err := dirs.CleanTmpFilesDir(); err != nil {
 		return fmt.Errorf("failed to create clean tmp dir.\n %w", err)
 	}
@@ -81,12 +96,12 @@ func (b BashCompletion) installCompletion(cmd *cobra.Command, homeDir string) er
 	}
 	defer file.Close()
 
-	if err := cmd.GenBashCompletion(file); err != nil {
+	if err := b.rootCmd.GenBashCompletion(file); err != nil {
 		return fmt.Errorf("failed to generate bash completion file.\n %w", err)
 	}
 
 	// Install completion file to `~/.local/share/bash-completion/completions`
-	destination := filepath.Join(homeDir, ".local", "share", "bash-completion", "completions", "celer")
+	destination := filepath.Join(b.homeDir, ".local", "share", "bash-completion", "completions", "celer")
 	if err := os.MkdirAll(filepath.Dir(destination), os.ModePerm); err != nil {
 		return err
 	}
@@ -98,13 +113,8 @@ func (b BashCompletion) installCompletion(cmd *cobra.Command, homeDir string) er
 	return nil
 }
 
-func (B BashCompletion) uninstallCompletion(homeDir string) error {
-	if runtime.GOOS != "linux" {
-		return fmt.Errorf("bash completion is only supported on linux")
-	}
-
-	// Remove completion file.
-	destination := filepath.Join(homeDir, ".local", "share", "bash-completion", "completions", "celer")
+func (b bash) uninstallCompletion() error {
+	destination := filepath.Join(b.homeDir, ".local", "share", "bash-completion", "completions", "celer")
 	fmt.Printf("[integrate] rm -f %s\n", destination)
 	if err := os.Remove(destination); err != nil {
 		return fmt.Errorf("failed to remove bash completion file.\n %w", err)
@@ -113,22 +123,17 @@ func (B BashCompletion) uninstallCompletion(homeDir string) error {
 	return nil
 }
 
-func (b BashCompletion) uninstallBinary(homeDir string) error {
-	if runtime.GOOS != "linux" {
-		return fmt.Errorf("bash completion is only supported on linux")
-	}
-
-	// Remove celer binary.
+func (b bash) uninstallBinary() error {
 	fmt.Println("[integrate] rm -f ~/.local/bin/celer")
-	if err := os.Remove(filepath.Join(homeDir, ".local/bin/celer")); err != nil {
+	if err := os.Remove(filepath.Join(b.homeDir, ".local/bin/celer")); err != nil {
 		return fmt.Errorf("failed to remove celer binary.\n %w", err)
 	}
 
 	return nil
 }
 
-func (b BashCompletion) registerRunCommand(homeDir string) error {
-	bashrcPath := filepath.Join(homeDir, ".bashrc")
+func (b bash) registerRunCommand() error {
+	bashrcPath := filepath.Join(b.homeDir, ".bashrc")
 	if !fileio.PathExists(bashrcPath) {
 		return fmt.Errorf("no .bashrc file found in home dir")
 	}
@@ -138,7 +143,7 @@ func (b BashCompletion) registerRunCommand(homeDir string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read ~/.bashrc.\n %w", err)
 	}
-	if strings.Contains(string(content), b.registerLine) {
+	if strings.Contains(string(content), b.registerBinary) {
 		return nil
 	}
 
@@ -149,15 +154,15 @@ func (b BashCompletion) registerRunCommand(homeDir string) error {
 	}
 	defer file.Close()
 
-	if _, err := file.WriteString("\n" + b.registerLine); err != nil {
+	if _, err := file.WriteString("\n" + b.registerBinary); err != nil {
 		return fmt.Errorf("failed to write to ~/.bashrc.\n %w", err)
 	}
 	return nil
 }
 
-func (b BashCompletion) unregisterRunCommand(homeDir string) error {
+func (b bash) unregisterRunCommand() error {
 	// Check if .bashrc exists
-	bashrcPath := filepath.Join(homeDir, ".bashrc")
+	bashrcPath := filepath.Join(b.homeDir, ".bashrc")
 	if !fileio.PathExists(bashrcPath) {
 		return fmt.Errorf("no .bashrc file found in home dir")
 	}
@@ -174,7 +179,7 @@ func (b BashCompletion) unregisterRunCommand(homeDir string) error {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if line != b.registerLine {
+		if line != b.registerBinary {
 			buffer.WriteString(line + "\n")
 		}
 	}
@@ -190,8 +195,10 @@ func (b BashCompletion) unregisterRunCommand(homeDir string) error {
 	return nil
 }
 
-func NewBashCompletion() BashCompletion {
-	return BashCompletion{
-		registerLine: "export PATH=~/.local/bin:$PATH # added by celer",
+func NewBashCompletion(homeDir string, rootCmd *cobra.Command) bash {
+	return bash{
+		homeDir:        homeDir,
+		rootCmd:        rootCmd,
+		registerBinary: "export PATH=$HOME/.local/bin:$PATH # added by celer",
 	}
 }
