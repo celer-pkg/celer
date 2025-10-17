@@ -119,8 +119,13 @@ func (z zsh) installCompletion() error {
 
 func (z zsh) uninstallCompletion() error {
 	fmt.Println("[integrate] rm -f ~/.local/share/zsh/site-functions/_celer")
-	if err := os.Remove(filepath.Join(z.homeDir, ".local/share/zsh/site-functions/_celer")); err != nil {
+	completionFile := filepath.Join(z.homeDir, ".local/share/zsh/site-functions/_celer")
+	if err := os.Remove(completionFile); err != nil {
 		return fmt.Errorf("failed to remove zsh completion file.\n %w", err)
+	}
+
+	if err := fileio.RemoveFolderRecursively(filepath.Dir(completionFile)); err != nil {
+		return fmt.Errorf("failed to remove zsh completion dir.\n %w", err)
 	}
 
 	return nil
@@ -151,7 +156,7 @@ func (z zsh) registerRunCommand() error {
 		return nil
 	}
 
-	// Append fpath to the bottom of `export PATH=#HOME/.local/bin:$PATH`
+	// Add fpath to the bottom of `export PATH=$HOME/.local/bin:$PATH`
 	file, err := os.Open(zshrcPath)
 	if err != nil {
 		return err

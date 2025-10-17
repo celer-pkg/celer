@@ -29,19 +29,15 @@ const (
 )
 
 func CurrentShell() ShellType {
-	if runtime.GOOS == "windows" {
-		return TypePowerShell
-	}
-
 	switch runtime.GOOS {
 	case "windows":
 		return TypePowerShell
 
 	case "linux":
 		switch os.Getenv("SHELL") {
-		case "/bin/bash":
+		case "/usr/bin/bash":
 			return BashShell
-		case "/bin/zsh":
+		case "/usr/bin/zsh":
 			return ZshShell
 		default:
 			return NotSupportShell
