@@ -72,7 +72,7 @@ func (p powershell) installBinary() error {
 		}
 	}
 
-	fmt.Printf("[integrate] celer.exe --> %s\n", filepath.Dir(dest))
+	fmt.Printf("[integrate] celer.exe -> %s\n", filepath.Dir(dest))
 	return nil
 }
 
@@ -104,7 +104,7 @@ func (p powershell) uninstallCompletion() error {
 		return fmt.Errorf("failed to unregister celer module.\n %w", err)
 	}
 
-	fmt.Println("[integrate] celer --> ~/Documents/WindowsPowerShell/Modules")
+	fmt.Println("[integrate] rm -rf ~/Documents/WindowsPowerShell/Modules")
 	return nil
 }
 
@@ -115,12 +115,14 @@ func (p powershell) uninstallBinary() error {
 	if err := os.RemoveAll(celerDir); err != nil {
 		return fmt.Errorf("failed to unregister celer module.\n %w", err)
 	}
+	fmt.Printf("[integrate] rm -rf %s\n", celerDir)
 
 	// Remove celer.exe
 	binDir := filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "celer")
 	if err := os.RemoveAll(binDir); err != nil {
 		return fmt.Errorf("failed to remove celer.exe.\n %w", err)
 	}
+	fmt.Printf("[integrate] rm -rf %s\n", binDir)
 
 	// Remove empty parent folder.
 	if err := fileio.RemoveFolderRecursively(modulesDir); err != nil {

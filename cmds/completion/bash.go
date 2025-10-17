@@ -79,7 +79,7 @@ func (b bash) installBinary() error {
 		return fmt.Errorf("failed to write to ~/.bashrc.\n %w", err)
 	}
 
-	fmt.Println("[integrate] celer --> ~/.local/bin")
+	fmt.Println("[integrate] celer -> ~/.local/bin")
 	return nil
 }
 
@@ -109,7 +109,7 @@ func (b bash) installCompletion() error {
 		return err
 	}
 
-	fmt.Printf("[integrate] completion --> %s\n", destination)
+	fmt.Printf("[integrate] completion -> %s\n", destination)
 	return nil
 }
 

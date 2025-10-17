@@ -5,41 +5,35 @@
 ## 支持的 Shell
 
 - Bash (Linux)
+- Zsh (Linux)
 - PowerShell (Windows)
 
 ## 命令语法
 
 ```shell
-celer integrate [--bash|--powershell]
+celer integrate [--remove]
 ```
 
 ## 命令选项
 
-| Option	    | Description	                                                            |
-| ------------- | ------------------------------------------------------------------------- |
-| --bash	    | Enable tab completion for Bash shell	                                    |
-| --powershell	| Enable tab completion for PowerShell	                                    |
-| --unregister  | Combing with --bash and --powershell to unregister tab completions	    |
+| Option	    | Description	                |
+| ------------- | ------------------------------|
+| --remove      | remove tab completions	    |
 
 ## 用法示例
 
 **1. 特定 Shell 集成**
 
-要为特定 Shell 启用 Tab 补全，请使用对应的选项：
-
 ```shell
-celer integrate --bash
-celer integrate --powershell
+celer integrate
 ```
+
+>Celer能自动识别当前是那种shell终端，并为其支持Tab补全的功能。
 
 **2. 移除 Tab 补全**
 
-要移除所有 Celer shell 补全，请使用 --unregister 选项：
-
 ```shell
-celer integrate --bash --unregister
-celer integrate --powershell --unregister
+celer integrate --remove
 ```
 
-> **Note:**   
-> 集成完成后，您可能需要重启 shell 才能使更改生效。
+> 在移除Tab补全时候同样能自动识别当前是那种shell终端。
