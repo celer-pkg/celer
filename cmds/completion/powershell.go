@@ -122,6 +122,11 @@ func (p powershell) uninstallBinary() error {
 		return fmt.Errorf("failed to remove celer.exe.\n %w", err)
 	}
 
+	// Remove empty parent folder.
+	if err := fileio.RemoveFolderRecursively(modulesDir); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -161,8 +166,7 @@ func (p powershell) registerRunCommand() error {
 			profile.WriteString(p.registerBinary + "\n")
 		}
 	} else {
-		content := fmt.Sprintf(". %s", celerRcFile)
-		if err := os.WriteFile(profilePath, []byte(content), os.ModePerm); err != nil {
+		if err := os.WriteFile(profilePath, []byte(p.registerBinary), os.ModePerm); err != nil {
 			return fmt.Errorf("failed to write PowerShell profile.\n %w", err)
 		}
 	}

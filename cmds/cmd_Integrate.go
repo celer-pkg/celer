@@ -5,17 +5,13 @@ import (
 	"celer/configs"
 	"fmt"
 	"os"
-	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 type integrateCmd struct {
-	powershell bool
-	bash       bool
-	zsh        bool
-	unregister bool
+	remove bool
 
 	bashCompletion completion.Completion
 	zshCompletion  completion.Completion
@@ -37,7 +33,7 @@ func (i integrateCmd) Command(celer *configs.Celer) *cobra.Command {
 			i.zshCompletion = completion.NewZshCompletion(homeDir, rootCmd)
 			i.psCompletion = completion.NewPowerShellCompletion(homeDir, rootCmd)
 
-			if i.unregister {
+			if i.remove {
 				if err := i.doUnregister(); err != nil {
 					configs.PrintError(err, "tab completion unregister failed.")
 					os.Exit(1)
@@ -55,61 +51,46 @@ func (i integrateCmd) Command(celer *configs.Celer) *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().BoolVar(&i.powershell, "powershell", false, "integrate tab completion for powershell.")
-	command.Flags().BoolVar(&i.bash, "bash", false, "integrate tab completion for bash.")
-	command.Flags().BoolVar(&i.zsh, "zsh", false, "integrate tab completion for zsh.")
-	command.Flags().BoolVar(&i.unregister, "unregister", false, "unregister tab completion.")
-
-	command.MarkFlagsMutuallyExclusive("powershell", "bash", "zsh")
+	command.Flags().BoolVar(&i.remove, "remove", false, "remove tab completion.")
 
 	return command
 }
 
 func (i integrateCmd) doUnregister() error {
-	switch {
-	case i.powershell:
-		return i.psCompletion.Unregister()
-
-	case i.bash:
+	switch completion.CurrentShell() {
+	case completion.BashShell:
 		return i.bashCompletion.Unregister()
 
-	case i.zsh:
+	case completion.ZshShell:
 		return i.zshCompletion.Unregister()
 
+	case completion.TypePowerShell:
+		return i.psCompletion.Unregister()
+
 	default:
-		return fmt.Errorf("no --bash, --zsh or --powershell specified to unregister")
+		return fmt.Errorf("unsupported shell: %v", completion.CurrentShell())
 	}
 }
 
 func (i integrateCmd) doRegister() error {
-	switch {
-	case i.bash:
-		if runtime.GOOS != "linux" {
-			return fmt.Errorf("bash completion is only supported on linux")
-		}
+	switch completion.CurrentShell() {
+	case completion.BashShell:
 		return i.bashCompletion.Register()
 
-	case i.zsh:
-		if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
-			return fmt.Errorf("zsh completion is only supported on linux and macOS")
-		}
-
+	case completion.ZshShell:
 		return i.zshCompletion.Register()
 
-	case i.powershell:
-		if runtime.GOOS != "windows" {
-			return fmt.Errorf("powershell completion is only supported on windows")
-		}
+	case completion.TypePowerShell:
 		return i.psCompletion.Register()
 
 	default:
-		return fmt.Errorf("no --bash, --zsh or --powershell specified to integrate")
+		return fmt.Errorf("unsupported shell: %v", completion.CurrentShell())
 	}
 }
 
 func (i integrateCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	for _, flag := range []string{"--powershell", "--bash", "--zsh", "--unregister"} {
+	for _, flag := range []string{"--remove"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}
