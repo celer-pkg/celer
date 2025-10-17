@@ -150,17 +150,7 @@ func (b BuildConfig) setupPkgConfig() {
 
 	case "linux":
 		// Pkg config paths and sysroot dir.
-		if b.DevDep {
-			configPaths = []string{
-				filepath.Join(tmpDepsDir, "lib", "pkgconfig"),
-				filepath.Join(tmpDepsDir, "share", "pkgconfig"),
-			}
-
-			// In this case, there is no rootfs and the pc prefix would be `/`,
-			// to make sure pkgconf can work, we need to create a virtual rootfs for pkgconf.
-			sysrootDir = dirs.WorkspaceDir
-			pathDivider = ":"
-		} else if b.PortConfig.Toolchain.RootFS != "" {
+		if b.PortConfig.Toolchain.RootFS != "" {
 			// PKG_CONFIG related.
 			for _, configPath := range b.PortConfig.Toolchain.PkgConfigPath {
 				configLibDirs = append(configLibDirs, filepath.Join(
@@ -180,12 +170,24 @@ func (b BuildConfig) setupPkgConfig() {
 				filepath.Join(tmpDepsDir, "lib", "pkgconfig"),
 				filepath.Join(tmpDepsDir, "share", "pkgconfig"),
 			}, configPaths...)
+		} else {
+			configPaths = []string{
+				filepath.Join(tmpDepsDir, "lib", "pkgconfig"),
+				filepath.Join(tmpDepsDir, "share", "pkgconfig"),
+			}
+
+			// In this case, there is no rootfs and the pc prefix would be `/`,
+			// to make sure pkgconf can work, we need to create a virtual rootfs for pkgconf.
+			sysrootDir = dirs.WorkspaceDir
+			pathDivider = ":"
 		}
 	}
 
 	// Set merged pkgconfig envs.
+	if len(configLibDirs) > 0 {
+		b.envBackup.setenv("PKG_CONFIG_LIBDIR", strings.Join(configLibDirs, pathDivider))
+	}
 	b.envBackup.setenv("PKG_CONFIG_PATH", strings.Join(configPaths, pathDivider))
-	b.envBackup.setenv("PKG_CONFIG_LIBDIR", strings.Join(configLibDirs, pathDivider))
 	b.envBackup.setenv("PKG_CONFIG_SYSROOT_DIR", sysrootDir)
 }
 
@@ -225,11 +227,7 @@ func (b *BuildConfig) setEnvFlags() {
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
 
 	// sysroot and tmp dir.
-	if b.DevDep {
-		// Update CFLAGS/CXXFLAGS/LDFLAGS
-		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
-		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
-	} else if b.PortConfig.Toolchain.RootFS != "" {
+	if b.PortConfig.Toolchain.RootFS != "" {
 		// Set sysroot.
 		rootfs := b.PortConfig.Toolchain.RootFS
 		b.envBackup.setenv("SYSROOT", rootfs)
@@ -247,6 +245,10 @@ func (b *BuildConfig) setEnvFlags() {
 			libDir := filepath.Join(b.PortConfig.Toolchain.RootFS, item)
 			b.appendLibDir(libDir)
 		}
+	} else {
+		// Update CFLAGS/CXXFLAGS/LDFLAGS
+		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
+		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
 	}
 }
 

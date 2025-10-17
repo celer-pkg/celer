@@ -58,3 +58,7 @@ func If[T any](condition bool, first T, second T) T {
 	}
 	return second
 }
+
+func UpperFirst(text string) string {
+	return strings.ToUpper(text[:1]) + text[1:]
+}

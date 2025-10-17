@@ -275,14 +275,14 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 				if len(includeArgs) == 0 {
 					includeArgs = append(includeArgs, fmt.Sprintf("'/I %q'", includeDir))
 				} else {
-					includeArgs = append(includeArgs, fmt.Sprintf("\t"+"'/I %q'", includeDir))
+					includeArgs = append(includeArgs, fmt.Sprintf("    '/I %q'", includeDir))
 				}
 
 			default:
 				if len(includeArgs) == 0 {
 					includeArgs = append(includeArgs, fmt.Sprintf("'-isystem %s'", includeDir))
 				} else {
-					includeArgs = append(includeArgs, fmt.Sprintf("\t"+"'-isystem %s'", includeDir))
+					includeArgs = append(includeArgs, fmt.Sprintf("    '-isystem %s'", includeDir))
 				}
 			}
 		}
@@ -294,17 +294,17 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 			case "gcc":
 				if len(linkArgs) == 0 {
 					linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", libDir))
-					linkArgs = append(linkArgs, fmt.Sprintf(`'-Wl,-rpath-link=%s'`, libDir))
+					linkArgs = append(linkArgs, fmt.Sprintf("'-Wl,-rpath-link=%s'", libDir))
 				} else {
-					linkArgs = append(linkArgs, fmt.Sprintf("\t"+"'-L%s'", libDir))
-					linkArgs = append(linkArgs, fmt.Sprintf("\t"+`'-Wl,-rpath-link=%s'`, libDir))
+					linkArgs = append(linkArgs, fmt.Sprintf("    '-L%s'", libDir))
+					linkArgs = append(linkArgs, fmt.Sprintf("    '-Wl,-rpath-link=%s'", libDir))
 				}
 
 			case "msvc":
 				if len(linkArgs) == 0 {
 					linkArgs = append(linkArgs, fmt.Sprintf("'/LIBPATH:%s'", libDir))
 				} else {
-					linkArgs = append(linkArgs, fmt.Sprintf("\t"+"'/LIBPATH:%s'", libDir))
+					linkArgs = append(linkArgs, fmt.Sprintf("    '/LIBPATH:%s'", libDir))
 				}
 
 			default:
@@ -324,8 +324,8 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 			linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", depLibDir))
 			linkArgs = append(linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, depLibDir))
 		} else {
-			linkArgs = append(linkArgs, fmt.Sprintf("\t"+"'-L%s'", depLibDir))
-			linkArgs = append(linkArgs, fmt.Sprintf("\t"+`'-Wl,-rpath-link,%s'`, depLibDir))
+			linkArgs = append(linkArgs, fmt.Sprintf("    '-L%s'", depLibDir))
+			linkArgs = append(linkArgs, fmt.Sprintf("    '-Wl,-rpath-link,%s'", depLibDir))
 		}
 	}
 
@@ -348,14 +348,14 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 		if len(*includeArgs) == 0 {
 			*includeArgs = append(*includeArgs, fmt.Sprintf("'-isystem %s'", includeDir))
 		} else {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("\t"+"'-isystem %s'", includeDir))
+			*includeArgs = append(*includeArgs, fmt.Sprintf("    '-isystem %s'", includeDir))
 		}
 
 	case "msvc":
 		if len(*includeArgs) == 0 {
 			*includeArgs = append(*includeArgs, fmt.Sprintf("'/I %q'", filepath.ToSlash(includeDir)))
 		} else {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("\t"+"'/I %q'", filepath.ToSlash(includeDir)))
+			*includeArgs = append(*includeArgs, fmt.Sprintf("    '/I %q'", filepath.ToSlash(includeDir)))
 		}
 
 	default:

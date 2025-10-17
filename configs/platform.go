@@ -176,7 +176,7 @@ func (p *Platform) detectToolchain() error {
 		return fmt.Errorf("detect celer.toolchain: %w", err)
 	}
 	p.Toolchain = &toolchain
-	p.Toolchain.SystemName = runtime.GOOS
+	p.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
 	p.Toolchain.SystemProcessor = runtime.GOARCH
 
 	// WindowsKit can be detected automatically.

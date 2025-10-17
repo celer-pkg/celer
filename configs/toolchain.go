@@ -152,7 +152,7 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 	toolchain.WriteString("\n# Runtime paths.\n")
 	toolchain.WriteString(`get_filename_component(WORKSPACE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)` + "\n")
 	toolchain.WriteString("set(PATH_LIST\n")
-	toolchain.WriteString(fmt.Sprintf("\t%q\n", t.cmakepath))
+	toolchain.WriteString(fmt.Sprintf("    %q\n", t.cmakepath))
 	toolchain.WriteString(")\n")
 	toolchain.WriteString(fmt.Sprintf("list(JOIN PATH_LIST %q PATH_STR)\n", string(os.PathListSeparator)))
 	toolchain.WriteString(fmt.Sprintf(`set(ENV{PATH} "${PATH_STR}%s$ENV{PATH}")`, string(os.PathListSeparator)) + "\n")
@@ -169,10 +169,16 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 
 	toolchain.WriteString("\n# Toolchain for cross-compile.\n")
 	cmakepath := strings.TrimPrefix(t.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
-	if t.Name == "msvc" {
+
+	switch t.Name {
+	case "msvc":
 		fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
-	} else {
-		fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+	case "gcc":
+		if t.Path == "/usr/bin" {
+			fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "/usr/bin")
+		} else {
+			fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+		}
 	}
 
 	writeIfNotEmpty("CMAKE_C_COMPILER", t.CC)
