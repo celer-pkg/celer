@@ -37,12 +37,13 @@ type RemoveOptions struct {
 }
 
 type Package struct {
-	Url            string   `toml:"url"`
-	Ref            string   `toml:"ref"`
-	Commit         string   `toml:"commit,omitempty"`
-	Archive        string   `toml:"archive,omitempty"`
-	SrcDir         string   `toml:"src_dir,omitempty"`
-	SupportedHosts []string `toml:"supported_hosts,omitempty"`
+	Url             string   `toml:"url"`
+	Ref             string   `toml:"ref"`
+	Commit          string   `toml:"commit,omitempty"`
+	Archive         string   `toml:"archive,omitempty"`
+	SrcDir          string   `toml:"src_dir,omitempty"`
+	SupportedHosts  []string `toml:"supported_hosts,omitempty"`
+	IgnoreSubmodule bool     `toml:"ignore_submodule,omitempty"`
 }
 
 type Port struct {

@@ -11,10 +11,15 @@ import (
 )
 
 // CloneRepo clone git repo.
-func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
+func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, repoDir string) error {
 	// ============ Clone default branch ============
 	if repoRef == "" {
-		command := fmt.Sprintf("git clone --recursive %s %s", repoUrl, repoDir)
+		var command string
+		if ignoreSubmodule {
+			command = fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
+		} else {
+			command = fmt.Sprintf("git clone --recursive %s %s", repoUrl, repoDir)
+		}
 		return cmd.NewExecutor(title, command).Execute()
 	}
 
@@ -24,7 +29,12 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 		return fmt.Errorf("failed to check if remote branch.\n %w", err)
 	}
 	if isBranch {
-		command := fmt.Sprintf("git clone --branch %s --recursive %s %s", repoRef, repoUrl, repoDir)
+		var command string
+		if ignoreSubmodule {
+			command = fmt.Sprintf("git clone --branch %s %s %s", repoRef, repoUrl, repoDir)
+		} else {
+			command = fmt.Sprintf("git clone --branch %s --recursive %s %s", repoRef, repoUrl, repoDir)
+		}
 		return cmd.NewExecutor(title, command).Execute()
 	}
 
@@ -34,9 +44,15 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 		return fmt.Errorf("failed to check if remote tag.\n %w", err)
 	}
 	if isTag {
-		command := fmt.Sprintf("git clone --branch %s %s --recursive %s", repoRef, repoUrl, repoDir)
+		var command string
+		if ignoreSubmodule {
+			command = fmt.Sprintf("git clone --branch %s %s %s", repoRef, repoUrl, repoDir)
+		} else {
+			command = fmt.Sprintf("git clone --branch %s %s --recursive %s", repoRef, repoUrl, repoDir)
+		}
 		return cmd.NewExecutor(title, command).Execute()
 	}
+
 	// ============ Clone and checkout commit ============
 	command := fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
 	if err := cmd.NewExecutor(title, command).Execute(); err != nil {
@@ -52,7 +68,7 @@ func CloneRepo(title, repoUrl, repoRef, repoDir string) error {
 	}
 
 	// Update submodules.
-	if pathExists(filepath.Join(repoDir, ".gitmodules")) {
+	if !ignoreSubmodule && pathExists(filepath.Join(repoDir, ".gitmodules")) {
 		command = "git submodule update --init --recursive"
 		executor = cmd.NewExecutor(title+" (clone submodule)", command)
 		executor.SetWorkDir(repoDir)

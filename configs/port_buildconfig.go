@@ -42,20 +42,21 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	p.tmpDepsDir = filepath.Join(dirs.TmpDepsDir, libraryFolder)
 
 	portConfig := buildsystems.PortConfig{
-		Toolchain:     p.toolchain(),
-		LibName:       p.Name,
-		LibVersion:    p.Version,
-		Archive:       p.Package.Archive,
-		Url:           p.Package.Url,
-		ProjectName:   p.ctx.Project().GetName(),
-		HostName:      p.ctx.Platform().GetHostName(),
-		SrcDir:        filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
-		BuildDir:      filepath.Join(dirs.WorkspaceDir, "buildtrees", buildFolder),
-		PackageDir:    p.packageDir,
-		LibraryFolder: libraryFolder,
-		DevDep:        p.DevDep,
-		Jobs:          p.ctx.Jobs(),
-		RepoDir:       filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
+		Toolchain:       p.toolchain(),
+		LibName:         p.Name,
+		LibVersion:      p.Version,
+		Archive:         p.Package.Archive,
+		Url:             p.Package.Url,
+		IgnoreSubmodule: p.Package.IgnoreSubmodule,
+		ProjectName:     p.ctx.Project().GetName(),
+		HostName:        p.ctx.Platform().GetHostName(),
+		SrcDir:          filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
+		BuildDir:        filepath.Join(dirs.WorkspaceDir, "buildtrees", buildFolder),
+		PackageDir:      p.packageDir,
+		LibraryFolder:   libraryFolder,
+		DevDep:          p.DevDep,
+		Jobs:            p.ctx.Jobs(),
+		RepoDir:         filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 	}
 
 	// Source folder may be a inner dir.
