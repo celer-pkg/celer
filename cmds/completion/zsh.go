@@ -125,7 +125,7 @@ func (z zsh) uninstallCompletion() error {
 	}
 
 	if err := fileio.RemoveFolderRecursively(filepath.Dir(completionFile)); err != nil {
-		return fmt.Errorf("failed to remove zsh completion dir.\n %w", err)
+		return fmt.Errorf("failed to remove empty parent folder of _zsh.\n %w", err)
 	}
 
 	return nil

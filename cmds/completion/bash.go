@@ -115,19 +115,24 @@ func (b bash) installCompletion() error {
 
 func (b bash) uninstallCompletion() error {
 	destination := filepath.Join(b.homeDir, ".local", "share", "bash-completion", "completions", "celer")
-	fmt.Printf("[integrate] rm -f %s\n", destination)
 	if err := os.Remove(destination); err != nil {
 		return fmt.Errorf("failed to remove bash completion file.\n %w", err)
+	}
+	fmt.Printf("[integrate] rm -f %s\n", destination)
+
+	// Remove empty parent folder.
+	if err := fileio.RemoveFolderRecursively(filepath.Dir(destination)); err != nil {
+		return fmt.Errorf("failed to remove empty parent folder of celer.\n %w", err)
 	}
 
 	return nil
 }
 
 func (b bash) uninstallBinary() error {
-	fmt.Println("[integrate] rm -f ~/.local/bin/celer")
 	if err := os.Remove(filepath.Join(b.homeDir, ".local/bin/celer")); err != nil {
 		return fmt.Errorf("failed to remove celer binary.\n %w", err)
 	}
+	fmt.Println("[integrate] rm -f ~/.local/bin/celer")
 
 	return nil
 }
