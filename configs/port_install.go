@@ -27,38 +27,38 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "", err
 	}
 
-	if installed {
-		if options.Force {
-			remoteOptions := RemoveOptions{
-				Purge:      true,
-				Recurse:    options.Recurse,
-				BuildCache: true,
-			}
-			if err := p.Remove(remoteOptions); err != nil {
-				return "", err
-			}
-		} else {
-			// Don't show installed info when building in host is not supported.
-			if p.IsHostSupported() {
-				title := color.Sprintf(color.Green, "\n[✔] ---- package: %s\n", p.NameVersion())
-				fmt.Printf("%sLocation: %s\n", title, installedDir)
-			}
-			return "", nil
+	// If already installed and not forcing, report and return.
+	if installed && !options.Force {
+		if p.IsHostSupported() {
+			title := color.Sprintf(color.Green, "\n[✔] ---- package: %s\n", p.NameVersion())
+			fmt.Printf("%sLocation: %s\n", title, installedDir)
 		}
-	} else {
-		// Remove build cache and logs.
-		if options.Force {
-			if err := os.RemoveAll(p.MatchedConfig.PortConfig.BuildDir); err != nil {
-				return "", fmt.Errorf("failed to remove build cache.\n %w", err)
-			}
+		return "", nil
+	}
 
-			if err := p.RemoveLogs(); err != nil {
-				return "", fmt.Errorf("failed to remove logs.\n %w", err)
-			}
+	// If installed and force requested -> remove existing first.
+	if installed && options.Force {
+		remoteOptions := RemoveOptions{
+			Purge:      true,
+			Recurse:    options.Recurse,
+			BuildCache: true,
+		}
+		if err := p.Remove(remoteOptions); err != nil {
+			return "", err
 		}
 	}
 
-	// Clear the tmp/deps dir, then copy only the needed library files into it.
+	// If not installed and force requested -> clear build cache and logs.
+	if !installed && options.Force {
+		if err := os.RemoveAll(p.MatchedConfig.PortConfig.BuildDir); err != nil {
+			return "", fmt.Errorf("failed to remove build cache.\n %w", err)
+		}
+		if err := p.RemoveLogs(); err != nil {
+			return "", fmt.Errorf("failed to remove logs.\n %w", err)
+		}
+	}
+
+	// Clear the tmp/deps dir, then copy only the required library files into it.
 	// This ensures the folder contains exactly the libraries required by the current port.
 	if p.Parent == "" {
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
@@ -69,14 +69,14 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		}
 	}
 
-	// No config found, install as prebuilt.
+	// No config or explicit prebuilt-with-url -> treat as nobuild or prebuilt.
 	if len(p.BuildConfigs) == 0 ||
 		(p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "") {
 		if err := p.InstallFromSource(options); err != nil {
 			return "", err
 		}
 		if len(p.BuildConfigs) == 0 {
-			return "source", nil
+			return "nobuild", nil
 		}
 		return "prebuilt", nil
 	}
@@ -88,7 +88,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "package", nil
 	}
 
-	// 2. try to install from cache.
+	// 2. try to install from cache (only when not storing cache and not forcing).
 	if !options.StoreCache && !options.Force {
 		if installed, err := p.InstallFromCache(options); err != nil {
 			return "", err
@@ -97,11 +97,10 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		}
 	}
 
-	// 3. try to install from source.
+	// 3. fallback: install from source.
 	if err := p.InstallFromSource(options); err != nil {
 		return "", err
 	}
-
 	return "source", nil
 }
 
@@ -428,8 +427,16 @@ func (p Port) installDependencies(options InstallOptions) error {
 		if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
 			return err
 		}
-		if _, err := port.Install(options); err != nil {
+
+		// Install it if not installed or forcing with recurse.
+		installed, err := port.Installed()
+		if err != nil {
 			return err
+		}
+		if !installed || (options.Force && options.Recurse) {
+			if _, err := port.Install(options); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -447,8 +454,16 @@ func (p Port) installDependencies(options InstallOptions) error {
 		if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
 			return err
 		}
-		if _, err := port.Install(options); err != nil {
+
+		// Install it if not installed or forcing with recurse.
+		installed, err := port.Installed()
+		if err != nil {
 			return err
+		}
+		if !installed || (options.Force && options.Recurse) {
+			if _, err := port.Install(options); err != nil {
+				return err
+			}
 		}
 	}
 
