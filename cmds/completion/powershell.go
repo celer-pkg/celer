@@ -93,6 +93,18 @@ func (p powershell) installCompletion() error {
 		return fmt.Errorf("failed to generate powershell completion file.\n %w", err)
 	}
 
+	// Install completion file to `~/Documents/WindowsPowerShell/Modules`
+	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
+	celerRcFile := filepath.Join(modulesDir, "celer", "celer_completion.ps1")
+	if err := os.MkdirAll(filepath.Dir(celerRcFile), os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create PowerShell Modules dir.\n %w", err)
+	}
+
+	rcFile := filepath.Join(dirs.TmpFilesDir, "celer_completion.ps1")
+	if err := fileio.MoveFile(rcFile, celerRcFile); err != nil {
+		return fmt.Errorf("failed to move PowerShell completion file.\n %w", err)
+	}
+
 	return nil
 }
 
@@ -135,16 +147,7 @@ func (p powershell) uninstallBinary() error {
 func (p powershell) registerRunCommand() error {
 	// Install completion file to `~/Documents/WindowsPowerShell/Modules`
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
-	celerRcFile := filepath.Join(modulesDir, "celer", "celer_completion.ps1")
 	profilePath := filepath.Join(filepath.Dir(modulesDir), "profile.ps1")
-	if err := os.MkdirAll(filepath.Dir(celerRcFile), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create PowerShell Modules dir.\n %w", err)
-	}
-
-	rcFile := filepath.Join(dirs.TmpFilesDir, "celer_completion.ps1")
-	if err := fileio.MoveFile(rcFile, celerRcFile); err != nil {
-		return fmt.Errorf("failed to move PowerShell completion file.\n %w", err)
-	}
 
 	// Append completion file path to profile.
 	if fileio.PathExists(profilePath) {
