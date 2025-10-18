@@ -2,44 +2,39 @@
 
 &emsp;&emsp;The integrate command enables intelligent tab completion for Celer in your shell environment, significantly improving command-line productivity.
 
-## Current supported Shells
+## Current supported Shell
 
 - Bash (Linux)
+- Zsh (Linux)
 - PowerShell (Windows)
 
 ## Command Syntax
 
 ```shell
-celer integrate [--bash|--powershell]
+celer integrate [--remove]
 ```
 
 ## Command Options
 
-| Option	    | Description	                                                    |
-| ------------- | ----------------------------------------------------------------- |
-| --bash	    | Enable tab completion for Bash shell	                            |
-| --powershell	| Enable tab completion for PowerShell	                            |
-| --remove	    | Combing with --bash and --powershell to remove tab completions	|
+| Option	    | Description	                |
+| ------------- | ----------------------------- |
+| --remove      | remove tab completions	    |
 
 ## Usage Examples
 
-**1. Specific shell integration**
-
-To enable tab completion for a specific shell, use the corresponding option:
+**1. integration for current using shell**
 
 ```shell
-celer integrate --bash
-celer integrate --powershell
+celer integrate
 ```
+
+>Celer can detect which kind of shell you're using and integrate tab completion for it.
 
 **2. Remove tab completion**
 
-To remove all Celer shell completions, use the --remove option:
-
 ```shell
-celer integrate --bash --remove
-celer integrate --powershell --remove
+celer integrate --remove
 ```
 
 > **Note:**   
->After integrate completion, you may need to restart your shell for the changes to take effect.
+>Celer can also detect which kind of shell you'are using currently.
