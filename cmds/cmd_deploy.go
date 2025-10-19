@@ -54,7 +54,7 @@ func (d deployCmd) checkProject() error {
 	var ports []configs.Port
 	for _, nameVersion := range d.celer.Project().GetPorts() {
 		var port configs.Port
-		if err := port.Init(d.celer, nameVersion, d.celer.Global.BuildType); err != nil {
+		if err := port.Init(d.celer, nameVersion); err != nil {
 			return err
 		}
 

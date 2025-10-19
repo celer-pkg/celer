@@ -109,6 +109,7 @@ func (c *Celer) Init() error {
 
 		// Validate cache dirs.
 		if c.configData.CacheDir != nil {
+			c.configData.CacheDir.ctx = c
 			if err := c.configData.CacheDir.Validate(); err != nil {
 				return err
 			}
@@ -619,6 +620,7 @@ func (c Celer) CacheDir() context.CacheDir {
 	if c.configData.CacheDir == nil {
 		return nil
 	}
+
 	return c.configData.CacheDir
 }
 

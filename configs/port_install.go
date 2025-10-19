@@ -18,7 +18,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	installedDir := expr.If(p.DevDep,
 		filepath.Join(dirs.InstalledDir, p.ctx.Platform().GetHostName()+"-dev"),
 		filepath.Join(dirs.InstalledDir,
-			p.ctx.Platform().GetName()+"@"+p.ctx.Project().GetName()+"@"+p.buildType),
+			p.ctx.Platform().GetName()+"@"+p.ctx.Project().GetName()+"@"+p.ctx.BuildType()),
 	)
 
 	// Check if installed already.
@@ -116,7 +116,7 @@ func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
 		var port Port
 		port.DevDep = p.DevDep
 		port.Parent = p.NameVersion()
-		if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return false, err
 		}
 		if _, err := port.Install(options); err != nil {
@@ -125,7 +125,7 @@ func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
 	}
 
 	var port Port
-	if err := port.Init(p.ctx, p.NameVersion(), p.buildType); err != nil {
+	if err := port.Init(p.ctx, p.NameVersion()); err != nil {
 		return false, err
 	}
 
@@ -136,14 +136,7 @@ func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
 	}
 
 	// Read cache file and extract them to package dir.
-	if ok, err := cacheDir.Read(
-		p.ctx.Platform().GetName(),
-		p.ctx.Project().GetName(),
-		p.buildType,
-		p.NameVersion(),
-		buildhash+".tar.gz",
-		p.MatchedConfig.PortConfig.PackageDir,
-	); err != nil {
+	if ok, err := cacheDir.Read(p.NameVersion(), buildhash+".tar.gz", p.MatchedConfig.PortConfig.PackageDir); err != nil {
 		return false, fmt.Errorf("read cache with buildhash: %s", err)
 	} else if ok {
 		return true, nil
@@ -157,8 +150,8 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 	defer func() {
 		// Remove package dir if install failed.
 		if installFailed {
-			if err := os.RemoveAll(p.packageDir); err != nil {
-				fmt.Printf("remove broken package dir %s: %s\n", p.packageDir, err)
+			if err := os.RemoveAll(p.PackageDir); err != nil {
+				fmt.Printf("remove broken package dir %s: %s\n", p.PackageDir, err)
 			}
 		}
 	}()
@@ -201,7 +194,7 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 			installFailed = true
 			return err
 		}
-		metaFile := filepath.Join(p.packageDir, p.meta2hash(metaData)) + ".meta"
+		metaFile := filepath.Join(p.PackageDir, p.meta2hash(metaData)) + ".meta"
 		if err := os.MkdirAll(filepath.Dir(metaFile), os.ModePerm); err != nil {
 			installFailed = true
 			return err
@@ -232,7 +225,7 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 func (p Port) doInstallFromPackage(destDir string) error {
 	// Check and repair current port.
 	packageFiles, err := p.PackageFiles(
-		p.packageDir,
+		p.PackageDir,
 		p.ctx.Platform().GetName(),
 		p.ctx.Project().GetName(),
 	)
@@ -241,7 +234,7 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	}
 
 	// Copy files from package to installed dir.
-	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.buildType)
+	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
 	for _, file := range packageFiles {
 		if p.DevDep {
 			file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
@@ -249,7 +242,7 @@ func (p Port) doInstallFromPackage(destDir string) error {
 			file = strings.TrimPrefix(file, filepath.Join(platformProject, string(os.PathSeparator)))
 		}
 
-		src := filepath.Join(p.packageDir, file)
+		src := filepath.Join(p.PackageDir, file)
 		dest := filepath.Join(destDir, file)
 
 		// Rename meta file as new name in meta folder.
@@ -294,7 +287,7 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	}
 	if metaFile == "" {
 		suffix := expr.If(p.DevDep, "@dev", "")
-		return false, fmt.Errorf("invalid package %s, since meta file is not found for %s", p.packageDir, p.NameVersion()+suffix)
+		return false, fmt.Errorf("invalid package %s, since meta file is not found for %s", p.PackageDir, p.NameVersion()+suffix)
 	}
 
 	// Install from package if meta matches.
@@ -337,7 +330,7 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 		}
 	}
 
-	if err := p.doInstallFromPackage(p.installedDir); err != nil {
+	if err := p.doInstallFromPackage(p.InstalledDir); err != nil {
 		return false, fmt.Errorf("failed to install from package.\n %w", err)
 	}
 
@@ -367,7 +360,7 @@ func (p Port) InstallFromCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		if err := p.doInstallFromPackage(p.installedDir); err != nil {
+		if err := p.doInstallFromPackage(p.InstalledDir); err != nil {
 			return false, err
 		}
 
@@ -404,7 +397,7 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 	if err := p.doInstallFromSource(options); err != nil {
 		return err
 	}
-	if err := p.doInstallFromPackage(p.installedDir); err != nil {
+	if err := p.doInstallFromPackage(p.InstalledDir); err != nil {
 		return err
 	}
 
@@ -424,7 +417,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 		port.Parent = p.NameVersion()
 		port.DevDep = true
 		port.Native = true
-		if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -451,7 +444,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 		var port Port
 		port.DevDep = p.DevDep
 		port.Parent = p.NameVersion()
-		if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -486,7 +479,7 @@ func (p Port) providerTmpDeps() error {
 		var port Port
 		port.Parent = p.NameVersion()
 		port.DevDep = true
-		if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -500,7 +493,7 @@ func (p Port) providerTmpDeps() error {
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().GetHostName()+"-dev"),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
 		)
-		if err := fileio.FixupPkgConfig(p.packageDir, prefix); err != nil {
+		if err := fileio.FixupPkgConfig(p.PackageDir, prefix); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config.\n %w", err)
 		}
 
@@ -528,7 +521,7 @@ func (p Port) providerTmpDeps() error {
 		var port Port
 		port.DevDep = p.DevDep
 		port.Parent = p.NameVersion()
-		if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -564,7 +557,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	if err := os.MkdirAll(filepath.Dir(p.traceFile), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create trace dir.\n %w", err)
 	}
-	packageFiles, err := p.PackageFiles(p.packageDir, p.ctx.Platform().GetName(), p.ctx.Project().GetName())
+	packageFiles, err := p.PackageFiles(p.PackageDir, p.ctx.Platform().GetName(), p.ctx.Project().GetName())
 	if err != nil {
 		return fmt.Errorf("failed to get package files.\n %w", err)
 	}
@@ -575,6 +568,6 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	// Print install trace.
 	title := color.Sprintf(color.Green, "\n[✔] ---- package: %s is installed from %s\n",
 		p.NameVersion(), installedFrom)
-	fmt.Printf("%sLocation: %s\n", title, p.installedDir)
+	fmt.Printf("%sLocation: %s\n", title, p.InstalledDir)
 	return nil
 }

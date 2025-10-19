@@ -32,7 +32,7 @@ func TestDepCheck_CheckConflict_Conflict(t *testing.T) {
 	var ports []configs.Port
 	for _, nameVersion := range project.Ports {
 		var port configs.Port
-		if err := port.Init(celer, nameVersion, celer.BuildType()); err != nil {
+		if err := port.Init(celer, nameVersion); err != nil {
 			t.FailNow()
 		}
 		ports = append(ports, port)
@@ -70,7 +70,7 @@ func TestDepCheck_CheckConflict_Normal(t *testing.T) {
 
 	for _, nameVersion := range project.Ports {
 		var port configs.Port
-		if err := port.Init(celer, nameVersion, celer.BuildType()); err != nil {
+		if err := port.Init(celer, nameVersion); err != nil {
 			t.FailNow()
 		}
 		ports = append(ports, port)

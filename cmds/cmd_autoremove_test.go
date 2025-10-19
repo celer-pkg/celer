@@ -95,7 +95,7 @@ func TestAutoRemove(t *testing.T) {
 	t.Run("autoremove with purge", func(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
-		check(port.Init(celer, portNameVersion, celer.BuildType()))
+		check(port.Init(celer, portNameVersion))
 		check(port.InstallFromSource(options))
 
 		t.Cleanup(func() {
@@ -124,7 +124,7 @@ func TestAutoRemove(t *testing.T) {
 	t.Run("autoremove with build cache", func(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
-		check(port.Init(celer, portNameVersion, celer.BuildType()))
+		check(port.Init(celer, portNameVersion))
 		check(port.InstallFromSource(options))
 
 		autoremoveCmd.purge = false

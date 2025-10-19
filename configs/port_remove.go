@@ -27,7 +27,7 @@ func (p Port) Remove(options RemoveOptions) error {
 			var port Port
 			port.DevDep = devDep
 			port.Parent = p.NameVersion()
-			if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
+			if err := port.Init(p.ctx, nameVersion); err != nil {
 				return fmt.Errorf("failed to init dependency %s.\n %w", nameVersion, err)
 			}
 
@@ -80,7 +80,7 @@ func (p Port) Remove(options RemoveOptions) error {
 }
 
 func (p Port) doRemovePort() error {
-	color.Printf(color.Blue, "\n[remove %s]: from \"%s\"\n", p.NameVersion(), p.installedDir)
+	color.Printf(color.Blue, "\n[remove %s]: from \"%s\"\n", p.NameVersion(), p.InstalledDir)
 
 	if !fileio.PathExists(p.traceFile) {
 		return nil
@@ -119,7 +119,7 @@ func (p Port) doRemovePort() error {
 
 	// Remove generated cmake config if exist.
 	portName := strings.Split(p.NameVersion(), "@")[0]
-	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.buildType)
+	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
 	cmakeConfigDir := filepath.Join(dirs.InstalledDir, platformProject, "lib", "cmake", portName)
 	if err := os.RemoveAll(cmakeConfigDir); err != nil {
 		return fmt.Errorf("cannot remove cmake config folder: %s", err)
@@ -158,12 +158,12 @@ func (p Port) doRemovePort() error {
 func (p Port) removePackage() error {
 	// Remove port's package files.
 	// packageDir := filepath.Join(dirs.WorkspaceDir, "packages", p.NameVersion()+"@"+p.matchedConfig.PortConfig.LibraryFolder)
-	if err := os.RemoveAll(p.packageDir); err != nil {
+	if err := os.RemoveAll(p.PackageDir); err != nil {
 		return fmt.Errorf("cannot remove package files: %s", err)
 	}
 
 	// Try remove parent folder if it's empty.
-	if err := fileio.RemoveFolderRecursively(filepath.Dir(p.packageDir)); err != nil {
+	if err := fileio.RemoveFolderRecursively(filepath.Dir(p.PackageDir)); err != nil {
 		return fmt.Errorf("cannot remove parent folder: %s", err)
 	}
 
@@ -200,7 +200,7 @@ func (p Port) removeFiles(path string) error {
 }
 
 func (p Port) RemoveLogs() error {
-	platformProject := fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.buildType)
+	platformProject := fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
 	logPathPrefix := filepath.Join(p.NameVersion(), expr.If(p.DevDep || p.Native, p.ctx.Platform().GetHostName()+"-dev", platformProject))
 	matches, err := filepath.Glob(filepath.Join(dirs.BuildtreesDir, logPathPrefix+"-*.log"))
 	if err != nil {

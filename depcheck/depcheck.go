@@ -158,7 +158,7 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 			DevDep: true,
 			Native: true,
 		}
-		if err := devPort.Init(d.ctx, nameVersion, d.ctx.BuildType()); err != nil {
+		if err := devPort.Init(d.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -192,7 +192,7 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 		var devPort = configs.Port{
 			DevDep: port.DevDep,
 		}
-		if err := devPort.Init(d.ctx, nameVersion, d.ctx.BuildType()); err != nil {
+		if err := devPort.Init(d.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -225,7 +225,7 @@ func (d *depcheck) collectInfos(nameVersion string, devDep bool) error {
 	var port = configs.Port{
 		DevDep: devDep,
 	}
-	if err := port.Init(d.ctx, nameVersion, d.ctx.BuildType()); err != nil {
+	if err := port.Init(d.ctx, nameVersion); err != nil {
 		return err
 	}
 
@@ -243,7 +243,7 @@ func (d *depcheck) collectInfos(nameVersion string, devDep bool) error {
 			DevDep: true,
 			Native: true,
 		}
-		if err := devDepPort.Init(d.ctx, devDepNameVersion, d.ctx.BuildType()); err != nil {
+		if err := devDepPort.Init(d.ctx, devDepNameVersion); err != nil {
 			return err
 		}
 
@@ -276,7 +276,7 @@ func (d *depcheck) collectInfos(nameVersion string, devDep bool) error {
 		var depPort = configs.Port{
 			DevDep: devDep,
 		}
-		if err := depPort.Init(d.ctx, depNameVersion, d.ctx.BuildType()); err != nil {
+		if err := depPort.Init(d.ctx, depNameVersion); err != nil {
 			return err
 		}
 

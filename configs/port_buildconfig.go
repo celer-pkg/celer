@@ -14,7 +14,7 @@ import (
 )
 
 func (p *Port) initBuildConfig(nameVersion string) error {
-	buildType := strings.ToLower(p.buildType)
+	buildType := strings.ToLower(p.ctx.BuildType())
 	hostName := p.ctx.Platform().GetHostName()
 	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType)
 
@@ -37,8 +37,8 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+platformProject+".meta"),
 	)
 
-	p.packageDir = filepath.Join(dirs.WorkspaceDir, "packages", packageFolder)
-	p.installedDir = filepath.Join(dirs.InstalledDir, libraryFolder)
+	p.PackageDir = filepath.Join(dirs.WorkspaceDir, "packages", packageFolder)
+	p.InstalledDir = filepath.Join(dirs.InstalledDir, libraryFolder)
 	p.tmpDepsDir = filepath.Join(dirs.TmpDepsDir, libraryFolder)
 
 	portConfig := buildsystems.PortConfig{
@@ -52,7 +52,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		HostName:        p.ctx.Platform().GetHostName(),
 		SrcDir:          filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 		BuildDir:        filepath.Join(dirs.WorkspaceDir, "buildtrees", buildFolder),
-		PackageDir:      p.packageDir,
+		PackageDir:      p.PackageDir,
 		LibraryFolder:   libraryFolder,
 		DevDep:          p.DevDep,
 		Jobs:            p.ctx.Jobs(),

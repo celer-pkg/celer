@@ -134,7 +134,7 @@ func (p Project) Deploy() error {
 	}
 	for _, nameVersion := range p.Ports {
 		var port Port
-		if err := port.Init(p.ctx, nameVersion, p.BuildType); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return fmt.Errorf("%s: %w", nameVersion, err)
 		}
 		if _, err := port.Install(options); err != nil {

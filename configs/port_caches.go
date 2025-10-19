@@ -52,7 +52,7 @@ func (c Port) GenPlatformTomlString() (string, error) {
 
 func (p Port) GenPortTomlString(nameVersion string) (string, error) {
 	var port Port
-	if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
+	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return "", err
 	}
 
@@ -68,7 +68,7 @@ func (p Port) GenPortTomlString(nameVersion string) (string, error) {
 
 func (p Port) Commit(nameVersion string) (string, error) {
 	var port Port
-	if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
+	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return "", err
 	}
 
@@ -100,7 +100,7 @@ func (p Port) Commit(nameVersion string) (string, error) {
 
 func (p Port) GetBuildConfig(nameVersion string) (*buildsystems.BuildConfig, error) {
 	var port Port
-	if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
+	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return nil, err
 	}
 	return port.MatchedConfig, nil
@@ -108,7 +108,7 @@ func (p Port) GetBuildConfig(nameVersion string) (*buildsystems.BuildConfig, err
 
 func (p Port) CheckHostSupported(nameVersion string) bool {
 	var port Port
-	if err := port.Init(p.ctx, nameVersion, p.buildType); err != nil {
+	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return false
 	}
 

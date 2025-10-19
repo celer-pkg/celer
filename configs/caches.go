@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"celer/context"
 	"celer/pkgs/fileio"
 	"crypto/sha256"
 	"fmt"
@@ -11,6 +12,9 @@ import (
 
 type CacheDir struct {
 	Dir string `toml:"dir"`
+
+	// Internal field.
+	ctx context.Context
 }
 
 func (c CacheDir) Validate() error {
@@ -23,7 +27,10 @@ func (c CacheDir) Validate() error {
 	return nil
 }
 
-func (c CacheDir) Read(platformName, projectName, buildType, nameVersion, hash, destDir string) (bool, error) {
+func (c CacheDir) Read(nameVersion, hash, destDir string) (bool, error) {
+	platformName := c.ctx.Platform().GetName()
+	projectName := c.ctx.Project().GetName()
+	buildType := c.ctx.BuildType()
 	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, hash)
 	if !fileio.PathExists(archivePath) {
 		return false, nil // not an error even not exist.
@@ -99,7 +106,10 @@ func (c CacheDir) Write(packageDir, meta string) error {
 }
 
 // Remove removes the cache for the specified platform, project, build type and name version.
-func (c CacheDir) Remove(platformName, projectName, buildType, nameVersion string) error {
+func (c CacheDir) Remove(nameVersion string) error {
+	platformName := c.ctx.Platform().GetName()
+	projectName := c.ctx.Project().GetName()
+	buildType := c.ctx.BuildType()
 	pacakgeDir := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion)
 	if fileio.PathExists(pacakgeDir) {
 		if err := os.RemoveAll(pacakgeDir); err != nil {
@@ -111,7 +121,10 @@ func (c CacheDir) Remove(platformName, projectName, buildType, nameVersion strin
 }
 
 // Exist check both archive file and build desc file exist.
-func (c CacheDir) Exist(platformName, projectName, buildType, nameVersion, hash string) bool {
+func (c CacheDir) Exist(nameVersion, hash string) bool {
+	platformName := c.ctx.Platform().GetName()
+	projectName := c.ctx.Project().GetName()
+	buildType := c.ctx.BuildType()
 	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, hash+".tar.gz")
 	metaFilePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, "meta", hash+".meta")
 	return fileio.PathExists(archivePath) && fileio.PathExists(metaFilePath)

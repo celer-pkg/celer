@@ -68,7 +68,7 @@ func (r removeCmd) remove(nameVersions []string) error {
 		var port configs.Port
 		port.DevDep = r.dev
 
-		if err := port.Init(r.celer, nameVersion, r.buildType); err != nil {
+		if err := port.Init(r.celer, nameVersion); err != nil {
 			return err
 		}
 		if err := port.Remove(removeOptions); err != nil {

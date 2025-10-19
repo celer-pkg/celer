@@ -54,7 +54,7 @@ func (t *treeCmd) tree(target string) {
 	depcheck := depcheck.NewDepCheck()
 	if strings.Contains(target, "@") {
 		var port configs.Port
-		if err := port.Init(t.celer, target, t.celer.BuildType()); err != nil {
+		if err := port.Init(t.celer, target); err != nil {
 			configs.PrintError(err, "failed to init port.")
 			return
 		}
@@ -99,7 +99,7 @@ func (t *treeCmd) tree(target string) {
 		var ports []configs.Port
 		for _, nameVersion := range project.Ports {
 			var port configs.Port
-			if err := port.Init(t.celer, nameVersion, t.celer.BuildType()); err != nil {
+			if err := port.Init(t.celer, nameVersion); err != nil {
 				configs.PrintError(err, "failed to init port: %s", nameVersion)
 				return
 			}
@@ -137,7 +137,7 @@ func (t *treeCmd) tree(target string) {
 
 func (t *treeCmd) collectPortInfos(parent *portInfo, nameVersion string) error {
 	var port configs.Port
-	if err := port.Init(t.celer, nameVersion, t.celer.BuildType()); err != nil {
+	if err := port.Init(t.celer, nameVersion); err != nil {
 		return err
 	}
 
@@ -147,7 +147,7 @@ func (t *treeCmd) collectPortInfos(parent *portInfo, nameVersion string) error {
 	// Collect dependency ports.
 	for _, depNameVersion := range matchedConfig.Dependencies {
 		var depPort configs.Port
-		if err := depPort.Init(t.celer, depNameVersion, t.celer.BuildType()); err != nil {
+		if err := depPort.Init(t.celer, depNameVersion); err != nil {
 			return err
 		}
 
@@ -169,7 +169,7 @@ func (t *treeCmd) collectPortInfos(parent *portInfo, nameVersion string) error {
 		}
 
 		var devDepPort configs.Port
-		if err := devDepPort.Init(t.celer, devDepNameVersion, t.celer.BuildType()); err != nil {
+		if err := devDepPort.Init(t.celer, devDepNameVersion); err != nil {
 			return err
 		}
 
