@@ -419,7 +419,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 			continue
 		}
 
-		// Check and repair dependency.
+		// Init port.
 		var port Port
 		port.Parent = p.NameVersion()
 		port.DevDep = true
@@ -447,7 +447,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), name)
 		}
 
-		// Check and repair dependency.
+		// Init port.
 		var port Port
 		port.DevDep = p.DevDep
 		port.Parent = p.NameVersion()
