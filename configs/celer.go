@@ -331,6 +331,7 @@ func (c *Celer) SetCacheDir(dir, token string) error {
 
 	c.configData.CacheDir = &CacheDir{
 		Dir: dir,
+		ctx: c,
 	}
 	if err := c.save(); err != nil {
 		return err
