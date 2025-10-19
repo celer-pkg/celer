@@ -12,7 +12,7 @@ func TestCloneRepo_NoDefaultBranch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := CloneRepo("[test clone repo]", testRepo, "", "testdata"); err != nil {
+	if err := CloneRepo("[test clone repo]", testRepo, "", false, "testdata"); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -23,7 +23,7 @@ func TestCloneRepo_Branch(t *testing.T) {
 	}
 
 	branch := "master"
-	if err := CloneRepo("[test clone repo]", testRepo, branch, "testdata"); err != nil {
+	if err := CloneRepo("[test clone repo]", testRepo, branch, false, "testdata"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -42,7 +42,7 @@ func TestCloneRepo_Tag(t *testing.T) {
 	}
 
 	tag := "bzip2-1.0.8"
-	if err := CloneRepo("[test clone repo]", testRepo, tag, "testdata"); err != nil {
+	if err := CloneRepo("[test clone repo]", testRepo, tag, false, "testdata"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -61,7 +61,7 @@ func TestCloneRepo_Commit(t *testing.T) {
 	}
 
 	commit := "1ea1ac188ad4b9cb662e3f8314673c63df95a589"
-	if err := CloneRepo("[test clone repo]", testRepo, commit, "testdata"); err != nil {
+	if err := CloneRepo("[test clone repo]", testRepo, commit, false, "testdata"); err != nil {
 		t.Fatal(err)
 	}
 

@@ -475,7 +475,7 @@ func (c Celer) updateConfRepo(repoUrl, branch string) error {
 			return err
 		}
 
-		return git.CloneRepo("[clone conf repo]", repoUrl, branch, workDir)
+		return git.CloneRepo("[clone conf repo]", repoUrl, branch, false, workDir)
 	}
 
 	// Extracted update function for reusability.

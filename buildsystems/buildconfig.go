@@ -22,22 +22,23 @@ const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, qm
 var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "qmake"}
 
 type PortConfig struct {
-	LibName       string     // like: `ffmpeg`
-	LibVersion    string     // like: `4.4`
-	Archive       string     // like: `ffmpeg-4.4.tar.xz`
-	Url           string     // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
-	HostName      string     // like: `x86_64-linux`, `x86_64-windows`
-	ProjectName   string     // toml filename in conf/projects.
-	Toolchain     *Toolchain // same with `Toolchain` in config/toolchain.go
-	SrcDir        string     // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
-	RepoDir       string     // for example: ${workspace}/buildtrees/icu@75.1/src
-	BuildDir      string     // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
-	PackageDir    string     // for example: ${workspace}/packages/ffmpeg-3.4.13-x86_64-linux-20.04-Release
-	LibraryFolder string     // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
-	IncludeDirs   []string   // headers not in standard include path.
-	LibDirs       []string   // libs not in standard lib path.
-	Jobs          int        // number of jobs to run in parallel
-	DevDep        bool       // whether dev dependency
+	LibName         string     // like: `ffmpeg`
+	LibVersion      string     // like: `4.4`
+	Archive         string     // like: `ffmpeg-4.4.tar.xz`
+	Url             string     // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
+	IgnoreSubmodule bool       // whether ignore submodule during git clone.
+	HostName        string     // like: `x86_64-linux`, `x86_64-windows`
+	ProjectName     string     // toml filename in conf/projects.
+	Toolchain       *Toolchain // same with `Toolchain` in config/toolchain.go
+	SrcDir          string     // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
+	RepoDir         string     // for example: ${workspace}/buildtrees/icu@75.1/src
+	BuildDir        string     // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
+	PackageDir      string     // for example: ${workspace}/packages/ffmpeg-3.4.13-x86_64-linux-20.04-Release
+	LibraryFolder   string     // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
+	IncludeDirs     []string   // headers not in standard include path.
+	LibDirs         []string   // libs not in standard lib path.
+	Jobs            int        // number of jobs to run in parallel
+	DevDep          bool       // whether dev dependency
 }
 
 func (p PortConfig) nameVersionDesc() string {
@@ -283,7 +284,9 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		if !fileio.PathExists(b.PortConfig.RepoDir) {
 			// Clone repo.
 			title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
-			if err := git.CloneRepo(title, repoUrl, repoRef, b.PortConfig.RepoDir); err != nil {
+			if err := git.CloneRepo(title, repoUrl, repoRef,
+				b.PortConfig.IgnoreSubmodule,
+				b.PortConfig.RepoDir); err != nil {
 				return err
 			}
 		}
