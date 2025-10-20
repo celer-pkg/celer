@@ -7,7 +7,6 @@
 **/buildtrees
 **/downloads
 **/installed
-**/testdata
 **/cachedir
 **toolchain_file.cmake
 **/__debug_*
