@@ -57,7 +57,7 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, nameVersion, celer.BuildType()))
+	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(installOptions))
 
 	// Check package.
@@ -139,7 +139,7 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(glogPort.Init(celer, nameVersion, celer.BuildType()))
+	check(glogPort.Init(celer, nameVersion))
 	check(glogPort.InstallFromSource(options))
 
 	packageDir := func(nameVersion string) string {
@@ -178,7 +178,7 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 
 	// gflags should also be installed from cache.
 	var gflagsPort configs.Port
-	check(gflagsPort.Init(celer, "gflags@2.2.2", celer.BuildType()))
+	check(gflagsPort.Init(celer, "gflags@2.2.2"))
 	installed, err = gflagsPort.Installed()
 	check(err)
 	if !installed {
@@ -232,7 +232,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, nameVersion, celer.BuildType()))
+	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
 	// Check package & repo.
@@ -317,7 +317,7 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, nameVersion, celer.BuildType()))
+	check(port.Init(celer, nameVersion))
 	if err := port.InstallFromSource(options); err != configs.ErrCacheDirNotConfigured {
 		t.Fatal("should return ErrCacheDirNotConfigured")
 	}
@@ -365,7 +365,7 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, nameVersion, celer.BuildType()))
+	check(port.Init(celer, nameVersion))
 	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotConfigured {
 		t.Fatal("should return ErrCacheTokenNotConfigured")
 	}
@@ -413,7 +413,7 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "", // Token not specified
 	}
-	check(port.Init(celer, nameVersion, celer.BuildType()))
+	check(port.Init(celer, nameVersion))
 	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotSpecified {
 		t.Fatal("should return ErrCacheTokenNotSpecified")
 	}
@@ -461,7 +461,7 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_654321", // Token not match.
 	}
-	check(port.Init(celer, nameVersion, celer.BuildType()))
+	check(port.Init(celer, nameVersion))
 	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotMatch {
 		t.Fatal("should return ErrCacheTokenNotMatch")
 	}
@@ -509,7 +509,7 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, nameVersion, celer.BuildType()))
+	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
 	// Read commit.
@@ -576,7 +576,7 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 		StoreCache: true,
 		CacheToken: "token_123456",
 	}
-	check(port.Init(celer, nameVersion, celer.BuildType()))
+	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
 	// Remove installed and src dir.

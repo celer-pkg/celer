@@ -65,7 +65,7 @@ func (d dependCmd) query(target string) ([]string, error) {
 				nameVersion := libName + "@" + libVersion
 
 				var port configs.Port
-				if err := port.Init(d.celer, nameVersion, d.celer.BuildType()); err != nil {
+				if err := port.Init(d.celer, nameVersion); err != nil {
 					return err
 				}
 

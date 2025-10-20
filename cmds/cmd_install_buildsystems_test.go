@@ -50,7 +50,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 			options configs.InstallOptions
 		)
 
-		check(port.Init(celer, nameVersion, celer.BuildType()))
+		check(port.Init(celer, nameVersion))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
@@ -86,7 +86,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 			options configs.InstallOptions
 		)
 
-		check(port.Init(celer, nameVersion, celer.BuildType()))
+		check(port.Init(celer, nameVersion))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
@@ -122,7 +122,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 			options configs.InstallOptions
 		)
 
-		check(port.Init(celer, nameVersion, celer.BuildType()))
+		check(port.Init(celer, nameVersion))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
@@ -157,7 +157,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 			options configs.InstallOptions
 		)
 
-		check(port.Init(celer, nameVersion, celer.BuildType()))
+		check(port.Init(celer, nameVersion))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
@@ -192,7 +192,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 			options configs.InstallOptions
 		)
 
-		check(port.Init(celer, nameVersion, celer.BuildType()))
+		check(port.Init(celer, nameVersion))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
@@ -227,7 +227,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 			options configs.InstallOptions
 		)
 
-		check(port.Init(celer, "prebuilt-x264@stable", celer.BuildType()))
+		check(port.Init(celer, "prebuilt-x264@stable"))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
@@ -260,7 +260,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 			options configs.InstallOptions
 		)
 
-		check(port.Init(celer, nameVersion, celer.BuildType()))
+		check(port.Init(celer, nameVersion))
 		check(port.InstallFromSource(options))
 
 		if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {

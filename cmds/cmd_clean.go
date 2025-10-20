@@ -76,7 +76,7 @@ func (c *cleanCmd) clean(targets ...string) error {
 			// Init port.
 			var port configs.Port
 			port.DevDep = false
-			if err := port.Init(c.celer, target, c.celer.BuildType()); err != nil {
+			if err := port.Init(c.celer, target); err != nil {
 				return err
 			}
 
@@ -107,7 +107,7 @@ func (c *cleanCmd) clean(targets ...string) error {
 				// Init port.
 				var port configs.Port
 				port.DevDep = false
-				if err := port.Init(c.celer, nameVersion, c.celer.BuildType()); err != nil {
+				if err := port.Init(c.celer, nameVersion); err != nil {
 					return err
 				}
 
@@ -164,7 +164,7 @@ func (c *cleanCmd) cleanAll() error {
 
 			// Clean repo.
 			var port configs.Port
-			if err := port.Init(c.celer, nameVersion, c.celer.BuildType()); err != nil {
+			if err := port.Init(c.celer, nameVersion); err != nil {
 				return err
 			}
 			if err := port.MatchedConfig.Clean(); err != nil {
@@ -207,7 +207,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 			var depPort configs.Port
 			depPort.DevDep = port.DevDep
 			depPort.Native = port.Native
-			if err := depPort.Init(c.celer, nameVersion, c.celer.BuildType()); err != nil {
+			if err := depPort.Init(c.celer, nameVersion); err != nil {
 				return err
 			}
 
@@ -225,7 +225,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 			var devDepPort configs.Port
 			devDepPort.DevDep = true
 			devDepPort.Native = true
-			if err := devDepPort.Init(c.celer, nameVersion, c.celer.BuildType()); err != nil {
+			if err := devDepPort.Init(c.celer, nameVersion); err != nil {
 				return err
 			}
 

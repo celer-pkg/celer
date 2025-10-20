@@ -93,7 +93,7 @@ func (i installCmd) install(nameVersion string) {
 	// Install the port.
 	var port configs.Port
 	port.DevDep = i.dev
-	if err := port.Init(i.celer, nameVersion, i.buildType); err != nil {
+	if err := port.Init(i.celer, nameVersion); err != nil {
 		configs.PrintError(err, "failed to init %s.", nameVersion)
 		os.Exit(1)
 	}

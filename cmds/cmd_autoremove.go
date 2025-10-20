@@ -73,7 +73,7 @@ func (a *autoremoveCmd) autoremove() error {
 
 		// Do remove package.
 		var port configs.Port
-		if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+		if err := port.Init(a.celer, nameVersion); err != nil {
 			return err
 		}
 		remoteOptions := configs.RemoveOptions{
@@ -96,7 +96,7 @@ func (a *autoremoveCmd) autoremove() error {
 		// Do remove dev_package.
 		var port configs.Port
 		port.DevDep = true
-		if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+		if err := port.Init(a.celer, nameVersion); err != nil {
 			return err
 		}
 		remoteOptions := configs.RemoveOptions{
@@ -114,7 +114,7 @@ func (a *autoremoveCmd) autoremove() error {
 
 func (a *autoremoveCmd) collectPackages(nameVersion string) error {
 	var port configs.Port
-	if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+	if err := port.Init(a.celer, nameVersion); err != nil {
 		return err
 	}
 
@@ -137,7 +137,7 @@ func (a *autoremoveCmd) collectPackages(nameVersion string) error {
 
 func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 	var port configs.Port
-	if err := port.Init(a.celer, nameVersion, a.celer.BuildType()); err != nil {
+	if err := port.Init(a.celer, nameVersion); err != nil {
 		return err
 	}
 

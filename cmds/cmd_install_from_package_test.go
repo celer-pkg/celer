@@ -53,7 +53,7 @@ func TestInstall_FromPackage(t *testing.T) {
 	t.Run("install success", func(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
-		check(port.Init(celer, nameVersion, celer.BuildType()))
+		check(port.Init(celer, nameVersion))
 		check(port.InstallFromSource(options))
 
 		if !fileio.PathExists(packageDir) {
@@ -87,7 +87,7 @@ func TestInstall_FromPackage(t *testing.T) {
 	t.Run("install failed", func(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
-		check(port.Init(celer, nameVersion, celer.BuildType()))
+		check(port.Init(celer, nameVersion))
 		check(port.InstallFromSource(options))
 
 		if !fileio.PathExists(packageDir) {

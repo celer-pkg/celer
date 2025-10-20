@@ -99,7 +99,7 @@ func (u updateCmd) updatePorts(targets []string) error {
 func (u updateCmd) updatePortRepo(nameVersion string) error {
 	// Read port file.
 	var port configs.Port
-	if err := port.Init(u.celer, nameVersion, u.celer.Global.BuildType); err != nil {
+	if err := port.Init(u.celer, nameVersion); err != nil {
 		return fmt.Errorf("%s: %w", nameVersion, err)
 	}
 

@@ -57,23 +57,21 @@ type Port struct {
 	DevDep        bool                      `toml:"-"`
 	Native        bool                      `toml:"-"`
 	MatchedConfig *buildsystems.BuildConfig `toml:"-"`
+	PackageDir    string                    `toml:"-"`
+	InstalledDir  string                    `toml:"-"`
 
-	ctx          context.Context
-	buildType    string
-	packageDir   string
-	installedDir string
-	traceFile    string
-	metaFile     string
-	tmpDepsDir   string
+	ctx        context.Context
+	traceFile  string
+	metaFile   string
+	tmpDepsDir string
 }
 
 func (p Port) NameVersion() string {
 	return p.Name + "@" + p.Version
 }
 
-func (p *Port) Init(ctx context.Context, nameVersion, buildType string) error {
+func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	p.ctx = ctx
-	p.buildType = strings.ToLower(buildType)
 
 	// Validate name and version.
 	nameVersion = strings.ReplaceAll(nameVersion, "`", "")
@@ -108,7 +106,7 @@ func (p *Port) Init(ctx context.Context, nameVersion, buildType string) error {
 	}
 
 	// Set matchedConfig as prebuilt config when no config found in toml.
-	p.MatchedConfig = p.findMatchedConfig(p.buildType)
+	p.MatchedConfig = p.findMatchedConfig(p.ctx.BuildType())
 	if p.MatchedConfig == nil {
 		return fmt.Errorf("no matched config found for %s", p.NameVersion())
 	} else if p.MatchedConfig.BuildSystem == "prebuilt" &&
@@ -257,7 +255,7 @@ func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]stri
 		if p.DevDep {
 			files = append(files, filepath.Join(p.ctx.Platform().GetHostName()+"-dev", relativePath))
 		} else {
-			platformProject := fmt.Sprintf("%s@%s@%s", platformName, projectName, p.buildType)
+			platformProject := fmt.Sprintf("%s@%s@%s", platformName, projectName, p.ctx.BuildType())
 			files = append(files, filepath.Join(platformProject, relativePath))
 		}
 		return nil

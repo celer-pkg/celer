@@ -28,7 +28,7 @@ func TestDepCheck_CheckCircular_Normal(t *testing.T) {
 	checkError(celer.Init())
 
 	var port configs.Port
-	checkError(port.Init(celer, "aaa@1.0.0", celer.BuildType()))
+	checkError(port.Init(celer, "aaa@1.0.0"))
 
 	depcheck := NewDepCheck()
 	if err := depcheck.CheckCircular(celer, port); err != nil {
@@ -56,7 +56,7 @@ func TestDepCheck_CheckCircular_Dependencies(t *testing.T) {
 	checkError(celer.Init())
 
 	var port configs.Port
-	checkError(port.Init(celer, "aaa@1.0.0", celer.BuildType()))
+	checkError(port.Init(celer, "aaa@1.0.0"))
 
 	depcheck := NewDepCheck()
 	if err := depcheck.CheckCircular(celer, port); err != nil {
@@ -86,7 +86,7 @@ func TestDepCheck_CheckCircular_DevDependencies(t *testing.T) {
 	checkError(celer.Init())
 
 	var port configs.Port
-	checkError(port.Init(celer, "aaa@1.0.0", celer.BuildType()))
+	checkError(port.Init(celer, "aaa@1.0.0"))
 
 	depcheck := NewDepCheck()
 	if err := depcheck.CheckCircular(celer, port); err != nil {
