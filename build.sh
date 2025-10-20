@@ -2,7 +2,7 @@
 
 export GOPROXY=https://goproxy.io,direct
 
-VERSION=v0.0.5
+VERSION=v0.0.6
 go build -trimpath -ldflags "-s -w -X celer/configs.Version=${VERSION}"
 
 upx=$(which upx)
