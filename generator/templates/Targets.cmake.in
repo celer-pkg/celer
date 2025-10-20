@@ -65,7 +65,7 @@ set_target_properties(@NAMESPACE@::@LIBNAME@ PROPERTIES
 
 # Load information for each installed configuration.
 get_filename_component(_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-file(GLOB CONFIG_FILES "${_DIR}/@LIBNAME@Targets-*.cmake")
+file(GLOB CONFIG_FILES "${_DIR}/@NAMESPACE@Targets-*.cmake")
 foreach(f ${CONFIG_FILES})
     include(${f})
 endforeach()

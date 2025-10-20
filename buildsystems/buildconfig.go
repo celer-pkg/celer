@@ -535,9 +535,6 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	// Generate cmake configs.
 	portDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
 	preferedPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
-	if b.buildSystem.Name() == "prebuilt" {
-		b.LibraryType = "interface"
-	}
 	cmakeConfig, err := generator.FindMatchedConfig(portDir, preferedPortDir, b.PortConfig.Toolchain.SystemName, b.LibraryType)
 	if err != nil {
 		return fmt.Errorf("find matched config %s\n %w", b.PortConfig.nameVersionDesc(), err)
