@@ -16,7 +16,6 @@ import (
 
 type installCmd struct {
 	celer      *configs.Celer
-	buildType  string
 	dev        bool
 	force      bool
 	recurse    bool
@@ -45,7 +44,6 @@ func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
 
 	// Register flags.
 	flags := command.Flags()
-	flags.StringVarP(&i.buildType, "build-type", "b", i.celer.Global.BuildType, "install with build type.")
 	flags.BoolVarP(&i.dev, "dev", "d", false, "install in dev mode.")
 	flags.BoolVarP(&i.force, "force", "f", false, "try to uninstall before installation.")
 	flags.BoolVarP(&i.recurse, "recurse", "r", false, "combine with --force, recursively reinstall dependencies.")
@@ -59,9 +57,6 @@ func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
 
 func (i installCmd) install(nameVersion string) {
 	// Overwrite global config.
-	if i.buildType != "" {
-		i.celer.Global.BuildType = i.buildType
-	}
 	if i.jobs != i.celer.Global.Jobs {
 		i.celer.Global.Jobs = i.jobs
 	}
@@ -177,7 +172,6 @@ func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	// Support flags completion.
 	commands := []string{
 		"--dev", "-d",
-		"--build-type", "-b",
 		"--force", "-f",
 		"--recurse", "-r",
 		"--store-cache", "-s",

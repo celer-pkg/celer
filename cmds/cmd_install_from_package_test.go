@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 )
 
@@ -38,7 +37,7 @@ func TestInstall_FromPackage(t *testing.T) {
 		project     = "project_test_install"
 		packageDir  = fmt.Sprintf("%s/%s@%s@%s@%s",
 			dirs.PackagesDir, nameVersion, platform, project,
-			strings.ToLower(celer.BuildType()),
+			celer.BuildType(),
 		)
 	)
 

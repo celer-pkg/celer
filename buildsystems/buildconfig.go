@@ -229,7 +229,7 @@ type BuildConfig struct {
 	Ctx         context.Context   `toml:"-"`
 	DevDep      bool              `toml:"-"`
 	PortConfig  PortConfig        `toml:"-"`
-	BuildType   string            `toml:"-"`
+	BuildType   string            `toml:"-"` // It'll be converted to lowercase in use.
 	Optimize    *context.Optimize `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
@@ -791,8 +791,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 				cxxflags = append(cxxflags, b.Optimize.Release)
 			}
 		} else {
-			buildType := strings.ToLower(b.BuildType)
-			switch buildType {
+			switch b.BuildType {
 			case "release":
 				if b.Optimize.Release != "" {
 					cflags = append(cflags, b.Optimize.Release)

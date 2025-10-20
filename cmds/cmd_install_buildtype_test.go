@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 )
 
@@ -50,7 +49,7 @@ func TestInstall_BuildType(t *testing.T) {
 		var (
 			nameVersion = "eigen@3.4.0"
 			platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
-			packageDir  = fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, nameVersion, platform, project, strings.ToLower(celer.BuildType()))
+			packageDir  = fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, nameVersion, platform, project, celer.BuildType())
 		)
 
 		var port configs.Port
@@ -86,7 +85,7 @@ func TestInstall_BuildType(t *testing.T) {
 		var (
 			nameVersion = "eigen@3.4.0"
 			platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
-			packageDir  = fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, nameVersion, platform, project, strings.ToLower(celer.BuildType()))
+			packageDir  = fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, nameVersion, platform, project, celer.BuildType())
 		)
 
 		var port configs.Port

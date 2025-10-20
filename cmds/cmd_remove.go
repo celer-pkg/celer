@@ -13,7 +13,6 @@ import (
 
 type removeCmd struct {
 	celer      *configs.Celer
-	buildType  string
 	dev        bool
 	purge      bool
 	recurse    bool
@@ -32,11 +31,6 @@ func (r removeCmd) Command(celer *configs.Celer) *cobra.Command {
 				os.Exit(1)
 			}
 
-			// Use build_type from `celer.toml` if not specified.
-			if r.buildType == "" {
-				r.buildType = r.celer.BuildType()
-			}
-
 			if err := r.remove(args); err != nil {
 				configs.PrintError(err, "failed to remove %s.", strings.Join(args, ", "))
 				os.Exit(1)
@@ -48,7 +42,6 @@ func (r removeCmd) Command(celer *configs.Celer) *cobra.Command {
 	}
 
 	// Register flags.
-	command.Flags().StringVarP(&r.buildType, "build-type", "b", r.celer.Global.BuildType, "uninstall package with build type.")
 	command.Flags().BoolVarP(&r.buildCache, "build-cache", "c", false, "uninstall package along with build cache.")
 	command.Flags().BoolVarP(&r.recurse, "recurse", "r", false, "uninstall package along with its depedencies.")
 	command.Flags().BoolVarP(&r.purge, "purge", "p", false, "uninstall package along with its package files.")
@@ -98,7 +91,6 @@ func (r removeCmd) completion(cmd *cobra.Command, args []string, toComplete stri
 		}
 
 		flags := []string{
-			"--build-type", "-b",
 			"--build-cache", "-c",
 			"--recurse", "-r",
 			"--purge", "-p",

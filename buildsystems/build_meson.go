@@ -76,8 +76,7 @@ func (m meson) configureOptions() ([]string, error) {
 	if m.DevDep {
 		options = append(options, "--buildtype=release")
 	} else {
-		buildType := strings.ToLower(m.BuildType)
-		switch buildType {
+		switch m.BuildType {
 		case "release":
 			options = append(options, "--buildtype=release")
 		case "debug":

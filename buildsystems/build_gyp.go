@@ -76,8 +76,7 @@ func (g gyp) Configure(options []string) error {
 				cxxflags = append(cxxflags, g.Optimize.Release)
 			}
 		} else {
-			buildType := strings.ToLower(g.BuildType)
-			switch buildType {
+			switch g.BuildType {
 			case "release":
 				if g.Optimize.Release != "" {
 					cflags = append(cflags, g.Optimize.Release)
