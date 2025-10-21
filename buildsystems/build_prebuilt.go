@@ -62,9 +62,13 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 				return fmt.Errorf("failed to find extracted files under tmp dir")
 			}
 			if len(entities) == 1 {
-				srcDir := filepath.Join(p.PortConfig.PackageDir, entities[0].Name())
-				if err := fileio.RenameDir(srcDir, p.PortConfig.PackageDir); err != nil {
-					return err
+				enetityName := entities[0].Name()
+				archiveName := fileio.FileBaseName(archive)
+				if enetityName == archiveName {
+					srcDir := filepath.Join(p.PortConfig.PackageDir, entities[0].Name())
+					if err := fileio.RenameDir(srcDir, p.PortConfig.PackageDir); err != nil {
+						return err
+					}
 				}
 			}
 		}
