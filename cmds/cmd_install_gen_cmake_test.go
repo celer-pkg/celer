@@ -32,12 +32,12 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion = "prebuilt-x264@stable"
+		nameVersion = "prebuilt-x264-single-target@stable"
 		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
 		project     = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "add_prebuilt_ffmpeg"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -69,6 +69,13 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	executer = cmd.NewExecutor("build test project", "cmake", "--build", buildDir)
 	executer.SetWorkDir(buildDir)
 	check(executer.Execute())
+
+	// Clear up.
+	check(port.Remove(configs.RemoveOptions{
+		Purge:      true,
+		BuildCache: true,
+		Recurse:    true,
+	}))
 }
 
 func TestInstall_Generate_CMake_Prebuilt_Interface(t *testing.T) {
@@ -129,4 +136,11 @@ func TestInstall_Generate_CMake_Prebuilt_Interface(t *testing.T) {
 	executer = cmd.NewExecutor("build test project", "cmake", "--build", buildDir)
 	executer.SetWorkDir(buildDir)
 	check(executer.Execute())
+
+	// Clear up.
+	check(port.Remove(configs.RemoveOptions{
+		Purge:      true,
+		BuildCache: true,
+		Recurse:    true,
+	}))
 }
