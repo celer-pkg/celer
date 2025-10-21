@@ -1,10 +1,10 @@
-# How to automatically generate cmake configuration files
+# How to automatically generate cmake config files
 
-&emsp;&emsp;We all know that many third-party libraries do not use cmake to build, and after installation, they will not generate cmake configuration files. This makes it not easy to use cmake to find them. Although we can use `pkg-config` to find them, it can only be used on Linux. Now, Celer can generate cmake configuration files for them, so they can be used on any platform.
+&emsp;&emsp;We all know that many third-party libraries do not use cmake to build, and after installation, they will not generate cmake config files. This makes it not easy let cmake find them. Although we can use `pkg-config` to find them, it can only be used on Linux. Now, Celer can generate cmake config files for them, so they can be used on any platform.
 
-**1. How to generate cmake configuration files for libraries without components**
+**1. How to generate cmake config files for single target**
 
-For example, x264, you should create a cmake_config.toml file in the version directory of the port.
+For example, x264, you should create a **cmake_config.toml** file in the version directory of the port.
 
 ```
 └── x264
@@ -31,10 +31,9 @@ filename = "x264.lib"
 [windows_shared]
 filename = "libx264-164.dll"
 impname = "libx264.lib"
-
 ```
 
-After compiling and installing, you can see the generated cmake configuration files as follows:
+After compiling and installing, you can see the generated cmake config files as follows:
 
 ```
 lib
@@ -56,9 +55,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 > **Note:**  
 > &emsp;&emsp;Note that the namespace is defined in the cmake_config file. If it is not defined, it will be the same as the library name. The namespace is also the prefix of the config file name.
 
-**2. How to generate cmake configuration files for libraries with components**
+**2. How to generate cmake config files for libraries with components**
 
-For example, ffmpeg, you should create a cmake_config.toml file in the version directory of the port.
+For example, ffmpeg, you should create a **cmake_config.toml** file in the version directory of the port.
 
 ```
 └── ffmpeg
@@ -172,7 +171,7 @@ dependencies = ["avcodec", "avutil", "avformat"]
 > **Note:**  
 > &emsp;&emsp;Note that different components may have different dependencies, so we need to define them in the `dependencies` field.
 
-After compiling and installing, you can see the generated cmake configuration files as follows:
+After compiling and installing, you can see the generated cmake config files as follows:
 
 ```
 lib
@@ -198,6 +197,64 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     FFmpeg::swresample
     FFmpeg::swscale
 )
+```
+
+**3. How to generate cmake config files for interface target**
+
+For example, prebuilt-ffmpeg, you should create a **cmake_config.toml** file in the version directory of the port.
+
+```
+└── prebuilt-ffmpeg
+    └── 5.1.6
+        ├── cmake_config.toml
+        └── port.toml
+```
+
+```toml
+[package]
+ref = "5.1.6"
+
+[[build_configs]]
+url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
+pattern = "x86_64-linux*"
+build_system = "prebuilt"
+library_type = "interface"
+```
+>To generate interface type cmake configs, you need to set `library_type` as **interface**.
+
+```toml
+namespace = "FFmpeg"
+
+[linux_interface]
+libraries = [
+    "libavutil.so.57",
+    "libavcodec.so.59",
+    "libavdevice.so.59",
+    "libavfilter.so.8",
+    "libavformat.so.59",
+    "libpostproc.so.56",
+    "libswresample.so.4",
+    "libswscale.so.6",
+]
+```
+
+> Because it is an interface type cmake config file, we only need to list all the libraries that need to be linked in the **libraries** field.
+
+After compiling and installing, you can see the generated cmake config files as follows:
+
+```
+lib
+└── cmake
+    └── FFmpeg
+        ├── FFmpegConfig.cmake
+        └── FFmpegConfigVersion.cmake
+```
+
+Finally, you can use it in your cmake project as follows:
+
+```cmake
+find_package(FFmpeg REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE FFmpeg::prebuilt-ffmpeg)
 ```
 
 > **Note:**  
