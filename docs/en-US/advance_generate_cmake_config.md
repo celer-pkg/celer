@@ -1,16 +1,16 @@
 # How to automatically generate cmake config files
 
-&emsp;&emsp;We all know that many third-party libraries do not use cmake to build, and after installation, they will not generate cmake config files. This makes it not easy let cmake find them. Although we can use `pkg-config` to find them, it can only be used on Linux. Now, Celer can generate cmake config files for them, so they can be used on any platform.
+&emsp;&emsp;We all know that many third-party libraries do not use cmake to build, and after installation, they will not generate cmake config files. This makes it not easy let cmake find them. Although we can use `pkg-config` to find them, it's not easy to use in windows. Now, Celer can generate cmake config files for them, so they can be used on any platform.
 
 **1. How to generate cmake config files for single target**
 
 For example, x264, you should create a **cmake_config.toml** file in the version directory of the port.
 
 ```
-└── x264
-    └── stable  
-        ├── cmake_config.toml
-        └── port.toml
+x264
+└── stable  
+    ├── cmake_config.toml
+    └── port.toml
 ```
 
 The content of this file is as follows, we can define different filenames for different platforms.
@@ -53,18 +53,20 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 ```
 
 > **Note:**  
-> &emsp;&emsp;Note that the namespace is defined in the cmake_config file. If it is not defined, it will be the same as the library name. The namespace is also the prefix of the config file name.
+> Note that the namespace is defined in the cmake_config file. If it is not defined, it will be the same as the library name. The namespace is also the prefix of the config file name.
 
 **2. How to generate cmake config files for libraries with components**
 
 For example, ffmpeg, you should create a **cmake_config.toml** file in the version directory of the port.
 
 ```
-└── ffmpeg
-    └── 5.1.6
-        ├── cmake_config.toml
-        └── port.toml
+ffmpeg
+└── 5.1.6
+    ├── cmake_config.toml
+    └── port.toml
 ```
+
+cmake_config.toml:
 
 ```toml
 namespace = "FFmpeg"
@@ -169,7 +171,7 @@ dependencies = ["avcodec", "avutil", "avformat"]
 ```
 
 > **Note:**  
-> &emsp;&emsp;Note that different components may have different dependencies, so we need to define them in the `dependencies` field.
+> Note that different components may have different dependencies, Celer supports defining the dependency relation for them in the `dependencies` field.
 
 After compiling and installing, you can see the generated cmake config files as follows:
 
@@ -204,10 +206,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 For example, prebuilt-ffmpeg, you should create a **cmake_config.toml** file in the version directory of the port.
 
 ```
-└── prebuilt-ffmpeg
-    └── 5.1.6
-        ├── cmake_config.toml
-        └── port.toml
+prebuilt-ffmpeg
+└── 5.1.6
+    ├── cmake_config.toml
+    └── port.toml
 ```
 
 ```toml
@@ -218,7 +220,7 @@ ref = "5.1.6"
 url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
 pattern = "x86_64-linux*"
 build_system = "prebuilt"
-library_type = "interface"
+library_type = "interface"  # ---- it should be changed to `interface`
 ```
 >To generate interface type cmake configs, you need to set `library_type` as **interface**.
 
@@ -258,6 +260,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE FFmpeg::prebuilt-ffmpeg)
 ```
 
 > **Note:**  
-> 1. If namespace is not specified, it will be the same as the library name. And the namespace is also the prefix of the config file name.  
->
-> 2. The installed libraries files would be removed when there is any wrong in the cmake config file.
+> **1.** If namespace is not specified, it will be the same as the library name. And the namespace is also the prefix of the config file name.  
+> **2.** The installed libraries files would be removed when there is any wrong in the cmake config file.
