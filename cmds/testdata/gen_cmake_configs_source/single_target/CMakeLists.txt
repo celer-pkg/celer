@@ -5,4 +5,4 @@ project(tests VERSION 0.1.0 LANGUAGES C CXX)
 add_executable(tests main.cpp)
 
 find_package(x264 REQUIRED)
-target_link_libraries(tests PRIVATE x264::prebuilt-x264-single-target)
+target_link_libraries(tests PRIVATE x264::x264)
