@@ -62,7 +62,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 
 ```
 └── ffmpeg
-    └── 3.4.13
+    └── 5.1.6
         ├── cmake_config.toml
         └── port.toml
 ```
