@@ -229,7 +229,7 @@ type BuildConfig struct {
 	Ctx         context.Context   `toml:"-"`
 	DevDep      bool              `toml:"-"`
 	PortConfig  PortConfig        `toml:"-"`
-	BuildType   string            `toml:"-"`
+	BuildType   string            `toml:"-"` // It'll be converted to lowercase in use.
 	Optimize    *context.Optimize `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
@@ -535,9 +535,6 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	// Generate cmake configs.
 	portDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
 	preferedPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
-	if b.buildSystem.Name() == "prebuilt" {
-		b.LibraryType = "interface"
-	}
 	cmakeConfig, err := generator.FindMatchedConfig(portDir, preferedPortDir, b.PortConfig.Toolchain.SystemName, b.LibraryType)
 	if err != nil {
 		return fmt.Errorf("find matched config %s\n %w", b.PortConfig.nameVersionDesc(), err)
@@ -791,8 +788,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 				cxxflags = append(cxxflags, b.Optimize.Release)
 			}
 		} else {
-			buildType := strings.ToLower(b.BuildType)
-			switch buildType {
+			switch b.BuildType {
 			case "release":
 				if b.Optimize.Release != "" {
 					cflags = append(cflags, b.Optimize.Release)

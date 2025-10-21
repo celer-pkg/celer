@@ -123,8 +123,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 
 	configureWithPerl := m.shouldConfigureWithPerl()
 	if configureWithPerl {
-		buildType := strings.ToLower(m.BuildType)
-		isRelease := buildType == "release" || buildType == "relwithdebinfo" || buildType == "minsizerel"
+		isRelease := m.BuildType == "release" || m.BuildType == "relwithdebinfo" || m.BuildType == "minsizerel"
 		release := m.DevDep || isRelease
 		options = append(options, expr.If(release, "--release", "--debug"))
 	}
@@ -262,8 +261,7 @@ func (m makefiles) Configure(options []string) error {
 				cxxflags = append(cxxflags, m.Optimize.Release)
 			}
 		} else {
-			buildType := strings.ToLower(m.BuildType)
-			switch buildType {
+			switch m.BuildType {
 			case "release":
 				if m.Optimize.Release != "" {
 					cflags = append(cflags, m.Optimize.Release)

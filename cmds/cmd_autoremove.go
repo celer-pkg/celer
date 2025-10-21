@@ -155,7 +155,7 @@ func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 
 func (a autoremoveCmd) installedPackages() (packages []string, devPackages []string, err error) {
 	libraryFolder := fmt.Sprintf("%s@%s@%s", a.celer.Platform().GetName(),
-		a.celer.Project().GetName(), strings.ToLower(a.celer.BuildType()))
+		a.celer.Project().GetName(), a.celer.BuildType())
 	packages, err = a.readPackages(libraryFolder)
 	if err != nil {
 		return nil, nil, err

@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
 	"testing"
 )
 
@@ -87,7 +86,7 @@ func TestAutoRemove(t *testing.T) {
 	}
 
 	var (
-		buildType  = strings.ToLower(celer.BuildType())
+		buildType  = celer.BuildType()
 		packageDir = fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, portNameVersion, platform, project, buildType)
 		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
 	)

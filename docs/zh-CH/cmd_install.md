@@ -12,7 +12,6 @@ celer install [package_name] [flags]
 
 | Option	        | Short flag | Description                                              |
 | ----------------- | ---------- | ---------------------------------------------------------|
-| --build-type	    | -b	     | install with specified build type, default is release.   |
 | --dev             | -d         | install in dev mode.                                     |
 | --force	        | -f	     | try to uninstall before installation.                    |
 | --jobs	        | -j	     | build with specified cpu jobs when install.              |

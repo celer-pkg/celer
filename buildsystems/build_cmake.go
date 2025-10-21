@@ -240,7 +240,7 @@ func (c cmake) Install(options []string) error {
 }
 
 func (c cmake) formatBuildType() string {
-	switch strings.ToLower(c.BuildType) {
+	switch c.BuildType {
 	case "release":
 		return "Release"
 

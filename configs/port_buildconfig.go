@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/BurntSushi/toml"
 )
 
 func (p *Port) initBuildConfig(nameVersion string) error {
-	buildType := strings.ToLower(p.ctx.BuildType())
+	buildType := p.ctx.BuildType()
 	hostName := p.ctx.Platform().GetHostName()
 	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType)
 

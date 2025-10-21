@@ -77,7 +77,7 @@ func (c *Celer) Init() error {
 
 		// Default global values.
 		c.configData.Global = global{
-			BuildType: "Release",
+			BuildType: "release",
 			Jobs:      runtime.NumCPU() - 1,
 			Offline:   false,
 			Verbose:   false,
@@ -106,6 +106,9 @@ func (c *Celer) Init() error {
 		if err := toml.Unmarshal(bytes, c); err != nil {
 			return fmt.Errorf("failed to unmarshal conf.\n %w", err)
 		}
+
+		// Use lower case build type in celer as default.
+		c.Global.BuildType = strings.ToLower(c.Global.BuildType)
 
 		// Validate cache dirs.
 		if c.configData.CacheDir != nil {
@@ -594,6 +597,7 @@ func (c Celer) Project() context.Project {
 	return &c.project
 }
 
+// BuildType returns lower case build type.
 func (c Celer) BuildType() string {
 	return c.configData.Global.BuildType
 }
@@ -662,7 +666,7 @@ func (c Celer) GenerateToolchainFile() error {
 	c.writePkgConfig(&toolchain)
 
 	// Set CMAKE_FIND_ROOT_PATH.
-	platformProject := c.Global.Platform + "@" + c.Global.Project + "@" + strings.ToLower(c.Global.BuildType)
+	platformProject := c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
 	dependencyDir := "${WORKSPACE_DIR}/installed/" + platformProject
 	var rootpaths = []string{dependencyDir}
 	if c.RootFS() != nil {
@@ -760,7 +764,7 @@ func (c Celer) writePkgConfig(toolchain *strings.Builder) {
 		sysrootDir    string
 	)
 
-	libraryFolder := fmt.Sprintf("%s@%s@%s", c.Platform().GetName(), c.Project().GetName(), strings.ToLower(c.BuildType()))
+	libraryFolder := fmt.Sprintf("%s@%s@%s", c.Platform().GetName(), c.Project().GetName(), c.BuildType())
 	installedDir := filepath.Join("${WORKSPACE_DIR}/installed", libraryFolder)
 
 	switch runtime.GOOS {

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -45,13 +44,12 @@ func TestClean(t *testing.T) {
 	cleanCmd := cleanCmd{celer: celer}
 
 	var (
-		buildType = strings.ToLower(celer.BuildType())
-		buildDir  = func(nameVersion string, dev bool) string {
+		buildDir = func(nameVersion string, dev bool) string {
 			if dev {
 				hostPlatform := celer.Platform().GetHostName() + "-dev"
 				return fmt.Sprintf("%s/%s/%s", dirs.BuildtreesDir, nameVersion, hostPlatform)
 			} else {
-				return fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, nameVersion, platform, project, buildType)
+				return fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, nameVersion, platform, project, celer.BuildType())
 			}
 		}
 	)

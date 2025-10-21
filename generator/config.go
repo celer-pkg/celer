@@ -63,7 +63,7 @@ func (c *config) generate(installedDir string) error {
 	}
 
 	// Mkdirs for writing file.
-	filePath := filepath.Join(installedDir, "lib", "cmake", c.cmakeConfig.Namespace, c.cmakeConfig.Namespace+"config.cmake")
+	filePath := filepath.Join(installedDir, "lib", "cmake", c.cmakeConfig.Namespace, c.cmakeConfig.Namespace+"Config.cmake")
 	if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
 		return err
 	}

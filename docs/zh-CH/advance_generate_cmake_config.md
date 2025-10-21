@@ -1,16 +1,16 @@
 # 如何配置生成cmake配置文件
 
-&emsp;&emsp;我们都知道，许多第三方库都不使用cmake来构建，安装后也不会生成cmake配置文件。这使得使用cmake来找到它们变得困难。尽管我们可以使用**pkg-config**来找到它们，但是它只能在Linux上使用。现在，Celer可以为它们生成cmake配置文件，因此它们可以在任何平台上使用。
+&emsp;&emsp;我们都知道，许多第三方库都不使用cmake来构建，安装后也不会生成cmake配置文件，这使得使用cmake来找到它们变得困难。尽管我们可以使用**pkg-config**来找到它们，但在windows上使用它并不容易。现在，Celer可以为它们生成cmake配置文件，因此它们可以在任何平台上使用。
 
-**1. 如何为没有组件的库生成cmake配置文件**
+**1. 如何为单库文件的库生成cmake配置文件**
 
 例如，x264，你应该在端口的版本目录中创建一个cmake_config.toml文件。
 
-```
-└── x264
-    └── stable  
-        ├── cmake_config.toml
-        └── port.toml
+```shell
+x264
+└── stable  
+    ├── cmake_config.toml
+    └── port.toml
 ```
 
 cmake_config.toml文件的内容如下，我们可以为不同的平台定义不同的文件名。
@@ -31,12 +31,11 @@ filename = "x264.lib"
 [windows_shared]
 filename = "libx264-164.dll"
 impname = "libx264.lib"
-
 ```
 
 当编译并安装后，你可以在lib目录下看到生成的cmake配置文件，如下所示：
 
-```
+```shell
 lib
 └── cmake
     └─── x264
@@ -56,16 +55,18 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 > **Note:**  
 > 如果namespace没有在cmake_config里定义，library名将成为namespace的默认值，namespace同时也是cmake config文件的前缀。
 
-**2. 如何为有组件的库生成cmake配置文件**
+**2. 如何为多组件的库生成cmake配置文件**
 
 例如，ffmpeg，你应该在端口的版本目录中创建一个cmake_config.toml文件。
 
+```shell
+ffmpeg
+└── 5.1.6
+    ├── cmake_config.toml
+    └── port.toml
 ```
-└── ffmpeg
-    └── 3.4.13
-        ├── cmake_config.toml
-        └── port.toml
-```
+
+cmake_config.toml:
 
 ```toml
 namespace = "FFmpeg"
@@ -170,11 +171,11 @@ dependencies = ["avcodec", "avutil", "avformat"]
 ```
 
 > **Note:**  
-> 不同的组件可能有不同的依赖关系，因此我们需要在`dependencies`字段中定义它们。
+> 不同的组件可能有不同的依赖关系，Celer支持在`dependencies`字段中定义不同component之间的依赖关系。
 
 当编译并安装后，你可以在lib目录下看到生成的cmake配置文件，如下所示：
 
-```
+```shell
 lib
 └── cmake
     └─── FFmpeg
@@ -199,6 +200,64 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 ```
 
+**3. 如何生成目标为interface类型的cmake配置文件**
+
+例如，prebuilt-ffmpeg，你应该在端口的版本目录中创建一个cmake_config.toml文件。
+
+```
+prebuilt-ffmpeg
+└── 5.1.6
+    ├── cmake_config.toml
+    └── port.toml
+```
+
+```toml
+[package]
+ref = "5.1.6"
+
+[[build_configs]]
+url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
+pattern = "x86_64-linux*"
+build_system = "prebuilt"
+library_type = "interface"  # ---- it should be changed to `interface`
+```
+> 为了生成interface类型的cmake配置文件，你需要将`library_type`设置为**interface**。
+
+```toml
+namespace = "FFmpeg"
+
+[linux_interface]
+libraries = [
+    "libavutil.so.57",
+    "libavcodec.so.59",
+    "libavdevice.so.59",
+    "libavfilter.so.8",
+    "libavformat.so.59",
+    "libpostproc.so.56",
+    "libswresample.so.4",
+    "libswscale.so.6",
+]
+```
+
+> 因为是生成interface类型的cmake配置文件，且有很多库文件，只需要将所有需要链接的库都列在**libraries**下即可。
+
+当编译并安装后，你可以在lib目录下看到生成的cmake配置文件，如下所示：
+
+```
+lib
+└── cmake
+    └── FFmpeg
+        ├── FFmpegConfig.cmake
+        └── FFmpegConfigVersion.cmake
+```
+
+随后, 你可以在cmake项目中使用它，如下所示：
+
+```cmake
+find_package(FFmpeg REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE FFmpeg::prebuilt-ffmpeg)
+```
+
 > **Note:**  
-> 1. 如果namespace没有在cmake_config里定义，library名字将成为默认的namespace，namespace同时也是cmake config文件的前缀。  
-> 2. 当cmake config文件有错误时，安装的库文件将被删除。
+> **1.** 如果namespace没有在cmake_config里定义，library名字将成为默认的namespace，namespace同时也是cmake config文件的前缀。  
+> **2.** 当cmake config文件有错误时，安装的库文件将被删除。

@@ -113,8 +113,7 @@ func (m qmake) Configure(options []string) error {
 				cxxflags = append(cxxflags, m.Optimize.Release)
 			}
 		} else {
-			buildType := strings.ToLower(m.BuildType)
-			switch buildType {
+			switch m.BuildType {
 			case "release":
 				if m.Optimize.Release != "" {
 					cflags = append(cflags, m.Optimize.Release)

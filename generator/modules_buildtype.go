@@ -77,7 +77,7 @@ func (g *modulesBuildType) generate(installedDir string) error {
 	content = strings.ReplaceAll(content, "@COMPONENT_SECTIONS@", sections.String())
 
 	// Make dirs for writing file.
-	fileName := fmt.Sprintf("%sModules-%s.cmake", g.cmakeConfig.Namespace, strings.ToLower(g.cmakeConfig.BuildType))
+	fileName := fmt.Sprintf("%sModules-%s.cmake", g.cmakeConfig.Namespace, g.cmakeConfig.BuildType)
 	filePath := filepath.Join(installedDir, "lib", "cmake", g.cmakeConfig.Namespace, fileName)
 	if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
 		return err

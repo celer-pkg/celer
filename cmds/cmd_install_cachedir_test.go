@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 )
 
@@ -64,7 +63,7 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	packageDir := fmt.Sprintf("%s/%s@%s@%s@%s",
 		dirs.PackagesDir, nameVersion,
 		platform, project,
-		strings.ToLower(celer.BuildType()),
+		celer.BuildType(),
 	)
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found")
@@ -144,7 +143,7 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 
 	packageDir := func(nameVersion string) string {
 		return fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, nameVersion,
-			platform, project, strings.ToLower(celer.BuildType()))
+			platform, project, celer.BuildType())
 	}
 	glogPackageDir := packageDir("glog@0.6.0")
 	gflagsPackageDir := packageDir("gflags@2.2.2")
@@ -239,7 +238,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	packageDir := fmt.Sprintf("%s/%s@%s@%s@%s",
 		dirs.PackagesDir, nameVersion,
 		platform, project,
-		strings.ToLower(celer.BuildType()),
+		celer.BuildType(),
 	)
 
 	if !fileio.PathExists(packageDir) {

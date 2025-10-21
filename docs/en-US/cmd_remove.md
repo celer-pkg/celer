@@ -12,11 +12,10 @@ celer remove [name@version] [flags]
 
 | Flag              | Shorthand | Description                                               |
 | ----------------- | --------- | --------------------------------------------------------- |
-| --build-type      | -b        | uninstall package with build type(default: "release").    |
 | --dev             | -d        | uninstall package for dev mode.                           |
 | --purge           | -f        | uninstall package along with its package files.           |
 | --recurse         | -r        | uninstall package along with its depedencies.             |
-| --build-cache    | -c        | uninstall package along with build cache.                 |
+| --build-cache     | -c        | uninstall package along with build cache.                 |
 
 ## Usage Examples
 

@@ -118,8 +118,7 @@ func (b b2) buildOptions() ([]string, error) {
 	}
 
 	// Set build type.
-	buildType := strings.ToLower(b.BuildType)
-	switch buildType {
+	switch b.BuildType {
 	case "release":
 		options = append(options, "variant=release")
 	case "debug":

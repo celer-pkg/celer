@@ -217,7 +217,7 @@ func (p *Port) findMatchedConfig(buildType string) *buildsystems.BuildConfig {
 			p.BuildConfigs[index].BuildType = buildType
 
 			// If LibraryType is empty, set it to `shared`.
-			if strings.TrimSpace(p.BuildConfigs[index].LibraryType) == "" {
+			if strings.TrimSpace(config.LibraryType) == "" {
 				p.BuildConfigs[index].LibraryType = "shared"
 			}
 
