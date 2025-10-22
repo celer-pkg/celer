@@ -94,7 +94,7 @@ func (c *Celer) Init() error {
 		}
 
 		// Auto detect native toolchain.
-		if err := c.platform.detectToolchain(); err != nil {
+		if err := c.platform.detectToolchain(c.configData.Global.Platform); err != nil {
 			return err
 		}
 	} else {
@@ -119,13 +119,14 @@ func (c *Celer) Init() error {
 		}
 
 		// Init platform with platform name.
-		if c.configData.Global.Platform != "" {
-			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
+		if c.configData.Global.Platform == "" ||
+			c.configData.Global.Platform == "gcc" ||
+			c.configData.Global.Platform == "clang" {
+			if err := c.platform.detectToolchain(c.configData.Global.Platform); err != nil {
 				return err
 			}
 		} else {
-			// Auto detect native toolchain for different os.
-			if err := c.platform.detectToolchain(); err != nil {
+			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
 				return err
 			}
 		}

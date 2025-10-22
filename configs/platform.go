@@ -34,19 +34,21 @@ func (p *Platform) Init(platformName string) error {
 		return fmt.Errorf("platform name is empty")
 	}
 
-	// Check if platform file exists.
-	platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
-	if !fileio.PathExists(platformPath) {
-		return fmt.Errorf("platform %s does not exists", platformName)
-	}
+	// Check if platform file exists, but ignore "gcc" and "clang".
+	if platformName != "gcc" && platformName != "clang" {
+		platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
+		if !fileio.PathExists(platformPath) {
+			return fmt.Errorf("platform %s does not exists", platformName)
+		}
 
-	// Read conf/celer.toml
-	bytes, err := os.ReadFile(platformPath)
-	if err != nil {
-		return err
-	}
-	if err := toml.Unmarshal(bytes, p); err != nil {
-		return fmt.Errorf("failed to read %s.\n %w", platformPath, err)
+		// Read conf/celer.toml
+		bytes, err := os.ReadFile(platformPath)
+		if err != nil {
+			return err
+		}
+		if err := toml.Unmarshal(bytes, p); err != nil {
+			return fmt.Errorf("failed to read %s.\n %w", platformPath, err)
+		}
 	}
 
 	if p.RootFS != nil {
@@ -169,10 +171,10 @@ func (p *Platform) Setup() error {
 	return nil
 }
 
-func (p *Platform) detectToolchain() error {
+func (p *Platform) detectToolchain(platformName string) error {
 	// Detect toolchain.
 	var toolchain = Toolchain{ctx: p.ctx}
-	if err := toolchain.Detect(); err != nil {
+	if err := toolchain.Detect(platformName); err != nil {
 		return fmt.Errorf("detect celer.toolchain: %w", err)
 	}
 	p.Toolchain = &toolchain
