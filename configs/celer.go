@@ -639,7 +639,8 @@ func (c Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 		return c.project.Optimize
 	}
 
-	if runtime.GOOS == "windows" && toolchain == "msvc" && buildsystem == "cmake" {
+	// TODO: how about clang in windows?
+	if runtime.GOOS == "windows" && buildsystem == "cmake" && toolchain == "msvc" {
 		return c.project.OptimizeWindows
 	}
 
@@ -715,7 +716,7 @@ func (c Celer) GenerateToolchainFile() error {
 		toolchain.WriteString(fmt.Sprintf("add_compile_definitions(%s)\n", item))
 	}
 
-	optimize := c.Optimize("cmake", expr.If(runtime.GOOS == "windows", "msvc", "gcc"))
+	optimize := c.Optimize("cmake", c.platform.GetToolchain().GetName())
 	if optimize != nil {
 		toolchain.WriteString("\n# Compile flags.\n")
 		toolchain.WriteString("add_compile_options(\n")
@@ -744,7 +745,7 @@ func (c Celer) GenerateToolchainFile() error {
 	}
 
 	toolchain.WriteString("\n")
-	if c.Platform().GetToolchain().GetName() == "gcc" {
+	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
 		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
 	}
 	toolchain.WriteString(fmt.Sprintf("set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON"))

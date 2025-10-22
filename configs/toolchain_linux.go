@@ -23,7 +23,7 @@ func (t *Toolchain) Validate() error {
 	}
 
 	if t.Url == "file:////usr/bin" {
-		t.displayName = "gcc"
+		t.displayName = t.Name
 		t.rootDir = "/usr/bin"
 	} else {
 		t.displayName = fileio.FileBaseName(t.Url)

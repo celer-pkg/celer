@@ -257,7 +257,7 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	)
 
 	// This allows the bin to locate the libraries in the relative lib dir.
-	if m.PortConfig.Toolchain.Name == "gcc" {
+	if m.PortConfig.Toolchain.Name == "gcc" || m.PortConfig.Toolchain.Name == "clang" {
 		linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
 	}
 
@@ -290,7 +290,7 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 		for _, item := range toolchain.LibDirs {
 			libDir := filepath.Join(toolchain.RootFS, item)
 			switch m.PortConfig.Toolchain.Name {
-			case "gcc":
+			case "gcc", "clang":
 				if len(linkArgs) == 0 {
 					linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", libDir))
 					linkArgs = append(linkArgs, fmt.Sprintf("'-Wl,-rpath-link=%s'", libDir))
@@ -317,7 +317,7 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	m.appendIncludeArgs(&includeArgs, depIncludeDir)
 
 	// Allow meson to locate libraries of dependecies.
-	if m.PortConfig.Toolchain.Name == "gcc" {
+	if m.PortConfig.Toolchain.Name == "gcc" || m.PortConfig.Toolchain.Name == "clang" {
 		depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
 		if len(linkArgs) == 0 {
 			linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", depLibDir))
@@ -343,7 +343,7 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 
 func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 	switch m.PortConfig.Toolchain.Name {
-	case "gcc":
+	case "gcc", "clang":
 		if len(*includeArgs) == 0 {
 			*includeArgs = append(*includeArgs, fmt.Sprintf("'-isystem %s'", includeDir))
 		} else {
@@ -386,10 +386,30 @@ func (m meson) nativeCrossTool() Toolchain {
 			Name:            "gcc",
 			SystemName:      "Linux",
 			SystemProcessor: "x86_64",
-			CC:              "x86_64-linux-gnu-gcc",
-			CXX:             "x86_64-linux-gnu-g++",
-			AR:              "x86_64-linux-gnu-gcc-ar",
-			LD:              "x86_64-linux-gnu-gcc-ld",
+			CC:              "gcc",
+			CXX:             "g++",
+			RANLIB:          "ranlib",
+			AR:              "ar",
+			LD:              "ld",
+			NM:              "nm",
+			OBJDUMP:         "objdump",
+			STRIP:           "strip",
+		}
+
+	case "clang":
+		return Toolchain{
+			Native:          true,
+			Name:            "clang",
+			SystemName:      "Linux",
+			SystemProcessor: "x86_64",
+			CC:              "clang",
+			CXX:             "clang++",
+			RootFS:          "llvm-ranlib",
+			AR:              "llvm-ar",
+			LD:              "clang",
+			NM:              "llvm-nm",
+			OBJDUMP:         "llvm-objdump",
+			STRIP:           "llvm-strip",
 		}
 
 	default:

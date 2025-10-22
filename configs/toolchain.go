@@ -173,7 +173,7 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 	switch t.Name {
 	case "msvc":
 		fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
-	case "gcc":
+	case "gcc", "clang":
 		if t.Path == "/usr/bin" {
 			fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "/usr/bin")
 		} else {
@@ -187,7 +187,7 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 	writeIfNotEmpty("CMAKE_LINKER", t.LD)
 
 	switch t.Name {
-	case "gcc":
+	case "gcc", "clang":
 		writeIfNotEmpty("CMAKE_ASM_COMPILER", t.AS)
 		writeIfNotEmpty("CMAKE_NM", t.NM)
 		writeIfNotEmpty("CMAKE_Fortran_COMPILER", t.FC)
