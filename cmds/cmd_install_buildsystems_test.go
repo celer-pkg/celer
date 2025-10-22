@@ -218,7 +218,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 
 	t.Run("install prebuilt", func(t *testing.T) {
 		var (
-			nameVersion   = "prebuilt-x264@stable"
+			nameVersion   = "prebuilt-x264-single-target@stable"
 			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
 			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, celer.BuildType())
 
@@ -226,7 +226,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 			options configs.InstallOptions
 		)
 
-		check(port.Init(celer, "prebuilt-x264@stable"))
+		check(port.Init(celer, nameVersion))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.
