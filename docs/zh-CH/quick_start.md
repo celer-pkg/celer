@@ -37,8 +37,8 @@ conf
 │   └── x86_64-windows.toml
 ├── platforms
 │   ├── aarch64-linux-gnu-gcc-9.2.toml
-│   ├── x86_64-linux-ubuntu-20.04.toml
-│   ├── x86_64-linux-ubuntu-22.04.toml
+│   ├── x86_64-linux-ubuntu-22.04-gcc-11.5.toml
+│   ├── x86_64-linux-ubuntu-22.04-gcc-11.5.toml
 │   └── x86_64-windows-msvc-14.44.toml
 └── projects
     ├── project_test_01 --------------- project_01's dependencies
@@ -115,7 +115,7 @@ Then the **celer.toml** file will be generated in the workspace directory:
 **platform** 和 **project** 是两个组合，它们可以自由组合。例如，尽管目标环境是 **aarch64-linux**，但你可以选择在 **x86_64-linux** 平台上编译/开发/调试。
 
 ```shell
-celer configure --platform=x86_64-linux-ubuntu-22.04
+celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5
 celer configure --project=project_test_02
 ```
 
