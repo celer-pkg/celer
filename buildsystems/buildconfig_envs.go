@@ -262,22 +262,28 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 
 	switch runtime.GOOS {
 	case "windows":
-		// Append include dir if not exists.
-		includes := strings.Fields(os.Getenv("INCLUDE"))
-		if !slices.Contains(includes, includeDir) {
-			includes = append(includes, includeDir)
-			b.envBackup.setenv("INCLUDE", strings.Join(includes, ";"))
-		}
+		switch b.PortConfig.Toolchain.Name {
+		case "msvc", "clang":
+			// Append include dir if not exists.
+			includes := strings.Fields(os.Getenv("INCLUDE"))
+			if !slices.Contains(includes, includeDir) {
+				includes = append(includes, includeDir)
+				b.envBackup.setenv("INCLUDE", strings.Join(includes, ";"))
+			}
 
-		// Avoid warning by setting "CL=/external:anglebrackets /external:W0 %CL%"
-		cl := strings.Fields(os.Getenv("CL"))
-		if !slices.Contains(cl, "/external:anglebrackets") {
-			cl = append(cl, "/external:anglebrackets")
-			b.envBackup.setenv("CL", strings.Join(cl, " "))
-		}
-		if !slices.Contains(cl, "/external:W0") {
-			cl = append(cl, "/external:W0")
-			b.envBackup.setenv("CL", strings.Join(cl, " "))
+			// Avoid warning by setting "CL=/external:anglebrackets /external:W0 %CL%"
+			cl := strings.Fields(os.Getenv("CL"))
+			if !slices.Contains(cl, "/external:anglebrackets") {
+				cl = append(cl, "/external:anglebrackets")
+				b.envBackup.setenv("CL", strings.Join(cl, " "))
+			}
+			if !slices.Contains(cl, "/external:W0") {
+				cl = append(cl, "/external:W0")
+				b.envBackup.setenv("CL", strings.Join(cl, " "))
+			}
+
+		default:
+			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
 		}
 
 	case "linux":
@@ -313,12 +319,18 @@ func (b *BuildConfig) appendLibDir(libDir string) {
 
 	switch runtime.GOOS {
 	case "windows":
-		libs := os.Getenv("LIB")
-		parts := strings.Fields(libs)
+		switch b.PortConfig.Toolchain.Name {
+		case "msvc", "clang":
+			libs := os.Getenv("LIB")
+			parts := strings.Fields(libs)
 
-		if !slices.Contains(parts, libDir) {
-			parts = append(parts, libDir)
-			b.envBackup.setenv("LIB", strings.Join(parts, ";"))
+			if !slices.Contains(parts, libDir) {
+				parts = append(parts, libDir)
+				b.envBackup.setenv("LIB", strings.Join(parts, ";"))
+			}
+
+		default:
+			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
 		}
 
 	case "linux":
