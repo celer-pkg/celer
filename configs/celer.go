@@ -640,7 +640,8 @@ func (c Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 	}
 
 	// TODO: how about clang in windows?
-	if runtime.GOOS == "windows" && buildsystem == "cmake" && toolchain == "msvc" {
+	if runtime.GOOS == "windows" && buildsystem == "cmake" &&
+		(toolchain == "msvc" || toolchain == "clang") {
 		return c.project.OptimizeWindows
 	}
 

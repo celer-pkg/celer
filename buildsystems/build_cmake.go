@@ -65,11 +65,13 @@ func (c cmake) configureOptions() ([]string, error) {
 	// Set CMAKE_INSTALL_PREFIX.
 	options = append(options, "-DCMAKE_INSTALL_PREFIX="+c.PortConfig.PackageDir)
 
-	if c.PortConfig.Toolchain.Name == "msvc" {
-		// MSVC doesn't support set `CMAKE_BUILD_TYPE` or `--config` during configure.
-		options = slices.DeleteFunc(options, func(element string) bool {
-			return strings.Contains(element, "CMAKE_BUILD_TYPE") || strings.Contains(element, "--config")
-		})
+	if runtime.GOOS == "windows" {
+		if c.PortConfig.Toolchain.Name == "msvc" || c.PortConfig.Toolchain.Name == "clang" {
+			// MSVC doesn't support set `CMAKE_BUILD_TYPE` or `--config` during configure.
+			options = slices.DeleteFunc(options, func(element string) bool {
+				return strings.Contains(element, "CMAKE_BUILD_TYPE") || strings.Contains(element, "--config")
+			})
+		}
 	} else {
 		// Append `CMAKE_BUILD_TYPE` if not contains it.
 		if c.DevDep {
@@ -183,9 +185,11 @@ func (c cmake) Configure(options []string) error {
 func (c cmake) buildOptions() ([]string, error) {
 	// CMAKE_BUILD_TYPE is useless for MSVC, use --config Debug/Relase instead.
 	var options []string
-	if c.PortConfig.Toolchain.Name == "msvc" {
-		c.BuildType = c.formatBuildType()
-		options = append(options, "--config", c.BuildType)
+	if runtime.GOOS == "windows" {
+		if c.PortConfig.Toolchain.Name == "msvc" || c.PortConfig.Toolchain.Name == "clang" {
+			c.BuildType = c.formatBuildType()
+			options = append(options, "--config", c.BuildType)
+		}
 	}
 
 	return options, nil
@@ -213,9 +217,11 @@ func (c cmake) Build(options []string) error {
 func (c cmake) installOptions() ([]string, error) {
 	// CMAKE_BUILD_TYPE is useless for MSVC, use --config Debug/Relase instead.
 	var options []string
-	if c.PortConfig.Toolchain.Name == "msvc" {
-		c.BuildType = c.formatBuildType()
-		options = append(options, "--config", c.BuildType)
+	if runtime.GOOS == "windows" {
+		if c.PortConfig.Toolchain.Name == "msvc" || c.PortConfig.Toolchain.Name == "clang" {
+			c.BuildType = c.formatBuildType()
+			options = append(options, "--config", c.BuildType)
+		}
 	}
 
 	return options, nil
