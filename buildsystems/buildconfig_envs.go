@@ -257,50 +257,96 @@ func (b BuildConfig) rollbackEnvs() {
 }
 
 func (b *BuildConfig) appendIncludeDir(includeDir string) {
-	var newAppended = false
-	includeDir = "-isystem " + includeDir
+	// Windows MSVC: INCLUDE=xxx\include;%INCLUDE%  ---------------------- Linux: -I "xxx\include"
+	// Windows MSVC: CL=/external:anglebrackets /external:W0 %CL% -------- Linux: -isystem "xxx\include"
 
-	cflags := strings.Fields(os.Getenv("CFLAGS"))
-	cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
+	switch runtime.GOOS {
+	case "windows":
+		// Append include dir if not exists.
+		includes := strings.Fields(os.Getenv("INCLUDE"))
+		if !slices.Contains(includes, includeDir) {
+			includes = append(includes, includeDir)
+			b.envBackup.setenv("INCLUDE", strings.Join(includes, ";"))
+		}
 
-	// Append include dir if not exists.
-	if !slices.Contains(cflags, includeDir) {
-		cflags = append(cflags, includeDir)
-		newAppended = true
-	}
-	if !slices.Contains(cxxflags, includeDir) {
-		cxxflags = append(cxxflags, includeDir)
-		newAppended = true
-	}
+		// Avoid warning by setting "CL=/external:anglebrackets /external:W0 %CL%"
+		cl := strings.Fields(os.Getenv("CL"))
+		if !slices.Contains(cl, "/external:anglebrackets") {
+			cl = append(cl, "/external:anglebrackets")
+			b.envBackup.setenv("CL", strings.Join(cl, " "))
+		}
+		if !slices.Contains(cl, "/external:W0") {
+			cl = append(cl, "/external:W0")
+			b.envBackup.setenv("CL", strings.Join(cl, " "))
+		}
 
-	// Update environment variable with modified flags.
-	if newAppended {
-		b.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
-		b.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+	case "linux":
+		cflags := strings.Fields(os.Getenv("CFLAGS"))
+		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
+
+		// Append include dir if not exists.
+		includeDir = "-isystem " + includeDir
+		var newAppended = false
+		if !slices.Contains(cflags, includeDir) {
+			cflags = append(cflags, includeDir)
+			newAppended = true
+		}
+		if !slices.Contains(cxxflags, includeDir) {
+			cxxflags = append(cxxflags, includeDir)
+			newAppended = true
+		}
+
+		// Update environment variable with modified flags.
+		if newAppended {
+			b.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
+			b.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+		}
+
+	default:
+		panic("unsupported platform: " + runtime.GOOS)
 	}
 }
 
 func (b *BuildConfig) appendLibDir(libDir string) {
-	var newAppended = false
+	// Windows MSVC: LIB=xxx\lib;%LIB% ---------------- Linux: -L "xxx/lib"
+	// Windows MSVC: LINK=mylib.lib %LINK% ------------ Linux: -l "mylib"
 
-	ldflags := os.Getenv("LDFLAGS")
-	parts := strings.Fields(ldflags)
+	switch runtime.GOOS {
+	case "windows":
+		libs := os.Getenv("LIB")
+		parts := strings.Fields(libs)
 
-	lFlag := "-L" + libDir
-	rFlag := "-Wl,-rpath-link," + libDir
+		if !slices.Contains(parts, libDir) {
+			parts = append(parts, libDir)
+			b.envBackup.setenv("LIB", strings.Join(parts, ";"))
+		}
 
-	// Add -L/rpath-link flag.
-	if !slices.Contains(parts, lFlag) {
-		parts = append(parts, lFlag)
-		newAppended = true
-	}
-	if !slices.Contains(parts, rFlag) {
-		parts = append(parts, rFlag)
-		newAppended = true
-	}
+	case "linux":
+		ldflags := os.Getenv("LDFLAGS")
+		parts := strings.Fields(ldflags)
 
-	// Update environment variable with modified flags.
-	if newAppended {
-		b.envBackup.setenv("LDFLAGS", strings.Join(parts, " "))
+		// -L flag: used to specify the directory that libraries looking for directly.
+		linkFlag := "-L" + libDir
+
+		// -Wl,-rpath-link, used to specify the directory that libraries looking for indirectly.
+		rpathlinkFlag := "-Wl,-rpath-link," + libDir
+
+		var newAppended = false
+		if !slices.Contains(parts, linkFlag) {
+			parts = append(parts, linkFlag)
+			newAppended = true
+		}
+		if !slices.Contains(parts, rpathlinkFlag) {
+			parts = append(parts, rpathlinkFlag)
+			newAppended = true
+		}
+
+		// Update environment variable with modified flags.
+		if newAppended {
+			b.envBackup.setenv("LDFLAGS", strings.Join(parts, " "))
+		}
+
+	default:
+		panic("unsupported platform: " + runtime.GOOS)
 	}
 }
