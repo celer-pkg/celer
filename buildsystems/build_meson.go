@@ -363,6 +363,18 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 }
 
 func (m meson) nativeCrossTool() Toolchain {
+	switch runtime.GOOS {
+	case "windows":
+		return m.windowsNativeCrossTool()
+	case "linux":
+		return m.linuxNativeCrossTool()
+
+	default:
+		panic(fmt.Sprintf("unexpected os: %s", runtime.GOOS))
+	}
+}
+
+func (m meson) windowsNativeCrossTool() Toolchain {
 	switch m.PortConfig.Toolchain.Name {
 	case "msvc":
 		return Toolchain{
@@ -380,6 +392,29 @@ func (m meson) nativeCrossTool() Toolchain {
 			Fullpath:        m.PortConfig.Toolchain.Fullpath,
 		}
 
+	case "clang":
+		return Toolchain{
+			Native:          true,
+			Name:            "clang",
+			SystemName:      "Windows",
+			SystemProcessor: "x86_64",
+			CC:              "clang",
+			CXX:             "clang++",
+			RootFS:          "llvm-ranlib",
+			AR:              "llvm-ar",
+			LD:              "clang",
+			NM:              "llvm-nm",
+			OBJDUMP:         "llvm-objdump",
+			STRIP:           "llvm-strip",
+		}
+
+	default:
+		panic("unsupported cross tool: " + m.PortConfig.Toolchain.Name)
+	}
+}
+
+func (m meson) linuxNativeCrossTool() Toolchain {
+	switch m.PortConfig.Toolchain.Name {
 	case "gcc":
 		return Toolchain{
 			Native:          true,

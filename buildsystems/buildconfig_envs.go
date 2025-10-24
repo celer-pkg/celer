@@ -257,8 +257,9 @@ func (b BuildConfig) rollbackEnvs() {
 }
 
 func (b *BuildConfig) appendIncludeDir(includeDir string) {
-	// Windows MSVC: INCLUDE=xxx\include;%INCLUDE%  ---------------------- Linux: -I "xxx\include"
-	// Windows MSVC: CL=/external:anglebrackets /external:W0 %CL% -------- Linux: -isystem "xxx\include"
+	// Windows MSVC ---------------------------------------- Linux
+	// INCLUDE=xxx\include;%INCLUDE%  ---------------------- -I "xxx\include"
+	// CL=/external:anglebrackets /external:W0 %CL% -------- -isystem "xxx\include"
 
 	switch runtime.GOOS {
 	case "windows":
@@ -277,10 +278,13 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 				cl = append(cl, "/external:anglebrackets")
 				b.envBackup.setenv("CL", strings.Join(cl, " "))
 			}
-			if !slices.Contains(cl, "/external:W0") {
-				cl = append(cl, "/external:W0")
-				b.envBackup.setenv("CL", strings.Join(cl, " "))
-			}
+
+			// Below setting seems cannot work, it seems that MSVC use "/external:W3" by default,
+			// and we cannot change it.
+			// if !slices.Contains(cl, "/external:W0") {
+			// 	cl = append(cl, "/external:W0")
+			// 	b.envBackup.setenv("CL", strings.Join(cl, " "))
+			// }
 
 		default:
 			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
@@ -314,8 +318,9 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 }
 
 func (b *BuildConfig) appendLibDir(libDir string) {
-	// Windows MSVC: LIB=xxx\lib;%LIB% ---------------- Linux: -L "xxx/lib"
-	// Windows MSVC: LINK=mylib.lib %LINK% ------------ Linux: -l "mylib"
+	// Windows MSVC --------------------- Linux
+	// LIB=xxx\lib;%LIB% ---------------- -L "xxx/lib"
+	// LINK=mylib.lib %LINK% ------------ -l "mylib"
 
 	switch runtime.GOOS {
 	case "windows":
