@@ -55,7 +55,8 @@ func (m meson) Clean() error {
 
 func (m meson) preConfigure() error {
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
-	if m.PortConfig.Toolchain.Name == "msvc" {
+	if m.PortConfig.Toolchain.Name == "msvc" ||
+		m.PortConfig.Toolchain.Name == "clang-cli" {
 		msvcEnvs, err := m.readMSVCEnvs()
 		if err != nil {
 			return err
@@ -128,8 +129,10 @@ func (m meson) configured() bool {
 }
 
 func (m meson) Configure(options []string) error {
-	// In windows, we set msvc related environments.
-	if m.DevDep && m.PortConfig.Toolchain.Name != "msvc" {
+	// Clear env vars for dev dep and windows msvc/clang-cl toolchain.
+	if m.DevDep ||
+		m.PortConfig.Toolchain.Name == "msvc" ||
+		m.PortConfig.Toolchain.Name == "clang-cl" {
 		m.PortConfig.Toolchain.ClearEnvs()
 	} else {
 		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)
@@ -299,7 +302,7 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 					linkArgs = append(linkArgs, fmt.Sprintf("    '-Wl,-rpath-link=%s'", libDir))
 				}
 
-			case "msvc":
+			case "msvc", "clang-cl":
 				if len(linkArgs) == 0 {
 					linkArgs = append(linkArgs, fmt.Sprintf("'/LIBPATH:%s'", libDir))
 				} else {
@@ -307,7 +310,7 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 				}
 
 			default:
-				panic(fmt.Sprintf("unexpected os: %s", runtime.GOOS))
+				panic(fmt.Sprintf("unexpected toolchain: %s", m.PortConfig.Toolchain.Name))
 			}
 		}
 	}
@@ -350,7 +353,7 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 			*includeArgs = append(*includeArgs, fmt.Sprintf("    '-isystem %s'", includeDir))
 		}
 
-	case "msvc":
+	case "msvc", "clang-cl":
 		if len(*includeArgs) == 0 {
 			*includeArgs = append(*includeArgs, fmt.Sprintf("'/I %q'", filepath.ToSlash(includeDir)))
 		} else {
@@ -363,91 +366,60 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 }
 
 func (m meson) nativeCrossTool() Toolchain {
-	switch runtime.GOOS {
-	case "windows":
-		return m.windowsNativeCrossTool()
-	case "linux":
-		return m.linuxNativeCrossTool()
+	var toolchain Toolchain
+	toolchain.Native = true
+	toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
+	toolchain.SystemProcessor = "x86_64"
 
-	default:
-		panic(fmt.Sprintf("unexpected os: %s", runtime.GOOS))
-	}
-}
-
-func (m meson) windowsNativeCrossTool() Toolchain {
-	switch m.PortConfig.Toolchain.Name {
-	case "msvc":
-		return Toolchain{
-			Native:          true,
-			Name:            "msvc",
-			SystemName:      "Windows",
-			SystemProcessor: "x86_64",
-			CC:              "cl.exe",
-			CXX:             "cl.exe",
-			AR:              "lib.exe",
-			LD:              "link.exe",
-			MSVC:            m.PortConfig.Toolchain.MSVC,
-			IncludeDirs:     m.PortConfig.Toolchain.IncludeDirs,
-			LibDirs:         m.PortConfig.Toolchain.LibDirs,
-			Fullpath:        m.PortConfig.Toolchain.Fullpath,
-		}
-
-	case "clang":
-		return Toolchain{
-			Native:          true,
-			Name:            "clang",
-			SystemName:      "Windows",
-			SystemProcessor: "x86_64",
-			CC:              "clang",
-			CXX:             "clang++",
-			RootFS:          "llvm-ranlib",
-			AR:              "llvm-ar",
-			LD:              "clang",
-			NM:              "llvm-nm",
-			OBJDUMP:         "llvm-objdump",
-			STRIP:           "llvm-strip",
-		}
-
-	default:
-		panic("unsupported cross tool: " + m.PortConfig.Toolchain.Name)
-	}
-}
-
-func (m meson) linuxNativeCrossTool() Toolchain {
 	switch m.PortConfig.Toolchain.Name {
 	case "gcc":
-		return Toolchain{
-			Native:          true,
-			Name:            "gcc",
-			SystemName:      "Linux",
-			SystemProcessor: "x86_64",
-			CC:              "gcc",
-			CXX:             "g++",
-			RANLIB:          "ranlib",
-			AR:              "ar",
-			LD:              "ld",
-			NM:              "nm",
-			OBJDUMP:         "objdump",
-			STRIP:           "strip",
-		}
+		toolchain.CC = "gcc"
+		toolchain.CXX = "g++"
+		toolchain.RANLIB = "ranlib"
+		toolchain.AR = "ar"
+		toolchain.LD = "ld"
+		toolchain.NM = "nm"
+		toolchain.OBJDUMP = "objdump"
+		toolchain.STRIP = "strip"
+		return toolchain
+
+	case "msvc":
+		toolchain.CC = "cl"
+		toolchain.CXX = "cl"
+		toolchain.AR = "lib"
+		toolchain.LD = "link"
+		toolchain.MSVC = m.PortConfig.Toolchain.MSVC
+		toolchain.IncludeDirs = m.PortConfig.Toolchain.IncludeDirs
+		toolchain.LibDirs = m.PortConfig.Toolchain.LibDirs
+		toolchain.Fullpath = m.PortConfig.Toolchain.Fullpath
+		return toolchain
 
 	case "clang":
-		return Toolchain{
-			Native:          true,
-			Name:            "clang",
-			SystemName:      "Linux",
-			SystemProcessor: "x86_64",
-			CC:              "clang",
-			CXX:             "clang++",
-			RootFS:          "llvm-ranlib",
-			AR:              "llvm-ar",
-			LD:              "clang",
-			NM:              "llvm-nm",
-			OBJDUMP:         "llvm-objdump",
-			STRIP:           "llvm-strip",
-		}
+		toolchain.CC = "clang"
+		toolchain.CXX = "clang++"
+		toolchain.RANLIB = "llvm-ranlib"
+		toolchain.AR = "llvm-ar"
+		toolchain.LD = "clang"
+		toolchain.NM = "llvm-nm"
+		toolchain.OBJDUMP = "llvm-objdump"
+		toolchain.STRIP = "llvm-strip"
+		return toolchain
+
+	case "clang-cl":
+		toolchain.CC = "clang-cl"
+		toolchain.CXX = "clang-cl"
+		toolchain.RANLIB = "llvm-ranlib"
+		toolchain.AR = "llvm-ar"
+		toolchain.LD = "clang-cl"
+		toolchain.NM = "llvm-nm"
+		toolchain.OBJDUMP = "llvm-objdump"
+		toolchain.STRIP = "llvm-strip"
+		toolchain.IncludeDirs = m.PortConfig.Toolchain.IncludeDirs
+		toolchain.LibDirs = m.PortConfig.Toolchain.LibDirs
+		toolchain.Fullpath = m.PortConfig.Toolchain.Fullpath
+		return toolchain
 
 	default:
-		panic("unsupported cross tool: " + m.PortConfig.Toolchain.Name)
+		panic("unsupported toolchain: " + m.PortConfig.Toolchain.Name)
 	}
 }

@@ -12,7 +12,7 @@ import (
 
 type Toolchain struct {
 	Url             string `toml:"url"`               // Download url or local file url.
-	Name            string `toml:"name"`              // It should be "gcc", "msvc" and "clang".
+	Name            string `toml:"name"`              // It should be "gcc", "msvc", "clang-cl" and "clang", "mingw".
 	Version         string `toml:"version"`           // It should be version of gcc/msvc/clang.
 	Archive         string `toml:"archive,omitempty"` // Archive can be changed to avoid conflict.
 	Path            string `toml:"path"`              // Runtime path of tool, it's relative path and would be converted to absolute path later.
@@ -173,7 +173,7 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 
 	switch runtime.GOOS {
 	case "windows":
-		if t.Name == "msvc" || t.Name == "clang" {
+		if t.Name == "msvc" || t.Name == "clang-cl" || t.Name == "clang" {
 			fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
 		}
 
@@ -190,33 +190,28 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 	writeIfNotEmpty("CMAKE_AR", t.AR)
 	writeIfNotEmpty("CMAKE_LINKER", t.LD)
 
-	switch runtime.GOOS {
-	case "windows":
-		if t.Name == "msvc" || t.Name == "clang" {
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
-		}
+	switch t.Name {
+	case "gcc", "clang":
+		writeIfNotEmpty("CMAKE_ASM_COMPILER", t.AS)
+		writeIfNotEmpty("CMAKE_NM", t.NM)
+		writeIfNotEmpty("CMAKE_Fortran_COMPILER", t.FC)
+		writeIfNotEmpty("CMAKE_RANLIB", t.RANLIB)
+		writeIfNotEmpty("CMAKE_OBJCOPY", t.OBJCOPY)
+		writeIfNotEmpty("CMAKE_OBJDUMP", t.OBJDUMP)
+		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
+		writeIfNotEmpty("CMAKE_READELF", t.READELF)
 
-	case "linux":
-		if t.Name == "gcc" || t.Name == "clang" {
-			writeIfNotEmpty("CMAKE_ASM_COMPILER", t.AS)
-			writeIfNotEmpty("CMAKE_NM", t.NM)
-			writeIfNotEmpty("CMAKE_Fortran_COMPILER", t.FC)
-			writeIfNotEmpty("CMAKE_RANLIB", t.RANLIB)
-			writeIfNotEmpty("CMAKE_OBJCOPY", t.OBJCOPY)
-			writeIfNotEmpty("CMAKE_OBJDUMP", t.OBJDUMP)
-			writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
-			writeIfNotEmpty("CMAKE_READELF", t.READELF)
+		toolchain.WriteString("\n")
 
-			toolchain.WriteString("\n")
-
+		if t.ctx.RootFS() != nil {
 			fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_C_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")
 			fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_CXX_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")
 		}
 
-	default:
-		return fmt.Errorf("unsupported os: " + runtime.GOOS)
+	case "msvc", "clang-cl":
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
 	}
 
 	// Write C/C++ language standard.

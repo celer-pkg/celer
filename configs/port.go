@@ -337,8 +337,9 @@ func (p Port) toolchain() *buildsystems.Toolchain {
 	}
 
 	var bsToolchain buildsystems.Toolchain
-	bsToolchain.Native = p.Native || toolchain.GetName() == "msvc" ||
-		(toolchain.GetName() == "gcc" && toolchain.GetPath() == "/usr/bin")
+	nativeGcc := toolchain.GetName() == "gcc" && toolchain.GetPath() == "/usr/bin"
+	visualStudioToolchain := strings.Contains(toolchain.GetFullPath(), "Microsoft Visual Studio")
+	bsToolchain.Native = p.Native || visualStudioToolchain || nativeGcc
 	bsToolchain.Name = toolchain.GetName()
 	bsToolchain.Version = toolchain.GetVersion()
 	bsToolchain.Host = toolchain.GetHost()

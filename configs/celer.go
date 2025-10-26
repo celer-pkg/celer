@@ -119,13 +119,12 @@ func (c *Celer) Init() error {
 		}
 
 		// Init platform with platform name.
-		if c.configData.Global.Platform == "" ||
-			c.configData.Global.Platform == "gcc" ||
-			c.configData.Global.Platform == "clang" {
+		switch c.configData.Global.Platform {
+		case "", "msvc", "gcc", "clang", "clang-cl":
 			if err := c.platform.detectToolchain(c.configData.Global.Platform); err != nil {
 				return err
 			}
-		} else {
+		default:
 			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
 				return err
 			}
@@ -640,8 +639,7 @@ func (c Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 	}
 
 	// TODO: how about clang in windows?
-	if runtime.GOOS == "windows" && buildsystem == "cmake" &&
-		(toolchain == "msvc" || toolchain == "clang") {
+	if toolchain == "msvc" || toolchain == "clang-cl" {
 		return c.project.OptimizeWindows
 	}
 

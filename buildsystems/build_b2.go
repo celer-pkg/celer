@@ -39,20 +39,44 @@ func (b b2) CheckTools() error {
 }
 
 func (b b2) Clean() error {
-	if fileio.PathExists(filepath.Join(b.PortConfig.SrcDir, "b2")) {
+	b2file := expr.If(runtime.GOOS == "windows", "b2.exe", "b2")
+	if fileio.PathExists(filepath.Join(b.PortConfig.SrcDir, b2file)) {
 		title := fmt.Sprintf("[clean %s@%s]", b.PortConfig.LibName, b.PortConfig.LibVersion)
-		executor := cmd.NewExecutor(title, "./b2", "clean")
+		buildDir := "--build-dir=" + b.PortConfig.BuildDir
+		executor := cmd.NewExecutor(title, "./"+b2file, buildDir, "clean")
 		executor.SetWorkDir(b.PortConfig.SrcDir)
 		if err := executor.Execute(); err != nil {
 			return err
 		}
+
+		// Remove b2.exe and project-config.jam.
+		os.Remove(filepath.Join(b.PortConfig.SrcDir, "project-config.jam"))
+		os.Remove(filepath.Join(b.PortConfig.SrcDir, b2file))
+	}
+
+	return nil
+}
+
+func (b b2) preConfigure() error {
+	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
+	if b.PortConfig.Toolchain.Name == "msvc" ||
+		b.PortConfig.Toolchain.Name == "clang-cli" {
+		msvcEnvs, err := b.readMSVCEnvs()
+		if err != nil {
+			return err
+		}
+
+		os.Setenv("PATH", msvcEnvs["PATH"])
+		os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
+		os.Setenv("LIB", msvcEnvs["LIB"])
 	}
 
 	return nil
 }
 
 func (b b2) configured() bool {
-	b2Exist := filepath.Join(b.PortConfig.SrcDir, "b2"+expr.If(runtime.GOOS == "windows", ".exe", ""))
+	b2file := expr.If(runtime.GOOS == "windows", "b2.exe", "b2")
+	b2Exist := filepath.Join(b.PortConfig.SrcDir, b2file)
 	configExist := filepath.Join(b.PortConfig.SrcDir, "project-config.jam")
 	return fileio.PathExists(b2Exist) && fileio.PathExists(configExist)
 }
@@ -64,7 +88,10 @@ func (b b2) Configure(options []string) error {
 	}
 
 	// Join options into a string.
-	configure := expr.If(runtime.GOOS == "windows", "./bootstrap.bat", "./bootstrap.sh")
+	configure := expr.If(runtime.GOOS == "windows",
+		"bootstrap.bat "+"clang-win",
+		"./bootstrap.sh"+b.PortConfig.Toolchain.Name,
+	)
 
 	// Execute configure.
 	logPath := b.getLogPath("configure")
@@ -93,7 +120,23 @@ func (b b2) Configure(options []string) error {
 			if strings.Contains(line, "using gcc ;") {
 				line = fmt.Sprintf("using gcc : : %sg++ ;", b.PortConfig.Toolchain.CrosstoolPrefix)
 			} else if strings.Contains(line, "using msvc ;") {
-				line = fmt.Sprintf("using msvc : %s : %s ;", b.msvcVersion(), b.PortConfig.Toolchain.CXX)
+				switch b.PortConfig.Toolchain.Name {
+				case "clang-cl":
+					// cxxfile := expr.If(runtime.GOOS == "windows", b.PortConfig.Toolchain.CXX+".exe", b.PortConfig.Toolchain.CXX)
+					// cxxPath := filepath.Join(b.PortConfig.Toolchain.Fullpath, cxxfile)
+					line = "using clang : : ;"
+
+				case "clang":
+					cxxfile := expr.If(runtime.GOOS == "windows", b.PortConfig.Toolchain.CXX+".exe", b.PortConfig.Toolchain.CXX)
+					cxxPath := filepath.Join(b.PortConfig.Toolchain.Fullpath, cxxfile)
+					line = fmt.Sprintf("using clang : : %s ;", filepath.ToSlash(cxxPath))
+
+				case "msvc":
+					line = fmt.Sprintf("using msvc : %s : %s ;", b.msvcVersion(), b.PortConfig.Toolchain.CXX)
+
+				default:
+					return fmt.Errorf("unsupported toolchain: %s for b2", b.PortConfig.Toolchain.Name)
+				}
 			}
 			buffer.WriteString(line + "\n")
 		}
@@ -110,11 +153,38 @@ func (b b2) Configure(options []string) error {
 func (b b2) buildOptions() ([]string, error) {
 	var options = slices.Clone(b.Options)
 
-	// MSVC need to specify its version extactly.
-	if b.PortConfig.Toolchain.Name == "msvc" {
-		options = append(options, fmt.Sprintf("toolset=msvc-%s architecture=x86 address-model=64 install", b.msvcVersion()))
-	} else {
-		options = append(options, "toolset=gcc install")
+	// Set build toolset.
+	switch runtime.GOOS {
+	case "windows":
+		switch b.PortConfig.Toolchain.Name {
+		case "msvc":
+			options = append(options, "toolset=msvc-"+b.msvcVersion())
+		case "clang-cl":
+			options = append(options, "toolset=clang-win")
+		case "clang":
+			options = append(options, "toolset=clang")
+		default:
+			return nil, fmt.Errorf("unsupported toolchain: %s", b.PortConfig.Toolchain.Name)
+		}
+	case "linux":
+		// Set build toolset with toolchain name.
+		options = append(options, "toolset="+b.PortConfig.Toolchain.Name)
+	default:
+		return nil, fmt.Errorf("unsupported platform: %s", runtime.GOOS)
+	}
+
+	// Set build architecture.
+	switch b.PortConfig.Toolchain.SystemProcessor {
+	case "x86_64", "amd64":
+		options = append(options, "address-model=64", "architecture=x86")
+	case "x86":
+		options = append(options, "address-model=32", "architecture=x86")
+	case "arm64", "aarch64":
+		options = append(options, "address-model=64", "architecture=arm")
+	case "arm":
+		options = append(options, "address-model=32", "architecture=arm")
+	default:
+		return nil, fmt.Errorf("unsupported architecture: %s", b.PortConfig.Toolchain.SystemProcessor)
 	}
 
 	// Set build type.
@@ -153,8 +223,18 @@ func (b b2) buildOptions() ([]string, error) {
 	// It's suggested for windows.
 	options = append(options, "--abbreviate-paths")
 
+	// Note: `threading=multi` will make boost link pthread in linux.
+	// In embedded system, `threading=multi` is not supported,
+	// then you can set `threading=single` in port.toml.
+	if !slices.ContainsFunc(b.Options, func(opt string) bool {
+		return strings.HasPrefix(opt, "threading=")
+	}) {
+		options = append(options, "threading=multi")
+	}
+
 	// Set install dir.
 	options = append(options, fmt.Sprintf("--prefix=%s", b.PortConfig.PackageDir))
+	options = append(options, "install")
 
 	// Replace placeholders.
 	for index, value := range options {
@@ -166,8 +246,9 @@ func (b b2) buildOptions() ([]string, error) {
 
 func (b b2) Build(options []string) error {
 	// Assemble command.
+	b2file := expr.If(runtime.GOOS == "windows", "b2.exe", "b2")
 	joinedArgs := strings.Join(options, " ")
-	command := fmt.Sprintf("%s/b2 %s -j %d", b.PortConfig.SrcDir, joinedArgs, b.PortConfig.Jobs)
+	command := fmt.Sprintf("%s/%s %s -j %d", b.PortConfig.SrcDir, b2file, joinedArgs, b.PortConfig.Jobs)
 
 	// Execute build.
 	logPath := b.getLogPath("build")

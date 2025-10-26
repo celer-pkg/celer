@@ -39,8 +39,8 @@ func (t *Toolchain) Validate() error {
 		return fmt.Errorf("toolchain.name is empty")
 	}
 	t.Name = strings.ToLower(t.Name)
-	if t.Name != "gcc" && t.Name != "msvc" && t.Name != "clang" {
-		return fmt.Errorf("toolchain.name should be 'gcc', 'msvc' or 'clang'")
+	if t.Name != "gcc" && t.Name != "clang" && t.Name != "clang-cl" {
+		return fmt.Errorf("toolchain.name should be 'gcc', 'msvc', 'clang' or 'clang-cl'")
 	}
 
 	// Validate toolchain.system_name.
@@ -54,7 +54,7 @@ func (t *Toolchain) Validate() error {
 	}
 
 	// Validate toolchain prefix path and convert to absolute path.
-	if t.Name != "msvc" && t.Name != "clang" && t.CrosstoolPrefix == "" {
+	if t.Name != "msvc" && t.Name != "clang" && t.Name != "clang-cl" && t.CrosstoolPrefix == "" {
 		return fmt.Errorf("toolchain.crosstool_prefix should be like 'x86_64-linux-gnu-', but it's empty")
 	}
 
@@ -67,9 +67,11 @@ func (t *Toolchain) Validate() error {
 	if strings.TrimSpace(t.CC) == "" {
 		switch t.Name {
 		case "msvc":
-			t.CC = "cl.exe"
+			t.CC = "cl"
 		case "clang":
-			t.CC = "clang.exe"
+			t.CC = "clang"
+		case "clang-cl":
+			t.CC = "clang-cl"
 		default:
 			return fmt.Errorf("toolchain.cc is empty")
 		}
@@ -79,9 +81,11 @@ func (t *Toolchain) Validate() error {
 	if strings.TrimSpace(t.CXX) == "" {
 		switch t.Name {
 		case "msvc":
-			t.CXX = "cl.exe"
+			t.CXX = "cl"
 		case "clang":
-			t.CXX = "clang++.exe"
+			t.CXX = "clang++"
+		case "clang-cl":
+			t.CXX = "clang-cl"
 		default:
 			return fmt.Errorf("toolchain.cxx is empty")
 		}
@@ -90,9 +94,11 @@ func (t *Toolchain) Validate() error {
 	if strings.TrimSpace(t.LD) == "" {
 		switch t.Name {
 		case "msvc":
-			t.LD = "link.exe"
+			t.LD = "link"
 		case "clang":
-			t.LD = "clang.exe"
+			t.LD = "clang"
+		case "clang-cl":
+			t.LD = "clang-cl"
 		default:
 			return fmt.Errorf("toolchain.ld is empty")
 		}
@@ -101,9 +107,9 @@ func (t *Toolchain) Validate() error {
 	if strings.TrimSpace(t.AR) == "" {
 		switch t.Name {
 		case "msvc":
-			t.AR = "lib.exe"
-		case "clang":
-			t.AR = "llvm-ar.exe"
+			t.AR = "lib"
+		case "clang", "clang-cl":
+			t.AR = "llvm-ar"
 		default:
 			return fmt.Errorf("toolchain.ar is empty")
 		}
@@ -133,18 +139,22 @@ func (t *Toolchain) Validate() error {
 			case "msvc":
 				localPath = strings.ReplaceAll(localPath, `/`, `\`)
 				t.rootDir = localPath
-
-				// Runtime paths.
 				t.fullpath = fmt.Sprintf(`%s\VC\Tools\MSVC\%s\bin\Host%s\x64`, localPath, t.Version, t.arch())
+
+			case "clang-cl":
+				localPath = strings.ReplaceAll(localPath, `/`, `\`)
+				t.rootDir = localPath
+				t.fullpath = fmt.Sprintf(`%s\VC\Tools\Llvm\%s\bin`, localPath, t.arch())
+
 			case "clang":
 				localPath = strings.ReplaceAll(localPath, `/`, `\`)
 				t.rootDir = localPath
-
-				// Runtime paths.
 				t.fullpath = fmt.Sprintf(`%s\VC\Tools\Llvm\x64\bin`, localPath)
+
 			default:
 				return fmt.Errorf("toolchain.path of %s is not a directory", t.Url)
 			}
+
 			os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
 		} else {
 			// Even local must be a archive file and path should not be empty.
@@ -222,14 +232,16 @@ func (t *Toolchain) Detect(platformName string) error {
 	t.Host = "x86_64-w64-mingw32"
 
 	switch platformName {
-	case "msvc":
+	case "msvc", "clang-cl":
 		version, err := t.findLatestMSVCVersion(filepath.Join(msvcDir, "VC", "Tools", "MSVC"))
 		if err != nil {
 			return err
 		}
 		t.Version = version
+
 	case "clang":
 		t.Version = "" // clang version is not required
+
 	default:
 		return fmt.Errorf("unsupported platform name: %s", platformName)
 	}

@@ -897,6 +897,8 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 }
 
 func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
+	var msvcEnvs = make(map[string]string)
+
 	// Read MSVC environment variables.
 	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.Toolchain.MSVC.VCVars)
 	executor := cmd.NewExecutor("read msvc envs", command)
@@ -906,9 +908,8 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 	}
 
 	// Parse environment variables from output.
-	var msvcEnvs = make(map[string]string)
-	lines := strings.Split(output, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(output, "\n")
+	for line := range lines {
 		line = strings.TrimSpace(line)
 		if line != "" && strings.Contains(line, "=") {
 			parts := strings.Split(line, "=")

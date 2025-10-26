@@ -35,7 +35,10 @@ func (p *Platform) Init(platformName string) error {
 	}
 
 	// Check if platform file exists, but ignore "gcc" and "clang".
-	if platformName != "gcc" && platformName != "clang" {
+	if platformName != "gcc" &&
+		platformName != "msvc" &&
+		platformName != "clang" &&
+		platformName != "clang-cl" {
 		platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
 		if !fileio.PathExists(platformPath) {
 			return fmt.Errorf("platform %s does not exists", platformName)
@@ -159,8 +162,12 @@ func (p *Platform) Setup() error {
 	}
 
 	// Only for Windows MSVC.
-	if p.Toolchain.Name == "msvc" {
-		p.Toolchain.MSVC.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+	if runtime.GOOS == "windows" {
+		if p.Toolchain.Name == "msvc" ||
+			p.Toolchain.Name == "clang" ||
+			p.Toolchain.Name == "clang-cl" {
+			p.Toolchain.MSVC.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+		}
 	}
 
 	// Generate toolchain file.
@@ -191,7 +198,17 @@ func (p *Platform) detectToolchain(platformName string) error {
 	}
 
 	// Assign standard toolchain name.
-	p.Name = expr.If(p.Toolchain.Name == "msvc", "x86_64-windows", "x86_64-linux")
+	switch runtime.GOOS {
+	case "windows":
+		if p.Toolchain.Name == "msvc" || p.Toolchain.Name == "clang" || p.Toolchain.Name == "clang-cl" {
+			p.Name = "x86_64-windows"
+		} else {
+			return fmt.Errorf("unsupported toolchian %s", p.Toolchain.Name)
+		}
+
+	case "linux":
+		p.Name = "x86_64-linux"
+	}
 
 	return nil
 }

@@ -244,8 +244,10 @@ func (m makefiles) Configure(options []string) error {
 		return nil
 	}
 
-	// In windows, we set msvc related environments.
-	if m.DevDep && m.PortConfig.Toolchain.Name != "msvc" {
+	// Clear env vars for dev dep and windows msvc/clang-cl toolchain.
+	if m.DevDep ||
+		m.PortConfig.Toolchain.Name == "msvc" ||
+		m.PortConfig.Toolchain.Name == "clang-cl" {
 		m.PortConfig.Toolchain.ClearEnvs()
 	} else {
 		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)
