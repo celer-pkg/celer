@@ -22,10 +22,10 @@ const (
 )
 
 type Callbacks interface {
-	GenPortTomlString(nameVersion string) (string, error)
+	GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	GenPlatformTomlString() (string, error)
-	Commit(nameVersion string) (string, error)
-	GetBuildConfig(nameVersion string) (*buildsystems.BuildConfig, error)
+	Commit(nameVersion string, devDep bool) (string, error)
+	GetBuildConfig(nameVersion string, devDep bool) (*buildsystems.BuildConfig, error)
 	CheckHostSupported(nameVersion string) bool
 }
 
@@ -64,7 +64,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		return "", fmt.Errorf("port %s not found", p.NameVersion)
 	}
-	content, err := p.Callbacks.GenPortTomlString(p.NameVersion)
+	content, err := p.Callbacks.GenPortTomlString(p.NameVersion, p.DevDep)
 	if err != nil {
 		return "", fmt.Errorf("generate toml string of port %s: %s", p.NameVersion, err)
 	}
@@ -76,7 +76,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 		p.writeDivider(&buffer, p.Parents, p.NameVersion, "commit")
 		buffer.WriteString(commit + "\n")
 	} else {
-		commit, err := p.Callbacks.Commit(p.NameVersion)
+		commit, err := p.Callbacks.Commit(p.NameVersion, p.DevDep)
 		if err != nil {
 			return "", fmt.Errorf("failed to get commit of port %s\n %s", p.NameVersion, err)
 		}
@@ -106,7 +106,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 			continue
 		}
 
-		buildConfig, err := p.Callbacks.GetBuildConfig(nameVersion)
+		buildConfig, err := p.Callbacks.GetBuildConfig(nameVersion, true)
 		if err != nil {
 			return "", fmt.Errorf("get build config of dependency %s: %s", nameVersion, err)
 		}
@@ -132,7 +132,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 
 	// Write content of dependencies.
 	for _, nameVersion := range p.BuildConfig.Dependencies {
-		buildConfig, err := p.Callbacks.GetBuildConfig(nameVersion)
+		buildConfig, err := p.Callbacks.GetBuildConfig(nameVersion, false)
 		if err != nil {
 			return "", fmt.Errorf("get build config of dependency %s: %s", nameVersion, err)
 		}

@@ -50,8 +50,8 @@ func (c Port) GenPlatformTomlString() (string, error) {
 	return string(bytes), nil
 }
 
-func (p Port) GenPortTomlString(nameVersion string) (string, error) {
-	var port Port
+func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error) {
+	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return "", err
 	}
@@ -66,8 +66,8 @@ func (p Port) GenPortTomlString(nameVersion string) (string, error) {
 	return string(bytes), nil
 }
 
-func (p Port) Commit(nameVersion string) (string, error) {
-	var port Port
+func (p Port) Commit(nameVersion string, devDep bool) (string, error) {
+	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return "", err
 	}
@@ -98,8 +98,8 @@ func (p Port) Commit(nameVersion string) (string, error) {
 	}
 }
 
-func (p Port) GetBuildConfig(nameVersion string) (*buildsystems.BuildConfig, error) {
-	var port Port
+func (p Port) GetBuildConfig(nameVersion string, devDep bool) (*buildsystems.BuildConfig, error) {
+	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return nil, err
 	}
@@ -107,7 +107,8 @@ func (p Port) GetBuildConfig(nameVersion string) (*buildsystems.BuildConfig, err
 }
 
 func (p Port) CheckHostSupported(nameVersion string) bool {
-	var port Port
+	// Host supported means the port is can be built natively.
+	var port = Port{DevDep: true}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return false
 	}

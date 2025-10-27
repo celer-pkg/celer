@@ -24,9 +24,10 @@ func (p Port) Remove(options RemoveOptions) error {
 			}
 
 			// Check and validate dependency.
-			var port Port
-			port.DevDep = devDep
-			port.Parent = p.NameVersion()
+			var port = Port{
+				DevDep: devDep,
+				Parent: p.NameVersion(),
+			}
 			if err := port.Init(p.ctx, nameVersion); err != nil {
 				return fmt.Errorf("failed to init dependency %s.\n %w", nameVersion, err)
 			}

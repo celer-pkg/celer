@@ -113,9 +113,10 @@ func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
 
 	// Try to install dependencies first.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
-		var port Port
-		port.DevDep = p.DevDep
-		port.Parent = p.NameVersion()
+		var port = Port{
+			DevDep: p.DevDep,
+			Parent: p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return false, err
 		}
@@ -413,10 +414,11 @@ func (p Port) installDependencies(options InstallOptions) error {
 		}
 
 		// Init port.
-		var port Port
-		port.Parent = p.NameVersion()
-		port.DevDep = true
-		port.Native = true
+		var port = Port{
+			DevDep: true,
+			Native: true,
+			Parent: p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
@@ -441,9 +443,10 @@ func (p Port) installDependencies(options InstallOptions) error {
 		}
 
 		// Init port.
-		var port Port
-		port.DevDep = p.DevDep
-		port.Parent = p.NameVersion()
+		var port = Port{
+			DevDep: p.DevDep,
+			Parent: p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
@@ -476,9 +479,10 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Init port.
-		var port Port
-		port.Parent = p.NameVersion()
-		port.DevDep = true
+		var port = Port{
+			DevDep: true,
+			Parent: p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
@@ -518,9 +522,10 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Init port.
-		var port Port
-		port.DevDep = p.DevDep
-		port.Parent = p.NameVersion()
+		var port = Port{
+			DevDep: p.DevDep,
+			Parent: p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}

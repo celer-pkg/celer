@@ -901,6 +901,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 
 	// Read MSVC environment variables.
+	// TODO: the `x64` may be different depending on the platform.
 	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.Toolchain.MSVC.VCVars)
 	executor := cmd.NewExecutor("read msvc envs", command)
 	output, err := executor.ExecuteOutput()
