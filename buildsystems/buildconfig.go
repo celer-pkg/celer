@@ -892,12 +892,13 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	appendEnv("PATH", fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
 	appendEnv("INCLUDE", msvcEnvs["INCLUDE"])
 	appendEnv("LIB", msvcEnvs["LIB"])
+	appendEnv("CC", b.PortConfig.Toolchain.CC)
+	appendEnv("CXX", b.PortConfig.Toolchain.CXX)
 
 	return strings.Join(envs, " "), nil
 }
 
 func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
-	var msvcEnvs = make(map[string]string)
 
 	// Read MSVC environment variables.
 	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.Toolchain.MSVC.VCVars)
@@ -908,6 +909,7 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 	}
 
 	// Parse environment variables from output.
+	var msvcEnvs = make(map[string]string)
 	lines := strings.SplitSeq(output, "\n")
 	for line := range lines {
 		line = strings.TrimSpace(line)

@@ -39,7 +39,7 @@ func (t *Toolchain) Validate() error {
 		return fmt.Errorf("toolchain.name is empty")
 	}
 	t.Name = strings.ToLower(t.Name)
-	if t.Name != "gcc" && t.Name != "clang" && t.Name != "clang-cl" {
+	if t.Name != "gcc" && t.Name != "msvc" && t.Name != "clang" && t.Name != "clang-cl" {
 		return fmt.Errorf("toolchain.name should be 'gcc', 'msvc', 'clang' or 'clang-cl'")
 	}
 
@@ -67,11 +67,11 @@ func (t *Toolchain) Validate() error {
 	if strings.TrimSpace(t.CC) == "" {
 		switch t.Name {
 		case "msvc":
-			t.CC = "cl"
+			t.CC = "cl.exe"
 		case "clang":
-			t.CC = "clang"
+			t.CC = "clang.exe"
 		case "clang-cl":
-			t.CC = "clang-cl"
+			t.CC = "clang-cl.exe"
 		default:
 			return fmt.Errorf("toolchain.cc is empty")
 		}
@@ -81,11 +81,11 @@ func (t *Toolchain) Validate() error {
 	if strings.TrimSpace(t.CXX) == "" {
 		switch t.Name {
 		case "msvc":
-			t.CXX = "cl"
+			t.CXX = "cl.exe"
 		case "clang":
-			t.CXX = "clang++"
+			t.CXX = "clang++.exe"
 		case "clang-cl":
-			t.CXX = "clang-cl"
+			t.CXX = "clang-cl.exe"
 		default:
 			return fmt.Errorf("toolchain.cxx is empty")
 		}
@@ -94,11 +94,11 @@ func (t *Toolchain) Validate() error {
 	if strings.TrimSpace(t.LD) == "" {
 		switch t.Name {
 		case "msvc":
-			t.LD = "link"
+			t.LD = "link.exe"
 		case "clang":
-			t.LD = "clang"
+			t.LD = "clang.exe"
 		case "clang-cl":
-			t.LD = "clang-cl"
+			t.LD = "clang-cl.exe"
 		default:
 			return fmt.Errorf("toolchain.ld is empty")
 		}
@@ -107,9 +107,9 @@ func (t *Toolchain) Validate() error {
 	if strings.TrimSpace(t.AR) == "" {
 		switch t.Name {
 		case "msvc":
-			t.AR = "lib"
+			t.AR = "lib.exe"
 		case "clang", "clang-cl":
-			t.AR = "llvm-ar"
+			t.AR = "llvm-ar.exe"
 		default:
 			return fmt.Errorf("toolchain.ar is empty")
 		}
@@ -225,14 +225,8 @@ func (t *Toolchain) Detect(platformName string) error {
 		return fmt.Errorf("msvc not found, please install msvc first")
 	}
 
-	t.Url = "file:///" + msvcDir
-	t.Name = platformName
-	t.SystemName = "Windows"
-	t.SystemProcessor = "x86_64"
-	t.Host = "x86_64-w64-mingw32"
-
 	switch platformName {
-	case "msvc", "clang-cl":
+	case "", "msvc", "clang-cl":
 		version, err := t.findLatestMSVCVersion(filepath.Join(msvcDir, "VC", "Tools", "MSVC"))
 		if err != nil {
 			return err
@@ -245,6 +239,12 @@ func (t *Toolchain) Detect(platformName string) error {
 	default:
 		return fmt.Errorf("unsupported platform name: %s", platformName)
 	}
+
+	t.Url = "file:///" + msvcDir
+	t.Name = expr.If(platformName == "", "msvc", platformName)
+	t.SystemName = "Windows"
+	t.SystemProcessor = "x86_64"
+	t.Host = "x86_64-w64-mingw32"
 
 	if err := t.Validate(); err != nil {
 		return err

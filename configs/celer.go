@@ -799,12 +799,12 @@ func (c Celer) writePkgConfig(toolchain *strings.Builder) {
 		}
 	}
 
-	toolchain.WriteString("\n# pkg-config search paths.\n")
+	fmt.Fprintf(toolchain, "\n# pkg-config search paths.\n")
 	executablePath := fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin/pkgconf", c.platform.GetHostName())
-	toolchain.WriteString(fmt.Sprintf("set(%-28s%q)\n", "PKG_CONFIG_EXECUTABLE", executablePath))
+	fmt.Fprintf(toolchain, "set(%-30s%q)\n", "PKG_CONFIG_EXECUTABLE", executablePath)
 
 	// PKG_CONFIG_SYSROOT_DIR
-	toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "ENV{PKG_CONFIG_SYSROOT_DIR}", sysrootDir))
+	fmt.Fprintf(toolchain, "set(%-30s%q)\n", "ENV{PKG_CONFIG_SYSROOT_DIR}", sysrootDir)
 
 	// PKG_CONFIG_LIBDIR
 	if len(configLibDirs) > 0 {

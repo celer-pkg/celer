@@ -59,6 +59,13 @@ func (m makefiles) Clean() error {
 }
 
 func (m *makefiles) preConfigure() error {
+	// `clang` inside visual studio cannot be used to compile makefiles project.
+	if runtime.GOOS == "windows" && strings.Contains(m.PortConfig.Toolchain.Fullpath, "Microsoft Visual Studio") {
+		if m.PortConfig.Toolchain.Name != "msvc" {
+			return fmt.Errorf("clang-cl or clang inside visual studio cannot be used to compile makefiles project, msvc is required")
+		}
+	}
+
 	// Cache MSVC envs.
 	if runtime.GOOS == "windows" {
 		msvcEnvs, err := m.BuildConfig.msvcEnvs()
@@ -120,11 +127,10 @@ func (m *makefiles) preConfigure() error {
 
 func (m makefiles) configureOptions() ([]string, error) {
 	var options = slices.Clone(m.Options)
-
 	configureWithPerl := m.shouldConfigureWithPerl()
 	if configureWithPerl {
-		isRelease := m.BuildType == "release" || m.BuildType == "relwithdebinfo" || m.BuildType == "minsizerel"
-		release := m.DevDep || isRelease
+		release := m.DevDep ||
+			(m.BuildType == "release" || m.BuildType == "relwithdebinfo" || m.BuildType == "minsizerel")
 		options = append(options, expr.If(release, "--release", "--debug"))
 	}
 
@@ -244,10 +250,10 @@ func (m makefiles) Configure(options []string) error {
 		return nil
 	}
 
-	// Clear env vars for dev dep and windows msvc/clang-cl toolchain.
-	if m.DevDep ||
-		m.PortConfig.Toolchain.Name == "msvc" ||
-		m.PortConfig.Toolchain.Name == "clang-cl" {
+	// msvc and clang-cl need to set build environment event in dev mode.
+	if m.DevDep &&
+		m.PortConfig.Toolchain.Name != "msvc" &&
+		m.PortConfig.Toolchain.Name != "clang-cl" {
 		m.PortConfig.Toolchain.ClearEnvs()
 	} else {
 		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)

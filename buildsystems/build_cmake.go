@@ -58,6 +58,16 @@ func (c cmake) configureOptions() ([]string, error) {
 
 	var options = slices.Clone(c.Options)
 
+	// When use clang-cl with visual studio, we must to set toolset by "-T".
+	if runtime.GOOS == "windows" && strings.HasPrefix(c.CMakeGenerator, "Visual Studio") {
+		switch c.PortConfig.Toolchain.Name {
+		case "clang-cl":
+			options = append(options, "-T ClangCL")
+		case "clang":
+			return nil, fmt.Errorf("clang is not supported with visual studio generator")
+		}
+	}
+
 	if !c.BuildConfig.DevDep {
 		options = append(options, fmt.Sprintf("-DCMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir))
 	}
@@ -86,10 +96,7 @@ func (c cmake) configureOptions() ([]string, error) {
 	}
 
 	// Set build library type.
-	libraryType := c.libraryType(
-		"-DBUILD_SHARED_LIBS=ON",
-		"-DBUILD_SHARED_LIBS=OFF",
-	)
+	libraryType := c.libraryType("-DBUILD_SHARED_LIBS=ON", "-DBUILD_SHARED_LIBS=OFF")
 	switch c.BuildConfig.LibraryType {
 	case "shared", "": // default is `shared`.
 		options = append(options, libraryType.enableShared)
