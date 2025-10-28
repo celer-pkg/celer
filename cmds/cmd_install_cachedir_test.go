@@ -42,7 +42,7 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 		project     = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
@@ -124,7 +124,7 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 		project     = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
@@ -217,7 +217,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 		project     = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
@@ -302,7 +302,7 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 		project     = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetCacheDir("", "token_123456"))
@@ -350,7 +350,7 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 		project     = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, ""))
@@ -398,7 +398,7 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 		project     = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
@@ -446,7 +446,7 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 		project     = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
@@ -494,7 +494,7 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 		project     = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
@@ -561,7 +561,7 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 		project     = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
