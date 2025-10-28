@@ -33,7 +33,7 @@ func TestConfigure(t *testing.T) {
 
 	// ============= Configure platform ============= //
 	t.Run("Configure platform success", func(t *testing.T) {
-		const newName = "x86_64-linux-ubuntu-22.04"
+		const newName = "x86_64-linux-ubuntu-22.04-gcc-11.5"
 		check(celer.SetPlatform(newName))
 		if celer.Platform().GetName() != newName {
 			t.Fatalf("platform should be `%s`", newName)

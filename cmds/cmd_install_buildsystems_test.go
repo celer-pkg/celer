@@ -33,7 +33,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")))
+	check(celer.SetPlatform(expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")))
 	check(celer.SetProject(projectName))
 
 	// Setup build envs.
@@ -42,7 +42,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 	t.Run("install makefiles", func(t *testing.T) {
 		var (
 			nameVersion   = "x264@stable"
-			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, celer.BuildType())
 
 			port    configs.Port
@@ -78,7 +78,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 	t.Run("install cmake", func(t *testing.T) {
 		var (
 			nameVersion   = "glog@0.6.0"
-			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, celer.BuildType())
 
 			port    configs.Port
@@ -114,7 +114,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 	t.Run("install b2", func(t *testing.T) {
 		var (
 			nameVersion   = "boost@1.87.0"
-			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, celer.BuildType())
 
 			port    configs.Port
@@ -149,7 +149,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 	t.Run("install gyp", func(t *testing.T) {
 		var (
 			nameVersion   = "nss@3.55"
-			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, celer.BuildType())
 
 			port    configs.Port
@@ -184,7 +184,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 	t.Run("install meson", func(t *testing.T) {
 		var (
 			nameVersion   = "pixman@0.44.2"
-			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, celer.BuildType())
 
 			port    configs.Port
@@ -219,7 +219,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 	t.Run("install prebuilt", func(t *testing.T) {
 		var (
 			nameVersion   = "prebuilt-x264@stable"
-			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+			platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 			packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, celer.BuildType())
 
 			port    configs.Port

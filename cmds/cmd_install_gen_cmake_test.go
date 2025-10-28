@@ -33,7 +33,7 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 
 	var (
 		nameVersion = "prebuilt-x264-single-target@stable"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project     = "project_test_install"
 	)
 
@@ -99,7 +99,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface(t *testing.T) {
 
 	var (
 		nameVersion = "prebuilt-ffmpeg-interface@5.1.6"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project     = "project_test_install"
 	)
 
@@ -166,7 +166,7 @@ func TestInstall_Generate_CMake_Prebuilt_Muti_Components(t *testing.T) {
 
 	var (
 		nameVersion = "prebuilt-ffmpeg-multi-components@5.1.6"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project     = "project_test_install"
 	)
 
@@ -233,7 +233,7 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 
 	var (
 		nameVersion = "x264@stable"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project     = "project_test_install"
 	)
 
@@ -299,7 +299,7 @@ func TestInstall_Generate_CMake_Source_Multi_Components(t *testing.T) {
 
 	var (
 		nameVersion = "ffmpeg@5.1.6"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project     = "project_test_install"
 	)
 

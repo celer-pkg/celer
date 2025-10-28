@@ -33,7 +33,7 @@ func TestInstall_FromPackage(t *testing.T) {
 
 	var (
 		nameVersion = "eigen@3.4.0"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
+		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project     = "project_test_install"
 		packageDir  = fmt.Sprintf("%s/%s@%s@%s@%s",
 			dirs.PackagesDir, nameVersion, platform, project,

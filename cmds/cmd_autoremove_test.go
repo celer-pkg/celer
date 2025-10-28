@@ -40,7 +40,7 @@ func TestAutoRemove(t *testing.T) {
 
 	// Init celer.
 	const (
-		platform        = "x86_64-linux-ubuntu-22.04"
+		platform        = "x86_64-linux-ubuntu-22.04-gcc-11.5"
 		project         = "project_test_autoremove"
 		portNameVersion = "sqlite3@3.49.0"
 	)
