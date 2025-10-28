@@ -57,6 +57,17 @@ func (b b2) Clean() error {
 	return nil
 }
 
+func (b *b2) preConfigure() error {
+	// `clang` inside visual studio cannot be used to compile b2 project.
+	if runtime.GOOS == "windows" && strings.Contains(b.PortConfig.Toolchain.Fullpath, "Microsoft Visual Studio") {
+		if b.PortConfig.Toolchain.Name == "clang" {
+			return fmt.Errorf("visual studio's clang cannot be used to compile b2 project, msvc or clang-cl is required")
+		}
+	}
+
+	return nil
+}
+
 func (b b2) configured() bool {
 	b2file := expr.If(runtime.GOOS == "windows", "b2.exe", "b2")
 	b2Exist := filepath.Join(b.PortConfig.SrcDir, b2file)
@@ -100,7 +111,7 @@ func (b b2) Configure(options []string) error {
 				line = fmt.Sprintf(`using gcc : : "%s" ;`, filepath.ToSlash(cxx))
 			} else if strings.Contains(line, "using msvc ;") {
 				switch b.PortConfig.Toolchain.Name {
-				case "clang", "clang-cl":
+				case "clang-cl":
 					line = fmt.Sprintf(`using clang-win : : "%s" ;`, filepath.ToSlash(cxx))
 
 				case "msvc":
@@ -133,10 +144,8 @@ func (b b2) buildOptions() ([]string, error) {
 			options = append(options, "toolset=msvc-"+b.msvcVersion())
 		case "clang-cl":
 			options = append(options, "toolset=clang-win")
-		case "clang":
-			options = append(options, "toolset=clang")
 		default:
-			return nil, fmt.Errorf("unsupported toolchain: %s", b.PortConfig.Toolchain.Name)
+			return nil, fmt.Errorf("unsupported toolchain: %s for b2", b.PortConfig.Toolchain.Name)
 		}
 	case "linux":
 		// Set build toolset with toolchain name.

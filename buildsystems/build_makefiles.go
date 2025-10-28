@@ -62,7 +62,7 @@ func (m *makefiles) preConfigure() error {
 	// `clang` inside visual studio cannot be used to compile makefiles project.
 	if runtime.GOOS == "windows" && strings.Contains(m.PortConfig.Toolchain.Fullpath, "Microsoft Visual Studio") {
 		if m.PortConfig.Toolchain.Name != "msvc" {
-			return fmt.Errorf("clang-cl or clang inside visual studio cannot be used to compile makefiles project, msvc is required")
+			return fmt.Errorf("visual studio's clang-cl or clang cannot be used to compile makefiles project, only msvc is supported")
 		}
 	}
 

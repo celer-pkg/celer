@@ -64,7 +64,7 @@ func (c cmake) configureOptions() ([]string, error) {
 		case "clang-cl":
 			options = append(options, "-T ClangCL")
 		case "clang":
-			return nil, fmt.Errorf("clang is not supported with visual studio generator")
+			return nil, fmt.Errorf("visual studio's clang is not supported with visual studio generator")
 		}
 	}
 
