@@ -106,6 +106,8 @@ Then the **celer.toml** file will be generated in the workspace directory:
 >**Tips:**  
 > **https://github.com/celer-pkg/test-conf.git** is a test conf repo, you can use it to experience celer, and you can also create your own conf repo as a reference.
 
+During init, Celer will clone a ports repo into current workspace, this a repo contains configuration files of all available third-party libraries. Celer will try to use the ports repo in **CELER_PORTS_REPO** environment variable if it's set. If it's not set, Celer will use the default ports repo (https://github.com/celer-pkg/ports.git).
+
 ## 4. Configure platform or project
 
 **platform** and **project** are two combinations, they can be freely combined. For example, although the target environment is **aarch64-linux**, you can choose to compile/develop/debug in the **x86_64-linux** platform.

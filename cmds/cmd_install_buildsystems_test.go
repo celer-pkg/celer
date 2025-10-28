@@ -226,7 +226,7 @@ func TestInstall_Buildsystems(t *testing.T) {
 			options configs.InstallOptions
 		)
 
-		check(port.Init(celer, "prebuilt-x264@stable"))
+		check(port.Init(celer, nameVersion))
 		check(port.InstallFromSource(options))
 
 		// Check if package dir exists.

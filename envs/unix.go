@@ -11,12 +11,14 @@ import (
 func CleanEnv() {
 	home := os.Getenv("HOME")
 	shell := os.Getenv("SHELL")
+	portsRepo := os.Getenv("CELER_PORTS_REPO")
 
 	// Clear all environments.
 	os.Clearenv()
 
 	os.Setenv("SHELL", shell)
 	os.Setenv("HOME", home)
+	os.Setenv("CELER_PORTS_REPO", portsRepo)
 
 	// Reset PATH.
 	var paths []string

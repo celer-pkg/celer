@@ -90,7 +90,7 @@ celer init --url=https://github.com/celer-pkg/test-conf.git
 celer configure --proxy-host 127.0.0.1 --proxy-port 7890
 ```
 
-Then the **celer.toml** file will be generated in the workspace directory:
+然后，**celer.toml** 文件会在工作目录中生成：
 
 ```toml
 [global]
@@ -109,6 +109,8 @@ Then the **celer.toml** file will be generated in the workspace directory:
 
 >**Tips:**  
 >  **https://github.com/celer-pkg/test-conf.git** 只是一个测试用的conf仓库，你可以使用它来体验Celer，也可以根据它创建你自己的conf仓库作为参考。
+
+在初始化期间，Celer会克隆一个ports仓库到当前工作目录，这个仓库包含了所有可用的第三方库的配置文件。Celer会尝试使用环境变量 **CELER_PORTS_REPO** 中指定的ports仓库。如果环境变量未设置，Celer会使用默认的ports仓库 (https://github.com/celer-pkg/ports.git)。
 
 ## 4. 配置平台或项目
 
