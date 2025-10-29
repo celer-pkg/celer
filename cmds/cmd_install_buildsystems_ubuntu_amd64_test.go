@@ -15,34 +15,34 @@ import (
 const platform_x86_64_ubuntu = "x86_64-linux-ubuntu-22.04-gcc-11.5"
 
 func TestInstall_Buildsystems_Makefiles(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "x264@stable")
+	buildPackage(t, platform_x86_64_ubuntu, "x264@stable", false)
 }
 
 func TestInstall_Buildsystems_CMake(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "glog@0.6.0")
+	buildPackage(t, platform_x86_64_ubuntu, "glog@0.6.0", false)
 }
 
 func TestInstall_Buildsystems_B2(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "boost@1.87.0")
+	buildPackage(t, platform_x86_64_ubuntu, "boost@1.87.0", false)
 }
 
 func TestInstall_Buildsystems_Gyp(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "nss@3.55")
+	buildPackage(t, platform_x86_64_ubuntu, "nss@3.55", false)
 }
 
 func TestInstall_Buildsystems_Meson(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "pixman@0.44.2")
+	buildPackage(t, platform_x86_64_ubuntu, "pixman@0.44.2", false)
 }
 
 func TestInstall_Buildsystems_Prebuilt(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "prebuilt-x264-single-target@stable")
+	buildPackage(t, platform_x86_64_ubuntu, "prebuilt-x264-single-target@stable", false)
 }
 
-func TestInstall_Buildsystems_PNobuild(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "gnulib@master")
+func TestInstall_Buildsystems_Nobuild(t *testing.T) {
+	buildPackage(t, platform_x86_64_ubuntu, "gnulib@master", true)
 }
 
-func buildPackage(t *testing.T, platform, nameVersion string) {
+func buildPackage(t *testing.T, platform, nameVersion string, nobuild bool) {
 	const project = "project_test_install"
 
 	// Check error.
@@ -78,9 +78,11 @@ func buildPackage(t *testing.T, platform, nameVersion string) {
 	check(port.InstallFromSource(options))
 
 	// Check if package dir exists.
-	packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
-	if !fileio.PathExists(packageDir) {
-		t.Fatal("package dir cannot found")
+	if !nobuild {
+		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
+		if !fileio.PathExists(packageDir) {
+			t.Fatal("package dir cannot found")
+		}
 	}
 
 	// Check if installed.
