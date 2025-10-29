@@ -335,7 +335,7 @@ func TestInstall_Buildsystems_Prebuilt(t *testing.T) {
 	check(celer.Platform().Setup())
 
 	var (
-		nameVersion   = "prebuilt-x264@stable"
+		nameVersion   = "prebuilt-x264-single-target"
 		platform      = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, projectName, celer.BuildType())
 
