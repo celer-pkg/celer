@@ -12,34 +12,105 @@ import (
 	"testing"
 )
 
-const platform_x86_64_ubuntu = "x86_64-linux-ubuntu-22.04-gcc-11.5"
+const ubuntu_gcc_11_5 = "x86_64-linux-ubuntu-22.04-gcc-11.5"
+const ubuntu_clang_21_1_4 = "x86_64-linux-ubuntu-22.04-clang-21.1.4"
 
 func TestInstall_Buildsystems_Makefiles(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "x264@stable", false)
+	t.Run("local_gcc", func(t *testing.T) {
+		buildPackage(t, "gcc", "x264@stable", false)
+	})
+
+	t.Run("portable_gcc", func(t *testing.T) {
+		buildPackage(t, ubuntu_gcc_11_5, "x264@stable", false)
+	})
+
+	t.Run("local_clang", func(t *testing.T) {
+		buildPackage(t, "clang", "x264@stable", false)
+	})
+
+	t.Run("portable_clang", func(t *testing.T) {
+		buildPackage(t, ubuntu_clang_21_1_4, "x264@stable", false)
+	})
 }
 
 func TestInstall_Buildsystems_CMake(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "glog@0.6.0", false)
+	t.Run("local_gcc", func(t *testing.T) {
+		buildPackage(t, "gcc", "glog@0.6.0", false)
+	})
+
+	t.Run("portable_gcc", func(t *testing.T) {
+		buildPackage(t, ubuntu_gcc_11_5, "glog@0.6.0", false)
+	})
+
+	t.Run("local clang", func(t *testing.T) {
+		buildPackage(t, "clang", "glog@0.6.0", false)
+	})
+
+	t.Run("portable_clang", func(t *testing.T) {
+		buildPackage(t, ubuntu_clang_21_1_4, "glog@0.6.0", false)
+	})
 }
 
 func TestInstall_Buildsystems_B2(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "boost@1.87.0", false)
+	t.Run("local_gcc", func(t *testing.T) {
+		buildPackage(t, "gcc", "boost@1.87.0", false)
+	})
+
+	t.Run("portbal_gcc", func(t *testing.T) {
+		buildPackage(t, ubuntu_gcc_11_5, "boost@1.87.0", false)
+	})
+
+	t.Run("local_clang", func(t *testing.T) {
+		buildPackage(t, "clang", "boost@1.87.0", false)
+	})
+
+	t.Run("portbal_clang", func(t *testing.T) {
+		buildPackage(t, ubuntu_clang_21_1_4, "boost@1.87.0", false)
+	})
 }
 
 func TestInstall_Buildsystems_Gyp(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "nss@3.55", false)
+	t.Run("local_gcc", func(t *testing.T) {
+		buildPackage(t, "gcc", "nss@3.55", false)
+	})
+
+	t.Run("portable_gcc", func(t *testing.T) {
+		buildPackage(t, ubuntu_gcc_11_5, "nss@3.55", false)
+	})
+
+	t.Run("local_clang", func(t *testing.T) {
+		buildPackage(t, "clang", "nss@3.55", false)
+	})
+
+	t.Run("portable_clang", func(t *testing.T) {
+		buildPackage(t, ubuntu_clang_21_1_4, "nss@3.55", false)
+	})
 }
 
 func TestInstall_Buildsystems_Meson(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "pixman@0.44.2", false)
+	t.Run("local_gcc", func(t *testing.T) {
+		buildPackage(t, "gcc", "pixman@0.44.2", false)
+	})
+
+	t.Run("portable_gcc", func(t *testing.T) {
+		buildPackage(t, ubuntu_gcc_11_5, "pixman@0.44.2", false)
+	})
+
+	t.Run("local_clang", func(t *testing.T) {
+		buildPackage(t, "clang", "pixman@0.44.2", false)
+	})
+
+	t.Run("portable_clang", func(t *testing.T) {
+		buildPackage(t, ubuntu_clang_21_1_4, "pixman@0.44.2", false)
+	})
 }
 
 func TestInstall_Buildsystems_Prebuilt(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "prebuilt-x264-single-target@stable", false)
+	buildPackage(t, ubuntu_gcc_11_5, "prebuilt-x264-single-target@stable", false)
 }
 
 func TestInstall_Buildsystems_Nobuild(t *testing.T) {
-	buildPackage(t, platform_x86_64_ubuntu, "gnulib@master", true)
+	buildPackage(t, ubuntu_gcc_11_5, "gnulib@master", true)
 }
 
 func buildPackage(t *testing.T, platform, nameVersion string, nobuild bool) {
