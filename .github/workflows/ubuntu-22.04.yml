@@ -31,8 +31,7 @@ jobs:
       env:
         GO_TEST_TIMEOUT: 1h
       run: |
-        go test -v ./depcheck/... -timeout $GO_TEST_TIMEOUT
-        go test -v ./configs/... -timeout $GO_TEST_TIMEOUT
-        go test -v ./pkgs/git/... -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/... -exclude="./cmds/completion/..." -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/completion/... -timeout $GO_TEST_TIMEOUT
+        go test -v ./depcheck/...   -timeout $GO_TEST_TIMEOUT
+        go test -v ./configs/...    -timeout $GO_TEST_TIMEOUT
+        go test -v ./pkgs/git/...   -timeout $GO_TEST_TIMEOUT
+        go test -v ./cmds/...       -timeout $GO_TEST_TIMEOUT
