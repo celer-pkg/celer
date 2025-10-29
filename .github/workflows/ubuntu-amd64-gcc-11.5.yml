@@ -10,7 +10,6 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   build_test:
     runs-on: ubuntu-22.04
     steps:
@@ -23,6 +22,9 @@ jobs:
 
     - name: Install build-essential
       run: sudo apt update && sudo apt install -y build-essential
+
+    - name: Install clang
+      run: sudo apt update && sudo apt install -y clang
 
     - name: Build
       run: go build -v ./...

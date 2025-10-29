@@ -10,14 +10,16 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   build_test:
     runs-on: windows-2022
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Visual Studio
-      uses: microsoft/setup-msbuild@v1.1
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        toolset: 14.44.35207
+        arch: x64
 
     - name: Set up Go
       uses: actions/setup-go@v4
