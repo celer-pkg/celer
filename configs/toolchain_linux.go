@@ -153,14 +153,14 @@ func (t *Toolchain) Detect(platformName string) error {
 	t.SystemProcessor = "x86_64"
 	t.Host = "x86_64-linux-gnu"
 	t.CrosstoolPrefix = "x86_64-linux-gnu-"
-	t.CC = expr.If(platformName == "clang", "clang", "gcc")
-	t.CXX = expr.If(platformName == "clang", "clang++", "g++")
-	t.RANLIB = expr.If(platformName == "clang", "llvm-ranlib", "ranlib")
-	t.AR = expr.If(platformName == "clang", "llvm-ar", "ar")
-	t.LD = expr.If(platformName == "clang", "clang", "ld")
-	t.NM = expr.If(platformName == "clang", "llvm-nm", "nm")
-	t.OBJDUMP = expr.If(platformName == "clang", "llvm-objdump", "objdump")
-	t.STRIP = expr.If(platformName == "clang", "llvm-strip", "strip")
+	t.CC = expr.If(platformName == "clang", "clang", "x86_64-linux-gnu-gcc")
+	t.CXX = expr.If(platformName == "clang", "clang++", "x86_64-linux-gnu-g++")
+	t.RANLIB = expr.If(platformName == "clang", "llvm-ranlib", "x86_64-linux-gnu-gcc-ranlib")
+	t.AR = expr.If(platformName == "clang", "llvm-ar", "x86_64-linux-gnu-gcc-ar")
+	t.LD = expr.If(platformName == "clang", "clang", "x86_64-linux-gnu-ld")
+	t.NM = expr.If(platformName == "clang", "llvm-nm", "x86_64-linux-gnu-nm")
+	t.OBJDUMP = expr.If(platformName == "clang", "llvm-objdump", "x86_64-linux-gnu-objdump")
+	t.STRIP = expr.If(platformName == "clang", "llvm-strip", "x86_64-linux-gnu-strip")
 
 	if err := t.Validate(); err != nil {
 		return err
