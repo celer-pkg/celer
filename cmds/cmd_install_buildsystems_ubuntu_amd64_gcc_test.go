@@ -1,4 +1,4 @@
-//go:build linux && amd64 && gcc
+//go:build linux && amd64
 
 package cmds
 
@@ -73,6 +73,10 @@ func TestInstall_Nobuild_GCC(t *testing.T) {
 }
 
 func buildWithGCC(t *testing.T, platform, nameVersion string, nobuild bool) {
+	if os.Getenv("GO_TEST_GCC") != "TEST_GCC" {
+		t.SkipNow()
+	}
+
 	const project = "project_test_install"
 
 	// Check error.

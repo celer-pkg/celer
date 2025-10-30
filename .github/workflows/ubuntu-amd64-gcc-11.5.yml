@@ -29,6 +29,7 @@ jobs:
     - name: Test(GCC)
       env:
         GO_TEST_TIMEOUT: 1h
+        GO_TEST_GCC: ON
       run: |
         go test -v ./depcheck/... -timeout $GO_TEST_TIMEOUT
         go test -v ./configs/...  -timeout $GO_TEST_TIMEOUT

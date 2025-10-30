@@ -1,4 +1,4 @@
-//go:build linux && amd64 && clang
+//go:build linux && amd64
 
 package cmds
 
@@ -73,6 +73,10 @@ func TestInstall_Nobuild_Clang(t *testing.T) {
 }
 
 func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
+	if os.Getenv("GO_TEST_CLANG") != "TEST_CLANG" {
+		t.SkipNow()
+	}
+
 	const project = "project_test_install"
 
 	// Check error.
