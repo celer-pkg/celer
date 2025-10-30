@@ -9,7 +9,7 @@
 ```toml
 [global]
 conf_repo = "https://gitee.com/phil-zhang/celer_conf.git"
-platform = "x86_64-linux-ubuntu-20.04.5"
+platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.5"
 project = "project_01"
 jobs = 32
 
@@ -24,7 +24,7 @@ dir = "/home/test/celer_cache"
 ```toml
 [global]
 conf_repo = "https://gitee.com/phil-zhang/celer_conf.git"
-platform = "x86_64-linux-ubuntu-20.04.5"
+platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.5"
 project = "project_01"
 jobs = 32
 
@@ -53,7 +53,7 @@ options = ["-DEIGEN_TEST_NO_OPENGL=1", "-DBUILD_TESTING=OFF"]
 ```shell
 /home/test
 └── celer_cache
-    └── x86_64-linux-ubuntu-20.04
+    └── x86_64-linux-ubuntu-22.04-gcc-11.5
         └── project_01
             └── release
                 ├── ffmpeg@3.4.13

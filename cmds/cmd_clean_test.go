@@ -28,13 +28,13 @@ func TestClean(t *testing.T) {
 
 	// Init celer.
 	const (
-		platform = "x86_64-linux-ubuntu-22.04"
+		platform = "x86_64-linux-ubuntu-22.04-gcc-11.5"
 		project  = "project_test_clean"
 	)
 
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))

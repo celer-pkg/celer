@@ -97,7 +97,9 @@ func (m qmake) configured() bool {
 
 func (m qmake) Configure(options []string) error {
 	// In windows, we set msvc related environments.
-	if m.DevDep && m.PortConfig.Toolchain.Name != "msvc" {
+	if m.DevDep ||
+		m.PortConfig.Toolchain.Name == "msvc" ||
+		m.PortConfig.Toolchain.Name == "clang" {
 		m.PortConfig.Toolchain.ClearEnvs()
 	} else {
 		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)

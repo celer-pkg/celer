@@ -94,7 +94,7 @@ func (c *Celer) Init() error {
 		}
 
 		// Auto detect native toolchain.
-		if err := c.platform.detectToolchain(); err != nil {
+		if err := c.platform.detectToolchain(c.configData.Global.Platform); err != nil {
 			return err
 		}
 	} else {
@@ -119,13 +119,13 @@ func (c *Celer) Init() error {
 		}
 
 		// Init platform with platform name.
-		if c.configData.Global.Platform != "" {
-			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
+		switch c.configData.Global.Platform {
+		case "", "msvc", "gcc", "clang", "clang-cl":
+			if err := c.platform.detectToolchain(c.configData.Global.Platform); err != nil {
 				return err
 			}
-		} else {
-			// Auto detect native toolchain for different os.
-			if err := c.platform.detectToolchain(); err != nil {
+		default:
+			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
 				return err
 			}
 		}
@@ -638,7 +638,8 @@ func (c Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 		return c.project.Optimize
 	}
 
-	if runtime.GOOS == "windows" && toolchain == "msvc" && buildsystem == "cmake" {
+	// TODO: how about clang in windows?
+	if toolchain == "msvc" || toolchain == "clang-cl" {
 		return c.project.OptimizeWindows
 	}
 
@@ -714,7 +715,7 @@ func (c Celer) GenerateToolchainFile() error {
 		toolchain.WriteString(fmt.Sprintf("add_compile_definitions(%s)\n", item))
 	}
 
-	optimize := c.Optimize("cmake", expr.If(runtime.GOOS == "windows", "msvc", "gcc"))
+	optimize := c.Optimize("cmake", c.platform.GetToolchain().GetName())
 	if optimize != nil {
 		toolchain.WriteString("\n# Compile flags.\n")
 		toolchain.WriteString("add_compile_options(\n")
@@ -743,7 +744,7 @@ func (c Celer) GenerateToolchainFile() error {
 	}
 
 	toolchain.WriteString("\n")
-	if c.Platform().GetToolchain().GetName() == "gcc" {
+	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
 		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
 	}
 	toolchain.WriteString(fmt.Sprintf("set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON"))
@@ -798,12 +799,12 @@ func (c Celer) writePkgConfig(toolchain *strings.Builder) {
 		}
 	}
 
-	toolchain.WriteString("\n# pkg-config search paths.\n")
+	fmt.Fprintf(toolchain, "\n# pkg-config search paths.\n")
 	executablePath := fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin/pkgconf", c.platform.GetHostName())
-	toolchain.WriteString(fmt.Sprintf("set(%-28s%q)\n", "PKG_CONFIG_EXECUTABLE", executablePath))
+	fmt.Fprintf(toolchain, "set(%-30s%q)\n", "PKG_CONFIG_EXECUTABLE", executablePath)
 
 	// PKG_CONFIG_SYSROOT_DIR
-	toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "ENV{PKG_CONFIG_SYSROOT_DIR}", sysrootDir))
+	fmt.Fprintf(toolchain, "set(%-30s%q)\n", "ENV{PKG_CONFIG_SYSROOT_DIR}", sysrootDir)
 
 	// PKG_CONFIG_LIBDIR
 	if len(configLibDirs) > 0 {

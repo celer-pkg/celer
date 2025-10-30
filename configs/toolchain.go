@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
 type Toolchain struct {
 	Url             string `toml:"url"`               // Download url or local file url.
-	Name            string `toml:"name"`              // It should be "gcc", "msvc" and "clang".
+	Name            string `toml:"name"`              // It should be "gcc", "msvc", "clang-cl" and "clang", "mingw".
 	Version         string `toml:"version"`           // It should be version of gcc/msvc/clang.
 	Archive         string `toml:"archive,omitempty"` // Archive can be changed to avoid conflict.
 	Path            string `toml:"path"`              // Runtime path of tool, it's relative path and would be converted to absolute path later.
@@ -149,35 +150,38 @@ func (t Toolchain) GetCrosstoolPrefixPath() string {
 func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 	t.cmakepath = fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin", hostName)
 
-	toolchain.WriteString("\n# Runtime paths.\n")
-	toolchain.WriteString(`get_filename_component(WORKSPACE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)` + "\n")
-	toolchain.WriteString("set(PATH_LIST\n")
-	toolchain.WriteString(fmt.Sprintf("    %q\n", t.cmakepath))
-	toolchain.WriteString(")\n")
-	toolchain.WriteString(fmt.Sprintf("list(JOIN PATH_LIST %q PATH_STR)\n", string(os.PathListSeparator)))
+	fmt.Fprintf(toolchain, "\n# Runtime paths.\n")
+	fmt.Fprintf(toolchain, `get_filename_component(WORKSPACE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)`+"\n")
+	fmt.Fprintf(toolchain, "set(PATH_LIST\n")
+	fmt.Fprintf(toolchain, "    %q\n", t.cmakepath)
+	fmt.Fprintf(toolchain, ")\n")
+	fmt.Fprintf(toolchain, "list(JOIN PATH_LIST %q PATH_STR)\n", string(os.PathListSeparator))
 	toolchain.WriteString(fmt.Sprintf(`set(ENV{PATH} "${PATH_STR}%s$ENV{PATH}")`, string(os.PathListSeparator)) + "\n")
 
 	writeIfNotEmpty := func(key, value string) {
 		if value != "" {
-			fmt.Fprintf(toolchain, "set(%-25s%q)\n", key, "${TOOLCHAIN_DIR}/"+value)
+			fmt.Fprintf(toolchain, "set(%-30s%q)\n", key, "${TOOLCHAIN_DIR}/"+value)
 		}
 	}
 
-	toolchain.WriteString("\n# Target information for cross-compile.\n")
+	fmt.Fprintf(toolchain, "\n# Target information for cross-compile.\n")
 	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_NAME", t.SystemName)
 	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
-	toolchain.WriteString("\n# Toolchain for cross-compile.\n")
+	fmt.Fprintf(toolchain, "\n# Toolchain for cross-compile.\n")
 	cmakepath := strings.TrimPrefix(t.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
 
-	switch t.Name {
-	case "msvc":
-		fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
-	case "gcc":
+	switch runtime.GOOS {
+	case "windows":
+		if t.Name == "msvc" || t.Name == "clang-cl" || t.Name == "clang" {
+			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
+		}
+
+	case "linux":
 		if t.Path == "/usr/bin" {
-			fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "/usr/bin")
+			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", "/usr/bin")
 		} else {
-			fmt.Fprintf(toolchain, "set(%-25s%q)\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
 		}
 	}
 
@@ -187,7 +191,7 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 	writeIfNotEmpty("CMAKE_LINKER", t.LD)
 
 	switch t.Name {
-	case "gcc":
+	case "gcc", "clang":
 		writeIfNotEmpty("CMAKE_ASM_COMPILER", t.AS)
 		writeIfNotEmpty("CMAKE_NM", t.NM)
 		writeIfNotEmpty("CMAKE_Fortran_COMPILER", t.FC)
@@ -199,9 +203,12 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 
 		toolchain.WriteString("\n")
 
-		fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_C_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")
-		fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_CXX_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")
-	case "msvc":
+		if t.ctx.RootFS() != nil {
+			fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_C_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")
+			fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_CXX_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")
+		}
+
+	case "msvc", "clang-cl":
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
@@ -209,7 +216,7 @@ func (t Toolchain) Generate(toolchain *strings.Builder, hostName string) error {
 
 	// Write C/C++ language standard.
 	if t.CStandard != "" || t.CXXStandard != "" {
-		toolchain.WriteString("\n# C/CXX language standard.\n")
+		fmt.Fprint(toolchain, "\n# C/CXX language standard.\n")
 
 		if t.CStandard != "" {
 			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_C_STANDARD", strings.TrimPrefix(t.CStandard, "c"))

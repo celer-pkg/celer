@@ -55,15 +55,18 @@ func (m meson) Clean() error {
 
 func (m meson) preConfigure() error {
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
-	if m.PortConfig.Toolchain.Name == "msvc" {
-		msvcEnvs, err := m.readMSVCEnvs()
-		if err != nil {
-			return err
-		}
+	if runtime.GOOS == "windows" {
+		if m.PortConfig.Toolchain.Name == "msvc" ||
+			m.PortConfig.Toolchain.Name == "clang-cli" {
+			msvcEnvs, err := m.readMSVCEnvs()
+			if err != nil {
+				return err
+			}
 
-		os.Setenv("PATH", msvcEnvs["PATH"])
-		os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
-		os.Setenv("LIB", msvcEnvs["LIB"])
+			os.Setenv("PATH", msvcEnvs["PATH"])
+			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
+			os.Setenv("LIB", msvcEnvs["LIB"])
+		}
 	}
 
 	return nil
@@ -128,8 +131,10 @@ func (m meson) configured() bool {
 }
 
 func (m meson) Configure(options []string) error {
-	// In windows, we set msvc related environments.
-	if m.DevDep && m.PortConfig.Toolchain.Name != "msvc" {
+	// msvc and clang-cl need to set build environment event in dev mode.
+	if m.DevDep ||
+		m.PortConfig.Toolchain.Name == "msvc" ||
+		m.PortConfig.Toolchain.Name == "clang-cl" {
 		m.PortConfig.Toolchain.ClearEnvs()
 	} else {
 		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)
@@ -257,8 +262,13 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	)
 
 	// This allows the bin to locate the libraries in the relative lib dir.
-	if m.PortConfig.Toolchain.Name == "gcc" {
-		linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+	switch runtime.GOOS {
+	case "linux":
+		if m.PortConfig.Toolchain.Name == "gcc" || m.PortConfig.Toolchain.Name == "clang" {
+			linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+		}
+	case "darwin":
+		// TODO: it may supported in the future for darwin.
 	}
 
 	if !m.DevDep && toolchain.RootFS != "" {
@@ -268,6 +278,7 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 
 		for _, item := range toolchain.IncludeDirs {
 			includeDir := filepath.Join(toolchain.RootFS, item)
+			includeDir = filepath.ToSlash(includeDir)
 
 			switch runtime.GOOS {
 			case "windows":
@@ -289,17 +300,19 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 		// Allow meson to locate libraries in rootfs.
 		for _, item := range toolchain.LibDirs {
 			libDir := filepath.Join(toolchain.RootFS, item)
+			libDir = filepath.ToSlash(libDir)
+
 			switch m.PortConfig.Toolchain.Name {
-			case "gcc":
+			case "gcc", "clang":
 				if len(linkArgs) == 0 {
-					linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", libDir))
+					linkArgs = append(linkArgs, fmt.Sprintf("'-L %s'", libDir))
 					linkArgs = append(linkArgs, fmt.Sprintf("'-Wl,-rpath-link=%s'", libDir))
 				} else {
-					linkArgs = append(linkArgs, fmt.Sprintf("    '-L%s'", libDir))
+					linkArgs = append(linkArgs, fmt.Sprintf("    '-L %s'", libDir))
 					linkArgs = append(linkArgs, fmt.Sprintf("    '-Wl,-rpath-link=%s'", libDir))
 				}
 
-			case "msvc":
+			case "msvc", "clang-cl":
 				if len(linkArgs) == 0 {
 					linkArgs = append(linkArgs, fmt.Sprintf("'/LIBPATH:%s'", libDir))
 				} else {
@@ -307,7 +320,7 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 				}
 
 			default:
-				panic(fmt.Sprintf("unexpected os: %s", runtime.GOOS))
+				panic(fmt.Sprintf("unexpected toolchain: %s", m.PortConfig.Toolchain.Name))
 			}
 		}
 	}
@@ -317,15 +330,23 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	m.appendIncludeArgs(&includeArgs, depIncludeDir)
 
 	// Allow meson to locate libraries of dependecies.
-	if m.PortConfig.Toolchain.Name == "gcc" {
-		depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
-		if len(linkArgs) == 0 {
-			linkArgs = append(linkArgs, fmt.Sprintf("'-L%s'", depLibDir))
-			linkArgs = append(linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, depLibDir))
-		} else {
-			linkArgs = append(linkArgs, fmt.Sprintf("    '-L%s'", depLibDir))
-			linkArgs = append(linkArgs, fmt.Sprintf("    '-Wl,-rpath-link,%s'", depLibDir))
+	switch runtime.GOOS {
+	case "linux":
+		if m.PortConfig.Toolchain.Name == "gcc" || m.PortConfig.Toolchain.Name == "clang" {
+			depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
+			depLibDir = filepath.ToSlash(depLibDir)
+
+			if len(linkArgs) == 0 {
+				linkArgs = append(linkArgs, fmt.Sprintf("'-L %s'", depLibDir))
+				linkArgs = append(linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, depLibDir))
+			} else {
+				linkArgs = append(linkArgs, fmt.Sprintf("    '-L %s'", depLibDir))
+				linkArgs = append(linkArgs, fmt.Sprintf("    '-Wl,-rpath-link,%s'", depLibDir))
+			}
 		}
+
+	case "darwin":
+		// TODO: it may supported in the future for darwin.
 	}
 
 	buffers.WriteString(fmt.Sprintf("c_args = [%s]\n", strings.Join(includeArgs, ",\n")))
@@ -342,19 +363,21 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 }
 
 func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
+	includeDir = filepath.ToSlash(includeDir)
+
 	switch m.PortConfig.Toolchain.Name {
-	case "gcc":
+	case "gcc", "clang":
 		if len(*includeArgs) == 0 {
 			*includeArgs = append(*includeArgs, fmt.Sprintf("'-isystem %s'", includeDir))
 		} else {
 			*includeArgs = append(*includeArgs, fmt.Sprintf("    '-isystem %s'", includeDir))
 		}
 
-	case "msvc":
+	case "msvc", "clang-cl":
 		if len(*includeArgs) == 0 {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("'/I %q'", filepath.ToSlash(includeDir)))
+			*includeArgs = append(*includeArgs, fmt.Sprintf("'/I %q'", includeDir))
 		} else {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("    '/I %q'", filepath.ToSlash(includeDir)))
+			*includeArgs = append(*includeArgs, fmt.Sprintf("    '/I %q'", includeDir))
 		}
 
 	default:
@@ -363,36 +386,60 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 }
 
 func (m meson) nativeCrossTool() Toolchain {
-	switch m.PortConfig.Toolchain.Name {
-	case "msvc":
-		return Toolchain{
-			Native:          true,
-			Name:            "msvc",
-			SystemName:      "Windows",
-			SystemProcessor: "x86_64",
-			CC:              "cl.exe",
-			CXX:             "cl.exe",
-			AR:              "lib.exe",
-			LD:              "link.exe",
-			MSVC:            m.PortConfig.Toolchain.MSVC,
-			IncludeDirs:     m.PortConfig.Toolchain.IncludeDirs,
-			LibDirs:         m.PortConfig.Toolchain.LibDirs,
-			Fullpath:        m.PortConfig.Toolchain.Fullpath,
-		}
+	var toolchain Toolchain
+	toolchain.Native = true
+	toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
+	toolchain.SystemProcessor = "x86_64"
 
+	switch m.PortConfig.Toolchain.Name {
 	case "gcc":
-		return Toolchain{
-			Native:          true,
-			Name:            "gcc",
-			SystemName:      "Linux",
-			SystemProcessor: "x86_64",
-			CC:              "x86_64-linux-gnu-gcc",
-			CXX:             "x86_64-linux-gnu-g++",
-			AR:              "x86_64-linux-gnu-gcc-ar",
-			LD:              "x86_64-linux-gnu-gcc-ld",
-		}
+		toolchain.CC = "gcc"
+		toolchain.CXX = "g++"
+		toolchain.RANLIB = "ranlib"
+		toolchain.AR = "ar"
+		toolchain.LD = "ld"
+		toolchain.NM = "nm"
+		toolchain.OBJDUMP = "objdump"
+		toolchain.STRIP = "strip"
+		return toolchain
+
+	case "msvc":
+		toolchain.CC = "cl"
+		toolchain.CXX = "cl"
+		toolchain.AR = "lib"
+		toolchain.LD = "link"
+		toolchain.MSVC = m.PortConfig.Toolchain.MSVC
+		toolchain.IncludeDirs = m.PortConfig.Toolchain.IncludeDirs
+		toolchain.LibDirs = m.PortConfig.Toolchain.LibDirs
+		toolchain.Fullpath = m.PortConfig.Toolchain.Fullpath
+		return toolchain
+
+	case "clang":
+		toolchain.CC = "clang"
+		toolchain.CXX = "clang++"
+		toolchain.RANLIB = "llvm-ranlib"
+		toolchain.AR = "llvm-ar"
+		toolchain.LD = "clang"
+		toolchain.NM = "llvm-nm"
+		toolchain.OBJDUMP = "llvm-objdump"
+		toolchain.STRIP = "llvm-strip"
+		return toolchain
+
+	case "clang-cl":
+		toolchain.CC = "clang-cl"
+		toolchain.CXX = "clang-cl"
+		toolchain.RANLIB = "llvm-ranlib"
+		toolchain.AR = "llvm-ar"
+		toolchain.LD = "clang-cl"
+		toolchain.NM = "llvm-nm"
+		toolchain.OBJDUMP = "llvm-objdump"
+		toolchain.STRIP = "llvm-strip"
+		toolchain.IncludeDirs = m.PortConfig.Toolchain.IncludeDirs
+		toolchain.LibDirs = m.PortConfig.Toolchain.LibDirs
+		toolchain.Fullpath = m.PortConfig.Toolchain.Fullpath
+		return toolchain
 
 	default:
-		panic("unsupported cross tool: " + m.PortConfig.Toolchain.Name)
+		panic("unsupported toolchain: " + m.PortConfig.Toolchain.Name)
 	}
 }

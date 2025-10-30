@@ -28,12 +28,12 @@ func TestConfigure(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 
 	// ============= Configure platform ============= //
 	t.Run("Configure platform success", func(t *testing.T) {
-		const newName = "x86_64-linux-ubuntu-22.04"
+		const newName = "x86_64-linux-ubuntu-22.04-gcc-11.5"
 		check(celer.SetPlatform(newName))
 		if celer.Platform().GetName() != newName {
 			t.Fatalf("platform should be `%s`", newName)
