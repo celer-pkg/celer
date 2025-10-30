@@ -23,28 +23,14 @@ jobs:
     - name: Install build-essential
       run: sudo apt update && sudo apt install -y build-essential
 
-    - name: Install clang
-      run: sudo apt update && sudo apt install -y clang
-
     - name: Build
       run: go build -v ./...
 
-    - name: Test
+    - name: Test(GCC)
       env:
         GO_TEST_TIMEOUT: 1h
       run: |
-        go test -v ./depcheck/...   -timeout $GO_TEST_TIMEOUT
-        go test -v ./configs/...    -timeout $GO_TEST_TIMEOUT
-        go test -v ./pkgs/git/...   -timeout $GO_TEST_TIMEOUT
-
-        go test -v ./cmds/cmd_autoremove_test.go -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/cmd_clean_test.go -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/cmd_configure_test.go -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/cmd_create_test.go -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/cmd_depend_test.go -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/cmd_install_buildtype_test.go -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/cmd_install_cachedir_test.go -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/cmd_install_force_recurse_test.go -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/cmd_install_from_package_test.go -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/cmd_install_gen_cmake_test.go -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/test_buildsystems/ubuntu_amd64_gcc_test.go -timeout $GO_TEST_TIMEOUT
+        go test -v ./depcheck/... -timeout $GO_TEST_TIMEOUT
+        go test -v ./configs/...  -timeout $GO_TEST_TIMEOUT
+        go test -v ./pkgs/git/... -timeout $GO_TEST_TIMEOUT
+        go test -v ./cmds/... -tags=gcc -timeout $GO_TEST_TIMEOUT
