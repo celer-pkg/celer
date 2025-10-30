@@ -33,8 +33,8 @@ jobs:
       env:
         GO_TEST_TIMEOUT: 1h
       run: |
-        go test -v ./depcheck/...                                     -timeout $GO_TEST_TIMEOUT
-        go test -v ./configs/...                                      -timeout $GO_TEST_TIMEOUT
-        go test -v ./pkgs/git/...                                     -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/... -skip "test_buildsystems"               -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/test_buildsystems/ubuntu_amd64_gcc_test.go  -timeout $GO_TEST_TIMEOUT
+        go test -v ./depcheck/...   -timeout $GO_TEST_TIMEOUT
+        go test -v ./configs/...    -timeout $GO_TEST_TIMEOUT
+        go test -v ./pkgs/git/...   -timeout $GO_TEST_TIMEOUT
+        go test -v ./cmds/... -skip "test_buildsystems" -timeout $GO_TEST_TIMEOUT
+        go test -v ./cmds/test_buildsystems/ubuntu_amd64_clang_test.go -timeout $GO_TEST_TIMEOUT
