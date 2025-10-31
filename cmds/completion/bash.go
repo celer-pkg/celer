@@ -53,8 +53,14 @@ func (b bash) installBinary() error {
 		return fmt.Errorf("failed to get celer's path.\n %w", err)
 	}
 
+	// Mkdir bin dir.
+	binDir := filepath.Join(b.homeDir, ".local", "bin")
+	if err := os.MkdirAll(binDir, os.ModePerm); err != nil {
+		return err
+	}
+
 	// Copy into `~/.local/bin`
-	if err := fileio.CopyFile(executable, filepath.Join(b.homeDir, ".local/bin/celer")); err != nil {
+	if err := fileio.CopyFile(executable, filepath.Join(binDir, "celer")); err != nil {
 		return fmt.Errorf("failed to copy celer to ~/.local/bin.\n %w", err)
 	}
 
