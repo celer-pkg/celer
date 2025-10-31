@@ -30,7 +30,7 @@ type depcheck struct {
 	path         []string
 }
 
-func (d depcheck) log(format string, v ...any) {
+func (d *depcheck) log(format string, v ...any) {
 	if d.debugMode {
 		log.Printf(format, v...)
 	}
@@ -61,7 +61,7 @@ func (d *depcheck) CheckConflict(ctx context.Context, ports ...configs.Port) err
 			d.versionInfos[port.Name] = []versionInfo{newVersionInfo}
 		}
 
-		if err := d.collectInfos(port.NameVersion(), false); err != nil {
+		if err := d.collectInfos(port.NameVersion(), port.DevDep); err != nil {
 			return err
 		}
 	}
@@ -99,6 +99,12 @@ func (d *depcheck) CheckCircular(ctx context.Context, port configs.Port) error {
 func (d *depcheck) checkCircular(port configs.Port) error {
 	if port.DevDep {
 		portKey := port.NameVersion() + "@dev"
+
+		// Skip self.
+		if port.DevDep && port.Native {
+			d.log("skip self %s", portKey)
+			return nil
+		}
 
 		// Check if the port is already in the path.
 		if slices.Contains(d.path, portKey) {
@@ -156,7 +162,7 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 		// Init port.
 		var devPort = configs.Port{
 			DevDep: true,
-			Native: true,
+			Native: port.DevDep,
 		}
 		if err := devPort.Init(d.ctx, nameVersion); err != nil {
 			return err
@@ -165,7 +171,7 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 		// Add new version info or update version info.
 		newVersionInfo := versionInfo{
 			version: devPort.Version,
-			parent:  devPort.Name,
+			parent:  port.NameVersion(),
 			devDep:  true,
 		}
 		if infos, ok := d.versionInfos[devPort.Name]; ok {
