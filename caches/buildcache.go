@@ -35,6 +35,7 @@ type Port struct {
 	PortType    portType
 	NameVersion string
 	DevDep      bool
+	Native      bool
 	Parents     []string
 	BuildConfig buildsystems.BuildConfig
 	Callbacks   Callbacks
@@ -96,8 +97,8 @@ func (p Port) BuildMeta(commit string) (string, error) {
 
 	// Write content of dev_dependencies.
 	for _, nameVersion := range p.BuildConfig.DevDependencies {
-		// Skip self.
-		if p.DevDep && p.NameVersion == nameVersion {
+		// Same name, version as parent and they are booth build with native toolchain, so skip.
+		if (p.DevDep || p.Native) && p.NameVersion == nameVersion {
 			continue
 		}
 

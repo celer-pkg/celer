@@ -17,9 +17,9 @@ func (p Port) Remove(options RemoveOptions) error {
 
 	// Try to remove dependencies firstly.
 	if options.Recurse {
-		removeFunc := func(nameVersion string, devDep bool) error {
-			// Skip self dependency.
-			if devDep == p.DevDep && nameVersion == p.NameVersion() {
+		removeFunc := func(nameVersion string, devDep, native bool) error {
+			// Same name, version as parent and they are booth build with native toolchain, so skip.
+			if (devDep || native) && nameVersion == p.NameVersion() {
 				return nil
 			}
 
@@ -41,12 +41,12 @@ func (p Port) Remove(options RemoveOptions) error {
 
 		if matchedConfig != nil {
 			for _, nameVersion := range matchedConfig.Dependencies {
-				if err := removeFunc(nameVersion, false); err != nil {
+				if err := removeFunc(nameVersion, false, p.DevDep); err != nil {
 					return fmt.Errorf("failed to remove dependency %s.\n %w", nameVersion, err)
 				}
 			}
 			for _, nameVersion := range matchedConfig.DevDependencies {
-				if err := removeFunc(nameVersion, true); err != nil {
+				if err := removeFunc(nameVersion, true, true); err != nil {
 					return fmt.Errorf("failed to remove dev_dependency %s.\n %w", nameVersion, err)
 				}
 			}
