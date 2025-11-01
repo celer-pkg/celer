@@ -17,21 +17,23 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	hostName := p.ctx.Platform().GetHostName()
 	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType)
 
-	buildFolder := expr.If(p.DevDep,
+	buildFolder := expr.If(p.DevDep || p.Native,
 		filepath.Join(nameVersion, hostName+"-dev"),
 		filepath.Join(nameVersion, fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType)),
 	)
-	libraryFolder := expr.If(p.DevDep, hostName+"-dev",
+	libraryFolder := expr.If(p.DevDep || p.Native,
+		hostName+"-dev",
 		fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType),
 	)
-	packageFolder := expr.If(p.DevDep, nameVersion+"@"+hostName+"-dev",
+	packageFolder := expr.If(p.DevDep || p.Native,
+		nameVersion+"@"+hostName+"-dev",
 		fmt.Sprintf("%s@%s@%s@%s", nameVersion, p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType),
 	)
-	p.traceFile = expr.If(p.DevDep,
+	p.traceFile = expr.If(p.DevDep || p.Native,
 		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+hostName+"-dev.trace"),
 		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+platformProject+".trace"),
 	)
-	p.metaFile = expr.If(p.DevDep,
+	p.metaFile = expr.If(p.DevDep || p.Native,
 		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+hostName+"-dev.meta"),
 		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+platformProject+".meta"),
 	)
@@ -54,6 +56,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		PackageDir:      p.PackageDir,
 		LibraryFolder:   libraryFolder,
 		DevDep:          p.DevDep,
+		Native:          p.Native || p.DevDep,
 		Jobs:            p.ctx.Jobs(),
 		RepoDir:         filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 	}
@@ -91,6 +94,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 			p.BuildConfigs[index].Ctx = p.ctx
 			p.BuildConfigs[index].PortConfig = portConfig
 			p.BuildConfigs[index].DevDep = p.DevDep
+			p.BuildConfigs[index].Native = p.Native || p.DevDep
 			p.BuildConfigs[index].Optimize = p.ctx.Optimize(p.MatchedConfig.BuildSystem, portConfig.Toolchain.Name)
 			if err := p.BuildConfigs[index].InitBuildSystem(p.BuildConfigs[index].Optimize); err != nil {
 				return err

@@ -34,10 +34,11 @@ func CurrentShell() ShellType {
 		return TypePowerShell
 
 	case "linux":
-		switch os.Getenv("SHELL") {
-		case "/usr/bin/bash":
+		shell := os.Getenv("SHELL")
+		switch shell {
+		case "/usr/bin/bash", "/bin/bash":
 			return BashShell
-		case "/usr/bin/zsh":
+		case "/usr/bin/zsh", "/bin/zsh":
 			return ZshShell
 		default:
 			return NotSupportShell

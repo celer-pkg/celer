@@ -85,13 +85,14 @@ func (m *makefiles) preConfigure() error {
 	}
 
 	// If `configure` exists, then `autogen.sh` is unnecessary.
-	haveAutogen := fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, "autogen.sh"))
+	haveAutogenSh := fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, "autogen.sh"))
+	haveAutogen := fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, "autogen"))
 	haveConfigure := fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, "configure"))
-	if haveAutogen && !haveConfigure {
+	if (haveAutogenSh || haveAutogen) && !haveConfigure {
 		// Disable auto configure by autogen.sh.
 		os.Setenv("NOCONFIGURE", "1")
 
-		var autogenCommand = "./autogen.sh"
+		var autogenCommand = expr.If(haveAutogenSh, "./autogen.sh", "./autogen")
 		if len(m.AutogenOptions) > 0 {
 			autogenCommand += " " + strings.Join(m.AutogenOptions, " ")
 		}

@@ -39,6 +39,7 @@ type PortConfig struct {
 	LibDirs         []string   // libs not in standard lib path.
 	Jobs            int        // number of jobs to run in parallel
 	DevDep          bool       // whether dev dependency
+	Native          bool       // whether native build
 }
 
 func (p PortConfig) nameVersionDesc() string {
@@ -228,6 +229,7 @@ type BuildConfig struct {
 	// Internal fields
 	Ctx         context.Context   `toml:"-"`
 	DevDep      bool              `toml:"-"`
+	Native      bool              `toml:"-"`
 	PortConfig  PortConfig        `toml:"-"`
 	BuildType   string            `toml:"-"` // It'll be converted to lowercase in use.
 	Optimize    *context.Optimize `toml:"-"`

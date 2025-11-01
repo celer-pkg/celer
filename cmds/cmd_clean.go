@@ -205,8 +205,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 	if c.recurse {
 		for _, nameVersion := range matchedConfig.Dependencies {
 			var depPort configs.Port
-			depPort.DevDep = port.DevDep
-			depPort.Native = port.Native
+			depPort.Native = port.DevDep || port.Native
 			if err := depPort.Init(c.celer, nameVersion); err != nil {
 				return err
 			}
@@ -217,14 +216,14 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 		}
 
 		for _, nameVersion := range matchedConfig.DevDependencies {
-			// Skip self.
-			if port.DevDep && port.Native && port.NameVersion() == nameVersion {
+			// Same name, version as parent and they are booth build with native toolchain, so skip.
+			if (port.DevDep || port.Native) && port.NameVersion() == nameVersion {
 				continue
 			}
 
 			var devDepPort configs.Port
 			devDepPort.DevDep = true
-			devDepPort.Native = true
+			devDepPort.Native = port.DevDep || port.Native
 			if err := devDepPort.Init(c.celer, nameVersion); err != nil {
 				return err
 			}
