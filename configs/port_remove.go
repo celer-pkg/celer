@@ -19,7 +19,7 @@ func (p Port) Remove(options RemoveOptions) error {
 	if options.Recurse {
 		removeFunc := func(nameVersion string, devDep, native bool) error {
 			// Same name, version as parent and they are booth build with native toolchain, so skip.
-			if (devDep || native) && nameVersion == p.NameVersion() {
+			if native && nameVersion == p.NameVersion() {
 				return nil
 			}
 

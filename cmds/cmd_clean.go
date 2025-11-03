@@ -217,7 +217,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 
 		for _, nameVersion := range matchedConfig.DevDependencies {
 			// Same name, version as parent and they are booth build with native toolchain, so skip.
-			if (port.DevDep || port.Native) && port.NameVersion() == nameVersion {
+			if port.Native && port.NameVersion() == nameVersion {
 				continue
 			}
 
