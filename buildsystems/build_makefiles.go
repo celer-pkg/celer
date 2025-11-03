@@ -78,6 +78,7 @@ func (m *makefiles) preConfigure() error {
 		title := fmt.Sprintf("[post confiure %s]", m.PortConfig.nameVersionDesc())
 		command = m.replaceHolders(command)
 		executor := cmd.NewExecutor(title, command)
+		executor.SetWorkDir(m.PortConfig.RepoDir)
 		executor.MSYS2Env(runtime.GOOS == "windows")
 		if err := executor.Execute(); err != nil {
 			return err
@@ -234,7 +235,8 @@ func (m makefiles) shouldAddHost(options []string) bool {
 }
 
 func (m makefiles) configured() bool {
-	makeFile := filepath.Join(m.PortConfig.BuildDir, "Makefile")
+	buildDir := expr.If(m.BuildInSource, m.PortConfig.RepoDir, m.PortConfig.BuildDir)
+	makeFile := filepath.Join(buildDir, "Makefile")
 	return fileio.PathExists(makeFile)
 }
 
