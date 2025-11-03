@@ -102,18 +102,25 @@ func (b *BuildConfig) setupEnvs() {
 	// Setup pkg-config.
 	b.setupPkgConfig()
 
+	tmpDevDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
+
 	// Set ACLOCAL_PATH for ports that rely on macros.
-	macrosRequired := slices.ContainsFunc(b.DevDependencies, func(element string) bool {
+	if slices.ContainsFunc(b.DevDependencies, func(element string) bool {
 		return strings.HasPrefix(element, "macros@")
-	})
-	if macrosRequired {
-		b.envBackup.setenv("ACLOCAL_PATH", fileio.ToCygpath(
-			filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev", "share", "aclocal")))
+	}) {
+		joined := env.JoinPaths("ACLOCAL_PATH", filepath.Join(tmpDevDir, "share", "aclocal"))
+		b.envBackup.setenv("ACLOCAL_PATH", joined)
+	}
+
+	if slices.ContainsFunc(b.DevDependencies, func(element string) bool {
+		return strings.HasPrefix(element, "libtool@")
+	}) {
+		joined := env.JoinPaths("ACLOCAL_PATH", filepath.Join(tmpDevDir, "share", "libtool"))
+		b.envBackup.setenv("ACLOCAL_PATH", joined)
 	}
 
 	// Expose dev/bin to PATH.
-	devBinDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev", "bin")
-	b.envBackup.setenv("PATH", env.JoinPaths("PATH", devBinDir))
+	b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
 }
 
 func (b BuildConfig) setupPkgConfig() {

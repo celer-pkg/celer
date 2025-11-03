@@ -20,6 +20,7 @@ type versionInfo struct {
 	parent  string
 	version string
 	devDep  bool
+	native  bool
 }
 
 type depcheck struct {
@@ -30,7 +31,7 @@ type depcheck struct {
 	path         []string
 }
 
-func (d depcheck) log(format string, v ...any) {
+func (d *depcheck) log(format string, v ...any) {
 	if d.debugMode {
 		log.Printf(format, v...)
 	}
@@ -46,7 +47,8 @@ func (d *depcheck) CheckConflict(ctx context.Context, ports ...configs.Port) err
 		newVersionInfo := versionInfo{
 			version: port.Version,
 			parent:  ctx.Project().GetName(),
-			devDep:  false,
+			devDep:  port.DevDep,
+			native:  port.DevDep || port.Native,
 		}
 		if infos, ok := d.versionInfos[port.Name]; ok {
 			// Check if the version is already defined.
@@ -61,7 +63,7 @@ func (d *depcheck) CheckConflict(ctx context.Context, ports ...configs.Port) err
 			d.versionInfos[port.Name] = []versionInfo{newVersionInfo}
 		}
 
-		if err := d.collectInfos(port.NameVersion(), false); err != nil {
+		if err := d.collectInfos(port.NameVersion(), port.DevDep, port.Native); err != nil {
 			return err
 		}
 	}
@@ -73,7 +75,7 @@ func (d *depcheck) CheckConflict(ctx context.Context, ports ...configs.Port) err
 			var conflicts []string
 			for _, info := range conflicted {
 				nameVersion := fmt.Sprintf("%s@%s", portName, info.version)
-				format := expr.If(info.devDep, "%s is defined as dev in %s", "%s is defined in %s")
+				format := expr.If(info.devDep || info.native, "%s is defined as dev in %s", "%s is defined in %s")
 				conflicts = append(conflicts, fmt.Sprintf(format, nameVersion, info.parent))
 			}
 
@@ -97,7 +99,7 @@ func (d *depcheck) CheckCircular(ctx context.Context, port configs.Port) error {
 }
 
 func (d *depcheck) checkCircular(port configs.Port) error {
-	if port.DevDep {
+	if port.DevDep || port.Native {
 		portKey := port.NameVersion() + "@dev"
 
 		// Check if the port is already in the path.
@@ -147,8 +149,8 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 
 	// Check circular dependency of dev_dependencies.
 	for _, nameVersion := range port.MatchedConfig.DevDependencies {
-		// Skip self.
-		if port.DevDep && port.Native && port.NameVersion() == nameVersion {
+		// Same name, version as parent and they are booth build with native toolchain, so skip.
+		if port.Native && port.NameVersion() == nameVersion {
 			d.log("skip self %s", nameVersion)
 			continue
 		}
@@ -165,8 +167,9 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 		// Add new version info or update version info.
 		newVersionInfo := versionInfo{
 			version: devPort.Version,
-			parent:  devPort.Name,
+			parent:  port.NameVersion(),
 			devDep:  true,
+			native:  true,
 		}
 		if infos, ok := d.versionInfos[devPort.Name]; ok {
 			contains := slices.ContainsFunc(infos, func(info versionInfo) bool {
@@ -190,7 +193,8 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 	// Check circular dependency of dependencies.
 	for _, nameVersion := range port.MatchedConfig.Dependencies {
 		var devPort = configs.Port{
-			DevDep: port.DevDep,
+			DevDep: false,
+			Native: port.DevDep || port.Native,
 		}
 		if err := devPort.Init(d.ctx, nameVersion); err != nil {
 			return err
@@ -199,7 +203,8 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 		newVersionInfo := versionInfo{
 			version: devPort.Version,
 			parent:  devPort.Name,
-			devDep:  port.DevDep,
+			devDep:  false,
+			native:  port.DevDep,
 		}
 		if infos, ok := d.versionInfos[devPort.Name]; ok {
 			contains := slices.ContainsFunc(infos, func(info versionInfo) bool {
@@ -207,9 +212,11 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 			})
 			if !contains {
 				d.versionInfos[devPort.Name] = append(d.versionInfos[devPort.Name], newVersionInfo)
+				d.log("add dependency %s", nameVersion)
 			}
 		} else {
 			d.versionInfos[devPort.Name] = []versionInfo{newVersionInfo}
+			d.log("add dependency %s", nameVersion)
 		}
 
 		// Recursively check dependencies.
@@ -221,9 +228,10 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 	return nil
 }
 
-func (d *depcheck) collectInfos(nameVersion string, devDep bool) error {
+func (d *depcheck) collectInfos(nameVersion string, devDep, native bool) error {
 	var port = configs.Port{
 		DevDep: devDep,
+		Native: native || devDep,
 	}
 	if err := port.Init(d.ctx, nameVersion); err != nil {
 		return err
@@ -233,15 +241,15 @@ func (d *depcheck) collectInfos(nameVersion string, devDep bool) error {
 
 	// Collect dev_dependency ports.
 	for _, devDepNameVersion := range matchedConfig.DevDependencies {
-		// Skip self.
-		if port.DevDep && port.Native && port.NameVersion() == devDepNameVersion {
+		// Same name, version as parent and they are booth build with native toolchain, so skip.
+		if port.Native && port.NameVersion() == devDepNameVersion {
 			d.log("skip self %s", devDepNameVersion)
 			continue
 		}
 
 		var devDepPort = configs.Port{
 			DevDep: true,
-			Native: true,
+			Native: port.DevDep,
 		}
 		if err := devDepPort.Init(d.ctx, devDepNameVersion); err != nil {
 			return err
@@ -251,6 +259,7 @@ func (d *depcheck) collectInfos(nameVersion string, devDep bool) error {
 			version: devDepPort.Version,
 			parent:  port.NameVersion(),
 			devDep:  true,
+			native:  port.DevDep,
 		}
 		if infos, ok := d.versionInfos[devDepPort.Name]; ok {
 			contains := slices.ContainsFunc(infos, func(info versionInfo) bool {
@@ -258,13 +267,13 @@ func (d *depcheck) collectInfos(nameVersion string, devDep bool) error {
 			})
 			if !contains {
 				d.versionInfos[devDepPort.Name] = append(d.versionInfos[devDepPort.Name], newVersionInfo)
-				if err := d.collectInfos(devDepNameVersion, true); err != nil {
+				if err := d.collectInfos(devDepNameVersion, true, devDep); err != nil {
 					return err
 				}
 			}
 		} else {
 			d.versionInfos[devDepPort.Name] = []versionInfo{newVersionInfo}
-			if err := d.collectInfos(devDepNameVersion, true); err != nil {
+			if err := d.collectInfos(devDepNameVersion, true, devDep); err != nil {
 				return err
 			}
 		}
@@ -274,7 +283,8 @@ func (d *depcheck) collectInfos(nameVersion string, devDep bool) error {
 	for _, depNameVersion := range matchedConfig.Dependencies {
 		// Init port to check if can locate the port.
 		var depPort = configs.Port{
-			DevDep: devDep,
+			DevDep: false,
+			Native: port.DevDep,
 		}
 		if err := depPort.Init(d.ctx, depNameVersion); err != nil {
 			return err
@@ -283,7 +293,8 @@ func (d *depcheck) collectInfos(nameVersion string, devDep bool) error {
 		newVersionInfo := versionInfo{
 			version: depPort.Version,
 			parent:  port.NameVersion(),
-			devDep:  devDep,
+			devDep:  false,
+			native:  port.DevDep,
 		}
 
 		if infos, ok := d.versionInfos[depPort.Name]; ok {
@@ -295,12 +306,12 @@ func (d *depcheck) collectInfos(nameVersion string, devDep bool) error {
 			if !contains {
 				d.versionInfos[depPort.Name] = append(d.versionInfos[depPort.Name], newVersionInfo)
 			}
-			if err := d.collectInfos(depNameVersion, devDep); err != nil {
+			if err := d.collectInfos(depNameVersion, false, devDep); err != nil {
 				return err
 			}
 		} else {
 			d.versionInfos[depPort.Name] = []versionInfo{newVersionInfo}
-			if err := d.collectInfos(depNameVersion, devDep); err != nil {
+			if err := d.collectInfos(depNameVersion, false, devDep); err != nil {
 				return err
 			}
 		}

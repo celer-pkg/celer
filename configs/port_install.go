@@ -15,7 +15,7 @@ import (
 
 // Install install a port and tell me where it was installed from.
 func (p *Port) Install(options InstallOptions) (string, error) {
-	installedDir := expr.If(p.DevDep,
+	installedDir := expr.If(p.DevDep || p.Native,
 		filepath.Join(dirs.InstalledDir, p.ctx.Platform().GetHostName()+"-dev"),
 		filepath.Join(dirs.InstalledDir,
 			p.ctx.Platform().GetName()+"@"+p.ctx.Project().GetName()+"@"+p.ctx.BuildType()),
@@ -27,7 +27,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "", err
 	}
 
-	// If already installed and not forcing, report and return.
+	// If already installed and not with "--force/-f", report and return.
 	if installed && !options.Force {
 		if p.IsHostSupported() {
 			title := color.Sprintf(color.Green, "\n[✔] ---- package: %s\n", p.NameVersion())
@@ -36,8 +36,8 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "", nil
 	}
 
-	// If installed and force requested -> remove existing first.
-	if installed && options.Force {
+	// Uninstall it and remove its build cache, event logs.
+	if options.Force {
 		remoteOptions := RemoveOptions{
 			Purge:      true,
 			Recurse:    options.Recurse,
@@ -48,25 +48,19 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		}
 	}
 
-	// If not installed and force requested -> clear build cache and logs.
-	if !installed && options.Force {
-		if err := os.RemoveAll(p.MatchedConfig.PortConfig.BuildDir); err != nil {
-			return "", fmt.Errorf("failed to remove build cache.\n %w", err)
-		}
-		if err := p.RemoveLogs(); err != nil {
-			return "", fmt.Errorf("failed to remove logs.\n %w", err)
-		}
-	}
-
 	// Clear the tmp/deps dir, then copy only the required library files into it.
 	// This ensures the folder contains exactly the libraries required by the current port.
 	if p.Parent == "" {
+		color.Printf(color.Blue, "\n[clean '%s' to prepare build dependencies/dev_dependencies for %s.]\n", dirs.TmpDepsDir, p.NameVersion())
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
 			return "", err
 		}
+		color.Printf(color.Gray, "✔ rm -rf %s\n", dirs.TmpDepsDir)
+
 		if err := os.MkdirAll(dirs.TmpDepsDir, os.ModePerm); err != nil {
 			return "", err
 		}
+		color.Printf(color.Gray, "✔ mkdir -p %s\n\n", dirs.TmpDepsDir)
 	}
 
 	// No config or explicit prebuilt-with-url -> treat as nobuild or prebuilt.
@@ -114,7 +108,8 @@ func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
 	// Try to install dependencies first.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
 		var port Port
-		port.DevDep = p.DevDep
+		port.DevDep = false
+		port.Native = p.DevDep || p.Native
 		port.Parent = p.NameVersion()
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return false, err
@@ -236,7 +231,7 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	// Copy files from package to installed dir.
 	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
 	for _, file := range packageFiles {
-		if p.DevDep {
+		if p.DevDep || p.Native {
 			file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
 		} else {
 			file = strings.TrimPrefix(file, filepath.Join(platformProject, string(os.PathSeparator)))
@@ -386,12 +381,14 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 	}
 
 	// Prepare build dependencies.
+	color.Printf(color.Cyan, "[preparing build dependencies or dev_dependencies for %s]:\n", p.NameVersion())
 	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
-		color.Printf(color.Cyan, "[preparing build [dev_]dependencies for %s]:\n", p.NameVersion())
 		preparedTmpDeps = []string{}
 		if err := p.providerTmpDeps(); err != nil {
 			return err
 		}
+	} else {
+		color.Printf(color.Gray, "✔ no dependencies or dev_dependencies required. --\n")
 	}
 
 	if err := p.doInstallFromSource(options); err != nil {
@@ -407,8 +404,8 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 func (p Port) installDependencies(options InstallOptions) error {
 	// Check and repair dev_dependencies.
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
-		// Skip self.
-		if p.DevDep && p.Native && p.NameVersion() == nameVersion {
+		// Same name, version as parent and they are booth build with native toolchain, so skip.
+		if p.Native && p.NameVersion() == nameVersion {
 			continue
 		}
 
@@ -465,8 +462,8 @@ func (p Port) installDependencies(options InstallOptions) error {
 
 func (p Port) providerTmpDeps() error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
-		// Skip self.
-		if p.DevDep && p.NameVersion() == nameVersion {
+		// Same name, version as parent and they are booth build with native toolchain, so skip.
+		if p.Native && p.NameVersion() == nameVersion {
 			continue
 		}
 
@@ -479,6 +476,7 @@ func (p Port) providerTmpDeps() error {
 		var port Port
 		port.Parent = p.NameVersion()
 		port.DevDep = true
+		port.Native = true
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
@@ -489,7 +487,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Fixup pkg config files.
-		var prefix = expr.If(p.toolchain().RootFS == "" || p.DevDep,
+		var prefix = expr.If(p.toolchain().RootFS == "" || (p.DevDep || p.Native),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().GetHostName()+"-dev"),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
 		)
@@ -520,6 +518,7 @@ func (p Port) providerTmpDeps() error {
 		// Init port.
 		var port Port
 		port.DevDep = p.DevDep
+		port.Native = p.DevDep || p.Native
 		port.Parent = p.NameVersion()
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
@@ -531,7 +530,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Fixup pkg config files.
-		var prefix = expr.If(p.toolchain().RootFS == "" || p.DevDep,
+		var prefix = expr.If(p.toolchain().RootFS == "" || (p.DevDep || p.Native),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().GetHostName()+"-dev"),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
 		)
@@ -545,7 +544,7 @@ func (p Port) providerTmpDeps() error {
 			return err
 		}
 
-		content := expr.If(port.DevDep, "✔ %-15s -- [dev]\n", "✔ %s\n")
+		content := expr.If(port.DevDep || port.Native, "✔ %-15s -- [dev]\n", "✔ %s\n")
 		color.Printf(color.Gray, content, port.NameVersion())
 	}
 

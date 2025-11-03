@@ -92,6 +92,6 @@ func TestDepCheck_CheckCircular_DevDependencies(t *testing.T) {
 	if err := depcheck.CheckCircular(celer, port); err != nil {
 		t.Log(err.Error())
 	} else {
-		t.FailNow()
+		t.Fatalf("circular should be found.")
 	}
 }
