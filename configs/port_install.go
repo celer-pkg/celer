@@ -61,12 +61,16 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	// Clear the tmp/deps dir, then copy only the required library files into it.
 	// This ensures the folder contains exactly the libraries required by the current port.
 	if p.Parent == "" {
+		color.Printf(color.Blue, "\n[clean '%s' to prepare build dependencies/dev_dependencies for %s.]\n", dirs.TmpDepsDir, p.NameVersion())
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
 			return "", err
 		}
+		color.Printf(color.Gray, "✔ rm -rf %s\n", dirs.TmpDepsDir)
+
 		if err := os.MkdirAll(dirs.TmpDepsDir, os.ModePerm); err != nil {
 			return "", err
 		}
+		color.Printf(color.Gray, "✔ mkdir -p %s\n\n", dirs.TmpDepsDir)
 	}
 
 	// No config or explicit prebuilt-with-url -> treat as nobuild or prebuilt.
@@ -387,7 +391,7 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 	}
 
 	// Prepare build dependencies.
-	color.Printf(color.Cyan, "[preparing build dependencies for %s]:\n", p.NameVersion())
+	color.Printf(color.Cyan, "[preparing build dependencies or dev_dependencies for %s]:\n", p.NameVersion())
 	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
 		preparedTmpDeps = []string{}
 		if err := p.providerTmpDeps(); err != nil {
