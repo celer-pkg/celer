@@ -27,7 +27,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "", err
 	}
 
-	// If already installed and not forcing, report and return.
+	// If already installed and not with "--force/-f", report and return.
 	if installed && !options.Force {
 		if p.IsHostSupported() {
 			title := color.Sprintf(color.Green, "\n[✔] ---- package: %s\n", p.NameVersion())
@@ -36,8 +36,8 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "", nil
 	}
 
-	// If installed and force requested -> remove existing first.
-	if installed && options.Force {
+	// Uninstall it and remove its build cache, event logs.
+	if options.Force {
 		remoteOptions := RemoveOptions{
 			Purge:      true,
 			Recurse:    options.Recurse,
@@ -45,16 +45,6 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		}
 		if err := p.Remove(remoteOptions); err != nil {
 			return "", err
-		}
-	}
-
-	// If not installed and force requested -> clear build cache and logs.
-	if !installed && options.Force {
-		if err := os.RemoveAll(p.MatchedConfig.PortConfig.BuildDir); err != nil {
-			return "", fmt.Errorf("failed to remove build cache.\n %w", err)
-		}
-		if err := p.RemoveLogs(); err != nil {
-			return "", fmt.Errorf("failed to remove logs.\n %w", err)
 		}
 	}
 
