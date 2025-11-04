@@ -150,7 +150,7 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 	// Check circular dependency of dev_dependencies.
 	for _, nameVersion := range port.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
-		if port.Native && port.NameVersion() == nameVersion {
+		if (port.DevDep || port.Native) && port.NameVersion() == nameVersion {
 			d.log("skip self %s", nameVersion)
 			continue
 		}
@@ -242,7 +242,7 @@ func (d *depcheck) collectInfos(nameVersion string, devDep, native bool) error {
 	// Collect dev_dependency ports.
 	for _, devDepNameVersion := range matchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
-		if port.Native && port.NameVersion() == devDepNameVersion {
+		if (port.DevDep || port.Native) && port.NameVersion() == devDepNameVersion {
 			d.log("skip self %s", devDepNameVersion)
 			continue
 		}

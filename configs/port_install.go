@@ -405,7 +405,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 	// Check and repair dev_dependencies.
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
-		if p.Native && p.NameVersion() == nameVersion {
+		if (p.DevDep || p.Native) && p.NameVersion() == nameVersion {
 			continue
 		}
 
@@ -463,7 +463,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 func (p Port) providerTmpDeps() error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
-		if p.Native && p.NameVersion() == nameVersion {
+		if (p.DevDep || p.Native) && p.NameVersion() == nameVersion {
 			continue
 		}
 
