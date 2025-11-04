@@ -94,7 +94,6 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 				CmdLine:    fmt.Sprintf(`/c %s`, e.cmd),
 				HideWindow: true,
 			}
-			cmd.Env = os.Environ()
 		} else {
 			cmd = exec.Command(e.cmd, e.args...)
 		}

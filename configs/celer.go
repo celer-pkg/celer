@@ -638,12 +638,20 @@ func (c Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 		return c.project.Optimize
 	}
 
-	// TODO: how about clang in windows?
-	if toolchain == "msvc" || toolchain == "clang-cl" {
-		return c.project.OptimizeWindows
+	switch toolchain {
+	case "msvc", "clang-cl":
+		if buildsystem == "makefiles" {
+			return c.project.OptimizeGCC
+		} else {
+			return c.project.OptimizeMSVC
+		}
+	case "gcc":
+		return c.project.OptimizeGCC
+	case "clang":
+		return c.project.OptimizeClang
+	default:
+		return c.project.Optimize
 	}
-
-	return c.project.OptimizeLinux
 }
 
 func (c Celer) GenerateToolchainFile() error {

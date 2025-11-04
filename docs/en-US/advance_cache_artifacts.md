@@ -9,7 +9,7 @@
 
 ```toml
 [global]
-conf_repo = "https://gitee.com/phil-zhang/celer_conf.git"
+conf_repo = "https://github.com/celer-pkg/test-conf.git"
 platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.5"
 project = "project_01"
 jobs = 32
@@ -24,7 +24,7 @@ dir = "/home/test/celer_cache"
 
 ```toml
 [global]
-conf_repo = "https://gitee.com/phil-zhang/celer_conf.git"
+conf_repo = "https://github.com/celer-pkg/test-conf.git"
 platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.5"
 project = "project_01"
 jobs = 32

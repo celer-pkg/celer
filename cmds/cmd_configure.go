@@ -62,7 +62,7 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 					configs.PrintSuccess("platform is auto configured to %s defined in current project.", c.celer.Global.Platform)
 				}
 
-			case c.buildType != "" && c.buildType != c.celer.Global.BuildType:
+			case c.buildType != "" && !strings.EqualFold(c.buildType, c.celer.Global.BuildType):
 				if err := c.celer.SetBuildType(c.buildType); err != nil {
 					configs.PrintError(err, "failed to set build type: %s.", c.buildType)
 					os.Exit(1)
@@ -76,14 +76,14 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 				}
 				configs.PrintSuccess("current job num: %d.", c.jobs)
 
-			case c.offline != c.celer.Global.Offline:
+			case cmd.Flags().Changed("offline") && c.offline != c.celer.Global.Offline:
 				if err := c.celer.SetOffline(c.offline); err != nil {
 					configs.PrintError(err, "failed to set offline mode: %s.", expr.If(c.offline, "true", "false"))
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current offline mode: %s.", expr.If(c.offline, "true", "false"))
 
-			case c.verbose != c.celer.Verbose():
+			case cmd.Flags().Changed("verbose") && c.verbose != c.celer.Verbose():
 				if err := c.celer.SetVerbose(c.verbose); err != nil {
 					configs.PrintError(err, "failed to set verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 					os.Exit(1)
@@ -111,14 +111,16 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 
 	// Register flags.
 	flags := command.Flags()
-	flags.StringVar(&c.platform, "platform", c.celer.Global.Platform, "configure platform.")
-	flags.StringVar(&c.project, "project", c.celer.Global.Project, "configure project.")
-	flags.StringVar(&c.buildType, "build-type", c.celer.Global.BuildType, "configure build type.")
-	flags.IntVar(&c.jobs, "jobs", c.celer.Global.Jobs, "configure jobs.")
-	flags.BoolVar(&c.offline, "offline", c.celer.Global.Offline, "configure offline mode.")
-	flags.BoolVar(&c.verbose, "verbose", c.celer.Global.Verbose, "configure verbose mode.")
+	flags.StringVar(&c.platform, "platform", "", "configure platform.")
+	flags.StringVar(&c.project, "project", "", "configure project.")
+	flags.StringVar(&c.buildType, "build-type", "", "configure build type.")
+	flags.IntVar(&c.jobs, "jobs", 0, "configure jobs.")
+	flags.BoolVar(&c.offline, "offline", false, "configure offline mode.")
+	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
+
 	flags.StringVar(&c.cacheDir, "cache-dir", "", "configure cache dir.")
 	flags.StringVar(&c.cacheToken, "cache-token", "", "configure cache token.")
+
 	flags.StringVar(&c.proxyHost, "proxy-host", "", "configure proxy host.")
 	flags.IntVar(&c.proxyPort, "proxy-port", -1, "configure proxy port.")
 

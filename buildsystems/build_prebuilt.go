@@ -61,10 +61,12 @@ func (p prebuilt) Clone(url, ref, archive string) error {
 			if err != nil || len(entities) == 0 {
 				return fmt.Errorf("failed to find extracted files under tmp dir")
 			}
+
+			// When the extracted files are in the first level of the archive and
+			// the first level directory is not "include", "lib" or "bin", then move it to source dir.
 			if len(entities) == 1 {
 				enetityName := entities[0].Name()
-				archiveName := fileio.FileBaseName(archive)
-				if enetityName == archiveName {
+				if enetityName != "include" && enetityName != "lib" && enetityName != "bin" {
 					srcDir := filepath.Join(p.PortConfig.PackageDir, entities[0].Name())
 					if err := fileio.RenameDir(srcDir, p.PortConfig.PackageDir); err != nil {
 						return err
