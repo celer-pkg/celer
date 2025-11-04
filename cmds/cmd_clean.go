@@ -179,6 +179,7 @@ func (c *cleanCmd) cleanAll() error {
 }
 
 func (c *cleanCmd) doClean(port configs.Port) error {
+	// Ignore already cleaned ports.
 	if slices.Contains(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.Native, "@dev", "")) {
 		return nil
 	}

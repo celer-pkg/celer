@@ -36,14 +36,19 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "", nil
 	}
 
-	// Uninstall it and remove its build cache, event logs.
 	if options.Force {
+		// Remove installed port with its build cache, logs.
 		remoteOptions := RemoveOptions{
 			Purge:      true,
 			Recurse:    options.Recurse,
 			BuildCache: true,
 		}
 		if err := p.Remove(remoteOptions); err != nil {
+			return "", err
+		}
+
+		// Clean source.
+		if err := p.MatchedConfig.Clean(); err != nil {
 			return "", err
 		}
 	}
