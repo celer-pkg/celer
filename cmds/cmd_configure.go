@@ -98,7 +98,7 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 				}
 				configs.PrintSuccess("current cache dir: %s.", expr.If(cacheDir != "", cacheDir, "empty"))
 
-			case c.proxyHost != "" || c.proxyPort != -1:
+			case c.proxyHost != "" || c.proxyPort != 0:
 				if err := c.celer.SetProxy(c.proxyHost, c.proxyPort); err != nil {
 					configs.PrintError(err, "failed to set proxy: %s:%d.", c.proxyHost, c.proxyPort)
 					os.Exit(1)
@@ -122,7 +122,7 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	flags.StringVar(&c.cacheToken, "cache-token", "", "configure cache token.")
 
 	flags.StringVar(&c.proxyHost, "proxy-host", "", "configure proxy host.")
-	flags.IntVar(&c.proxyPort, "proxy-port", -1, "configure proxy port.")
+	flags.IntVar(&c.proxyPort, "proxy-port", 0, "configure proxy port.")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

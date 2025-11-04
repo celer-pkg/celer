@@ -139,7 +139,8 @@ func (c *Celer) Init() error {
 	}
 
 	// Set default project name.
-	if c.project.Name == "" {
+	if c.configData.Global.Project == "" {
+		c.configData.Global.Project = "unnamed"
 		c.project.Name = "unnamed"
 	}
 

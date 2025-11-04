@@ -74,7 +74,7 @@ func TestDepend(t *testing.T) {
 		check(err)
 		expected := []string{
 			"automake@1.18",
-			"flex@2.6.4",
+			"util-linux@2.41",
 		}
 		if !equals(depedencies, expected) {
 			t.Fatalf("expected %s, but got %s", expected, depedencies)

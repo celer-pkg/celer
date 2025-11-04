@@ -111,11 +111,12 @@ func (c cmake) configureOptions() ([]string, error) {
 	}
 
 	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.
-	findRootPaths := []string{filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder)}
+	tmpDepDir := filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder)
+	findRootPaths := []string{filepath.ToSlash(tmpDepDir)}
 	if c.PortConfig.Toolchain.RootFS != "" {
 		findRootPaths = append(findRootPaths, c.PortConfig.Toolchain.RootFS)
 	}
-	options = append(options, fmt.Sprintf("-DCMAKE_FIND_ROOT_PATH=%q", filepath.ToSlash(strings.Join(findRootPaths, ";"))))
+	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(findRootPaths, ";"))
 
 	// Enable verbose makefile.
 	if c.Ctx.Verbose() {
