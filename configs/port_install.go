@@ -308,6 +308,14 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 
 		// Backup installed meta file to tmp dir.
 		metaFileBackup = filepath.Join(dirs.TmpDir, filepath.Base(p.metaFile)+".old")
+
+		// Ensure cleanup of backup if anything fails before it's moved.
+		defer func() {
+			if metaFileBackup != "" {
+				os.Remove(metaFileBackup)
+			}
+		}()
+
 		if err := os.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
 			return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
 		}
@@ -334,11 +342,12 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 		return false, fmt.Errorf("failed to install from package.\n %w", err)
 	}
 
-	// Restore meta file for compare difference when debug.
+	// Restore meta file for debuging.
 	if metaFileBackup != "" {
 		if err := os.Rename(metaFileBackup, p.metaFile+".old"); err != nil {
 			return false, fmt.Errorf("failed to restore meta file.\n %w", err)
 		}
+		metaFileBackup = "" // Reset it indicates no need to clear it.
 	}
 
 	if err := p.writeTraceFile("package"); err != nil {
