@@ -98,7 +98,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	// Write content of dev_dependencies.
 	for _, nameVersion := range p.BuildConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
-		if p.Native && p.NameVersion == nameVersion {
+		if (p.DevDep || p.Native) && p.NameVersion == nameVersion {
 			continue
 		}
 

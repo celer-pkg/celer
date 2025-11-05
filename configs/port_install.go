@@ -36,14 +36,19 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "", nil
 	}
 
-	// Uninstall it and remove its build cache, event logs.
 	if options.Force {
+		// Remove installed port with its build cache, logs.
 		remoteOptions := RemoveOptions{
 			Purge:      true,
 			Recurse:    options.Recurse,
 			BuildCache: true,
 		}
 		if err := p.Remove(remoteOptions); err != nil {
+			return "", err
+		}
+
+		// Clean source.
+		if err := p.MatchedConfig.Clean(); err != nil {
 			return "", err
 		}
 	}
@@ -303,6 +308,14 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 
 		// Backup installed meta file to tmp dir.
 		metaFileBackup = filepath.Join(dirs.TmpDir, filepath.Base(p.metaFile)+".old")
+
+		// Ensure cleanup of backup if anything fails before it's moved.
+		defer func() {
+			if metaFileBackup != "" {
+				os.Remove(metaFileBackup)
+			}
+		}()
+
 		if err := os.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
 			return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
 		}
@@ -329,11 +342,12 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 		return false, fmt.Errorf("failed to install from package.\n %w", err)
 	}
 
-	// Restore meta file for compare difference when debug.
+	// Restore meta file for debuging.
 	if metaFileBackup != "" {
 		if err := os.Rename(metaFileBackup, p.metaFile+".old"); err != nil {
 			return false, fmt.Errorf("failed to restore meta file.\n %w", err)
 		}
+		metaFileBackup = "" // Reset it indicates no need to clear it.
 	}
 
 	if err := p.writeTraceFile("package"); err != nil {
@@ -405,7 +419,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 	// Check and repair dev_dependencies.
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
-		if p.Native && p.NameVersion() == nameVersion {
+		if (p.DevDep || p.Native) && p.NameVersion() == nameVersion {
 			continue
 		}
 
@@ -465,7 +479,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 func (p Port) providerTmpDeps() error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
-		if p.Native && p.NameVersion() == nameVersion {
+		if (p.DevDep || p.Native) && p.NameVersion() == nameVersion {
 			continue
 		}
 

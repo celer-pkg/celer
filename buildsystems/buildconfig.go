@@ -691,6 +691,11 @@ func (b *BuildConfig) fillPlaceHolders() {
 }
 
 func (b BuildConfig) replaceSource(archive, url string) error {
+	// Nothing to do if repo dir doesn't exist.
+	if !fileio.PathExists(b.PortConfig.RepoDir) {
+		return nil
+	}
+
 	var replaceFailed bool
 
 	// Backup repo
