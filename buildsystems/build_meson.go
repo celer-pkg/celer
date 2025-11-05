@@ -222,10 +222,7 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	buffers.WriteString("\n[binaries]\n")
 	pkgconfPath := filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
 
-	if m.PortConfig.LibName == "pkgconf" {
-		buffers.WriteString("pkgconfig = 'false'\n")
-		buffers.WriteString("pkg-config = 'false'\n")
-	} else {
+	if m.PortConfig.LibName != "pkgconf" {
 		buffers.WriteString(fmt.Sprintf("pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath)))
 		buffers.WriteString(fmt.Sprintf("pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath)))
 	}
@@ -299,14 +296,22 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	m.appendLinkArgs(&linkArgs, depLinkDir)
 
 	// Allow meson to locate libraries of MSVC.
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "windows" && (m.PortConfig.Toolchain.Name == "msvc" || m.PortConfig.Toolchain.Name == "clang-cl") {
+		// Expose MSVC includes and libs.
 		msvcIncludes := strings.SplitSeq(m.msvcEnvs["INCLUDE"], ";")
+		msvcLibs := strings.SplitSeq(m.msvcEnvs["LIB"], ";")
 		for include := range msvcIncludes {
 			m.appendIncludeArgs(&includeArgs, include)
 		}
-
-		msvcLibs := strings.SplitSeq(m.msvcEnvs["LIB"], ";")
 		for lib := range msvcLibs {
+			m.appendLinkArgs(&linkArgs, lib)
+		}
+
+		// Expose WindowsKit includes and libs.
+		for _, include := range toolchain.MSVC.KitIncludes {
+			m.appendIncludeArgs(&includeArgs, include)
+		}
+		for _, lib := range toolchain.MSVC.KitLibs {
 			m.appendLinkArgs(&linkArgs, lib)
 		}
 	}
@@ -353,27 +358,21 @@ func (m meson) appendLinkArgs(linkArgs *[]string, linkDir string) {
 	switch runtime.GOOS {
 	case "linux":
 		if m.PortConfig.Toolchain.Name == "gcc" || m.PortConfig.Toolchain.Name == "clang" {
-			depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
-			depLibDir = filepath.ToSlash(depLibDir)
-
 			if len(*linkArgs) == 0 {
-				*linkArgs = append(*linkArgs, fmt.Sprintf("'-L %s'", depLibDir))
-				*linkArgs = append(*linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, depLibDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf("'-L %s'", linkDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, linkDir))
 			} else {
-				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-L %s'", depLibDir))
-				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-Wl,-rpath-link,%s'", depLibDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-L %s'", linkDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-Wl,-rpath-link,%s'", linkDir))
 			}
 		}
 
 	case "windows":
 		if m.PortConfig.Toolchain.Name == "msvc" || m.PortConfig.Toolchain.Name == "clang-cl" {
-			depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
-			depLibDir = filepath.ToSlash(depLibDir)
-
 			if len(*linkArgs) == 0 {
-				*linkArgs = append(*linkArgs, fmt.Sprintf("'/LIBPATH:\"%s\"'", depLibDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf("'/LIBPATH:\"%s\"'", linkDir))
 			} else {
-				*linkArgs = append(*linkArgs, fmt.Sprintf("    '/LIBPATH:\"%s\"'", depLibDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf("    '/LIBPATH:\"%s\"'", linkDir))
 			}
 		}
 

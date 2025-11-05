@@ -326,6 +326,16 @@ func (w *WindowsKit) Detect(msvc *context.MSVC) error {
 	}
 	w.Version = w.normalizeVersion(version)
 
+	// Append includes.
+	msvc.KitIncludes = append(msvc.KitIncludes, filepath.Join(w.InstalledDir, "include", w.Version, "um"))
+	msvc.KitIncludes = append(msvc.KitIncludes, filepath.Join(w.InstalledDir, "include", w.Version, "shared"))
+	msvc.KitIncludes = append(msvc.KitIncludes, filepath.Join(w.InstalledDir, "include", w.Version, "ucrt"))
+
+	// Append libs.
+	msvc.KitLibs = append(msvc.KitLibs, filepath.Join(w.InstalledDir, "lib", w.Version, "um"))
+	msvc.KitLibs = append(msvc.KitLibs, filepath.Join(w.InstalledDir, "lib", w.Version, "ucrt"))
+
+	// Append bin files.
 	binDir := filepath.Join(w.InstalledDir, "bin", w.Version, "x64")
 	msvc.MT = filepath.Join(binDir, "mt.exe")
 	msvc.RC = filepath.Join(binDir, "rc.exe")

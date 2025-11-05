@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-const PathKey string = "PATH"
+const KeyPath string = "PATH"
 
 // CleanEnv clear all environments and reset PATH.
 func CleanEnv() {

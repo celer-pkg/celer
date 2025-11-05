@@ -81,7 +81,7 @@ func (p *python3) validate() error {
 		return err
 	}
 
-	os.Setenv(envs.PathKey, env.JoinPaths(envs.PathKey, p.rootDir, filepath.Join(p.rootDir, "Scripts")))
+	os.Setenv(envs.KeyPath, env.JoinPaths(envs.KeyPath, p.rootDir, filepath.Join(p.rootDir, "Scripts")))
 	return nil
 }
 

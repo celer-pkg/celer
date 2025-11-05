@@ -133,7 +133,7 @@ func (b *BuildConfig) setupEnvs() {
 	}
 
 	// Expose dev/bin to PATH.
-	b.envBackup.setenv(envs.PathKey, env.JoinPaths(envs.PathKey, filepath.Join(tmpDevDir, "bin")))
+	b.envBackup.setenv(envs.KeyPath, env.JoinPaths(envs.KeyPath, filepath.Join(tmpDevDir, "bin")))
 }
 
 func (b BuildConfig) setupPkgConfig() {
