@@ -891,13 +891,13 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	}
 
 	// Append MSVC related envs.
-	parts := strings.Split(os.Getenv(envs.KeyPath), ";")
-	msvcPaths := strings.Split(msvcEnvs[envs.KeyPath], ";")
+	parts := strings.Split(os.Getenv(envs.PathKey), ";")
+	msvcPaths := strings.Split(msvcEnvs[envs.PathKey], ";")
 	parts = append(parts, msvcPaths...)
 	for index, path := range parts {
 		parts[index] = fileio.ToCygpath(path)
 	}
-	appendEnv(envs.KeyPath, fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
+	appendEnv(envs.PathKey, fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
 	appendEnv("INCLUDE", msvcEnvs["INCLUDE"])
 	appendEnv("LIB", msvcEnvs["LIB"])
 	appendEnv("CC", b.PortConfig.Toolchain.CC)
