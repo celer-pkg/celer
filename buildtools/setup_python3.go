@@ -1,6 +1,7 @@
 package buildtools
 
 import (
+	"celer/envs"
 	"celer/pkgs/cmd"
 	"celer/pkgs/env"
 	"celer/pkgs/fileio"
@@ -80,7 +81,7 @@ func (p *python3) validate() error {
 		return err
 	}
 
-	os.Setenv("PATH", env.JoinPaths("PATH", p.rootDir, filepath.Join(p.rootDir, "Scripts")))
+	os.Setenv(envs.KeyPath, env.JoinPaths(envs.KeyPath, p.rootDir, filepath.Join(p.rootDir, "Scripts")))
 	return nil
 }
 

@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+const PathKey string = "PATH"
+
 // CleanEnv clear all environments and reset PATH.
 func CleanEnv() {
 	home := os.Getenv("HOME")

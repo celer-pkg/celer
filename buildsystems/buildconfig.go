@@ -3,6 +3,7 @@ package buildsystems
 import (
 	"celer/buildtools"
 	"celer/context"
+	"celer/envs"
 	"celer/generator"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
@@ -777,11 +778,11 @@ func (b BuildConfig) getLogPath(suffix string) string {
 
 // msvcEnvs provider the MSVC environment variables required by msys2.
 func (b BuildConfig) msvcEnvs() (string, error) {
-	// Append envs if exist.
-	var envs []string
+	// Append args if exist.
+	var args []string
 	var appendEnv = func(envKey, envValue string) {
 		if envValue != "" {
-			envs = append(envs, fmt.Sprintf(`%s="%s"`, envKey, envValue))
+			args = append(args, fmt.Sprintf(`%s="%s"`, envKey, envValue))
 		}
 	}
 
@@ -890,19 +891,19 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	}
 
 	// Append MSVC related envs.
-	parts := strings.Split(os.Getenv("PATH"), ";")
-	msvcPaths := strings.Split(msvcEnvs["PATH"], ";")
+	parts := strings.Split(os.Getenv(envs.KeyPath), ";")
+	msvcPaths := strings.Split(msvcEnvs[envs.KeyPath], ";")
 	parts = append(parts, msvcPaths...)
 	for index, path := range parts {
 		parts[index] = fileio.ToCygpath(path)
 	}
-	appendEnv("PATH", fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
+	appendEnv(envs.KeyPath, fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
 	appendEnv("INCLUDE", msvcEnvs["INCLUDE"])
 	appendEnv("LIB", msvcEnvs["LIB"])
 	appendEnv("CC", b.PortConfig.Toolchain.CC)
 	appendEnv("CXX", b.PortConfig.Toolchain.CXX)
 
-	return strings.Join(envs, " "), nil
+	return strings.Join(args, " "), nil
 }
 
 func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {

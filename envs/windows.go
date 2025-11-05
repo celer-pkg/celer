@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 )
 
+const KeyPath string = "Path"
+
 // CleanEnv clear all environments that not required and reset PATH.
 func CleanEnv() {
 	// Cache necessary environments.
@@ -91,5 +93,5 @@ func CleanEnv() {
 	}
 	paths = append(paths, filepath.Join(homeDir, `AppData\Local\Programs\Python\Launcher`))
 
-	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
+	os.Setenv("Path", env.JoinPaths("Path", paths...))
 }

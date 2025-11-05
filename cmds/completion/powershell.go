@@ -65,9 +65,9 @@ func (p powershell) installBinary() error {
 	}
 
 	// Add celer.exe to PATH if it's not already there.
-	pathEnv := os.Getenv("PATH")
+	pathEnv := os.Getenv("Path")
 	if !strings.Contains(pathEnv, filepath.Dir(dest)) {
-		if err := p.executeCmd("setx", "PATH", "%PATH%;"+filepath.Dir(dest)); err != nil {
+		if err := p.executeCmd("setx", "Path", "%Path%;"+filepath.Dir(dest)); err != nil {
 			return fmt.Errorf("failed to add celer dir to PATH.\n %w", err)
 		}
 	}

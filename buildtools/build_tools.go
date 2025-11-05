@@ -2,6 +2,7 @@ package buildtools
 
 import (
 	"celer/context"
+	"celer/envs"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
@@ -164,7 +165,7 @@ func (b *buildTool) validate() error {
 		b.fullpaths = append(b.fullpaths, filepath.Join(dirs.DownloadedToolsDir, path))
 		b.cmakepaths = append(b.cmakepaths, "${WORKSPACE_DIR}/downloads/tools/"+filepath.ToSlash(path))
 	}
-	os.Setenv("PATH", env.JoinPaths("PATH", b.fullpaths...))
+	os.Setenv(envs.KeyPath, env.JoinPaths(envs.KeyPath, b.fullpaths...))
 
 	// Check and fix tool.
 	if err := b.checkAndFix(); err != nil {

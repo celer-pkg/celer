@@ -26,6 +26,7 @@ func NewMeson(config *BuildConfig, optimize *context.Optimize) *meson {
 type meson struct {
 	*BuildConfig
 	*context.Optimize
+	msvcEnvs map[string]string
 }
 
 func (meson) Name() string {
@@ -53,7 +54,7 @@ func (m meson) Clean() error {
 	return nil
 }
 
-func (m meson) preConfigure() error {
+func (m *meson) preConfigure() error {
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
 	if runtime.GOOS == "windows" {
 		if m.PortConfig.Toolchain.Name == "msvc" ||
@@ -62,8 +63,10 @@ func (m meson) preConfigure() error {
 			if err != nil {
 				return err
 			}
+			m.msvcEnvs = msvcEnvs
 
-			os.Setenv("PATH", msvcEnvs["PATH"])
+			// Windows use "Path" instead of "PATH".
+			os.Setenv("Path", msvcEnvs["Path"])
 			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
 			os.Setenv("LIB", msvcEnvs["LIB"])
 		}
@@ -279,74 +282,33 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 		for _, item := range toolchain.IncludeDirs {
 			includeDir := filepath.Join(toolchain.RootFS, item)
 			includeDir = filepath.ToSlash(includeDir)
-
-			switch runtime.GOOS {
-			case "windows":
-				if len(includeArgs) == 0 {
-					includeArgs = append(includeArgs, fmt.Sprintf("'/I %q'", includeDir))
-				} else {
-					includeArgs = append(includeArgs, fmt.Sprintf("    '/I %q'", includeDir))
-				}
-
-			default:
-				if len(includeArgs) == 0 {
-					includeArgs = append(includeArgs, fmt.Sprintf("'-isystem %s'", includeDir))
-				} else {
-					includeArgs = append(includeArgs, fmt.Sprintf("    '-isystem %s'", includeDir))
-				}
-			}
+			m.appendIncludeArgs(&includeArgs, includeDir)
 		}
 
-		// Allow meson to locate libraries in rootfs.
 		for _, item := range toolchain.LibDirs {
 			libDir := filepath.Join(toolchain.RootFS, item)
 			libDir = filepath.ToSlash(libDir)
-
-			switch m.PortConfig.Toolchain.Name {
-			case "gcc", "clang":
-				if len(linkArgs) == 0 {
-					linkArgs = append(linkArgs, fmt.Sprintf("'-L %s'", libDir))
-					linkArgs = append(linkArgs, fmt.Sprintf("'-Wl,-rpath-link=%s'", libDir))
-				} else {
-					linkArgs = append(linkArgs, fmt.Sprintf("    '-L %s'", libDir))
-					linkArgs = append(linkArgs, fmt.Sprintf("    '-Wl,-rpath-link=%s'", libDir))
-				}
-
-			case "msvc", "clang-cl":
-				if len(linkArgs) == 0 {
-					linkArgs = append(linkArgs, fmt.Sprintf("'/LIBPATH:%s'", libDir))
-				} else {
-					linkArgs = append(linkArgs, fmt.Sprintf("    '/LIBPATH:%s'", libDir))
-				}
-
-			default:
-				panic(fmt.Sprintf("unexpected toolchain: %s", m.PortConfig.Toolchain.Name))
-			}
+			m.appendLinkArgs(&linkArgs, libDir)
 		}
 	}
 
-	// Allow meson to locate headers of dependecies.
-	depIncludeDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "include")
-	m.appendIncludeArgs(&includeArgs, depIncludeDir)
-
 	// Allow meson to locate libraries of dependecies.
-	switch runtime.GOOS {
-	case "linux":
-		if m.PortConfig.Toolchain.Name == "gcc" || m.PortConfig.Toolchain.Name == "clang" {
-			depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
-			depLibDir = filepath.ToSlash(depLibDir)
+	depIncludeDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "include")
+	depLinkDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
+	m.appendIncludeArgs(&includeArgs, depIncludeDir)
+	m.appendLinkArgs(&linkArgs, depLinkDir)
 
-			if len(linkArgs) == 0 {
-				linkArgs = append(linkArgs, fmt.Sprintf("'-L %s'", depLibDir))
-				linkArgs = append(linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, depLibDir))
-			} else {
-				linkArgs = append(linkArgs, fmt.Sprintf("    '-L %s'", depLibDir))
-				linkArgs = append(linkArgs, fmt.Sprintf("    '-Wl,-rpath-link,%s'", depLibDir))
-			}
+	// Allow meson to locate libraries of MSVC.
+	if runtime.GOOS == "windows" {
+		msvcIncludes := strings.SplitSeq(m.msvcEnvs["INCLUDE"], ";")
+		for include := range msvcIncludes {
+			m.appendIncludeArgs(&includeArgs, include)
 		}
 
-	case "darwin":
-		// TODO: it may supported in the future for darwin.
+		msvcLibs := strings.SplitSeq(m.msvcEnvs["LIB"], ";")
+		for lib := range msvcLibs {
+			m.appendLinkArgs(&linkArgs, lib)
+		}
 	}
 
 	buffers.WriteString(fmt.Sprintf("c_args = [%s]\n", strings.Join(includeArgs, ",\n")))
@@ -382,6 +344,41 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 
 	default:
 		panic(fmt.Sprintf("unexpected cross tool: %s", m.PortConfig.Toolchain.Name))
+	}
+}
+
+func (m meson) appendLinkArgs(linkArgs *[]string, linkDir string) {
+	linkDir = filepath.ToSlash(linkDir)
+
+	switch runtime.GOOS {
+	case "linux":
+		if m.PortConfig.Toolchain.Name == "gcc" || m.PortConfig.Toolchain.Name == "clang" {
+			depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
+			depLibDir = filepath.ToSlash(depLibDir)
+
+			if len(*linkArgs) == 0 {
+				*linkArgs = append(*linkArgs, fmt.Sprintf("'-L %s'", depLibDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, depLibDir))
+			} else {
+				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-L %s'", depLibDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-Wl,-rpath-link,%s'", depLibDir))
+			}
+		}
+
+	case "windows":
+		if m.PortConfig.Toolchain.Name == "msvc" || m.PortConfig.Toolchain.Name == "clang-cl" {
+			depLibDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
+			depLibDir = filepath.ToSlash(depLibDir)
+
+			if len(*linkArgs) == 0 {
+				*linkArgs = append(*linkArgs, fmt.Sprintf("'/LIBPATH:\"%s\"'", depLibDir))
+			} else {
+				*linkArgs = append(*linkArgs, fmt.Sprintf("    '/LIBPATH:\"%s\"'", depLibDir))
+			}
+		}
+
+	case "darwin":
+		// TODO: it may supported in the future for darwin.
 	}
 }
 
