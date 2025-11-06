@@ -65,8 +65,7 @@ func (m *meson) preConfigure() error {
 			}
 			m.msvcEnvs = msvcEnvs
 
-			// Windows use "Path" instead of "PATH".
-			os.Setenv("Path", msvcEnvs["Path"])
+			os.Setenv("PATH", msvcEnvs["PATH"])
 			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
 			os.Setenv("LIB", msvcEnvs["LIB"])
 		}
@@ -134,10 +133,8 @@ func (m meson) configured() bool {
 }
 
 func (m meson) Configure(options []string) error {
-	// msvc and clang-cl need to set build environment event in dev mode.
-	if m.DevDep ||
-		m.PortConfig.Toolchain.Name == "msvc" ||
-		m.PortConfig.Toolchain.Name == "clang-cl" {
+	// In windows, we set msvc related environments.
+	if m.DevDep && (m.PortConfig.Toolchain.Name != "msvc" && m.PortConfig.Toolchain.Name != "clang-cli") {
 		m.PortConfig.Toolchain.ClearEnvs()
 	} else {
 		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)

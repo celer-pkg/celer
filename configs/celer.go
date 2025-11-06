@@ -3,6 +3,7 @@ package configs
 import (
 	"celer/buildtools"
 	"celer/context"
+	"celer/envs"
 	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -26,6 +27,9 @@ var (
 )
 
 func NewCeler() *Celer {
+	// Make sure build env is clean.
+	envs.CleanEnv()
+
 	return &Celer{
 		configData: configData{
 			Global: global{

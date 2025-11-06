@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 )
 
-const KeyPath string = "Path"
-
 // CleanEnv clear all environments that not required and reset PATH.
 func CleanEnv() {
 	// Cache necessary environments.
@@ -89,9 +87,11 @@ func CleanEnv() {
 	// Add python launcher path so that we can call py from cmd.
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		panic("Cannot get home directory in your system.")
+		panic("cannot get home directory in your system.")
 	}
 	paths = append(paths, filepath.Join(homeDir, `AppData\Local\Programs\Python\Launcher`))
 
-	os.Setenv("Path", env.JoinPaths("Path", paths...))
+	// Use PATH instead of Path.
+	os.Unsetenv("Path")
+	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
 }

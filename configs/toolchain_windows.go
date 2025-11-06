@@ -125,7 +125,7 @@ func (t *Toolchain) Validate() error {
 		firstSection := strings.Split(filepath.ToSlash(t.Path), "/")[0]
 		t.rootDir = filepath.Join(dirs.DownloadedToolsDir, firstSection)
 		t.fullpath = filepath.Join(dirs.DownloadedToolsDir, t.Path)
-		os.Setenv("Path", env.JoinPaths("Path", t.fullpath))
+		os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
 
 	case strings.HasPrefix(t.Url, "file:///"):
 		localPath := strings.TrimPrefix(t.Url, "file:///")
@@ -155,7 +155,7 @@ func (t *Toolchain) Validate() error {
 				return fmt.Errorf("toolchain.path of %s is not a directory", t.Url)
 			}
 
-			os.Setenv("Path", env.JoinPaths("Path", t.fullpath))
+			os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
 		} else {
 			// Even local must be a archive file and path should not be empty.
 			if t.Path == "" {
@@ -170,7 +170,7 @@ func (t *Toolchain) Validate() error {
 			firstSection := strings.Split(filepath.ToSlash(t.Path), "/")[0]
 			t.rootDir = filepath.Join(dirs.DownloadedToolsDir, firstSection)
 			t.fullpath = filepath.Join(dirs.DownloadedToolsDir, t.Path)
-			os.Setenv("Path", env.JoinPaths("Path", t.fullpath))
+			os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
 		}
 
 	default:
@@ -341,7 +341,7 @@ func (w *WindowsKit) Detect(msvc *context.MSVC) error {
 	msvc.RC = filepath.Join(binDir, "rc.exe")
 
 	// Append path.
-	os.Setenv("Path", env.JoinPaths("Path",
+	os.Setenv("PATH", env.JoinPaths("PATH",
 		filepath.Join(w.InstalledDir, "bin", w.Version, "x64"),
 		filepath.Join(w.InstalledDir, "bin", "x64"),
 		filepath.Join(w.InstalledDir, "Windows Performance Toolkit"),

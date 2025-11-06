@@ -224,6 +224,13 @@ func (p *Port) findMatchedConfig(buildType string) *buildsystems.BuildConfig {
 			return &p.BuildConfigs[index]
 		} else {
 			if config.BuildSystem == "prebuilt" || config.BuildSystem == "nobuild" {
+				config.BuildType = buildType
+
+				// If LibraryType is empty, set it to `shared`.
+				if strings.TrimSpace(config.LibraryType) == "" {
+					config.LibraryType = "shared"
+				}
+
 				return &config
 			}
 		}

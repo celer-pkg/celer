@@ -3,7 +3,6 @@ package buildsystems
 import (
 	"celer/buildtools"
 	"celer/context"
-	"celer/envs"
 	"celer/generator"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
@@ -891,13 +890,13 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	}
 
 	// Append MSVC related envs.
-	parts := strings.Split(os.Getenv(envs.KeyPath), ";")
-	msvcPaths := strings.Split(msvcEnvs[envs.KeyPath], ";")
+	parts := strings.Split(os.Getenv("PATH"), ";")
+	msvcPaths := strings.Split(msvcEnvs["PATH"], ";")
 	parts = append(parts, msvcPaths...)
 	for index, path := range parts {
 		parts[index] = fileio.ToCygpath(path)
 	}
-	appendEnv(envs.KeyPath, fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
+	appendEnv("PATH", fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
 	appendEnv("INCLUDE", msvcEnvs["INCLUDE"])
 	appendEnv("LIB", msvcEnvs["LIB"])
 	appendEnv("CC", b.PortConfig.Toolchain.CC)
@@ -907,7 +906,6 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 }
 
 func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
-
 	// Read MSVC environment variables.
 	// TODO: the `x64` may be different depending on the platform.
 	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.Toolchain.MSVC.VCVars)
@@ -924,6 +922,11 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 		line = strings.TrimSpace(line)
 		if line != "" && strings.Contains(line, "=") {
 			parts := strings.Split(line, "=")
+
+			// Unify "Path" to "PATH".
+			if parts[0] == "Path" {
+				parts[0] = "PATH"
+			}
 			msvcEnvs[parts[0]] = parts[1]
 		}
 	}

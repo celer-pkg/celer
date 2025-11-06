@@ -1,7 +1,6 @@
 package buildsystems
 
 import (
-	"celer/envs"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
@@ -61,8 +60,7 @@ func (b *BuildConfig) setupEnvs() {
 		currentValue = b.replaceHolders(currentValue)
 
 		switch key {
-		// Windows use "Path" instead of "PATH".
-		case "CPATH", "LIBRARY_PATH", "PATH", "Path":
+		case "CPATH", "LIBRARY_PATH", "PATH":
 			lastValue := filepath.ToSlash(os.Getenv(key))
 			if strings.TrimSpace(lastValue) == "" {
 				b.envBackup.setenv(key, currentValue)
@@ -133,7 +131,7 @@ func (b *BuildConfig) setupEnvs() {
 	}
 
 	// Expose dev/bin to PATH.
-	b.envBackup.setenv(envs.KeyPath, env.JoinPaths(envs.KeyPath, filepath.Join(tmpDevDir, "bin")))
+	b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
 }
 
 func (b BuildConfig) setupPkgConfig() {

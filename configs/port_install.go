@@ -402,7 +402,7 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 			return err
 		}
 	} else {
-		color.Printf(color.Gray, "✔ no dependencies or dev_dependencies required. --\n")
+		color.Printf(color.Gray, "✔ no dependencies or dev_dependencies required. \n")
 	}
 
 	if err := p.doInstallFromSource(options); err != nil {
