@@ -3,10 +3,12 @@ package cmds
 import (
 	"celer/configs"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"testing"
 )
@@ -39,8 +41,9 @@ func TestAutoRemove(t *testing.T) {
 	})
 
 	// Init celer.
-	const (
-		platform        = "x86_64-linux-ubuntu-22.04-gcc-11.5"
+	var (
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTION") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-ubuntu-gcc-11.5")
 		project         = "project_test_autoremove"
 		portNameVersion = "sqlite3@3.49.0"
 	)

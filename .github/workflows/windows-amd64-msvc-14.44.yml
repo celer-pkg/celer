@@ -31,6 +31,7 @@ jobs:
 
     - name: Test(MSVC)
       env:
+        GITHUB_ACTION: ON
         TEST_MSVC: ON
       run: |
         go test -v ./depcheck/... -timeout 1h

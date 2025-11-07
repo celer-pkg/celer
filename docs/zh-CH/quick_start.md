@@ -39,7 +39,7 @@ conf
 │   ├── aarch64-linux-gnu-gcc-9.2.toml
 │   ├── x86_64-linux-ubuntu-22.04-gcc-11.5.toml
 │   ├── x86_64-linux-ubuntu-22.04-gcc-11.5.toml
-│   └── x86_64-windows-msvc-14.44.toml
+│   └── x86_64-windows-msvc-community-14.44.toml
 └── projects
     ├── project_test_01 --------------- project_01's dependencies
     │   ├── boost --------------------- override public build options
