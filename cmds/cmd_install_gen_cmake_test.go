@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
@@ -58,6 +59,9 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/single_target"),
@@ -118,13 +122,16 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	check(err)
 
 	// Build test project.
-	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
+	buildDir := filepath.Join(dirs.TmpFilesDir, "build_cmake_test")
 	check(os.MkdirAll(buildDir, os.ModePerm))
 	t.Cleanup(func() {
 		check(os.RemoveAll(buildDir))
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/interface_libraries"),

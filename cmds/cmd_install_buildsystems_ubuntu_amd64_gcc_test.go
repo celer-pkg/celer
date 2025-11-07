@@ -65,7 +65,7 @@ func TestInstall_Meson_GCC(t *testing.T) {
 }
 
 func TestInstall_Prebuilt_GCC(t *testing.T) {
-	buildWithGCC(t, ubuntu_gcc_11_5, "prebuilt-x264-linux@stable", false)
+	buildWithGCC(t, ubuntu_gcc_11_5, "prebuilt-x264@stable", false)
 }
 
 func TestInstall_Nobuild_GCC(t *testing.T) {
@@ -73,7 +73,7 @@ func TestInstall_Nobuild_GCC(t *testing.T) {
 }
 
 func buildWithGCC(t *testing.T, platform, nameVersion string, nobuild bool) {
-	if os.Getenv("GO_TEST_GCC") != "TEST_GCC" {
+	if os.Getenv("TEST_GCC") != "ON" {
 		t.SkipNow()
 	}
 

@@ -31,8 +31,7 @@ jobs:
 
     - name: Test(MSVC)
       env:
-        GO_TEST_TIMEOUT: 1h
-        GO_TEST_MSVC: ON
+        TEST_MSVC: ON
       run: |
         go test -v ./depcheck/... -timeout 1h
         go test -v ./configs/...  -timeout 1h

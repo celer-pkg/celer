@@ -65,7 +65,7 @@ func TestInstall_Meson_Clang(t *testing.T) {
 }
 
 func TestInstall_Prebuilt_Clang(t *testing.T) {
-	buildWithClang(t, "clang", "prebuilt-x264-linux@stable", false)
+	buildWithClang(t, "clang", "prebuilt-x264@stable", false)
 }
 
 func TestInstall_Nobuild_Clang(t *testing.T) {
@@ -73,7 +73,7 @@ func TestInstall_Nobuild_Clang(t *testing.T) {
 }
 
 func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
-	if os.Getenv("GO_TEST_CLANG") != "TEST_CLANG" {
+	if os.Getenv("TEST_CLANG") != "ON" {
 		t.SkipNow()
 	}
 

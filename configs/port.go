@@ -109,8 +109,8 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	p.MatchedConfig = p.findMatchedConfig(p.ctx.BuildType())
 	if p.MatchedConfig == nil {
 		return fmt.Errorf("no matched config found for %s", p.NameVersion())
-	} else if p.MatchedConfig.BuildSystem == "prebuilt" &&
-		p.MatchedConfig.Url != "" {
+	}
+	if p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "" {
 		p.Package.Url = p.MatchedConfig.Url
 	}
 
@@ -222,17 +222,6 @@ func (p *Port) findMatchedConfig(buildType string) *buildsystems.BuildConfig {
 			}
 
 			return &p.BuildConfigs[index]
-		} else {
-			if config.BuildSystem == "prebuilt" || config.BuildSystem == "nobuild" {
-				config.BuildType = buildType
-
-				// If LibraryType is empty, set it to `shared`.
-				if strings.TrimSpace(config.LibraryType) == "" {
-					config.LibraryType = "shared"
-				}
-
-				return &config
-			}
 		}
 	}
 

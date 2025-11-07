@@ -680,18 +680,21 @@ func (c Celer) GenerateToolchainFile() error {
 	c.writePkgConfig(&toolchain)
 
 	// Set CMAKE_FIND_ROOT_PATH.
-	platformProject := c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
-	dependencyDir := "${WORKSPACE_DIR}/installed/" + platformProject
-	var rootpaths = []string{dependencyDir}
+	installedDir := "${WORKSPACE_DIR}/installed/" + c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
+	var rootpaths = []string{installedDir}
 	if c.RootFS() != nil {
 		rootpaths = append(rootpaths, "${CMAKE_SYSROOT}")
 	}
-	toolchain.WriteString("\n# Library search paths.\n")
+	toolchain.WriteString("\n# Package search root paths.\n")
 	toolchain.WriteString("if(DEFINED CMAKE_FIND_ROOT_PATH)\n")
 	toolchain.WriteString("    set(CMAKE_FIND_ROOT_PATH \"${CMAKE_FIND_ROOT_PATH}\")\n")
 	toolchain.WriteString("else()\n")
 	toolchain.WriteString(fmt.Sprintf("    set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";")))
 	toolchain.WriteString("endif()\n")
+
+	// Set CMAKE_PREFIX_PATH.
+	toolchain.WriteString("\n# Package search paths.\n")
+	toolchain.WriteString(fmt.Sprintf("list(APPEND CMAKE_PREFIX_PATH %q)", installedDir))
 
 	// Define global cmake vars, env vars, micro vars and compile flags.
 	for index, item := range c.project.Vars {
