@@ -29,12 +29,12 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Test(GCC)
+    - name: Test(MSVC)
       env:
         GO_TEST_TIMEOUT: 1h
         GO_TEST_MSVC: ON
       run: |
-        go test -v ./depcheck/... -timeout %GO_TEST_TIMEOUT%
-        go test -v ./configs/...  -timeout %GO_TEST_TIMEOUT%
-        go test -v ./pkgs/git/... -timeout %GO_TEST_TIMEOUT%
-        go test -v ./cmds/... -timeout %GO_TEST_TIMEOUT%
+        go test -v ./depcheck/... -timeout 1h
+        go test -v ./configs/...  -timeout 1h
+        go test -v ./pkgs/git/... -timeout 1h
+        go test -v ./cmds/... -timeout 1h
