@@ -55,7 +55,7 @@ func TestInstall_Meson_MSVC(t *testing.T) {
 }
 
 func TestInstall_Prebuilt_MSVC(t *testing.T) {
-	buildWithMSVC(t, windows_msvc_14_44, "prebuilt-x264-single-target@stable", false)
+	buildWithMSVC(t, windows_msvc_14_44, "prebuilt-x264-windows@stable", false)
 }
 
 func TestInstall_Nobuild_MSVC(t *testing.T) {
@@ -63,8 +63,8 @@ func TestInstall_Nobuild_MSVC(t *testing.T) {
 }
 
 func buildWithMSVC(t *testing.T, platform, nameVersion string, nobuild bool) {
-	if os.Getenv("GO_TEST_MSVC") != "TEST_MSVC" {
-		//t.SkipNow()
+	if os.Getenv("GO_TEST_MSVC") != "ON" {
+		t.SkipNow()
 	}
 
 	const project = "project_test_install"

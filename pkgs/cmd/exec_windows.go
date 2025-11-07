@@ -100,6 +100,10 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 		cmd.Env = os.Environ()
 	}
 
+	if e.workDir != "" && !pathExists(e.workDir) {
+		return fmt.Errorf("work dir does not exist: %s", e.workDir)
+	}
+
 	cmd.Dir = e.workDir
 	cmd.Stdin = os.Stdin
 
@@ -139,4 +143,13 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 	}
 
 	return nil
+}
+
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+
+	return !os.IsNotExist(err)
 }

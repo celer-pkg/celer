@@ -212,7 +212,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion = "prebuilt-x264-single-target@stable"
+		nameVersion = expr.If(runtime.GOOS == "windows", "prebuilt-x264-windows@stable", "prebuilt-x264-linux@stable")
 		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project     = "project_test_install"
 	)

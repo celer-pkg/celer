@@ -2,6 +2,7 @@ package buildsystems
 
 import (
 	"celer/pkgs/cmd"
+	"celer/pkgs/fileio"
 	"fmt"
 	"runtime"
 	"strings"
@@ -30,7 +31,12 @@ func (b BuildConfig) preConfigure() error {
 		title := fmt.Sprintf("[pre configure %s]", b.PortConfig.nameVersionDesc())
 		script = b.replaceHolders(script)
 		executor := cmd.NewExecutor(title, script)
-		executor.SetWorkDir(b.PortConfig.RepoDir)
+
+		// prebuild port does not have repo dir.
+		if fileio.PathExists(b.PortConfig.RepoDir) {
+			executor.SetWorkDir(b.PortConfig.RepoDir)
+		}
+
 		executor.MSYS2Env(runtime.GOOS == "windows")
 		if err := executor.Execute(); err != nil {
 			return err
@@ -50,7 +56,12 @@ func (b BuildConfig) postConfigure() error {
 		title := fmt.Sprintf("[post confiure %s]", b.PortConfig.nameVersionDesc())
 		script = b.replaceHolders(script)
 		executor := cmd.NewExecutor(title, script)
-		executor.SetWorkDir(b.PortConfig.RepoDir)
+
+		// prebuild port does not have repo dir.
+		if fileio.PathExists(b.PortConfig.RepoDir) {
+			executor.SetWorkDir(b.PortConfig.RepoDir)
+		}
+
 		executor.MSYS2Env(runtime.GOOS == "windows")
 		if err := executor.Execute(); err != nil {
 			return err
@@ -70,7 +81,12 @@ func (b BuildConfig) preBuild() error {
 		title := fmt.Sprintf("[pre build %s]", b.PortConfig.nameVersionDesc())
 		script = b.replaceHolders(script)
 		executor := cmd.NewExecutor(title, script)
-		executor.SetWorkDir(b.PortConfig.RepoDir)
+
+		// prebuild port does not have repo dir.
+		if fileio.PathExists(b.PortConfig.RepoDir) {
+			executor.SetWorkDir(b.PortConfig.RepoDir)
+		}
+
 		if err := executor.Execute(); err != nil {
 			return err
 		}
@@ -89,7 +105,12 @@ func (b BuildConfig) postBuild() error {
 		title := fmt.Sprintf("[post build %s]", b.PortConfig.nameVersionDesc())
 		script = b.replaceHolders(script)
 		executor := cmd.NewExecutor(title, script)
-		executor.SetWorkDir(b.PortConfig.RepoDir)
+
+		// prebuild port does not have repo dir.
+		if fileio.PathExists(b.PortConfig.RepoDir) {
+			executor.SetWorkDir(b.PortConfig.RepoDir)
+		}
+
 		if err := executor.Execute(); err != nil {
 			return err
 		}
@@ -108,7 +129,12 @@ func (b BuildConfig) preInstall() error {
 		title := fmt.Sprintf("[pre install %s]", b.PortConfig.nameVersionDesc())
 		script = b.replaceHolders(script)
 		executor := cmd.NewExecutor(title, script)
-		executor.SetWorkDir(b.PortConfig.RepoDir)
+
+		// prebuild port does not have repo dir.
+		if fileio.PathExists(b.PortConfig.RepoDir) {
+			executor.SetWorkDir(b.PortConfig.RepoDir)
+		}
+
 		if err := executor.Execute(); err != nil {
 			return err
 		}
@@ -127,7 +153,12 @@ func (b BuildConfig) postInstall() error {
 		title := fmt.Sprintf("[post install %s]", b.PortConfig.nameVersionDesc())
 		script = b.replaceHolders(script)
 		executor := cmd.NewExecutor(title, script)
-		executor.SetWorkDir(b.PortConfig.RepoDir)
+
+		// prebuild port does not have repo dir.
+		if fileio.PathExists(b.PortConfig.RepoDir) {
+			executor.SetWorkDir(b.PortConfig.RepoDir)
+		}
+
 		if err := executor.Execute(); err != nil {
 			return err
 		}

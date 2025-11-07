@@ -22,7 +22,7 @@ func (c CacheDir) Validate() error {
 		return fmt.Errorf("cache dir is empty")
 	}
 	if !fileio.PathExists(c.Dir) {
-		return fmt.Errorf("cache dir %s does not exist", c.Dir)
+		return fmt.Errorf("cache dir does not exist: %s", c.Dir)
 	}
 	return nil
 }
@@ -49,7 +49,7 @@ func (c CacheDir) Read(nameVersion, hash, destDir string) (bool, error) {
 
 func (c CacheDir) Write(packageDir, meta string) error {
 	if !fileio.PathExists(packageDir) {
-		return fmt.Errorf("package dir %s does not exist", packageDir)
+		return fmt.Errorf("package dir does not exist: %s", packageDir)
 	}
 
 	// Create a tarball from package dir.

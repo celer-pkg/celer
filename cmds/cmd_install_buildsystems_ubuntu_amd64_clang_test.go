@@ -65,7 +65,7 @@ func TestInstall_Meson_Clang(t *testing.T) {
 }
 
 func TestInstall_Prebuilt_Clang(t *testing.T) {
-	buildWithClang(t, "clang", "prebuilt-x264-single-target@stable", false)
+	buildWithClang(t, "clang", "prebuilt-x264-linux@stable", false)
 }
 
 func TestInstall_Nobuild_Clang(t *testing.T) {

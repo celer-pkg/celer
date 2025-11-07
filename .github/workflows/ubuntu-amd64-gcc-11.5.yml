@@ -34,4 +34,4 @@ jobs:
         go test -v ./depcheck/... -timeout $GO_TEST_TIMEOUT
         go test -v ./configs/...  -timeout $GO_TEST_TIMEOUT
         go test -v ./pkgs/git/... -timeout $GO_TEST_TIMEOUT
-        go test -v ./cmds/... -tags=gcc -timeout $GO_TEST_TIMEOUT
+        go test -v ./cmds/... -timeout $GO_TEST_TIMEOUT

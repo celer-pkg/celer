@@ -65,7 +65,7 @@ func TestInstall_Meson_GCC(t *testing.T) {
 }
 
 func TestInstall_Prebuilt_GCC(t *testing.T) {
-	buildWithGCC(t, ubuntu_gcc_11_5, "prebuilt-x264-single-target@stable", false)
+	buildWithGCC(t, ubuntu_gcc_11_5, "prebuilt-x264-linux@stable", false)
 }
 
 func TestInstall_Nobuild_GCC(t *testing.T) {

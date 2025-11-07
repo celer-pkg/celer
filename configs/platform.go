@@ -41,7 +41,7 @@ func (p *Platform) Init(platformName string) error {
 		platformName != "clang-cl" {
 		platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
 		if !fileio.PathExists(platformPath) {
-			return fmt.Errorf("platform %s does not exists", platformName)
+			return fmt.Errorf("platform does not exist: %s", platformName)
 		}
 
 		// Read conf/celer.toml

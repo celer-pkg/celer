@@ -91,7 +91,7 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 		if p.Parent != "" {
 			return fmt.Errorf("%s defined in %s is not exists", nameVersion, p.Parent)
 		} else {
-			return fmt.Errorf("port %s does not exists", nameVersion)
+			return fmt.Errorf("port does not exist: %s", nameVersion)
 		}
 	}
 

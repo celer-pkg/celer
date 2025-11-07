@@ -60,7 +60,7 @@ func TestCreate(t *testing.T) {
 
 		projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
 		if !fileio.PathExists(projectPath) {
-			t.Fatalf("project %s does not exists", projectName)
+			t.Fatalf("project does not exist: %s", projectName)
 		}
 
 		t.Cleanup(func() {
@@ -82,7 +82,7 @@ func TestCreate(t *testing.T) {
 
 		portPath := filepath.Join(dirs.PortsDir, fmt.Sprintf("%s/%s/port.toml", portName, portVersion))
 		if !fileio.PathExists(portPath) {
-			t.Fatalf("port %s does not exists", portName)
+			t.Fatalf("port does not exists: %s@%s", portName, portVersion)
 		}
 
 		t.Cleanup(func() {

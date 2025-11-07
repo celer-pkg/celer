@@ -32,7 +32,7 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion = "prebuilt-x264-single-target@stable"
+		nameVersion = expr.If(runtime.GOOS == "windows", "prebuilt-x264-windows@stable", "prebuilt-x264-linux@stable")
 		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project     = "project_test_install"
 	)
@@ -145,7 +145,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	}))
 }
 
-func TestInstall_Generate_CMake_Prebuilt_Muti_Components(t *testing.T) {
+func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -165,7 +165,7 @@ func TestInstall_Generate_CMake_Prebuilt_Muti_Components(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion = "prebuilt-ffmpeg-multi-components@5.1.6"
+		nameVersion = "prebuilt-ffmpeg-components@5.1.6"
 		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project     = "project_test_install"
 	)
@@ -194,7 +194,7 @@ func TestInstall_Generate_CMake_Prebuilt_Muti_Components(t *testing.T) {
 	// Build test project.
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
-		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/muti_components"),
+		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/components"),
 		"-B", buildDir,
 	)
 	executer.SetWorkDir(buildDir)
@@ -326,7 +326,7 @@ func TestInstall_Generate_CMake_Source_Multi_Components(t *testing.T) {
 	// Build test project.
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
-		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_source/muti_components"),
+		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_source/components"),
 		"-B", buildDir,
 	)
 	executer.SetWorkDir(buildDir)
