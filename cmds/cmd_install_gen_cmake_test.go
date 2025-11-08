@@ -33,13 +33,13 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion     = expr.If(runtime.GOOS == "windows", "prebuilt-x264-windows@stable", "prebuilt-x264-linux@stable")
+		nameVersion     = "prebuilt-x264@stable"
 		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTION") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -109,7 +109,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -180,7 +180,7 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -202,6 +202,9 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/components"),
@@ -248,7 +251,7 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -269,6 +272,9 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_source/single_target"),
@@ -289,7 +295,7 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	}))
 }
 
-func TestInstall_Generate_CMake_Source_Multi_Components(t *testing.T) {
+func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -315,7 +321,7 @@ func TestInstall_Generate_CMake_Source_Multi_Components(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -336,6 +342,9 @@ func TestInstall_Generate_CMake_Source_Multi_Components(t *testing.T) {
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_source/components"),
@@ -382,7 +391,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -404,6 +413,9 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/interface_head_only"),
