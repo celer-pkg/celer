@@ -85,6 +85,7 @@ func CleanEnv() {
 	paths = append(paths, `C:\Windows\System32\downlevel`)
 	paths = append(paths, `C:\Windows\SysWOW64\WindowsPowerShell\v1.0`)
 	paths = append(paths, `C:\Windows\System32\WindowsPowerShell\v1.0`)
+	paths = append(paths, `C:\ProgramData\chocolatey\bin`)
 
 	// Add python launcher path so that we can call py from cmd.
 	homeDir, err := os.UserHomeDir()
