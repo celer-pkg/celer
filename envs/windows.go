@@ -40,6 +40,7 @@ func CleanEnv() {
 	programW6432 := os.Getenv("ProgramW6432")
 	psModulePath := os.Getenv("PSModulePath")
 	portsRepo := os.Getenv("CELER_PORTS_REPO")
+	githubActions := os.Getenv("GITHUB_ACTIONS")
 
 	os.Clearenv()
 
@@ -73,6 +74,7 @@ func CleanEnv() {
 	os.Setenv("CommonProgramW6432", commonProgramW6432)
 	os.Setenv("PSModulePath", psModulePath)
 	os.Setenv("CELER_PORTS_REPO", portsRepo)
+	os.Setenv("GITHUB_ACTIONS", githubActions)
 
 	// Reset PATH.
 	var paths []string
