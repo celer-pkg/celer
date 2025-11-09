@@ -14,6 +14,8 @@ import (
 )
 
 func TestAutoRemove_With_Purge(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -117,6 +119,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 }
 
 func TestAutoRemove_With_BuildCache(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
 	// Check error.
 	var check = func(err error) {
 		t.Helper()

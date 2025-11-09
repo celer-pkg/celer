@@ -31,7 +31,7 @@ jobs:
 
     - name: Test
       env:
-        GITHUB_ACTION: ON
+        TEST_IN_GITHUB: ON
         TEST_CLANG: ON
       run: |
         go test -v ./depcheck/... -timeout 1h

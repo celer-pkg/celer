@@ -4,6 +4,7 @@ import (
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,6 +13,8 @@ import (
 )
 
 func TestInstall_With_Force(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -82,6 +85,8 @@ func TestInstall_With_Force(t *testing.T) {
 }
 
 func TestInstall_With_Force_Recurse(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()

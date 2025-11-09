@@ -28,7 +28,7 @@ jobs:
 
     - name: Test(GCC)
       env:
-        GITHUB_ACTION: ON
+        TEST_IN_GITHUB: ON
         TEST_GCC: ON
       run: |
         go test -v ./depcheck/... -timeout 1h

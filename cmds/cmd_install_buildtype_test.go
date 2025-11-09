@@ -13,6 +13,8 @@ import (
 )
 
 func TestInstall_BuildType(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()

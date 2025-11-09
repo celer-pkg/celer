@@ -15,6 +15,8 @@ import (
 )
 
 func TestInstall_CacheDir_Success(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -98,6 +100,8 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 }
 
 func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -192,6 +196,8 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 }
 
 func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -278,6 +284,8 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 }
 
 func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -327,6 +335,8 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 }
 
 func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -376,6 +386,8 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 }
 
 func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -425,6 +437,8 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 }
 
 func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -474,6 +488,8 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 }
 
 func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -542,6 +558,8 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 }
 
 func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()

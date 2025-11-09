@@ -14,6 +14,8 @@ import (
 )
 
 func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -84,6 +86,8 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -155,6 +159,8 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -226,6 +232,8 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -296,6 +304,8 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -366,6 +376,8 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
+	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()

@@ -72,9 +72,6 @@ func buildWithMSVC(t *testing.T, platform, nameVersion string, nobuild bool) {
 		t.SkipNow()
 	}
 
-	if os.Getenv("GITHUB_ACTION") == "ON" {
-	}
-
 	const project = "project_test_install"
 
 	// Check error.
