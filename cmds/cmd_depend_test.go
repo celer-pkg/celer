@@ -5,6 +5,7 @@ import (
 	"celer/pkgs/dirs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"testing"
 )
@@ -46,12 +47,18 @@ func TestDepend_Without_Dev(t *testing.T) {
 	depedencies, err := cmdDepend.query("eigen@3.4.0")
 	check(err)
 
-	expected := []string{
-		"ceres-solver@2.1.0",
-		"gstreamer@1.26.0",
-		"gtsam@4.2.0",
-		"lbfgspp@0.3.0",
+	var expected []string
+	if runtime.GOOS == "windows" {
+		expected = []string{"gstreamer@1.26.0"}
+	} else {
+		expected = []string{
+			"ceres-solver@2.1.0",
+			"gstreamer@1.26.0",
+			"gtsam@4.2.0",
+			"lbfgspp@0.3.0",
+		}
 	}
+
 	if !equals(depedencies, expected) {
 		t.Fatalf("expected %s, but got %s", expected, depedencies)
 	}
@@ -92,7 +99,7 @@ func TestDepend_With_Dev(t *testing.T) {
 
 	// Search as default mode.
 	cmdDepend := dependCmd{celer: celer}
-	depedencies, err := cmdDepend.query("autoconf@2.72")
+	depedencies, err := cmdDepend.query("nasm@2.16.03")
 	check(err)
 	if len(depedencies) > 0 {
 		t.Fatalf("expected no dependencies, but got %s", depedencies)
@@ -100,11 +107,13 @@ func TestDepend_With_Dev(t *testing.T) {
 
 	// Search as dev mode.
 	cmdDepend.dev = true
-	depedencies, err = cmdDepend.query("autoconf@2.72")
+	depedencies, err = cmdDepend.query("nasm@2.16.03")
 	check(err)
 	expected := []string{
-		"automake@1.18",
-		"util-linux@2.41",
+		"ffmpeg@3.4.13",
+		"ffmpeg@5.1.6",
+		"openssl@3.5.0",
+		"x264@stable",
 	}
 	if !equals(depedencies, expected) {
 		t.Fatalf("expected %s, but got %s", expected, depedencies)
