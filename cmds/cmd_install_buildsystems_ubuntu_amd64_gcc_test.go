@@ -73,7 +73,7 @@ func TestInstall_Nobuild_GCC(t *testing.T) {
 }
 
 func buildWithGCC(t *testing.T, platform, nameVersion string, nobuild bool) {
-	if os.Getenv("TEST_GCC") != "ON" {
+	if os.Getenv("TEST_GCC") != "true" {
 		t.SkipNow()
 	}
 

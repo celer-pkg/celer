@@ -14,7 +14,7 @@ import (
 )
 
 func TestAutoRemove_With_Purge(t *testing.T) {
-	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Check error.
 	var check = func(err error) {
@@ -44,7 +44,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 
 	// Init celer.
 	var (
-		windowsPlatform = expr.If(os.Getenv("TEST_IN_GITHUB") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project         = "project_test_autoremove"
 		portNameVersion = "sqlite3@3.49.0"
@@ -119,7 +119,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 }
 
 func TestAutoRemove_With_BuildCache(t *testing.T) {
-	fmt.Printf("-- TEST_IN_GITHUB: %s\n", expr.If(os.Getenv("TEST_IN_GITHUB") != "", os.Getenv("TEST_IN_GITHUB"), "OFF"))
+	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -148,7 +148,7 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 
 	// Init celer.
 	var (
-		windowsPlatform = expr.If(os.Getenv("TEST_IN_GITHUB") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-ubuntu-gcc-11.5")
 		project         = "project_test_autoremove"
 		portNameVersion = "sqlite3@3.49.0"
