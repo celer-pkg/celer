@@ -52,28 +52,32 @@ func TestInstall_With_Force(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.Platform().Setup())
 
-	var options configs.InstallOptions
+	var (
+		options       configs.InstallOptions
+		glogLibName   = expr.If(runtime.GOOS == "windows", "glog.lib", "libglog.so.0.6.0")
+		gflagsLibName = expr.If(runtime.GOOS == "windows", "gflags.lib", "libgflags.so.2.2.2")
+	)
 
 	// glog@0.6.0
 	var glogPort configs.Port
 	check(glogPort.Init(celer, nameVersion))
 	_, err := glogPort.Install(options)
 	check(err)
-	lastGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", "libglog.so.0.6.0"))
+	lastGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 
 	// gflags@2.2.2 (dependency of glog@0.6.0)
 	var gflagsPort configs.Port
 	check(gflagsPort.Init(celer, "gflags@2.2.2"))
 
-	lastGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", "libgflags.so.2.2.2"))
+	lastGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 
 	// Re-install with --force.
 	options.Force = true
 	check(glogPort.Init(celer, nameVersion))
 	_, err = glogPort.Install(options)
 	check(err)
-	newGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", "libglog.so.0.6.0"))
-	newGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", "libgflags.so.2.2.2"))
+	newGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
+	newGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 
 	if newGlogModTime.Equal(lastGlogModTime) {
 		t.Fatal("package was not re-installed with --force")
@@ -124,20 +128,24 @@ func TestInstall_With_Force_Recurse(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.Platform().Setup())
 
-	var options configs.InstallOptions
+	var (
+		options       configs.InstallOptions
+		glogLibName   = expr.If(runtime.GOOS == "windows", "glog.lib", "libglog.so.0.6.0")
+		gflagsLibName = expr.If(runtime.GOOS == "windows", "gflags.lib", "libgflags.so.2.2.2")
+	)
 
 	// glog@0.6.0
 	var glogPort configs.Port
 	check(glogPort.Init(celer, nameVersion))
 	_, err := glogPort.Install(options)
 	check(err)
-	lastGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", "libglog.so.0.6.0"))
+	lastGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 
 	// gflags@2.2.2 (dependency of glog@0.6.0)
 	var gflagsPort configs.Port
 	check(gflagsPort.Init(celer, "gflags@2.2.2"))
 
-	lastGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", "libgflags.so.2.2.2"))
+	lastGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 
 	// Re-install with --force.
 	options.Force = true
@@ -145,8 +153,8 @@ func TestInstall_With_Force_Recurse(t *testing.T) {
 	check(glogPort.Init(celer, nameVersion))
 	_, err = glogPort.Install(options)
 	check(err)
-	newGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", "libglog.so.0.6.0"))
-	newGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", "libgflags.so.2.2.2"))
+	newGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
+	newGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 
 	if newGlogModTime.Equal(lastGlogModTime) {
 		t.Fatal("package should be re-installed with --force")

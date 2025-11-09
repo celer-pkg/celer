@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 )
@@ -269,14 +268,7 @@ func ApplyPatch(port, repoDir, patchFile string) error {
 	} else {
 		// Others, assume it's a regular patch file.
 		title := fmt.Sprintf("[patch %s]", port)
-		var args []string
-		if runtime.GOOS == "windows" {
-			args = []string{"-Np1", "--binary", "-i", patchFile} // --binary: read data in binary mode.
-		} else {
-			args = []string{"-Np1", "-i", patchFile}
-		}
-
-		executor := cmd.NewExecutor(title, "patch", args...)
+		executor := cmd.NewExecutor(title, "patch", "-Np1", "-i", patchFile)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
 			return err
