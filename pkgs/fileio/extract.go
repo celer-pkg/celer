@@ -1,7 +1,6 @@
 package fileio
 
 import (
-	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"fmt"
 	"os"
@@ -28,86 +27,55 @@ func Extract(archiveFile, destDir string) error {
 	fileName := filepath.Base(archiveFile)
 	expr.PrintInline(fmt.Sprintf("\rExtracting: %s...", fileName))
 
-	var extractFailed bool
-	defer func() {
-		if !extractFailed {
-			expr.PrintInline(fmt.Sprintf("\rExtracted: %s...", fileName))
-		}
-	}()
-
 	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-		extractFailed = true
 		return fmt.Errorf("mkdir for extract: %w", err)
 	}
 
 	// var command string
 	tarPath := expr.If(runtime.GOOS == "windows", "C:/Windows/System32/tar.exe", "/usr/bin/tar")
+	var cmd *exec.Cmd
 
 	switch {
 	case strings.HasSuffix(archiveFile, ".tar.gz"),
 		strings.HasSuffix(archiveFile, ".tgz"):
-		args := []string{"-zxf", archiveFile, "-C", destDir}
-		executor := cmd.NewExecutor("", tarPath, args...)
-		if err := executor.Execute(); err != nil {
-			extractFailed = true
-			return fmt.Errorf("extract: %w", err)
-		}
+		cmd = exec.Command(tarPath, "-zxf", archiveFile, "-C", destDir)
 
 	case strings.HasSuffix(archiveFile, ".tar.xz"):
-		args := []string{"-xf", archiveFile, "-C", destDir}
-		executor := cmd.NewExecutor("", tarPath, args...)
-		if err := executor.Execute(); err != nil {
-			extractFailed = true
-			return fmt.Errorf("extract: %w", err)
+		if runtime.GOOS == "windows" && os.Getenv("GITHUB_ACTIONS") == "true" {
+			cmd = exec.Command("arc", "unarchive", archiveFile, destDir)
+		} else {
+			cmd = exec.Command(tarPath, "-xf", archiveFile, "-C", destDir)
 		}
 
 	case strings.HasSuffix(archiveFile, ".tar.bz2"):
-		args := []string{"-xjf", archiveFile, "-C", destDir}
-		executor := cmd.NewExecutor("", tarPath, args...)
-		if err := executor.Execute(); err != nil {
-			extractFailed = true
-			return fmt.Errorf("extract: %w", err)
-		}
+		cmd = exec.Command(tarPath, "-xjf", archiveFile, "-C", destDir)
 
 	case strings.HasSuffix(archiveFile, ".zip"):
-		// In windows, tar support extract zip file.
 		if runtime.GOOS == "windows" {
-			args := []string{"-xf", archiveFile, "-C", destDir}
-			executor := cmd.NewExecutor("", tarPath, args...)
-			if err := executor.Execute(); err != nil {
-				extractFailed = true
-				return fmt.Errorf("extract: %w", err)
-			}
+			cmd = exec.Command(tarPath, "-xf", archiveFile, "-C", destDir)
 		} else {
-			args := []string{archiveFile, "-d", destDir}
-			executor := cmd.NewExecutor("", "unzip", args...)
-			if err := executor.Execute(); err != nil {
-				extractFailed = true
-				return fmt.Errorf("extract: %w", err)
-			}
+			cmd = exec.Command("unzip", archiveFile, "-d", destDir)
 		}
 
 	case strings.HasSuffix(archiveFile, ".7z"):
-		args := []string{"x", archiveFile, "-o", destDir}
-		executor := cmd.NewExecutor("", "7z", args...)
-		if err := executor.Execute(); err != nil {
-			extractFailed = true
-			return fmt.Errorf("extract: %w", err)
-		}
+		cmd = exec.Command("7z", "x", archiveFile, "-o"+destDir)
 
 	case strings.HasSuffix(archiveFile, ".exe"):
-		args := []string{archiveFile, "-o", destDir, "-y"}
-		executor := cmd.NewExecutor("", archiveFile, args...)
-		if err := executor.Execute(); err != nil {
-			extractFailed = true
-			return fmt.Errorf("extract: %w", err)
-		}
+		cmd = exec.Command(archiveFile, "-o", destDir, "-y")
 
 	default:
-		extractFailed = true
 		return fmt.Errorf("unsupported archive file type: %s", archiveFile)
 	}
 
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stdout
+	cmd.Env = os.Environ()
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("extract archive: %w", err)
+	}
+
+	expr.PrintInline(fmt.Sprintf("\rExtracted: %s...", fileName))
 	return nil
 }
 
