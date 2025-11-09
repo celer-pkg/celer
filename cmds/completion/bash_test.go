@@ -3,6 +3,7 @@ package completion
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -12,6 +13,10 @@ import (
 )
 
 func TestInstallAndUninstall_Bash(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("bash is not supported on Windows")
+	}
+
 	var fileExists = func(path string) bool {
 		_, err := os.Stat(path)
 		return err == nil

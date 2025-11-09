@@ -4,9 +4,11 @@ import (
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/encrypt"
+	"celer/pkgs/expr"
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -33,16 +35,19 @@ func TestConfigure(t *testing.T) {
 
 	// ============= Configure platform ============= //
 	t.Run("Configure platform success", func(t *testing.T) {
-		const newName = "x86_64-linux-ubuntu-22.04-gcc-11.5"
-		check(celer.SetPlatform(newName))
-		if celer.Platform().GetName() != newName {
-			t.Fatalf("platform should be `%s`", newName)
+		var (
+			windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+			platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
+		)
+		check(celer.SetPlatform(platform))
+		if celer.Platform().GetName() != platform {
+			t.Fatalf("platform should be `%s`", platform)
 		}
 
 		celer2 := configs.NewCeler()
 		check(celer2.Init())
-		if celer2.Platform().GetName() != newName {
-			t.Fatalf("platform should be `%s`", newName)
+		if celer2.Platform().GetName() != platform {
+			t.Fatalf("platform should be `%s`", platform)
 		}
 	})
 

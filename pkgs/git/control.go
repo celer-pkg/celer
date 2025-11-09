@@ -3,6 +3,7 @@ package git
 import (
 	"bufio"
 	"celer/pkgs/cmd"
+	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -83,6 +84,10 @@ func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, repoDir str
 
 // UpdateRepo update git repo.
 func UpdateRepo(title, repoRef, repoDir string, force bool) error {
+	if !fileio.PathExists(repoDir) {
+		return nil
+	}
+
 	// Check if repo is modified.
 	modified, err := IsModified(repoDir)
 	if err != nil {

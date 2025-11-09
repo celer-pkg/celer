@@ -3,11 +3,13 @@ package cmds
 import (
 	"celer/configs"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -27,9 +29,10 @@ func TestClean(t *testing.T) {
 	})
 
 	// Init celer.
-	const (
-		platform = "x86_64-linux-ubuntu-22.04-gcc-11.5"
-		project  = "project_test_clean"
+	var (
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
+		project         = "project_test_clean"
 	)
 
 	celer := configs.NewCeler()
@@ -116,11 +119,14 @@ func TestClean(t *testing.T) {
 			}
 		}
 
-		// nasm is build in source, it should not be cleaned.
-		modified, err := git.IsModified(filepath.Join(dirs.BuildtreesDir, "nasm@2.16.03", "src"))
-		check(err)
-		if modified {
-			t.Fatal("nasm@2.16.03 src dir should be cleaned")
+		// In windows, nasm is a prebuilt port, its source code is not copied to buildtrees.
+		if runtime.GOOS != "windows" {
+			// nasm is build in source, it should not be cleaned.
+			modified, err := git.IsModified(filepath.Join(dirs.BuildtreesDir, "nasm@2.16.03", "src"))
+			check(err)
+			if modified {
+				t.Fatal("nasm@2.16.03 src dir should be cleaned")
+			}
 		}
 	})
 }

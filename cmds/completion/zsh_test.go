@@ -3,6 +3,7 @@ package completion
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -61,6 +62,10 @@ func TestZshRegisterAndUnregisterRunCommand_ZSH(t *testing.T) {
 }
 
 func TestZshInstallAndUninstallCompletion_ZSH(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("zsh is not supported in Windows")
+	}
+
 	var fileExists = func(path string) bool {
 		_, err := os.Stat(path)
 		return err == nil
