@@ -5,36 +5,36 @@ name: windows-amd64-msvc-14.44
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   build_test:
     runs-on: windows-2022
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup MSVC
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-        toolset: 14.44.35207
-        arch: x64
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          toolset: 14.44.35207
+          arch: x64
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.22.1'
-    
-    - name: Build
-      run: go build -v ./...
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.22.1"
 
-    - name: Test(MSVC)
-      env:
-        GITHUB_ACTION: ON
-        TEST_MSVC: ON
-      run: |
-        go test -v ./depcheck/... -timeout 1h
-        go test -v ./configs/...  -timeout 1h
-        go test -v ./pkgs/git/... -timeout 1h
-        go test -v ./cmds/... -timeout 1h
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test(MSVC)
+        env:
+          TEST_IN_GITHUB: ON
+          TEST_MSVC: ON
+        run: |
+          go test -v ./depcheck/... -timeout 1h
+          go test -v ./configs/...  -timeout 1h
+          go test -v ./pkgs/git/... -timeout 1h
+          go test -v ./cmds/... -timeout 1h

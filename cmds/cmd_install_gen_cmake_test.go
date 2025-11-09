@@ -34,7 +34,7 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 
 	var (
 		nameVersion     = "prebuilt-x264@stable"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTION") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("TEST_IN_GITHUB") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project         = "project_test_install"
 	)
@@ -104,7 +104,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 
 	var (
 		nameVersion     = "prebuilt-ffmpeg-interface@5.1.6"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTION") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("TEST_IN_GITHUB") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project         = "project_test_install"
 	)
@@ -175,7 +175,7 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 
 	var (
 		nameVersion     = "prebuilt-ffmpeg-components@5.1.6"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTION") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("TEST_IN_GITHUB") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project         = "project_test_install"
 	)
@@ -246,7 +246,7 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 
 	var (
 		nameVersion     = "x264@stable"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTION") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("TEST_IN_GITHUB") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project         = "project_test_install"
 	)
@@ -316,7 +316,7 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 
 	var (
 		nameVersion     = "ffmpeg@5.1.6"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTION") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("TEST_IN_GITHUB") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project         = "project_test_install"
 	)
@@ -386,7 +386,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 
 	var (
 		nameVersion     = "prebuilt-eigen-interface@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTION") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("TEST_IN_GITHUB") == "ON", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
 		project         = "project_test_install"
 	)
