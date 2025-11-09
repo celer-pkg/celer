@@ -30,10 +30,9 @@ jobs:
         run: go build -v ./...
 
       - name: Test(MSVC)
-        env:
-          TEST_IN_GITHUB: ON
-          TEST_MSVC: ON
         run: |
+          setx TEST_IN_GITHUB ON
+          setx TEST_MSVC ON
           go test -v ./depcheck/... -timeout 1h
           go test -v ./configs/...  -timeout 1h
           go test -v ./pkgs/git/... -timeout 1h
