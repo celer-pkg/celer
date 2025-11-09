@@ -5,7 +5,6 @@ import (
 	"celer/pkgs/dirs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"testing"
 )
@@ -47,16 +46,11 @@ func TestDepend_Without_Dev(t *testing.T) {
 	depedencies, err := cmdDepend.query("eigen@3.4.0")
 	check(err)
 
-	var expected []string
-	if runtime.GOOS == "windows" {
-		expected = []string{"gstreamer@1.26.0"}
-	} else {
-		expected = []string{
-			"ceres-solver@2.1.0",
-			"gstreamer@1.26.0",
-			"gtsam@4.2.0",
-			"lbfgspp@0.3.0",
-		}
+	expected := []string{
+		"ceres-solver@2.1.0",
+		"gstreamer@1.26.0",
+		"gtsam@4.2.0",
+		"lbfgspp@0.3.0",
 	}
 
 	if !equals(depedencies, expected) {
