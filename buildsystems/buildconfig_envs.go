@@ -87,10 +87,21 @@ func (b *BuildConfig) setupEnvs() {
 		}
 	}
 
-	// This allows the bin to locate the libraries in the relative lib dir.
-	if strings.ToLower(b.PortConfig.Toolchain.SystemName) == "linux" &&
-		b.buildSystem.Name() == "makefiles" {
-		b.envBackup.setenv("LDFLAGS", env.JoinSpace("-Wl,-rpath=\\$$ORIGIN/../lib", os.Getenv("LDFLAGS")))
+	if b.buildSystem.Name() != "cmake" {
+		// This allows the bin to locate the libraries in the relative lib dir.
+		if strings.ToLower(b.PortConfig.Toolchain.SystemName) == "linux" &&
+			b.buildSystem.Name() == "makefiles" {
+			b.envBackup.setenv("LDFLAGS", env.JoinSpace("-Wl,-rpath=\\$$ORIGIN/../lib", os.Getenv("LDFLAGS")))
+		}
+
+		// C/C++ standard.
+		b.setLanguageStandards()
+
+		// Set CFLGAGS/CXXFLAGS/LDFLAGS.
+		b.setEnvFlags()
+
+		// Setup pkg-config.
+		b.setupPkgConfig()
 	}
 
 	// C/C++ standard.
@@ -135,7 +146,7 @@ func (b BuildConfig) setupPkgConfig() {
 
 	switch runtime.GOOS {
 	case "windows":
-		if b.buildSystem.Name() == "meson" {
+		if b.buildSystem.Name() == "meson" || b.buildSystem.Name() == "b2" {
 			// For meson in windows, we use windows version pkgconf,
 			// so we need to provider with windows format path.
 			configPaths = []string{
@@ -204,13 +215,16 @@ func (b *BuildConfig) setLanguageStandards() {
 	if cstandard != "" {
 		var cflag string
 		switch b.PortConfig.Toolchain.Name {
-		case "msvc":
-			cflag = "/std:" + cstandard
-		case "gcc":
+		case "gcc", "clang":
 			cflag = "-std=" + cstandard
+
+		case "msvc", "clang-cl":
+			cflag = "/std:" + cstandard
+
 		default:
 			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
 		}
+
 		b.envBackup.setenv("CFLAGS", env.JoinSpace(cflag, os.Getenv("CFLAGS")))
 	}
 
@@ -219,13 +233,16 @@ func (b *BuildConfig) setLanguageStandards() {
 	if cxxstandard != "" {
 		var cxxflag string
 		switch b.PortConfig.Toolchain.Name {
-		case "msvc":
-			cxxflag = "/std:" + cxxstandard
-		case "gcc":
+		case "gcc", "clang":
 			cxxflag = "-std=" + cxxstandard
+
+		case "msvc", "clang-cl":
+			cxxflag = "/std:" + cxxstandard
+
 		default:
 			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
 		}
+
 		b.envBackup.setenv("CXXFLAGS", env.JoinSpace(cxxflag, os.Getenv("CXXFLAGS")))
 	}
 }
@@ -264,50 +281,111 @@ func (b BuildConfig) rollbackEnvs() {
 }
 
 func (b *BuildConfig) appendIncludeDir(includeDir string) {
-	var newAppended = false
-	includeDir = "-isystem " + includeDir
+	// Windows: MSVC/Clang-cl ------------------------------ Linux: GCC/Clang
+	// INCLUDE=xxx\include;%INCLUDE%  ---------------------- -I "xxx\include"
+	// CL=/external:anglebrackets /external:W0 %CL% -------- -isystem "xxx\include"
 
-	cflags := strings.Fields(os.Getenv("CFLAGS"))
-	cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
-
-	// Append include dir if not exists.
-	if !slices.Contains(cflags, includeDir) {
-		cflags = append(cflags, includeDir)
-		newAppended = true
-	}
-	if !slices.Contains(cxxflags, includeDir) {
-		cxxflags = append(cxxflags, includeDir)
-		newAppended = true
+	// Toolchain may throw error if include dir not exists.
+	if !fileio.PathExists(includeDir) {
+		return
 	}
 
-	// Update environment variable with modified flags.
-	if newAppended {
-		b.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
-		b.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+	switch b.PortConfig.Toolchain.Name {
+	case "gcc", "clang":
+		cflags := strings.Fields(os.Getenv("CFLAGS"))
+		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
+
+		// Append include dir if not exists.
+		includeDir = "-isystem " + includeDir
+		var newAppended = false
+		if !slices.Contains(cflags, includeDir) {
+			cflags = append(cflags, includeDir)
+			newAppended = true
+		}
+		if !slices.Contains(cxxflags, includeDir) {
+			cxxflags = append(cxxflags, includeDir)
+			newAppended = true
+		}
+
+		// Update environment variable with modified flags.
+		if newAppended {
+			b.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
+			b.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+		}
+
+	case "msvc", "clang-cl":
+		// Append include dir if not exists.
+		includes := strings.Fields(os.Getenv("INCLUDE"))
+		if !slices.Contains(includes, includeDir) {
+			includes = append(includes, includeDir)
+			b.envBackup.setenv("INCLUDE", strings.Join(includes, ";"))
+		}
+
+		// Avoid warning by setting "CL=/external:anglebrackets /external:W0 %CL%"
+		cl := strings.Fields(os.Getenv("CL"))
+		if !slices.Contains(cl, "/external:anglebrackets") {
+			cl = append(cl, "/external:anglebrackets")
+			b.envBackup.setenv("CL", strings.Join(cl, " "))
+		}
+
+		// Below setting seems cannot work, it seems that MSVC use "/external:W3" by default,
+		// and we cannot change it.
+		if !slices.Contains(cl, "/external:W0") {
+			cl = append(cl, "/external:W0")
+			b.envBackup.setenv("CL", strings.Join(cl, " "))
+		}
+
+	default:
+		panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
 	}
 }
 
 func (b *BuildConfig) appendLibDir(libDir string) {
-	var newAppended = false
+	// Windows: MSVC/Clang-cl ----------- Linux: GCC/Clang
+	// LIB=xxx\lib;%LIB% ---------------- -L "xxx/lib"
+	// LINK=mylib.lib %LINK% ------------ -l "mylib"
 
-	ldflags := os.Getenv("LDFLAGS")
-	parts := strings.Fields(ldflags)
-
-	lFlag := "-L" + libDir
-	rFlag := "-Wl,-rpath-link," + libDir
-
-	// Add -L/rpath-link flag.
-	if !slices.Contains(parts, lFlag) {
-		parts = append(parts, lFlag)
-		newAppended = true
-	}
-	if !slices.Contains(parts, rFlag) {
-		parts = append(parts, rFlag)
-		newAppended = true
+	// Toolchain may throw error if lib dir not exists.
+	if !fileio.PathExists(libDir) {
+		return
 	}
 
-	// Update environment variable with modified flags.
-	if newAppended {
-		b.envBackup.setenv("LDFLAGS", strings.Join(parts, " "))
+	switch b.PortConfig.Toolchain.Name {
+	case "gcc", "clang":
+		ldflags := os.Getenv("LDFLAGS")
+		parts := strings.Fields(ldflags)
+
+		// -L flag: used to specify the directory that libraries looking for directly.
+		linkFlag := "-L" + libDir
+
+		// -Wl,-rpath-link, used to specify the directory that libraries looking for indirectly.
+		rpathlinkFlag := "-Wl,-rpath-link," + libDir
+
+		var newAppended = false
+		if !slices.Contains(parts, linkFlag) {
+			parts = append(parts, linkFlag)
+			newAppended = true
+		}
+		if !slices.Contains(parts, rpathlinkFlag) {
+			parts = append(parts, rpathlinkFlag)
+			newAppended = true
+		}
+
+		// Update environment variable with modified flags.
+		if newAppended {
+			b.envBackup.setenv("LDFLAGS", strings.Join(parts, " "))
+		}
+
+	case "msvc", "clang-cl":
+		libs := os.Getenv("LIB")
+		parts := strings.Fields(libs)
+
+		if !slices.Contains(parts, libDir) {
+			parts = append(parts, libDir)
+			b.envBackup.setenv("LIB", strings.Join(parts, ";"))
+		}
+
+	default:
+		panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
 	}
 }

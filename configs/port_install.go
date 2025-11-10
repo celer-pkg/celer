@@ -402,7 +402,7 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 			return err
 		}
 	} else {
-		color.Printf(color.Gray, "✔ no dependencies or dev_dependencies required. --\n")
+		color.Printf(color.Gray, "✔ no dependencies or dev_dependencies required. \n")
 	}
 
 	if err := p.doInstallFromSource(options); err != nil {
@@ -424,10 +424,11 @@ func (p Port) installDependencies(options InstallOptions) error {
 		}
 
 		// Init port.
-		var port Port
-		port.Parent = p.NameVersion()
-		port.DevDep = true
-		port.Native = true
+		var port = Port{
+			DevDep: true,
+			Native: true,
+			Parent: p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
@@ -452,9 +453,10 @@ func (p Port) installDependencies(options InstallOptions) error {
 		}
 
 		// Init port.
-		var port Port
-		port.DevDep = p.DevDep
-		port.Parent = p.NameVersion()
+		var port = Port{
+			DevDep: p.DevDep,
+			Parent: p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}

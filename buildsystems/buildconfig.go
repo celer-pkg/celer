@@ -777,11 +777,11 @@ func (b BuildConfig) getLogPath(suffix string) string {
 
 // msvcEnvs provider the MSVC environment variables required by msys2.
 func (b BuildConfig) msvcEnvs() (string, error) {
-	// Append envs if exist.
-	var envs []string
+	// Append args if exist.
+	var args []string
 	var appendEnv = func(envKey, envValue string) {
 		if envValue != "" {
-			envs = append(envs, fmt.Sprintf(`%s="%s"`, envKey, envValue))
+			args = append(args, fmt.Sprintf(`%s="%s"`, envKey, envValue))
 		}
 	}
 
@@ -899,12 +899,15 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	appendEnv("PATH", fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
 	appendEnv("INCLUDE", msvcEnvs["INCLUDE"])
 	appendEnv("LIB", msvcEnvs["LIB"])
+	appendEnv("CC", b.PortConfig.Toolchain.CC)
+	appendEnv("CXX", b.PortConfig.Toolchain.CXX)
 
-	return strings.Join(envs, " "), nil
+	return strings.Join(args, " "), nil
 }
 
 func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 	// Read MSVC environment variables.
+	// TODO: the `x64` may be different depending on the platform.
 	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.Toolchain.MSVC.VCVars)
 	executor := cmd.NewExecutor("read msvc envs", command)
 	output, err := executor.ExecuteOutput()
@@ -914,11 +917,16 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 
 	// Parse environment variables from output.
 	var msvcEnvs = make(map[string]string)
-	lines := strings.Split(output, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(output, "\n")
+	for line := range lines {
 		line = strings.TrimSpace(line)
 		if line != "" && strings.Contains(line, "=") {
 			parts := strings.Split(line, "=")
+
+			// Unify "Path" to "PATH".
+			if parts[0] == "Path" {
+				parts[0] = "PATH"
+			}
 			msvcEnvs[parts[0]] = parts[1]
 		}
 	}

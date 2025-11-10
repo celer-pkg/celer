@@ -3,6 +3,7 @@ package git
 import (
 	"bufio"
 	"celer/pkgs/cmd"
+	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -82,6 +83,10 @@ func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, repoDir str
 
 // UpdateRepo update git repo.
 func UpdateRepo(title, repoRef, repoDir string, force bool) error {
+	if !fileio.PathExists(repoDir) {
+		return nil
+	}
+
 	// Check if repo is modified.
 	modified, err := IsModified(repoDir)
 	if err != nil {
@@ -263,8 +268,7 @@ func ApplyPatch(port, repoDir, patchFile string) error {
 	} else {
 		// Others, assume it's a regular patch file.
 		title := fmt.Sprintf("[patch %s]", port)
-		args := []string{"-Np1", "-i", patchFile}
-		executor := cmd.NewExecutor(title, "patch", args...)
+		executor := cmd.NewExecutor(title, "patch", "-Np1", "-i", patchFile)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
 			return err

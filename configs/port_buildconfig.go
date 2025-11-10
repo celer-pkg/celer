@@ -100,6 +100,9 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 				return err
 			}
 		}
+
+		// Update matched config.
+		p.MatchedConfig = p.findMatchedConfig(p.ctx.BuildType())
 	}
 
 	return nil

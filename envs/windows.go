@@ -40,6 +40,7 @@ func CleanEnv() {
 	programW6432 := os.Getenv("ProgramW6432")
 	psModulePath := os.Getenv("PSModulePath")
 	portsRepo := os.Getenv("CELER_PORTS_REPO")
+	githubActions := os.Getenv("GITHUB_ACTIONS")
 
 	os.Clearenv()
 
@@ -73,6 +74,7 @@ func CleanEnv() {
 	os.Setenv("CommonProgramW6432", commonProgramW6432)
 	os.Setenv("PSModulePath", psModulePath)
 	os.Setenv("CELER_PORTS_REPO", portsRepo)
+	os.Setenv("GITHUB_ACTIONS", githubActions)
 
 	// Reset PATH.
 	var paths []string
@@ -83,13 +85,16 @@ func CleanEnv() {
 	paths = append(paths, `C:\Windows\System32\downlevel`)
 	paths = append(paths, `C:\Windows\SysWOW64\WindowsPowerShell\v1.0`)
 	paths = append(paths, `C:\Windows\System32\WindowsPowerShell\v1.0`)
+	paths = append(paths, `C:\ProgramData\chocolatey\bin`)
 
 	// Add python launcher path so that we can call py from cmd.
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		panic("Cannot get home directory in your system.")
+		panic("cannot get home directory in your system.")
 	}
 	paths = append(paths, filepath.Join(homeDir, `AppData\Local\Programs\Python\Launcher`))
 
+	// Use PATH instead of Path.
+	os.Unsetenv("Path")
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
 }

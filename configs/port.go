@@ -91,7 +91,7 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 		if p.Parent != "" {
 			return fmt.Errorf("%s defined in %s is not exists", nameVersion, p.Parent)
 		} else {
-			return fmt.Errorf("port %s does not exists", nameVersion)
+			return fmt.Errorf("port does not exist: %s", nameVersion)
 		}
 	}
 
@@ -108,9 +108,9 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	// Set matchedConfig as prebuilt config when no config found in toml.
 	p.MatchedConfig = p.findMatchedConfig(p.ctx.BuildType())
 	if p.MatchedConfig == nil {
-		return fmt.Errorf("no matched config found for %s", p.NameVersion())
-	} else if p.MatchedConfig.BuildSystem == "prebuilt" &&
-		p.MatchedConfig.Url != "" {
+		return fmt.Errorf("%w: %s", ErrNotMatchedConfig, p.NameVersion())
+	}
+	if p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "" {
 		p.Package.Url = p.MatchedConfig.Url
 	}
 
@@ -222,10 +222,6 @@ func (p *Port) findMatchedConfig(buildType string) *buildsystems.BuildConfig {
 			}
 
 			return &p.BuildConfigs[index]
-		} else {
-			if config.BuildSystem == "prebuilt" || config.BuildSystem == "nobuild" {
-				return &config
-			}
 		}
 	}
 
@@ -337,8 +333,9 @@ func (p Port) toolchain() *buildsystems.Toolchain {
 	}
 
 	var bsToolchain buildsystems.Toolchain
-	bsToolchain.Native = p.Native || toolchain.GetName() == "msvc" ||
-		(toolchain.GetName() == "gcc" && toolchain.GetPath() == "/usr/bin")
+	nativeGcc := toolchain.GetName() == "gcc" && toolchain.GetPath() == "/usr/bin"
+	visualStudioToolchain := strings.Contains(toolchain.GetFullPath(), "Microsoft Visual Studio")
+	bsToolchain.Native = p.Native || visualStudioToolchain || nativeGcc
 	bsToolchain.Name = toolchain.GetName()
 	bsToolchain.Version = toolchain.GetVersion()
 	bsToolchain.Host = toolchain.GetHost()

@@ -60,7 +60,9 @@ type WindowsKit interface {
 }
 
 type MSVC struct {
-	VCVars string
-	MT     string
-	RC     string
+	VCVars      string
+	KitIncludes []string
+	KitLibs     []string
+	MT          string
+	RC          string
 }

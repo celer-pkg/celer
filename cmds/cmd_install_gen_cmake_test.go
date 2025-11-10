@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
@@ -13,6 +14,8 @@ import (
 )
 
 func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
+	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -32,12 +35,13 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion = "prebuilt-x264-single-target@stable"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
-		project     = "project_test_install"
+		nameVersion     = "prebuilt-x264@stable"
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
+		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -58,6 +62,9 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/single_target"),
@@ -79,6 +86,8 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
+	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -98,12 +107,13 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion = "prebuilt-ffmpeg-interface@5.1.6"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
-		project     = "project_test_install"
+		nameVersion     = "prebuilt-ffmpeg-interface@5.1.6"
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
+		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -118,13 +128,16 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	check(err)
 
 	// Build test project.
-	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
+	buildDir := filepath.Join(dirs.TmpFilesDir, "build_cmake_test")
 	check(os.MkdirAll(buildDir, os.ModePerm))
 	t.Cleanup(func() {
 		check(os.RemoveAll(buildDir))
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/interface_libraries"),
@@ -145,7 +158,9 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	}))
 }
 
-func TestInstall_Generate_CMake_Prebuilt_Muti_Components(t *testing.T) {
+func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
+	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -165,12 +180,13 @@ func TestInstall_Generate_CMake_Prebuilt_Muti_Components(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion = "prebuilt-ffmpeg-multi-components@5.1.6"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
-		project     = "project_test_install"
+		nameVersion     = "prebuilt-ffmpeg-components@5.1.6"
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
+		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -192,9 +208,12 @@ func TestInstall_Generate_CMake_Prebuilt_Muti_Components(t *testing.T) {
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
-		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/muti_components"),
+		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/components"),
 		"-B", buildDir,
 	)
 	executer.SetWorkDir(buildDir)
@@ -213,6 +232,8 @@ func TestInstall_Generate_CMake_Prebuilt_Muti_Components(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
+	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -232,12 +253,13 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion = "x264@stable"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
-		project     = "project_test_install"
+		nameVersion     = "x264@stable"
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
+		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -258,6 +280,9 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_source/single_target"),
@@ -278,7 +303,9 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	}))
 }
 
-func TestInstall_Generate_CMake_Source_Multi_Components(t *testing.T) {
+func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
+	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -298,12 +325,13 @@ func TestInstall_Generate_CMake_Source_Multi_Components(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion = "ffmpeg@5.1.6"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
-		project     = "project_test_install"
+		nameVersion     = "ffmpeg@5.1.6"
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
+		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -324,9 +352,12 @@ func TestInstall_Generate_CMake_Source_Multi_Components(t *testing.T) {
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
-		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_source/muti_components"),
+		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_source/components"),
 		"-B", buildDir,
 	)
 	executer.SetWorkDir(buildDir)
@@ -345,6 +376,8 @@ func TestInstall_Generate_CMake_Source_Multi_Components(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
+	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -364,12 +397,13 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion = "prebuilt-eigen-interface@3.4.0"
-		platform    = expr.If(runtime.GOOS == "windows", "x86_64-windows-msvc-14.44", "x86_64-linux-ubuntu-22.04")
-		project     = "project_test_install"
+		nameVersion     = "prebuilt-eigen-interface@3.4.0"
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5")
+		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -391,6 +425,9 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	})
 
 	// Build test project.
+	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
+		t.Fatal(err)
+	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/interface_head_only"),

@@ -39,8 +39,8 @@ func (t *Toolchain) Validate() error {
 		return fmt.Errorf("toolchain.name is empty")
 	}
 	t.Name = strings.ToLower(t.Name)
-	if t.Name != "gcc" && t.Name != "msvc" && t.Name != "clang" {
-		return fmt.Errorf("toolchain.name should be 'gcc', 'msvc' or 'clang'")
+	if t.Name != "gcc" && t.Name != "msvc" && t.Name != "clang" && t.Name != "clang-cl" {
+		return fmt.Errorf("toolchain.name should be 'gcc', 'msvc', 'clang' or 'clang-cl'")
 	}
 
 	// Validate toolchain.system_name.
@@ -54,7 +54,7 @@ func (t *Toolchain) Validate() error {
 	}
 
 	// Validate toolchain prefix path and convert to absolute path.
-	if t.Name != "msvc" && t.CrosstoolPrefix == "" {
+	if t.Name != "msvc" && t.Name != "clang" && t.Name != "clang-cl" && t.CrosstoolPrefix == "" {
 		return fmt.Errorf("toolchain.crosstool_prefix should be like 'x86_64-linux-gnu-', but it's empty")
 	}
 
@@ -65,31 +65,53 @@ func (t *Toolchain) Validate() error {
 
 	// Validate toolchain.cc.
 	if strings.TrimSpace(t.CC) == "" {
-		if t.Name == "msvc" {
+		switch t.Name {
+		case "msvc":
 			t.CC = "cl.exe"
-		} else {
+		case "clang":
+			t.CC = "clang.exe"
+		case "clang-cl":
+			t.CC = "clang-cl.exe"
+		default:
 			return fmt.Errorf("toolchain.cc is empty")
 		}
 	}
 
 	// Validate toolchain.cxx.
 	if strings.TrimSpace(t.CXX) == "" {
-		if t.Name == "msvc" {
+		switch t.Name {
+		case "msvc":
 			t.CXX = "cl.exe"
-		} else {
+		case "clang":
+			t.CXX = "clang++.exe"
+		case "clang-cl":
+			t.CXX = "clang-cl.exe"
+		default:
 			return fmt.Errorf("toolchain.cxx is empty")
 		}
 	}
 
 	if strings.TrimSpace(t.LD) == "" {
-		if t.Name == "msvc" {
+		switch t.Name {
+		case "msvc":
 			t.LD = "link.exe"
+		case "clang":
+			t.LD = "clang.exe"
+		case "clang-cl":
+			t.LD = "clang-cl.exe"
+		default:
+			return fmt.Errorf("toolchain.ld is empty")
 		}
 	}
 
 	if strings.TrimSpace(t.AR) == "" {
-		if t.Name == "msvc" {
+		switch t.Name {
+		case "msvc":
 			t.AR = "lib.exe"
+		case "clang", "clang-cl":
+			t.AR = "llvm-ar.exe"
+		default:
+			return fmt.Errorf("toolchain.ar is empty")
 		}
 	}
 
@@ -113,13 +135,26 @@ func (t *Toolchain) Validate() error {
 		}
 
 		if state.IsDir() {
-			if t.Name == "msvc" {
+			switch t.Name {
+			case "msvc":
 				localPath = strings.ReplaceAll(localPath, `/`, `\`)
 				t.rootDir = localPath
-
-				// Runtime paths.
 				t.fullpath = fmt.Sprintf(`%s\VC\Tools\MSVC\%s\bin\Host%s\x64`, localPath, t.Version, t.arch())
+
+			case "clang-cl":
+				localPath = strings.ReplaceAll(localPath, `/`, `\`)
+				t.rootDir = localPath
+				t.fullpath = fmt.Sprintf(`%s\VC\Tools\Llvm\%s\bin`, localPath, t.arch())
+
+			case "clang":
+				localPath = strings.ReplaceAll(localPath, `/`, `\`)
+				t.rootDir = localPath
+				t.fullpath = fmt.Sprintf(`%s\VC\Tools\Llvm\x64\bin`, localPath)
+
+			default:
+				return fmt.Errorf("toolchain.path of %s is not a directory", t.Url)
 			}
+
 			os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
 		} else {
 			// Even local must be a archive file and path should not be empty.
@@ -171,7 +206,7 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 }
 
 // Detect detect local installed MSVC.
-func (t *Toolchain) Detect() error {
+func (t *Toolchain) Detect(platformName string) error {
 	if err := buildtools.CheckTools(t.ctx, "vswhere"); err != nil {
 		return fmt.Errorf("vswhere is not available: %w", err)
 	}
@@ -190,17 +225,26 @@ func (t *Toolchain) Detect() error {
 		return fmt.Errorf("msvc not found, please install msvc first")
 	}
 
+	switch platformName {
+	case "", "msvc", "clang-cl":
+		version, err := t.findLatestMSVCVersion(filepath.Join(msvcDir, "VC", "Tools", "MSVC"))
+		if err != nil {
+			return err
+		}
+		t.Version = version
+
+	case "clang":
+		t.Version = "" // clang version is not required
+
+	default:
+		return fmt.Errorf("unsupported platform name: %s", platformName)
+	}
+
 	t.Url = "file:///" + msvcDir
-	t.Name = "msvc"
+	t.Name = expr.If(platformName == "", "msvc", platformName)
 	t.SystemName = "Windows"
 	t.SystemProcessor = "x86_64"
 	t.Host = "x86_64-w64-mingw32"
-
-	version, err := t.findLatestMSVCVersion(filepath.Join(msvcDir, "VC", "Tools", "MSVC"))
-	if err != nil {
-		return err
-	}
-	t.Version = version
 
 	if err := t.Validate(); err != nil {
 		return err
@@ -214,15 +258,13 @@ func (t *Toolchain) Detect() error {
 }
 
 func (Toolchain) arch() string {
-	arch := runtime.GOARCH
-
-	switch arch {
+	switch runtime.GOARCH {
 	case "amd64", "arm64":
 		return "x64"
 	case "386", "arm":
 		return "x86"
 	default:
-		panic("unsupported arch: " + arch)
+		panic("unsupported arch: " + runtime.GOARCH)
 	}
 }
 
@@ -284,6 +326,16 @@ func (w *WindowsKit) Detect(msvc *context.MSVC) error {
 	}
 	w.Version = w.normalizeVersion(version)
 
+	// Append includes.
+	msvc.KitIncludes = append(msvc.KitIncludes, filepath.Join(w.InstalledDir, "include", w.Version, "um"))
+	msvc.KitIncludes = append(msvc.KitIncludes, filepath.Join(w.InstalledDir, "include", w.Version, "shared"))
+	msvc.KitIncludes = append(msvc.KitIncludes, filepath.Join(w.InstalledDir, "include", w.Version, "ucrt"))
+
+	// Append libs.
+	msvc.KitLibs = append(msvc.KitLibs, filepath.Join(w.InstalledDir, "lib", w.Version, "um"))
+	msvc.KitLibs = append(msvc.KitLibs, filepath.Join(w.InstalledDir, "lib", w.Version, "ucrt"))
+
+	// Append bin files.
 	binDir := filepath.Join(w.InstalledDir, "bin", w.Version, "x64")
 	msvc.MT = filepath.Join(binDir, "mt.exe")
 	msvc.RC = filepath.Join(binDir, "rc.exe")

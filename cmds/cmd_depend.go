@@ -5,6 +5,7 @@ import (
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
+	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -53,42 +54,48 @@ func (d dependCmd) Command(celer *configs.Celer) *cobra.Command {
 
 func (d dependCmd) query(target string) ([]string, error) {
 	var libraries []string
-	if fileio.PathExists(dirs.PortsDir) {
-		if err := filepath.WalkDir(dirs.PortsDir, func(path string, entity fs.DirEntry, err error) error {
-			if err != nil {
+	if !fileio.PathExists(dirs.PortsDir) {
+		return libraries, nil
+	}
+
+	if err := filepath.WalkDir(dirs.PortsDir, func(path string, entity fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !entity.IsDir() && entity.Name() == "port.toml" {
+			libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
+			libVersion := filepath.Base(filepath.Dir(path))
+			nameVersion := libName + "@" + libVersion
+
+			var port configs.Port
+			if err := port.Init(d.celer, nameVersion); err != nil {
+				if errors.Is(err, configs.ErrNotMatchedConfig) {
+					return nil
+				}
 				return err
 			}
 
-			if !entity.IsDir() && entity.Name() == "port.toml" {
-				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
-				libVersion := filepath.Base(filepath.Dir(path))
-				nameVersion := libName + "@" + libVersion
-
-				var port configs.Port
-				if err := port.Init(d.celer, nameVersion); err != nil {
-					return err
-				}
-
-				if d.dev {
-					for _, dependency := range port.MatchedConfig.DevDependencies {
-						if dependency == target {
-							libraries = append(libraries, nameVersion)
-						}
+			if d.dev {
+				for _, dependency := range port.MatchedConfig.DevDependencies {
+					if dependency == target {
+						libraries = append(libraries, nameVersion)
 					}
-				} else {
-					for _, dependency := range port.MatchedConfig.Dependencies {
-						if dependency == target {
-							libraries = append(libraries, nameVersion)
-						}
+				}
+			} else {
+				for _, dependency := range port.MatchedConfig.Dependencies {
+					if dependency == target {
+						libraries = append(libraries, nameVersion)
 					}
 				}
 			}
-
-			return nil
-		}); err != nil {
-			return nil, err
 		}
+
+		return nil
+	}); err != nil {
+		return nil, err
 	}
+
 	return libraries, nil
 }
 

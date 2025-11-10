@@ -1,7 +1,7 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: Go
+name: ubuntu-amd64-clang-21.1.4
 
 on:
   push:
@@ -10,9 +10,8 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   build_test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
 
@@ -24,13 +23,17 @@ jobs:
     - name: Install build-essential
       run: sudo apt update && sudo apt install -y build-essential
 
+    - name: Install clang
+      run: sudo apt update && sudo apt install -y clang
+
     - name: Build
       run: go build -v ./...
 
     - name: Test
+      env:
+        TEST_CLANG: ON
       run: |
         go test -v ./depcheck/... -timeout 1h
-        go test -v ./configs/... -timeout 1h
+        go test -v ./configs/...  -timeout 1h
         go test -v ./pkgs/git/... -timeout 1h
-        go test -v ./cmds/completion/... -timeout 1h
         go test -v ./cmds/... -timeout 1h

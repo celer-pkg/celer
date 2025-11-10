@@ -31,7 +31,7 @@ func SetupPython3(extraTools *[]string) error {
 	// Validate python3 in windows only, since linux always has builtin python always.
 	switch runtime.GOOS {
 	case "windows":
-		python := python3{}
+		var python python3
 		if err := python.validate(); err != nil {
 			return err
 		}

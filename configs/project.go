@@ -20,8 +20,9 @@ type Project struct {
 	Envs            []string          `toml:"envs"`
 	Micros          []string          `toml:"micros"`
 	Flags           []string          `toml:"flags"`
-	OptimizeLinux   *context.Optimize `toml:"optimize_linux"`
-	OptimizeWindows *context.Optimize `toml:"optimize_windows"`
+	OptimizeGCC     *context.Optimize `toml:"optimize_gcc"`
+	OptimizeMSVC    *context.Optimize `toml:"optimize_msvc"`
+	OptimizeClang   *context.Optimize `toml:"optimize_clang"`
 	Optimize        *context.Optimize `toml:"optimize"`
 
 	// Internal fields.
@@ -41,7 +42,7 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 	// Check if project file exists.
 	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
 	if !fileio.PathExists(projectPath) {
-		return fmt.Errorf("project %s does not exists", projectName)
+		return fmt.Errorf("project does not exist: %s", projectName)
 	}
 
 	// Read conf/projects/<project_name>.toml.
@@ -82,14 +83,14 @@ func (p Project) Write(platformPath string) error {
 	}
 
 	// Default opt level values.
-	p.OptimizeWindows = &context.Optimize{
+	p.OptimizeMSVC = &context.Optimize{
 		Debug:          "/MDd /Zi /Ob0 /Od /RTC1",
 		Release:        "/MD /O2 /Ob2 /DNDEBUG",
 		RelWithDebInfo: "/MD /Zi /O2 /Ob1 /DNDEBUG",
 		MinSizeRel:     "/MD /O1 /Ob1 /DNDEBUG",
 	}
 
-	p.OptimizeLinux = &context.Optimize{
+	p.OptimizeGCC = &context.Optimize{
 		Debug:          "-g",
 		Release:        "-O3",
 		RelWithDebInfo: "-O2 -g",

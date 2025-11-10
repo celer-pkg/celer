@@ -94,11 +94,14 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 				CmdLine:    fmt.Sprintf(`/c %s`, e.cmd),
 				HideWindow: true,
 			}
-			cmd.Env = os.Environ()
 		} else {
 			cmd = exec.Command(e.cmd, e.args...)
 		}
 		cmd.Env = os.Environ()
+	}
+
+	if e.workDir != "" && !pathExists(e.workDir) {
+		return fmt.Errorf("work dir does not exist: %s", e.workDir)
 	}
 
 	cmd.Dir = e.workDir
@@ -140,4 +143,13 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 	}
 
 	return nil
+}
+
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+
+	return !os.IsNotExist(err)
 }

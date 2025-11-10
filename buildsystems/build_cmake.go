@@ -58,6 +58,16 @@ func (c cmake) configureOptions() ([]string, error) {
 
 	var options = slices.Clone(c.Options)
 
+	// When use clang-cl with visual studio, we must to set toolset by "-T".
+	if runtime.GOOS == "windows" && strings.HasPrefix(c.CMakeGenerator, "Visual Studio") {
+		switch c.PortConfig.Toolchain.Name {
+		case "clang-cl":
+			options = append(options, "-T ClangCL")
+		case "clang":
+			return nil, fmt.Errorf("visual studio's clang is not supported with visual studio generator")
+		}
+	}
+
 	if !c.BuildConfig.DevDep {
 		options = append(options, fmt.Sprintf("-DCMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir))
 	}
@@ -65,25 +75,28 @@ func (c cmake) configureOptions() ([]string, error) {
 	// Set CMAKE_INSTALL_PREFIX.
 	options = append(options, "-DCMAKE_INSTALL_PREFIX="+c.PortConfig.PackageDir)
 
-	if c.PortConfig.Toolchain.Name == "msvc" {
-		// MSVC doesn't support set `CMAKE_BUILD_TYPE` or `--config` during configure.
+	// Set CMAKE_BUILD_TYPE.
+	if c.multiConfigGenerator() {
+		// CMAKE_BUILD_TYPE is not supported in multi-config generator.
 		options = slices.DeleteFunc(options, func(element string) bool {
-			return strings.Contains(element, "CMAKE_BUILD_TYPE") || strings.Contains(element, "--config")
+			return strings.HasPrefix(element, "-DCMAKE_BUILD_TYPE=")
 		})
 	} else {
 		// Append `CMAKE_BUILD_TYPE` if not contains it.
-		if c.DevDep {
-			options = append(options, "-DCMAKE_BUILD_TYPE=Release")
-		} else {
-			options = append(options, "-DCMAKE_BUILD_TYPE="+c.BuildType)
+		hasCMakeBuildType := slices.ContainsFunc(options, func(opt string) bool {
+			return strings.HasPrefix(opt, "-DCMAKE_BUILD_TYPE=")
+		})
+		if !hasCMakeBuildType {
+			if c.DevDep {
+				options = append(options, "-DCMAKE_BUILD_TYPE=Release")
+			} else {
+				options = append(options, "-DCMAKE_BUILD_TYPE="+c.BuildType)
+			}
 		}
 	}
 
 	// Set build library type.
-	libraryType := c.libraryType(
-		"-DBUILD_SHARED_LIBS=ON",
-		"-DBUILD_SHARED_LIBS=OFF",
-	)
+	libraryType := c.libraryType("-DBUILD_SHARED_LIBS=ON", "-DBUILD_SHARED_LIBS=OFF")
 	switch c.BuildConfig.LibraryType {
 	case "shared", "": // default is `shared`.
 		options = append(options, libraryType.enableShared)
@@ -184,7 +197,7 @@ func (c cmake) Configure(options []string) error {
 func (c cmake) buildOptions() ([]string, error) {
 	// CMAKE_BUILD_TYPE is useless for MSVC, use --config Debug/Relase instead.
 	var options []string
-	if c.PortConfig.Toolchain.Name == "msvc" {
+	if c.multiConfigGenerator() {
 		c.BuildType = c.formatBuildType()
 		options = append(options, "--config", c.BuildType)
 	}
@@ -214,7 +227,7 @@ func (c cmake) Build(options []string) error {
 func (c cmake) installOptions() ([]string, error) {
 	// CMAKE_BUILD_TYPE is useless for MSVC, use --config Debug/Relase instead.
 	var options []string
-	if c.PortConfig.Toolchain.Name == "msvc" {
+	if !c.multiConfigGenerator() {
 		c.BuildType = c.formatBuildType()
 		options = append(options, "--config", c.BuildType)
 	}
@@ -280,6 +293,16 @@ func (c *cmake) detectGenerator() error {
 	}
 
 	return nil
+}
+
+func (c cmake) multiConfigGenerator() bool {
+	if runtime.GOOS == "windows" {
+		return c.PortConfig.Toolchain.Name == "msvc" ||
+			c.PortConfig.Toolchain.Name == "clang-cl" ||
+			c.PortConfig.Toolchain.Name == "clang"
+	}
+
+	return false
 }
 
 func detectMSVCGenerator(ctx context.Context) (string, error) {

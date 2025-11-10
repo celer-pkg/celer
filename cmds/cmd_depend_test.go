@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestDepend(t *testing.T) {
+func TestDepend_Without_Dev(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -39,45 +39,77 @@ func TestDepend(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
 	check(celer.SetBuildType("Release"))
 
-	// ============= Depend platform ============= //
-	t.Run("Search dependencies", func(t *testing.T) {
-		cmdDepend := dependCmd{celer: celer}
-		depedencies, err := cmdDepend.query("eigen@3.4.0")
-		check(err)
+	cmdDepend := dependCmd{celer: celer}
+	depedencies, err := cmdDepend.query("eigen@3.4.0")
+	check(err)
 
-		expected := []string{
-			"ceres-solver@2.1.0",
-			"gstreamer@1.26.0",
-			"gtsam@4.2.0",
-			"lbfgspp@0.3.0",
+	expected := []string{
+		"ceres-solver@2.1.0",
+		"gstreamer@1.26.0",
+		"gtsam@4.2.0",
+		"lbfgspp@0.3.0",
+	}
+
+	if !equals(depedencies, expected) {
+		t.Fatalf("expected %s, but got %s", expected, depedencies)
+	}
+}
+
+func TestDepend_With_Dev(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
 		}
-		if !equals(depedencies, expected) {
-			t.Fatalf("expected %s, but got %s", expected, depedencies)
+	}
+
+	var equals = func(list1, list2 []string) bool {
+		if len(list1) != len(list2) {
+			return false
 		}
+		for _, item := range list1 {
+			if !slices.Contains(list2, item) {
+				return false
+			}
+		}
+		return true
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
 	})
 
-	t.Run("Search dependencies for dev", func(t *testing.T) {
-		// Search as default mode.
-		cmdDepend := dependCmd{celer: celer}
-		depedencies, err := cmdDepend.query("autoconf@2.72")
-		check(err)
-		if len(depedencies) > 0 {
-			t.Fatalf("expected no dependencies, but got %s", depedencies)
-		}
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
+	check(celer.SetBuildType("Release"))
 
-		// Search as dev mode.
-		cmdDepend.dev = true
-		depedencies, err = cmdDepend.query("autoconf@2.72")
-		check(err)
-		expected := []string{
-			"automake@1.18",
-			"util-linux@2.41",
-		}
-		if !equals(depedencies, expected) {
-			t.Fatalf("expected %s, but got %s", expected, depedencies)
-		}
-	})
+	// Search as default mode.
+	cmdDepend := dependCmd{celer: celer}
+	depedencies, err := cmdDepend.query("nasm@2.16.03")
+	check(err)
+	if len(depedencies) > 0 {
+		t.Fatalf("expected no dependencies, but got %s", depedencies)
+	}
+
+	// Search as dev mode.
+	cmdDepend.dev = true
+	depedencies, err = cmdDepend.query("nasm@2.16.03")
+	check(err)
+	expected := []string{
+		"ffmpeg@3.4.13",
+		"ffmpeg@5.1.6",
+		"openssl@3.5.0",
+		"x264@stable",
+	}
+	if !equals(depedencies, expected) {
+		t.Fatalf("expected %s, but got %s", expected, depedencies)
+	}
 }

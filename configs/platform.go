@@ -34,19 +34,24 @@ func (p *Platform) Init(platformName string) error {
 		return fmt.Errorf("platform name is empty")
 	}
 
-	// Check if platform file exists.
-	platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
-	if !fileio.PathExists(platformPath) {
-		return fmt.Errorf("platform %s does not exists", platformName)
-	}
+	// Check if platform file exists, but ignore "gcc" and "clang".
+	if platformName != "gcc" &&
+		platformName != "msvc" &&
+		platformName != "clang" &&
+		platformName != "clang-cl" {
+		platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
+		if !fileio.PathExists(platformPath) {
+			return fmt.Errorf("platform does not exist: %s", platformName)
+		}
 
-	// Read conf/celer.toml
-	bytes, err := os.ReadFile(platformPath)
-	if err != nil {
-		return err
-	}
-	if err := toml.Unmarshal(bytes, p); err != nil {
-		return fmt.Errorf("failed to read %s.\n %w", platformPath, err)
+		// Read conf/celer.toml
+		bytes, err := os.ReadFile(platformPath)
+		if err != nil {
+			return err
+		}
+		if err := toml.Unmarshal(bytes, p); err != nil {
+			return fmt.Errorf("failed to read %s.\n %w", platformPath, err)
+		}
 	}
 
 	if p.RootFS != nil {
@@ -157,8 +162,12 @@ func (p *Platform) Setup() error {
 	}
 
 	// Only for Windows MSVC.
-	if p.Toolchain.Name == "msvc" {
-		p.Toolchain.MSVC.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+	if runtime.GOOS == "windows" {
+		if p.Toolchain.Name == "msvc" ||
+			p.Toolchain.Name == "clang" ||
+			p.Toolchain.Name == "clang-cl" {
+			p.Toolchain.MSVC.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+		}
 	}
 
 	// Generate toolchain file.
@@ -169,10 +178,10 @@ func (p *Platform) Setup() error {
 	return nil
 }
 
-func (p *Platform) detectToolchain() error {
+func (p *Platform) detectToolchain(platformName string) error {
 	// Detect toolchain.
 	var toolchain = Toolchain{ctx: p.ctx}
-	if err := toolchain.Detect(); err != nil {
+	if err := toolchain.Detect(platformName); err != nil {
 		return fmt.Errorf("detect celer.toolchain: %w", err)
 	}
 	p.Toolchain = &toolchain
@@ -189,7 +198,17 @@ func (p *Platform) detectToolchain() error {
 	}
 
 	// Assign standard toolchain name.
-	p.Name = expr.If(p.Toolchain.Name == "msvc", "x86_64-windows", "x86_64-linux")
+	switch runtime.GOOS {
+	case "windows":
+		if p.Toolchain.Name == "msvc" || p.Toolchain.Name == "clang" || p.Toolchain.Name == "clang-cl" {
+			p.Name = "x86_64-windows"
+		} else {
+			return fmt.Errorf("unsupported toolchian %s", p.Toolchain.Name)
+		}
+
+	case "linux":
+		p.Name = "x86_64-linux"
+	}
 
 	return nil
 }

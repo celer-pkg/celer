@@ -33,9 +33,9 @@ conf
 │   └── x86_64-windows.toml
 ├── platforms
 │   ├── aarch64-linux-gnu-gcc-9.2.toml
-│   ├── x86_64-linux-ubuntu-20.04.toml
-│   ├── x86_64-linux-ubuntu-22.04.toml
-│   └── x86_64-windows-msvc-14.44.toml
+│   ├── x86_64-linux-ubuntu-22.04-gcc-11.5.toml
+│   ├── x86_64-linux-ubuntu-22.04-gcc-11.5.toml
+│   └── x86_64-windows-msvc-community-14.44.toml
 └── projects
     ├── project_test_01 --------------- project_01's dependencies
     │   ├── boost --------------------- override public build options
@@ -113,7 +113,7 @@ During init, Celer will clone a ports repo into current workspace, this a repo c
 **platform** and **project** are two combinations, they can be freely combined. For example, although the target environment is **aarch64-linux**, you can choose to compile/develop/debug in the **x86_64-linux** platform.
 
 ```shell
-celer configure --platform=x86_64-linux-ubuntu-22.04
+celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5
 celer configure --project=project_test_02
 ```
 
