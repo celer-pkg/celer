@@ -76,7 +76,17 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 		}
 
 		// Check dev packages.
-		expectedDevPackages := []string{"nasm@2.16.03"}
+		var expectedDevPackages []string
+		if runtime.GOOS == "windows" {
+			expectedDevPackages = []string{"nasm@2.16.03"}
+		} else {
+			expectedDevPackages = []string{"nasm@2.16.03",
+				"automake@1.18",
+				"autoconf@2.72",
+				"m4@1.4.19",
+				"libtool@2.5.4",
+			}
+		}
 		if !equals(expectedDevPackages, devPackages) {
 			return fmt.Errorf("expected %v, got %v", expectedDevPackages, devPackages)
 		}
@@ -180,7 +190,18 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 		}
 
 		// Check dev packages.
-		expectedDevPackages := []string{"nasm@2.16.03"}
+		var expectedDevPackages []string
+		if runtime.GOOS == "windows" {
+			expectedDevPackages = []string{"nasm@2.16.03"}
+		} else {
+			expectedDevPackages = []string{
+				"nasm@2.16.03",
+				"automake@1.18",
+				"autoconf@2.72",
+				"m4@1.4.19",
+				"libtool@2.5.4",
+			}
+		}
 		if !equals(expectedDevPackages, devPackages) {
 			return fmt.Errorf("expected %v, got %v", expectedDevPackages, devPackages)
 		}
