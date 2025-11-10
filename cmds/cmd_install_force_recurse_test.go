@@ -46,7 +46,7 @@ func TestInstall_With_Force(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
@@ -122,7 +122,7 @@ func TestInstall_With_Force_Recurse(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/support_clang"))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
