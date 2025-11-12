@@ -35,6 +35,10 @@ func (p *Platform) Init(platformName string) error {
 		return fmt.Errorf("platform name is empty")
 	}
 
+	if platformName == "clang-cl" || platformName == "clang" || platformName == "msvc" {
+		return nil
+	}
+
 	// Check if platform file exists.
 	platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
 	if !fileio.PathExists(platformPath) {
@@ -142,9 +146,16 @@ func (p *Platform) Setup() error {
 
 	// Detect toolchain.
 	var toolchain = Toolchain{ctx: p.ctx}
-	if err := toolchain.Detect(p.Toolchain.Name); err != nil {
-		return fmt.Errorf("detect celer.toolchain: %w", err)
+	if p.Name == "clang-cl" || p.Name == "clang" || p.Name == "msvc" {
+		if err := toolchain.Detect(p.Name); err != nil {
+			return fmt.Errorf("detect celer.toolchain: %w", err)
+		}
+	} else {
+		if err := toolchain.Detect(p.Toolchain.Name); err != nil {
+			return fmt.Errorf("detect celer.toolchain: %w", err)
+		}
 	}
+
 	p.Toolchain = &toolchain
 	p.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
 	p.Toolchain.SystemProcessor = runtime.GOARCH
