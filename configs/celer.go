@@ -96,11 +96,6 @@ func (c *Celer) Init() error {
 		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
 			return err
 		}
-
-		// Auto detect native toolchain.
-		if err := c.platform.detectToolchain(c.configData.Global.Platform); err != nil {
-			return err
-		}
 	} else {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
@@ -123,12 +118,7 @@ func (c *Celer) Init() error {
 		}
 
 		// Init platform with platform name.
-		switch c.configData.Global.Platform {
-		case "", "msvc", "gcc", "clang", "clang-cl":
-			if err := c.platform.detectToolchain(c.configData.Global.Platform); err != nil {
-				return err
-			}
-		default:
+		if c.configData.Global.Platform != "" {
 			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
 				return err
 			}
