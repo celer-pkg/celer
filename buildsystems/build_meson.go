@@ -58,7 +58,7 @@ func (m *meson) preConfigure() error {
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
 	if runtime.GOOS == "windows" {
 		if m.PortConfig.Toolchain.Name == "msvc" ||
-			m.PortConfig.Toolchain.Name == "clang-cli" {
+			m.PortConfig.Toolchain.Name == "clang-cl" {
 			msvcEnvs, err := m.readMSVCEnvs()
 			if err != nil {
 				return err

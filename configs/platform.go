@@ -21,8 +21,8 @@ type Platform struct {
 	WindowsKit *WindowsKit `toml:"windows_kit"`
 
 	// Internal fields.
-	Name string `toml:"-"`
-	ctx  context.Context
+	Name string          `toml:"-"`
+	ctx  context.Context `toml:"-"`
 }
 
 func (p *Platform) Init(platformName string) error {
@@ -34,6 +34,7 @@ func (p *Platform) Init(platformName string) error {
 	if platformName == "" {
 		return fmt.Errorf("platform name is empty")
 	}
+	p.Name = platformName
 
 	if platformName == "clang-cl" || platformName == "clang" || platformName == "msvc" {
 		return nil
