@@ -81,16 +81,27 @@ func (p powershell) installCompletion() error {
 		return fmt.Errorf("failed to create clean tmp dir.\n %w", err)
 	}
 
-	// Generate completion file.
-	filePath := filepath.Join(dirs.TmpFilesDir, "celer_completion.ps1")
-	file, err := os.Create(filePath)
-	if err != nil {
-		return fmt.Errorf("failed to create powershell completion file.\n %w", err)
-	}
-	defer file.Close()
+	// Use temporary file mode to ensure file operation safety.
+	tmpDir := dirs.TmpFilesDir
+	tmpFile := filepath.Join(tmpDir, "celer_completion.ps1")
 
-	if err := p.rootCmd.GenPowerShellCompletion(file); err != nil {
+	// Create and write temporary completion file.
+	if err := func() error {
+		file, err := os.Create(tmpFile)
+		if err != nil {
+			return fmt.Errorf("failed to create powershell completion file.\n %w", err)
+		}
+		defer file.Close()
+
+		return p.rootCmd.GenPowerShellCompletion(file)
+	}(); err != nil {
 		return fmt.Errorf("failed to generate powershell completion file.\n %w", err)
+	}
+
+	// Wait for the file to be completely released (Windows system may need this).
+	// Add a small delay or use file lock check here.
+	if err := p.ensureFileReleased(tmpFile); err != nil {
+		return err
 	}
 
 	// Install completion file to `~/Documents/WindowsPowerShell/Modules`
@@ -100,12 +111,29 @@ func (p powershell) installCompletion() error {
 		return fmt.Errorf("failed to create PowerShell Modules dir.\n %w", err)
 	}
 
-	rcFile := filepath.Join(dirs.TmpFilesDir, "celer_completion.ps1")
-	if err := fileio.MoveFile(rcFile, celerRcFile); err != nil {
+	if err := fileio.MoveFile(tmpFile, celerRcFile); err != nil {
 		return fmt.Errorf("failed to move PowerShell completion file.\n %w", err)
 	}
 
 	return nil
+}
+
+// Ensure the file is released helper method.
+func (p powershell) ensureFileReleased(filePath string) error {
+	// Try to open the file multiple times to ensure it's released.
+	for range 3 {
+		file, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
+		if err != nil {
+			// If the file cannot be opened, it may not exist or there may be other errors.
+			if os.IsNotExist(err) {
+				return fmt.Errorf("file does not exist: %s", filePath)
+			}
+			continue // Other errors, keep retrying
+		}
+		file.Close()
+		return nil // If the file can be opened and closed, it means it's released.
+	}
+	return fmt.Errorf("file is still locked after multiple attempts: %s", filePath)
 }
 
 func (p powershell) uninstallCompletion() error {
