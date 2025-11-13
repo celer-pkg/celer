@@ -62,7 +62,7 @@ func (i installCmd) install(nameVersion string) {
 	}
 	i.celer.Global.Verbose = i.verbose
 
-	if err := i.celer.Platform().Setup(); err != nil {
+	if err := i.celer.Setup(); err != nil {
 		configs.PrintError(err, "failed to setup platform.")
 		os.Exit(1)
 	}

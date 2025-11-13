@@ -136,8 +136,8 @@ func (p *Platform) Write(platformPath string) error {
 	return os.WriteFile(platformPath, bytes, os.ModePerm)
 }
 
-// Setup build envs.
-func (p *Platform) Setup() error {
+// setup rootfs and toolchain
+func (p *Platform) setup() error {
 	// Repair rootfs if not empty.
 	if p.RootFS != nil {
 		if err := p.RootFS.CheckAndRepair(); err != nil {

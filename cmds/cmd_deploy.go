@@ -24,7 +24,7 @@ func (d deployCmd) Command(celer *configs.Celer) *cobra.Command {
 				os.Exit(1)
 			}
 
-			if err := d.celer.Platform().Setup(); err != nil {
+			if err := d.celer.Setup(); err != nil {
 				configs.PrintError(err, "setup platform error.")
 				os.Exit(1)
 			}

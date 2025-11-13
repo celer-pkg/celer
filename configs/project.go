@@ -128,7 +128,7 @@ func (p Project) GetPorts() []string {
 	return p.Ports
 }
 
-func (p Project) Deploy() error {
+func (p Project) deploy() error {
 	options := InstallOptions{
 		Force:   true,
 		Recurse: true,

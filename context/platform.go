@@ -8,7 +8,6 @@ type Platform interface {
 	GetHostName() string
 	GetToolchain() Toolchain
 	Write(platformPath string) error
-	Setup() error
 }
 
 type Toolchain interface {

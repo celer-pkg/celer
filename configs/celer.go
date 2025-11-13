@@ -162,6 +162,10 @@ func (c *Celer) Init() error {
 	return nil
 }
 
+func (c *Celer) Setup() error {
+	return c.platform.setup()
+}
+
 func (c *Celer) CreatePlatform(platformName string) error {
 	// Clean platform name.
 	platformName = strings.TrimSpace(platformName)
@@ -399,10 +403,10 @@ func (c *Celer) SetConfRepo(url, branch string) error {
 }
 
 func (c *Celer) Deploy() error {
-	if err := c.platform.Setup(); err != nil {
+	if err := c.platform.setup(); err != nil {
 		return err
 	}
-	if err := c.project.Deploy(); err != nil {
+	if err := c.project.deploy(); err != nil {
 		return err
 	}
 

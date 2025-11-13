@@ -47,7 +47,7 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	check(celer.SetProject(project))
 
 	// Setup build envs.
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -119,7 +119,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	check(celer.SetProject(project))
 
 	// Setup build envs.
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -192,7 +192,7 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 	check(celer.SetProject(project))
 
 	// Setup build envs.
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -265,7 +265,7 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	check(celer.SetProject(project))
 
 	// Setup build envs.
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -337,7 +337,7 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 	check(celer.SetProject(project))
 
 	// Setup build envs.
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -409,7 +409,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	check(celer.SetProject(project))
 
 	// Setup build envs.
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var port configs.Port
 	var options configs.InstallOptions
