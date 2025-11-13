@@ -585,6 +585,9 @@ func (c *Celer) Version() string {
 }
 
 func (c *Celer) Platform() context.Platform {
+	if c.platform.Toolchain == nil {
+		panic("platform toolchain is nil, you may need to setup platform first")
+	}
 	return &c.platform
 }
 

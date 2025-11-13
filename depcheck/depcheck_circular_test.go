@@ -26,6 +26,7 @@ func TestDepCheck_CheckCircular_Normal(t *testing.T) {
 
 	celer := configs.NewCeler()
 	checkError(celer.Init())
+	checkError(celer.Platform().Setup())
 
 	var port configs.Port
 	checkError(port.Init(celer, "aaa@1.0.0"))

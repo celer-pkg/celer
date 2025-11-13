@@ -147,7 +147,7 @@ func (p *Platform) Setup() error {
 
 	// Detect toolchain.
 	var toolchain = Toolchain{ctx: p.ctx}
-	if p.Name == "clang-cl" || p.Name == "clang" || p.Name == "msvc" {
+	if p.Name == "" || p.Name == "clang-cl" || p.Name == "clang" || p.Name == "msvc" {
 		if err := toolchain.Detect(p.Name); err != nil {
 			return fmt.Errorf("detect celer.toolchain: %w", err)
 		}
