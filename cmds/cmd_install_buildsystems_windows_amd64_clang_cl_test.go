@@ -85,7 +85,7 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var (
 		port    configs.Port

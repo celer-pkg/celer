@@ -42,8 +42,6 @@ func TestInstall_BuildType(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-
-	// Setup build envs.
 	check(celer.Setup())
 
 	t.Run("install with build type Release", func(t *testing.T) {
