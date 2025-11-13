@@ -7,7 +7,6 @@ type Platform interface {
 	GetName() string
 	GetHostName() string
 	GetToolchain() Toolchain
-	Write(platformPath string) error
 }
 
 type Toolchain interface {
@@ -34,7 +33,6 @@ type Toolchain interface {
 	GetSTRIP() string
 	GetREADELF() string
 	GetMSVC() *MSVC
-	Generate(toolchain *strings.Builder, hostName string) error
 }
 
 type RootFS interface {

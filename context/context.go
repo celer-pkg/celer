@@ -16,10 +16,7 @@ type Context interface {
 }
 
 type CacheDir interface {
-	Validate() error
 	GetDir() string
 	Read(nameVersion, hash, destDir string) (bool, error)
 	Write(packageDir, meta string) error
-	Remove(nameVersion string) error
-	Exist(nameVersion, hash string) bool
 }
