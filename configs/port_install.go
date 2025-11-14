@@ -156,6 +156,7 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 		}
 	}()
 
+	// Validate cache dir before building to avoid wasting build time.
 	var writeCacheAfterInstall bool
 	if options.StoreCache {
 		cacheDir := p.ctx.CacheDir()
