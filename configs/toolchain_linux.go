@@ -115,7 +115,7 @@ func (t *Toolchain) Validate() error {
 	return nil
 }
 
-func (t Toolchain) CheckAndRepair(silent bool) error {
+func (t *Toolchain) CheckAndRepair(silent bool) error {
 	// Default folder name is the first folder name of archive name.
 	// but it can be specified by archive name.
 	folderName := strings.Split(t.Path, string(filepath.Separator))[0]

@@ -50,7 +50,7 @@ func TestInstall_With_Force(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var (
 		options       configs.InstallOptions
@@ -126,7 +126,7 @@ func TestInstall_With_Force_Recurse(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var (
 		options       configs.InstallOptions

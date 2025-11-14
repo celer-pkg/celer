@@ -100,7 +100,7 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var (
 		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())

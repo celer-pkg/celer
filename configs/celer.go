@@ -96,11 +96,6 @@ func (c *Celer) Init() error {
 		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
 			return err
 		}
-
-		// Auto detect native toolchain.
-		if err := c.platform.detectToolchain(c.configData.Global.Platform); err != nil {
-			return err
-		}
 	} else {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
@@ -123,12 +118,7 @@ func (c *Celer) Init() error {
 		}
 
 		// Init platform with platform name.
-		switch c.configData.Global.Platform {
-		case "", "msvc", "gcc", "clang", "clang-cl":
-			if err := c.platform.detectToolchain(c.configData.Global.Platform); err != nil {
-				return err
-			}
-		default:
+		if c.configData.Global.Platform != "" {
 			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
 				return err
 			}
@@ -172,7 +162,11 @@ func (c *Celer) Init() error {
 	return nil
 }
 
-func (c Celer) CreatePlatform(platformName string) error {
+func (c *Celer) Setup() error {
+	return c.platform.setup()
+}
+
+func (c *Celer) CreatePlatform(platformName string) error {
 	// Clean platform name.
 	platformName = strings.TrimSpace(platformName)
 	platformName = strings.TrimSuffix(platformName, ".toml")
@@ -246,7 +240,7 @@ func (c *Celer) SetPlatform(platformName string) error {
 	return nil
 }
 
-func (c Celer) CreateProject(projectName string) error {
+func (c *Celer) CreateProject(projectName string) error {
 	// Clean platform name.
 	projectName = strings.TrimSpace(projectName)
 	projectName = strings.TrimSuffix(projectName, ".toml")
@@ -371,7 +365,7 @@ func (c *Celer) SetProxy(host string, port int) error {
 	return nil
 }
 
-func (c Celer) CreatePort(nameVersion string) error {
+func (c *Celer) CreatePort(nameVersion string) error {
 	parts := strings.Split(nameVersion, "@")
 	if len(parts) != 2 {
 		return fmt.Errorf("invalid port name version")
@@ -409,10 +403,10 @@ func (c *Celer) SetConfRepo(url, branch string) error {
 }
 
 func (c *Celer) Deploy() error {
-	if err := c.platform.Setup(); err != nil {
+	if err := c.platform.setup(); err != nil {
 		return err
 	}
-	if err := c.project.Deploy(); err != nil {
+	if err := c.project.deploy(); err != nil {
 		return err
 	}
 
@@ -464,7 +458,7 @@ func (c *Celer) readOrCreate() error {
 	return nil
 }
 
-func (c Celer) save() error {
+func (c *Celer) save() error {
 	bytes, err := toml.Marshal(c)
 	if err != nil {
 		return err
@@ -478,7 +472,7 @@ func (c Celer) save() error {
 	return nil
 }
 
-func (c Celer) updateConfRepo(repoUrl, branch string) error {
+func (c *Celer) updateConfRepo(repoUrl, branch string) error {
 	// Extracted clone function for reusability.
 	cloneFunc := func(workDir string) error {
 		if err := os.RemoveAll(workDir); err != nil {
@@ -528,7 +522,7 @@ func (c Celer) updateConfRepo(repoUrl, branch string) error {
 	}
 }
 
-func (c Celer) portsRepoUrl() string {
+func (c *Celer) portsRepoUrl() string {
 	portsRepo := os.Getenv("CELER_PORTS_REPO")
 	if portsRepo != "" {
 		return portsRepo
@@ -537,7 +531,7 @@ func (c Celer) portsRepoUrl() string {
 	return defaultPortsRepo
 }
 
-func (c Celer) clonePorts() error {
+func (c *Celer) clonePorts() error {
 	var cloneRequired bool
 
 	portsDir := filepath.Join(dirs.WorkspaceDir, "ports")
@@ -582,7 +576,7 @@ func (c Celer) clonePorts() error {
 
 // ======================= celer context implementation ====================== //
 
-func (c Celer) Proxy() (host string, port int) {
+func (c *Celer) Proxy() (host string, port int) {
 	if c.configData.Proxy != nil {
 		return c.configData.Proxy.Host, c.configData.Proxy.Port
 	}
@@ -590,24 +584,24 @@ func (c Celer) Proxy() (host string, port int) {
 	return "", 0
 }
 
-func (c Celer) Version() string {
+func (c *Celer) Version() string {
 	return Version
 }
 
-func (c Celer) Platform() context.Platform {
+func (c *Celer) Platform() context.Platform {
 	return &c.platform
 }
 
-func (c Celer) Project() context.Project {
+func (c *Celer) Project() context.Project {
 	return &c.project
 }
 
 // BuildType returns lower case build type.
-func (c Celer) BuildType() string {
+func (c *Celer) BuildType() string {
 	return c.configData.Global.BuildType
 }
 
-func (c Celer) RootFS() context.RootFS {
+func (c *Celer) RootFS() context.RootFS {
 	// Must return exactly nil if RootFS is none.
 	// otherwise, the result of RootFS() will not be nil.
 	if c.platform.RootFS == nil {
@@ -616,15 +610,15 @@ func (c Celer) RootFS() context.RootFS {
 	return c.platform.RootFS
 }
 
-func (c Celer) Jobs() int {
+func (c *Celer) Jobs() int {
 	return c.Global.Jobs
 }
 
-func (c Celer) Offline() bool {
+func (c *Celer) Offline() bool {
 	return c.Global.Offline
 }
 
-func (c Celer) CacheDir() context.CacheDir {
+func (c *Celer) CacheDir() context.CacheDir {
 	// Must return exactly nil if cache dir is none.
 	// otherwise, the result of CacheDir() will not be nil.
 	if c.configData.CacheDir == nil {
@@ -634,11 +628,11 @@ func (c Celer) CacheDir() context.CacheDir {
 	return c.configData.CacheDir
 }
 
-func (c Celer) Verbose() bool {
+func (c *Celer) Verbose() bool {
 	return c.configData.Global.Verbose
 }
 
-func (c Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
+func (c *Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 	if c.project.Optimize != nil {
 		return c.project.Optimize
 	}
@@ -659,12 +653,12 @@ func (c Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 	}
 }
 
-func (c Celer) GenerateToolchainFile() error {
+func (c *Celer) GenerateToolchainFile() error {
 	var toolchain strings.Builder
 	toolchain.WriteString("# ========= WARNING: This toolchain file is generated by celer. ========= #\n")
 
 	// Toolchain related.
-	if err := c.platform.Toolchain.Generate(&toolchain, c.platform.GetHostName()); err != nil {
+	if err := c.platform.Toolchain.generate(&toolchain, c.platform.GetHostName()); err != nil {
 		return err
 	}
 
@@ -774,7 +768,7 @@ func (c Celer) GenerateToolchainFile() error {
 	return nil
 }
 
-func (c Celer) writePkgConfig(toolchain *strings.Builder) {
+func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 	var (
 		configPaths   []string
 		configLibDirs []string

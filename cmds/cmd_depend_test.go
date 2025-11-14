@@ -41,6 +41,7 @@ func TestDepend_Without_Dev(t *testing.T) {
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
+	check(celer.Setup())
 
 	cmdDepend := dependCmd{celer: celer}
 	depedencies, err := cmdDepend.query("eigen@3.4.0")
@@ -90,6 +91,7 @@ func TestDepend_With_Dev(t *testing.T) {
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
+	check(celer.Setup())
 
 	// Search as default mode.
 	cmdDepend := dependCmd{celer: celer}

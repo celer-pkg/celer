@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -20,8 +21,8 @@ type Platform struct {
 	WindowsKit *WindowsKit `toml:"windows_kit"`
 
 	// Internal fields.
-	Name string `toml:"-"`
-	ctx  context.Context
+	Name string          `toml:"-"`
+	ctx  context.Context `toml:"-"`
 }
 
 func (p *Platform) Init(platformName string) error {
@@ -33,25 +34,25 @@ func (p *Platform) Init(platformName string) error {
 	if platformName == "" {
 		return fmt.Errorf("platform name is empty")
 	}
+	p.Name = platformName
 
-	// Check if platform file exists, but ignore "gcc" and "clang".
-	if platformName != "gcc" &&
-		platformName != "msvc" &&
-		platformName != "clang" &&
-		platformName != "clang-cl" {
-		platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
-		if !fileio.PathExists(platformPath) {
-			return fmt.Errorf("platform does not exist: %s", platformName)
-		}
+	if platformName == "clang-cl" || platformName == "clang" || platformName == "msvc" {
+		return nil
+	}
 
-		// Read conf/celer.toml
-		bytes, err := os.ReadFile(platformPath)
-		if err != nil {
-			return err
-		}
-		if err := toml.Unmarshal(bytes, p); err != nil {
-			return fmt.Errorf("failed to read %s.\n %w", platformPath, err)
-		}
+	// Check if platform file exists.
+	platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
+	if !fileio.PathExists(platformPath) {
+		return fmt.Errorf("platform does not exist: %s", platformName)
+	}
+
+	// Read conf/celer.toml
+	bytes, err := os.ReadFile(platformPath)
+	if err != nil {
+		return err
+	}
+	if err := toml.Unmarshal(bytes, p); err != nil {
+		return fmt.Errorf("failed to read %s.\n %w", platformPath, err)
 	}
 
 	if p.RootFS != nil {
@@ -135,8 +136,8 @@ func (p *Platform) Write(platformPath string) error {
 	return os.WriteFile(platformPath, bytes, os.ModePerm)
 }
 
-// Setup build envs.
-func (p *Platform) Setup() error {
+// setup rootfs and toolchain
+func (p *Platform) setup() error {
 	// Repair rootfs if not empty.
 	if p.RootFS != nil {
 		if err := p.RootFS.CheckAndRepair(); err != nil {
@@ -144,7 +145,23 @@ func (p *Platform) Setup() error {
 		}
 	}
 
-	// WindowsKit can be detected automatically.
+	// Detect toolchain.
+	var toolchain = Toolchain{ctx: p.ctx}
+	if p.Name == "" || p.Name == "clang-cl" || p.Name == "clang" || p.Name == "msvc" {
+		if err := toolchain.Detect(p.Name); err != nil {
+			return fmt.Errorf("detect celer.toolchain: %w", err)
+		}
+	} else {
+		if err := toolchain.Detect(p.Toolchain.Name); err != nil {
+			return fmt.Errorf("detect celer.toolchain: %w", err)
+		}
+	}
+
+	p.Toolchain = &toolchain
+	p.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
+	p.Toolchain.SystemProcessor = runtime.GOARCH
+
+	// Detected windows kit.
 	if runtime.GOOS == "windows" && p.WindowsKit == nil {
 		var windowsKit WindowsKit
 		if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
@@ -153,7 +170,21 @@ func (p *Platform) Setup() error {
 		p.WindowsKit = &windowsKit
 	}
 
-	// Repair toolchain.
+	// Change platform name if not specified.
+	if slices.Contains([]string{"", "msvc", "gcc", "clang", "clang-cl"}, p.Name) {
+		switch runtime.GOOS {
+		case "windows":
+			if p.Toolchain.Name == "msvc" || p.Toolchain.Name == "clang" || p.Toolchain.Name == "clang-cl" {
+				p.Name = "x86_64-windows"
+			} else {
+				return fmt.Errorf("unsupported toolchian %s", p.Toolchain.Name)
+			}
+
+		case "linux":
+			p.Name = "x86_64-linux"
+		}
+	}
+
 	if p.Toolchain == nil {
 		panic("Toolchain should not be empty, it may specified in platform or automatically detected.")
 	}
@@ -173,41 +204,6 @@ func (p *Platform) Setup() error {
 	// Generate toolchain file.
 	if err := p.ctx.GenerateToolchainFile(); err != nil {
 		return fmt.Errorf("failed to generate toolchain file.\n %w", err)
-	}
-
-	return nil
-}
-
-func (p *Platform) detectToolchain(platformName string) error {
-	// Detect toolchain.
-	var toolchain = Toolchain{ctx: p.ctx}
-	if err := toolchain.Detect(platformName); err != nil {
-		return fmt.Errorf("detect celer.toolchain: %w", err)
-	}
-	p.Toolchain = &toolchain
-	p.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
-	p.Toolchain.SystemProcessor = runtime.GOARCH
-
-	// WindowsKit can be detected automatically.
-	if runtime.GOOS == "windows" && p.WindowsKit == nil {
-		var windowsKit WindowsKit
-		if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
-			return fmt.Errorf("failed to detect celer.windows_kit.\n %w", err)
-		}
-		p.WindowsKit = &windowsKit
-	}
-
-	// Assign standard toolchain name.
-	switch runtime.GOOS {
-	case "windows":
-		if p.Toolchain.Name == "msvc" || p.Toolchain.Name == "clang" || p.Toolchain.Name == "clang-cl" {
-			p.Name = "x86_64-windows"
-		} else {
-			return fmt.Errorf("unsupported toolchian %s", p.Toolchain.Name)
-		}
-
-	case "linux":
-		p.Name = "x86_64-linux"
 	}
 
 	return nil

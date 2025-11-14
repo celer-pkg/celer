@@ -72,7 +72,7 @@ func (e Executor) Execute() error {
 func (e Executor) doExecute(buffer *bytes.Buffer) error {
 	// Create command for windows and unix like.
 	if e.title != "" {
-		fmt.Print(color.Sprintf(color.Blue, "\n%s: %s\n", e.title, e.cmd+" "+strings.Join(e.args, " ")))
+		color.Printf(color.Blue, "\n%s: %s\n", e.title, e.cmd+" "+strings.Join(e.args, " "))
 	}
 
 	var cmd *exec.Cmd
@@ -126,7 +126,7 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 		io.WriteString(logFile, fmt.Sprintf("Environment:\n%s\n", buffer.String()))
 
 		// Write command summary as header content of file.
-		io.WriteString(logFile, fmt.Sprintf("%s: %s\n\n", e.title, e.args))
+		io.WriteString(logFile, fmt.Sprintf("%s: %s\n\n", e.title, e.cmd+" "+strings.Join(e.args, " ")))
 
 		cmd.Stdout = io.MultiWriter(os.Stdout, logFile)
 		cmd.Stderr = io.MultiWriter(os.Stderr, logFile)

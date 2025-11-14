@@ -149,7 +149,7 @@ func (t *Toolchain) Validate() error {
 			case "clang":
 				localPath = strings.ReplaceAll(localPath, `/`, `\`)
 				t.rootDir = localPath
-				t.fullpath = fmt.Sprintf(`%s\VC\Tools\Llvm\x64\bin`, localPath)
+				t.fullpath = fmt.Sprintf(`%s\VC\Tools\Llvm\%s\bin`, localPath, t.arch())
 
 			default:
 				return fmt.Errorf("toolchain.path of %s is not a directory", t.Url)
@@ -206,7 +206,7 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 }
 
 // Detect detect local installed MSVC.
-func (t *Toolchain) Detect(platformName string) error {
+func (t *Toolchain) Detect(toolchainName string) error {
 	if err := buildtools.CheckTools(t.ctx, "vswhere"); err != nil {
 		return fmt.Errorf("vswhere is not available: %w", err)
 	}
@@ -225,7 +225,7 @@ func (t *Toolchain) Detect(platformName string) error {
 		return fmt.Errorf("msvc not found, please install msvc first")
 	}
 
-	switch platformName {
+	switch toolchainName {
 	case "", "msvc", "clang-cl":
 		version, err := t.findLatestMSVCVersion(filepath.Join(msvcDir, "VC", "Tools", "MSVC"))
 		if err != nil {
@@ -237,11 +237,12 @@ func (t *Toolchain) Detect(platformName string) error {
 		t.Version = "" // clang version is not required
 
 	default:
-		return fmt.Errorf("unsupported platform name: %s", platformName)
+		return fmt.Errorf("unsupported toolchain name: %s", toolchainName)
 	}
 
 	t.Url = "file:///" + msvcDir
-	t.Name = expr.If(platformName == "", "msvc", platformName)
+	// In windows, if no toolchain name is specified, use msvc as default.
+	t.Name = expr.If(toolchainName == "", "msvc", toolchainName)
 	t.SystemName = "Windows"
 	t.SystemProcessor = "x86_64"
 	t.Host = "x86_64-w64-mingw32"

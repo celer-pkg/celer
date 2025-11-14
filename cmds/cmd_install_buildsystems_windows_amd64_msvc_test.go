@@ -99,7 +99,7 @@ func buildWithMSVC(t *testing.T, platform, nameVersion string, nobuild bool) {
 		platform = "x86_64-windows"
 	}
 	check(celer.SetProject(project))
-	check(celer.Platform().Setup())
+	check(celer.Setup())
 
 	var (
 		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())

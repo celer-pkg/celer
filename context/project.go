@@ -6,5 +6,4 @@ type Project interface {
 	GetPorts() []string
 	GetDefaultPlatform() string
 	Write(platformPath string) error
-	Deploy() error
 }

@@ -103,7 +103,7 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 		io.WriteString(logFile, fmt.Sprintf("Environment:\n%s\n", buffer.String()))
 
 		// Write command summary as header content of file.
-		io.WriteString(logFile, fmt.Sprintf("%s: %s\n\n", e.title, e.cmd))
+		io.WriteString(logFile, fmt.Sprintf("%s: %s\n\n", e.title, e.cmd)+" "+strings.Join(e.args, " "))
 
 		cmd.Stdout = io.MultiWriter(os.Stdout, logFile)
 		cmd.Stderr = io.MultiWriter(os.Stderr, logFile)
