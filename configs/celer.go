@@ -768,6 +768,10 @@ func (c *Celer) GenerateToolchainFile() error {
 	return nil
 }
 
+func (c *Celer) NewPort(devDep bool) context.Port {
+	return &Port{DevDep: devDep}
+}
+
 func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 	var (
 		configPaths   []string

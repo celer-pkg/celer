@@ -103,6 +103,26 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	return "source", nil
 }
 
+func (p Port) Clone(repoUrl, repoRef, archive string) error {
+	var cloned []string
+
+	for _, nameVersion := range p.MatchedConfig.DevDependencies {
+		var port = Port{DevDep: p.DevDep}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive); err != nil {
+			return err
+		}
+	}
+
+	if err := p.MatchedConfig.Clone(repoUrl, repoRef, archive); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
 	// No cache dir configured, skip it.
 	cacheDir := p.ctx.CacheDir()

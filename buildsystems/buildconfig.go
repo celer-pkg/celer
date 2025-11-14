@@ -420,9 +420,16 @@ func (b BuildConfig) installOptions() ([]string, error) {
 
 func (b BuildConfig) Install(url, ref, archive string) error {
 	// Clone or download all required source.
-	// for _, nameVersion := range b.DevDependencies {
+	for _, nameVersion := range b.DevDependencies {
+		port := b.Ctx.NewPort(true)
+		if err := port.Init(b.Ctx, nameVersion); err != nil {
+			return err
+		}
 
-	// }
+		if err := port.Clone(url, ref, archive); err != nil {
+			return err
+		}
+	}
 
 	if err := b.buildSystem.CheckTools(); err != nil {
 		return fmt.Errorf("failed to check tools for %s.\n %w", b.PortConfig.nameVersionDesc(), err)

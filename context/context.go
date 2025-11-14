@@ -13,6 +13,7 @@ type Context interface {
 	Proxy() (host string, port int)
 	Optimize(buildsystem, toolchain string) *Optimize
 	GenerateToolchainFile() error
+	NewPort(devDep bool) Port
 }
 
 type CacheDir interface {
