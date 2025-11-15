@@ -281,16 +281,19 @@ func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string
 }
 
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
+	// Skip if source dir exists or build system is prebuilt.
+	// For prebuilt, we always download via http, ftp or others.
+	if fileio.PathExists(b.PortConfig.RepoDir) || b.buildSystem.Name() == "prebuilt" {
+		return nil
+	}
+
 	// For git repo, clone it when source dir doesn't exists.
 	if strings.HasSuffix(repoUrl, ".git") {
-		if !fileio.PathExists(b.PortConfig.RepoDir) {
-			// Clone repo.
-			title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
-			if err := git.CloneRepo(title, repoUrl, repoRef,
-				b.PortConfig.IgnoreSubmodule,
-				b.PortConfig.RepoDir); err != nil {
-				return err
-			}
+		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
+		if err := git.CloneRepo(title, repoUrl, repoRef,
+			b.PortConfig.IgnoreSubmodule,
+			b.PortConfig.RepoDir); err != nil {
+			return err
 		}
 	} else {
 		// Check and repair resource.
@@ -314,10 +317,8 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		}
 
 		// Init as git repo for tracking file change.
-		if b.buildSystem.Name() != "prebuilt" {
-			if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
-				return err
-			}
+		if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
+			return err
 		}
 	}
 
@@ -419,18 +420,6 @@ func (b BuildConfig) installOptions() ([]string, error) {
 }
 
 func (b BuildConfig) Install(url, ref, archive string) error {
-	// Clone or download all required source.
-	for _, nameVersion := range b.DevDependencies {
-		port := b.Ctx.NewPort(true)
-		if err := port.Init(b.Ctx, nameVersion); err != nil {
-			return err
-		}
-
-		if err := port.Clone(url, ref, archive); err != nil {
-			return err
-		}
-	}
-
 	if err := b.buildSystem.CheckTools(); err != nil {
 		return fmt.Errorf("failed to check tools for %s.\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
@@ -464,14 +453,6 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 				filepath.Join(b.PortConfig.Toolchain.RootFS, "tmp", "deps")); err != nil {
 				return err
 			}
-		}
-	}
-
-	// Clone repo, the repo maybe already cloned during computer hash.
-	if !fileio.PathExists(b.PortConfig.RepoDir) {
-		if err := b.buildSystem.Clone(url, ref, archive); err != nil {
-			message := expr.If(strings.HasSuffix(url, ".git"), "clone error", "download error")
-			return fmt.Errorf("%s %s: %w", message, b.PortConfig.nameVersionDesc(), err)
 		}
 	}
 

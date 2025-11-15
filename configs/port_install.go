@@ -103,9 +103,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	return "source", nil
 }
 
-func (p Port) Clone(repoUrl, repoRef, archive string) error {
-	var cloned []string
-
+func (p Port) Clone() error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		var port = Port{DevDep: p.DevDep}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
@@ -114,9 +112,25 @@ func (p Port) Clone(repoUrl, repoRef, archive string) error {
 		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive); err != nil {
 			return err
 		}
+		if err := port.Clone(); err != nil {
+			return err
+		}
 	}
 
-	if err := p.MatchedConfig.Clone(repoUrl, repoRef, archive); err != nil {
+	for _, nameVersion := range p.MatchedConfig.Dependencies {
+		var port = Port{DevDep: false, Native: p.DevDep || p.Native}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive); err != nil {
+			return err
+		}
+		if err := port.Clone(); err != nil {
+			return err
+		}
+	}
+
+	if err := p.MatchedConfig.Clone(p.Package.Url, p.Package.Ref, p.Package.Archive); err != nil {
 		return err
 	}
 
@@ -411,6 +425,30 @@ func (p Port) InstallFromCache(options InstallOptions) (bool, error) {
 }
 
 func (p Port) InstallFromSource(options InstallOptions) error {
+	// Clone or download all required source.
+	buildConfig := p.MatchedConfig
+	for _, nameVersion := range buildConfig.DevDependencies {
+		port := Port{DevDep: true}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+		if err := port.Clone(); err != nil {
+			return err
+		}
+	}
+	for _, nameVersion := range buildConfig.Dependencies {
+		port := Port{DevDep: false, Native: p.DevDep || p.Native}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+		if err := port.Clone(); err != nil {
+			return err
+		}
+	}
+	if err := p.Clone(); err != nil {
+		return err
+	}
+
 	if err := p.installDependencies(options); err != nil {
 		return err
 	}
