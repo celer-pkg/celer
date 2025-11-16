@@ -424,9 +424,13 @@ func (c *Celer) CreatePort(nameVersion string) error {
 }
 
 func (c *Celer) SetConfRepo(url, branch string) error {
-	// No repo url specifeid, maybe want to update repo only.
-	if err := c.updateConfRepo(url, branch); err != nil {
-		return err
+	// Clone conf repo.
+	confDir := filepath.Join(dirs.WorkspaceDir, "conf")
+	if !fileio.PathExists(filepath.Join(confDir, ".git")) {
+		if err := os.RemoveAll(confDir); err != nil {
+			return err
+		}
+		return git.CloneRepo("[clone conf repo]", url, branch, false, confDir)
 	}
 
 	if err := c.readOrCreate(); err != nil {
@@ -509,56 +513,6 @@ func (c *Celer) save() error {
 	}
 
 	return nil
-}
-
-func (c *Celer) updateConfRepo(repoUrl, branch string) error {
-	// Extracted clone function for reusability.
-	cloneFunc := func(workDir string) error {
-		if err := os.RemoveAll(workDir); err != nil {
-			return err
-		}
-
-		return git.CloneRepo("[clone conf repo]", repoUrl, branch, false, workDir)
-	}
-
-	// Extracted update function for reusability.
-	updateFunc := func(workDir string) error {
-		var commands []string
-		commands = append(commands, "git reset --hard")
-		commands = append(commands, "git clean -dfx")
-		commands = append(commands, "git fetch origin")
-
-		if branch != "" {
-			commands = append(commands, fmt.Sprintf("git checkout %s", branch))
-		} else {
-			commands = append(commands, "git checkout")
-		}
-
-		commands = append(commands, "git pull")
-
-		commandLine := strings.Join(commands, " && ")
-		executor := cmd.NewExecutor("[update conf repo]", commandLine)
-		executor.SetWorkDir(workDir)
-		if err := executor.Execute(); err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	// Clone or checkout repo.
-	confDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	if fileio.PathExists(confDir) {
-		if fileio.PathExists(filepath.Join(confDir, ".git")) {
-			return updateFunc(confDir)
-		} else if repoUrl != "" {
-			return cloneFunc(confDir)
-		} else {
-			return fmt.Errorf("conf repo url is empty")
-		}
-	} else {
-		return cloneFunc(confDir)
-	}
 }
 
 func (c *Celer) portsRepoUrl() string {

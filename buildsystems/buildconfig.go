@@ -283,7 +283,8 @@ func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 	// Skip if source dir exists or build system is prebuilt.
 	// For prebuilt, we always download via http, ftp or others.
-	if fileio.PathExists(b.PortConfig.RepoDir) || b.buildSystem.Name() == "prebuilt" {
+	destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
+	if fileio.PathExists(destDir) {
 		return nil
 	}
 
@@ -297,7 +298,6 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		}
 	} else {
 		// Check and repair resource.
-		destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
 		repair := fileio.NewRepair(repoUrl, archive, ".", destDir)
 		if err := repair.CheckAndRepair(b.Ctx); err != nil {
@@ -309,7 +309,9 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		if err != nil || len(entities) == 0 {
 			return fmt.Errorf("failed to find extracted files under repo dir")
 		}
-		if len(entities) == 1 {
+
+		// Move extracted files to repo dir if it's not "include".
+		if len(entities) == 1 && entities[0].Name() != "include" {
 			srcDir := filepath.Join(destDir, entities[0].Name())
 			if err := fileio.RenameDir(srcDir, destDir); err != nil {
 				return err
