@@ -54,7 +54,7 @@ type buildSystem interface {
 	eventHook
 
 	Name() string
-	CheckTools() error
+	CheckTools() []string
 
 	// Clean repo.
 	Clean() error
@@ -331,13 +331,6 @@ func (b BuildConfig) Clean() error {
 
 func (b BuildConfig) Patch() error {
 	if len(b.Patches) > 0 {
-		// In windows, msys2 is required to apply patch .
-		if runtime.GOOS == "windows" {
-			if err := buildtools.CheckTools(b.Ctx, "msys2"); err != nil {
-				return err
-			}
-		}
-
 		// Apply all patches.
 		for _, patch := range b.Patches {
 			patch = strings.TrimSpace(patch)
@@ -420,7 +413,12 @@ func (b BuildConfig) installOptions() ([]string, error) {
 }
 
 func (b BuildConfig) Install(url, ref, archive string) error {
-	if err := b.buildSystem.CheckTools(); err != nil {
+	tools := b.buildSystem.CheckTools()
+	if runtime.GOOS == "windows" && len(b.Patches) > 0 {
+		tools = append(tools, "msys2")
+	}
+
+	if err := buildtools.CheckTools(b.Ctx, tools...); err != nil {
 		return fmt.Errorf("failed to check tools for %s.\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 

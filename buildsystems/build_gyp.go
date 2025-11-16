@@ -1,7 +1,6 @@
 package buildsystems
 
 import (
-	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/fileio"
@@ -29,9 +28,9 @@ func (g gyp) Name() string {
 	return "gyp"
 }
 
-func (g gyp) CheckTools() error {
+func (g gyp) CheckTools() []string {
 	g.BuildTools = append(g.BuildTools, "git", "cmake", "python3:gyp-next", "ninja")
-	return buildtools.CheckTools(g.Ctx, g.BuildConfig.BuildTools...)
+	return g.BuildConfig.BuildTools
 }
 
 func (g gyp) Clean() error {

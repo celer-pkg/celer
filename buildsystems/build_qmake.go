@@ -1,7 +1,6 @@
 package buildsystems
 
 import (
-	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
@@ -26,9 +25,9 @@ func (qmake) Name() string {
 	return "qmake"
 }
 
-func (m *qmake) CheckTools() error {
-	m.BuildTools = append(m.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(m.Ctx, m.BuildTools...)
+func (q *qmake) CheckTools() []string {
+	q.BuildTools = append(q.BuildTools, "git", "cmake")
+	return q.BuildConfig.BuildTools
 }
 
 func (q qmake) Clean() error {
@@ -36,16 +35,16 @@ func (q qmake) Clean() error {
 	return nil
 }
 
-func (m qmake) preConfigure() error {
+func (q qmake) preConfigure() error {
 	// Execute pre configure scripts.
-	for _, script := range m.PreConfigure {
+	for _, script := range q.PreConfigure {
 		script = strings.TrimSpace(script)
 		if script == "" {
 			continue
 		}
 
-		title := fmt.Sprintf("[post confiure %s]", m.PortConfig.nameVersionDesc())
-		script = m.replaceHolders(script)
+		title := fmt.Sprintf("[post confiure %s]", q.PortConfig.nameVersionDesc())
+		script = q.replaceHolders(script)
 		executor := cmd.NewExecutor(title, script)
 		if err := executor.Execute(); err != nil {
 			return err
@@ -55,19 +54,19 @@ func (m qmake) preConfigure() error {
 	return nil
 }
 
-func (m qmake) configureOptions() ([]string, error) {
-	var options = slices.Clone(m.Options)
+func (q qmake) configureOptions() ([]string, error) {
+	var options = slices.Clone(q.Options)
 
 	// Remove common cross compile args for native build.
-	if m.PortConfig.Toolchain.Native || m.BuildConfig.DevDep {
+	if q.PortConfig.Toolchain.Native || q.BuildConfig.DevDep {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.Contains(element, "-sysroot=")
 		})
 	}
 
 	// Set build library type.
-	libraryType := m.libraryType("-shared", "-static")
-	switch m.BuildConfig.LibraryType {
+	libraryType := q.libraryType("-shared", "-static")
+	switch q.BuildConfig.LibraryType {
 	case "shared", "": // default is `shared`.
 		options = append(options, libraryType.enableShared)
 		if libraryType.disableStatic != "" {
@@ -80,61 +79,61 @@ func (m qmake) configureOptions() ([]string, error) {
 		}
 	}
 
-	options = append(options, fmt.Sprintf("--prefix=%s", m.PortConfig.PackageDir))
+	options = append(options, fmt.Sprintf("--prefix=%s", q.PortConfig.PackageDir))
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = m.replaceHolders(value)
+		options[index] = q.replaceHolders(value)
 	}
 
 	return options, nil
 }
 
-func (m qmake) configured() bool {
-	makeFile := filepath.Join(m.PortConfig.BuildDir, "Makefile")
+func (q qmake) configured() bool {
+	makeFile := filepath.Join(q.PortConfig.BuildDir, "Makefile")
 	return fileio.PathExists(makeFile)
 }
 
-func (m qmake) Configure(options []string) error {
+func (q qmake) Configure(options []string) error {
 	// In windows, we set msvc related environments.
-	if m.DevDep ||
-		m.PortConfig.Toolchain.Name == "msvc" ||
-		m.PortConfig.Toolchain.Name == "clang" {
-		m.PortConfig.Toolchain.ClearEnvs()
+	if q.DevDep ||
+		q.PortConfig.Toolchain.Name == "msvc" ||
+		q.PortConfig.Toolchain.Name == "clang" {
+		q.PortConfig.Toolchain.ClearEnvs()
 	} else {
-		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)
+		q.PortConfig.Toolchain.SetEnvs(q.BuildConfig)
 	}
 
 	// Set optimization flags with build_type.
-	if m.Optimize != nil {
+	if q.Optimize != nil {
 		cflags := strings.Fields(os.Getenv("CFLAGS"))
 		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
-		if m.DevDep {
-			if m.Optimize.Release != "" {
-				cflags = append(cflags, m.Optimize.Release)
-				cxxflags = append(cxxflags, m.Optimize.Release)
+		if q.DevDep {
+			if q.Optimize.Release != "" {
+				cflags = append(cflags, q.Optimize.Release)
+				cxxflags = append(cxxflags, q.Optimize.Release)
 			}
 		} else {
-			switch m.BuildType {
+			switch q.BuildType {
 			case "release":
-				if m.Optimize.Release != "" {
-					cflags = append(cflags, m.Optimize.Release)
-					cxxflags = append(cxxflags, m.Optimize.Release)
+				if q.Optimize.Release != "" {
+					cflags = append(cflags, q.Optimize.Release)
+					cxxflags = append(cxxflags, q.Optimize.Release)
 				}
 			case "debug":
-				if m.Optimize.Debug != "" {
-					cflags = append(cflags, m.Optimize.Debug)
-					cxxflags = append(cxxflags, m.Optimize.Debug)
+				if q.Optimize.Debug != "" {
+					cflags = append(cflags, q.Optimize.Debug)
+					cxxflags = append(cxxflags, q.Optimize.Debug)
 				}
 			case "relwithdebinfo":
-				if m.Optimize.RelWithDebInfo != "" {
-					cflags = append(cflags, m.Optimize.RelWithDebInfo)
-					cxxflags = append(cxxflags, m.Optimize.RelWithDebInfo)
+				if q.Optimize.RelWithDebInfo != "" {
+					cflags = append(cflags, q.Optimize.RelWithDebInfo)
+					cxxflags = append(cxxflags, q.Optimize.RelWithDebInfo)
 				}
 			case "minsizerel":
-				if m.Optimize.MinSizeRel != "" {
-					cflags = append(cflags, m.Optimize.MinSizeRel)
-					cxxflags = append(cxxflags, m.Optimize.MinSizeRel)
+				if q.Optimize.MinSizeRel != "" {
+					cflags = append(cflags, q.Optimize.MinSizeRel)
+					cxxflags = append(cxxflags, q.Optimize.MinSizeRel)
 				}
 			}
 		}
@@ -143,19 +142,19 @@ func (m qmake) Configure(options []string) error {
 	}
 
 	// Create build dir if not exists.
-	if !m.BuildInSource {
-		if err := os.MkdirAll(m.PortConfig.BuildDir, os.ModePerm); err != nil {
+	if !q.BuildInSource {
+		if err := os.MkdirAll(q.PortConfig.BuildDir, os.ModePerm); err != nil {
 			return err
 		}
 	}
 
 	// Asssemble configure command.
 	joinedOptions := strings.Join(options, " ")
-	command := fmt.Sprintf("%s/configure %s", m.PortConfig.SrcDir, joinedOptions)
-	title := fmt.Sprintf("[configure %s]", m.PortConfig.nameVersionDesc())
+	command := fmt.Sprintf("%s/configure %s", q.PortConfig.SrcDir, joinedOptions)
+	title := fmt.Sprintf("[configure %s]", q.PortConfig.nameVersionDesc())
 	executor := cmd.NewExecutor(title, command)
-	executor.SetLogPath(m.getLogPath("configure"))
-	executor.SetWorkDir(expr.If(m.BuildInSource, m.PortConfig.SrcDir, m.PortConfig.BuildDir))
+	executor.SetLogPath(q.getLogPath("configure"))
+	executor.SetWorkDir(expr.If(q.BuildInSource, q.PortConfig.SrcDir, q.PortConfig.BuildDir))
 	if err := executor.Execute(); err != nil {
 		return err
 	}
@@ -163,19 +162,19 @@ func (m qmake) Configure(options []string) error {
 	return nil
 }
 
-func (m qmake) buildOptions() ([]string, error) {
+func (q qmake) buildOptions() ([]string, error) {
 	return nil, nil
 }
 
-func (m qmake) Build(options []string) error {
+func (q qmake) Build(options []string) error {
 	// Assemble command.
-	command := fmt.Sprintf("make -j %d", m.PortConfig.Jobs)
+	command := fmt.Sprintf("make -j %d", q.PortConfig.Jobs)
 
 	// Execute build.
-	title := fmt.Sprintf("[build %s]", m.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[build %s]", q.PortConfig.nameVersionDesc())
 	executor := cmd.NewExecutor(title, command)
-	executor.SetLogPath(m.getLogPath("build"))
-	executor.SetWorkDir(m.PortConfig.BuildDir)
+	executor.SetLogPath(q.getLogPath("build"))
+	executor.SetWorkDir(q.PortConfig.BuildDir)
 	if err := executor.Execute(); err != nil {
 		return err
 	}
@@ -183,12 +182,12 @@ func (m qmake) Build(options []string) error {
 	return nil
 }
 
-func (m qmake) Install(options []string) error {
+func (q qmake) Install(options []string) error {
 	// Execute install.
-	title := fmt.Sprintf("[install %s]", m.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[install %s]", q.PortConfig.nameVersionDesc())
 	executor := cmd.NewExecutor(title, "make install")
-	executor.SetLogPath(m.getLogPath("install"))
-	executor.SetWorkDir(m.PortConfig.BuildDir)
+	executor.SetLogPath(q.getLogPath("install"))
+	executor.SetWorkDir(q.PortConfig.BuildDir)
 	if err := executor.Execute(); err != nil {
 		return err
 	}

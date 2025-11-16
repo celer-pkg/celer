@@ -1,7 +1,6 @@
 package buildsystems
 
 import (
-	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
@@ -28,9 +27,9 @@ func (p prebuilt) Name() string {
 	return "prebuilt"
 }
 
-func (p prebuilt) CheckTools() error {
+func (p prebuilt) CheckTools() []string {
 	p.BuildTools = append(p.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(p.Ctx, p.BuildTools...)
+	return p.BuildConfig.BuildTools
 }
 
 func (p prebuilt) Clean() error {

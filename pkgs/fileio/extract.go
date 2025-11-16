@@ -75,7 +75,7 @@ func Extract(archiveFile, destDir string) error {
 		return fmt.Errorf("extract archive: %w", err)
 	}
 
-	expr.PrintInline(fmt.Sprintf("\rExtracted: %s...", fileName))
+	expr.PrintInline(fmt.Sprintf("\rExtracted: %s...\n", fileName))
 	return nil
 }
 

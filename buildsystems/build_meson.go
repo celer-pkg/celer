@@ -2,7 +2,6 @@ package buildsystems
 
 import (
 	"bytes"
-	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
@@ -33,7 +32,7 @@ func (meson) Name() string {
 	return "meson"
 }
 
-func (m meson) CheckTools() error {
+func (m meson) CheckTools() []string {
 	m.BuildTools = append(m.BuildTools, "git", "ninja", "cmake")
 
 	switch runtime.GOOS {
@@ -46,7 +45,7 @@ func (m meson) CheckTools() error {
 		m.BuildTools = append(m.BuildTools, "python3:meson")
 	}
 
-	return buildtools.CheckTools(m.Ctx, m.BuildTools...)
+	return m.BuildConfig.BuildTools
 }
 
 func (m meson) Clean() error {

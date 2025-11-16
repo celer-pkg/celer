@@ -134,17 +134,13 @@ func (c *Celer) Init() error {
 	// Celer support clang-cl, clang, msvc by setting platform name with "", "clang-cl", "clang", "msvc".
 	// If platform name is not specified, use default toolchain, in Windows, use msvc toolchain by default,
 	// and in Linux, use clang toolchain by default.
-	var toolchain = Toolchain{ctx: c}
 	if c.platform.Name == "" || c.platform.Name == "clang-cl" || c.platform.Name == "clang" || c.platform.Name == "msvc" {
+		var toolchain = Toolchain{ctx: c}
 		if err := toolchain.Detect(c.platform.Name); err != nil {
 			return fmt.Errorf("detect celer.toolchain: %w", err)
 		}
-	} else {
-		if err := toolchain.Detect(c.platform.Toolchain.Name); err != nil {
-			return fmt.Errorf("detect celer.toolchain: %w", err)
-		}
+		c.platform.Toolchain = &toolchain
 	}
-	c.platform.Toolchain = &toolchain
 	c.platform.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
 	c.platform.Toolchain.SystemProcessor = runtime.GOARCH
 
@@ -195,11 +191,6 @@ func (c *Celer) Init() error {
 
 	if c.Global.Offline {
 		color.Println(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================\n")
-	}
-
-	// Git is required to clone/update repo.
-	if err := buildtools.CheckTools(c, "git"); err != nil {
-		return err
 	}
 
 	// Clone ports repo if empty.
@@ -610,6 +601,11 @@ func (c *Celer) clonePorts() error {
 		portsRepoUrl := c.portsRepoUrl()
 		if err := fileio.CheckAccessible(portsRepoUrl); err != nil {
 			return fmt.Errorf("%s is not accessible, cloning ports is aborted", portsRepoUrl)
+		}
+
+		// Make sure git available.
+		if err := buildtools.CheckTools(c, "git"); err != nil {
+			return err
 		}
 
 		command := fmt.Sprintf("git clone %s %s", portsRepoUrl, portsDir)
