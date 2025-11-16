@@ -141,9 +141,11 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 
 // Detect detect local installed gcc.
 func (t *Toolchain) Detect(platformName string) error {
-	toolchain := expr.If(platformName == "clang", "clang", "build-essential")
-	if err := buildtools.CheckTools(t.ctx, toolchain); err != nil {
-		return fmt.Errorf("%s is not available: %w", toolchain, err)
+	switch platformName {
+	case "clang", "gcc":
+		if err := buildtools.CheckTools(t.ctx, platformName); err != nil {
+			return err
+		}
 	}
 
 	t.Url = "file:////usr/bin"

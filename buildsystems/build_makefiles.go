@@ -1,7 +1,6 @@
 package buildsystems
 
 import (
-	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
@@ -32,7 +31,7 @@ func (makefiles) Name() string {
 	return "makefiles"
 }
 
-func (m *makefiles) CheckTools() error {
+func (m *makefiles) CheckTools() []string {
 	if runtime.GOOS == "windows" {
 		configureWithPerl := m.shouldConfigureWithPerl()
 		tool := expr.If(configureWithPerl, "strawberry-perl", "msys2")
@@ -40,7 +39,7 @@ func (m *makefiles) CheckTools() error {
 	}
 
 	m.BuildTools = append(m.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(m.Ctx, m.BuildTools...)
+	return m.BuildConfig.BuildTools
 }
 
 func (m makefiles) Clean() error {

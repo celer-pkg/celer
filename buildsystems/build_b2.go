@@ -3,7 +3,6 @@ package buildsystems
 import (
 	"bufio"
 	"bytes"
-	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
@@ -33,9 +32,9 @@ func (b b2) Name() string {
 	return "b2"
 }
 
-func (b b2) CheckTools() error {
+func (b b2) CheckTools() []string {
 	b.BuildConfig.BuildTools = append(b.BuildConfig.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(b.Ctx, b.BuildConfig.BuildTools...)
+	return b.BuildConfig.BuildTools
 }
 
 func (b b2) Clean() error {

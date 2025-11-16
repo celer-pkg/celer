@@ -56,7 +56,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	// Clear the tmp/deps dir, then copy only the required library files into it.
 	// This ensures the folder contains exactly the libraries required by the current port.
 	if p.Parent == "" {
-		color.Printf(color.Blue, "\n[clean '%s' to prepare build dependencies/dev_dependencies for %s.]\n", dirs.TmpDepsDir, p.NameVersion())
+		color.Printf(color.Blue, "\n[clean %s]: %s\n", p.NameVersion(), dirs.TmpDepsDir)
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
 			return "", err
 		}
@@ -101,6 +101,40 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "", err
 	}
 	return "source", nil
+}
+
+func (p Port) Clone() error {
+	for _, nameVersion := range p.MatchedConfig.DevDependencies {
+		var port = Port{DevDep: p.DevDep}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive); err != nil {
+			return err
+		}
+		if err := port.Clone(); err != nil {
+			return err
+		}
+	}
+
+	for _, nameVersion := range p.MatchedConfig.Dependencies {
+		var port = Port{DevDep: false, Native: p.DevDep || p.Native}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive); err != nil {
+			return err
+		}
+		if err := port.Clone(); err != nil {
+			return err
+		}
+	}
+
+	if err := p.MatchedConfig.Clone(p.Package.Url, p.Package.Ref, p.Package.Archive); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
@@ -156,6 +190,7 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 		}
 	}()
 
+	// Validate cache dir before building to avoid wasting build time.
 	var writeCacheAfterInstall bool
 	if options.StoreCache {
 		cacheDir := p.ctx.CacheDir()
@@ -390,6 +425,30 @@ func (p Port) InstallFromCache(options InstallOptions) (bool, error) {
 }
 
 func (p Port) InstallFromSource(options InstallOptions) error {
+	// Clone or download all required source.
+	buildConfig := p.MatchedConfig
+	for _, nameVersion := range buildConfig.DevDependencies {
+		port := Port{DevDep: true}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+		if err := port.Clone(); err != nil {
+			return err
+		}
+	}
+	for _, nameVersion := range buildConfig.Dependencies {
+		port := Port{DevDep: false, Native: p.DevDep || p.Native}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+		if err := port.Clone(); err != nil {
+			return err
+		}
+	}
+	if err := p.Clone(); err != nil {
+		return err
+	}
+
 	if err := p.installDependencies(options); err != nil {
 		return err
 	}

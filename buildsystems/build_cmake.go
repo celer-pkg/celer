@@ -1,7 +1,6 @@
 package buildsystems
 
 import (
-	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/color"
@@ -39,12 +38,19 @@ func (c cmake) Name() string {
 	return "cmake"
 }
 
-func (c cmake) CheckTools() error {
+func (c cmake) CheckTools() []string {
 	c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "git", "cmake")
 	if c.CMakeGenerator == "Ninja" {
 		c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "ninja")
 	}
-	return buildtools.CheckTools(c.Ctx, c.BuildTools...)
+
+	// In windows, the default toolchain is Visual Studio,
+	// so vswhere is required to find installed Visual Studio.
+	if runtime.GOOS == "windows" && c.CMakeGenerator == "" {
+		c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "vswhere")
+	}
+
+	return c.BuildConfig.BuildTools
 }
 
 func (c cmake) Clean() error {
@@ -280,7 +286,7 @@ func (c *cmake) detectGenerator() error {
 		case "linux":
 			c.CMakeGenerator = "Unix Makefiles"
 		case "windows":
-			msvcGenerator, err := detectMSVCGenerator(c.Ctx)
+			msvcGenerator, err := detectMSVCGenerator()
 			if err != nil {
 				return err
 			}
@@ -305,11 +311,7 @@ func (c cmake) multiConfigGenerator() bool {
 	return false
 }
 
-func detectMSVCGenerator(ctx context.Context) (string, error) {
-	if err := buildtools.CheckTools(ctx, "vswhere"); err != nil {
-		return "", fmt.Errorf("check tool vswhere failed: %w", err)
-	}
-
+func detectMSVCGenerator() (string, error) {
 	// Query all available msvc installation paths.
 	args := []string{
 		"-products", "*",

@@ -23,8 +23,14 @@ var (
 )
 
 // CheckTools checks if tools exist and repair them if necessary.
-func CheckTools(ctx context.Context, requiredTools ...string) error {
-	tools := slices.Clone(requiredTools)
+func CheckTools(ctx context.Context, tools ...string) error {
+	// Filter duplicated tools.
+	var uniqueTools []string
+	for _, tool := range tools {
+		if !slices.Contains(uniqueTools, tool) {
+			uniqueTools = append(uniqueTools, tool)
+		}
+	}
 
 	// Read and decode static file.
 	bytes, err := static.ReadFile(fmt.Sprintf("static/x86_64-%s.toml", runtime.GOOS))
@@ -50,7 +56,7 @@ func CheckTools(ctx context.Context, requiredTools ...string) error {
 	}
 
 	// Check if need to install python3 and msys2.
-	for _, tool := range tools {
+	for _, tool := range uniqueTools {
 		len := strings.Count(tool, ":")
 		if len == 0 {
 			continue
@@ -59,11 +65,11 @@ func CheckTools(ctx context.Context, requiredTools ...string) error {
 			return fmt.Errorf("invalid tool format: %s", tool)
 		}
 
-		if strings.HasPrefix(tool, "msys2:") && !slices.Contains(tools, "msys2") {
-			tools = append(tools, "msys2")
+		if strings.HasPrefix(tool, "msys2:") && !slices.Contains(uniqueTools, "msys2") {
+			uniqueTools = append(uniqueTools, "msys2")
 		}
-		if strings.HasPrefix(tool, "python3:") && !slices.Contains(tools, "python3") {
-			tools = append(tools, "python3")
+		if strings.HasPrefix(tool, "python3:") && !slices.Contains(uniqueTools, "python3") {
+			uniqueTools = append(uniqueTools, "python3")
 		}
 	}
 
@@ -73,7 +79,7 @@ func CheckTools(ctx context.Context, requiredTools ...string) error {
 	)
 
 	// Validate tools in loop.
-	for _, tool := range tools {
+	for _, tool := range uniqueTools {
 		// Skip python3 now, since it's not portable tool, we will validate it later.
 		if strings.HasPrefix(tool, "python3") {
 			python3Required = true
@@ -93,13 +99,13 @@ func CheckTools(ctx context.Context, requiredTools ...string) error {
 	}
 
 	// Keep tools that not managed by buildTools.
-	tools = slices.DeleteFunc(tools, func(element string) bool {
+	uniqueTools = slices.DeleteFunc(uniqueTools, func(element string) bool {
 		return buildTools.contains(element)
 	})
 
 	// Validate python3 and install python3 libraries.
 	if python3Required {
-		if err := SetupPython3(&tools); err != nil {
+		if err := SetupPython3(&uniqueTools); err != nil {
 			return err
 		}
 	}
@@ -107,12 +113,12 @@ func CheckTools(ctx context.Context, requiredTools ...string) error {
 	switch runtime.GOOS {
 	case "windows":
 		if msys2Tool != nil {
-			if err := SetupMSYS2(msys2Tool.rootDir, &tools); err != nil {
+			if err := SetupMSYS2(msys2Tool.rootDir, &uniqueTools); err != nil {
 				return err
 			}
 		}
 	case "linux":
-		if err := CheckSystemTools(tools); err != nil {
+		if err := CheckSystemTools(uniqueTools); err != nil {
 			return err
 		}
 	}

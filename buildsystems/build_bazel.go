@@ -1,7 +1,6 @@
 package buildsystems
 
 import (
-	"celer/buildtools"
 	"celer/context"
 )
 
@@ -21,9 +20,9 @@ func (b bazel) Name() string {
 	return "bazel"
 }
 
-func (b bazel) CheckTools() error {
+func (b bazel) CheckTools() []string {
 	b.BuildConfig.BuildTools = append(b.BuildConfig.BuildTools, "git", "cmake")
-	return buildtools.CheckTools(b.Ctx, b.BuildTools...)
+	return b.BuildConfig.BuildTools
 }
 
 func (b bazel) Clean() error {

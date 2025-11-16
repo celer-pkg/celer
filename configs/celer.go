@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -22,9 +23,7 @@ import (
 
 const defaultPortsRepo = "https://github.com/celer-pkg/ports.git"
 
-var (
-	Version = "v0.0.0" // It would be set by build script.
-)
+var Version = "v0.0.0" // It would be set by build script.
 
 func NewCeler() *Celer {
 	// Make sure build env is clean.
@@ -132,6 +131,51 @@ func (c *Celer) Init() error {
 		}
 	}
 
+	// Celer support clang-cl, clang, msvc by setting platform name with "", "clang-cl", "clang", "msvc".
+	// If platform name is not specified, use default toolchain, in Windows, use msvc toolchain by default,
+	// and in Linux, use clang toolchain by default.
+	if c.platform.Name == "" || c.platform.Name == "clang-cl" || c.platform.Name == "clang" || c.platform.Name == "msvc" {
+		var toolchain = Toolchain{ctx: c}
+		if err := toolchain.Detect(c.platform.Name); err != nil {
+			return fmt.Errorf("detect celer.toolchain: %w", err)
+		}
+		c.platform.Toolchain = &toolchain
+	}
+	c.platform.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
+	c.platform.Toolchain.SystemProcessor = runtime.GOARCH
+
+	// Detected windows kit.
+	if runtime.GOOS == "windows" {
+		var windowsKit WindowsKit
+		if err := windowsKit.Detect(&c.platform.Toolchain.MSVC); err != nil {
+			return fmt.Errorf("failed to detect celer.windows_kit.\n: %w", err)
+		}
+		c.platform.WindowsKit = &windowsKit
+	}
+
+	// Change platform name as standard format.
+	platformNames := []string{"", "msvc", "gcc", "clang", "clang-cl"}
+	if slices.Contains(platformNames, c.platform.Name) {
+		switch runtime.GOOS {
+		case "windows":
+			if c.platform.Toolchain.Name == "msvc" || c.platform.Toolchain.Name == "clang" || c.platform.Toolchain.Name == "clang-cl" {
+				c.platform.Name = "x86_64-windows"
+			} else {
+				return fmt.Errorf("unsupported toolchian %s", c.platform.Toolchain.Name)
+			}
+
+		case "linux":
+			c.platform.Name = "x86_64-linux"
+
+		default:
+			return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
+		}
+	}
+
+	if c.platform.Toolchain == nil {
+		panic("Toolchain should not be empty, it may specified in platform or automatically detected.")
+	}
+
 	// Set default project name.
 	if c.configData.Global.Project == "" {
 		c.configData.Global.Project = "unnamed"
@@ -147,11 +191,6 @@ func (c *Celer) Init() error {
 
 	if c.Global.Offline {
 		color.Println(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================\n")
-	}
-
-	// Git is required to clone/update repo.
-	if err := buildtools.CheckTools(c, "git"); err != nil {
-		return err
 	}
 
 	// Clone ports repo if empty.
@@ -226,7 +265,7 @@ func (c *Celer) SetPlatform(platformName string) error {
 		return err
 	}
 
-	// Init and setup platform.
+	// Init and setup.
 	if err := c.platform.Init(platformName); err != nil {
 		return err
 	}
@@ -562,6 +601,11 @@ func (c *Celer) clonePorts() error {
 		portsRepoUrl := c.portsRepoUrl()
 		if err := fileio.CheckAccessible(portsRepoUrl); err != nil {
 			return fmt.Errorf("%s is not accessible, cloning ports is aborted", portsRepoUrl)
+		}
+
+		// Make sure git available.
+		if err := buildtools.CheckTools(c, "git"); err != nil {
+			return err
 		}
 
 		command := fmt.Sprintf("git clone %s %s", portsRepoUrl, portsDir)
