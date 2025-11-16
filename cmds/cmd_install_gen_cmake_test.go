@@ -403,6 +403,10 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	check(celer.SetProject(project))
 	check(celer.Setup())
 
+	if err := buildtools.CheckTools(celer, "git", "cmake"); err != nil {
+		t.Fatal(err)
+	}
+
 	var port configs.Port
 	var options configs.InstallOptions
 	check(port.Init(celer, nameVersion))
@@ -417,9 +421,6 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	})
 
 	// Build test project.
-	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
-		t.Fatal(err)
-	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/interface_head_only"),
