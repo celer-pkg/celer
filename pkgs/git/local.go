@@ -98,7 +98,7 @@ func InitRepo(repoDir, message string) error {
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git init.\n %s", output)
+		return fmt.Errorf("failed to git init repo.\n %s", output)
 	}
 
 	cmd = exec.Command("git", "add", "-A")
@@ -118,7 +118,7 @@ func InitRepo(repoDir, message string) error {
 	)
 	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git commit.\n %s", output)
+		return fmt.Errorf("failed to git commit repo.\n %s", output)
 	}
 
 	return nil

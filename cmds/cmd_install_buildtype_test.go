@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -43,6 +44,7 @@ func TestInstall_BuildType(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	t.Run("install with build type Release", func(t *testing.T) {
 		check(celer.SetBuildType("Release"))

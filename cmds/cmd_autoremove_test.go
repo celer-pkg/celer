@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -171,6 +172,7 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	autoremoveCmd := autoremoveCmd{celer: celer}
 

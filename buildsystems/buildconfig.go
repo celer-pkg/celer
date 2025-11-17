@@ -54,7 +54,7 @@ type buildSystem interface {
 	eventHook
 
 	Name() string
-	CheckTools() error
+	CheckTools() []string
 
 	// Clean repo.
 	Clean() error
@@ -281,20 +281,23 @@ func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string
 }
 
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
+	// Skip if source dir exists or build system is prebuilt.
+	// For prebuilt, we always download via http, ftp or others.
+	destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
+	if fileio.PathExists(destDir) {
+		return nil
+	}
+
 	// For git repo, clone it when source dir doesn't exists.
 	if strings.HasSuffix(repoUrl, ".git") {
-		if !fileio.PathExists(b.PortConfig.RepoDir) {
-			// Clone repo.
-			title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
-			if err := git.CloneRepo(title, repoUrl, repoRef,
-				b.PortConfig.IgnoreSubmodule,
-				b.PortConfig.RepoDir); err != nil {
-				return err
-			}
+		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
+		if err := git.CloneRepo(title, repoUrl, repoRef,
+			b.PortConfig.IgnoreSubmodule,
+			b.PortConfig.RepoDir); err != nil {
+			return err
 		}
 	} else {
 		// Check and repair resource.
-		destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
 		repair := fileio.NewRepair(repoUrl, archive, ".", destDir)
 		if err := repair.CheckAndRepair(b.Ctx); err != nil {
@@ -306,14 +309,16 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 		if err != nil || len(entities) == 0 {
 			return fmt.Errorf("failed to find extracted files under repo dir")
 		}
-		if len(entities) == 1 {
+
+		// Move extracted files to repo dir if it's not "include".
+		if len(entities) == 1 && entities[0].Name() != "include" {
 			srcDir := filepath.Join(destDir, entities[0].Name())
 			if err := fileio.RenameDir(srcDir, destDir); err != nil {
 				return err
 			}
 		}
 
-		// Init as git repo for tracking file change.
+		// Init downloaded source as git repo for tracking file change.
 		if b.buildSystem.Name() != "prebuilt" {
 			if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
 				return err
@@ -330,13 +335,6 @@ func (b BuildConfig) Clean() error {
 
 func (b BuildConfig) Patch() error {
 	if len(b.Patches) > 0 {
-		// In windows, msys2 is required to apply patch .
-		if runtime.GOOS == "windows" {
-			if err := buildtools.CheckTools(b.Ctx, "msys2"); err != nil {
-				return err
-			}
-		}
-
 		// Apply all patches.
 		for _, patch := range b.Patches {
 			patch = strings.TrimSpace(patch)
@@ -419,7 +417,12 @@ func (b BuildConfig) installOptions() ([]string, error) {
 }
 
 func (b BuildConfig) Install(url, ref, archive string) error {
-	if err := b.buildSystem.CheckTools(); err != nil {
+	tools := b.buildSystem.CheckTools()
+	if runtime.GOOS == "windows" && len(b.Patches) > 0 {
+		tools = append(tools, "msys2")
+	}
+
+	if err := buildtools.CheckTools(b.Ctx, tools...); err != nil {
 		return fmt.Errorf("failed to check tools for %s.\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
@@ -452,14 +455,6 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 				filepath.Join(b.PortConfig.Toolchain.RootFS, "tmp", "deps")); err != nil {
 				return err
 			}
-		}
-	}
-
-	// Clone repo, the repo maybe already cloned during computer hash.
-	if !fileio.PathExists(b.PortConfig.RepoDir) {
-		if err := b.buildSystem.Clone(url, ref, archive); err != nil {
-			message := expr.If(strings.HasSuffix(url, ".git"), "clone error", "download error")
-			return fmt.Errorf("%s %s: %w", message, b.PortConfig.nameVersionDesc(), err)
 		}
 	}
 

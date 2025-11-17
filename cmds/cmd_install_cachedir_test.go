@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -51,6 +52,7 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	var port configs.Port
 	var installOptions = configs.InstallOptions{
@@ -134,6 +136,7 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	var glogPort configs.Port
 	var options = configs.InstallOptions{
@@ -228,6 +231,7 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -314,6 +318,7 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 	check(celer.SetCacheDir("", "token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -363,6 +368,7 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, ""))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -412,6 +418,7 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -461,6 +468,7 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -510,6 +518,7 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -578,6 +587,7 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	var port configs.Port
 	var options = configs.InstallOptions{

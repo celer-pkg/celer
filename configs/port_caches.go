@@ -2,7 +2,6 @@ package configs
 
 import (
 	"celer/buildsystems"
-	"celer/buildtools"
 	"celer/caches"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -69,10 +68,6 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 }
 
 func (p Port) Commit(nameVersion string, devDep bool) (string, error) {
-	if err := buildtools.CheckTools(p.ctx, "git"); err != nil {
-		return "", err
-	}
-
 	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return "", err

@@ -3,13 +3,11 @@ package configs
 import (
 	"celer/context"
 	"celer/pkgs/dirs"
-	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -145,49 +143,6 @@ func (p *Platform) setup() error {
 		}
 	}
 
-	// Detect toolchain.
-	var toolchain = Toolchain{ctx: p.ctx}
-	if p.Name == "" || p.Name == "clang-cl" || p.Name == "clang" || p.Name == "msvc" {
-		if err := toolchain.Detect(p.Name); err != nil {
-			return fmt.Errorf("detect celer.toolchain: %w", err)
-		}
-	} else {
-		if err := toolchain.Detect(p.Toolchain.Name); err != nil {
-			return fmt.Errorf("detect celer.toolchain: %w", err)
-		}
-	}
-
-	p.Toolchain = &toolchain
-	p.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
-	p.Toolchain.SystemProcessor = runtime.GOARCH
-
-	// Detected windows kit.
-	if runtime.GOOS == "windows" && p.WindowsKit == nil {
-		var windowsKit WindowsKit
-		if err := windowsKit.Detect(&p.Toolchain.MSVC); err != nil {
-			return fmt.Errorf("failed to detect celer.windows_kit.\n: %w", err)
-		}
-		p.WindowsKit = &windowsKit
-	}
-
-	// Change platform name if not specified.
-	if slices.Contains([]string{"", "msvc", "gcc", "clang", "clang-cl"}, p.Name) {
-		switch runtime.GOOS {
-		case "windows":
-			if p.Toolchain.Name == "msvc" || p.Toolchain.Name == "clang" || p.Toolchain.Name == "clang-cl" {
-				p.Name = "x86_64-windows"
-			} else {
-				return fmt.Errorf("unsupported toolchian %s", p.Toolchain.Name)
-			}
-
-		case "linux":
-			p.Name = "x86_64-linux"
-		}
-	}
-
-	if p.Toolchain == nil {
-		panic("Toolchain should not be empty, it may specified in platform or automatically detected.")
-	}
 	if err := p.Toolchain.CheckAndRepair(false); err != nil {
 		return fmt.Errorf("failed to check and repair toolchain.\n %w", err)
 	}

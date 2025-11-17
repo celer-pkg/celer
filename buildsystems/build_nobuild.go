@@ -20,7 +20,7 @@ type nobuild struct {
 	*context.Optimize
 }
 
-func (n nobuild) CheckTools() error {
+func (n nobuild) CheckTools() []string {
 	return nil
 }
 

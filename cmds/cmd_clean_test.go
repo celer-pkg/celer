@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -41,6 +42,7 @@ func TestClean(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
+	check(buildtools.CheckTools(celer, "git"))
 
 	check(celer.Deploy())
 

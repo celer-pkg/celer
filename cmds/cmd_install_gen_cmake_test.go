@@ -116,6 +116,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -131,9 +132,6 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	})
 
 	// Build test project.
-	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
-		t.Fatal(err)
-	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/interface_libraries"),
@@ -187,6 +185,7 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -202,9 +201,6 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 	})
 
 	// Build test project.
-	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
-		t.Fatal(err)
-	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/components"),
@@ -258,6 +254,7 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -272,9 +269,6 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	})
 
 	// Build test project.
-	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
-		t.Fatal(err)
-	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_source/single_target"),
@@ -328,6 +322,7 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -342,9 +337,6 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 	})
 
 	// Build test project.
-	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
-		t.Fatal(err)
-	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_source/components"),
@@ -398,6 +390,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -413,9 +406,6 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	})
 
 	// Build test project.
-	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
-		t.Fatal(err)
-	}
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("CMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir),
 		"-S", filepath.Join(dirs.WorkspaceDir, "testdata/gen_cmake_configs_prebuilt/interface_head_only"),
