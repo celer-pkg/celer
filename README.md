@@ -8,7 +8,7 @@
 &emsp;&emsp;This is why we created Celer. It automatically generates a `toolchain_file.cmake` that configures all necessary build tools and library paths, isolating them from system libraries. All preparation work is done before this file is generated.  
 &emsp;&emsp;As shown in the diagram, Celer remains decoupled from project development - it simply generates the platform-specific `toolchain_file.cmake` that serves as the bridge to your project.
 
-![workflow](../assets/workflow.svg)
+![workflow](./docs/assets/workflow.svg)
 
 # Key features
 
