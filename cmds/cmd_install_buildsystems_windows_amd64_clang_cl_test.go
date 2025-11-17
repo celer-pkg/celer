@@ -24,16 +24,17 @@ func TestInstall_CMake_Clang(t *testing.T) {
 	})
 }
 
-// func TestInstall_B2_Clang(t *testing.T) {
-// 	t.Run("detect_clang", func(t *testing.T) {
-// 		buildWithClang(t, "clang-cl", "boost@1.87.0", false)
-// 	})
+func TestInstall_B2_Clang(t *testing.T) {
+	t.Run("detect_clang", func(t *testing.T) {
+		buildWithClang(t, "clang-cl", "boost@1.87.0", false)
+	})
 
-// 	t.Run("fixed_clang", func(t *testing.T) {
-// 		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
-// 		buildWithClang(t, platform, "boost@1.87.0", false)
-// 	})
-// }
+	// TODO: need to fix it later.
+	// t.Run("fixed_clang", func(t *testing.T) {
+	// 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
+	// 	buildWithClang(t, platform, "boost@1.87.0", false)
+	// })
+}
 
 func TestInstall_Meson_Clang(t *testing.T) {
 	t.Run("detect_clang_cl", func(t *testing.T) {
