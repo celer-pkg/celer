@@ -116,10 +116,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
-
-	if err := buildtools.CheckTools(celer, "git", "cmake"); err != nil {
-		t.Fatal(err)
-	}
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -188,10 +185,7 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
-
-	if err := buildtools.CheckTools(celer, "git", "cmake"); err != nil {
-		t.Fatal(err)
-	}
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -260,10 +254,7 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
-
-	if err := buildtools.CheckTools(celer, "git", "cmake"); err != nil {
-		t.Fatal(err)
-	}
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -331,10 +322,7 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
-
-	if err := buildtools.CheckTools(celer, "git", "cmake"); err != nil {
-		t.Fatal(err)
-	}
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -402,10 +390,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
-
-	if err := buildtools.CheckTools(celer, "git", "cmake"); err != nil {
-		t.Fatal(err)
-	}
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
 	var options configs.InstallOptions

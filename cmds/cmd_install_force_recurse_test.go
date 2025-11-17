@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -51,6 +52,7 @@ func TestInstall_With_Force(t *testing.T) {
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	var (
 		options       configs.InstallOptions
@@ -127,6 +129,7 @@ func TestInstall_With_Force_Recurse(t *testing.T) {
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var (
 		options       configs.InstallOptions
