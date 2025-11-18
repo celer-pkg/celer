@@ -5,6 +5,7 @@ import (
 	"celer/context"
 	"celer/generator"
 	"celer/pkgs/cmd"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -331,9 +332,14 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 
 func (b BuildConfig) Clean() error {
 	title := fmt.Sprintf("[clean %s]", b.PortConfig.nameVersionDesc())
-	if err := git.Clean(title, b.PortConfig.RepoDir); err != nil {
-		return err
+	if fileio.PathExists(b.PortConfig.RepoDir) {
+		if err := git.Clean(title, b.PortConfig.RepoDir); err != nil {
+			return err
+		}
+	} else {
+		color.Printf(color.Yellow, "[%s] no source found, skip clean.\n", b.PortConfig.nameVersionDesc())
 	}
+
 	return nil
 }
 
