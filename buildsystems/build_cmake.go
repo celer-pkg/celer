@@ -53,11 +53,6 @@ func (c cmake) CheckTools() []string {
 	return c.BuildConfig.BuildTools
 }
 
-func (c cmake) Clean() error {
-	// We do not configure cmake project in source folder.
-	return nil
-}
-
 func (c cmake) configureOptions() ([]string, error) {
 	// Format as cmake build type.
 	c.BuildType = c.formatBuildType()

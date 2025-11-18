@@ -2,10 +2,6 @@ package buildsystems
 
 import (
 	"celer/context"
-	"celer/pkgs/cmd"
-	"celer/pkgs/fileio"
-	"fmt"
-	"path/filepath"
 )
 
 func NewNoBuild(config *BuildConfig, optimize *context.Optimize) *nobuild {
@@ -21,23 +17,6 @@ type nobuild struct {
 }
 
 func (n nobuild) CheckTools() []string {
-	return nil
-}
-
-func (n nobuild) Clean() error {
-	if fileio.PathExists(filepath.Join(n.PortConfig.RepoDir, ".git")) {
-		title := fmt.Sprintf("[clean %s]", n.PortConfig.nameVersionDesc())
-		executor := cmd.NewExecutor(title, "git clean -fdx && git reset --hard")
-		executor.SetWorkDir(n.PortConfig.RepoDir)
-		if err := executor.Execute(); err != nil {
-			return err
-		}
-	} else if n.BuildInSource {
-		if err := n.replaceSource(n.PortConfig.Archive, n.PortConfig.Url); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 

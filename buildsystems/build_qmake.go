@@ -30,11 +30,6 @@ func (q *qmake) CheckTools() []string {
 	return q.BuildConfig.BuildTools
 }
 
-func (q qmake) Clean() error {
-	// We do not configure qmake project in source folder.
-	return nil
-}
-
 func (q qmake) preConfigure() error {
 	// Execute pre configure scripts.
 	for _, script := range q.PreConfigure {

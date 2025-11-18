@@ -48,11 +48,6 @@ func (m meson) CheckTools() []string {
 	return m.BuildConfig.BuildTools
 }
 
-func (m meson) Clean() error {
-	// We do not configure meson project in source folder.
-	return nil
-}
-
 func (m *meson) preConfigure() error {
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
 	if runtime.GOOS == "windows" {

@@ -32,11 +32,6 @@ func (p prebuilt) CheckTools() []string {
 	return p.BuildConfig.BuildTools
 }
 
-func (p prebuilt) Clean() error {
-	// No repo to clean.
-	return nil
-}
-
 func (p prebuilt) Clone(url, ref, archive string) error {
 	// Clone repo only when source dir not exists.
 	if !fileio.PathExists(p.PortConfig.RepoDir) {
