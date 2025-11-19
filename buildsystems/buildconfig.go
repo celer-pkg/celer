@@ -5,6 +5,7 @@ import (
 	"celer/context"
 	"celer/generator"
 	"celer/pkgs/cmd"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -330,7 +331,16 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 }
 
 func (b BuildConfig) Clean() error {
-	return b.buildSystem.Clean()
+	title := fmt.Sprintf("[clean %s]", b.PortConfig.nameVersionDesc())
+	if fileio.PathExists(b.PortConfig.RepoDir) {
+		if err := git.Clean(title, b.PortConfig.RepoDir); err != nil {
+			return err
+		}
+	} else {
+		color.Printf(color.Yellow, "[%s] no source found, skip clean.\n", b.PortConfig.nameVersionDesc())
+	}
+
+	return nil
 }
 
 func (b BuildConfig) Patch() error {
@@ -683,58 +693,6 @@ func (b *BuildConfig) fillPlaceHolders() {
 			b.Options[index] = strings.ReplaceAll(argument, "${SRC_DIR}", b.PortConfig.SrcDir)
 		}
 	}
-}
-
-func (b BuildConfig) replaceSource(archive, url string) error {
-	// Nothing to do if repo dir doesn't exist.
-	if !fileio.PathExists(b.PortConfig.RepoDir) {
-		return nil
-	}
-
-	var replaceFailed bool
-
-	// Backup repo
-	if err := os.Rename(b.PortConfig.RepoDir, b.PortConfig.RepoDir+"_bak"); err != nil {
-		return err
-	}
-
-	defer func() {
-		// Rollback repo if repalce source failed.
-		if replaceFailed {
-			os.Rename(b.PortConfig.RepoDir+"_bak", b.PortConfig.RepoDir)
-		} else {
-			os.RemoveAll(b.PortConfig.RepoDir + "_bak")
-		}
-	}()
-
-	// Check and repair resource.
-	archive = expr.If(archive == "", filepath.Base(url), archive)
-	repair := fileio.NewRepair(url, archive, ".", b.PortConfig.RepoDir)
-	if err := repair.CheckAndRepair(b.Ctx); err != nil {
-		replaceFailed = true
-		return err
-	}
-
-	// Move extracted files to source dir.
-	entities, err := os.ReadDir(b.PortConfig.RepoDir)
-	if err != nil || len(entities) == 0 {
-		replaceFailed = true
-		return fmt.Errorf("failed to find extracted files under tmp dir")
-	}
-	if len(entities) == 1 {
-		srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
-		if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
-			replaceFailed = true
-			return err
-		}
-	}
-
-	// Init as git repo for tracking file change.
-	if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (b BuildConfig) replaceHolders(content string) string {

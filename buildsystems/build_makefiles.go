@@ -5,7 +5,6 @@ import (
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -40,21 +39,6 @@ func (m *makefiles) CheckTools() []string {
 
 	m.BuildTools = append(m.BuildTools, "git", "cmake")
 	return m.BuildConfig.BuildTools
-}
-
-func (m makefiles) Clean() error {
-	if fileio.PathExists(filepath.Join(m.PortConfig.RepoDir, ".git")) {
-		title := fmt.Sprintf("[clean %s]", m.PortConfig.nameVersionDesc())
-		if err := git.Clean(title, m.PortConfig.RepoDir); err != nil {
-			return err
-		}
-	} else if m.BuildInSource {
-		if err := m.replaceSource(m.PortConfig.Archive, m.PortConfig.Url); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (m *makefiles) preConfigure() error {

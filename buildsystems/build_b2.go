@@ -37,25 +37,6 @@ func (b b2) CheckTools() []string {
 	return b.BuildConfig.BuildTools
 }
 
-func (b b2) Clean() error {
-	b2file := expr.If(runtime.GOOS == "windows", "b2.exe", "b2")
-	if fileio.PathExists(filepath.Join(b.PortConfig.SrcDir, b2file)) {
-		title := fmt.Sprintf("[clean %s@%s]", b.PortConfig.LibName, b.PortConfig.LibVersion)
-		buildDir := "--build-dir=" + b.PortConfig.BuildDir
-		executor := cmd.NewExecutor(title, "./"+b2file, buildDir, "clean")
-		executor.SetWorkDir(b.PortConfig.SrcDir)
-		if err := executor.Execute(); err != nil {
-			return err
-		}
-
-		// Remove b2.exe and project-config.jam.
-		os.Remove(filepath.Join(b.PortConfig.SrcDir, "project-config.jam"))
-		os.Remove(filepath.Join(b.PortConfig.SrcDir, b2file))
-	}
-
-	return nil
-}
-
 func (b *b2) preConfigure() error {
 	// `clang` inside visual studio cannot be used to compile b2 project.
 	if runtime.GOOS == "windows" && strings.Contains(b.PortConfig.Toolchain.Fullpath, "Microsoft Visual Studio") {

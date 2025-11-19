@@ -28,7 +28,7 @@ func (c cleanCmd) Command(celer *configs.Celer) *cobra.Command {
 	c.celer = celer
 	command := &cobra.Command{
 		Use:   "clean",
-		Short: "Clean build cache for package or project",
+		Short: "Clean source and build cache for package or project",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := c.celer.Init(); err != nil {
 				configs.PrintError(err, "faild to init celer.")
@@ -184,7 +184,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 		return nil
 	}
 
-	// Remove build dir.
+	// Remove build cache for dev build or platform build.
 	matchedConfig := port.MatchedConfig
 	if port.DevDep || port.Native {
 		devBuildDir := filepath.Join(filepath.Dir(matchedConfig.PortConfig.BuildDir), matchedConfig.PortConfig.HostName+"-dev")
@@ -197,7 +197,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 		}
 	}
 
-	// Remove platform and dev build logs.
+	// Remove build logs current platform build.
 	if err := port.RemoveLogs(); err != nil {
 		return err
 	}

@@ -25,10 +25,6 @@ func (b bazel) CheckTools() []string {
 	return b.BuildConfig.BuildTools
 }
 
-func (b bazel) Clean() error {
-	return nil
-}
-
 func (b bazel) configured() bool {
 	return false
 }
