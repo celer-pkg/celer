@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-const ubuntu_amd64_gcc_11_5_0 = "x86_64-linux-ubuntu-22.04-gcc-11.5"
+const ubuntu_amd64_gcc_11_5_0 = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
 
 func TestInstall_Makefiles_AMD64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
