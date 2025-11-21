@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: go build -v ./...
 
-      - name: Test(MSVC)
+      - name: Test(AMD64_MSVC)
         env:
           TEST_MSVC: true
         run: |

@@ -1,7 +1,7 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: ubuntu-amd64-clang-21.1.4
+name: ubuntu-arm64-gcc-11.5.0
 
 on:
   push:
@@ -23,15 +23,12 @@ jobs:
     - name: Install build-essential
       run: sudo apt update && sudo apt install -y build-essential
 
-    - name: Install clang
-      run: sudo apt update && sudo apt install -y clang
-
     - name: Build
       run: go build -v ./...
 
-    - name: Test(AMD64_Clang)
+    - name: Test(ARM64_GCC)
       env:
-        TEST_CLANG: ON
+        TEST_ARM64_GCC: true
       run: |
         go test -v ./depcheck/... -timeout 1h
         go test -v ./configs/...  -timeout 1h
