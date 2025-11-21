@@ -26,7 +26,7 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Test(GCC)
+    - name: Test(ARM64_GCC)
       env:
         TEST_ARM64_GCC: true
       run: |

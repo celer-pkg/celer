@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: go build -v ./...
 
-      - name: Test(Clang-CL)
+      - name: Test(AMD64_Clang-CL)
         env:
           TEST_Clang_CL: true
         run: |
