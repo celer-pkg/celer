@@ -36,7 +36,7 @@ Advanced features:
 - [Generate cmake configs.](./docs/en-US/advance_generate_cmake_config.md)
 - [Cache build artifacts.](./docs/en-US/advance_cache_artifacts.md)
 
-Why create Celer: 
+Why Celer: 
 - [Celer solves problems that others cannot.](./docs/en-US/why_celer.md)
 
 Supported commands:
