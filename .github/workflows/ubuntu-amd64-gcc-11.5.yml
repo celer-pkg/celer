@@ -26,9 +26,9 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Test(GCC)
+    - name: Test(AMD64_GCC)
       env:
-        TEST_GCC: true
+        TEST_AMD64_GCC: true
       run: |
         go test -v ./depcheck/... -timeout 1h
         go test -v ./configs/...  -timeout 1h

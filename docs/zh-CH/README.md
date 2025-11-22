@@ -35,6 +35,9 @@
 - [生成 CMake 配置文件](./advance_generate_cmake_config.md)
 - [缓存构建产物](./advance_cache_artifacts.md)
 
+为什么创造Celer: 
+- [Celer能解决别的工具不能解决的问题](./why_celer.md)
+
 支持的命令列表：
 
 | 命令                                   | 描述                                  |

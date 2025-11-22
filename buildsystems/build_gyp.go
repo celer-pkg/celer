@@ -4,7 +4,6 @@ import (
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -31,27 +30,6 @@ func (g gyp) Name() string {
 func (g gyp) CheckTools() []string {
 	g.BuildTools = append(g.BuildTools, "git", "cmake", "python3:gyp-next", "ninja")
 	return g.BuildConfig.BuildTools
-}
-
-func (g gyp) Clean() error {
-	if fileio.PathExists(filepath.Join(g.PortConfig.RepoDir, ".git")) {
-		title := fmt.Sprintf("[clean %s]", g.PortConfig.nameVersionDesc())
-		if err := git.Clean(title, g.PortConfig.RepoDir); err != nil {
-			return err
-		}
-	} else {
-		// gyp build in source, so we need to replace source with archive.
-		if err := g.replaceSource(g.PortConfig.Archive, g.PortConfig.Url); err != nil {
-			return err
-		}
-	}
-
-	// Remove dist inside source folder.
-	if err := os.RemoveAll(filepath.Join(g.PortConfig.RepoDir, "dist")); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (g gyp) configured() bool {

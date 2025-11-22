@@ -5,7 +5,7 @@
 # The background of Celer
 
 &emsp;&emsp;CMake has become the mainstream build system for compiling C/C++ projects，but it focuses on finding dependencies rather than managing them. Many tasks like fetching source code, handling dependencies between libraries, and setting up cross-compilation still require additional work.  
-&emsp;&emsp;This is why we created Celer. It automatically generates a `toolchain_file.cmake` that configures all necessary build tools and library paths, isolating them from system libraries. All preparation work is done before this file is generated.  
+&emsp;&emsp;This is why we created Celer. It automatically generates a `toolchain_file.cmake` that configures all necessary build tools and library paths, isolating them from system libraries and all preparation work is done before this file is generated.  
 &emsp;&emsp;As shown in the diagram, Celer remains decoupled from project development - it simply generates the platform-specific `toolchain_file.cmake` that serves as the bridge to your project.
 
 ![workflow](./docs/assets/workflow.svg)
@@ -35,6 +35,9 @@ Advanced features:
 
 - [Generate cmake configs.](./docs/en-US/advance_generate_cmake_config.md)
 - [Cache build artifacts.](./docs/en-US/advance_cache_artifacts.md)
+
+Why Celer: 
+- [Celer solves problems that others cannot.](./docs/en-US/why_celer.md)
 
 Supported commands:
 

@@ -56,7 +56,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	// Clear the tmp/deps dir, then copy only the required library files into it.
 	// This ensures the folder contains exactly the libraries required by the current port.
 	if p.Parent == "" {
-		color.Printf(color.Blue, "\n[clean %s]: %s\n", p.NameVersion(), dirs.TmpDepsDir)
+		color.Printf(color.Blue, "\n[clean tmps for %s]: %s\n", p.NameVersion(), dirs.TmpDepsDir)
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
 			return "", err
 		}
@@ -65,7 +65,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		if err := os.MkdirAll(dirs.TmpDepsDir, os.ModePerm); err != nil {
 			return "", err
 		}
-		color.Printf(color.Gray, "✔ mkdir -p %s\n\n", dirs.TmpDepsDir)
+		color.Printf(color.Gray, "✔ mkdir -p %s\n", dirs.TmpDepsDir)
 	}
 
 	// No config or explicit prebuilt-with-url -> treat as nobuild or prebuilt.

@@ -106,13 +106,6 @@ func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
 		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
 		writeIfNotEmpty("CMAKE_READELF", t.READELF)
 
-		toolchain.WriteString("\n")
-
-		if t.ctx.RootFS() != nil {
-			fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_C_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")
-			fmt.Fprintf(toolchain, "set(%-16s%q)\n", "CMAKE_CXX_FLAGS", "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")
-		}
-
 	case "msvc", "clang-cl":
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
