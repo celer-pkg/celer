@@ -219,8 +219,13 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	}
 
 	buffers.WriteString("cmake = 'cmake'\n")
-	buffers.WriteString(fmt.Sprintf("c = '%s'\n", toolchain.CC))
-	buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", toolchain.CXX))
+	if toolchain.CCacheEnabled {
+		buffers.WriteString(fmt.Sprintf("c = '%s'\n", "ccache "+toolchain.CC))
+		buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", "ccache "+toolchain.CXX))
+	} else {
+		buffers.WriteString(fmt.Sprintf("c = '%s'\n", toolchain.CC))
+		buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", toolchain.CXX))
+	}
 
 	if toolchain.FC != "" {
 		buffers.WriteString(fmt.Sprintf("fc = '%s'\n", toolchain.FC))

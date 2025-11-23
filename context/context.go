@@ -9,13 +9,14 @@ type Context interface {
 	Jobs() int
 	Offline() bool
 	Verbose() bool
-	CacheDir() CacheDir
-	Proxy() (host string, port int)
+	BinaryCache() BinaryCache
+	ProxyHostPort() (host string, port int)
 	Optimize(buildsystem, toolchain string) *Optimize
+	CCacheEnabled() bool
 	GenerateToolchainFile() error
 }
 
-type CacheDir interface {
+type BinaryCache interface {
 	GetDir() string
 	Read(nameVersion, hash, destDir string) (bool, error)
 	Write(packageDir, meta string) error

@@ -22,6 +22,33 @@ var (
 	static embed.FS
 )
 
+func AllBuildTools() ([]BuildTool, error) {
+	// Read and decode static file.
+	bytes, err := static.ReadFile(fmt.Sprintf("static/x86_64-%s.toml", runtime.GOOS))
+	if err != nil {
+		return nil, err
+	}
+	var buildTools BuildTools
+	if err := toml.Unmarshal(bytes, &buildTools); err != nil {
+		return nil, err
+	}
+
+	confToolsFile := filepath.Join(dirs.WorkspaceDir, "conf", "buildtools", "x86_64-"+runtime.GOOS+".toml")
+	if fileio.PathExists(confToolsFile) {
+		bytes, err := os.ReadFile(confToolsFile)
+		if err != nil {
+			return nil, err
+		}
+		var confBuildTools BuildTools
+		if err := toml.Unmarshal(bytes, &confBuildTools); err != nil {
+			return nil, err
+		}
+		buildTools = buildTools.merge(confBuildTools)
+	}
+
+	return buildTools.BuildTools, nil
+}
+
 // CheckTools checks if tools exist and repair them if necessary.
 func CheckTools(ctx context.Context, tools ...string) error {
 	// Filter duplicated tools.
@@ -74,7 +101,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 	}
 
 	var (
-		msys2Tool       *buildTool
+		msys2Tool       *BuildTool
 		python3Required bool
 	)
 
@@ -126,7 +153,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 	return nil
 }
 
-type buildTool struct {
+type BuildTool struct {
 	Name    string   `toml:"name"`
 	Version string   `toml:"version"`
 	Url     string   `toml:"url"`
@@ -140,7 +167,7 @@ type buildTool struct {
 	ctx        context.Context
 }
 
-func (b *buildTool) validate() error {
+func (b *BuildTool) validate() error {
 	// Validate download url.
 	if b.Url == "" {
 		return fmt.Errorf("url of %s is empty", b.Name)
@@ -180,7 +207,7 @@ func (b *buildTool) validate() error {
 	return nil
 }
 
-func (b *buildTool) checkAndFix() error {
+func (b *BuildTool) checkAndFix() error {
 	// Use archive name as download file name if specified.
 	archiveName := filepath.Base(b.Url)
 	if b.Archive != "" {
@@ -206,10 +233,10 @@ func (b *buildTool) checkAndFix() error {
 }
 
 type BuildTools struct {
-	BuildTools []buildTool `toml:"build_tools"`
+	BuildTools []BuildTool `toml:"build_tools"`
 }
 
-func (b BuildTools) findTool(ctx context.Context, name string) *buildTool {
+func (b BuildTools) findTool(ctx context.Context, name string) *BuildTool {
 	for index, tool := range b.BuildTools {
 		if tool.Name == name {
 			b.BuildTools[index].ctx = ctx

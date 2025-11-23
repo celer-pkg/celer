@@ -1,8 +1,8 @@
 package configs
 
 import (
+	"celer/binarycache"
 	"celer/buildsystems"
-	"celer/caches"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -30,7 +30,7 @@ func (p Port) meta2hash(metaData string) string {
 }
 
 func (p Port) buildMeta(commit string) (string, error) {
-	cachePort := caches.Port{
+	cachePort := binarycache.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    p.ctx.Platform().GetName(),
 		Project:     p.ctx.Project().GetName(),

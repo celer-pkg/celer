@@ -19,7 +19,4 @@ var (
 		"cache tokens doesn't matched, please check `--cache-token` and `cache_dir.token` in celer.toml",
 	)
 	ErrCacheNotFoundWithCommit = errors.New("cache not found with commit")
-
-	ErrProxyInvalidHost = errors.New("proxy host is invalid")
-	ErrProxyInvalidPort = errors.New("proxy port is invalid")
 )

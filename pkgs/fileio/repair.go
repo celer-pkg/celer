@@ -33,7 +33,7 @@ type Repair struct {
 
 func (r *Repair) CheckAndRepair(ctx context.Context) error {
 	r.ctx = ctx
-	r.httpClient = httpClient(r.ctx.Proxy())
+	r.httpClient = httpClient(r.ctx.ProxyHostPort())
 
 	switch {
 	case strings.HasPrefix(r.downloader.url, "http"), strings.HasPrefix(r.downloader.url, "ftp"):

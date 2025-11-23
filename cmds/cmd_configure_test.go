@@ -468,11 +468,11 @@ func TestConfigure_CacheDir(t *testing.T) {
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-	check(celer.SetCacheDir(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"))
 
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
-	if celer2.CacheDir().GetDir() != dirs.TestCacheDir {
+	if celer2.BinaryCache().GetDir() != dirs.TestCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
 	}
 
@@ -502,7 +502,7 @@ func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetCacheDir(dirs.TestCacheDir, "token_123456"); errors.Is(err, configs.ErrCacheDirNotExist) {
+	if err := celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"); errors.Is(err, configs.ErrCacheDirNotExist) {
 		t.Fatal(configs.ErrCacheDirNotExist)
 	}
 }
@@ -529,7 +529,7 @@ func TestConfigure_Proxy(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 
 	check(celer.SetProxy("127.0.0.1", 7890))
-	host, port := celer.Proxy()
+	host, port := celer.ProxyHostPort()
 	if host != "127.0.0.1" {
 		t.Fatalf("proxy host should be `%s`", "127.0.0.1")
 	}
@@ -559,8 +559,7 @@ func TestConfigure_Proxy_Invalid_Host(t *testing.T) {
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
 
-	err := celer.SetProxy("", 7890)
-	if err != configs.ErrProxyInvalidHost {
+	if celer.SetProxy("", 7890) == nil {
 		t.Fatal("it should be failed due to invalid host")
 	}
 }
@@ -586,8 +585,7 @@ func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
 
-	err := celer.SetProxy("127.0.0.1", -1)
-	if err != configs.ErrProxyInvalidPort {
+	if celer.SetProxy("127.0.0.1", -1) == nil {
 		t.Fatal("it should be failed due to invalid port")
 	}
 }

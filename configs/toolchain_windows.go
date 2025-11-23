@@ -197,6 +197,13 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 		return err
 	}
 
+	// Only for Windows MSVC.
+	if t.Name == "msvc" ||
+		t.Name == "clang" ||
+		t.Name == "clang-cl" {
+		t.MSVC.VCVars = filepath.Join(t.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+	}
+
 	// Print download & extract info.
 	if !silent {
 		title := color.Sprintf(color.Green, "\n[✔] ---- Toolchain: %s\n", t.displayName)

@@ -49,20 +49,9 @@ type Toolchain struct {
 	displayName string
 	rootDir     string
 	fullpath    string
-	cmakepath   string
 }
 
-func (t Toolchain) generate(toolchain *strings.Builder, hostName string) error {
-	t.cmakepath = fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin", hostName)
-
-	fmt.Fprintf(toolchain, "\n# Runtime paths.\n")
-	fmt.Fprintf(toolchain, `get_filename_component(WORKSPACE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)`+"\n")
-	fmt.Fprintf(toolchain, "set(PATH_LIST\n")
-	fmt.Fprintf(toolchain, "    %q\n", t.cmakepath)
-	fmt.Fprintf(toolchain, ")\n")
-	fmt.Fprintf(toolchain, "list(JOIN PATH_LIST %q PATH_STR)\n", string(os.PathListSeparator))
-	toolchain.WriteString(fmt.Sprintf(`set(ENV{PATH} "${PATH_STR}%s$ENV{PATH}")`, string(os.PathListSeparator)) + "\n")
-
+func (t Toolchain) generate(toolchain *strings.Builder) error {
 	writeIfNotEmpty := func(key, value string) {
 		if value != "" {
 			fmt.Fprintf(toolchain, "set(%-30s%q)\n", key, "${TOOLCHAIN_DIR}/"+value)

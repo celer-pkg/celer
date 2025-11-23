@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -79,7 +80,7 @@ func (p Platform) GetHostName() string {
 	case "amd64":
 		arch = "x86_64"
 	case "386":
-		arch = "x86"
+		arch = "i386"
 	case "arm":
 		arch = "arm"
 	case "arm64":
@@ -147,13 +148,9 @@ func (p *Platform) setup() error {
 		return fmt.Errorf("failed to check and repair toolchain.\n %w", err)
 	}
 
-	// Only for Windows MSVC.
-	if runtime.GOOS == "windows" {
-		if p.Toolchain.Name == "msvc" ||
-			p.Toolchain.Name == "clang" ||
-			p.Toolchain.Name == "clang-cl" {
-			p.Toolchain.MSVC.VCVars = filepath.Join(p.Toolchain.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
-		}
+	// Repaire ccache.
+	if err := buildtools.CheckTools(p.ctx, "ccache"); err != nil {
+		return fmt.Errorf("failed to check and repair ccache.\n %w", err)
 	}
 
 	// Generate toolchain file.
