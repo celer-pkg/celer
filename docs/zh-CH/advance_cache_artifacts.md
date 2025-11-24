@@ -2,9 +2,9 @@
 
 &emsp;&emsp;虽然三方库有源码就能编译出来，但是大量的c/c++的库编译往往需要耗费很长时间，这对项目开发效率有严重影响。幸运的是Celer支持对编译产物进行精确的缓存管理，能有效避免同样的库以同样的需求被重复编译。
 
-## 1. 定义 **cache_dirs**
+## 1. 定义 **binary_cache**
 
-&emsp;&emsp;一旦在 **celer.toml** 中定义了 `cache_dir`，每次构建库时，Celer 都会尝试从 `cache_dir` 中查找匹配的缓存产物。如果未找到，则会从源代码构建。
+&emsp;&emsp;一旦在 **celer.toml** 中定义了 `binary_cache`，每次构建库时，Celer 都会尝试从 `binary_cache` 中查找匹配的缓存产物。如果未找到，则会从源代码构建。
 
 ```toml
 [global]
@@ -13,13 +13,13 @@ platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0.5"
 project = "project_01"
 jobs = 32
 
-[cache_dir]
+[binary_cache]
 dir = "/home/test/celer_cache"
 ```
 
-## 2. 存储编译产物到 `cache_dir`
+## 2. 存储编译产物到 `binary_cache`
 
-&emsp;&emsp;如下，需要在`celer.toml`中配置`cache_token`, 当执行 `celer install xxx --store-cache`编译成功后，Celer会尝试对编译产物进行打包并按预定规则存入 `cache_dir`.
+&emsp;&emsp;如下，需要在`celer.toml`中配置`cache_token`, 当执行 `celer install xxx --store-cache`编译成功后，Celer会尝试对编译产物进行打包并按预定规则存入 `binary_cache`.
 
 ```toml
 [global]
@@ -28,14 +28,14 @@ platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0.5"
 project = "project_01"
 jobs = 32
 
-[cache_dir]
+[binary_cache]
 dir = "/home/test/celer_cache"
 token = "token_xxxx"
 ```
 
 ## 3. 在不clone项目源码的情况下获取编译产物
 
-&emsp;&emsp;当在`port.toml`中设置了`commit`, Celer就会读取`commit`的值来计算当前编译环境下的缓存key, 然后带着此缓存key去`cache_dir`里搜索匹配的编译产物.
+&emsp;&emsp;当在`port.toml`中设置了`commit`, Celer就会读取`commit`的值来计算当前编译环境下的缓存key, 然后带着此缓存key去`binary_cache`里搜索匹配的编译产物.
 
 ```toml
 [package]
@@ -72,7 +72,7 @@ options = ["-DEIGEN_TEST_NO_OPENGL=1", "-DBUILD_TESTING=OFF"]
                 └── others
 ```
 
-&emsp;&emsp;当构建库时，Celer 会尝试从 `cache_dir` 中查找匹配的缓存产物，缓存键是根据库的构建环境和参数计算得出的。如果未找到，则会从源代码构建。构建成功后，Celer 会尝试打包构建产物并将其存储在 `cache_dir` 中。
+&emsp;&emsp;当构建库时，Celer 会尝试从 `binary_cache` 中查找匹配的缓存产物，缓存键是根据库的构建环境和参数计算得出的。如果未找到，则会从源代码构建。构建成功后，Celer 会尝试打包构建产物并将其存储在 `binary_cache` 中。
 
 ## 5. 缓存key的构成
 

@@ -3,9 +3,9 @@
 &emsp;&emsp;Although third-party libraries can be compiled from source code, the compilation of numerous C/C++ libraries often takes a long time, which can severely impact project development efficiency. Fortunately, Celer supports precise cache management of build artifacts, effectively preventing the same libraries from being repeatedly compiled with identical requirements.  
 &emsp;&emsp;Furthermore, Celer supports retrievuing build artifacts of libraries without cloning their source code, this can be very useable for private libraries.
 
-## 1. Retrieve build artifacts by defining `cache_dirs`
+## 1. Retrieve build artifacts by defining `binary_cache`
 
-&emsp;&emsp;Once configured `cache_dir` in `celer.toml`, everytime when build a library Celer will try to find matched cache artifact from `cache_dir`.
+&emsp;&emsp;Once configured `binary_cache` in `celer.toml`, everytime when build a library Celer will try to find matched cache artifact from `binary_cache`.
 
 ```toml
 [global]
@@ -14,13 +14,13 @@ platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0.5"
 project = "project_01"
 jobs = 32
 
-[cache_dir]
+[binary_cache]
 dir = "/home/test/celer_cache"
 ```
 
-## 2. Save build artifacts to `cache_dir`
+## 2. Save build artifacts to `binary_cache`
 
-&emsp;&emsp;`cache_token` should be configured in `celer.toml` as below, when install port with `--store-cache`, Celer will try to pack build artifact and store it in `cache_dir`.
+&emsp;&emsp;`cache_token` should be configured in `celer.toml` as below, when install port with `--store-cache`, Celer will try to pack build artifact and store it in `binary_cache`.
 
 ```toml
 [global]
@@ -29,14 +29,14 @@ platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0.5"
 project = "project_01"
 jobs = 32
 
-[cache_dir]
+[binary_cache]
 dir = "/home/test/celer_cache"
 token = "token_xxxx"
 ```
 
 ## 3. Retrieve build artifacts without cloning source code
 
-&emsp;&emsp;When the commit is provided in the target library's `port.toml`, Celer calculates the cache key based on the commit value, and then searches for the matching build artifact in the `cache_dir` with this key.
+&emsp;&emsp;When the commit is provided in the target library's `port.toml`, Celer calculates the cache key based on the commit value, and then searches for the matching build artifact in the `binary_cache` with this key.
 
 ```toml
 [package]

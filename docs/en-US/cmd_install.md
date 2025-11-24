@@ -58,7 +58,7 @@ celer install ffmpeg@5.1.6 --force/-f --recurse/-r
 celer install ffmpeg@5.1.6 --store-cache/-f --cache-token/-t token_xxx
 ```
 
->There will be a file named **token** in the root of **cache_dir**, cache will be stored only when token is verified.
+>There will be a file named **token** in the root of **binary_cache**, cache will be stored only when token is verified.
 
 ## Structure of installed directory
 
@@ -96,7 +96,7 @@ celer install ffmpeg@5.1.6 --store-cache/-f --cache-token/-t token_xxx
 ```
 
 **1. installed/celer/hash**   
-&emsp;&emsp;Stores the hash key for each library in this folder. When `cache_dir` is configured in `celer.toml`, this hash will be stored as a key-value pair alongside the build artifacts. If a subsequent compilation finds a matching hash in the cache, it will directly reuse the corresponding build artifacts to avoid redundant recompilation.  
+&emsp;&emsp;Stores the hash key for each library in this folder. When `binary_cache` is configured in `celer.toml`, this hash will be stored as a key-value pair alongside the build artifacts. If a subsequent compilation finds a matching hash in the cache, it will directly reuse the corresponding build artifacts to avoid redundant recompilation.  
 
 **2. installed/celer/info**   
 &emsp;&emsp;Stores the installation file manifest for each library in this folder. This file is one of the main credentials for judging whether a library is installed, and also the basis for implementing the removing installed libraries.  

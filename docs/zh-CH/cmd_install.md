@@ -58,7 +58,7 @@ celer install ffmpeg@5.1.6 --force/-f --recurse/-r
 celer install ffmpeg@5.1.6 --store-cache --cache-token/-t token_xxx
 ```
 
->在**cache_dir**的根目录下存储了一个叫**token**的文本，它记录了用于校验的token，token校验通过才允许上传编译产物缓存。
+>在**binary_cache**的根目录下存储了一个叫**token**的文本，它记录了用于校验的token，token校验通过才允许上传编译产物缓存。
 
 ## 安装目录结构
 
@@ -97,7 +97,7 @@ celer install ffmpeg@5.1.6 --store-cache --cache-token/-t token_xxx
 
 **1. installed/celer/hash**  
 
-&emsp;&emsp;存储每个库在此目录下的哈希键值。当 **celer.toml** 中配置了 `cache_dir` 时，该哈希值将与构建产物一起以键值对形式存储。如果后续编译时在缓存中发现匹配的哈希值，将直接复用对应的构建产物，以避免不必要的重复编译。 
+&emsp;&emsp;存储每个库在此目录下的哈希键值。当 **celer.toml** 中配置了 `binary_cache` 时，该哈希值将与构建产物一起以键值对形式存储。如果后续编译时在缓存中发现匹配的哈希值，将直接复用对应的构建产物，以避免不必要的重复编译。 
 
 **2. installed/celer/info** 
 

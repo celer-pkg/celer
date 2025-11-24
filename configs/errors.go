@@ -10,13 +10,13 @@ var (
 	ErrInvalidBuildType = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
 	ErrInvalidJobs      = errors.New("invalid jobs, must be greater than 0")
 
-	ErrCacheDirNotConfigured   = errors.New("cache dir is not configured in celer.toml")
-	ErrCacheDirNotExist        = errors.New("cache dir not exist")
-	ErrCacheTokenExist         = errors.New("cache token already exist, if you want to change it, please remove it first manually")
-	ErrCacheTokenNotConfigured = errors.New("cache token is not configured in celer.toml")
-	ErrCacheTokenNotSpecified  = errors.New("cache token is not specified with `--cache-token`")
+	ErrCacheDirNotConfigured   = errors.New("binary cache dir is not configured in celer.toml")
+	ErrCacheDirNotExist        = errors.New("binary cache dir not exist")
+	ErrCacheTokenExist         = errors.New("binary cache token already exist, if you want to change it, please remove it first manually")
+	ErrCacheTokenNotConfigured = errors.New("binary cache token is not configured in celer.toml")
+	ErrCacheTokenNotSpecified  = errors.New("binary cache token is not specified with `--cache-token`")
 	ErrCacheTokenNotMatch      = errors.New(
-		"cache tokens doesn't matched, please check `--cache-token` and `cache_dir.token` in celer.toml",
+		"binary cache tokens doesn't matched, please check `--binary-cache-token` and `token` in binary cache dir",
 	)
-	ErrCacheNotFoundWithCommit = errors.New("cache not found with commit")
+	ErrCacheNotFoundWithCommit = errors.New("binary cache not found with commit")
 )
