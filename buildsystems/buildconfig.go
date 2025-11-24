@@ -286,7 +286,18 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 	// For prebuilt, we always download via http, ftp or others.
 	destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
 	if fileio.PathExists(destDir) {
-		return nil
+		entities, err := os.ReadDir(destDir)
+		if err != nil {
+			return fmt.Errorf("failed to check if empty: %w", err)
+		}
+		if len(entities) > 0 {
+			return nil
+		}
+
+		// Remove empty folder to let download or clone again.
+		if err := os.RemoveAll(destDir); err != nil {
+			return fmt.Errorf("failed to remove empty src dir: %w", err)
+		}
 	}
 
 	// For git repo, clone it when source dir doesn't exists.
@@ -332,12 +343,17 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 
 func (b BuildConfig) Clean() error {
 	title := fmt.Sprintf("[clean %s]", b.PortConfig.nameVersionDesc())
-	if fileio.PathExists(b.PortConfig.RepoDir) {
-		if err := git.Clean(title, b.PortConfig.RepoDir); err != nil {
-			return err
-		}
-	} else {
+	entities, err := os.ReadDir(b.PortConfig.RepoDir)
+	if err != nil {
+		return err
+	}
+	if len(entities) == 0 {
 		color.Printf(color.Yellow, "[%s] no source found, skip clean.\n", b.PortConfig.nameVersionDesc())
+		return nil
+	}
+
+	if err := git.Clean(title, b.PortConfig.RepoDir); err != nil {
+		return err
 	}
 
 	return nil

@@ -123,7 +123,7 @@ func (m meson) configureOptions() ([]string, error) {
 
 func (m meson) configured() bool {
 	buildFile := filepath.Join(m.PortConfig.BuildDir, "build.ninja")
-	return fileio.PathExists(buildFile)
+	return fileio.PathExists(m.PortConfig.RepoDir) && fileio.PathExists(buildFile)
 }
 
 func (m meson) Configure(options []string) error {
