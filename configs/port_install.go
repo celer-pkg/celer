@@ -454,7 +454,7 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 	}
 
 	// Prepare build dependencies.
-	color.Printf(color.Cyan, "[preparing build dependencies or dev_dependencies for %s]:\n", p.NameVersion())
+	color.Printf(color.Blue, "\n[preparing build dependencies for %s]:\n", p.NameVersion())
 	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
 		preparedTmpDeps = []string{}
 		if err := p.providerTmpDeps(); err != nil {

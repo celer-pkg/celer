@@ -342,16 +342,26 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 }
 
 func (b BuildConfig) Clean() error {
-	title := fmt.Sprintf("[clean %s]", b.PortConfig.nameVersionDesc())
-	entities, err := os.ReadDir(b.PortConfig.RepoDir)
-	if err != nil {
-		return err
-	}
-	if len(entities) == 0 {
+	// Skip for none exist folder.
+	if !fileio.PathExists(b.PortConfig.RepoDir) {
 		color.Printf(color.Yellow, "[%s] no source found, skip clean.\n", b.PortConfig.nameVersionDesc())
 		return nil
 	}
 
+	// Skip for empty folder.
+	entities, err := os.ReadDir(b.PortConfig.RepoDir)
+	if err != nil {
+		return fmt.Errorf("failed to read %s. \n %w", b.PortConfig.RepoDir, err)
+	}
+	if len(entities) == 0 {
+		if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
+			return fmt.Errorf("cannot remove empty folder: %s. \n %w", b.PortConfig.RepoDir, err)
+		}
+		color.Printf(color.Yellow, "[%s] no source found, skip clean.\n", b.PortConfig.nameVersionDesc())
+		return nil
+	}
+
+	title := fmt.Sprintf("[clean %s]", b.PortConfig.nameVersionDesc())
 	if err := git.Clean(title, b.PortConfig.RepoDir); err != nil {
 		return err
 	}
