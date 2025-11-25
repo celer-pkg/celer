@@ -14,7 +14,6 @@ func CleanEnv() {
 	temp := os.Getenv("TEMP")
 	tmp := os.Getenv("TMP")
 	operatingSystem := os.Getenv("OS")
-	home := os.Getenv("HOME")
 	homeDriver := os.Getenv("HOMEDRIVE")
 	homePath := os.Getenv("HOMEPATH")
 	username := os.Getenv("USERNAME")
@@ -36,8 +35,7 @@ func CleanEnv() {
 	os.Setenv("TEMP", temp)
 	os.Setenv("TMP", tmp)
 	os.Setenv("OS", operatingSystem)
-	os.Setenv("HOME", homeDriver)
-	os.Setenv("HOMEDRIVE", home)
+	os.Setenv("HOMEDRIVE", homeDriver)
 	os.Setenv("HOMEPATH", homePath)
 	os.Setenv("USERNAME", username)
 	os.Setenv("USERPROFILE", userProfile)
@@ -64,11 +62,7 @@ func CleanEnv() {
 	paths = append(paths, `C:\ProgramData\chocolatey\bin`)
 
 	// Add python launcher path so that we can call py from cmd.
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		panic("cannot get home directory in your system.")
-	}
-	paths = append(paths, filepath.Join(homeDir, `AppData\Local\Programs\Python\Launcher`))
+	paths = append(paths, filepath.Join(os.Getenv("USERPROFILE"), `AppData\Local\Programs\Python\Launcher`))
 
 	// Use PATH instead of Path.
 	os.Unsetenv("Path")
