@@ -1,57 +1,168 @@
-# Advancement of patform
+# Platform Configuration
 
-&emsp;&emsp;Platform files are stored in **conf/platforms** directory, these files defines the `toolchain` and `rootfs` required by this platform.  
+> **Configure cross-compilation environments for different target platforms**
 
-## 1. Platform toml file
+## 🎯 What is Platform Configuration?
 
-Let's take a look at an example platform configure file, `x86_64-linux-22.04.toml`:
+Platform configuration defines how Celer compiles C/C++ libraries for specific target systems. Each platform configuration contains two core components:
 
-  ```toml
-  [rootfs]
-    url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-20.04.5-base-amd64.tar.gz"
-    name = "gcc"
-    version = "9.5"
-    path = "ubuntu-base-20.04.5-base-amd64"
-    pkg_config_path = [
-        "usr/lib/x86_64-linux-gnu/pkgconfig",
-        "usr/share/pkgconfig",
-        "usr/lib/pkgconfig"
-    ]
+- 🔧 **Toolchain** - Compilers, linkers, and other build tools
+- 📦 **Rootfs (Root Filesystem)** - Header files and libraries for the target system
 
-  [toolchain]
-    url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-9.5.0.tar.gz"
-    path = "gcc-9.5.0/bin"
-    system_name = "Linux"
-    system_processor = "x86_64"
-    host = "x86_64-linux-gnu"
-    crosstool_prefix = "x86_64-linux-gnu-"
-    cc = "x86_64-linux-gnu-gcc"
-    cxx = "x86_64-linux-gnu-g++"
-    fc = "x86_64-linux-gnu-gfortran"            # optional field
-    ranlib = "x86_64-linux-gnu-ranlib"          # optional field
-    ar = "x86_64-linux-gnu-ar"                  # optional field
-    nm = "x86_64-linux-gnu-nm"                  # optional field
-    objdump = "x86_64-linux-gnu-objdump"        # optional field
-    strip = "x86_64-linux-gnu-strip"            # optional field
-  ```
+**Why Do You Need Platform Configuration?**
 
-The following are fields and their descriptions:
+Building C/C++ projects requires the correct compiler and system libraries. Platform configuration enables Celer to:
+- ✅ Build for different operating systems (Linux, Windows, macOS)
+- ✅ Support cross-compilation (e.g., build ARM binaries on x86)
+- ✅ Use specific compiler versions (GCC 9.5, Clang 14, MSVC 2022)
+- ✅ Manage multi-platform build environments
 
-| Field             | Description |
-| ----------------- | ----------- |
-| url               | It can be http、https or ftp url, celer will download it, even it can be local file path, and it should start with **file:///**, e.g. **file:////home/phil/buildresource/ubuntu-base-20.04.5/gcc-9.5.0.tar.gz**. |
-| path              | It is the path to the toolchain directory, celer will add it to the environment path during runtime, and it will also be added to $ENV{PATH} in the generated toolchain_file.cmake, which is convenient for compiling during runtime to access the executable files inside. |
-| system_name       | It is the name of the system, e.g. **Linux**, **Windows**, **macOS**. |
-| system_processor  | Processor of the system, e.g. **x86_64**, **arm64**, **i386**. |
-| host              | Host of the toolchain, e.g. **x86_64-linux-gnu**, **aarch64-linux-gnu**, **i686-w64-mingw32**. |
-| crosstool_prefix  | Prefix of the toolchain, e.g. **x86_64-linux-gnu-**, **aarch64-linux-gnu-**, **i686-w64-mingw32-**. |
-| cc                | Path to the compiler, e.g. **x86_64-linux-gnu-gcc**, **aarch64-linux-gnu-gcc**, **i686-w64-mingw32-gcc**. |
-| cxx               | Path to the c++ compiler, e.g. **x86_64-linux-gnu-g++**, **aarch64-linux-gnu-g++**, **i686-w64-mingw32-g++**. |
-| fc, ranlib, ar, nm, objdump, strip, etc | They are optional fields, toolchain can find them with `crosstool_prefix`. |
+**Platform File Location:** All platform configuration files are stored in the `conf/platforms` directory.
 
-## 2. Configure for Windows platform
+---
 
-&emsp;&emsp;Windows use MSVC to compile C/C++ projects, and the configuration of MSVC is quite different from Linux's GCC. The difference is that the compiler file names in MSVC are basically fixed, but the header files and library files are scattered in different directories, which is not a problem for Celer. Celer encapsulates all the details, and finally configuring the MSVC platform is simpler, for example:
+## 📝 Platform Naming Convention
+
+Platform configuration files follow a unified naming format:
+
+```
+<architecture>-<system>-<distribution>-<compiler>-<version>.toml
+```
+
+**Examples:**
+- `x86_64-linux-ubuntu-22.04-gcc-11.5.0.toml`
+- `aarch64-linux-gnu-gcc-9.2.toml`
+- `x86_64-windows-msvc-14.44.toml`
+
+**Naming Components:**
+
+| Component | Description | Examples |
+|-----------|-------------|----------|
+| Architecture | CPU architecture | `x86_64`, `aarch64`, `arm` |
+| System | Operating system | `linux`, `windows`, `darwin` |
+| Distribution | System distribution (optional) | `ubuntu-22.04`, `centos-7` |
+| Compiler | Toolchain type | `gcc`, `clang`, `msvc` |
+| Version | Compiler version | `11.5.0`, `14.44` |
+
+> 💡 **Tip**: Consistent naming helps teams quickly identify and select the correct platform configuration.
+
+## 🛠️ Configuration Field Details
+
+### Complete Example Configuration
+
+Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-22.04-gcc-9.5.toml`:
+
+```toml
+[rootfs]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-20.04.5-base-amd64.tar.gz"
+  name = "gcc"
+  version = "9.5"
+  path = "ubuntu-base-20.04.5-base-amd64"
+  pkg_config_path = [
+      "usr/lib/x86_64-linux-gnu/pkgconfig",
+      "usr/share/pkgconfig",
+      "usr/lib/pkgconfig"
+  ]
+
+[toolchain]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-9.5.0.tar.gz"
+  path = "gcc-9.5.0/bin"
+  system_name = "Linux"
+  system_processor = "x86_64"
+  host = "x86_64-linux-gnu"
+  crosstool_prefix = "x86_64-linux-gnu-"
+  cc = "x86_64-linux-gnu-gcc"
+  cxx = "x86_64-linux-gnu-g++"
+  fc = "x86_64-linux-gnu-gfortran"            # Optional field
+  ranlib = "x86_64-linux-gnu-ranlib"          # Optional field
+  ar = "x86_64-linux-gnu-ar"                  # Optional field
+  nm = "x86_64-linux-gnu-nm"                  # Optional field
+  objdump = "x86_64-linux-gnu-objdump"        # Optional field
+  strip = "x86_64-linux-gnu-strip"            # Optional field
+```
+
+### 1️⃣ Toolchain Configuration Fields
+
+| Field | Required | Description | Examples |
+|-------|----------|-------------|----------|
+| `url` | ✅ | Toolchain download URL or local path. Supports http/https/ftp protocols. Local paths must start with `file:///` | `https://...gcc-9.5.0.tar.gz`<br>`file:///C:/toolchains/gcc.tar.gz` |
+| `path` | ✅ | Relative path to the toolchain bin directory. Celer adds it to PATH environment variable and CMake's `$ENV{PATH}` | `gcc-9.5.0/bin` |
+| `system_name` | ✅ | Target operating system name | `Linux`, `Windows`, `Darwin` |
+| `system_processor` | ✅ | Target CPU architecture | `x86_64`, `aarch64`, `arm`, `i386` |
+| `host` | ✅ | Toolchain target triple, defines the target platform for compiler-generated code | `x86_64-linux-gnu`<br>`aarch64-linux-gnu`<br>`i686-w64-mingw32` |
+| `crosstool_prefix` | ✅ | Prefix for toolchain executables, used to locate compiler tools | `x86_64-linux-gnu-`<br>`arm-none-eabi-` |
+| `cc` | ✅ | C compiler executable name | `x86_64-linux-gnu-gcc`<br>`clang` |
+| `cxx` | ✅ | C++ compiler executable name | `x86_64-linux-gnu-g++`<br>`clang++` |
+| `name` | ✅ | Toolchain name (for identification) | `gcc`, `clang`, `msvc` |
+| `version` | ✅ | Toolchain version number | `9.5`, `11.3`, `14.0.0` |
+| `fc` | ❌ | Fortran compiler (if needed) | `x86_64-linux-gnu-gfortran` |
+| `ranlib` | ❌ | Library index generator | `x86_64-linux-gnu-ranlib` |
+| `ar` | ❌ | Static library archiver | `x86_64-linux-gnu-ar` |
+| `nm` | ❌ | Symbol table viewer | `x86_64-linux-gnu-nm` |
+| `objdump` | ❌ | Object file analyzer | `x86_64-linux-gnu-objdump` |
+| `strip` | ❌ | Symbol stripping tool | `x86_64-linux-gnu-strip` |
+
+> ⚠️ **Note**: Optional tools (fc, ranlib, etc.) will be automatically located using `crosstool_prefix` if not specified.
+
+### 2️⃣ Rootfs (Root Filesystem) Configuration Fields
+
+| Field | Required | Description | Examples |
+|-------|----------|-------------|----------|
+| `url` | ✅ | Rootfs download URL or local path. Supports http/https/ftp protocols. Local paths must start with `file:///` | `https://...ubuntu-base.tar.gz`<br>`file:///D:/sysroots/ubuntu.tar.gz` |
+| `path` | ✅ | Directory name after rootfs extraction | `ubuntu-base-20.04.5-base-amd64` |
+| `pkg_config_path` | ✅ | List of pkg-config search paths, relative to rootfs root directory | `["usr/lib/x86_64-linux-gnu/pkgconfig", "usr/share/pkgconfig"]` |
+
+---
+
+## 💼 Real-World Configuration Examples
+
+### Linux Platform Configurations
+
+#### GCC Toolchain
+
+```toml
+[rootfs]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-22.04-amd64.tar.gz"
+  path = "ubuntu-base-22.04-amd64"
+  pkg_config_path = [
+      "usr/lib/x86_64-linux-gnu/pkgconfig",
+      "usr/share/pkgconfig"
+  ]
+
+[toolchain]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-11.3.0.tar.gz"
+  path = "gcc-11.3.0/bin"
+  system_name = "Linux"
+  system_processor = "x86_64"
+  host = "x86_64-linux-gnu"
+  crosstool_prefix = "x86_64-linux-gnu-"
+  cc = "x86_64-linux-gnu-gcc"
+  cxx = "x86_64-linux-gnu-g++"
+```
+
+#### Clang Toolchain
+
+```toml
+[toolchain]
+  url = "file:///opt/llvm-14.0.0"
+  path = "bin"
+  system_name = "Linux"
+  system_processor = "x86_64"
+  host = "x86_64-linux-gnu"
+  cc = "clang"
+  cxx = "clang++"
+```
+
+### Windows Platform Configurations
+
+#### MSVC 2022 Configuration
+
+Windows uses MSVC to compile C/C++ projects. MSVC configuration differs from Linux GCC:
+- ✅ Compiler filenames are fixed (`cl.exe`, `link.exe`)
+- ✅ Header files and libraries are scattered across multiple directories
+- ✅ Celer automatically handles all path configurations
+
+**Simplified MSVC configuration:**
 
 ```toml
 [toolchain]
@@ -61,3 +172,17 @@ version = "14.44.35207"
 system_name = "Windows"
 system_processor = "x86_64"
 ```
+
+> 💡 **Tip**: Celer automatically detects MSVC installation paths, including Windows SDK, UCRT, and compiler tools.
+
+---
+
+## 📚 Related Documentation
+
+- [Quick Start Guide](./quick_start.md) - Get started with Celer
+- [Project Configuration](./cmd_create.md#2-create-a-new-project) - Select platform in celer.toml
+- [Build Configuration](./advance_buildconfig.md) - Configure build options and dependencies
+
+---
+
+**Need help?** [Report an issue](https://github.com/celer-pkg/celer/issues) or check our [documentation](../../README.md)

@@ -148,7 +148,7 @@ celer configure --project=project_test_02
 | build_type | 默认值为 **release**，您也可以将其设置为 **debug**。 |
 | offline | 在offline模式下，celer将不再尝试更新仓库和下载资源。|
 | verbose | 在verbose模式下，celer将生成更详细的编译日志。|
-| binary_cache | Celer支持缓存构建工件，这可以避免重复编译。[你可以将其配置为本地目录或LAN中的共享文件夹](./advance_cache_artifacts.md)。 |
+| binary_cache | Celer支持缓存构建工件，这可以避免重复编译。[你可以将其配置为本地目录或LAN中的共享文件夹](./advance_binary_cache.md)。 |
 
 ## 5. 部署 Celer
 

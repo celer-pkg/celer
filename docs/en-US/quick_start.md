@@ -144,7 +144,7 @@ The following are fields and their descriptions:
 | build_type | Default is **release**, you can also set it to **debug**. |
 | offline | in offline mode, celer will not try to update repo or download resource. |
 | verbose | in verbose mode, show more detail log during building. |
-| binary_cache | Celer supports cache build artifact, which can avoid redundant compilation. [You can configure it as a local directory or a shared folder in the LAN](./advance_cache_artifacts.md). |
+| binary_cache | Celer supports cache build artifact, which can avoid redundant compilation. [You can configure it as a local directory or a shared folder in the LAN](./advance_binary_cache.md). |
 
 ## 5. Depoy Celer
 
