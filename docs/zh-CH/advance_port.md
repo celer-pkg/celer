@@ -1,48 +1,59 @@
-# 三方库端口介绍
 
-&emsp;&emsp;Celer 使用一个 git 仓库来管理三方库的配置文件。这个仓库不断扩展，旨在支持越来越多的 C/C++ 第三方库。
+# 端口配置（第三方库 Port）
 
-## 1. port.toml 介绍
+> **为 C/C++ 第三方库统一配置构建规则与依赖**
+
+&emsp;&emsp;Celer 使用一个 git 仓库来管理第三方库的配置文件。该仓库不断扩展，旨在支持越来越多的 C/C++ 第三方库。
+
+## 🎯 什么是端口配置？
+
+端口配置（port.toml）定义了 Celer 如何自动化拉取、构建和安装第三方 C/C++ 库。每个端口配置文件描述了源码获取方式、构建系统、依赖关系和特殊构建选项。
+
+**端口文件位置：** 所有端口配置文件存放在 `ports/<库名>/<版本>/port.toml` 目录中。
 
 让我们看一个示例 port.toml 文件：**ports/glog/0.6.0/port.toml**：
 
 ```
+### 完整示例配置
+
+```toml
 [package]
-url                 = "https://github.com/google/glog.git"
-ref                 = "v0.6.0"
-archive             = ""                    # optional field, it works only when url is not a git repo url.
-src_dir             = "xxx"                 # optional field
-supported_hosts     = [...]                 # optional field
+url = "https://github.com/google/glog.git"
+ref = "v0.6.0"
+archive = ""            # 可选字段，仅当 url 不是 git 仓库时有效
+src_dir = "xxx"         # 可选字段
+supported_hosts = []    # 可选字段
 
 [[build_configs]]
-pattern             = "*linux*"             # optional field, default is empty.
-build_system        = "cmake"               # mandertory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
-cmake_generator     = []                    # optional field, should be "Ninja", "Unix Makefiles", "Visual Studio xxx"
-build_tools         = [...]                 # optional field
-library_type        = "shared"              # optional field, should be **shared**, **static**, and default is **shared**.
-build_shared        = "--with-shared"       # optional field
-build_static        = "--with-static"       # optional field
-c_standard          = "c99"                 # optional field
-cxx_standard        = "cxx17"               # optional field
-envs                = [...]                 # optional field
-patches             = [...]                 # optional field
-build_in_source     = false                 # optional field, default is **false**
-autogen_options     = [...]                 # optional field
-pre_configure       = [...]                 # optional field
-post_configure      = [...]                 # optional field
-pre_build           = [...]                 # optional field
-options             = [...]                 # optional field
-fix_build           = [...]                 # optional field
-post_build          = [...]                 # optional field
-pre_install         = [...]                 # optional field
-post_install        = [...]                 # optional field
-dependencies        = [...]                 # optional field
-dev_dependencies    = [...]                 # optional field
+pattern = "*linux*"     # 可选字段，默认空
+build_system = "cmake"  # 必填字段，可选值：cmake、makefiles、b2、meson 等
+cmake_generator = []    # 可选字段
+build_tools = []        # 可选字段
+library_type = "shared" # 可选字段，默认 shared，可选 static
+build_shared = "--with-shared" # 可选字段
+build_static = "--with-static" # 可选字段
+c_standard = "c99"      # 可选字段
+cxx_standard = "cxx17"  # 可选字段
+envs = []               # 可选字段
+patches = []            # 可选字段
+build_in_source = false # 可选字段，默认 false
+autogen_options = []    # 可选字段
+pre_configure = []      # 可选字段
+post_configure = []     # 可选字段
+pre_build = []          # 可选字段
+options = []            # 可选字段
+fix_build = []          # 可选字段
+post_build = []         # 可选字段
+pre_install = []        # 可选字段
+post_install = []       # 可选字段
+dependencies = []       # 可选字段
+dev_dependencies = []   # 可选字段
+```
 ```
 
-&emsp;&emsp;在 port.toml 中，有许多字段可以配置，但是实际上只有少数是必填的，其他都是可选的。大多数情况下，管理一个第三方库都是很简单的，例如：
+&emsp;&emsp;在 port.toml 中，只有少数字段是必填的，其他都是可选的。大多数情况下，管理一个第三方库都很简单，例如：
 
-```
+```toml
 [package]
 url = "https://gitlab.com/libeigen/eigen.git"
 ref = "3.4.0"
@@ -50,22 +61,23 @@ ref = "3.4.0"
 [[build_configs]]
 build_system = "cmake"
 options = [
-    "-DEIGEN_TEST_NO_OPENGL=1", 
-    "-DBUILD_TESTING=OFF"，
+    "-DEIGEN_TEST_NO_OPENGL=1",
+    "-DBUILD_TESTING=OFF"
 ]
 ```
 
-以下是字段和其描述：
+### 主要字段说明
 
-| 字段 | 描述 |
-| --- | --- |
-| url | 这是库的代码仓库地址，它可以是 https 或 ftp，甚至可以是 **file:///** 指向本地目录，甚至在测试期间，它也可以是 **file:///** 指向本地仓库。 |
-| ref | 这可以是标签名、分支名或提交 ID，也可以是压缩包文件名中的版本号，当库代码以压缩包形式下载时。 |
-| archive | 可选字段，仅当 url 不是 git 仓库时才有效。我们可以使用此字段重命名下载的压缩包文件名。 |
-| src_dir | 可选字段，用于指定**configure** 文件或 **CMakeLists.txt**所在目录，默认为空，即： 一般库默认就在源码根目录。 |
-| build_config | 这是一个数组，用于指定在不同平台上如何构建库。 |
+| 字段 | 必选 | 描述 | 示例 |
+|------|------|------|------|
+| url | ✅ | 库的代码仓库地址，可为 https、ftp 或 file:// 本地路径 | `https://github.com/google/glog.git` |
+| ref | ✅ | 标签名、分支名、提交 ID 或压缩包版本号 | `v0.6.0`、`3.4.0` |
+| archive | ❌ | 下载压缩包时重命名文件名 | `glog-0.6.0.tar.gz` |
+| src_dir | ❌ | 指定 configure/CMakeLists.txt 所在目录 | `icu4c/source` |
+| build_configs | ✅ | 构建配置数组，描述不同平台的构建方式 | 见下方示例 |
+| dev_dependencies | ❌ | 构建期所需工具（如 autoconf、nasm） | `autoconf@2.72` |
 
-## 1.2 build_config
+## 🛠️ 构建配置详解
 
 &emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **pattern** 自动找到匹配的 **build_config** 来组装编译命令。  
 &emsp;&emsp;第三方库的编译配置通常在不同系统上会有差异。这些差异通常涉及平台特定的编译标志或甚至 entirely distinct build steps。一些库甚至需要特殊的预处理或后处理才能在 Windows 上正确编译。
@@ -181,20 +193,32 @@ options = [
 
 &emsp;&emsp;可选配置，默认值为空，当编译第三方库时，通常会有许多选项需要启用或禁用。我们可以在这里定义它们，例如 **-DBUILD_TESTING=OFF**；
 
-## 2. 动态变量
+## 📦 动态变量
 
-| 变量 | 描述 |
-| --- | --- |
-| ${SYSTEM_NAME} | 系统名称，例如：**x86_64-linux**。 |
-| ${HOST} | 主机名称，例如：**x86_64-linux**。 |
-| ${SYSTEM_PROCESSOR} | 系统处理器架构，例如：**x86_64**。 |
-| ${SYSROOT} | 系统根目录，例如：**/usr/x86_64-linux**。 |
-| ${CROSS_PREFIX} | 交叉编译前缀，例如：**x86_64-linux-**。 |
-| ${BUILD_DIR} | 编译目录，例如：**buildtrees\x264@stable\x86_64-windows-project_test_02-release**。 |
-| ${HOST_NAME} | 主机名称，例如：**x86_64-windows**。 |
-| ${PACKAGE_DIR} | 包目录，例如：**packages\x264@stable@x86_64-windows@project_test_02@release**。 |
-| ${BUILDTREES_DIR} | 编译目录，例如：**buildtrees**。 |
-| ${REPO_DIR} | 仓库目录，例如：**buildtrees\x264@stable\src**。 |
-| ${DEPS_DIR} | 依赖目录，例如：**tmp/deps**。 |
-| ${DEPS_DEV_DIR} | 依赖开发目录，例如：**tmp/deps/x86_64-linux-dev**。 |
-| ${PYTHON3_PATH} | 其值指向本地安装的 python3 路径，无需手动指定，Celer 会自动识别。 |
+| 变量 | 描述 | 来源 |
+|------|------|------|
+| ${SYSTEM_NAME} | 系统名称，如 `x86_64-linux` | platform |
+| ${HOST} | 主机名称，如 `x86_64-linux` | platform |
+| ${SYSTEM_PROCESSOR} | 系统处理器架构，如 `x86_64` | platform |
+| ${SYSROOT} | 系统根目录，如 `/usr/x86_64-linux` | platform |
+| ${CROSS_PREFIX} | 交叉编译前缀，如 `x86_64-linux-` | platform |
+| ${BUILD_DIR} | 当前库编译目录 | buildtrees |
+| ${HOST_NAME} | 主机名称，如 `x86_64-windows` | platform |
+| ${PACKAGE_DIR} | 当前库包目录 | port |
+| ${BUILDTREES_DIR} | 编译根目录 | buildtrees |
+| ${REPO_DIR} | 当前库源码目录 | port/buildtrees |
+| ${DEPS_DIR} | 依赖目录 | workspace |
+| ${DEPS_DEV_DIR} | 依赖开发目录 | workspace |
+| ${PYTHON3_PATH} | 本地 python3 路径，自动识别 | system |
+
+---
+
+## 📚 相关文档
+
+- [快速开始指南](./quick_start.md) - Celer 入门
+- [项目配置](./cmd_create.md#2-创建一个新的项目) - 在 celer.toml 中选择端口
+- [构建配置](./advance_buildconfig.md) - 配置构建选项和依赖
+
+---
+
+**需要帮助？** [报告问题](https://github.com/celer-pkg/celer/issues) 或查看我们的[文档](../../README.md)
