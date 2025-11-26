@@ -176,7 +176,7 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
 
-	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose", "binary-cache-dir")
+	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose")
 	return command
 }
 
@@ -212,10 +212,14 @@ func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete s
 		"--jobs",
 		"--offline",
 		"--verbose",
-		"--cache-dir",
-		"--cache-token",
+		"--binary-cache-dir",
+		"--binary-cache-token",
 		"--proxy-host",
 		"--proxy-port",
+		"--ccache-compress",
+		"--ccache-dir",
+		"--ccache-enabled",
+		"--ccache-maxsize",
 	}
 
 	var suggestions []string
