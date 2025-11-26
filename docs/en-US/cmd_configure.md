@@ -1,42 +1,86 @@
+# Configure Command
 
-# ⚙️ configure Command
+&emsp;&emsp;The Configure command allows users to configure global settings for the current workspace.
 
-> Change global settings for your workspace, including platform, project, build type, cache, ccache, and more.
-
-The `configure` command allows you to set or update global options for the current workspace. You can quickly switch platforms, projects, build types, enable ccache, and configure advanced options for efficient builds.
-
-
-## 📝 Command Syntax
+## Command Syntax
 
 ```shell
 celer configure [flags]
 ```
 
-
 ## ⚙️ Command Options
+| Option                    | Type    | Description                            |
+|---------------------------|---------|----------------------------------------|
+| --platform                | string  | Configure platform                     |
+| --project                 | string  | Configure project                      |
+| --build-type              | string  | Configure build type                   |
+| --jobs                    | integer | Configure parallel build jobs          |
+| --offline                 | boolean | Enable offline mode                    |
+| --verbose                 | boolean | Enable verbose logging mode            |
+| --proxy-host              | string  | Configure proxy host                   |
+| --proxy-port              | integer | Configure proxy port                   |
+| --binary-cache-dir        | string  | Configure binary cache directory       |
+| --binary-cache-token      | string  | Configure binary cache token           |
+| --ccache-compress         | boolean | Configure ccache compression           |
+| --ccache-dir              | string  | Configure ccache working directory     |
+| --ccache-enabled          | boolean | Enable ccache                          |
+| --ccache-maxsize          | string  | Set ccache max size (e.g., "10G")      |
 
-| Option	            | Description                   |
-| --------------------- | ------------------------------|
-| --platform	        | configure platform.	        |
-| --project 	        | configure project.	        |
-| --build-type	        | configure build type.	        |
-| --jobs                | configure jobs.               |
-| --offline             | configure offline mode.       |
-| --verbose             | configure verbose mode.       |
-| --binary-cache-dir    | configure binary cache dir.   |
-| --binary-cache-token  | configure binary cache token. |
-| --proxy-host          | configure proxy host.         |
-| --proxy-port          | configure proxy port.         |
-| --ccache-enabled      | configure ccache enabled.     |
-| --ccache-compress     | configure ccache compress.    |
-| --ccache-dir          | configure ccache dir.         |
-| --ccache-maxsize      | configure ccache maxsize.     |
+### 1️⃣ Configure Platform
+
+```shell
+celer configure --platform xxxx
+```
+
+> Available platforms come from toml files in the `conf/platforms` directory.
+
+### 2️⃣ Configure Project
+
+```shell
+celer configure --project xxxx
+```
+
+> Available projects come from toml files in the `conf/projects` directory.
+
+### 3️⃣ Configure Build Type
+
+```shell
+celer configure --build-type Release
+```
+
+> Available build types: Release, Debug, RelWithDebInfo, MinSizeRel  
+> The default build type is Release.
+
+### 4️⃣ Configure Parallel Jobs
+
+```shell
+celer configure --jobs 8
+```
+
+> The number of parallel jobs must be greater than 0.
+
+### 5️⃣ Configure Offline Mode
+
+```shell
+celer configure --offline true|false
+```
+
+> The default offline mode is `false`.
+
+### 6️⃣ Configure Verbose Logging Mode
+
+```shell
+celer configure --verbose true|false
+```
+
+> The default verbose logging mode is `false`.
 
 ---
 
 ## 🌐 Proxy Configuration
 
-### Configure proxy host and port
+### Configure Proxy Host and Port
+
 ```shell
 celer configure --proxy-host 127.0.0.1 --proxy-port 7890
 ```
@@ -46,29 +90,25 @@ celer configure --proxy-host 127.0.0.1 --proxy-port 7890
 
 ## 🗄️ Binary Cache Configuration
 
-### Configure binary cache directory and token
+### Configure Binary Cache Directory and Token
+
 ```shell
 celer configure --binary-cache-dir /home/xxx/cache --binary-cache-token token_12345
 ```
-> You can set --binary-cache-dir and --binary-cache-token together or separately.
+
+> You can configure --binary-cache-dir and --binary-cache-token together or separately.
 
 ---
 
-## 📦 Ccache Configuration
+## 📦 ccache Configuration
 
-### Enable ccache for faster builds
+### Enable ccache to Accelerate Builds
+
 ```shell
 celer configure --ccache-enabled true
 celer configure --ccache-dir /home/xxx/.ccache
 celer configure --ccache-maxsize 5G
 celer configure --ccache-compress true
 ```
+
 > Enable compiler caching to speed up repeated builds.
-
-### CCache Support
-You can enable ccache to accelerate C/C++ compilation. When enabled, Celer will automatically inject ccache into your toolchain.
-
-- `--ccache-enabled true|false` : Enable or disable ccache
-- `--ccache-dir <path>` : Set ccache working directory
-- `--ccache-maxsize <size>` : Set maximum ccache size (e.g. "10G")
-- `--ccache-compress true|false` : Enable ccache compression

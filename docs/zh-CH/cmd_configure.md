@@ -26,7 +26,7 @@ celer configure [flags]
 | --ccache-enabled          | 布尔    | 启用 ccache                            |
 | --ccache-maxsize          | 字符串  | 设置 ccache 最大空间（如 "10G"）        |
 
-### 1. 配置平台
+### 1️⃣ 配置平台
 
 ```shell
 celer configure --platform xxxx
@@ -34,7 +34,7 @@ celer configure --platform xxxx
 
 >配置可用的平台来自`conf/platforms`目录下的toml文件。
 
-### 2. 配置项目
+### 2️⃣ 配置项目
 
 ```shell
 celer configure --project xxxx
@@ -42,7 +42,7 @@ celer configure --project xxxx
 
 >配置可用的项目来自`conf/projects`目录下的toml文件。
 
-### 3. 配置构建类型
+### 3️⃣ 配置构建类型
 
 ```shell
 celer configure --build-type Release
@@ -51,7 +51,7 @@ celer configure --build-type Release
 >候选的构建类型有: Release, Debug, RelWithDebInfo, MinSizeRel
 >默认的构建类型是Release。
 
-### 4. 配置并发任务数
+### 4️⃣ 配置并发任务数
 
 ```shell
 celer configure --jobs 8
@@ -59,7 +59,7 @@ celer configure --jobs 8
 
 >并发任务数必须大于0。
 
-### 5. 配置离线模式
+### 5️⃣ 配置离线模式
 
 ```shell
 celer configure --offline true|false
@@ -67,7 +67,7 @@ celer configure --offline true|false
 
 > 默认的离线模式是`false`。
 
-### 6. 配置详细日志模式
+### 6️⃣ 配置详细日志模式
 
 ```shell
 celer configure --verbose true|false
