@@ -80,22 +80,22 @@ Celer addresses critical pain points that traditional C/C++ package managers str
 | **Cross-Company Collaboration** | Manual environment setup | Portable toolchain file - works out of the box |
 | **Platform Customization** | Global settings cause conflicts | Project-level isolation |
 
-📖 [Read detailed comparison](./why_celer.md)
+📖 [Detailed Comparison](./why_celer.md)
 
 ## 📚 Documentation
 
-**Getting Started:**
-- [Quick Start Guide](./quick_start.md) - Get up and running in 5 minutes
+**Quick Start:**
+- [Quick Start Guide](./quick_start.md) - Get started in 5 minutes
 - [Create a New Platform](./cmd_create.md#1-create-a-new-platform) - Define custom cross-compilation environments
-- [Create a New Project](./cmd_create.md#2-create-a-new-project) - Set up project-specific configurations
-- [Add a New Package](./cmd_create.md#3-create-a-new-port) - Host your own libraries
+- [Create a New Project](./cmd_create.md#2-create-a-new-project) - Configure project-specific settings
+- [Add a New Port](./cmd_create.md#3-create-a-new-port) - Host your own libraries
 
 **Advanced Features:**
 - [Generate CMake Configs](./advance_generate_cmake_config.md) - Auto-generate configs for non-CMake libraries
-- [Cache Build Artifacts](./advance_binary_cache.md) - Speed up builds with smart caching
+- [Cache Build Artifacts](./advance_binary_cache.md) - Accelerate builds with smart caching
 
-**Deep Dive:**
-- [Why Celer?](./why_celer.md) - Problems that Celer uniquely solves
+**Learn More:**
+- [Why Choose Celer?](./why_celer.md) - Unique solutions from Celer
 
 <details>
 <summary><b>📋 Command Reference</b></summary>
@@ -104,30 +104,30 @@ Celer addresses critical pain points that traditional C/C++ package managers str
 
 | Command                               | Description |
 | ------------------------------------- | --------------------------------- |
-| [autoremove](./cmd_autoremove.md)     | Tidy up installation directory - removing project's unnecessary files.|
-| [clean](./cmd_clean.md)               | Remove build cache and clean repo for packages or projects.|
-| [configure](./cmd_configure.md)       | Configure to change global settings.|
-| [create](./cmd_create.md)             | Create a platform, project or port. |
-| [deploy](./cmd_deploy.md)             | Deploy with selected platform and project. |
-| [init](./quick_start.md#3-setup-conf) | Init with conf repo. |
-| [install](./cmd_install.md)           | Install a package. |
-| [integrate](./cmd_integrate.md)       | Integrate tab completion. |
-| [remove](./cmd_remove.md)             | Remove a package. |
-| [search](./cmd_search.md)             | Search matched ports. |
-| [tree](./cmd_tree.md)                 | Show the dependencies of a port or a project. | 
-| [update](./cmd_update.md)             | Update conf repo, ports config repo or third-party repo. |
-| [version](./cmd_version.md)           | Show version info of celer. |
+| [autoremove](./cmd_autoremove.md)     | Clean install directory - remove unnecessary files.|
+| [clean](./cmd_clean.md)               | Remove build cache and clean project repo.|
+| [configure](./cmd_configure.md)       | Change global workspace settings.|
+| [create](./cmd_create.md)             | Create platform, project, or port. |
+| [deploy](./cmd_deploy.md)             | Deploy project.|
+| [init](./quick_start.md#3-setup-conf) | Initialize configuration repository.|
+| [install](./cmd_install.md)           | Install a package.|
+| [integrate](./cmd_integrate.md)       | Integrate tab completion.|
+| [remove](./cmd_remove.md)             | Remove installed package.|
+| [search](./cmd_search.md)             | Search for packages.|
+| [tree](./cmd_tree.md)                 | Show dependencies of a port or project.| 
+| [update](./cmd_update.md)             | Update configuration repo, ports repo, or third-party repo.|
+| [version](./cmd_version.md)           | Show Celer version info. |
 
 </details>
 
-## 🤝 Contribute
+## 🤝 Contributing
 
-Celer is an open source project built with community contributions. We welcome contributions to:
+Celer is an open source project built with community contributions. You are welcome to contribute to:
 
 - **[celer](https://github.com/celer-pkg/celer)** - Core package manager implementation
 - **[ports](https://github.com/celer-pkg/ports)** - Package definitions and build configurations
 
-Whether you want to add new features, improve documentation, or contribute new package definitions, we'd love your help!
+Whether you want to add new features, improve documentation, or contribute new package definitions, we welcome your help!
 
 ## 📄 License
 

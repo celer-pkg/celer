@@ -94,7 +94,7 @@ When collaborating with external partners:
 - Lead companies must distribute complete build environments
 - Partners shouldn't need manual installation or configuration
 - Toolchain setup should be portable and self-contained
-- Build environment consistency is critical but hard to achieve
+- Build environment consistency is critical
 
 **Celer's Solution:**  
 Portable, self-contained `toolchain_file.cmake`:
@@ -113,7 +113,7 @@ Portable, self-contained `toolchain_file.cmake`:
 | **Adding Libraries** | Write complex recipes | Declare build system type |
 | **Project Isolation** | Global configs (conflicts) | Project-level isolation |
 | **Multi-Project Sync** | Manual per-project setup | Single TOML, auto-sync |
-| **Build Caching** | Manual or basic | Hash-based precision |
+| **Build Caching** | git or archive storage | Hash-based precision |
 | **Conflict Detection** | Runtime discovery | Build-time checks |
 | **Collaboration** | Manual env setup | Portable toolchain file |
 
@@ -122,24 +122,24 @@ Portable, self-contained `toolchain_file.cmake`:
 ## 💼 Real-World Use Cases
 
 ### Embedded Systems Team
-*"We support multiple chip platforms. Celer's platform configs let us switch targets instantly without polluting each other's dependencies."*
+*“We support unlimited chip platforms. Celer's platform configs let us switch targets instantly without polluting each other's dependencies.”*
 
 ### Enterprise Platform Team
-*"Our platform project has multiple sub-projects. One project TOML ensures all sub-projects use the same library versions—no more version drift."*
+*“Our platform engineering has multiple sub-projects. One project TOML ensures all sub-projects use the same library versions—no more version drift.”*
 
 ### Open Source Contributors
-*"Adding a new library to Celer took 1 minute. With other tools, it would've taken hours learning their recipe language."*
+*“Adding a new library to Celer took 1 minute. With other tools, learning their recipe language took hours.”*
 
 ### Cross-Company Partnership
-*"We ship our SDK with a toolchain file. Partners are productive in minutes, not days setting up environments."*
+*“We ship our SDK with a toolchain file. Partners are productive in minutes, not days setting up environments.”*
 
 ---
 
 ## 🚀 Ready to Try?
 
 Celer is designed for teams that need:
-- ✅ Real cross-compilation support
-- ✅ Enterprise-scale dependency management
+- ✅ Simplified cross-compilation configuration
+- ✅ Enterprise-grade dependency management
 - ✅ Fast, reproducible builds
 - ✅ Simple library integration
 

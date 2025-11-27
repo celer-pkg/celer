@@ -80,22 +80,22 @@ Celer addresses critical pain points that traditional C/C++ package managers str
 | **Cross-Company Collaboration** | Manual environment setup | Portable toolchain file - works out of the box |
 | **Platform Customization** | Global settings cause conflicts | Project-level isolation |
 
-📖 [Read detailed comparison](./docs/en-US/why_celer.md)
+📖 [Detailed Comparison](./docs/en-US/why_celer.md)
 
 ## 📚 Documentation
 
-**Getting Started:**
-- [Quick Start Guide](./docs/en-US/quick_start.md) - Get up and running in 5 minutes
+**Quick Start:**
+- [Quick Start Guide](./docs/en-US/quick_start.md) - Get started in 5 minutes
 - [Create a New Platform](./docs/en-US/cmd_create.md#1-create-a-new-platform) - Define custom cross-compilation environments
-- [Create a New Project](./docs/en-US/cmd_create.md#2-create-a-new-project) - Set up project-specific configurations
-- [Add a New Package](./docs/en-US/cmd_create.md#3-create-a-new-port) - Host your own libraries
+- [Create a New Project](./docs/en-US/cmd_create.md#2-create-a-new-project) - Configure project-specific settings
+- [Add a New Port](./docs/en-US/cmd_create.md#3-create-a-new-port) - Host your own libraries
 
 **Advanced Features:**
 - [Generate CMake Configs](./docs/en-US/advance_generate_cmake_config.md) - Auto-generate configs for non-CMake libraries
-- [Cache Build Artifacts](./docs/en-US/advance_binary_cache.md) - Speed up builds with smart caching
+- [Cache Build Artifacts](./docs/en-US/advance_binary_cache.md) - Accelerate builds with smart caching
 
-**Deep Dive:**
-- [Why Celer?](./docs/en-US/why_celer.md) - Problems that Celer uniquely solves
+**Learn More:**
+- [Why Choose Celer?](./docs/en-US/why_celer.md) - Unique solutions from Celer
 
 <details>
 <summary><b>📋 Command Reference</b></summary>
