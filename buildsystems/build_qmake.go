@@ -86,7 +86,7 @@ func (q qmake) configureOptions() ([]string, error) {
 
 func (q qmake) configured() bool {
 	makeFile := filepath.Join(q.PortConfig.BuildDir, "Makefile")
-	return fileio.PathExists(makeFile)
+	return fileio.PathExists(q.PortConfig.RepoDir) && fileio.PathExists(makeFile)
 }
 
 func (q qmake) Configure(options []string) error {

@@ -1,6 +1,6 @@
-# Clean command
+# Configure Command
 
-&emsp;&emsp;The configure command allow to change global settings of current workspace.
+&emsp;&emsp;The Configure command allows users to configure global settings for the current workspace.
 
 ## Command Syntax
 
@@ -8,56 +8,58 @@
 celer configure [flags]
 ```
 
-## Command Options
+## ⚙️ Command Options
+| Option                    | Type    | Description                            |
+|---------------------------|---------|----------------------------------------|
+| --platform                | string  | Configure platform                     |
+| --project                 | string  | Configure project                      |
+| --build-type              | string  | Configure build type                   |
+| --jobs                    | integer | Configure parallel build jobs          |
+| --offline                 | boolean | Enable offline mode                    |
+| --verbose                 | boolean | Enable verbose logging mode            |
+| --proxy-host              | string  | Configure proxy host                   |
+| --proxy-port              | integer | Configure proxy port                   |
+| --binary-cache-dir        | string  | Configure binary cache directory       |
+| --binary-cache-token      | string  | Configure binary cache token           |
+| --ccache-compress         | boolean | Configure ccache compression           |
+| --ccache-dir              | string  | Configure ccache working directory     |
+| --ccache-enabled          | boolean | Enable ccache                          |
+| --ccache-maxsize          | string  | Set ccache max size (e.g., "10G")      |
 
-| Option	        | Description                |
-| ----------------- | ---------------------------|
-| --platform	    | configure platform.	     |
-| --project 	    | configure project.	     |
-| --build-type	    | configure build type.	     |
-| --jobs            | configure jobs.            |
-| --offline         | configure offline mode.    |
-| --verbose         | configure verbose mode.    |
-| --cache-dir       | configure cache dir.       |
-| --cache-token	    | configure cache token.     |
-| --proxy-host      | configure proxy host.      |
-| --proxy-port	    | configure proxy port.      |
-
-## Usage Examples
-
-### 1. Configure platform
+### 1️⃣ Configure Platform
 
 ```shell
 celer configure --platform xxxx
 ```
 
->The available platforms are file name of toml files under `conf/platforms`.
+> Available platforms come from toml files in the `conf/platforms` directory.
 
-### 2. Configure project
+### 2️⃣ Configure Project
 
 ```shell
-celer configurte --project xxxx
+celer configure --project xxxx
 ```
 
->The available projects are file name of toml files under `conf/projects`.
+> Available projects come from toml files in the `conf/projects` directory.
 
-### 3. Configure build type
+### 3️⃣ Configure Build Type
 
 ```shell
 celer configure --build-type Release
 ```
 
->Candicate build type are: Release, Debug, RelWithDebInfo, MinSizeRel
+> Available build types: Release, Debug, RelWithDebInfo, MinSizeRel  
+> The default build type is Release.
 
-### 4. Configure jobs
+### 4️⃣ Configure Parallel Jobs
 
 ```shell
 celer configure --jobs 8
 ```
 
->The job number must be greater than zero.
+> The number of parallel jobs must be greater than 0.
 
-### 5. Configure offline
+### 5️⃣ Configure Offline Mode
 
 ```shell
 celer configure --offline true|false
@@ -65,27 +67,48 @@ celer configure --offline true|false
 
 > The default offline mode is `false`.
 
-
-### 6. Configure verbose
+### 6️⃣ Configure Verbose Logging Mode
 
 ```shell
 celer configure --verbose true|false
 ```
 
-> The default verbose mode is `false`.
+> The default verbose logging mode is `false`.
 
-### 7. Configure cache-dir with dir and token
+---
 
-```shell
-celer configure --cache-dir /home/xxx/cache --cache-token token_12345
-```
+## 🌐 Proxy Configuration
 
->You can confiure --cache-dir and --cache-token at the same time or individually.
-
-### 8. Configure porxy with host and port
+### Configure Proxy Host and Port
 
 ```shell
 celer configure --proxy-host 127.0.0.1 --proxy-port 7890
 ```
+> In China, you may need to configure a proxy to access GitHub resources.
 
->You can confiure --proxy-host and --proxy-port at the same time or individually.
+---
+
+## 🗄️ Binary Cache Configuration
+
+### Configure Binary Cache Directory and Token
+
+```shell
+celer configure --binary-cache-dir /home/xxx/cache --binary-cache-token token_12345
+```
+
+> You can configure --binary-cache-dir and --binary-cache-token together or separately.
+
+---
+
+## 📦 ccache Configuration
+
+### Enable ccache to Accelerate Builds
+
+```shell
+celer configure --ccache-enabled true
+celer configure --ccache-dir /home/xxx/.ccache
+celer configure --ccache-maxsize 5G
+celer configure --ccache-compress true
+```
+
+> Enable compiler caching to speed up repeated builds.

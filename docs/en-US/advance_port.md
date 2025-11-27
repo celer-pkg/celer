@@ -1,22 +1,22 @@
-# Advancement of port
+# Port Configuration (Third-Party Library Port)
 
-&emsp;&emsp;Celer use a git repo to manager third-party libraries. This repository is continuously expanding and aims to support an increasing number of C/C++ third-party libraries.
+&emsp;&emsp;Celer uses a git repository to manage third-party library configuration files. This repository is continuously expanding and aims to support more and more C/C++ third-party libraries.
 
 ## 1. Introduction to port.toml
 
-Let's take a look at the example port.toml file: **ports/glog/0.6.0/port.toml**:
+Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
 
 ```
 [package]
 url                 = "https://github.com/google/glog.git"
 ref                 = "v0.6.0"
-archive             = ""                    # optional field, it works only when url is not a git repo url.
+archive             = ""                    # optional field, only works when url is not a git repo url.
 src_dir             = "xxx"                 # optional field
 supported_hosts     = [...]                 # optional field
 
 [[build_configs]]
 pattern             = "*linux*"             # optional field, default is empty.
-build_system        = "cmake"               # mandertory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
+build_system        = "cmake"               # mandatory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
 cmake_generator     = []                    # optional field, should be "Ninja", "Unix Makefiles", "Visual Studio xxx"
 build_tools         = [...]                 # optional field
 library_type        = "shared"              # optional field, should be **shared**, **static**, and default is **shared**.
@@ -40,7 +40,7 @@ dependencies        = [...]                 # optional field
 dev_dependencies    = [...]                 # optional field
 ```
 
-&emsp;&emsp;In a port.toml, there are many fields that can be configured, but actually only a few are mandertory, and the rest are optional. Most of the time, it is simple to manage a third-party library as follows:
+&emsp;&emsp;In a port.toml, there are many fields that can be configured, but actually only a few are mandatory, and the rest are optional. Most of the time, managing a third-party library is very simple, for example:
 
 ```
 [package]
@@ -59,26 +59,26 @@ The following are fields and their descriptions:
 
 | Field | Description |
 | --- | --- |
-| url | The url to clone or download library code, it can be https or ftp, even it can be **file:///** pointing to a local dir, even during testing, it can be **file:///** pointing to a local repo. |
-| ref | It can be a tag name, branch name, or commit id, and it can also be the version number in the filename of the compressed package when the library code is downloaded in the compressed package form. |
-| archive | Optional, it works only when url is not a git url. We can rename the downloaded archive file name with this field. |
-| src_dir | Optional, some libraries' **configure** file or **CMakeLists.txt** file is not in the root directory, for example, the **configure** file of **icu** library is in **icu4c/source** directory, we can use **src_dir** to specify where CMakeLists.txt is. |
-| build_configs | It's a array of config to descript how to build library in different platforms. |
+| url | The url to clone or download library code, it can be https or ftp, or **file:///** for local directory or repo. |
+| ref | Tag name, branch name, commit id, or version in archive filename. |
+| archive | Optional, only works when url is not a git url. Used to rename downloaded archive file. |
+| src_dir | Optional, used to specify where **configure** or **CMakeLists.txt** is located. |
+| build_configs | Array, describes how to build the library on different platforms. |
+| dev_dependencies | Array, tools required during build (e.g. autoconf, nasm). |
 
 ## 1.2 build_configs
 
-&emsp;&emsp;**build_configs** is designed as an array to meet the different compilation requirements of a library on different system platforms. Celer will automatically find the matching **build_config** according to **pattern** to assemble the compilation command.  
-&emsp;&emsp;The build configuration of third-party libraries often varies across different systems. These differences typically involve platform-specific compilation flags or even entirely distinct build steps. Some libraries even require special pre-processing or post-processing to compile correctly on Windows. 
+&emsp;&emsp;**build_configs** is an array to meet different compilation requirements on different platforms. Celer will automatically find the matching **build_config** according to **pattern** to assemble the compilation command. Build configuration often varies across systems, involving platform-specific flags or distinct build steps. Some libraries require special pre-processing or post-processing to compile correctly on Windows.
 
 ### 1.2.1 pattern
 
-&emsp;&emsp;Some third-party libraries require different configurations on different platforms. It is used to match the **platform** file in the **conf** directory. Its matching rules are similar to the following:
+&emsp;&emsp;Used to match the **platform** file in the **conf** directory. Matching rules are as follows:
 
 | Pattern | Description |
 | --- | --- |
 | * | Empty, also the default value, which means that the compilation configuration does not distinguish between system platforms. Switching to any platform can use the same buildconfig to compile |
 | *linux* | Match all linux systems |
-| *windows*" | Match all windows systems |
+| *windows* | Match all windows systems |
 | x86_64‑linux* | Match all cpu arch is x86_64, and system is linux |
 | aarch64‑linux* | Match all cpu arch is aarch64, and system is linux |
 | x86_64‑windows* | Match all cpu arch is x86_64, and system is windows; |
@@ -187,18 +187,18 @@ options = [
 
 ## 2. Dynamic Variables
 
-| Variable | Description |
-| --- | --- |
-| ${SYSTEM_NAME} | It's the value of **toolchain.system_name** that defined in the platform file. |
-| ${HOST} | It's the value of **toolchain.host** that defined in the platform file. |
-| ${SYSTEM_PROCESSOR} | Its the value of **toolchain.system_processor** that defined in the platform file. |
-| ${SYSROOT} | It's the value of **toolchain.sysroot** that defined in the platform file. |
-| ${CROSS_PREFIX} | Its the value of **toolchain.crosstool_prefix** that defined in the platform file. |
-| ${BUILD_DIR} | It's the value of path pointing to the current library's compile directory in the buildtrees directory. |
-| ${HOST_NAME} | It's the value of **toolchain.host_name** that defined in the platform file. |
-| ${PACKAGE_DIR} | It's the value of path pointing to the current library's package directory, such as: **packages\x264@stable@x86_64-windows@project_test_02@release**. |
-| ${BUILDTREES_DIR} | It's the value of path pointing to the buildtrees root directory in the workspace. |
-| ${REPO_DIR} | It's the value of path pointing to the current library source code directory, such as: **buildtrees\x264@stable\src**. |
-| ${DEPS_DIR} | It's the value of path pointing to the **tmp/deps** directory. |
-| ${DEPS_DEV_DIR} | It's the value pointing to the **tmp/deps/\${HOST_NAME}-dev** directory. |
-| ${PYTHON3_PATH} | It's the value of path pointing to the installed python3 path, Celer can auto detect local python3 path.|
+| Variable | Description | Source |
+| --- | --- | --- |
+| ${SYSTEM_NAME} | Value of **toolchain.system_name** | platform |
+| ${HOST} | Value of **toolchain.host** | platform |
+| ${SYSTEM_PROCESSOR} | Value of **toolchain.system_processor** | platform |
+| ${SYSROOT} | Value of **toolchain.sysroot** | platform |
+| ${CROSS_PREFIX} | Value of **toolchain.crosstool_prefix** | platform |
+| ${BUILD_DIR} | Path to current library's compile directory in buildtrees | buildtrees |
+| ${HOST_NAME} | Value of **toolchain.host_name** | platform |
+| ${PACKAGE_DIR} | Path to current library's package directory | port |
+| ${BUILDTREES_DIR} | Path to buildtrees root directory in workspace | buildtrees |
+| ${REPO_DIR} | Path to current library source code directory | port/buildtrees |
+| ${DEPS_DIR} | Path to **tmp/deps** directory | workspace |
+| ${DEPS_DEV_DIR} | Path to **tmp/deps/${HOST_NAME}-dev** directory | workspace |
+| ${PYTHON3_PATH} | Path to installed python3, auto detected | system |

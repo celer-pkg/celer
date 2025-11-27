@@ -1,66 +1,87 @@
-# Install 命令
+# 📦 安装命令（Install）
 
-&emsp;&emsp;**Install**命令下载、编译和安装软件包，同时解决依赖关系。它支持多个构建配置和安装模式。
+&emsp;&emsp;`install` 命令用于下载、编译和安装指定的第三方库（端口），支持多种构建配置和安装模式，可以灵活控制构建行为和缓存策略。
 
 ## 命令语法
 
 ```shell
-celer install [package_name] [flags]  
+celer install [package_name] [选项]
 ```
 
-## 命令选项
+## ⚙️ 命令选项
 
-| Option	        | Short flag | Description                                              |
-| ----------------- | ---------- | ---------------------------------------------------------|
-| --dev             | -d         | install in dev mode.                                     |
-| --force	        | -f	     | try to uninstall before installation.                    |
-| --jobs	        | -j	     | build with specified cpu jobs when install.              |
-| --recurse	        | -r	     | combine with --force, recursively reinstall dependencies.|
-| --store-cache     | -s         | store artifact into cache after installation.            |
-| --cache-token     | -t         | combine with --store-cache, specify cache token.         |
+| 选项              | 简写 | 说明                                   |
+|-------------------|------|--------------------------------------|
+| --dev             | -d   | 以开发模式安装（仅用于构建时依赖）     |
+| --force           | -f   | 强制重新安装（先卸载再安装）           |
+| --jobs            | -j   | 指定并行构建任务数                     |
+| --recurse         | -r   | 与 --force 配合，递归重新安装所有依赖  |
+| --store-cache     | -s   | 安装后将构建产物存入缓存               |
+| --cache-token     | -t   | 与 --store-cache 配合，指定缓存令牌    |
 
-## 命令示例
+## 💡 使用示例
 
-### 1. 标准安装
+### 1️⃣ 标准安装
 
 ```shell
 celer install ffmpeg@5.1.6
 ```
 
-### 2. 安装为开发时依赖项
+> 安装指定版本的 FFmpeg 及其所有依赖项。
+
+### 2️⃣ 安装为开发时依赖
 
 ```shell
-celer install pkgconf@2.4.3 --dev  
+celer install pkgconf@2.4.3 --dev
+# 用使用简写
+celer install pkgconf@2.4.3 -d
 ```
 
-### 3. 强制安装
+> 开发时依赖仅在构建其他库时使用，不会包含在最终的项目部署中。
+
+### 3️⃣ 强制重新安装
 
 ```shell
-celer install ffmpeg@5.1.6 --force/-f
+celer install ffmpeg@5.1.6 --force
+# 或使用简写
+celer install ffmpeg@5.1.6 -f
 ```
->移除已安装的软件包并重新配置、构建和安装。
 
-### 4. 编译时候指定cpu核数
+> 强制模式会先移除已安装的库，然后重新配置、构建和安装。
+
+### 4️⃣ 指定并行构建任务数
 
 ```shell
-celer install ffmpeg@5.1.6 --jobs/-j 8
+celer install ffmpeg@5.1.6 --jobs 8
+# 或使用简写
+celer install ffmpeg@5.1.6 -j 8
 ```
 
-### 5. 强制重新安装，包含依赖项
+> 根据 CPU 核心数设置合适的并行任务数可以加速编译。
+
+### 5️⃣ 递归强制重新安装（包含依赖）
 
 ```shell
-celer install ffmpeg@5.1.6 --force/-f --recurse/-r
+celer install ffmpeg@5.1.6 --force --recurse
+# 或使用简写
+celer install ffmpeg@5.1.6 -f -r
 ```
 
-### 6. 指定安装后同时将库存入缓存
+> 递归模式会重新安装目标库及其所有依赖项。
+
+### 6️⃣ 安装后存入缓存
 
 ```shell
-celer install ffmpeg@5.1.6 --store-cache --cache-token/-t token_xxx
+celer install ffmpeg@5.1.6 --store-cache --cache-token token_xxx
+# 或使用简写
+celer install ffmpeg@5.1.6 -s -t token_xxx
 ```
 
->在**cache_dir**的根目录下存储了一个叫**token**的文本，它记录了用于校验的token，token校验通过才允许上传编译产物缓存。
+> 在 `binary_cache` 根目录下需要存储名为 `token` 的文本文件，记录用于校验的令牌。只有令牌校验通过才允许上传构建产物缓存。
 
-## 安装目录结构
+---
+
+## 📁 安装目录结构
 
 ```
 └─ installed
@@ -95,18 +116,42 @@ celer install ffmpeg@5.1.6 --store-cache --cache-token/-t token_xxx
                 └── x264.pc
 ```
 
-**1. installed/celer/hash**  
+### 目录说明
 
-&emsp;&emsp;存储每个库在此目录下的哈希键值。当 **celer.toml** 中配置了 `cache_dir` 时，该哈希值将与构建产物一起以键值对形式存储。如果后续编译时在缓存中发现匹配的哈希值，将直接复用对应的构建产物，以避免不必要的重复编译。 
+#### 1️⃣ `installed/celer/hash/`
 
-**2. installed/celer/info** 
+存储每个库的哈希键值。当 `celer.toml` 中配置了 `binary_cache` 时，该哈希值将与构建产物一起以键值对形式存储。如果后续编译时在缓存中发现匹配的哈希值，将直接复用对应的构建产物，以避免不必要的重复编译。
 
-&emsp;&emsp;存储每个库在此目录下的安装文件清单。此文件是判断库是否已安装的主要凭证，也是实现移除已安装库的基础。  
+#### 2️⃣ `installed/celer/info/`
 
-**3. installed/x86_64-windows-dev** 
+存储每个库的安装文件清单（`.trace` 文件）。此文件是判断库是否已安装的主要凭证，也是实现移除已安装库的基础。
 
-&emsp;&emsp;许多第三方库在编译时需要额外工具（例如x264需要NASM）。Celer通过将这类工具安装至该目录来管理相关依赖，同时会自动将installed/x86_64-windows-dev/bin路径添加至PATH环境变量。在Linux系统下，Celer还会从源码编译安装autoconf、automake、m4、libtool和gettext等工具至此目录。
+#### 3️⃣ `installed/x86_64-windows-dev/`
 
-**4. installed/x86_64-windows-msvc-community-14.44@project_test_02@release** 
+许多第三方库在编译时需要额外的构建工具（例如 x264 需要 NASM）。Celer 通过将这类工具安装至该目录来管理开发依赖，同时会自动将 `installed/x86_64-windows-dev/bin` 路径添加至 `PATH` 环境变量。
 
-&emsp;&emsp;所有第三方库的编译产物将存储在此目录下。在 **toolchain_file.cmake** 中，`CMAKE_PREFIX_PATH` 会被设置为该目录，以便CMake能够在该目录下找到第三方库。
+在 Linux 系统下，Celer 还会从源码编译安装 autoconf、automake、m4、libtool 和 gettext 等工具至此目录。
+
+#### 4️⃣ `installed/x86_64-windows-msvc-community-14.44@project_test_02@release/`
+
+所有第三方库的编译产物存储目录。在 `toolchain_file.cmake` 中，`CMAKE_PREFIX_PATH` 会被设置为该目录，以便 CMake 能够在该目录下查找第三方库。
+
+目录名称包含：
+- 平台架构（`x86_64-windows`）
+- 工具链版本（`msvc-community-14.44`）
+- 项目名称（`project_test_02`）
+- 构建类型（`release`）
+
+---
+
+## 📚 相关文档
+
+- [快速开始](./quick_start.md)
+- [Deploy 命令](./cmd_deploy.md) - 部署整个项目
+- [Remove 命令](./cmd_remove.md) - 移除已安装的库
+- [端口配置](./advance_port.md) - 配置第三方库
+- [二进制缓存](./advance_cache_artifacts.md) - 配置构建缓存
+
+---
+
+**需要帮助？** [报告问题](https://github.com/celer-pkg/celer/issues) 或查看我们的 [文档](../../README.md)

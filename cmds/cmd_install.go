@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/dirs"
@@ -103,6 +104,11 @@ func (i installCmd) install(nameVersion string) {
 	// Check version conflict.
 	if err := depcheck.CheckConflict(i.celer, port); err != nil {
 		configs.PrintError(err, "failed to check version conflict.")
+		os.Exit(1)
+	}
+
+	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
+		configs.PrintError(err, "failed to check build tool: git.")
 		os.Exit(1)
 	}
 

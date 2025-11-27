@@ -1,59 +1,168 @@
-# 平台介绍
+# 平台配置
 
-&emsp;&emsp;平台配置文件存放于 **conf/platforms** 目录中，这些文件定义了该平台所需的 toolchain（工具链）和 rootfs（根文件系统）。
+> **为不同目标平台配置交叉编译环境**
 
-## 1. 平台配置文件介绍
+## 🎯 什么是平台配置？
 
-让我们看一个示例平台配置文件，**x86_64-linux-22.04.toml**：
+平台配置定义了 Celer 如何为特定目标系统编译 C/C++ 库。每个平台配置包含两个核心组件：
 
-  ```toml
-  [rootfs]
-    url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-20.04.5-base-amd64.tar.gz"
-    name = "gcc"
-    version = "9.5"
-    path = "ubuntu-base-20.04.5-base-amd64"
-    pkg_config_path = [
-        "usr/lib/x86_64-linux-gnu/pkgconfig",
-        "usr/share/pkgconfig",
-        "usr/lib/pkgconfig"
-    ]
+- 🔧 **Toolchain（工具链）** - 编译器、链接器和其他构建工具
+- 📦 **Rootfs（根文件系统）** - 目标系统的头文件和库文件
 
-  [toolchain]
-    url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-9.5.0.tar.gz"
-    path = "gcc-9.5.0/bin"
-    system_name = "Linux"
-    system_processor = "x86_64"
-    host = "x86_64-linux-gnu"
-    crosstool_prefix = "x86_64-linux-gnu-"
-    cc = "x86_64-linux-gnu-gcc"
-    cxx = "x86_64-linux-gnu-g++"
-    fc = "x86_64-linux-gnu-gfortran"            # optional field
-    ranlib = "x86_64-linux-gnu-ranlib"          # optional field
-    ar = "x86_64-linux-gnu-ar"                  # optional field
-    nm = "x86_64-linux-gnu-nm"                  # optional field
-    objdump = "x86_64-linux-gnu-objdump"        # optional field
-    strip = "x86_64-linux-gnu-strip"            # optional field
-  ```
+**为什么需要平台配置？**
 
-以下是字段和其描述：
+构建 C/C++ 项目需要正确的编译器和系统库。平台配置让 Celer 能够：
+- ✅ 为不同操作系统（Linux、Windows、macOS）构建
+- ✅ 支持交叉编译（如在 x86 上构建 ARM 二进制文件）
+- ✅ 使用特定编译器版本（GCC 9.5、Clang 14、MSVC 2022）
+- ✅ 管理多平台构建环境
 
-| 字段             | 描述 |
-| ----------------- | ----------- |
-| url               | 它可以是 http、https 或 ftp 协议的 URL，也可以是本地文件路径，本地文件路径应该以 **file:///** 开头，例如 **file:////home/phil/buildresource/ubuntu-base-20.04.5/gcc-9.5.0.tar.gz**。 |
-| path              | 它是工具链目录的路径，Celer 会在运行时将其添加到环境路径中，并且还会在生成的 toolchain_file.cmake 中添加到 $ENV{PATH} 中，这对于在运行时编译时访问内部的可执行文件非常方便。 |
-| system_name       | 系统名称，例如 **Linux**、**Windows**、**macOS**。 |
-| system_processor  | 系统处理器架构，例如 **x86_64**、**arm64**、**i386**。 |
-| name              | 工具链名称，例如 **gcc**、**clang**、**msvc**。 |
-| version           | 工具链版本，例如 **9.5**、**11.3**、**14.44.35207**。 |
-| host              | 工具链运行的操作系统，例如 **x86_64-linux-gnu**、**aarch64-linux-gnu**、**i686-w64-mingw32**。 |
-| crosstool_prefix  | 工具链前缀，例如 **x86_64-linux-gnu-**、**aarch64-linux-gnu-**、**i686-w64-mingw32-**。 |
-| cc                | 工具链中的 C 编译器，例如 **x86_64-linux-gnu-gcc**、**aarch64-linux-gnu-gcc**、**i686-w64-mingw32-gcc**。 |
-| cxx               | 工具链中的 C++ 编译器，例如 **x86_64-linux-gnu-g++**、**aarch64-linux-gnu-g++**、**i686-w64-mingw32-g++**。 |
-| fc, ranlib, ar, nm, objdump, strip, etc | 它们是可选字段，工具链可以使用 `crosstool_prefix` 找到它们。 |
+**平台文件位置：** 所有平台配置文件存放在 `conf/platforms` 目录中。
 
-## 2. 配置 Windows 平台
+---
 
-&emsp;&emsp;Windows 使用 MSVC 编译 C/C++ 项目，而 MSVC 的配置与 Linux 的 GCC 有很大的不同。区别在于 MSVC 中的编译器文件名基本上是固定的，但是头文件和库文件分散在不同的目录中，这对于 Celer 来说不是问题。Celer 封装了所有的细节，最终配置 MSVC 平台要简单得多，例如：
+## 📝 平台命名规范
+
+平台配置文件遵循统一的命名格式：
+
+```
+<架构>-<系统>-<发行版>-<编译器>-<版本>.toml
+```
+
+**示例：**
+- `x86_64-linux-ubuntu-22.04-gcc-11.5.0.toml`
+- `aarch64-linux-gnu-gcc-9.2.toml`
+- `x86_64-windows-msvc-14.44.toml`
+
+**命名组成部分：**
+
+| 部分 | 说明 | 示例 |
+|------|------|------|
+| 架构 | CPU 架构 | `x86_64`, `aarch64`, `arm` |
+| 系统 | 操作系统 | `linux`, `windows`, `darwin` |
+| 发行版 | 系统发行版（可选） | `ubuntu-22.04`, `centos-7` |
+| 编译器 | 工具链类型 | `gcc`, `clang`, `msvc` |
+| 版本 | 编译器版本 | `11.5.0`, `14.44` |
+
+> 💡 **提示**：一致的命名有助于团队快速识别和选择正确的平台配置。
+
+## 🛠️ 配置字段详解
+
+### 完整示例配置
+
+让我们看一个完整的 Linux 平台配置文件 `x86_64-linux-ubuntu-22.04-gcc-9.5.toml`：
+
+```toml
+[rootfs]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-20.04.5-base-amd64.tar.gz"
+  name = "gcc"
+  version = "9.5"
+  path = "ubuntu-base-20.04.5-base-amd64"
+  pkg_config_path = [
+      "usr/lib/x86_64-linux-gnu/pkgconfig",
+      "usr/share/pkgconfig",
+      "usr/lib/pkgconfig"
+  ]
+
+[toolchain]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-9.5.0.tar.gz"
+  path = "gcc-9.5.0/bin"
+  system_name = "Linux"
+  system_processor = "x86_64"
+  host = "x86_64-linux-gnu"
+  crosstool_prefix = "x86_64-linux-gnu-"
+  cc = "x86_64-linux-gnu-gcc"
+  cxx = "x86_64-linux-gnu-g++"
+  fc = "x86_64-linux-gnu-gfortran"            # 可选字段
+  ranlib = "x86_64-linux-gnu-ranlib"          # 可选字段
+  ar = "x86_64-linux-gnu-ar"                  # 可选字段
+  nm = "x86_64-linux-gnu-nm"                  # 可选字段
+  objdump = "x86_64-linux-gnu-objdump"        # 可选字段
+  strip = "x86_64-linux-gnu-strip"            # 可选字段
+```
+
+### 1️⃣ Toolchain（工具链）配置字段
+
+| 字段 | 必选 | 描述 | 示例 |
+|------|------|------|------|
+| `url` | ✅ | 工具链下载地址或本地路径。支持 http/https/ftp 协议，本地路径需以 `file:///` 开头 | `https://...gcc-9.5.0.tar.gz`<br>`file:///C:/toolchains/gcc.tar.gz` |
+| `path` | ✅ | 工具链 bin 目录的相对路径。Celer 会将其添加到 PATH 环境变量和 CMake 的 `$ENV{PATH}` 中 | `gcc-9.5.0/bin` |
+| `system_name` | ✅ | 目标操作系统名称 | `Linux`, `Windows`, `Darwin` |
+| `system_processor` | ✅ | 目标 CPU 架构 | `x86_64`, `aarch64`, `arm`, `i386` |
+| `host` | ✅ | 工具链的目标三元组，定义编译器生成代码的目标平台 | `x86_64-linux-gnu`<br>`aarch64-linux-gnu`<br>`i686-w64-mingw32` |
+| `crosstool_prefix` | ✅ | 工具链可执行文件的前缀，用于查找编译器工具 | `x86_64-linux-gnu-`<br>`arm-none-eabi-` |
+| `cc` | ✅ | C 编译器可执行文件名 | `x86_64-linux-gnu-gcc`<br>`clang` |
+| `cxx` | ✅ | C++ 编译器可执行文件名 | `x86_64-linux-gnu-g++`<br>`clang++` |
+| `name` | ✅ | 工具链名称（用于标识） | `gcc`, `clang`, `msvc` |
+| `version` | ✅ | 工具链版本号 | `9.5`, `11.3`, `14.0.0` |
+| `fc` | ❌ | Fortran 编译器（如果需要） | `x86_64-linux-gnu-gfortran` |
+| `ranlib` | ❌ | 库索引生成器 | `x86_64-linux-gnu-ranlib` |
+| `ar` | ❌ | 静态库归档器 | `x86_64-linux-gnu-ar` |
+| `nm` | ❌ | 符号表查看器 | `x86_64-linux-gnu-nm` |
+| `objdump` | ❌ | 目标文件分析器 | `x86_64-linux-gnu-objdump` |
+| `strip` | ❌ | 符号剥离工具 | `x86_64-linux-gnu-strip` |
+
+> ⚠️ **注意**：可选工具（fc、ranlib 等）如果未指定，Celer 会使用 `crosstool_prefix` 自动查找。
+
+### 2️⃣ Rootfs（根文件系统）配置字段
+
+| 字段 | 必选 | 描述 | 示例 |
+|------|------|------|------|
+| `url` | ✅ | 根文件系统下载地址或本地路径。支持 http/https/ftp 协议，本地路径需以 `file:///` 开头 | `https://...ubuntu-base.tar.gz`<br>`file:///D:/sysroots/ubuntu.tar.gz` |
+| `path` | ✅ | 根文件系统解压后的目录名 | `ubuntu-base-20.04.5-base-amd64` |
+| `pkg_config_path` | ✅ | pkg-config 搜索路径列表，相对于 rootfs 根目录 | `["usr/lib/x86_64-linux-gnu/pkgconfig", "usr/share/pkgconfig"]` |
+
+---
+
+## 💼 实际配置示例
+
+### Linux 平台配置
+
+#### GCC 工具链
+
+```toml
+[rootfs]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-22.04-amd64.tar.gz"
+  path = "ubuntu-base-22.04-amd64"
+  pkg_config_path = [
+      "usr/lib/x86_64-linux-gnu/pkgconfig",
+      "usr/share/pkgconfig"
+  ]
+
+[toolchain]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-11.3.0.tar.gz"
+  path = "gcc-11.3.0/bin"
+  system_name = "Linux"
+  system_processor = "x86_64"
+  host = "x86_64-linux-gnu"
+  crosstool_prefix = "x86_64-linux-gnu-"
+  cc = "x86_64-linux-gnu-gcc"
+  cxx = "x86_64-linux-gnu-g++"
+```
+
+#### Clang 工具链
+
+```toml
+[toolchain]
+  url = "file:///opt/llvm-14.0.0"
+  path = "bin"
+  system_name = "Linux"
+  system_processor = "x86_64"
+  host = "x86_64-linux-gnu"
+  cc = "clang"
+  cxx = "clang++"
+```
+
+### Windows 平台配置
+
+#### MSVC 2022 配置
+
+Windows 使用 MSVC 编译 C/C++ 项目。MSVC 的配置与 Linux GCC 不同：
+- ✅ 编译器文件名是固定的（`cl.exe`、`link.exe`）
+- ✅ 头文件和库文件分散在多个目录
+- ✅ Celer 自动处理所有路径配置
+
+**简化的 MSVC 配置：**
 
 ```toml
 [toolchain]
@@ -63,3 +172,17 @@ version = "14.44.35207"
 system_name = "Windows"
 system_processor = "x86_64"
 ```
+
+> 💡 **提示**：Celer 会自动检测 MSVC 安装路径，包括 Windows SDK、UCRT 和编译器工具。
+
+---
+
+## 📚 相关文档
+
+- [快速开始指南](./quick_start.md) - 开始使用 Celer
+- [项目配置](./cmd_create.md#2-创建一个新的项目) - 在 celer.toml 中选择平台
+- [构建配置](./advance_buildconfig.md) - 配置构建选项和依赖
+
+---
+
+**需要帮助？** [报告问题](https://github.com/celer-pkg/celer/issues) 或查看我们的[文档](../../README.md)

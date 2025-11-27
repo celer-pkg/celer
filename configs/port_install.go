@@ -139,8 +139,8 @@ func (p Port) Clone() error {
 
 func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
 	// No cache dir configured, skip it.
-	cacheDir := p.ctx.CacheDir()
-	if cacheDir == nil {
+	binaryCache := p.ctx.BinaryCache()
+	if binaryCache == nil {
 		return false, nil
 	}
 
@@ -170,7 +170,7 @@ func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
 	}
 
 	// Read cache file and extract them to package dir.
-	if ok, err := cacheDir.Read(p.NameVersion(), buildhash+".tar.gz", p.MatchedConfig.PortConfig.PackageDir); err != nil {
+	if ok, err := binaryCache.Read(p.NameVersion(), buildhash+".tar.gz", p.MatchedConfig.PortConfig.PackageDir); err != nil {
 		return false, fmt.Errorf("read cache with buildhash: %s", err)
 	} else if ok {
 		return true, nil
@@ -193,15 +193,15 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 	// Validate cache dir before building to avoid wasting build time.
 	var writeCacheAfterInstall bool
 	if options.StoreCache {
-		cacheDir := p.ctx.CacheDir()
-		if cacheDir == nil {
+		binaryCache := p.ctx.BinaryCache()
+		if binaryCache == nil {
 			return ErrCacheDirNotConfigured
 		}
-		if cacheDir.GetDir() == "" {
+		if binaryCache.GetDir() == "" {
 			return ErrCacheDirNotConfigured
 		}
 
-		if !fileio.PathExists(filepath.Join(cacheDir.GetDir(), "token")) {
+		if !fileio.PathExists(filepath.Join(binaryCache.GetDir(), "token")) {
 			return ErrCacheTokenNotConfigured
 		}
 
@@ -209,7 +209,7 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 			return ErrCacheTokenNotSpecified
 		}
 
-		if !encrypt.CheckToken(cacheDir.GetDir(), options.CacheToken) {
+		if !encrypt.CheckToken(binaryCache.GetDir(), options.CacheToken) {
 			return ErrCacheTokenNotMatch
 		}
 
@@ -241,14 +241,14 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 
 		// Store cache after installation.
 		if writeCacheAfterInstall {
-			if p.ctx.CacheDir() == nil {
+			if p.ctx.BinaryCache() == nil {
 				return ErrCacheDirNotConfigured
 			}
-			cacheDir := p.ctx.CacheDir()
-			if cacheDir.GetDir() == "" {
+			binaryCache := p.ctx.BinaryCache()
+			if binaryCache.GetDir() == "" {
 				return ErrCacheDirNotConfigured
 			}
-			if err := cacheDir.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
+			if err := binaryCache.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 				return err
 			}
 		}
@@ -408,14 +408,14 @@ func (p Port) InstallFromCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		cacheDir := p.ctx.CacheDir()
-		if cacheDir == nil {
+		binaryCache := p.ctx.BinaryCache()
+		if binaryCache == nil {
 			return false, ErrCacheDirNotConfigured
 		}
-		if cacheDir.GetDir() == "" {
+		if binaryCache.GetDir() == "" {
 			return false, ErrCacheDirNotConfigured
 		}
-		fromDir := cacheDir.GetDir()
+		fromDir := binaryCache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("cache [%s]", fromDir))
 	} else if p.Package.Commit != "" {
 		return false, ErrCacheNotFoundWithCommit
@@ -454,7 +454,7 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 	}
 
 	// Prepare build dependencies.
-	color.Printf(color.Cyan, "[preparing build dependencies or dev_dependencies for %s]:\n", p.NameVersion())
+	color.Printf(color.Blue, "\n[preparing build dependencies for %s]:\n", p.NameVersion())
 	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
 		preparedTmpDeps = []string{}
 		if err := p.providerTmpDeps(); err != nil {

@@ -1,52 +1,67 @@
-# Create command
 
-&emsp;&emsp;The create command allow to create a new platform, a new project or a new port under conf.
+# 🚀 Create Command
 
-## Command Syntax
+> Quickly create new platform, project, or port configurations
+
+&emsp;&emsp;The `create` command generates configuration files for platforms, projects, or third-party library ports with a single command.
+
+
+## 📝 Command Syntax
 
 ```shell
-celer create [flags]
+celer create [options]
 ```
 
-## Command Options
+## ⚙️ Command Options
 
-| Option	        | Description              |
-| ----------------- | -------------------------|
-| --platform	    | create a new platform.   |
-| --project 	    | create a new project.	   |
-| --port	        | create a new port.	   |
+| Option       | Description                 |
+|--------------|-----------------------------|
+| --platform   | Create a new platform       |
+| --project    | Create a new project        |
+| --port       | Create a new port           |
 
-## Usage Examples
 
-### 1. Create a new platform
+## 💡 Usage Examples
+
+### 1️⃣ Create a New Platform
 
 ```shell
 celer create --platform x86_64-linux-xxxx
 ```
 
->The suggested platform name pattern should be like `[arch]-[os]-xxxx`.
->The generated file is located in the **conf/platforms** directory.  
->Then you need to open the generated file and configure it according to your target environment.
+> Recommended platform name pattern: `[arch]-[os]-xxxx`  
+> Generated file location: `conf/platforms/`  
+> Please edit the generated configuration file according to your target environment
 
-For the details, you can read the [advancement of the platform](./advance_platform.md).
+For more platform configuration details, see [Platform Introduction](./advance_platform.md)
 
-### 2. Create a new project
+### 2️⃣ Create a New Project
 
 ```shell
 celer create --project xxxx
 ```
 
->The generated file is located in the **conf/projects** directory.   
->Then you need to open the generated file and configure it with your target project.
+> Generated file location: `conf/projects/`  
+> Please edit the generated configuration file according to your target project
 
-For the details, you can read the [advancement of the project](./advance_project.md).
+For more project configuration details, see [Project Introduction](./advance_project.md)
 
-### 3. Create a new port
+### 3️⃣ Create a New Port
 
 ```shell
 celer create --port xxxx
 ```
 
->After creating the port, you need to open the generated file and configure it with your target library. The generated file is located in the **workspace/ports/glog/0.6.0/port.toml** directory.
+> Generated file location example: `workspace/ports/glog/0.6.0/port.toml`  
+> Please edit the generated configuration file according to your target library
 
-For the details, you can read the [advancement of the port](./advance_port.md).
+For more port configuration details, see [Port Introduction](./advance_port.md)
+
+---
+
+## 📚 Related Documentation
+
+- [Quick Start](./quick_start.md)
+- [Platform Introduction](./advance_platform.md)
+- [Project Introduction](./advance_project.md)
+- [Port Introduction](./advance_port.md)

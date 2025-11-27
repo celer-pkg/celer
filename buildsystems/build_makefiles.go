@@ -226,7 +226,8 @@ func (m makefiles) shouldAddHost(options []string) bool {
 func (m makefiles) configured() bool {
 	buildDir := expr.If(m.BuildInSource, m.PortConfig.RepoDir, m.PortConfig.BuildDir)
 	makeFile := filepath.Join(buildDir, "Makefile")
-	return fileio.PathExists(makeFile)
+	return fileio.PathExists(m.PortConfig.RepoDir) &&
+		fileio.PathExists(makeFile)
 }
 
 func (m makefiles) Configure(options []string) error {

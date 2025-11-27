@@ -123,7 +123,7 @@ func (m meson) configureOptions() ([]string, error) {
 
 func (m meson) configured() bool {
 	buildFile := filepath.Join(m.PortConfig.BuildDir, "build.ninja")
-	return fileio.PathExists(buildFile)
+	return fileio.PathExists(m.PortConfig.RepoDir) && fileio.PathExists(buildFile)
 }
 
 func (m meson) Configure(options []string) error {
@@ -219,8 +219,13 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	}
 
 	buffers.WriteString("cmake = 'cmake'\n")
-	buffers.WriteString(fmt.Sprintf("c = '%s'\n", toolchain.CC))
-	buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", toolchain.CXX))
+	if toolchain.CCacheEnabled {
+		buffers.WriteString(fmt.Sprintf("c = '%s'\n", "ccache "+toolchain.CC))
+		buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", "ccache "+toolchain.CXX))
+	} else {
+		buffers.WriteString(fmt.Sprintf("c = '%s'\n", toolchain.CC))
+		buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", toolchain.CXX))
+	}
 
 	if toolchain.FC != "" {
 		buffers.WriteString(fmt.Sprintf("fc = '%s'\n", toolchain.FC))

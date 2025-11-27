@@ -52,7 +52,9 @@ func (b b2) configured() bool {
 	b2file := expr.If(runtime.GOOS == "windows", "b2.exe", "b2")
 	b2Exist := filepath.Join(b.PortConfig.SrcDir, b2file)
 	configExist := filepath.Join(b.PortConfig.SrcDir, "project-config.jam")
-	return fileio.PathExists(b2Exist) && fileio.PathExists(configExist)
+	return fileio.PathExists(b.PortConfig.RepoDir) &&
+		fileio.PathExists(b2Exist) &&
+		fileio.PathExists(configExist)
 }
 
 func (b b2) Configure(options []string) error {

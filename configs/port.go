@@ -367,10 +367,13 @@ func (p Port) toolchain() *buildsystems.Toolchain {
 	bsToolchain.STRIP = toolchain.GetSTRIP()
 	bsToolchain.READELF = toolchain.GetREADELF()
 
-	// For windows MSVC.
+	// Windows MSVC.
 	bsToolchain.MSVC.VCVars = toolchain.GetMSVC().VCVars
 	bsToolchain.MSVC.MT = toolchain.GetMSVC().MT
 	bsToolchain.MSVC.RC = toolchain.GetMSVC().RC
+
+	// CCache.
+	bsToolchain.CCacheEnabled = p.ctx.CCacheEnabled()
 
 	return &bsToolchain
 }

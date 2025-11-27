@@ -1,66 +1,87 @@
-# Install command
+# 📦 Install Command
 
-&emsp;&emsp;The install command downloads, compiles, and installs packages with dependency resolution. It supports multiple build configurations and installation modes.
+&emsp;&emsp;The `install` command is used to download, compile, and install specified third-party libraries (ports), supporting multiple build configurations and installation modes with flexible control over build behavior and caching strategies.
 
 ## Command Syntax
 
 ```shell
-celer install [package_name] [flags]  
+celer install [package_name] [options]
 ```
 
-## Command Options
+## ⚙️ Command Options
 
-| Option	        | Short flag | Description                                              |
-| ----------------- | ---------- | ---------------------------------------------------------|
-| --dev             | -d         | install in dev mode.                                     |
-| --force	        | -f	     | try to uninstall before installation.                    |
-| --jobs	        | -j	     | build with specified cpu jobs when install.              |
-| --recurse	        | -r	     | combine with --force, recursively reinstall dependencies.|
-| --store-cache     | -s         | store artifact into cache after installation.            |
-| --cache-token     | -t         | combine with --store-cache, specify cache token.         |
+| Option            | Short | Description                                        |
+|-------------------|-------|----------------------------------------------------|
+| --dev             | -d    | Install in dev mode (for build-time dependencies only) |
+| --force           | -f    | Force reinstall (uninstall first, then install)    |
+| --jobs            | -j    | Specify number of parallel build jobs              |
+| --recurse         | -r    | With --force, recursively reinstall all dependencies |
+| --store-cache     | -s    | Store build artifacts into cache after installation |
+| --cache-token     | -t    | With --store-cache, specify cache token            |
 
-## Usage Examples
+## 💡 Usage Examples
 
-### 1. Standard Installation
+### 1️⃣ Standard Installation
 
 ```shell
 celer install ffmpeg@5.1.6
 ```
 
-### 2. Install in dev mode
+> Install the specified version of FFmpeg and all its dependencies.
+
+### 2️⃣ Install as Development Dependency
 
 ```shell
-celer install pkgconf@2.4.3 --dev/-d  
+celer install pkgconf@2.4.3 --dev
+# Or use shorthand
+celer install pkgconf@2.4.3 -d
 ```
 
-### 3. Install forcibly
+> Development dependencies are only used when building other libraries and are not included in the final project deployment.
+
+### 3️⃣ Force Reinstall
 
 ```shell
-celer install ffmpeg@5.1.6 --force/-f
+celer install ffmpeg@5.1.6 --force
+# Or use shorthand
+celer install ffmpeg@5.1.6 -f
 ```
->Removes installed package and configure, build, install again.
 
-### 4. Install with specified jobs
+> Force mode removes the installed library first, then reconfigures, builds, and installs.
+
+### 4️⃣ Specify Parallel Build Jobs
 
 ```shell
-celer install ffmpeg@5.1.6 --jobs/-j 8
+celer install ffmpeg@5.1.6 --jobs 8
+# Or use shorthand
+celer install ffmpeg@5.1.6 -j 8
 ```
 
-### 5. Recursively reinstall dependencies
+> Setting an appropriate number of parallel jobs based on CPU cores can speed up compilation.
+
+### 5️⃣ Recursively Force Reinstall (Including Dependencies)
 
 ```shell
-celer install ffmpeg@5.1.6 --force/-f --recurse/-r
+celer install ffmpeg@5.1.6 --force --recurse
+# Or use shorthand
+celer install ffmpeg@5.1.6 -f -r
 ```
 
-### 6. Store artifact into cache after installation
+> Recursive mode reinstalls the target library and all its dependencies.
+
+### 6️⃣ Store into Cache After Installation
 
 ```shell
-celer install ffmpeg@5.1.6 --store-cache/-f --cache-token/-t token_xxx
+celer install ffmpeg@5.1.6 --store-cache --cache-token token_xxx
+# Or use shorthand
+celer install ffmpeg@5.1.6 -s -t token_xxx
 ```
 
->There will be a file named **token** in the root of **cache_dir**, cache will be stored only when token is verified.
+> A text file named `token` must be stored in the `binary_cache` root directory to record the verification token. Only when the token verification passes can build artifact caches be uploaded.
 
-## Structure of installed directory
+---
+
+## 📁 Installation Directory Structure
 
 ```
 └─ installed
@@ -95,14 +116,42 @@ celer install ffmpeg@5.1.6 --store-cache/-f --cache-token/-t token_xxx
                 └── x264.pc
 ```
 
-**1. installed/celer/hash**   
-&emsp;&emsp;Stores the hash key for each library in this folder. When `cache_dir` is configured in `celer.toml`, this hash will be stored as a key-value pair alongside the build artifacts. If a subsequent compilation finds a matching hash in the cache, it will directly reuse the corresponding build artifacts to avoid redundant recompilation.  
+### Directory Description
 
-**2. installed/celer/info**   
-&emsp;&emsp;Stores the installation file manifest for each library in this folder. This file is one of the main credentials for judging whether a library is installed, and also the basis for implementing the removing installed libraries.  
+#### 1️⃣ `installed/celer/hash/`
 
-**3. installed/x86_64-windows-dev**   
-&emsp;&emsp;Many third-party libraries require extra tools(e.g., NASM for x264) during compilation. Celer manages such dependencies by installing these tools into this kind of directory. Celer would also adds this `installed/x86_64-windows-dev/bin` path in to PATH environment variable. On Linux, it also compiles and installs autoconf, automake, m4, libtool, and gettext from source into this folder. 
+Stores the hash key for each library. When `binary_cache` is configured in `celer.toml`, this hash will be stored as a key-value pair alongside the build artifacts. If a subsequent compilation finds a matching hash in the cache, it will directly reuse the corresponding build artifacts to avoid redundant recompilation.
 
-**4. installed/x86_64-windows-msvc-community-14.44@project_test_02@release**   
-&emsp;&emsp;All compiled artifacts of third-party libraries will be stored in this kind of folder. In the `toolchain_file.cmake`, the `CMAKE_PREFIX_PATH` will be set to this folder, so that CMake can find the third-party libraries in this folder.
+#### 2️⃣ `installed/celer/info/`
+
+Stores the installation file manifest (`.trace` files) for each library. This file is the primary credential for determining whether a library is installed, and also the basis for removing installed libraries.
+
+#### 3️⃣ `installed/x86_64-windows-dev/`
+
+Many third-party libraries require additional build tools during compilation (e.g., x264 needs NASM). Celer manages development dependencies by installing these tools into this directory and automatically adds the `installed/x86_64-windows-dev/bin` path to the `PATH` environment variable.
+
+On Linux systems, Celer also compiles and installs autoconf, automake, m4, libtool, and gettext from source into this directory.
+
+#### 4️⃣ `installed/x86_64-windows-msvc-community-14.44@project_test_02@release/`
+
+Storage directory for all third-party library build artifacts. In `toolchain_file.cmake`, `CMAKE_PREFIX_PATH` will be set to this directory so that CMake can find third-party libraries here.
+
+The directory name includes:
+- Platform architecture (`x86_64-windows`)
+- Toolchain version (`msvc-community-14.44`)
+- Project name (`project_test_02`)
+- Build type (`release`)
+
+---
+
+## 📚 Related Documentation
+
+- [Quick Start](./quick_start.md)
+- [Deploy Command](./cmd_deploy.md) - Deploy entire project
+- [Remove Command](./cmd_remove.md) - Remove installed libraries
+- [Port Configuration](./advance_port.md) - Configure third-party libraries
+- [Binary Cache](./advance_cache_artifacts.md) - Configure build cache
+
+---
+
+**Need Help?** [Report an Issue](https://github.com/celer-pkg/celer/issues) or check our [Documentation](../../README.md)

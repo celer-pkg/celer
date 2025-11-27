@@ -1,45 +1,106 @@
-# Celer overview [🌍中文](./docs/zh-CH/README.md)
+<div align="center">
 
-&emsp;&emsp;Celer is a very lightweight C/C++ package manager written in Go. The name "Celer" is inspired by the vision of being C/C++'s accelerator. Celer is explicitly positioned as a non-intrusive CMake assistant for any CMake projects. It is designed to make it easy for developers to manage and compile third-party libraries with only TOML files.
+# Celer
 
-# The background of Celer
+**A lightweight, non-intrusive C/C++ package manager for CMake projects**
 
-&emsp;&emsp;CMake has become the mainstream build system for compiling C/C++ projects，but it focuses on finding dependencies rather than managing them. Many tasks like fetching source code, handling dependencies between libraries, and setting up cross-compilation still require additional work.  
-&emsp;&emsp;This is why we created Celer. It automatically generates a `toolchain_file.cmake` that configures all necessary build tools and library paths, isolating them from system libraries and all preparation work is done before this file is generated.  
-&emsp;&emsp;As shown in the diagram, Celer remains decoupled from project development - it simply generates the platform-specific `toolchain_file.cmake` that serves as the bridge to your project.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go Report Card](https://goreportcard.com/badge/github.com/celer-pkg/celer)](https://goreportcard.com/report/github.com/celer-pkg/celer)
+[![GitHub release](https://img.shields.io/github/release/celer-pkg/celer.svg)](https://github.com/celer-pkg/celer/releases)
+
+[English](./README.md) | [🌍 中文](./docs/zh-CH/README.md)
+
+</div>
+
+---
+
+## ✨ Why Celer?
+
+Celer is the C/C++ accelerator that solves real-world dependency management challenges:
+
+- 🎯 **Zero Project Intrusion** - Just one `toolchain_file.cmake`, no code changes needed
+- 🚀 **True Cross-Compilation** - Platform-aware dependency management with pre-configured toolchains
+- 📦 **Smart Caching** - Hash-based binary artifact caching saves hours of build time
+- 🔧 **Multi-Build System** - Native support for CMake, Make, Meson, Bazel, B2, QMake, GYP
+- 🏢 **Enterprise Ready** - Project-level configurations prevent dependency version conflicts
+- 🔗 **Non-Intrusive Design** - Portable `toolchain_file.cmake` works standalone after generation
+
+## 🚀 Quick Start
+
+```bash
+# 1. Install Celer (or download pre-built binary from releases)
+git clone https://github.com/celer-pkg/celer.git
+cd celer && go build
+
+# 2. Initialize with configuration repository
+celer init --url=https://github.com/celer-pkg/test-conf.git
+
+# 3. Configure your platform and project
+celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
+celer configure --project=my_project
+
+# 4. Deploy and generate toolchain file
+celer deploy
+
+# 5. Use in your CMake project
+cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/workspace/toolchain_file.cmake ..
+cmake --build .
+```
+
+📖 [Full Quick Start Guide](./docs/en-US/quick_start.md)
+
+## 💡 How It Works
 
 ![workflow](./docs/assets/workflow.svg)
 
-# Key features
+Celer generates a platform-specific `toolchain_file.cmake` that bridges your project to pre-configured build environments and dependencies. This keeps Celer completely decoupled from your project - once the toolchain file is generated, you can share it with your team and they don't even need Celer installed!
 
-| Feature | Description |
+## 🌟 Key Features
+
+| Feature | What You Get |
 | --- | --- |
-| **Configurable cross-compilation platforms** | There are many chip platforms for C/C++ development, and they depend on specific toolchains and corresponding configurations. Celer provides a very friendly configuration entry. |
-| **Customizable project configuration** | Supports managing global configurations for different projects, such as: dependency library lists, environment variables, macro definitions, and even global CMake variables, etc. It also supports customizing the compilation process of third-party libraries at the project level, while supporting hosting libraries within each project itself. |
-| **Hosting libraries with common build tools** | Support for libraries with build tools such as: **cmake**, **makefiles**, **meson**, **b2**, etc. |
-| **Generate CMake configs** | For third-party libraries that do not use CMake as the build tool, corresponding **cmake config** files can be automatically generated. |
-| **Precise compilation cache management** | Celer supports precise management of compilation artifacts through shared folders on the local network, which can avoid redundant compilation and improve development efficiency. Additionally, Celer supports obtaining compilation artifacts of libraries without source code, which is very useful for some private libraries. |
-| **DEV mode** | `toolchain_file.cmake` can be generated by the `celer deploy` command, which can be used directly for project development. Afterward, you can choose any IDE to develop your project. |
-| **CI/CD mode** | You can configure your project in conf/project for integration with CI/CD. |
+| **🔧 Configurable Cross-Compilation Platforms** | Pre-define toolchains for ARM, x86, RISC-V, Windows, Linux, and more with friendly TOML configurations. |
+| **📁 Project-Level Dependency Management** | Each project maintains its own dependency versions, environment variables, macros, and CMake variables - preventing global conflicts. |
+| **🛠️ Multi-Build System Support** | Native support for **CMake**, **Makefiles**, **Meson**, **B2**, **Bazel**, **QMake**, **GYP** - no need to write complex scripts. |
+| **📦 Auto CMake Config Generation** | Non-CMake libraries automatically get CMake config files generated, ensuring seamless integration. |
+| **⚡ Intelligent Binary Caching** | Hash-based artifact caching via local network shares eliminates redundant builds. Supports pre-built binary distribution for private libraries. |
+| **💻 Developer Mode** | Generate `toolchain_file.cmake` once with `celer deploy`, then use any IDE for development. |
+| **🔄 CI/CD Integration** | Configure projects in `conf/projects` for seamless continuous integration pipelines. |
 
-# Get started
+## 🆚 Celer vs Others
 
-We have docs to guide you in using Celer:
+Celer addresses critical pain points that traditional C/C++ package managers struggle with:
 
-- [Quick start.](./docs/en-US/quick_start.md)
-- [How to create a new platform.](./docs/en-US/cmd_create.md#1-create-a-new-platform)
-- [How to create a new project.](./docs/en-US/cmd_create.md#2-create-a-new-project)
-- [How to create a new port.](./docs/en-US/cmd_create.md#3-create-a-new-port)
+| Challenge | Conan / Vcpkg / XMake | ✅ Celer |
+|-----------|----------------------|---------|
+| **Adding New Libraries** | Complex recipe scripts required | Just declare the build system type |
+| **Multi-Project Platforms** | Scattered dependency configs | Centralized project TOML files |
+| **Version Conflicts** | Manual conflict resolution | Automatic detection and reporting |
+| **Build Caching** | Limited or missing | Hash-based precision caching |
+| **Cross-Company Collaboration** | Manual environment setup | Portable toolchain file - works out of the box |
+| **Platform Customization** | Global settings cause conflicts | Project-level isolation |
 
-Advanced features:
+📖 [Detailed Comparison](./docs/en-US/why_celer.md)
 
-- [Generate cmake configs.](./docs/en-US/advance_generate_cmake_config.md)
-- [Cache build artifacts.](./docs/en-US/advance_cache_artifacts.md)
+## 📚 Documentation
 
-Why Celer: 
-- [Celer solves problems that others cannot.](./docs/en-US/why_celer.md)
+**Quick Start:**
+- [Quick Start Guide](./docs/en-US/quick_start.md) - Get started in 5 minutes
+- [Create a New Platform](./docs/en-US/cmd_create.md#1-create-a-new-platform) - Define custom cross-compilation environments
+- [Create a New Project](./docs/en-US/cmd_create.md#2-create-a-new-project) - Configure project-specific settings
+- [Add a New Port](./docs/en-US/cmd_create.md#3-create-a-new-port) - Host your own libraries
 
-Supported commands:
+**Advanced Features:**
+- [Generate CMake Configs](./docs/en-US/advance_generate_cmake_config.md) - Auto-generate configs for non-CMake libraries
+- [Cache Build Artifacts](./docs/en-US/advance_binary_cache.md) - Accelerate builds with smart caching
+
+**Learn More:**
+- [Why Choose Celer?](./docs/en-US/why_celer.md) - Unique solutions from Celer
+
+<details>
+<summary><b>📋 Command Reference</b></summary>
+
+## Supported Commands
 
 | Command                                         | Description                                                                   |
 | ----------------------------------------------- | ----------------------------------------------------------------------------- |
@@ -57,10 +118,29 @@ Supported commands:
 | [update](./docs/en-US/cmd_update.md)            | Update conf repo, ports config repo or third-party repo.                      |
 | [version](./docs/en-US/cmd_version.md)          | Show version info of celer.                                                   |
 
-# Contribute
+</details>
 
-&emsp;&emsp;Celer is an open source project, and is thus built with your contributions. Celer consists of two parts: [celer](https://github.com/celer-pkg/celer.git) and [ports](https://github.com/celer-pkg/ports.git), you can contribute to either of them.
+## 🤝 Contribute
 
-# License
+Celer is an open source project built with community contributions. We welcome contributions to:
 
-&emsp;&emsp;The code in this repository is licensed under the MIT License. The libraries provided by ports are licensed under the terms of their original authors.
+- **[celer](https://github.com/celer-pkg/celer)** - Core package manager implementation
+- **[ports](https://github.com/celer-pkg/ports)** - Package definitions and build configurations
+
+Whether you want to add new features, improve documentation, or contribute new package definitions, we'd love your help!
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Third-party libraries in the ports repository are licensed under their respective original terms.
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the C/C++ community**
+
+[⭐ Star us on GitHub](https://github.com/celer-pkg/celer) | [📖 Documentation](./docs/en-US/quick_start.md) | [🐛 Report Issues](https://github.com/celer-pkg/celer/issues)
+
+</div>

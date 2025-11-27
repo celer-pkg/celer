@@ -36,15 +36,21 @@ type Toolchain struct {
 	STRIP           string
 	READELF         string
 
-	MSVC context.MSVC
+	MSVC          context.MSVC
+	CCacheEnabled bool
 }
 
 func (t Toolchain) SetEnvs(buildConfig *BuildConfig) {
 	os.Setenv("CROSSTOOL_PREFIX", t.CrosstoolPrefix)
 	os.Setenv("HOST", t.Host)
 
-	os.Setenv("CC", expr.If(t.RootFS != "", t.CC+" --sysroot="+t.RootFS, t.CC))
-	os.Setenv("CXX", expr.If(t.RootFS != "", t.CXX+" --sysroot="+t.RootFS, t.CXX))
+	if t.CCacheEnabled {
+		os.Setenv("CC", "ccache "+expr.If(t.RootFS != "", t.CC+" --sysroot="+t.RootFS, t.CC))
+		os.Setenv("CXX", "ccache "+expr.If(t.RootFS != "", t.CXX+" --sysroot="+t.RootFS, t.CXX))
+	} else {
+		os.Setenv("CC", expr.If(t.RootFS != "", t.CC+" --sysroot="+t.RootFS, t.CC))
+		os.Setenv("CXX", expr.If(t.RootFS != "", t.CXX+" --sysroot="+t.RootFS, t.CXX))
+	}
 
 	if t.AS != "" {
 		os.Setenv("AS", t.AS)

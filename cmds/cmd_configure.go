@@ -22,8 +22,8 @@ type configureCmd struct {
 	verbose    bool
 	cacheDir   string
 	cacheToken string
-	proxyHost  string
-	proxyPort  int
+	proxy      configs.Proxy
+	ccache     configs.CCache
 }
 
 func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -32,15 +32,17 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 		Use:   "configure",
 		Short: "Configure to change gloabal settings.",
 		Run: func(cmd *cobra.Command, args []string) {
+			flags := cmd.Flags()
+
 			switch {
-			case c.platform != "" && c.platform != c.celer.Global.Platform:
+			case flags.Changed("platform"):
 				if err := c.celer.SetPlatform(c.platform); err != nil {
 					configs.PrintError(err, "failed to set platform: %s.", c.platform)
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current platform: %s.", c.platform)
 
-			case c.project != "" && c.project != c.celer.Global.Project:
+			case flags.Changed("project"):
 				if err := c.celer.SetProject(c.project); err != nil {
 					configs.PrintError(err, "failed to set project: %s.", c.project)
 					os.Exit(1)
@@ -57,48 +59,76 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 					configs.PrintSuccess("platform is auto configured to %s defined in current project.", c.celer.Global.Platform)
 				}
 
-			case c.buildType != "" && !strings.EqualFold(c.buildType, c.celer.Global.BuildType):
+			case flags.Changed("build-type"):
 				if err := c.celer.SetBuildType(c.buildType); err != nil {
 					configs.PrintError(err, "failed to set build type: %s.", c.buildType)
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current build type: %s.", c.buildType)
 
-			case c.jobs > 0 && c.jobs != c.celer.Global.Jobs:
+			case flags.Changed("jobs"):
 				if err := c.celer.SetJobs(c.jobs); err != nil {
 					configs.PrintError(err, "failed to set job num: %d.", c.jobs)
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current job num: %d.", c.jobs)
 
-			case cmd.Flags().Changed("offline") && c.offline != c.celer.Global.Offline:
+			case flags.Changed("offline"):
 				if err := c.celer.SetOffline(c.offline); err != nil {
 					configs.PrintError(err, "failed to set offline mode: %s.", expr.If(c.offline, "true", "false"))
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current offline mode: %s.", expr.If(c.offline, "true", "false"))
 
-			case cmd.Flags().Changed("verbose") && c.verbose != c.celer.Verbose():
+			case flags.Changed("verbose"):
 				if err := c.celer.SetVerbose(c.verbose); err != nil {
 					configs.PrintError(err, "failed to set verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 
-			case c.cacheDir != "" || c.cacheToken != "":
-				cacheDir := expr.If(c.cacheDir != "", c.cacheDir, c.celer.CacheDir().GetDir())
-				if err := c.celer.SetCacheDir(cacheDir, c.cacheToken); err != nil {
+			case flags.Changed("binary-cache-dir") || flags.Changed("binary-cache-token"):
+				cacheDir := expr.If(c.cacheDir != "", c.cacheDir, c.celer.BinaryCache().GetDir())
+				if err := c.celer.SetBinaryCache(cacheDir, c.cacheToken); err != nil {
 					configs.PrintError(err, "failed to set cache dir: %s.", cacheDir)
 					os.Exit(1)
 				}
 				configs.PrintSuccess("current cache dir: %s.", expr.If(cacheDir != "", cacheDir, "empty"))
 
-			case c.proxyHost != "" || c.proxyPort != 0:
-				if err := c.celer.SetProxy(c.proxyHost, c.proxyPort); err != nil {
-					configs.PrintError(err, "failed to set proxy: %s:%d.", c.proxyHost, c.proxyPort)
+			case flags.Changed("proxy-host"), flags.Changed("proxy-port"):
+				if err := c.celer.SetProxy(c.proxy.Host, c.proxy.Port); err != nil {
+					configs.PrintError(err, "failed to set proxy: %s:%d.", c.proxy.Host, c.proxy.Port)
 					os.Exit(1)
 				}
-				configs.PrintSuccess("current proxy: %s:%d.", c.proxyHost, c.proxyPort)
+				configs.PrintSuccess("current proxy: %s:%d.", c.proxy.Host, c.proxy.Port)
+
+			case flags.Changed("ccache-enabled"):
+				if err := c.celer.EnableCCache(c.ccache.Enabled); err != nil {
+					configs.PrintError(err, "failed to enable ccache.")
+					os.Exit(1)
+				}
+				configs.PrintSuccess("current ccache enabled: %s.", expr.If(c.ccache.Enabled, "true", "false"))
+
+			case flags.Changed("ccache-dir"):
+				if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
+					configs.PrintError(err, "failed to update ccache dir.")
+					os.Exit(1)
+				}
+				configs.PrintSuccess("current ccache dir: %s.", c.ccache.Dir)
+
+			case flags.Changed("ccache-maxsize"):
+				if err := c.celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
+					configs.PrintError(err, "failed to update ccache.maxsize.")
+					os.Exit(1)
+				}
+				configs.PrintSuccess("current ccache maxsize: %s.", c.ccache.MaxSize)
+
+			case flags.Changed("ccache-compress"):
+				if err := c.celer.CompressCCache(c.ccache.Compress); err != nil {
+					configs.PrintError(err, "failed to update ccache.compress.")
+					os.Exit(1)
+				}
+				configs.PrintSuccess("current ccache compress: %s.", expr.If(c.ccache.Compress, "true", "false"))
 			}
 		},
 		ValidArgsFunction: c.completion,
@@ -113,11 +143,19 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	flags.BoolVar(&c.offline, "offline", false, "configure offline mode.")
 	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
 
-	flags.StringVar(&c.cacheDir, "cache-dir", "", "configure cache dir.")
-	flags.StringVar(&c.cacheToken, "cache-token", "", "configure cache token.")
+	// Binary cache flags.
+	flags.StringVar(&c.cacheDir, "binary-cache-dir", "", "configure binary cache dir.")
+	flags.StringVar(&c.cacheToken, "binary-cache-token", "", "configure binary cache token.")
 
-	flags.StringVar(&c.proxyHost, "proxy-host", "", "configure proxy host.")
-	flags.IntVar(&c.proxyPort, "proxy-port", 0, "configure proxy port.")
+	// Proxy flags.
+	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
+	flags.IntVar(&c.proxy.Port, "proxy-port", 0, "configure proxy port.")
+
+	// CCache flags.
+	flags.BoolVar(&c.ccache.Enabled, "ccache-enabled", false, "configure ccache enabled.")
+	flags.StringVar(&c.ccache.Dir, "ccache-dir", "", "configure ccache dir.")
+	flags.StringVar(&c.ccache.MaxSize, "ccache-maxsize", "", "configure ccache maxsize.")
+	flags.BoolVar(&c.ccache.Compress, "ccache-compress", false, "configure ccache compress.")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -138,7 +176,7 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
 
-	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose", "cache-dir")
+	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose")
 	return command
 }
 
@@ -174,10 +212,14 @@ func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete s
 		"--jobs",
 		"--offline",
 		"--verbose",
-		"--cache-dir",
-		"--cache-token",
+		"--binary-cache-dir",
+		"--binary-cache-token",
 		"--proxy-host",
 		"--proxy-port",
+		"--ccache-compress",
+		"--ccache-dir",
+		"--ccache-enabled",
+		"--ccache-maxsize",
 	}
 
 	var suggestions []string

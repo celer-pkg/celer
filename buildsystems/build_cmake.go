@@ -143,18 +143,26 @@ func (c cmake) configured() bool {
 		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
 		buildFile := filepath.Join(c.PortConfig.BuildDir, "build.ninja")
 		ruluesFile := filepath.Join(c.PortConfig.BuildDir, "rules.ninja")
-		return fileio.PathExists(cmakeCache) && fileio.PathExists(buildFile) && fileio.PathExists(ruluesFile)
+		return fileio.PathExists(c.PortConfig.RepoDir) &&
+			fileio.PathExists(cmakeCache) &&
+			fileio.PathExists(buildFile) &&
+			fileio.PathExists(ruluesFile)
 
 	case "Unix Makefiles":
 		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
 		makefile := filepath.Join(c.PortConfig.BuildDir, "Makefile")
-		return fileio.PathExists(cmakeCache) && fileio.PathExists(makefile)
+		return fileio.PathExists(c.PortConfig.RepoDir) &&
+			fileio.PathExists(cmakeCache) &&
+			fileio.PathExists(makefile)
 
 	case visualStudio_17_2022, visualStudio_16_2019, visualStudio_15_2017, visualStudio_14_2015:
 		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
 		slnFile := filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".sln")
 		vcxprojFile := filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".vcxproj")
-		return fileio.PathExists(cmakeCache) && fileio.PathExists(slnFile) && fileio.PathExists(vcxprojFile)
+		return fileio.PathExists(c.PortConfig.RepoDir) &&
+			fileio.PathExists(cmakeCache) &&
+			fileio.PathExists(slnFile) &&
+			fileio.PathExists(vcxprojFile)
 	}
 
 	return false

@@ -3,36 +3,28 @@ name = "vswhere"
 version = "3.1.7"
 url = "https://github.com/microsoft/vswhere/releases/download/3.1.7/vswhere.exe"
 archive = "vswhere.exe"
-paths = [
-  "vswhere-3.17"
-]
+paths = ["vswhere-3.17"]
 
 [[build_tools]]
 name = "git"
 version = "2.49.0"
 url = "https://github.com/git-for-windows/git/releases/download/v2.49.0.windows.1/MinGit-2.49.0-64-bit.zip"
 archive = "MinGit-2.49.0-64-bit.zip"
-paths = [
-  "MinGit-2.49.0-64-bit/cmd"
-]
+paths = ["MinGit-2.49.0-64-bit/cmd"]
 
 [[build_tools]]
 name = "cmake"
 version = "3.31.7"
 url = "https://github.com/Kitware/CMake/releases/download/v3.31.7/cmake-3.31.7-windows-x86_64.zip"
 archive = "cmake-3.31.7-windows-x86_64.zip"
-paths = [
-  "cmake-3.31.7-windows-x86_64/bin"
-]
+paths = ["cmake-3.31.7-windows-x86_64/bin"]
 
 [[build_tools]]
 name = "ninja"
 version = "v1.12.1"
 url = "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-win.zip"
 archive = "ninja-v1.12.1-windows-x86_64.zip"
-paths = [
-  "ninja-v1.12.1-windows-x86_64"
-]
+paths = ["ninja-v1.12.1-windows-x86_64"]
 
 [[build_tools]]
 name = "strawberry-perl"
@@ -42,7 +34,7 @@ archive = "strawberry-perl-5.40.0.1-windows-x86_64.zip"
 paths = [
   "strawberry-perl-5.40.0.1-windows-x86_64/c/bin",
   "strawberry-perl-5.40.0.1-windows-x86_64/perl/bin",
-  "strawberry-perl-5.40.0.1-windows-x86_64/perl/site/bin"
+  "strawberry-perl-5.40.0.1-windows-x86_64/perl/site/bin",
 ]
 
 [[build_tools]]
@@ -52,14 +44,12 @@ url = "https://github.com/msys2/msys2-installer/releases/download/2025-02-21/msy
 archive = "msys2-base-x86_64-20250221.tar.xz"
 paths = [
   "msys2-base-x86_64-20250221/msys64/usr/bin",
-  "msys2-base-x86_64-20250221/msys64/bin"
+  "msys2-base-x86_64-20250221/msys64/bin",
 ]
 
 [[build_tools]]
-name = "llvm"
-version = "20.1.5"
-url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.5/clang+llvm-20.1.5-x86_64-pc-windows-msvc.tar.xz"
-archive = "clang+llvm-20.1.5-x86_64-pc-windows-msvc.tar.xz"
-paths = [
-  "clang+llvm-20.1.5-x86_64-pc-windows-msvc/bin"
-]
+name = "ccache"
+version = "4.12.1"
+url = "https://github.com/ccache/ccache/releases/download/v4.12.1/ccache-4.12.1-windows-x86_64.zip"
+archive = "ccache-4.12.1-windows-x86_64.zip"
+paths = ["ccache-4.12.1-windows-x86_64"]

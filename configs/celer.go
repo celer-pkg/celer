@@ -63,9 +63,10 @@ type Proxy struct {
 }
 
 type configData struct {
-	Global   global    `toml:"global"`
-	Proxy    *Proxy    `toml:"proxy,omitempty"`
-	CacheDir *CacheDir `toml:"cache_dir,omitempty"`
+	Global      global       `toml:"global"`
+	Proxy       *Proxy       `toml:"proxy,omitempty"`
+	BinaryCache *BinaryCache `toml:"binary_cache,omitempty"`
+	CCache      *CCache      `toml:"ccache,omitempty"`
 }
 
 func (c *Celer) Init() error {
@@ -108,14 +109,6 @@ func (c *Celer) Init() error {
 		// Use lower case build type in celer as default.
 		c.Global.BuildType = strings.ToLower(c.Global.BuildType)
 
-		// Validate cache dirs.
-		if c.configData.CacheDir != nil {
-			c.configData.CacheDir.ctx = c
-			if err := c.configData.CacheDir.Validate(); err != nil {
-				return err
-			}
-		}
-
 		// Init platform with platform name.
 		if c.configData.Global.Platform != "" {
 			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
@@ -126,6 +119,22 @@ func (c *Celer) Init() error {
 		// Init project with project name.
 		if c.configData.Global.Project != "" {
 			if err := c.project.Init(c, c.configData.Global.Project); err != nil {
+				return err
+			}
+		}
+
+		// Validate binary cache.
+		if c.configData.BinaryCache != nil {
+			c.configData.BinaryCache.ctx = c
+			if err := c.configData.BinaryCache.Validate(); err != nil {
+				return err
+			}
+		}
+
+		// Validate ccache.
+		if c.configData.CCache != nil {
+			c.configData.CCache.ctx = c
+			if err := c.configData.CCache.Validate(); err != nil {
 				return err
 			}
 		}
@@ -140,9 +149,19 @@ func (c *Celer) Init() error {
 			return fmt.Errorf("detect celer.toolchain: %w", err)
 		}
 		c.platform.Toolchain = &toolchain
+		c.platform.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
+
+		switch runtime.GOARCH {
+		case "amd64":
+			c.platform.Toolchain.SystemProcessor = "x86_64"
+		case "arm64":
+			c.platform.Toolchain.SystemProcessor = "aarch64"
+		case "386":
+			c.platform.Toolchain.SystemProcessor = "i686"
+		default:
+			return fmt.Errorf("unsupported architecture: %s", runtime.GOARCH)
+		}
 	}
-	c.platform.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
-	c.platform.Toolchain.SystemProcessor = runtime.GOARCH
 
 	// Detected windows kit.
 	if runtime.GOOS == "windows" {
@@ -205,6 +224,17 @@ func (c *Celer) Setup() error {
 	return c.platform.setup()
 }
 
+func (c *Celer) Deploy() error {
+	if err := c.platform.setup(); err != nil {
+		return err
+	}
+	if err := c.project.deploy(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Celer) CreatePlatform(platformName string) error {
 	// Clean platform name.
 	platformName = strings.TrimSpace(platformName)
@@ -218,6 +248,66 @@ func (c *Celer) CreatePlatform(platformName string) error {
 	platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
 	var platform Platform
 	if err := platform.Write(platformPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) CreateProject(projectName string) error {
+	// Clean platform name.
+	projectName = strings.TrimSpace(projectName)
+	projectName = strings.TrimSuffix(projectName, ".toml")
+
+	if projectName == "" {
+		return fmt.Errorf("project name is empty")
+	}
+
+	// Create project file.
+	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
+	var project Project
+	if err := project.Write(projectPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) CreatePort(nameVersion string) error {
+	parts := strings.Split(nameVersion, "@")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid port name version")
+	}
+
+	parentDir := filepath.Join(dirs.PortsDir, parts[0])
+	if err := os.MkdirAll(parentDir, os.ModePerm); err != nil {
+		return err
+	}
+
+	var port Port
+	portPath := filepath.Join(parentDir, parts[1], "port.toml")
+	if err := port.Write(portPath); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Celer) SetConfRepo(url, branch string) error {
+	// Clone conf repo.
+	confDir := filepath.Join(dirs.WorkspaceDir, "conf")
+	if !fileio.PathExists(filepath.Join(confDir, ".git")) {
+		if err := os.RemoveAll(confDir); err != nil {
+			return err
+		}
+		return git.CloneRepo("[clone conf repo]", url, branch, false, confDir)
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	c.Global.ConfRepo = url
+	if err := c.save(); err != nil {
 		return err
 	}
 
@@ -279,25 +369,6 @@ func (c *Celer) SetPlatform(platformName string) error {
 	return nil
 }
 
-func (c *Celer) CreateProject(projectName string) error {
-	// Clean platform name.
-	projectName = strings.TrimSpace(projectName)
-	projectName = strings.TrimSuffix(projectName, ".toml")
-
-	if projectName == "" {
-		return fmt.Errorf("project name is empty")
-	}
-
-	// Create project file.
-	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
-	var project Project
-	if err := project.Write(projectPath); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (c *Celer) SetProject(projectName string) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
@@ -342,13 +413,13 @@ func (c *Celer) SetVerbose(vebose bool) error {
 	return nil
 }
 
-func (c *Celer) SetCacheDir(dir, token string) error {
+func (c *Celer) SetBinaryCache(dir, token string) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
-	if c.configData.CacheDir != nil {
-		dir = expr.If(dir != "", dir, c.configData.CacheDir.Dir)
+	if c.configData.BinaryCache != nil {
+		dir = expr.If(dir != "", dir, c.configData.BinaryCache.Dir)
 		if !fileio.PathExists(dir) {
 			return ErrCacheDirNotExist
 		}
@@ -370,7 +441,7 @@ func (c *Celer) SetCacheDir(dir, token string) error {
 		}
 	}
 
-	c.configData.CacheDir = &CacheDir{
+	c.configData.BinaryCache = &BinaryCache{
 		Dir: dir,
 		ctx: c,
 	}
@@ -383,61 +454,45 @@ func (c *Celer) SetCacheDir(dir, token string) error {
 
 func (c *Celer) SetProxy(host string, port int) error {
 	if strings.TrimSpace(host) == "" {
-		return ErrProxyInvalidHost
+		return fmt.Errorf("proxy host is invalid")
 	}
 	if port <= 0 {
-		return ErrProxyInvalidPort
+		return fmt.Errorf("proxy port is invalid")
 	}
 
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
-	c.configData.Proxy = &Proxy{
-		Host: host,
-		Port: port,
-	}
-	if err := c.save(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Celer) CreatePort(nameVersion string) error {
-	parts := strings.Split(nameVersion, "@")
-	if len(parts) != 2 {
-		return fmt.Errorf("invalid port name version")
-	}
-
-	parentDir := filepath.Join(dirs.PortsDir, parts[0])
-	if err := os.MkdirAll(parentDir, os.ModePerm); err != nil {
-		return err
-	}
-
-	var port Port
-	portPath := filepath.Join(parentDir, parts[1], "port.toml")
-	if err := port.Write(portPath); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c *Celer) SetConfRepo(url, branch string) error {
-	// Clone conf repo.
-	confDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	if !fileio.PathExists(filepath.Join(confDir, ".git")) {
-		if err := os.RemoveAll(confDir); err != nil {
+	if c.configData.Proxy == nil {
+		c.configData.Proxy = &Proxy{
+			Host: host,
+			Port: port,
+		}
+	} else {
+		c.configData.Proxy.Host = host
+		c.configData.Proxy.Port = port
+		if err := c.save(); err != nil {
 			return err
 		}
-		return git.CloneRepo("[clone conf repo]", url, branch, false, confDir)
 	}
 
+	return nil
+}
+
+func (c *Celer) EnableCCache(enabled bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
-	c.Global.ConfRepo = url
+	if c.configData.CCache == nil {
+		c.configData.CCache = &CCache{
+			Enabled: enabled,
+		}
+	} else {
+		c.configData.CCache.Enabled = enabled
+	}
+
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -445,11 +500,60 @@ func (c *Celer) SetConfRepo(url, branch string) error {
 	return nil
 }
 
-func (c *Celer) Deploy() error {
-	if err := c.platform.setup(); err != nil {
+func (c *Celer) SetCCacheDir(dir string) error {
+	if err := c.readOrCreate(); err != nil {
 		return err
 	}
-	if err := c.project.deploy(); err != nil {
+
+	if c.configData.CCache == nil {
+		c.configData.CCache = &CCache{
+			Dir: dir,
+		}
+	} else {
+		c.configData.CCache.Dir = dir
+	}
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetCCacheMaxSize(maxSize string) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.CCache == nil {
+		c.configData.CCache = &CCache{
+			MaxSize: maxSize,
+		}
+	} else {
+		c.configData.CCache.MaxSize = maxSize
+	}
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) CompressCCache(compress bool) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.CCache == nil {
+		c.configData.CCache = &CCache{
+			Compress: compress,
+		}
+	} else {
+		c.configData.CCache.Compress = compress
+	}
+
+	if err := c.save(); err != nil {
 		return err
 	}
 
@@ -574,7 +678,7 @@ func (c *Celer) clonePorts() error {
 
 // ======================= celer context implementation ====================== //
 
-func (c *Celer) Proxy() (host string, port int) {
+func (c *Celer) ProxyHostPort() (host string, port int) {
 	if c.configData.Proxy != nil {
 		return c.configData.Proxy.Host, c.configData.Proxy.Port
 	}
@@ -616,14 +720,14 @@ func (c *Celer) Offline() bool {
 	return c.Global.Offline
 }
 
-func (c *Celer) CacheDir() context.CacheDir {
+func (c *Celer) BinaryCache() context.BinaryCache {
 	// Must return exactly nil if cache dir is none.
 	// otherwise, the result of CacheDir() will not be nil.
-	if c.configData.CacheDir == nil {
+	if c.configData.BinaryCache == nil {
 		return nil
 	}
 
-	return c.configData.CacheDir
+	return c.configData.BinaryCache
 }
 
 func (c *Celer) Verbose() bool {
@@ -651,188 +755,6 @@ func (c *Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 	}
 }
 
-func (c *Celer) GenerateToolchainFile() error {
-	var toolchain strings.Builder
-	toolchain.WriteString("# ========= WARNING: This toolchain file is generated by celer. ========= #\n")
-
-	// Toolchain related.
-	if err := c.platform.Toolchain.generate(&toolchain, c.platform.GetHostName()); err != nil {
-		return err
-	}
-
-	// Rootfs related.
-	rootfs := c.RootFS()
-	if rootfs != nil {
-		if err := rootfs.Generate(&toolchain); err != nil {
-			return err
-		}
-	}
-
-	// Write pkg config.
-	c.writePkgConfig(&toolchain)
-
-	// Set CMAKE_FIND_ROOT_PATH.
-	installedDir := "${WORKSPACE_DIR}/installed/" + c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
-	var rootpaths = []string{installedDir}
-	if c.RootFS() != nil {
-		rootpaths = append(rootpaths, "${CMAKE_SYSROOT}")
-	}
-	toolchain.WriteString("\n# Package search root paths.\n")
-	toolchain.WriteString("if(DEFINED CMAKE_FIND_ROOT_PATH)\n")
-	toolchain.WriteString("    set(CMAKE_FIND_ROOT_PATH \"${CMAKE_FIND_ROOT_PATH}\")\n")
-	toolchain.WriteString("else()\n")
-	toolchain.WriteString(fmt.Sprintf("    set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";")))
-	toolchain.WriteString("endif()\n")
-
-	// Set CMAKE_PREFIX_PATH.
-	toolchain.WriteString("\n# Package search paths.\n")
-	toolchain.WriteString(fmt.Sprintf("list(APPEND CMAKE_PREFIX_PATH %q)", installedDir))
-
-	// Define global cmake vars, env vars, micro vars and compile flags.
-	for index, item := range c.project.Vars {
-		if index == 0 {
-			toolchain.WriteString("\n# Global cmake vars.\n")
-		}
-
-		parts := strings.Split(item, "=")
-		if len(parts) == 1 {
-			toolchain.WriteString(fmt.Sprintf(`set(%s CACHE INTERNAL "defined by celer globally.")`, item) + "\n")
-		} else if len(parts) == 2 {
-			toolchain.WriteString(fmt.Sprintf(`set(%s "%s" CACHE INTERNAL "defined by celer globally.")`, parts[0], parts[1]) + "\n")
-		} else {
-			return fmt.Errorf("invalid cmake var: %s", item)
-		}
-	}
-
-	for index, item := range c.project.Envs {
-		parts := strings.Split(item, "=")
-		if len(parts) != 2 {
-			return fmt.Errorf("invalid env var: %s", item)
-		}
-
-		if index == 0 {
-			toolchain.WriteString("\n# Global envs.\n")
-		}
-		toolchain.WriteString(fmt.Sprintf(`set(ENV{%s} "%s")`, parts[0], parts[1]) + "\n")
-	}
-
-	for index, item := range c.project.Micros {
-		if index == 0 {
-			toolchain.WriteString("\n# Global micros.\n")
-		}
-		toolchain.WriteString(fmt.Sprintf("add_compile_definitions(%s)\n", item))
-	}
-
-	optimize := c.Optimize("cmake", c.platform.GetToolchain().GetName())
-	if optimize != nil {
-		toolchain.WriteString("\n# Compile flags.\n")
-		toolchain.WriteString("add_compile_options(\n")
-		if optimize.Release != "" {
-			flags := strings.Join(strings.Fields(optimize.Release), ";")
-			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:Release>:%s>\"\n", flags))
-		}
-		if optimize.Debug != "" {
-			flags := strings.Join(strings.Fields(optimize.Debug), ";")
-			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:Debug>:%s>\"\n", flags))
-		}
-		if optimize.RelWithDebInfo != "" {
-			flags := strings.Join(strings.Fields(optimize.RelWithDebInfo), ";")
-			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", flags))
-		}
-		if optimize.MinSizeRel != "" {
-			flags := strings.Join(strings.Fields(optimize.MinSizeRel), ";")
-			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:MinSizeRel>:%s>\"\n", flags))
-		}
-		if len(c.project.Flags) > 0 {
-			for _, item := range c.project.Flags {
-				toolchain.WriteString(fmt.Sprintf("    %q\n", item))
-			}
-		}
-		toolchain.WriteString(")\n")
-	}
-
-	toolchain.WriteString("\n")
-	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
-		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
-	}
-	toolchain.WriteString(fmt.Sprintf("set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON"))
-
-	// Write toolchain file.
-	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
-	if err := os.WriteFile(toolchainPath, []byte(toolchain.String()), os.ModePerm); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
-	var (
-		configPaths   []string
-		configLibDirs []string
-		sysrootDir    string
-	)
-
-	libraryFolder := fmt.Sprintf("%s@%s@%s", c.Platform().GetName(), c.Project().GetName(), c.BuildType())
-	installedDir := filepath.Join("${WORKSPACE_DIR}/installed", libraryFolder)
-
-	switch runtime.GOOS {
-	case "windows":
-		configPaths = []string{
-			filepath.ToSlash(filepath.Join(installedDir, "lib", "pkgconfig")),
-			filepath.ToSlash(filepath.Join(installedDir, "share", "pkgconfig")),
-		}
-		sysrootDir = filepath.ToSlash(installedDir)
-
-	case "linux":
-		// Target directory.
-		var targetDir string
-		if c.RootFS() != nil {
-			for _, configPath := range c.RootFS().GetPkgConfigPath() {
-				configLibDirs = append(configLibDirs, filepath.Join("${CMAKE_SYSROOT}", configPath))
-			}
-
-			// tmpdeps is a symlink in rootfs.
-			sysrootDir = "${CMAKE_SYSROOT}"
-			targetDir = filepath.Join(sysrootDir, "tmp", "deps", libraryFolder)
-		} else {
-			sysrootDir = "${WORKSPACE_DIR}/installed"
-			targetDir = sysrootDir
-		}
-
-		// Append pkgconfig with tmp/deps directory.
-		configPaths = []string{
-			filepath.Join(targetDir, "lib", "pkgconfig"),
-			filepath.Join(targetDir, "share", "pkgconfig"),
-		}
-	}
-
-	fmt.Fprintf(toolchain, "\n# pkg-config search paths.\n")
-	executablePath := fmt.Sprintf("${WORKSPACE_DIR}/installed/%s-dev/bin/pkgconf", c.platform.GetHostName())
-	fmt.Fprintf(toolchain, "set(%-30s%q)\n", "PKG_CONFIG_EXECUTABLE", executablePath)
-
-	// PKG_CONFIG_SYSROOT_DIR
-	fmt.Fprintf(toolchain, "set(%-30s%q)\n", "ENV{PKG_CONFIG_SYSROOT_DIR}", sysrootDir)
-
-	// PKG_CONFIG_LIBDIR
-	if len(configLibDirs) > 0 {
-		toolchain.WriteString("set(PKG_CONFIG_LIBDIR" + "\n")
-		for _, path := range configLibDirs {
-			toolchain.WriteString(fmt.Sprintf(`	"%s"`, path) + "\n")
-		}
-		toolchain.WriteString(")\n")
-		toolchain.WriteString(fmt.Sprintf(`list(JOIN PKG_CONFIG_LIBDIR "%s" PKG_CONFIG_LIBDIR_STR)`, string(os.PathListSeparator)) + "\n")
-		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n\n", "ENV{PKG_CONFIG_LIBDIR}", "${PKG_CONFIG_LIBDIR_STR}"))
-	}
-
-	// PKG_CONFIG_PATH
-	if len(configPaths) > 0 {
-		toolchain.WriteString("set(PKG_CONFIG_PATH" + "\n")
-		for _, path := range configPaths {
-			toolchain.WriteString(fmt.Sprintf("    %q", path) + "\n")
-		}
-		toolchain.WriteString(")\n")
-		toolchain.WriteString(fmt.Sprintf(`list(JOIN PKG_CONFIG_PATH "%s" PKG_CONFIG_PATH_STR)`, string(os.PathListSeparator)) + "\n")
-		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "ENV{PKG_CONFIG_PATH}", "${PKG_CONFIG_PATH_STR}"))
-	}
+func (c *Celer) CCacheEnabled() bool {
+	return c.configData.CCache != nil && c.configData.CCache.Validate() == nil
 }

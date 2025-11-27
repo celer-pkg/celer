@@ -20,13 +20,10 @@ jobs:
       with:
         go-version: '1.22.1'
 
-    - name: Install build-essential
-      run: sudo apt update && sudo apt install -y build-essential
+    - name: Install build tools
+      run: sudo apt update && sudo apt install -y build-essential clang git
 
-    - name: Install clang
-      run: sudo apt update && sudo apt install -y clang
-
-    - name: Build
+    - name: Build Celer
       run: go build -v ./...
 
     - name: Test(AMD64_Clang)

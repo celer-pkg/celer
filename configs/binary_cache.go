@@ -10,28 +10,28 @@ import (
 	"strings"
 )
 
-type CacheDir struct {
+type BinaryCache struct {
 	Dir string `toml:"dir"`
 
 	// Internal field.
 	ctx context.Context
 }
 
-func (c CacheDir) Validate() error {
-	if c.Dir == "" {
+func (b BinaryCache) Validate() error {
+	if b.Dir == "" {
 		return fmt.Errorf("cache dir is empty")
 	}
-	if !fileio.PathExists(c.Dir) {
-		return fmt.Errorf("cache dir does not exist: %s", c.Dir)
+	if !fileio.PathExists(b.Dir) {
+		return fmt.Errorf("cache dir does not exist: %s", b.Dir)
 	}
 	return nil
 }
 
-func (c CacheDir) Read(nameVersion, hash, destDir string) (bool, error) {
-	platformName := c.ctx.Platform().GetName()
-	projectName := c.ctx.Project().GetName()
-	buildType := c.ctx.BuildType()
-	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, hash)
+func (b BinaryCache) Read(nameVersion, hash, destDir string) (bool, error) {
+	platformName := b.ctx.Platform().GetName()
+	projectName := b.ctx.Project().GetName()
+	buildType := b.ctx.BuildType()
+	archivePath := filepath.Join(b.Dir, platformName, projectName, buildType, nameVersion, hash)
 	if !fileio.PathExists(archivePath) {
 		return false, nil // not an error even not exist.
 	}
@@ -47,7 +47,7 @@ func (c CacheDir) Read(nameVersion, hash, destDir string) (bool, error) {
 	return true, nil
 }
 
-func (c CacheDir) Write(packageDir, meta string) error {
+func (b BinaryCache) Write(packageDir, meta string) error {
 	if !fileio.PathExists(packageDir) {
 		return fmt.Errorf("package dir does not exist: %s", packageDir)
 	}
@@ -74,7 +74,7 @@ func (c CacheDir) Write(packageDir, meta string) error {
 	defer os.Remove(destPath)
 
 	nameVersion := fmt.Sprintf("%s@%s", libName, libVersion)
-	destDir := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion)
+	destDir := filepath.Join(b.Dir, platformName, projectName, buildType, nameVersion)
 	metaDir := filepath.Join(destDir, "meta")
 
 	// Calculate checksum of description.
@@ -106,11 +106,11 @@ func (c CacheDir) Write(packageDir, meta string) error {
 }
 
 // Remove removes the cache for the specified platform, project, build type and name version.
-func (c CacheDir) Remove(nameVersion string) error {
-	platformName := c.ctx.Platform().GetName()
-	projectName := c.ctx.Project().GetName()
-	buildType := c.ctx.BuildType()
-	pacakgeDir := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion)
+func (b BinaryCache) Remove(nameVersion string) error {
+	platformName := b.ctx.Platform().GetName()
+	projectName := b.ctx.Project().GetName()
+	buildType := b.ctx.BuildType()
+	pacakgeDir := filepath.Join(b.Dir, platformName, projectName, buildType, nameVersion)
 	if fileio.PathExists(pacakgeDir) {
 		if err := os.RemoveAll(pacakgeDir); err != nil {
 			return fmt.Errorf("failed toremove cache package %s.\n %w", pacakgeDir, err)
@@ -121,15 +121,15 @@ func (c CacheDir) Remove(nameVersion string) error {
 }
 
 // Exist check both archive file and build desc file exist.
-func (c CacheDir) Exist(nameVersion, hash string) bool {
-	platformName := c.ctx.Platform().GetName()
-	projectName := c.ctx.Project().GetName()
-	buildType := c.ctx.BuildType()
-	archivePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, hash+".tar.gz")
-	metaFilePath := filepath.Join(c.Dir, platformName, projectName, buildType, nameVersion, "meta", hash+".meta")
+func (b BinaryCache) Exist(nameVersion, hash string) bool {
+	platformName := b.ctx.Platform().GetName()
+	projectName := b.ctx.Project().GetName()
+	buildType := b.ctx.BuildType()
+	archivePath := filepath.Join(b.Dir, platformName, projectName, buildType, nameVersion, hash+".tar.gz")
+	metaFilePath := filepath.Join(b.Dir, platformName, projectName, buildType, nameVersion, "meta", hash+".meta")
 	return fileio.PathExists(archivePath) && fileio.PathExists(metaFilePath)
 }
 
-func (c CacheDir) GetDir() string {
-	return c.Dir
+func (b BinaryCache) GetDir() string {
+	return b.Dir
 }
