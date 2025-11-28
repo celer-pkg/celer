@@ -304,10 +304,10 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 		}
 
 		// Expose WindowsKit includes and libs.
-		for _, include := range toolchain.MSVC.KitIncludes {
+		for _, include := range toolchain.MSVC.Includes {
 			m.appendIncludeArgs(&includeArgs, include)
 		}
-		for _, lib := range toolchain.MSVC.KitLibs {
+		for _, lib := range toolchain.MSVC.Libs {
 			m.appendLinkArgs(&linkArgs, lib)
 		}
 	}

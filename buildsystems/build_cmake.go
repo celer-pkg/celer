@@ -53,6 +53,28 @@ func (c cmake) CheckTools() []string {
 	return c.BuildConfig.BuildTools
 }
 
+func (c *cmake) preConfigure() error {
+	// For MSVC build with Ninja generator, we need to set INCLUDE and LIB env vars.
+	// Visual Studio generator handles these automatically via MSBuild.
+	// Ninja generator requires explicit environment variables for RC.exe and link.exe to find system headers/libs.
+	// Note: Environment variables set in toolchain_file.cmake only affect CMake's configure phase,
+	// not the build phase when Ninja invokes RC.exe and link.exe.
+	if runtime.GOOS == "windows" && c.CMakeGenerator == "Ninja" {
+		if c.PortConfig.Toolchain.Name == "msvc" ||
+			c.PortConfig.Toolchain.Name == "clang-cl" {
+			msvcEnvs, err := c.readMSVCEnvs()
+			if err != nil {
+				return err
+			}
+
+			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
+			os.Setenv("LIB", msvcEnvs["LIB"])
+		}
+	}
+
+	return nil
+}
+
 func (c cmake) configureOptions() ([]string, error) {
 	// Format as cmake build type.
 	c.BuildType = c.formatBuildType()

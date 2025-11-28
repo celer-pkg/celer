@@ -177,6 +177,20 @@ func (t *Toolchain) Validate() error {
 		return fmt.Errorf("toolchain.url of %s is not exist", t.Url)
 	}
 
+	// Only for Windows MSVC.
+	if t.Name == "msvc" || t.Name == "clang" || t.Name == "clang-cl" {
+		t.MSVC.VCVars = filepath.Join(t.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
+
+		// Add MSVC compiler's include and lib paths for Ninja generator.
+		if t.Name == "msvc" || t.Name == "clang-cl" {
+			msvcInclude := filepath.Join(t.rootDir, "VC", "Tools", "MSVC", t.Version, "include")
+			t.MSVC.Includes = append([]string{msvcInclude}, t.MSVC.Includes...)
+
+			msvcLib := filepath.Join(t.rootDir, "VC", "Tools", "MSVC", t.Version, "lib", "x64")
+			t.MSVC.Libs = append([]string{msvcLib}, t.MSVC.Libs...)
+		}
+	}
+
 	return nil
 }
 
@@ -195,13 +209,6 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 	repair := fileio.NewRepair(t.Url, archive, folderName, dirs.DownloadedToolsDir)
 	if err := repair.CheckAndRepair(t.ctx); err != nil {
 		return err
-	}
-
-	// Only for Windows MSVC.
-	if t.Name == "msvc" ||
-		t.Name == "clang" ||
-		t.Name == "clang-cl" {
-		t.MSVC.VCVars = filepath.Join(t.rootDir, "VC", "Auxiliary", "Build", "vcvarsall.bat")
 	}
 
 	// Print download & extract info.
@@ -335,13 +342,13 @@ func (w *WindowsKit) Detect(msvc *context.MSVC) error {
 	w.Version = w.normalizeVersion(version)
 
 	// Append includes.
-	msvc.KitIncludes = append(msvc.KitIncludes, filepath.Join(w.InstalledDir, "include", w.Version, "um"))
-	msvc.KitIncludes = append(msvc.KitIncludes, filepath.Join(w.InstalledDir, "include", w.Version, "shared"))
-	msvc.KitIncludes = append(msvc.KitIncludes, filepath.Join(w.InstalledDir, "include", w.Version, "ucrt"))
+	msvc.Includes = append(msvc.Includes, filepath.Join(w.InstalledDir, "include", w.Version, "um"))
+	msvc.Includes = append(msvc.Includes, filepath.Join(w.InstalledDir, "include", w.Version, "shared"))
+	msvc.Includes = append(msvc.Includes, filepath.Join(w.InstalledDir, "include", w.Version, "ucrt"))
 
 	// Append libs.
-	msvc.KitLibs = append(msvc.KitLibs, filepath.Join(w.InstalledDir, "lib", w.Version, "um"))
-	msvc.KitLibs = append(msvc.KitLibs, filepath.Join(w.InstalledDir, "lib", w.Version, "ucrt"))
+	msvc.Libs = append(msvc.Libs, filepath.Join(w.InstalledDir, "lib", w.Version, "um"))
+	msvc.Libs = append(msvc.Libs, filepath.Join(w.InstalledDir, "lib", w.Version, "ucrt"))
 
 	// Append bin files.
 	binDir := filepath.Join(w.InstalledDir, "bin", w.Version, "x64")

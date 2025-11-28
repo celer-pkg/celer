@@ -98,7 +98,45 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	case "msvc", "clang-cl":
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
-		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
+
+		// For Ninja generator with MSVC, add include/lib paths as compiler/linker flags.
+		// Note: Environment variables (INCLUDE/LIB) must still be set in preConfigure()
+		// because they are not inherited from toolchain file to the build phase.
+		if len(t.MSVC.Includes) > 0 {
+			fmt.Fprint(toolchain, "\n# MSVC include paths for C/C++ and RC compilers.\n")
+			// Use string(APPEND ...) for better readability
+			fmt.Fprintf(toolchain, "set(CMAKE_C_FLAGS_INIT \"\")\n")
+			for _, inc := range t.MSVC.Includes {
+				fmt.Fprintf(toolchain, "string(APPEND CMAKE_C_FLAGS_INIT \" /I\\\"%s\\\"\")\n", filepath.ToSlash(inc))
+			}
+			fmt.Fprintf(toolchain, "set(CMAKE_CXX_FLAGS_INIT \"${CMAKE_C_FLAGS_INIT}\")\n")
+
+			// Build RC compiler flags
+			fmt.Fprintf(toolchain, "set(CMAKE_RC_FLAGS_INIT \"/nologo\")\n")
+			for _, inc := range t.MSVC.Includes {
+				fmt.Fprintf(toolchain, "string(APPEND CMAKE_RC_FLAGS_INIT \" /I\\\"%s\\\"\")\n", filepath.ToSlash(inc))
+			}
+			fmt.Fprintf(toolchain, "set(CMAKE_RC_FLAGS \"${CMAKE_RC_FLAGS_INIT}\")\n")
+		} else {
+			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
+			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS", "/nologo")
+		}
+
+		if len(t.MSVC.Libs) > 0 {
+			fmt.Fprint(toolchain, "\n# MSVC library paths for linker.\n")
+			// Use string(APPEND ...) for better readability
+			fmt.Fprintf(toolchain, "set(CMAKE_EXE_LINKER_FLAGS_INIT \"\")\n")
+			for _, lib := range t.MSVC.Libs {
+				// Windows SDK libs need to include the x64 subdirectory
+				libPath := filepath.ToSlash(lib)
+				if !strings.HasSuffix(libPath, "/x64") && !strings.Contains(libPath, "/MSVC/") {
+					libPath = filepath.ToSlash(filepath.Join(lib, "x64"))
+				}
+				fmt.Fprintf(toolchain, "string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT \" /LIBPATH:\\\"%s\\\"\")\n", libPath)
+			}
+			fmt.Fprintf(toolchain, "set(CMAKE_SHARED_LINKER_FLAGS_INIT \"${CMAKE_EXE_LINKER_FLAGS_INIT}\")\n")
+			fmt.Fprintf(toolchain, "set(CMAKE_MODULE_LINKER_FLAGS_INIT \"${CMAKE_EXE_LINKER_FLAGS_INIT}\")\n")
+		}
 	}
 
 	// Write C/C++ language standard.
