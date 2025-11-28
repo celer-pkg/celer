@@ -81,8 +81,8 @@ func (c *Celer) GenerateToolchainFile() error {
 	toolchain.WriteString("\n# Package search paths.\n")
 	toolchain.WriteString(fmt.Sprintf("list(APPEND CMAKE_PREFIX_PATH %q)\n", installedDir))
 
-	// Set CCache.
-	if c.configData.CCache != nil {
+	// Set CCache only when enabled.
+	if c.configData.CCache != nil && c.configData.CCache.Enabled {
 		if err := c.configData.CCache.Generate(&toolchain); err != nil {
 			return err
 		}

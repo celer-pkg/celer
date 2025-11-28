@@ -22,7 +22,7 @@ func (c *CCache) Validate() error {
 	if c.Dir == "" {
 		c.Dir = filepath.Join(os.Getenv("HOME"), ".ccache")
 	} else if !fileio.PathExists(c.Dir) {
-		return fmt.Errorf("ccache dir exists: %s", c.Dir)
+		return fmt.Errorf("ccache dir does not exist: %s", c.Dir)
 	}
 
 	if c.MaxSize == "" {
