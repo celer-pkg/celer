@@ -173,6 +173,16 @@ func (m makefiles) configureOptions() ([]string, error) {
 		}
 	}
 
+	// Add ccache support for projects that need explicit --cc parameter, like ffmpeg.
+	if m.PortConfig.Toolchain.CCacheEnabled {
+		for index, option := range options {
+			if after, ok := strings.CutPrefix(option, "--cc="); ok {
+				ccValue := fmt.Sprintf("'ccache %s'", after)
+				options[index] = fmt.Sprintf("--cc=%s", ccValue)
+			}
+		}
+	}
+
 	// In msys2 or linux, the package path should be fixed to `/c/path1/path2`.
 	if runtime.GOOS == "windows" && configureWithPerl {
 		options = append(options, fmt.Sprintf("--prefix=%s", m.PortConfig.PackageDir))
