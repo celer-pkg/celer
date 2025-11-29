@@ -221,33 +221,33 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	buffers.WriteString("cmake = 'cmake'\n")
 	if toolchain.CCacheEnabled {
 		// Meson requires array format for commands with arguments
-		buffers.WriteString(fmt.Sprintf("c = ['ccache', '%s']\n", toolchain.CC))
-		buffers.WriteString(fmt.Sprintf("cpp = ['ccache', '%s']\n", toolchain.CXX))
+		fmt.Fprintf(&buffers, "c = ['ccache', '%s']\n", toolchain.CC)
+		fmt.Fprintf(&buffers, "cpp = ['ccache', '%s']\n", toolchain.CXX)
 	} else {
-		buffers.WriteString(fmt.Sprintf("c = '%s'\n", toolchain.CC))
-		buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", toolchain.CXX))
+		fmt.Fprintf(&buffers, "c = '%s'\n", toolchain.CC)
+		fmt.Fprintf(&buffers, "cpp = '%s'\n", toolchain.CXX)
 	}
 
 	if toolchain.FC != "" {
-		buffers.WriteString(fmt.Sprintf("fc = '%s'\n", toolchain.FC))
+		fmt.Fprintf(&buffers, "fc = '%s'\n", toolchain.FC)
 	}
 	if toolchain.RANLIB != "" {
-		buffers.WriteString(fmt.Sprintf("ranlib = '%s'\n", toolchain.RANLIB))
+		fmt.Fprintf(&buffers, "ranlib = '%s'\n", toolchain.RANLIB)
 	}
 	if toolchain.AR != "" {
-		buffers.WriteString(fmt.Sprintf("ar = '%s'\n", toolchain.AR))
+		fmt.Fprintf(&buffers, "ar = '%s'\n", toolchain.AR)
 	}
 	if toolchain.LD != "" {
-		buffers.WriteString(fmt.Sprintf("ld = '%s'\n", toolchain.LD))
+		fmt.Fprintf(&buffers, "ld = '%s'\n", toolchain.LD)
 	}
 	if toolchain.NM != "" {
-		buffers.WriteString(fmt.Sprintf("nm = '%s'\n", toolchain.NM))
+		fmt.Fprintf(&buffers, "nm = '%s'\n", toolchain.NM)
 	}
 	if toolchain.OBJDUMP != "" {
-		buffers.WriteString(fmt.Sprintf("objdump = '%s'\n", toolchain.OBJDUMP))
+		fmt.Fprintf(&buffers, "objdump = '%s'\n", toolchain.OBJDUMP)
 	}
 	if toolchain.STRIP != "" {
-		buffers.WriteString(fmt.Sprintf("strip = '%s'\n", toolchain.STRIP))
+		fmt.Fprintf(&buffers, "strip = '%s'\n", toolchain.STRIP)
 	}
 
 	buffers.WriteString("\n[properties]\n")
@@ -313,10 +313,10 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 		}
 	}
 
-	buffers.WriteString(fmt.Sprintf("c_args = [%s]\n", strings.Join(includeArgs, ",\n")))
-	buffers.WriteString(fmt.Sprintf("cpp_args = [%s]\n", strings.Join(includeArgs, ",\n")))
-	buffers.WriteString(fmt.Sprintf("c_link_args = [%s]\n", strings.Join(linkArgs, ",\n")))
-	buffers.WriteString(fmt.Sprintf("cpp_link_args = [%s]\n", strings.Join(linkArgs, ",\n")))
+	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(includeArgs, ",\n"))
+	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(includeArgs, ",\n"))
+	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ",\n"))
+	fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(linkArgs, ",\n"))
 
 	crossFilePath := filepath.Join(m.PortConfig.BuildDir, "cross_file.toml")
 	if err := os.WriteFile(crossFilePath, buffers.Bytes(), os.ModePerm); err != nil {

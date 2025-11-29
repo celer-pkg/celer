@@ -45,6 +45,21 @@ func (b *b2) preConfigure() error {
 		}
 	}
 
+	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
+	if runtime.GOOS == "windows" {
+		if b.PortConfig.Toolchain.Name == "msvc" ||
+			b.PortConfig.Toolchain.Name == "clang-cl" {
+			msvcEnvs, err := b.readMSVCEnvs()
+			if err != nil {
+				return err
+			}
+
+			os.Setenv("PATH", msvcEnvs["PATH"])
+			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
+			os.Setenv("LIB", msvcEnvs["LIB"])
+		}
+	}
+
 	return nil
 }
 

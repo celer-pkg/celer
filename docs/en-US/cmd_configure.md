@@ -23,7 +23,6 @@ celer configure [flags]
 | --binary-cache-token      | string  | Configure binary cache token           |
 | --ccache-compress         | boolean | Configure ccache compression           |
 | --ccache-dir              | string  | Configure ccache working directory     |
-| --ccache-enabled          | boolean | Enable ccache                          |
 | --ccache-maxsize          | string  | Set ccache max size (e.g., "10G")      |
 
 ### 1️⃣ Configure Platform
@@ -105,7 +104,6 @@ celer configure --binary-cache-dir /home/xxx/cache --binary-cache-token token_12
 ### Enable ccache to Accelerate Builds
 
 ```shell
-celer configure --ccache-enabled true
 celer configure --ccache-dir /home/xxx/.ccache
 celer configure --ccache-maxsize 5G
 celer configure --ccache-compress true
