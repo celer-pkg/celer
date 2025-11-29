@@ -85,19 +85,32 @@ func (b b2) Configure(options []string) error {
 
 		// Override project-config.jam.
 		cxx := filepath.Join(b.PortConfig.Toolchain.Fullpath, b.PortConfig.Toolchain.CXX)
+
 		var buffer bytes.Buffer
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			line := scanner.Text()
 			if strings.Contains(line, "using gcc ;") {
-				line = fmt.Sprintf(`using gcc : : "%s" ;`, filepath.ToSlash(cxx))
+				if b.PortConfig.Toolchain.CCacheEnabled {
+					line = fmt.Sprintf(`using gcc : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
+				} else {
+					line = fmt.Sprintf(`using gcc : : "%s" ;`, filepath.ToSlash(cxx))
+				}
 			} else if strings.Contains(line, "using msvc ;") {
 				switch b.PortConfig.Toolchain.Name {
 				case "clang-cl":
-					line = fmt.Sprintf(`using clang-win : : "%s" ;`, filepath.ToSlash(cxx))
+					if b.PortConfig.Toolchain.CCacheEnabled {
+						line = fmt.Sprintf(`using clang-win : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
+					} else {
+						line = fmt.Sprintf(`using clang-win : : "%s" ;`, filepath.ToSlash(cxx))
+					}
 
 				case "msvc":
-					line = fmt.Sprintf(`using msvc : %s : "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
+					if b.PortConfig.Toolchain.CCacheEnabled {
+						line = fmt.Sprintf(`using msvc : %s : "ccache" "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
+					} else {
+						line = fmt.Sprintf(`using msvc : %s : "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
+					}
 
 				default:
 					return fmt.Errorf("unsupported toolchain: %s for b2", b.PortConfig.Toolchain.Name)
