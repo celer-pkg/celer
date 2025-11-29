@@ -10,7 +10,6 @@ import (
 )
 
 type CCache struct {
-	Enabled  bool   `toml:"enabled"`
 	Dir      string `toml:"dir,omitempty"`
 	MaxSize  string `toml:"maxsize,omitempty"`
 	Compress bool   `toml:"compress,omitempty"`
@@ -44,13 +43,6 @@ func (c *CCache) Validate() error {
 
 func (c CCache) Generate(toolchain *strings.Builder) error {
 	fmt.Fprintf(toolchain, "\n# CCache.\n")
-	fmt.Fprintf(toolchain, "set(%-28s%q)\n", "ENV{CCACHE_DIR}", c.Dir)
-	fmt.Fprintf(toolchain, "set(%-28s%q)\n", "ENV{CCACHE_MAXSIZE}", c.MaxSize)
-	if c.Compress {
-		fmt.Fprintf(toolchain, "set(%-28s%q)\n", "ENV{CCACHE_COMPRESS}", "true")
-	} else {
-		fmt.Fprintf(toolchain, "set(%-28s%q)\n", "ENV{CCACHE_NOCOMPRESS}", "true")
-	}
 	fmt.Fprintf(toolchain, "set(%-28s%q)\n", "CMAKE_C_COMPILER_LAUNCHER", "ccache")
 	fmt.Fprintf(toolchain, "set(%-28s%q)\n", "CMAKE_CXX_COMPILER_LAUNCHER", "ccache")
 	return nil

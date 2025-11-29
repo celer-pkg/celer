@@ -480,26 +480,6 @@ func (c *Celer) SetProxy(host string, port int) error {
 	return nil
 }
 
-func (c *Celer) EnableCCache(enabled bool) error {
-	if err := c.readOrCreate(); err != nil {
-		return err
-	}
-
-	if c.configData.CCache == nil {
-		c.configData.CCache = &CCache{
-			Enabled: enabled,
-		}
-	} else {
-		c.configData.CCache.Enabled = enabled
-	}
-
-	if err := c.save(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (c *Celer) SetCCacheDir(dir string) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
@@ -756,5 +736,5 @@ func (c *Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 }
 
 func (c *Celer) CCacheEnabled() bool {
-	return c.configData.CCache != nil && c.configData.CCache.Enabled && c.configData.CCache.Validate() == nil
+	return c.configData.CCache != nil && c.configData.CCache.Validate() == nil
 }

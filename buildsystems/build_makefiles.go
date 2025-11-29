@@ -114,8 +114,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	var options = slices.Clone(m.Options)
 	configureWithPerl := m.shouldConfigureWithPerl()
 	if configureWithPerl {
-		release := m.DevDep ||
-			(m.BuildType == "release" || m.BuildType == "relwithdebinfo" || m.BuildType == "minsizerel")
+		release := m.DevDep || (m.BuildType == "release" || m.BuildType == "relwithdebinfo" || m.BuildType == "minsizerel")
 		options = append(options, expr.If(release, "--release", "--debug"))
 	}
 
@@ -177,8 +176,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	if m.PortConfig.Toolchain.CCacheEnabled {
 		for index, option := range options {
 			if after, ok := strings.CutPrefix(option, "--cc="); ok {
-				ccValue := fmt.Sprintf("'ccache %s'", after)
-				options[index] = fmt.Sprintf("--cc=%s", ccValue)
+				options[index] = fmt.Sprintf("--cc='ccache %s'", after)
 			}
 		}
 	}
