@@ -885,6 +885,9 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	appendEnv("PATH", fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
 	appendEnv("INCLUDE", msvcEnvs["INCLUDE"])
 	appendEnv("LIB", msvcEnvs["LIB"])
+
+	// In Windows, ccache cannot work with MSVC normally when build makefiles projects,
+	// because MSYS2 shell cannot execute "ccache cl.exe" properly.
 	appendEnv("CC", b.PortConfig.Toolchain.CC)
 	appendEnv("CXX", b.PortConfig.Toolchain.CXX)
 
@@ -895,7 +898,7 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 	// Read MSVC environment variables.
 	// TODO: the `x64` may be different depending on the platform.
 	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.Toolchain.MSVC.VCVars)
-	executor := cmd.NewExecutor("read msvc envs", command)
+	executor := cmd.NewExecutor("[read msvc envs]", command)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
 		return nil, err
@@ -914,6 +917,7 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 				parts[0] = "PATH"
 			}
 			msvcEnvs[parts[0]] = parts[1]
+			color.Printf(color.Gray, "-- %s=%s\n", parts[0], parts[1])
 		}
 	}
 

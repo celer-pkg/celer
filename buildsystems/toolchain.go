@@ -4,6 +4,7 @@ import (
 	"celer/context"
 	"celer/pkgs/expr"
 	"os"
+	"runtime"
 )
 
 // Toolchain same with `Toolchain` in config/toolchain.go
@@ -45,8 +46,15 @@ func (t Toolchain) SetEnvs(buildConfig *BuildConfig) {
 	os.Setenv("HOST", t.Host)
 
 	if t.CCacheEnabled {
-		os.Setenv("CC", "ccache "+expr.If(t.RootFS != "", t.CC+" --sysroot="+t.RootFS, t.CC))
-		os.Setenv("CXX", "ccache "+expr.If(t.RootFS != "", t.CXX+" --sysroot="+t.RootFS, t.CXX))
+		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables
+		// because MSYS2 shell cannot handle "ccache cl.exe" as a command.
+		if runtime.GOOS == "windows" && (t.Name == "msvc" || t.Name == "clang-cl") && buildConfig.BuildSystem == "makefiles" {
+			os.Setenv("CC", t.CC)
+			os.Setenv("CXX", t.CXX)
+		} else {
+			os.Setenv("CC", "ccache "+expr.If(t.RootFS != "", t.CC+" --sysroot="+t.RootFS, t.CC))
+			os.Setenv("CXX", "ccache "+expr.If(t.RootFS != "", t.CXX+" --sysroot="+t.RootFS, t.CXX))
+		}
 	} else {
 		os.Setenv("CC", expr.If(t.RootFS != "", t.CC+" --sysroot="+t.RootFS, t.CC))
 		os.Setenv("CXX", expr.If(t.RootFS != "", t.CXX+" --sysroot="+t.RootFS, t.CXX))
