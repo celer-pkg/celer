@@ -43,7 +43,6 @@ func TestClean(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(buildtools.CheckTools(celer, "git"))
-
 	check(celer.Deploy())
 
 	cleanCmd := cleanCmd{celer: celer}

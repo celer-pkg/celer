@@ -57,6 +57,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
+	check(buildtools.CheckTools(celer, "git"))
 
 	autoremoveCmd := autoremoveCmd{celer: celer}
 
@@ -82,7 +83,8 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 		if runtime.GOOS == "windows" {
 			expectedDevPackages = []string{"nasm@2.16.03"}
 		} else {
-			expectedDevPackages = []string{"nasm@2.16.03",
+			expectedDevPackages = []string{
+				"nasm@2.16.03",
 				"automake@1.18",
 				"autoconf@2.72",
 				"m4@1.4.19",
