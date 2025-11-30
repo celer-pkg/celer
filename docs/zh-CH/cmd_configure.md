@@ -23,7 +23,6 @@ celer configure [flags]
 | --binary-cache-token      | 字符串 | 配置二进制缓存令牌                     |
 | --ccache-compress         | 布尔    | 配置 ccache 压缩                       |
 | --ccache-dir              | 字符串  | 配置 ccache 工作目录                   |
-| --ccache-enabled          | 布尔    | 启用 ccache                            |
 | --ccache-maxsize          | 字符串  | 设置 ccache 最大空间（如 "10G"）        |
 
 ### 1️⃣ 配置平台
@@ -105,7 +104,6 @@ celer configure --binary-cache-dir /home/xxx/cache --binary-cache-token token_12
 ### 启用 ccache 加速构建
 
 ```shell
-celer configure --ccache-enabled true
 celer configure --ccache-dir /home/xxx/.ccache
 celer configure --ccache-maxsize 5G
 celer configure --ccache-compress tre

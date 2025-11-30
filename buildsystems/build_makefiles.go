@@ -66,7 +66,7 @@ func (m *makefiles) preConfigure() error {
 		}
 
 		title := fmt.Sprintf("[post confiure %s]", m.PortConfig.nameVersionDesc())
-		command = m.replaceHolders(command)
+		command = m.expandVariables(command)
 		executor := cmd.NewExecutor(title, command)
 		executor.SetWorkDir(m.PortConfig.RepoDir)
 		executor.MSYS2Env(runtime.GOOS == "windows")
@@ -114,8 +114,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	var options = slices.Clone(m.Options)
 	configureWithPerl := m.shouldConfigureWithPerl()
 	if configureWithPerl {
-		release := m.DevDep ||
-			(m.BuildType == "release" || m.BuildType == "relwithdebinfo" || m.BuildType == "minsizerel")
+		release := m.DevDep || (m.BuildType == "release" || m.BuildType == "relwithdebinfo" || m.BuildType == "minsizerel")
 		options = append(options, expr.If(release, "--release", "--debug"))
 	}
 
@@ -173,6 +172,20 @@ func (m makefiles) configureOptions() ([]string, error) {
 		}
 	}
 
+	// Add ccache support for projects that need explicit --cc parameter, like ffmpeg.
+	if m.PortConfig.Toolchain.CCacheEnabled {
+		for index, option := range options {
+			if after, ok := strings.CutPrefix(option, "--cc="); ok {
+				options[index] = fmt.Sprintf("--cc='ccache %s'", after)
+			}
+		}
+		for index, option := range options {
+			if after, ok := strings.CutPrefix(option, "--cxx="); ok {
+				options[index] = fmt.Sprintf("--cxx='ccache %s'", after)
+			}
+		}
+	}
+
 	// In msys2 or linux, the package path should be fixed to `/c/path1/path2`.
 	if runtime.GOOS == "windows" && configureWithPerl {
 		options = append(options, fmt.Sprintf("--prefix=%s", m.PortConfig.PackageDir))
@@ -182,7 +195,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = m.replaceHolders(value)
+		options[index] = m.expandVariables(value)
 	}
 
 	return options, nil

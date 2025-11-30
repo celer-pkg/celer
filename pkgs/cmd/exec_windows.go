@@ -70,16 +70,13 @@ func (e Executor) Execute() error {
 }
 
 func (e Executor) doExecute(buffer *bytes.Buffer) error {
-	// Create command for windows and unix like.
-	if e.title != "" {
-		color.Printf(color.Blue, "\n%s: %s\n", e.title, e.cmd+" "+strings.Join(e.args, " "))
-	}
-
 	var cmd *exec.Cmd
+	var message string
 	if e.msys2Env {
 		var args []string
 		args = append(args, e.msvcEnvs)
 		args = append(args, e.cmd)
+		message = e.cmd + " " + strings.Join(args, " ")
 
 		cmd = exec.Command("bash", "-lc", strings.Join(args, " "))
 		cmd.Env = append(os.Environ(),
@@ -88,6 +85,7 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 			"MSYS=winsymlinks:nativestric", // Allow creating symblink in windows.
 		)
 	} else {
+		message = e.cmd + " " + strings.Join(e.args, " ")
 		if len(e.args) == 0 {
 			cmd = exec.Command("cmd")
 			cmd.SysProcAttr = &syscall.SysProcAttr{
@@ -136,6 +134,10 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 	} else {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stdout
+	}
+
+	if e.title != "" {
+		color.Printf(color.Blue, "\n%s: %s\n", e.title, message)
 	}
 
 	if err := cmd.Run(); err != nil {

@@ -102,13 +102,6 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 				}
 				configs.PrintSuccess("current proxy: %s:%d.", c.proxy.Host, c.proxy.Port)
 
-			case flags.Changed("ccache-enabled"):
-				if err := c.celer.EnableCCache(c.ccache.Enabled); err != nil {
-					configs.PrintError(err, "failed to enable ccache.")
-					os.Exit(1)
-				}
-				configs.PrintSuccess("current ccache enabled: %s.", expr.If(c.ccache.Enabled, "true", "false"))
-
 			case flags.Changed("ccache-dir"):
 				if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
 					configs.PrintError(err, "failed to update ccache dir.")
@@ -152,7 +145,6 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	flags.IntVar(&c.proxy.Port, "proxy-port", 0, "configure proxy port.")
 
 	// CCache flags.
-	flags.BoolVar(&c.ccache.Enabled, "ccache-enabled", false, "configure ccache enabled.")
 	flags.StringVar(&c.ccache.Dir, "ccache-dir", "", "configure ccache dir.")
 	flags.StringVar(&c.ccache.MaxSize, "ccache-maxsize", "", "configure ccache maxsize.")
 	flags.BoolVar(&c.ccache.Compress, "ccache-compress", false, "configure ccache compress.")

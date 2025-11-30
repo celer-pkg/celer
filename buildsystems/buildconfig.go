@@ -721,7 +721,9 @@ func (b *BuildConfig) fillPlaceHolders() {
 	}
 }
 
-func (b BuildConfig) replaceHolders(content string) string {
+// expandVariables expands placeholder variables in the given string and returns the result.
+// Placeholders like ${CC}, ${CXX}, ${SYSROOT}, etc. are replaced with actual values.
+func (b BuildConfig) expandVariables(content string) string {
 	content = strings.ReplaceAll(content, "${SYSTEM_NAME}", b.PortConfig.Toolchain.SystemName)
 	content = strings.ReplaceAll(content, "${HOST}", b.PortConfig.Toolchain.Host)
 	content = strings.ReplaceAll(content, "${SYSTEM_PROCESSOR}", b.PortConfig.Toolchain.SystemProcessor)
@@ -734,6 +736,11 @@ func (b BuildConfig) replaceHolders(content string) string {
 
 	// Replace ${SRC_DIR} with repoDir.
 	content = strings.ReplaceAll(content, "${REPO_DIR}", b.PortConfig.RepoDir)
+
+	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths
+	content = strings.ReplaceAll(content, "${CC}", b.PortConfig.Toolchain.CC)
+	content = strings.ReplaceAll(content, "${CXX}", b.PortConfig.Toolchain.CXX)
+	content = strings.ReplaceAll(content, "${HOST_CC}", b.PortConfig.Toolchain.CC)
 
 	if b.DevDep {
 		content = strings.ReplaceAll(content, "${DEPS_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev"))
@@ -878,6 +885,9 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	appendEnv("PATH", fmt.Sprintf("%s:${PATH}", strings.Join(parts, ":")))
 	appendEnv("INCLUDE", msvcEnvs["INCLUDE"])
 	appendEnv("LIB", msvcEnvs["LIB"])
+
+	// In Windows, ccache cannot work with MSVC normally when build makefiles projects,
+	// because MSYS2 shell cannot execute "ccache cl.exe" properly.
 	appendEnv("CC", b.PortConfig.Toolchain.CC)
 	appendEnv("CXX", b.PortConfig.Toolchain.CXX)
 
@@ -888,7 +898,7 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 	// Read MSVC environment variables.
 	// TODO: the `x64` may be different depending on the platform.
 	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.Toolchain.MSVC.VCVars)
-	executor := cmd.NewExecutor("read msvc envs", command)
+	executor := cmd.NewExecutor("[read msvc envs]", command)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
 		return nil, err
@@ -907,6 +917,7 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 				parts[0] = "PATH"
 			}
 			msvcEnvs[parts[0]] = parts[1]
+			color.Printf(color.Gray, "-- %s=%s\n", parts[0], parts[1])
 		}
 	}
 

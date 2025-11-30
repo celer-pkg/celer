@@ -70,18 +70,18 @@ func (c *Celer) GenerateToolchainFile() error {
 	if c.RootFS() != nil {
 		rootpaths = append(rootpaths, "${CMAKE_SYSROOT}")
 	}
-	toolchain.WriteString("\n# Package search root paths.\n")
-	toolchain.WriteString("if(DEFINED CMAKE_FIND_ROOT_PATH)\n")
-	toolchain.WriteString("    set(CMAKE_FIND_ROOT_PATH \"${CMAKE_FIND_ROOT_PATH}\")\n")
-	toolchain.WriteString("else()\n")
-	toolchain.WriteString(fmt.Sprintf("    set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";")))
-	toolchain.WriteString("endif()\n")
+	fmt.Fprintf(&toolchain, "\n# Package search root paths.\n")
+	fmt.Fprintf(&toolchain, "if(DEFINED CMAKE_FIND_ROOT_PATH)\n")
+	fmt.Fprintf(&toolchain, "    set(CMAKE_FIND_ROOT_PATH \"${CMAKE_FIND_ROOT_PATH}\")\n")
+	fmt.Fprintf(&toolchain, "else()\n")
+	fmt.Fprintf(&toolchain, "    set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";"))
+	fmt.Fprintf(&toolchain, "endif()\n")
 
 	// Set CMAKE_PREFIX_PATH.
-	toolchain.WriteString("\n# Package search paths.\n")
-	toolchain.WriteString(fmt.Sprintf("list(APPEND CMAKE_PREFIX_PATH %q)\n", installedDir))
+	fmt.Fprintf(&toolchain, "\n# Package search paths.\n")
+	fmt.Fprintf(&toolchain, "list(APPEND CMAKE_PREFIX_PATH %q)\n", installedDir)
 
-	// Set CCache.
+	// Set CCache only when enabled.
 	if c.configData.CCache != nil {
 		if err := c.configData.CCache.Generate(&toolchain); err != nil {
 			return err
@@ -91,14 +91,14 @@ func (c *Celer) GenerateToolchainFile() error {
 	// Define global cmake vars, env vars, micro vars and compile flags.
 	for index, item := range c.project.Vars {
 		if index == 0 {
-			toolchain.WriteString("\n# Global cmake vars.\n")
+			fmt.Fprintf(&toolchain, "\n# Global cmake vars.\n")
 		}
 
 		parts := strings.Split(item, "=")
 		if len(parts) == 1 {
-			toolchain.WriteString(fmt.Sprintf(`set(%s CACHE INTERNAL "defined by celer globally.")`, item) + "\n")
+			fmt.Fprintf(&toolchain, `set(%s CACHE INTERNAL "defined by celer globally.")`+"\n", item)
 		} else if len(parts) == 2 {
-			toolchain.WriteString(fmt.Sprintf(`set(%s "%s" CACHE INTERNAL "defined by celer globally.")`, parts[0], parts[1]) + "\n")
+			fmt.Fprintf(&toolchain, `set(%s "%s" CACHE INTERNAL "defined by celer globally.")`+"\n", parts[0], parts[1])
 		} else {
 			return fmt.Errorf("invalid cmake var: %s", item)
 		}
@@ -111,51 +111,51 @@ func (c *Celer) GenerateToolchainFile() error {
 		}
 
 		if index == 0 {
-			toolchain.WriteString("\n# Global envs.\n")
+			fmt.Fprintf(&toolchain, "\n# Global envs.\n")
 		}
-		toolchain.WriteString(fmt.Sprintf(`set(ENV{%s} "%s")`, parts[0], parts[1]) + "\n")
+		fmt.Fprintf(&toolchain, `set(ENV{%s} "%s")`+"\n", parts[0], parts[1])
 	}
 
 	for index, item := range c.project.Micros {
 		if index == 0 {
-			toolchain.WriteString("\n# Global micros.\n")
+			fmt.Fprintf(&toolchain, "\n# Global micros.\n")
 		}
-		toolchain.WriteString(fmt.Sprintf("add_compile_definitions(%s)\n", item))
+		fmt.Fprintf(&toolchain, "add_compile_definitions(%s)\n", item)
 	}
 
 	optimize := c.Optimize("cmake", c.platform.GetToolchain().GetName())
 	if optimize != nil {
-		toolchain.WriteString("\n# Compile flags.\n")
-		toolchain.WriteString("add_compile_options(\n")
+		fmt.Fprintf(&toolchain, "\n# Compile flags.\n")
+		fmt.Fprintf(&toolchain, "add_compile_options(\n")
 		if optimize.Release != "" {
 			flags := strings.Join(strings.Fields(optimize.Release), ";")
-			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:Release>:%s>\"\n", flags))
+			fmt.Fprintf(&toolchain, "    \"$<$<CONFIG:Release>:%s>\"\n", flags)
 		}
 		if optimize.Debug != "" {
 			flags := strings.Join(strings.Fields(optimize.Debug), ";")
-			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:Debug>:%s>\"\n", flags))
+			fmt.Fprintf(&toolchain, "    \"$<$<CONFIG:Debug>:%s>\"\n", flags)
 		}
 		if optimize.RelWithDebInfo != "" {
 			flags := strings.Join(strings.Fields(optimize.RelWithDebInfo), ";")
-			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", flags))
+			fmt.Fprintf(&toolchain, "    \"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", flags)
 		}
 		if optimize.MinSizeRel != "" {
 			flags := strings.Join(strings.Fields(optimize.MinSizeRel), ";")
-			toolchain.WriteString(fmt.Sprintf("    \"$<$<CONFIG:MinSizeRel>:%s>\"\n", flags))
+			fmt.Fprintf(&toolchain, "    \"$<$<CONFIG:MinSizeRel>:%s>\"\n", flags)
 		}
 		if len(c.project.Flags) > 0 {
 			for _, item := range c.project.Flags {
-				toolchain.WriteString(fmt.Sprintf("    %q\n", item))
+				fmt.Fprintf(&toolchain, "    %q\n", item)
 			}
 		}
-		toolchain.WriteString(")\n")
+		fmt.Fprintf(&toolchain, ")\n")
 	}
 
-	toolchain.WriteString("\n")
+	fmt.Fprintf(&toolchain, "\n")
 	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
-		toolchain.WriteString(fmt.Sprintf("set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`))
+		fmt.Fprintf(&toolchain, "set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`)
 	}
-	toolchain.WriteString(fmt.Sprintf("set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON"))
+	fmt.Fprintf(&toolchain, "set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON")
 
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")

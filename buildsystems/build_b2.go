@@ -45,6 +45,21 @@ func (b *b2) preConfigure() error {
 		}
 	}
 
+	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
+	if runtime.GOOS == "windows" {
+		if b.PortConfig.Toolchain.Name == "msvc" ||
+			b.PortConfig.Toolchain.Name == "clang-cl" {
+			msvcEnvs, err := b.readMSVCEnvs()
+			if err != nil {
+				return err
+			}
+
+			os.Setenv("PATH", msvcEnvs["PATH"])
+			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
+			os.Setenv("LIB", msvcEnvs["LIB"])
+		}
+	}
+
 	return nil
 }
 
@@ -85,19 +100,32 @@ func (b b2) Configure(options []string) error {
 
 		// Override project-config.jam.
 		cxx := filepath.Join(b.PortConfig.Toolchain.Fullpath, b.PortConfig.Toolchain.CXX)
+
 		var buffer bytes.Buffer
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			line := scanner.Text()
 			if strings.Contains(line, "using gcc ;") {
-				line = fmt.Sprintf(`using gcc : : "%s" ;`, filepath.ToSlash(cxx))
+				if b.PortConfig.Toolchain.CCacheEnabled {
+					line = fmt.Sprintf(`using gcc : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
+				} else {
+					line = fmt.Sprintf(`using gcc : : "%s" ;`, filepath.ToSlash(cxx))
+				}
 			} else if strings.Contains(line, "using msvc ;") {
 				switch b.PortConfig.Toolchain.Name {
 				case "clang-cl":
-					line = fmt.Sprintf(`using clang-win : : "%s" ;`, filepath.ToSlash(cxx))
+					if b.PortConfig.Toolchain.CCacheEnabled {
+						line = fmt.Sprintf(`using clang-win : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
+					} else {
+						line = fmt.Sprintf(`using clang-win : : "%s" ;`, filepath.ToSlash(cxx))
+					}
 
 				case "msvc":
-					line = fmt.Sprintf(`using msvc : %s : "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
+					if b.PortConfig.Toolchain.CCacheEnabled {
+						line = fmt.Sprintf(`using msvc : %s : "ccache" "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
+					} else {
+						line = fmt.Sprintf(`using msvc : %s : "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
+					}
 
 				default:
 					return fmt.Errorf("unsupported toolchain: %s for b2", b.PortConfig.Toolchain.Name)
@@ -201,7 +229,7 @@ func (b b2) buildOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = b.replaceHolders(value)
+		options[index] = b.expandVariables(value)
 	}
 
 	return options, nil

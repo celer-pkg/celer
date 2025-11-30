@@ -35,7 +35,7 @@ func (t *Toolchain) Validate() error {
 	}
 	t.Name = strings.ToLower(t.Name)
 	if t.Name != "gcc" && t.Name != "clang" {
-		return fmt.Errorf("toolchain.name should be 'gcc', 'msvc' or 'clang'")
+		return fmt.Errorf("toolchain.name should be 'gcc' or 'clang'")
 	}
 
 	// Validate toolchain.system_name.
@@ -50,7 +50,7 @@ func (t *Toolchain) Validate() error {
 	}
 
 	// Validate toolchain prefix path and convert to absolute path.
-	if t.Name != "msvc" && t.CrosstoolPrefix == "" {
+	if t.CrosstoolPrefix == "" {
 		return fmt.Errorf("toolchain.crosstool_prefix should be like 'x86_64-linux-gnu-', but it's empty")
 	}
 

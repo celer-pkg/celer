@@ -115,7 +115,7 @@ func (m meson) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = m.replaceHolders(value)
+		options[index] = m.expandVariables(value)
 	}
 
 	return options, nil
@@ -198,55 +198,56 @@ func (m meson) Install(options []string) error {
 func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	var buffers bytes.Buffer
 
-	buffers.WriteString("[build_machine]\n")
-	buffers.WriteString(fmt.Sprintf("system = '%s'\n", strings.ToLower(runtime.GOOS)))
-	buffers.WriteString(fmt.Sprintf("cpu_family = '%s'\n", "x86_64"))
-	buffers.WriteString(fmt.Sprintf("cpu = '%s'\n", "x86_64"))
-	buffers.WriteString("endian = 'little'\n\n")
+	fmt.Fprintf(&buffers, "[build_machine]\n")
+	fmt.Fprintf(&buffers, "system = '%s'\n", strings.ToLower(runtime.GOOS))
+	fmt.Fprintf(&buffers, "cpu_family = '%s'\n", "x86_64")
+	fmt.Fprintf(&buffers, "cpu = '%s'\n", "x86_64")
+	fmt.Fprintf(&buffers, "endian = 'little'\n\n")
 
-	buffers.WriteString("[host_machine]\n")
-	buffers.WriteString(fmt.Sprintf("system = '%s'\n", strings.ToLower(toolchain.SystemName)))
-	buffers.WriteString(fmt.Sprintf("cpu_family = '%s'\n", toolchain.SystemProcessor))
-	buffers.WriteString(fmt.Sprintf("cpu = '%s'\n", toolchain.SystemProcessor))
-	buffers.WriteString("endian = 'little'\n")
+	fmt.Fprintf(&buffers, "[host_machine]\n")
+	fmt.Fprintf(&buffers, "system = '%s'\n", strings.ToLower(toolchain.SystemName))
+	fmt.Fprintf(&buffers, "cpu_family = '%s'\n", toolchain.SystemProcessor)
+	fmt.Fprintf(&buffers, "cpu = '%s'\n", toolchain.SystemProcessor)
+	fmt.Fprintf(&buffers, "endian = 'little'\n")
 
-	buffers.WriteString("\n[binaries]\n")
+	fmt.Fprintf(&buffers, "\n[binaries]\n")
 	pkgconfPath := filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
 
 	if m.PortConfig.LibName != "pkgconf" {
-		buffers.WriteString(fmt.Sprintf("pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath)))
-		buffers.WriteString(fmt.Sprintf("pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath)))
+		fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath))
+		fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath))
 	}
 
 	buffers.WriteString("cmake = 'cmake'\n")
 	if toolchain.CCacheEnabled {
-		buffers.WriteString(fmt.Sprintf("c = '%s'\n", "ccache "+toolchain.CC))
-		buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", "ccache "+toolchain.CXX))
+		// Meson requires array format for commands with arguments
+		fmt.Fprintf(&buffers, "c = ['ccache', '%s']\n", toolchain.CC)
+		fmt.Fprintf(&buffers, "cpp = ['ccache', '%s']\n", toolchain.CXX)
 	} else {
-		buffers.WriteString(fmt.Sprintf("c = '%s'\n", toolchain.CC))
-		buffers.WriteString(fmt.Sprintf("cpp = '%s'\n", toolchain.CXX))
+		fmt.Fprintf(&buffers, "c = '%s'\n", toolchain.CC)
+		fmt.Fprintf(&buffers, "cpp = '%s'\n", toolchain.CXX)
 	}
 
 	if toolchain.FC != "" {
-		buffers.WriteString(fmt.Sprintf("fc = '%s'\n", toolchain.FC))
+		fmt.Fprintf(&buffers, "fc = '%s'\n", toolchain.FC)
 	}
 	if toolchain.RANLIB != "" {
-		buffers.WriteString(fmt.Sprintf("ranlib = '%s'\n", toolchain.RANLIB))
+		fmt.Fprintf(&buffers, "ranlib = '%s'\n", toolchain.RANLIB)
 	}
 	if toolchain.AR != "" {
-		buffers.WriteString(fmt.Sprintf("ar = '%s'\n", toolchain.AR))
+		fmt.Fprintf(&buffers, "ar = '%s'\n", toolchain.AR)
 	}
 	if toolchain.LD != "" {
-		buffers.WriteString(fmt.Sprintf("ld = '%s'\n", toolchain.LD))
+		fmt.Fprintf(&buffers, "ld = '%s'\n", toolchain.LD)
 	}
 	if toolchain.NM != "" {
-		buffers.WriteString(fmt.Sprintf("nm = '%s'\n", toolchain.NM))
+		fmt.Fprintf(&buffers, "nm = '%s'\n", toolchain.NM)
 	}
 	if toolchain.OBJDUMP != "" {
-		buffers.WriteString(fmt.Sprintf("objdump = '%s'\n", toolchain.OBJDUMP))
+		fmt.Fprintf(&buffers, "objdump = '%s'\n", toolchain.OBJDUMP)
 	}
 	if toolchain.STRIP != "" {
-		buffers.WriteString(fmt.Sprintf("strip = '%s'\n", toolchain.STRIP))
+		fmt.Fprintf(&buffers, "strip = '%s'\n", toolchain.STRIP)
 	}
 
 	buffers.WriteString("\n[properties]\n")
@@ -304,18 +305,18 @@ func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 		}
 
 		// Expose WindowsKit includes and libs.
-		for _, include := range toolchain.MSVC.KitIncludes {
+		for _, include := range toolchain.MSVC.Includes {
 			m.appendIncludeArgs(&includeArgs, include)
 		}
-		for _, lib := range toolchain.MSVC.KitLibs {
+		for _, lib := range toolchain.MSVC.Libs {
 			m.appendLinkArgs(&linkArgs, lib)
 		}
 	}
 
-	buffers.WriteString(fmt.Sprintf("c_args = [%s]\n", strings.Join(includeArgs, ",\n")))
-	buffers.WriteString(fmt.Sprintf("cpp_args = [%s]\n", strings.Join(includeArgs, ",\n")))
-	buffers.WriteString(fmt.Sprintf("c_link_args = [%s]\n", strings.Join(linkArgs, ",\n")))
-	buffers.WriteString(fmt.Sprintf("cpp_link_args = [%s]\n", strings.Join(linkArgs, ",\n")))
+	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(includeArgs, ",\n"))
+	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(includeArgs, ",\n"))
+	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ",\n"))
+	fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(linkArgs, ",\n"))
 
 	crossFilePath := filepath.Join(m.PortConfig.BuildDir, "cross_file.toml")
 	if err := os.WriteFile(crossFilePath, buffers.Bytes(), os.ModePerm); err != nil {
