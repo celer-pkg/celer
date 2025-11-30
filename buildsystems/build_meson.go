@@ -198,24 +198,24 @@ func (m meson) Install(options []string) error {
 func (m meson) generateCrossFile(toolchain Toolchain) (string, error) {
 	var buffers bytes.Buffer
 
-	buffers.WriteString("[build_machine]\n")
-	buffers.WriteString(fmt.Sprintf("system = '%s'\n", strings.ToLower(runtime.GOOS)))
-	buffers.WriteString(fmt.Sprintf("cpu_family = '%s'\n", "x86_64"))
-	buffers.WriteString(fmt.Sprintf("cpu = '%s'\n", "x86_64"))
-	buffers.WriteString("endian = 'little'\n\n")
+	fmt.Fprintf(&buffers, "[build_machine]\n")
+	fmt.Fprintf(&buffers, "system = '%s'\n", strings.ToLower(runtime.GOOS))
+	fmt.Fprintf(&buffers, "cpu_family = '%s'\n", "x86_64")
+	fmt.Fprintf(&buffers, "cpu = '%s'\n", "x86_64")
+	fmt.Fprintf(&buffers, "endian = 'little'\n\n")
 
-	buffers.WriteString("[host_machine]\n")
-	buffers.WriteString(fmt.Sprintf("system = '%s'\n", strings.ToLower(toolchain.SystemName)))
-	buffers.WriteString(fmt.Sprintf("cpu_family = '%s'\n", toolchain.SystemProcessor))
-	buffers.WriteString(fmt.Sprintf("cpu = '%s'\n", toolchain.SystemProcessor))
-	buffers.WriteString("endian = 'little'\n")
+	fmt.Fprintf(&buffers, "[host_machine]\n")
+	fmt.Fprintf(&buffers, "system = '%s'\n", strings.ToLower(toolchain.SystemName))
+	fmt.Fprintf(&buffers, "cpu_family = '%s'\n", toolchain.SystemProcessor)
+	fmt.Fprintf(&buffers, "cpu = '%s'\n", toolchain.SystemProcessor)
+	fmt.Fprintf(&buffers, "endian = 'little'\n")
 
-	buffers.WriteString("\n[binaries]\n")
+	fmt.Fprintf(&buffers, "\n[binaries]\n")
 	pkgconfPath := filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
 
 	if m.PortConfig.LibName != "pkgconf" {
-		buffers.WriteString(fmt.Sprintf("pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath)))
-		buffers.WriteString(fmt.Sprintf("pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath)))
+		fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath))
+		fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath))
 	}
 
 	buffers.WriteString("cmake = 'cmake'\n")
