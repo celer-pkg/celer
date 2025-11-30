@@ -229,7 +229,7 @@ func (b b2) buildOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = b.replaceHolders(value)
+		options[index] = b.expandVariables(value)
 	}
 
 	return options, nil

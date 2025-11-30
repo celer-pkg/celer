@@ -66,7 +66,7 @@ func (m *makefiles) preConfigure() error {
 		}
 
 		title := fmt.Sprintf("[post confiure %s]", m.PortConfig.nameVersionDesc())
-		command = m.replaceHolders(command)
+		command = m.expandVariables(command)
 		executor := cmd.NewExecutor(title, command)
 		executor.SetWorkDir(m.PortConfig.RepoDir)
 		executor.MSYS2Env(runtime.GOOS == "windows")
@@ -179,6 +179,11 @@ func (m makefiles) configureOptions() ([]string, error) {
 				options[index] = fmt.Sprintf("--cc='ccache %s'", after)
 			}
 		}
+		for index, option := range options {
+			if after, ok := strings.CutPrefix(option, "--cxx="); ok {
+				options[index] = fmt.Sprintf("--cxx='ccache %s'", after)
+			}
+		}
 	}
 
 	// In msys2 or linux, the package path should be fixed to `/c/path1/path2`.
@@ -190,7 +195,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = m.replaceHolders(value)
+		options[index] = m.expandVariables(value)
 	}
 
 	return options, nil

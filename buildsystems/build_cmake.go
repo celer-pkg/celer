@@ -148,7 +148,7 @@ func (c cmake) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = c.replaceHolders(value)
+		options[index] = c.expandVariables(value)
 	}
 
 	return options, nil

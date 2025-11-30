@@ -721,7 +721,9 @@ func (b *BuildConfig) fillPlaceHolders() {
 	}
 }
 
-func (b BuildConfig) replaceHolders(content string) string {
+// expandVariables expands placeholder variables in the given string and returns the result.
+// Placeholders like ${CC}, ${CXX}, ${SYSROOT}, etc. are replaced with actual values.
+func (b BuildConfig) expandVariables(content string) string {
 	content = strings.ReplaceAll(content, "${SYSTEM_NAME}", b.PortConfig.Toolchain.SystemName)
 	content = strings.ReplaceAll(content, "${HOST}", b.PortConfig.Toolchain.Host)
 	content = strings.ReplaceAll(content, "${SYSTEM_PROCESSOR}", b.PortConfig.Toolchain.SystemProcessor)
@@ -734,6 +736,11 @@ func (b BuildConfig) replaceHolders(content string) string {
 
 	// Replace ${SRC_DIR} with repoDir.
 	content = strings.ReplaceAll(content, "${REPO_DIR}", b.PortConfig.RepoDir)
+
+	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths
+	content = strings.ReplaceAll(content, "${CC}", b.PortConfig.Toolchain.CC)
+	content = strings.ReplaceAll(content, "${CXX}", b.PortConfig.Toolchain.CXX)
+	content = strings.ReplaceAll(content, "${HOST_CC}", b.PortConfig.Toolchain.CC)
 
 	if b.DevDep {
 		content = strings.ReplaceAll(content, "${DEPS_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev"))
