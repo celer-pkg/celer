@@ -81,7 +81,7 @@ func (r RootFS) GetLibDirs() []string {
 }
 
 func (r RootFS) Generate(toolchain *strings.Builder) error {
-	rootfsPath := "${WORKSPACE_DIR}/" + strings.TrimPrefix(r.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
+	rootfsPath := "${CELER_ROOT}/" + strings.TrimPrefix(r.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
 	fmt.Fprintf(toolchain, `
 # SYSROOT for cross-compile.
 set(CMAKE_SYSROOT 	"%s")

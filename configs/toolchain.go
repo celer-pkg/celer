@@ -75,7 +75,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		if t.Path == "/usr/bin" {
 			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", "/usr/bin")
 		} else {
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", "${WORKSPACE_DIR}/"+cmakepath)
+			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", "${CELER_ROOT}/"+cmakepath)
 		}
 	}
 
