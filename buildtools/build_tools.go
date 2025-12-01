@@ -168,7 +168,7 @@ func (b *BuildTool) validate() error {
 	// Assemble fullpaths and cmakepaths.
 	for _, path := range b.Paths {
 		b.fullpaths = append(b.fullpaths, filepath.Join(dirs.DownloadedToolsDir, path))
-		b.cmakepaths = append(b.cmakepaths, "${WORKSPACE_DIR}/downloads/tools/"+filepath.ToSlash(path))
+		b.cmakepaths = append(b.cmakepaths, "${CELER_ROOT}/downloads/tools/"+filepath.ToSlash(path))
 	}
 	os.Setenv("PATH", env.JoinPaths("PATH", b.fullpaths...))
 
