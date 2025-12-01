@@ -18,9 +18,9 @@ import (
 	"strings"
 )
 
-const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, qmake"
+const supportedString = "cmake, makefiles, meson, qmake, b2, gyp, nobuild, prebuilt, freestyle"
 
-var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "qmake"}
+var supportedArray = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "nobuild", "prebuilt", "freestyle"}
 
 type PortConfig struct {
 	LibName         string     // like: `ffmpeg`
@@ -185,6 +185,12 @@ type BuildConfig struct {
 	PreConfigure_Linux   []string `toml:"pre_configure_linux,omitempty"`
 	PreConfigure_Darwin  []string `toml:"pre_configure_darwin,omitempty"`
 
+	// Event hooks for Configure
+	FreeStyleConfigure         []string `toml:"configure,omitempty"`
+	FreeStyleConfigure_Windows []string `toml:"configure_windows,omitempty"`
+	FreeStyleConfigure_Linux   []string `toml:"configure_linux,omitempty"`
+	FreeStyleConfigure_Darwin  []string `toml:"configure_darwin,omitempty"`
+
 	// Event hooks for PostConfigure
 	PostConfigure         []string `toml:"post_configure,omitempty"`
 	PostConfigure_Windows []string `toml:"post_configure_windows,omitempty"`
@@ -203,6 +209,12 @@ type BuildConfig struct {
 	FixBuild_Linux   []string `toml:"fix_build_linux,omitempty"`
 	FixBuild_Darwin  []string `toml:"fix_build_darwin,omitempty"`
 
+	// Event hooks for Build
+	FreeStyleBuild         []string `toml:"build,omitempty"`
+	FreeStyleBuild_Windows []string `toml:"build_windows,omitempty"`
+	FreeStyleBuild_Linux   []string `toml:"build_linux,omitempty"`
+	FreeStyleBuild_Darwin  []string `toml:"build_darwin,omitempty"`
+
 	// Event hooks for PostBuild
 	PostBuild         []string `toml:"post_build,omitempty"`
 	PostBuild_Windows []string `toml:"post_build_windows,omitempty"`
@@ -214,6 +226,12 @@ type BuildConfig struct {
 	PreInstall_Windows []string `toml:"pre_install_windows,omitempty"`
 	PreInstall_Linux   []string `toml:"pre_install_linux,omitempty"`
 	PreInstall_Darwin  []string `toml:"pre_install_darwin,omitempty"`
+
+	// Event hooks for Install
+	FreeStyleInstall         []string `toml:"install,omitempty"`
+	FreeStyleInstall_Windows []string `toml:"install_windows,omitempty"`
+	FreeStyleInstall_Linux   []string `toml:"install_linux,omitempty"`
+	FreeStyleInstall_Darwin  []string `toml:"install_darwin,omitempty"`
 
 	// Event hooks for PostInstall
 	PostInstall         []string `toml:"post_install,omitempty"`
@@ -591,10 +609,6 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 	}
 
 	switch b.BuildSystem {
-	case "nobuild":
-		b.buildSystem = NewNoBuild(b, optimize)
-	case "gyp":
-		b.buildSystem = NewGyp(b, optimize)
 	case "cmake":
 		b.buildSystem = NewCMake(b, optimize)
 	case "makefiles":
@@ -603,12 +617,18 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 		b.buildSystem = NewMeson(b, optimize)
 	case "b2":
 		b.buildSystem = NewB2(b, optimize)
-	case "bazel":
-		b.buildSystem = NewBazel(b, optimize)
+	case "gyp":
+		b.buildSystem = NewGyp(b, optimize)
 	case "qmake":
 		b.buildSystem = NewQMake(b, optimize)
+	case "bazel":
+		b.buildSystem = NewBazel(b, optimize)
 	case "prebuilt":
 		b.buildSystem = NewPrebuilt(b, optimize)
+	case "nobuild":
+		b.buildSystem = NewNoBuild(b, optimize)
+	case "freestyle":
+		b.buildSystem = NewFreeStyle(b, optimize)
 	default:
 		return fmt.Errorf("unsupported build system: %s", b.BuildSystem)
 	}
