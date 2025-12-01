@@ -22,33 +22,6 @@ var (
 	static embed.FS
 )
 
-func AllBuildTools() ([]BuildTool, error) {
-	// Read and decode static file.
-	bytes, err := static.ReadFile(fmt.Sprintf("static/x86_64-%s.toml", runtime.GOOS))
-	if err != nil {
-		return nil, err
-	}
-	var buildTools BuildTools
-	if err := toml.Unmarshal(bytes, &buildTools); err != nil {
-		return nil, err
-	}
-
-	confToolsFile := filepath.Join(dirs.WorkspaceDir, "conf", "buildtools", "x86_64-"+runtime.GOOS+".toml")
-	if fileio.PathExists(confToolsFile) {
-		bytes, err := os.ReadFile(confToolsFile)
-		if err != nil {
-			return nil, err
-		}
-		var confBuildTools BuildTools
-		if err := toml.Unmarshal(bytes, &confBuildTools); err != nil {
-			return nil, err
-		}
-		buildTools = buildTools.merge(confBuildTools)
-	}
-
-	return buildTools.BuildTools, nil
-}
-
 // CheckTools checks if tools exist and repair them if necessary.
 func CheckTools(ctx context.Context, tools ...string) error {
 	// Filter duplicated tools.

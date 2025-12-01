@@ -112,9 +112,6 @@ func (p Port) Clone() error {
 		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive); err != nil {
 			return err
 		}
-		if err := port.Clone(); err != nil {
-			return err
-		}
 	}
 
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
@@ -123,9 +120,6 @@ func (p Port) Clone() error {
 			return err
 		}
 		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive); err != nil {
-			return err
-		}
-		if err := port.Clone(); err != nil {
 			return err
 		}
 	}
