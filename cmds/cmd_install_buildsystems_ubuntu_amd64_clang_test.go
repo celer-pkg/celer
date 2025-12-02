@@ -48,7 +48,7 @@ func TestInstall_Nobuild_Clang(t *testing.T) {
 
 func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	if os.Getenv("TEST_CLANG") != "ON" {
-		// t.SkipNow()
+		t.SkipNow()
 	}
 
 	const project = "project_test_install"
