@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -32,16 +31,12 @@ func (p *Platform) Init(platformName string) error {
 		return fmt.Errorf("platform name is empty")
 	}
 
-	if slices.Contains([]string{"gcc", "clang-cl", "clang", "msvc"}, platformName) {
-		return nil
-	}
-	p.Name = platformName
-
 	// Check if platform file exists.
 	platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
 	if !fileio.PathExists(platformPath) {
 		return fmt.Errorf("platform does not exist: %s", platformName)
 	}
+	p.Name = platformName
 
 	// Read conf/celer.toml
 	bytes, err := os.ReadFile(platformPath)

@@ -16,7 +16,7 @@ const ubuntu_amd64_gcc_11_5_0 = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
 
 func TestInstall_Makefiles_AMD64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithAMD64GCC(t, "gcc", "x264@stable", false)
+		buildWithAMD64GCC(t, "", "x264@stable", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
@@ -26,7 +26,7 @@ func TestInstall_Makefiles_AMD64_GCC(t *testing.T) {
 
 func TestInstall_CMake_AMD64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithAMD64GCC(t, "gcc", "glog@0.6.0", false)
+		buildWithAMD64GCC(t, "", "glog@0.6.0", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
@@ -36,7 +36,7 @@ func TestInstall_CMake_AMD64_GCC(t *testing.T) {
 
 func TestInstall_B2_AMD64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithAMD64GCC(t, "gcc", "boost@1.87.0", false)
+		buildWithAMD64GCC(t, "", "boost@1.87.0", false)
 	})
 
 	t.Run("portbal_gcc", func(t *testing.T) {
@@ -46,7 +46,7 @@ func TestInstall_B2_AMD64_GCC(t *testing.T) {
 
 func TestInstall_Gyp_AMD64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithAMD64GCC(t, "gcc", "nss@3.55", false)
+		buildWithAMD64GCC(t, "", "nss@3.55", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
@@ -56,7 +56,7 @@ func TestInstall_Gyp_AMD64_GCC(t *testing.T) {
 
 func TestInstall_Meson_AMD64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithAMD64GCC(t, "gcc", "pixman@0.44.2", false)
+		buildWithAMD64GCC(t, "", "pixman@0.44.2", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
@@ -66,7 +66,7 @@ func TestInstall_Meson_AMD64_GCC(t *testing.T) {
 
 func TestInstall_FreeStyle_AMD64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithAMD64GCC(t, "gcc", "qpOASES_e@3.1.2", false)
+		buildWithAMD64GCC(t, "", "qpOASES_e@3.1.2", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
@@ -84,7 +84,7 @@ func TestInstall_Nobuild_AMD64_GCC(t *testing.T) {
 
 func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool) {
 	if os.Getenv("TEST_AMD64_GCC") != "true" {
-		// t.SkipNow()
+		t.SkipNow()
 	}
 
 	const project = "project_test_install"
@@ -108,7 +108,11 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
+	if platform != "" {
+		check(celer.SetPlatform(platform))
+	} else {
+		platform = celer.Platform().GetHostName()
+	}
 	check(celer.SetProject(project))
 	check(celer.Setup())
 
@@ -125,7 +129,7 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 	if !nobuild {
 		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
 		if !fileio.PathExists(packageDir) {
-			t.Fatal("package dir cannot found")
+			t.Fatalf("package dir cannot found : %s", packageDir)
 		}
 	}
 

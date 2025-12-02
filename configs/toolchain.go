@@ -12,7 +12,7 @@ import (
 
 type Toolchain struct {
 	Url             string `toml:"url"`               // Download url or local file url.
-	Name            string `toml:"name"`              // It should be "gcc", "msvc", "clang-cl" and "clang", "mingw".
+	Name            string `toml:"name"`              // It should be "gcc", "msvc", "clang-cl", "clang" and "msys2".
 	Version         string `toml:"version"`           // It should be version of gcc/msvc/clang.
 	Archive         string `toml:"archive,omitempty"` // Archive can be changed to avoid conflict.
 	Path            string `toml:"path"`              // Runtime path of tool, it's relative path and would be converted to absolute path later.
