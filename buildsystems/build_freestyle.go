@@ -78,10 +78,7 @@ func (f freeStyle) Build(options []string) error {
 			f.PortConfig.Toolchain.SetEnvs(f.BuildConfig)
 		}
 
-		// Set optimize flags if Configure wasn't called
-		if len(f.FreeStyleConfigure) == 0 {
-			f.setOptimizeFlags()
-		}
+		f.setOptimizeFlags()
 
 		scripts := strings.Join(f.FreeStyleBuild, " && ")
 		scripts = f.expandCommandsVariables(scripts)
@@ -98,6 +95,17 @@ func (f freeStyle) Build(options []string) error {
 
 func (f freeStyle) Install(options []string) error {
 	if len(f.FreeStyleInstall) > 0 {
+		// msvc and clang-cl need to set build environment event in dev mode.
+		if f.DevDep &&
+			f.PortConfig.Toolchain.Name != "msvc" &&
+			f.PortConfig.Toolchain.Name != "clang-cl" {
+			f.PortConfig.Toolchain.ClearEnvs()
+		} else {
+			f.PortConfig.Toolchain.SetEnvs(f.BuildConfig)
+		}
+
+		f.setOptimizeFlags()
+
 		scripts := strings.Join(f.FreeStyleInstall, " && ")
 		scripts = f.expandCommandsVariables(scripts)
 		title := fmt.Sprintf("[install %s]", f.PortConfig.nameVersionDesc())
