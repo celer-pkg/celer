@@ -75,38 +75,6 @@ func (m *makefiles) preConfigure() error {
 		}
 	}
 
-	// If `configure` exists, then `autogen.sh` is unnecessary.
-	haveAutogenSh := fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, "autogen.sh"))
-	haveAutogen := fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, "autogen"))
-	haveConfigure := fileio.PathExists(filepath.Join(m.PortConfig.SrcDir, "configure"))
-	if (haveAutogenSh || haveAutogen) && !haveConfigure {
-		// Disable auto configure by autogen.sh.
-		os.Setenv("NOCONFIGURE", "1")
-
-		var autogenCommand = expr.If(haveAutogenSh, "./autogen.sh", "./autogen")
-		if len(m.AutogenOptions) > 0 {
-			autogenCommand += " " + strings.Join(m.AutogenOptions, " ")
-		}
-
-		configureWithPerl := m.shouldConfigureWithPerl()
-
-		title := fmt.Sprintf("[autogen %s]", m.PortConfig.nameVersionDesc())
-		executor := cmd.NewExecutor(title, autogenCommand)
-		executor.MSYS2Env(runtime.GOOS == "windows" && !configureWithPerl)
-		executor.SetLogPath(m.getLogPath("autogen"))
-		executor.SetWorkDir(m.PortConfig.SrcDir)
-
-		// Use msys2 and msvc envs only when in windows and not using perl.
-		if runtime.GOOS == "windows" && !configureWithPerl {
-			executor.MSYS2Env(true)
-			executor.SetMsvcEnvs(m.msvcEnvs)
-		}
-
-		if err := executor.Execute(); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
