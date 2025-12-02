@@ -25,18 +25,10 @@ type Platform struct {
 }
 
 func (p *Platform) Init(platformName string) error {
-	// Init internal fields.
-	p.Name = platformName
-
 	// Check if platform name is empty.
 	platformName = strings.TrimSpace(platformName)
 	if platformName == "" {
 		return fmt.Errorf("platform name is empty")
-	}
-	p.Name = platformName
-
-	if platformName == "clang-cl" || platformName == "clang" || platformName == "msvc" {
-		return nil
 	}
 
 	// Check if platform file exists.
@@ -44,6 +36,7 @@ func (p *Platform) Init(platformName string) error {
 	if !fileio.PathExists(platformPath) {
 		return fmt.Errorf("platform does not exist: %s", platformName)
 	}
+	p.Name = platformName
 
 	// Read conf/celer.toml
 	bytes, err := os.ReadFile(platformPath)

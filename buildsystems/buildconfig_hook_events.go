@@ -29,7 +29,7 @@ func (b BuildConfig) preConfigure() error {
 		}
 
 		title := fmt.Sprintf("[pre configure %s]", b.PortConfig.nameVersionDesc())
-		script = b.expandVariables(script)
+		script = b.expandCommandsVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -54,7 +54,7 @@ func (b BuildConfig) postConfigure() error {
 		}
 
 		title := fmt.Sprintf("[post confiure %s]", b.PortConfig.nameVersionDesc())
-		script = b.expandVariables(script)
+		script = b.expandCommandsVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -79,7 +79,7 @@ func (b BuildConfig) preBuild() error {
 		}
 
 		title := fmt.Sprintf("[pre build %s]", b.PortConfig.nameVersionDesc())
-		script = b.expandVariables(script)
+		script = b.expandCommandsVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -103,7 +103,7 @@ func (b BuildConfig) postBuild() error {
 		}
 
 		title := fmt.Sprintf("[post build %s]", b.PortConfig.nameVersionDesc())
-		script = b.expandVariables(script)
+		script = b.expandCommandsVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -127,7 +127,7 @@ func (b BuildConfig) preInstall() error {
 		}
 
 		title := fmt.Sprintf("[pre install %s]", b.PortConfig.nameVersionDesc())
-		script = b.expandVariables(script)
+		script = b.expandCommandsVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -151,7 +151,7 @@ func (b BuildConfig) postInstall() error {
 		}
 
 		title := fmt.Sprintf("[post install %s]", b.PortConfig.nameVersionDesc())
-		script = b.expandVariables(script)
+		script = b.expandCommandsVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -175,7 +175,7 @@ func (b BuildConfig) fixBuild() error {
 		}
 
 		title := fmt.Sprintf("[fix build %s]", b.PortConfig.nameVersionDesc())
-		script = b.expandVariables(script)
+		script = b.expandCommandsVariables(script)
 		executor := cmd.NewExecutor(title, script)
 		executor.SetWorkDir(b.PortConfig.RepoDir)
 		if err := executor.Execute(); err != nil {

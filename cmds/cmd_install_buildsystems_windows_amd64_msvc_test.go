@@ -96,7 +96,7 @@ func buildWithMSVC(t *testing.T, platform, nameVersion string, nobuild bool) {
 	if platform != "" {
 		check(celer.SetPlatform(platform))
 	} else {
-		platform = "x86_64-windows"
+		platform = celer.Platform().GetHostName()
 	}
 	check(celer.SetProject(project))
 	check(celer.Setup())

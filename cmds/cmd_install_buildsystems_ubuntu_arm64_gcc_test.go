@@ -16,7 +16,7 @@ const ubuntu_arm64_gcc_11_5_0 = "aarch64-linux-ubuntu-22.04-gcc-11.5.0"
 
 func TestInstall_Makefiles_ARM64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, "gcc", "x264@stable", false)
+		buildWithARM64GCC(t, "", "x264@stable", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
@@ -26,7 +26,7 @@ func TestInstall_Makefiles_ARM64_GCC(t *testing.T) {
 
 func TestInstall_CMake_ARM64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, "gcc", "glog@0.6.0", false)
+		buildWithARM64GCC(t, "", "glog@0.6.0", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
@@ -36,7 +36,7 @@ func TestInstall_CMake_ARM64_GCC(t *testing.T) {
 
 func TestInstall_B2_ARM64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, "gcc", "boost@1.87.0", false)
+		buildWithARM64GCC(t, "", "boost@1.87.0", false)
 	})
 
 	t.Run("portbal_gcc", func(t *testing.T) {
@@ -46,7 +46,7 @@ func TestInstall_B2_ARM64_GCC(t *testing.T) {
 
 func TestInstall_Gyp_ARM64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, "gcc", "nss@3.55", false)
+		buildWithARM64GCC(t, "", "nss@3.55", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
@@ -56,7 +56,7 @@ func TestInstall_Gyp_ARM64_GCC(t *testing.T) {
 
 func TestInstall_Meson_ARM64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, "gcc", "pixman@0.44.2", false)
+		buildWithARM64GCC(t, "", "pixman@0.44.2", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
@@ -98,7 +98,11 @@ func buildWithARM64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
 	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
+	if platform != "" {
+		check(celer.SetPlatform(platform))
+	} else {
+		platform = celer.Platform().GetHostName()
+	}
 	check(celer.SetProject(project))
 	check(celer.Setup())
 

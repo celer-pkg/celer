@@ -39,8 +39,8 @@ func (t *Toolchain) Validate() error {
 		return fmt.Errorf("toolchain.name is empty")
 	}
 	t.Name = strings.ToLower(t.Name)
-	if t.Name != "gcc" && t.Name != "msvc" && t.Name != "clang" && t.Name != "clang-cl" {
-		return fmt.Errorf("toolchain.name should be 'gcc', 'msvc', 'clang' or 'clang-cl'")
+	if t.Name != "msvc" && t.Name != "clang" && t.Name != "clang-cl" {
+		return fmt.Errorf("toolchain.name should be 'msvc', 'clang' or 'clang-cl'")
 	}
 
 	// Validate toolchain.system_name.

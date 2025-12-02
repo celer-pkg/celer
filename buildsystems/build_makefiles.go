@@ -66,7 +66,7 @@ func (m *makefiles) preConfigure() error {
 		}
 
 		title := fmt.Sprintf("[post confiure %s]", m.PortConfig.nameVersionDesc())
-		command = m.expandVariables(command)
+		command = m.expandCommandsVariables(command)
 		executor := cmd.NewExecutor(title, command)
 		executor.SetWorkDir(m.PortConfig.RepoDir)
 		executor.MSYS2Env(runtime.GOOS == "windows")
@@ -195,7 +195,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = m.expandVariables(value)
+		options[index] = m.expandCommandsVariables(value)
 	}
 
 	return options, nil

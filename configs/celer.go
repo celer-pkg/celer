@@ -15,7 +15,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -140,10 +139,10 @@ func (c *Celer) Init() error {
 		}
 	}
 
-	// Celer support clang-cl, clang, msvc by setting platform name with "", "clang-cl", "clang", "msvc".
-	// If platform name is not specified, use default toolchain, in Windows, use msvc toolchain by default,
-	// and in Linux, use clang toolchain by default.
-	if c.platform.Name == "" || c.platform.Name == "clang-cl" || c.platform.Name == "clang" || c.platform.Name == "msvc" {
+	// Celer support detect local toolchain, if platform name is not specified, use default toolchain:
+	// Windows: default is msvc,
+	// Linux: default is gcc.
+	if c.platform.Name == "" {
 		var toolchain = Toolchain{ctx: c}
 		if err := toolchain.Detect(c.platform.Name); err != nil {
 			return fmt.Errorf("detect celer.toolchain: %w", err)
@@ -172,9 +171,8 @@ func (c *Celer) Init() error {
 		c.platform.WindowsKit = &windowsKit
 	}
 
-	// Change platform name as standard format.
-	platformNames := []string{"", "msvc", "gcc", "clang", "clang-cl"}
-	if slices.Contains(platformNames, c.platform.Name) {
+	// No platform name, detect default platform.
+	if c.platform.Name == "" {
 		switch runtime.GOOS {
 		case "windows":
 			if c.platform.Toolchain.Name == "msvc" || c.platform.Toolchain.Name == "clang" || c.platform.Toolchain.Name == "clang-cl" {

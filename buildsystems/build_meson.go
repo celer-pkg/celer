@@ -115,7 +115,7 @@ func (m meson) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = m.expandVariables(value)
+		options[index] = m.expandCommandsVariables(value)
 	}
 
 	return options, nil

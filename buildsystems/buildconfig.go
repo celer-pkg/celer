@@ -18,9 +18,9 @@ import (
 	"strings"
 )
 
-const supportedString = "nobuild, prebuilt, b2, cmake, gyp, makefiles, meson, qmake"
+const supportedString = "cmake, makefiles, meson, qmake, b2, gyp, nobuild, prebuilt, freestyle"
 
-var supportedArray = []string{"nobuild", "prebuilt", "b2", "cmake", "gyp", "makefiles", "meson", "qmake"}
+var supportedArray = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "nobuild", "prebuilt", "freestyle"}
 
 type PortConfig struct {
 	LibName         string     // like: `ffmpeg`
@@ -80,7 +80,7 @@ type buildSystem interface {
 	setupEnvs()
 	rollbackEnvs()
 
-	fillPlaceHolders()
+	expandOptionsVariables()
 	getLogPath(suffix string) string
 }
 
@@ -185,6 +185,12 @@ type BuildConfig struct {
 	PreConfigure_Linux   []string `toml:"pre_configure_linux,omitempty"`
 	PreConfigure_Darwin  []string `toml:"pre_configure_darwin,omitempty"`
 
+	// Event hooks for Configure
+	FreeStyleConfigure         []string `toml:"configure,omitempty"`
+	FreeStyleConfigure_Windows []string `toml:"configure_windows,omitempty"`
+	FreeStyleConfigure_Linux   []string `toml:"configure_linux,omitempty"`
+	FreeStyleConfigure_Darwin  []string `toml:"configure_darwin,omitempty"`
+
 	// Event hooks for PostConfigure
 	PostConfigure         []string `toml:"post_configure,omitempty"`
 	PostConfigure_Windows []string `toml:"post_configure_windows,omitempty"`
@@ -203,6 +209,12 @@ type BuildConfig struct {
 	FixBuild_Linux   []string `toml:"fix_build_linux,omitempty"`
 	FixBuild_Darwin  []string `toml:"fix_build_darwin,omitempty"`
 
+	// Event hooks for Build
+	FreeStyleBuild         []string `toml:"build,omitempty"`
+	FreeStyleBuild_Windows []string `toml:"build_windows,omitempty"`
+	FreeStyleBuild_Linux   []string `toml:"build_linux,omitempty"`
+	FreeStyleBuild_Darwin  []string `toml:"build_darwin,omitempty"`
+
 	// Event hooks for PostBuild
 	PostBuild         []string `toml:"post_build,omitempty"`
 	PostBuild_Windows []string `toml:"post_build_windows,omitempty"`
@@ -214,6 +226,12 @@ type BuildConfig struct {
 	PreInstall_Windows []string `toml:"pre_install_windows,omitempty"`
 	PreInstall_Linux   []string `toml:"pre_install_linux,omitempty"`
 	PreInstall_Darwin  []string `toml:"pre_install_darwin,omitempty"`
+
+	// Event hooks for Install
+	FreeStyleInstall         []string `toml:"install,omitempty"`
+	FreeStyleInstall_Windows []string `toml:"install_windows,omitempty"`
+	FreeStyleInstall_Linux   []string `toml:"install_linux,omitempty"`
+	FreeStyleInstall_Darwin  []string `toml:"install_darwin,omitempty"`
 
 	// Event hooks for PostInstall
 	PostInstall         []string `toml:"post_install,omitempty"`
@@ -462,8 +480,8 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		return fmt.Errorf("failed to check tools for %s.\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
-	// Replace placeholders with real value, like ${HOST}, ${SYSROOT} etc.
-	b.fillPlaceHolders()
+	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
+	b.expandOptionsVariables()
 
 	// nobuild config do not have crosstool.
 	if b.PortConfig.Toolchain != nil {
@@ -591,10 +609,6 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 	}
 
 	switch b.BuildSystem {
-	case "nobuild":
-		b.buildSystem = NewNoBuild(b, optimize)
-	case "gyp":
-		b.buildSystem = NewGyp(b, optimize)
 	case "cmake":
 		b.buildSystem = NewCMake(b, optimize)
 	case "makefiles":
@@ -603,12 +617,18 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 		b.buildSystem = NewMeson(b, optimize)
 	case "b2":
 		b.buildSystem = NewB2(b, optimize)
-	case "bazel":
-		b.buildSystem = NewBazel(b, optimize)
+	case "gyp":
+		b.buildSystem = NewGyp(b, optimize)
 	case "qmake":
 		b.buildSystem = NewQMake(b, optimize)
+	case "bazel":
+		b.buildSystem = NewBazel(b, optimize)
 	case "prebuilt":
 		b.buildSystem = NewPrebuilt(b, optimize)
+	case "nobuild":
+		b.buildSystem = NewNoBuild(b, optimize)
+	case "freestyle":
+		b.buildSystem = NewFreeStyle(b, optimize)
 	default:
 		return fmt.Errorf("unsupported build system: %s", b.BuildSystem)
 	}
@@ -667,8 +687,8 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 	return createSymlink(src, dest)
 }
 
-// fillPlaceHolders Replace placeholders with real paths and values.
-func (b *BuildConfig) fillPlaceHolders() {
+// expandOptionsVariables Replace placeholders with real paths and values.
+func (b *BuildConfig) expandOptionsVariables() {
 	for index, argument := range b.Options {
 		if strings.Contains(argument, "${HOST}") {
 			if b.DevDep {
@@ -721,9 +741,9 @@ func (b *BuildConfig) fillPlaceHolders() {
 	}
 }
 
-// expandVariables expands placeholder variables in the given string and returns the result.
+// expandCommandsVariables expands placeholder variables in the given string and returns the result.
 // Placeholders like ${CC}, ${CXX}, ${SYSROOT}, etc. are replaced with actual values.
-func (b BuildConfig) expandVariables(content string) string {
+func (b BuildConfig) expandCommandsVariables(content string) string {
 	content = strings.ReplaceAll(content, "${SYSTEM_NAME}", b.PortConfig.Toolchain.SystemName)
 	content = strings.ReplaceAll(content, "${HOST}", b.PortConfig.Toolchain.Host)
 	content = strings.ReplaceAll(content, "${SYSTEM_PROCESSOR}", b.PortConfig.Toolchain.SystemProcessor)
@@ -736,11 +756,11 @@ func (b BuildConfig) expandVariables(content string) string {
 
 	// Replace ${SRC_DIR} with repoDir.
 	content = strings.ReplaceAll(content, "${REPO_DIR}", b.PortConfig.RepoDir)
+	content = strings.ReplaceAll(content, "${SRC_DIR}", b.PortConfig.SrcDir)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths
 	content = strings.ReplaceAll(content, "${CC}", b.PortConfig.Toolchain.CC)
 	content = strings.ReplaceAll(content, "${CXX}", b.PortConfig.Toolchain.CXX)
-	content = strings.ReplaceAll(content, "${HOST_CC}", b.PortConfig.Toolchain.CC)
 
 	if b.DevDep {
 		content = strings.ReplaceAll(content, "${DEPS_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev"))
