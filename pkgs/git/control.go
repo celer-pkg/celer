@@ -2,6 +2,7 @@ package git
 
 import (
 	"bufio"
+	"bytes"
 	"celer/pkgs/cmd"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -12,16 +13,21 @@ import (
 )
 
 // CloneRepo clone git repo.
-func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, repoDir string) error {
+func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, depth int, repoDir string) error {
 	// ============ Clone default branch ============
 	if repoRef == "" {
-		var command string
-		if ignoreSubmodule {
-			command = fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
-		} else {
-			command = fmt.Sprintf("git clone --recursive %s %s", repoUrl, repoDir)
+		var command bytes.Buffer
+		command.WriteString("git clone")
+		if !ignoreSubmodule {
+			command.WriteString(" --recursive")
 		}
-		return cmd.NewExecutor(title, command).Execute()
+
+		if depth > 0 {
+			command.WriteString(fmt.Sprintf(" -depth %d", depth))
+		}
+
+		command.WriteString(repoUrl + " " + repoDir)
+		return cmd.NewExecutor(title, command.String()).Execute()
 	}
 
 	// ============ Clone specific branch ============
