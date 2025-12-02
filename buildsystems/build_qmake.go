@@ -39,7 +39,7 @@ func (q qmake) preConfigure() error {
 		}
 
 		title := fmt.Sprintf("[post confiure %s]", q.PortConfig.nameVersionDesc())
-		script = q.expandVariables(script)
+		script = q.expandCommandsVariables(script)
 		executor := cmd.NewExecutor(title, script)
 		if err := executor.Execute(); err != nil {
 			return err
@@ -78,7 +78,7 @@ func (q qmake) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = q.expandVariables(value)
+		options[index] = q.expandCommandsVariables(value)
 	}
 
 	return options, nil

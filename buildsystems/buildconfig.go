@@ -80,7 +80,7 @@ type buildSystem interface {
 	setupEnvs()
 	rollbackEnvs()
 
-	fillPlaceHolders()
+	expandOptionsVariables()
 	getLogPath(suffix string) string
 }
 
@@ -480,8 +480,8 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		return fmt.Errorf("failed to check tools for %s.\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
-	// Replace placeholders with real value, like ${HOST}, ${SYSROOT} etc.
-	b.fillPlaceHolders()
+	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
+	b.expandOptionsVariables()
 
 	// nobuild config do not have crosstool.
 	if b.PortConfig.Toolchain != nil {
@@ -687,8 +687,8 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 	return createSymlink(src, dest)
 }
 
-// fillPlaceHolders Replace placeholders with real paths and values.
-func (b *BuildConfig) fillPlaceHolders() {
+// expandOptionsVariables Replace placeholders with real paths and values.
+func (b *BuildConfig) expandOptionsVariables() {
 	for index, argument := range b.Options {
 		if strings.Contains(argument, "${HOST}") {
 			if b.DevDep {
@@ -741,9 +741,9 @@ func (b *BuildConfig) fillPlaceHolders() {
 	}
 }
 
-// expandVariables expands placeholder variables in the given string and returns the result.
+// expandCommandsVariables expands placeholder variables in the given string and returns the result.
 // Placeholders like ${CC}, ${CXX}, ${SYSROOT}, etc. are replaced with actual values.
-func (b BuildConfig) expandVariables(content string) string {
+func (b BuildConfig) expandCommandsVariables(content string) string {
 	content = strings.ReplaceAll(content, "${SYSTEM_NAME}", b.PortConfig.Toolchain.SystemName)
 	content = strings.ReplaceAll(content, "${HOST}", b.PortConfig.Toolchain.Host)
 	content = strings.ReplaceAll(content, "${SYSTEM_PROCESSOR}", b.PortConfig.Toolchain.SystemProcessor)
@@ -756,11 +756,11 @@ func (b BuildConfig) expandVariables(content string) string {
 
 	// Replace ${SRC_DIR} with repoDir.
 	content = strings.ReplaceAll(content, "${REPO_DIR}", b.PortConfig.RepoDir)
+	content = strings.ReplaceAll(content, "${SRC_DIR}", b.PortConfig.SrcDir)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths
 	content = strings.ReplaceAll(content, "${CC}", b.PortConfig.Toolchain.CC)
 	content = strings.ReplaceAll(content, "${CXX}", b.PortConfig.Toolchain.CXX)
-	content = strings.ReplaceAll(content, "${HOST_CC}", b.PortConfig.Toolchain.CC)
 
 	if b.DevDep {
 		content = strings.ReplaceAll(content, "${DEPS_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev"))

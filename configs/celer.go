@@ -143,7 +143,7 @@ func (c *Celer) Init() error {
 	// Celer support clang-cl, clang, msvc by setting platform name with "", "clang-cl", "clang", "msvc".
 	// If platform name is not specified, use default toolchain, in Windows, use msvc toolchain by default,
 	// and in Linux, use clang toolchain by default.
-	if c.platform.Name == "" || c.platform.Name == "clang-cl" || c.platform.Name == "clang" || c.platform.Name == "msvc" {
+	if slices.Contains([]string{"", "gcc", "clang-cl", "clang", "msvc"}, c.platform.Name) {
 		var toolchain = Toolchain{ctx: c}
 		if err := toolchain.Detect(c.platform.Name); err != nil {
 			return fmt.Errorf("detect celer.toolchain: %w", err)

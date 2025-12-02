@@ -64,6 +64,16 @@ func TestInstall_Meson_AMD64_GCC(t *testing.T) {
 	})
 }
 
+func TestInstall_FreeStyle_AMD64_GCC(t *testing.T) {
+	t.Run("local_gcc", func(t *testing.T) {
+		buildWithAMD64GCC(t, "gcc", "qpOASES_e@3.1.2", false)
+	})
+
+	t.Run("portable_gcc", func(t *testing.T) {
+		buildWithAMD64GCC(t, ubuntu_amd64_gcc_11_5_0, "qpOASES_e@3.1.2", false)
+	})
+}
+
 func TestInstall_Prebuilt_AMD64_GCC(t *testing.T) {
 	buildWithAMD64GCC(t, ubuntu_amd64_gcc_11_5_0, "prebuilt-x264@stable", false)
 }
@@ -74,7 +84,7 @@ func TestInstall_Nobuild_AMD64_GCC(t *testing.T) {
 
 func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool) {
 	if os.Getenv("TEST_AMD64_GCC") != "true" {
-		t.SkipNow()
+		// t.SkipNow()
 	}
 
 	const project = "project_test_install"

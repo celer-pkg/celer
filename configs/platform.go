@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -25,19 +26,16 @@ type Platform struct {
 }
 
 func (p *Platform) Init(platformName string) error {
-	// Init internal fields.
-	p.Name = platformName
-
 	// Check if platform name is empty.
 	platformName = strings.TrimSpace(platformName)
 	if platformName == "" {
 		return fmt.Errorf("platform name is empty")
 	}
-	p.Name = platformName
 
-	if platformName == "clang-cl" || platformName == "clang" || platformName == "msvc" {
+	if slices.Contains([]string{"gcc", "clang-cl", "clang", "msvc"}, platformName) {
 		return nil
 	}
+	p.Name = platformName
 
 	// Check if platform file exists.
 	platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")

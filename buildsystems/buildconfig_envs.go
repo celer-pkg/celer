@@ -57,7 +57,7 @@ func (b *BuildConfig) setupEnvs() {
 
 		key := strings.TrimSpace(env[:index])
 		currentValue := strings.TrimSpace(env[index+1:])
-		currentValue = b.expandVariables(currentValue)
+		currentValue = b.expandCommandsVariables(currentValue)
 
 		switch key {
 		case "CPATH", "LIBRARY_PATH", "PATH":
