@@ -297,7 +297,7 @@ func (c *Celer) SetConfRepo(url, branch string) error {
 		if err := os.RemoveAll(confDir); err != nil {
 			return err
 		}
-		return git.CloneRepo("[clone conf repo]", url, branch, false, confDir)
+		return git.CloneRepo("[clone conf repo]", url, branch, false, 0, confDir)
 	}
 
 	if err := c.readOrCreate(); err != nil {

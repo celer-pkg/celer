@@ -75,7 +75,11 @@ func (p Port) Commit(nameVersion string, devDep bool) (string, error) {
 
 	// Clone or download repo if not exist.
 	if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
-		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive); err != nil {
+		if err := port.MatchedConfig.Clone(
+			port.Package.Url,
+			port.Package.Ref,
+			port.Package.Archive,
+			port.Package.Depth); err != nil {
 			message := expr.If(strings.HasSuffix(port.Package.Url, ".git"), "clone", "download")
 			return "", fmt.Errorf("%s %s: %w", message, port.NameVersion(), err)
 		}

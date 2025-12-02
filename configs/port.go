@@ -40,6 +40,7 @@ type Package struct {
 	Url             string   `toml:"url"`
 	Ref             string   `toml:"ref"`
 	Commit          string   `toml:"commit,omitempty"`
+	Depth           int      `toml:"depth,omitempty"`
 	Archive         string   `toml:"archive,omitempty"`
 	SrcDir          string   `toml:"src_dir,omitempty"`
 	SupportedHosts  []string `toml:"supported_hosts,omitempty"`

@@ -109,7 +109,7 @@ func (p Port) Clone() error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive); err != nil {
+		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive, port.Package.Depth); err != nil {
 			return err
 		}
 	}
@@ -119,12 +119,12 @@ func (p Port) Clone() error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive); err != nil {
+		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive, port.Package.Depth); err != nil {
 			return err
 		}
 	}
 
-	if err := p.MatchedConfig.Clone(p.Package.Url, p.Package.Ref, p.Package.Archive); err != nil {
+	if err := p.MatchedConfig.Clone(p.Package.Url, p.Package.Ref, p.Package.Archive, p.Package.Depth); err != nil {
 		return err
 	}
 

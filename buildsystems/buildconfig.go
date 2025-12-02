@@ -61,7 +61,7 @@ type buildSystem interface {
 	Clean() error
 
 	// Clone & patch source code
-	Clone(repoUrl, repoRef, archive string) error
+	Clone(repoUrl, repoRef, archive string, depth int) error
 	Patch() error
 
 	// Configure
@@ -299,7 +299,7 @@ func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string
 	}
 }
 
-func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
+func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// Skip if source dir exists or build system is prebuilt.
 	// For prebuilt, we always download via http, ftp or others.
 	destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
@@ -322,7 +322,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string) error {
 	if strings.HasSuffix(repoUrl, ".git") {
 		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
 		if err := git.CloneRepo(title, repoUrl, repoRef,
-			b.PortConfig.IgnoreSubmodule,
+			b.PortConfig.IgnoreSubmodule, depth,
 			b.PortConfig.RepoDir); err != nil {
 			return err
 		}
