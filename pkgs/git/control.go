@@ -14,20 +14,26 @@ import (
 
 // CloneRepo clone git repo.
 func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, depth int, repoDir string) error {
+	cloneRepo := func(repoRef, repoUrl, repoDir string, depth int) string {
+		var buffer bytes.Buffer
+		buffer.WriteString("git clone")
+		if repoRef != "" {
+			buffer.WriteString(" --branch " + repoRef)
+		}
+		if !ignoreSubmodule {
+			buffer.WriteString(" --recursive")
+		}
+		if depth > 0 {
+			buffer.WriteString(fmt.Sprintf(" --depth %d", depth))
+		}
+		buffer.WriteString(fmt.Sprintf(" %s %s", repoUrl, repoDir))
+		return buffer.String()
+	}
+
 	// ============ Clone default branch ============
 	if repoRef == "" {
-		var command bytes.Buffer
-		command.WriteString("git clone")
-		if !ignoreSubmodule {
-			command.WriteString(" --recursive")
-		}
-
-		if depth > 0 {
-			command.WriteString(fmt.Sprintf(" -depth %d", depth))
-		}
-
-		command.WriteString(repoUrl + " " + repoDir)
-		return cmd.NewExecutor(title, command.String()).Execute()
+		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
+		return cmd.NewExecutor(title, command).Execute()
 	}
 
 	// ============ Clone specific branch ============
@@ -36,12 +42,7 @@ func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, depth int, 
 		return fmt.Errorf("failed to check if remote branch.\n %w", err)
 	}
 	if isBranch {
-		var command string
-		if ignoreSubmodule {
-			command = fmt.Sprintf("git clone --branch %s %s %s", repoRef, repoUrl, repoDir)
-		} else {
-			command = fmt.Sprintf("git clone --branch %s --recursive %s %s", repoRef, repoUrl, repoDir)
-		}
+		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
 		return cmd.NewExecutor(title, command).Execute()
 	}
 
@@ -51,12 +52,7 @@ func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, depth int, 
 		return fmt.Errorf("failed to check if remote tag.\n %w", err)
 	}
 	if isTag {
-		var command string
-		if ignoreSubmodule {
-			command = fmt.Sprintf("git clone --branch %s %s %s", repoRef, repoUrl, repoDir)
-		} else {
-			command = fmt.Sprintf("git clone --branch %s %s --recursive %s", repoRef, repoUrl, repoDir)
-		}
+		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
 		return cmd.NewExecutor(title, command).Execute()
 	}
 

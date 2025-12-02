@@ -33,17 +33,13 @@ func (p *Platform) Init(platformName string) error {
 	if platformName == "" {
 		return fmt.Errorf("platform name is empty")
 	}
-	p.Name = platformName
-
-	if platformName == "clang-cl" || platformName == "clang" || platformName == "msvc" {
-		return nil
-	}
 
 	// Check if platform file exists.
 	platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
 	if !fileio.PathExists(platformPath) {
 		return fmt.Errorf("platform does not exist: %s", platformName)
 	}
+	p.Name = platformName
 
 	// Read conf/celer.toml
 	bytes, err := os.ReadFile(platformPath)

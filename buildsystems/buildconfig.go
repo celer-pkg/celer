@@ -304,8 +304,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	if strings.HasSuffix(repoUrl, ".git") {
 		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
 		if err := git.CloneRepo(title, repoUrl, repoRef,
-			b.PortConfig.IgnoreSubmodule,
-			depth,
+			b.PortConfig.IgnoreSubmodule, depth,
 			b.PortConfig.RepoDir); err != nil {
 			return err
 		}
