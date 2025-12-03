@@ -57,7 +57,7 @@ func Execute() error {
 		treeCmd{},
 		cleanCmd{},
 		autoremoveCmd{},
-		dependCmd{},
+		reverseCmd{},
 		searchCmd{},
 	}
 

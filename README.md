@@ -8,7 +8,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/celer-pkg/celer)](https://goreportcard.com/report/github.com/celer-pkg/celer)
 [![GitHub release](https://img.shields.io/github/release/celer-pkg/celer.svg)](https://github.com/celer-pkg/celer/releases)
 
-[English](./README.md) | [🌍 中文](./docs/zh-CH/README.md)
+[English](./README.md) | [🌍 中文](./docs/zh-CN/README.md)
 
 </div>
 
