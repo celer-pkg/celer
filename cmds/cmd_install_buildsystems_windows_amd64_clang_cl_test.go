@@ -83,7 +83,7 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	celer := configs.NewCeler()
 
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/add_test_cases_for_windows_clang", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "feature/add_test_cases_for_windows_clang", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	if platform != "" {

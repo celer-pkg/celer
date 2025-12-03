@@ -62,7 +62,7 @@ func (i *initCmd) doInit() {
 		os.Exit(1)
 	}
 
-	if err := i.celer.SetConfRepo(i.url, i.branch, i.force); err != nil {
+	if err := i.celer.CloneConf(i.url, i.branch, i.force); err != nil {
 		configs.PrintError(err, "Failed to setup configuration repository.")
 		os.Exit(1)
 	}

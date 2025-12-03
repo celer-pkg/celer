@@ -125,7 +125,7 @@ func executeCommandForTest(celer *configs.Celer, url, branch string) error {
 	if err := initCmd.validateURL(initCmd.url); err != nil {
 		return err
 	}
-	if err := celer.SetConfRepo(initCmd.url, initCmd.branch, initCmd.force); err != nil {
+	if err := celer.CloneConf(initCmd.url, initCmd.branch, initCmd.force); err != nil {
 		return err
 	}
 

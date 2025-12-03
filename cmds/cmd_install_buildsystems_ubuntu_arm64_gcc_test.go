@@ -99,7 +99,7 @@ func buildWithARM64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	if platform != "" {
 		check(celer.SetPlatform(platform))

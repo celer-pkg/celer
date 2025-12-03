@@ -290,7 +290,7 @@ func (c *Celer) CreatePort(nameVersion string) error {
 	return nil
 }
 
-func (c *Celer) SetConfRepo(url, branch string, force bool) error {
+func (c *Celer) CloneConf(url, branch string, force bool) error {
 	// Remove existing conf repo if force is specified.
 	confDir := filepath.Join(dirs.WorkspaceDir, "conf")
 	if fileio.PathExists(confDir) {
@@ -303,6 +303,9 @@ func (c *Celer) SetConfRepo(url, branch string, force bool) error {
 	}
 
 	// Clone conf repo.
+	if err := buildtools.CheckTools(c, "git"); err != nil {
+		return err
+	}
 	if err := git.CloneRepo("[clone conf repo]", url, branch, false, 0, confDir); err != nil {
 		return fmt.Errorf("clone conf repo: %w", err)
 	}

@@ -42,7 +42,7 @@ func TestDepend_Without_Dev(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.Setup())
 
@@ -95,7 +95,7 @@ func TestDepend_With_Dev(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.Setup())
 

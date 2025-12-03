@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -55,12 +54,11 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 	)
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
-	check(buildtools.CheckTools(celer, "git"))
 
 	autoremoveCmd := autoremoveCmd{celer: celer}
 
@@ -176,12 +174,11 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 	)
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
-	check(buildtools.CheckTools(celer, "git"))
 
 	autoremoveCmd := autoremoveCmd{celer: celer}
 

@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -48,12 +47,11 @@ func TestInstall_FromPackage(t *testing.T) {
 		)
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
-	check(buildtools.CheckTools(celer, "git"))
 
 	t.Run("install success", func(t *testing.T) {
 		var port configs.Port

@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -42,12 +41,11 @@ func TestInstall_BuildType(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
-	check(buildtools.CheckTools(celer, "git"))
 
 	t.Run("install with build type Release", func(t *testing.T) {
 		check(celer.SetBuildType("Release"))
