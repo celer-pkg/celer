@@ -30,11 +30,11 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	c.celer = celer
 	command := &cobra.Command{
 		Use:   "configure",
-		Short: "Configure to change global settings.",
+		Short: "Configure global settings for celer package manager.",
 		Long: `Configure global settings for celer package manager.
 
 This command allows you to modify various configuration settings that affect
-how celer operates. You can only configure one setting at a time due to the
+how celer works. You can only configure one setting at a time due to the
 mutually exclusive nature of the flags.
 
 Available Configuration Options:
@@ -220,7 +220,7 @@ Examples:
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
 
-	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose", "binary-cache-dir", "binary-cache-token", "proxy-host", "proxy-port", "ccache-dir", "ccache-maxsize", "ccache-compress")
+	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose")
 	return command
 }
 

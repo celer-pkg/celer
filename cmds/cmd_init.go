@@ -20,15 +20,17 @@ func (i initCmd) Command(celer *configs.Celer) *cobra.Command {
 	i.celer = celer
 	command := &cobra.Command{
 		Use:   "init",
-		Short: "Initialize celer with configuration repository.",
-		Long: `Initialize celer by creating a celer.toml configuration file.
-You must specify a Git repository URL to clone configuration files
-from a remote repository.
+		Short: "Init celer with configuration repository.",
+		Long: `Initialize celer with configuration repository.
+
+This command initializes celer in the current directory by creating a
+celer.toml configuration file and cloning configuration files from a
+remote Git repository.
 
 Examples:
   celer init --url https://github.com/example/conf       	# Initialize with conf repo.
   celer init -u https://github.com/example/conf -b main  	# With specific branch.
-  celer init --url https://github.com/example/conf --force  # Force re-initialize.`,
+  celer init --url https://github.com/example/conf --force	# Force re-initialize.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			i.doInit()
 		},

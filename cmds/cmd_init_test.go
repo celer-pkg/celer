@@ -431,7 +431,7 @@ func TestInitCmd_EdgeCases(t *testing.T) {
 			err := executeCommandForTest(celer, url, test.branch)
 
 			// These tests mainly verify that the command doesn't crash,
-			// The actual validation of URLs/branches would happen in SetConfRepo.
+			// The actual validation of URLs/branches would happen in CloneConf.
 			if err != nil {
 				t.Logf("Expected behavior: %s resulted in error: %v", test.description, err)
 			}
