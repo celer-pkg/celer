@@ -23,9 +23,6 @@ func TestClean(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))

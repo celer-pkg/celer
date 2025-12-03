@@ -97,9 +97,6 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))

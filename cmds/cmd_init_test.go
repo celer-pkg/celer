@@ -22,9 +22,6 @@ func TestInitCmd_Command(t *testing.T) {
 		}
 	}
 
-	// Setup test environment
-	dirs.Init(t.TempDir())
-
 	// Cleanup function
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -237,10 +234,7 @@ func TestInitCmd_Integration(t *testing.T) {
 		}
 	}
 
-	// Setup test environment
-	dirs.Init(t.TempDir())
-
-	// Cleanup function
+	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
@@ -257,7 +251,7 @@ func TestInitCmd_Integration(t *testing.T) {
 		}
 	})
 
-	// Test init with URL
+	// Test init with URL.
 	t.Run("init_with_url", func(t *testing.T) {
 		// Remove existing config for fresh test.
 		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
@@ -293,7 +287,7 @@ func TestInitCmd_Integration(t *testing.T) {
 	})
 }
 
-// Benchmark test for performance
+// Benchmark test for performance.
 func BenchmarkInitCmd_Completion(b *testing.B) {
 	initCmd := initCmd{}
 	celer := configs.NewCeler()
@@ -371,7 +365,7 @@ func TestInitCmd_URLValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			initCmd := &initCmd{}
 
-			// Trim whitespace like the actual implementation does
+			// Trim whitespace like the actual implementation does.
 			url := strings.TrimSpace(tt.url)
 
 			err := initCmd.validateURL(url)
@@ -393,10 +387,7 @@ func TestInitCmd_EdgeCases(t *testing.T) {
 		}
 	}
 
-	// Setup test environment
-	dirs.Init(t.TempDir())
-
-	// Cleanup function
+	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.ConfDir))
@@ -439,7 +430,7 @@ func TestInitCmd_EdgeCases(t *testing.T) {
 
 			err := executeCommandForTest(celer, url, test.branch)
 
-			// These tests mainly verify that the command doesn't crash.
+			// These tests mainly verify that the command doesn't crash,
 			// The actual validation of URLs/branches would happen in SetConfRepo.
 			if err != nil {
 				t.Logf("Expected behavior: %s resulted in error: %v", test.description, err)

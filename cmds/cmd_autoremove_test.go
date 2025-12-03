@@ -25,9 +25,6 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -148,9 +145,6 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {

@@ -23,9 +23,6 @@ func TestConfigure_Platform(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -66,9 +63,6 @@ func TestConfigure_Project(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -106,9 +100,6 @@ func TestConfigure_Project_NotExist(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -138,9 +129,6 @@ func TestConfigure_Project_Empty(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -169,9 +157,6 @@ func TestConfigure_BuildType_Release(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
@@ -210,9 +195,6 @@ func TestConfigure_BuildType_Debug(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -250,9 +232,6 @@ func TestConfigure_BuildType_Empty(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -282,9 +261,6 @@ func TestConfigure_BuildType_Invalid(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -313,9 +289,6 @@ func TestConfigure_Jobs(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function
 	cleanup := func() {
@@ -354,9 +327,6 @@ func TestConfigure_Jobs_Invalid(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -385,9 +355,6 @@ func TestConfigure_Offline_ON(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
@@ -426,9 +393,6 @@ func TestConfigure_Offline_OFF(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -465,9 +429,6 @@ func TestConfigure_Verbose_ON(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
@@ -506,9 +467,6 @@ func TestConfigure_Verbose_OFF(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -539,9 +497,6 @@ func TestConfigure_CacheDir(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
@@ -582,9 +537,6 @@ func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -613,9 +565,6 @@ func TestConfigure_Proxy(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
@@ -651,9 +600,6 @@ func TestConfigure_Proxy_Invalid_Host(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -683,9 +629,6 @@ func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -714,9 +657,6 @@ func TestConfigure_CCacheDir(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
@@ -755,9 +695,6 @@ func TestConfigure_CCacheMaxSize(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -793,9 +730,6 @@ func TestConfigure_CCacheCompress_ON(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function
 	cleanup := func() {
@@ -833,9 +767,6 @@ func TestConfigure_CCacheCompress_OFF(t *testing.T) {
 		}
 	}
 
-	// Setup test environment
-	dirs.Init(t.TempDir())
-
 	// Cleanup function
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -871,9 +802,6 @@ func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
@@ -912,9 +840,6 @@ func TestConfigure_BuildType_MinSizeRel(t *testing.T) {
 		}
 	}
 
-	// Setup test environment
-	dirs.Init(t.TempDir())
-
 	// Cleanup function
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -951,9 +876,6 @@ func TestConfigure_Jobs_Zero(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {

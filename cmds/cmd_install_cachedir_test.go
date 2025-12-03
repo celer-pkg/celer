@@ -26,9 +26,6 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -115,9 +112,6 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
@@ -217,9 +211,6 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -310,9 +301,6 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -365,9 +353,6 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
@@ -422,9 +407,6 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -478,9 +460,6 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 		}
 	}
 
-	// Setup test environment.
-	dirs.Init(t.TempDir())
-
 	// Cleanup function.
 	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -533,9 +512,6 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
@@ -608,9 +584,6 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Setup test environment.
-	dirs.Init(t.TempDir())
 
 	// Cleanup function.
 	cleanup := func() {
