@@ -25,6 +25,18 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 		}
 	}
 
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
+
 	var equals = func(list1, list2 []string) bool {
 		if len(list1) != len(list2) {
 			return false
@@ -36,12 +48,6 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 		}
 		return true
 	}
-
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
 
 	// Init celer.
 	var (
@@ -134,6 +140,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 
 func TestAutoRemove_With_BuildCache(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -141,6 +148,18 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	var equals = func(list1, list2 []string) bool {
 		if len(list1) != len(list2) {
@@ -153,12 +172,6 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 		}
 		return true
 	}
-
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
 
 	// Init celer.
 	var (

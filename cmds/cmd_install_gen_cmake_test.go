@@ -24,11 +24,17 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -94,11 +100,17 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -163,11 +175,17 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -232,11 +250,17 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -300,11 +324,17 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -368,11 +398,17 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()

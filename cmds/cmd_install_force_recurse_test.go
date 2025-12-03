@@ -24,17 +24,23 @@ func TestInstall_With_Force(t *testing.T) {
 		}
 	}
 
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
+
 	var modTime = func(path string) time.Time {
 		info, err := os.Stat(path)
 		check(err)
 		return info.ModTime()
 	}
-
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -101,17 +107,23 @@ func TestInstall_With_Force_Recurse(t *testing.T) {
 		}
 	}
 
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
+
 	var modTime = func(path string) time.Time {
 		info, err := os.Stat(path)
 		check(err)
 		return info.ModTime()
 	}
-
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
 
 	// Init celer.
 	celer := configs.NewCeler()

@@ -76,13 +76,14 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
 	})
 
 	// Init celer
 	celer := configs.NewCeler()
 
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/add_test_cases_for_windows_clang"))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "feature/add_test_cases_for_windows_clang", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	if platform != "" {

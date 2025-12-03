@@ -19,11 +19,17 @@ func TestCreate(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()

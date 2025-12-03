@@ -18,6 +18,18 @@ func TestDepend_Without_Dev(t *testing.T) {
 		}
 	}
 
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
+
 	var equals = func(list1, list2 []string) bool {
 		if len(list1) != len(list2) {
 			return false
@@ -29,12 +41,6 @@ func TestDepend_Without_Dev(t *testing.T) {
 		}
 		return true
 	}
-
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -68,6 +74,18 @@ func TestDepend_With_Dev(t *testing.T) {
 		}
 	}
 
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
+
 	var equals = func(list1, list2 []string) bool {
 		if len(list1) != len(list2) {
 			return false
@@ -79,12 +97,6 @@ func TestDepend_With_Dev(t *testing.T) {
 		}
 		return true
 	}
-
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
 
 	// Init celer.
 	celer := configs.NewCeler()

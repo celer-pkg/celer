@@ -402,6 +402,7 @@ func TestInitCmd_EdgeCases(t *testing.T) {
 		check(os.RemoveAll(dirs.ConfDir))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
 	}
 	t.Cleanup(cleanup)
 

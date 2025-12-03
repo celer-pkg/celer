@@ -492,7 +492,8 @@ func (c *Celer) SetCCacheDir(dir string) error {
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			Dir: dir,
+			Compress: true,
+			Dir:      dir,
 		}
 	} else {
 		c.configData.CCache.Dir = dir
@@ -512,7 +513,8 @@ func (c *Celer) SetCCacheMaxSize(maxSize string) error {
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			MaxSize: maxSize,
+			Compress: true,
+			MaxSize:  maxSize,
 		}
 	} else {
 		c.configData.CCache.MaxSize = maxSize
