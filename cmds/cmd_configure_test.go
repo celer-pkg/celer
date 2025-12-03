@@ -23,11 +23,17 @@ func TestConfigure_Platform(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -60,11 +66,17 @@ func TestConfigure_Project(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -94,11 +106,17 @@ func TestConfigure_Project_NotExist(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -120,11 +138,17 @@ func TestConfigure_Project_Empty(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -146,11 +170,17 @@ func TestConfigure_BuildType_Release(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -180,11 +210,17 @@ func TestConfigure_BuildType_Debug(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -214,11 +250,17 @@ func TestConfigure_BuildType_Empty(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -240,11 +282,17 @@ func TestConfigure_BuildType_Invalid(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -266,11 +314,17 @@ func TestConfigure_Jobs(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -300,11 +354,17 @@ func TestConfigure_Jobs_Invalid(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -312,8 +372,8 @@ func TestConfigure_Jobs_Invalid(t *testing.T) {
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetJobs(-1); err != configs.ErrInvalidJobs {
-		t.Fatal(configs.ErrInvalidJobs)
+	if err := celer.SetJobs(-1); err == nil {
+		t.Fatal("expected error for invalid jobs")
 	}
 }
 
@@ -326,11 +386,17 @@ func TestConfigure_Offline_ON(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -360,11 +426,17 @@ func TestConfigure_Offline_OFF(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -394,11 +466,17 @@ func TestConfigure_Verbose_ON(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -428,11 +506,17 @@ func TestConfigure_Verbose_OFF(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -456,11 +540,17 @@ func TestConfigure_CacheDir(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -492,11 +582,17 @@ func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -518,11 +614,17 @@ func TestConfigure_Proxy(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -549,11 +651,17 @@ func TestConfigure_Proxy_Invalid_Host(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -575,11 +683,17 @@ func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -601,11 +715,17 @@ func TestConfigure_CCacheDir(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -614,14 +734,15 @@ func TestConfigure_CCacheDir(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 
 	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
+	check(os.MkdirAll(ccacheDir, os.ModePerm))
 	check(celer.SetCCacheDir(ccacheDir))
 
-	// Verify by reloading config
+	// Verify by reloading config.
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
 
-	// The value should be persisted in celer.toml
-	// We can verify by setting it again and checking no error
+	// The value should be persisted in celer.toml,
+	// We can verify by setting it again and checking no error.
 	check(celer2.SetCCacheDir(ccacheDir))
 }
 
@@ -634,11 +755,17 @@ func TestConfigure_CCacheMaxSize(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -649,12 +776,12 @@ func TestConfigure_CCacheMaxSize(t *testing.T) {
 	const maxSize = "10G"
 	check(celer.SetCCacheMaxSize(maxSize))
 
-	// Verify by reloading config
+	// Verify by reloading config.
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
 
-	// The value should be persisted in celer.toml
-	// We can verify by setting it again and checking no error
+	// The value should be persisted in celer.toml,
+	// We can verify by setting it again and checking no error.
 	check(celer2.SetCCacheMaxSize(maxSize))
 }
 
@@ -667,11 +794,17 @@ func TestConfigure_CCacheCompress_ON(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -682,12 +815,12 @@ func TestConfigure_CCacheCompress_ON(t *testing.T) {
 	const compress = true
 	check(celer.CompressCCache(compress))
 
-	// Verify by reloading config
+	// Verify by reloading config.
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
 
-	// The value should be persisted in celer.toml
-	// We can verify by setting it again and checking no error
+	// The value should be persisted in celer.toml,
+	// We can verify by setting it again and checking no error.
 	check(celer2.CompressCCache(compress))
 }
 
@@ -700,11 +833,17 @@ func TestConfigure_CCacheCompress_OFF(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment
+	dirs.Init(t.TempDir())
+
+	// Cleanup function
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -715,12 +854,12 @@ func TestConfigure_CCacheCompress_OFF(t *testing.T) {
 	const compress = false
 	check(celer.CompressCCache(compress))
 
-	// Verify by reloading config
+	// Verify by reloading config.
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
 
-	// The value should be persisted in celer.toml
-	// We can verify by setting it again and checking no error
+	// The value should be persisted in celer.toml,
+	// We can verify by setting it again and checking no error.
 	check(celer2.CompressCCache(compress))
 }
 
@@ -733,11 +872,17 @@ func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -767,11 +912,17 @@ func TestConfigure_BuildType_MinSizeRel(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment
+	dirs.Init(t.TempDir())
+
+	// Cleanup function
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -801,19 +952,24 @@ func TestConfigure_Jobs_Zero(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
+	// Setup test environment.
+	dirs.Init(t.TempDir())
+
+	// Cleanup function.
+	cleanup := func() {
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 		check(os.RemoveAll(dirs.TmpDir))
 		check(os.RemoveAll(dirs.TestCacheDir))
-	})
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
 	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
-	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetJobs(0); err != configs.ErrInvalidJobs {
+	if err := celer.SetJobs(0); err == nil {
 		t.Fatal("jobs cannot be 0")
 	}
 }

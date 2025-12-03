@@ -339,8 +339,8 @@ func (c *Celer) SetBuildType(buildtype string) error {
 }
 
 func (c *Celer) SetJobs(jobs int) error {
-	if jobs < 0 {
-		return ErrInvalidJobs
+	if jobs <= 0 {
+		return fmt.Errorf("invalid jobs, must be greater than 0")
 	}
 
 	if err := c.readOrCreate(); err != nil {

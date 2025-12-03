@@ -8,6 +8,7 @@ import (
 
 var (
 	WorkspaceDir       string // "."
+	ConfDir            string // "conf"
 	ConfPlatformsDir   string // "conf/platforms"
 	ConfProjectsDir    string // "conf/projects"
 	PortsDir           string // "ports"
@@ -33,6 +34,7 @@ func init() {
 // Init init with specified workspace dir.
 func Init(workspaceDir string) {
 	WorkspaceDir = workspaceDir
+	ConfDir = filepath.Join(WorkspaceDir, "conf")
 	ConfPlatformsDir = filepath.Join(WorkspaceDir, "conf", "platforms")
 	ConfProjectsDir = filepath.Join(WorkspaceDir, "conf", "projects")
 	PortsDir = filepath.Join(WorkspaceDir, "ports")

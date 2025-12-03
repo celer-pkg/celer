@@ -4,6 +4,7 @@ import (
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,16 +14,23 @@ import (
 )
 
 func TestInitCmd_Command(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
 	// Setup test environment
-	tmpDir := t.TempDir()
-	dirs.Init(tmpDir)
+	dirs.Init(t.TempDir())
 
 	// Cleanup function
 	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
 	}
 	t.Cleanup(cleanup)
 
@@ -113,14 +121,15 @@ func executeCommandForTest(celer *configs.Celer, url, branch string) error {
 	initCmd.url = strings.TrimSpace(initCmd.url)
 
 	// Set conf repo if URL is provided
-	if initCmd.url != "" {
-		if err := initCmd.validateURL(initCmd.url); err != nil {
-			return err
-		}
+	if initCmd.url == "" {
+		return fmt.Errorf("no url provided when init")
+	}
 
-		if err := celer.SetConfRepo(initCmd.url, initCmd.branch, initCmd.force); err != nil {
-			return err
-		}
+	if err := initCmd.validateURL(initCmd.url); err != nil {
+		return err
+	}
+	if err := celer.SetConfRepo(initCmd.url, initCmd.branch, initCmd.force); err != nil {
+		return err
 	}
 
 	return nil
@@ -220,23 +229,30 @@ func TestInitCmd_CommandStructure(t *testing.T) {
 }
 
 func TestInitCmd_Integration(t *testing.T) {
-	// This is an integration test that tests the full workflow
-	tmpDir := t.TempDir()
-	dirs.Init(tmpDir)
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 
-	t.Cleanup(func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-	})
+	// Setup test environment
+	dirs.Init(t.TempDir())
+
+	// Cleanup function
+	cleanup := func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
 
 	// Test init without URL (should fail)
 	t.Run("init_without_url", func(t *testing.T) {
 		celer := configs.NewCeler()
-
-		err := executeCommandForTest(celer, "", "")
-		if err == nil {
+		if err := executeCommandForTest(celer, "", ""); err == nil {
 			t.Fatalf("Init without URL should fail, but got no error")
 		}
 	})
@@ -369,15 +385,25 @@ func TestInitCmd_URLValidation(t *testing.T) {
 }
 
 func TestInitCmd_EdgeCases(t *testing.T) {
-	tmpDir := t.TempDir()
-	dirs.Init(tmpDir)
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 
-	t.Cleanup(func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-	})
+	// Setup test environment
+	dirs.Init(t.TempDir())
+
+	// Cleanup function
+	cleanup := func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.ConfDir))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	}
+	t.Cleanup(cleanup)
 
 	tests := []struct {
 		name        string
