@@ -28,7 +28,7 @@ func TestCreate(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
 
 	// ============= Create platform ============= //
 	t.Run("Create platform success", func(t *testing.T) {

@@ -47,41 +47,34 @@ func TestInitCmd_Command(t *testing.T) {
 			expectError: false,
 			description: "Should succeed with valid git repository and specific branch",
 		},
-		{
-			name:        "empty_url",
-			url:         "",
-			branch:      "",
-			expectError: false,
-			description: "Should succeed even with empty URL (init without conf repo)",
-		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			// Clean up before each test
 			cleanup()
 
 			// Create a new celer instance
 			celer := configs.NewCeler()
-			
+
 			// Create init command
 			initCmd := initCmd{}
 			cmd := initCmd.Command(celer)
 
 			// Set up the command arguments
-			if tt.url != "" {
-				cmd.Flags().Set("url", tt.url)
+			if test.url != "" {
+				cmd.Flags().Set("url", test.url)
 			}
-			if tt.branch != "" {
-				cmd.Flags().Set("branch", tt.branch)
+			if test.branch != "" {
+				cmd.Flags().Set("branch", test.branch)
 			}
 
 			// Execute the command in a way that doesn't call os.Exit
-			err := executeCommandForTest(cmd, celer, tt.url, tt.branch)
+			err := executeCommandForTest(celer, test.url, test.branch)
 
-			if tt.expectError && err == nil {
+			if test.expectError && err == nil {
 				t.Errorf("Expected error but got none")
-			} else if !tt.expectError && err != nil {
+			} else if !test.expectError && err != nil {
 				t.Errorf("Expected no error but got: %v", err)
 			}
 
@@ -91,8 +84,8 @@ func TestInitCmd_Command(t *testing.T) {
 				t.Error("celer.toml should be created after init")
 			}
 
-			// If URL was provided, verify conf repo was cloned
-			if tt.url != "" {
+			// If URL was provided, verify conf repo was cloned.
+			if test.url != "" {
 				confDir := filepath.Join(dirs.WorkspaceDir, "conf")
 				if !fileio.PathExists(confDir) {
 					t.Error("conf directory should be created when URL is provided")
@@ -103,7 +96,7 @@ func TestInitCmd_Command(t *testing.T) {
 }
 
 // executeCommandForTest simulates the command execution without calling os.Exit
-func executeCommandForTest(cmd *cobra.Command, celer *configs.Celer, url, branch string) error {
+func executeCommandForTest(celer *configs.Celer, url, branch string) error {
 	// Set up initCmd instance
 	initCmd := &initCmd{
 		celer:  celer,
@@ -125,7 +118,7 @@ func executeCommandForTest(cmd *cobra.Command, celer *configs.Celer, url, branch
 			return err
 		}
 
-		if err := celer.SetConfRepo(initCmd.url, initCmd.branch); err != nil {
+		if err := celer.SetConfRepo(initCmd.url, initCmd.branch, initCmd.force); err != nil {
 			return err
 		}
 	}
@@ -149,7 +142,7 @@ func TestInitCmd_Completion(t *testing.T) {
 			expected:   []string{"--url"},
 		},
 		{
-			name:       "complete_url_short_flag", 
+			name:       "complete_url_short_flag",
 			toComplete: "-u",
 			expected:   []string{"-u"},
 		},
@@ -160,7 +153,7 @@ func TestInitCmd_Completion(t *testing.T) {
 		},
 		{
 			name:       "complete_branch_short_flag",
-			toComplete: "-b", 
+			toComplete: "-b",
 			expected:   []string{"-b"},
 		},
 		{
@@ -170,20 +163,20 @@ func TestInitCmd_Completion(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			suggestions, directive := initCmd.completion(cmd, []string{}, tt.toComplete)
-			
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			suggestions, directive := initCmd.completion(cmd, []string{}, test.toComplete)
+
 			if directive != cobra.ShellCompDirectiveNoFileComp {
 				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
 			}
 
-			if len(suggestions) != len(tt.expected) {
-				t.Errorf("Expected %d suggestions, got %d: %v", len(tt.expected), len(suggestions), suggestions)
+			if len(suggestions) != len(test.expected) {
+				t.Errorf("Expected %d suggestions, got %d: %v", len(test.expected), len(suggestions), suggestions)
 				return
 			}
 
-			for i, expected := range tt.expected {
+			for i, expected := range test.expected {
 				if i < len(suggestions) && suggestions[i] != expected {
 					t.Errorf("Expected suggestion[%d] to be %s, got %s", i, expected, suggestions[i])
 				}
@@ -238,42 +231,34 @@ func TestInitCmd_Integration(t *testing.T) {
 		os.RemoveAll(dirs.TestCacheDir)
 	})
 
-	// Test init without URL
+	// Test init without URL (should fail)
 	t.Run("init_without_url", func(t *testing.T) {
 		celer := configs.NewCeler()
-		initCmd := initCmd{}
-		
-		err := executeCommandForTest(initCmd.Command(celer), celer, "", "")
-		if err != nil {
-			t.Fatalf("Init without URL should succeed: %v", err)
-		}
 
-		// Verify celer.toml exists
-		celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
-		if !fileio.PathExists(celerPath) {
-			t.Error("celer.toml should be created")
+		err := executeCommandForTest(celer, "", "")
+		if err == nil {
+			t.Fatalf("Init without URL should fail, but got no error")
 		}
 	})
 
 	// Test init with URL
 	t.Run("init_with_url", func(t *testing.T) {
-		// Remove existing config for fresh test
+		// Remove existing config for fresh test.
 		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
 		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf"))
 
 		celer := configs.NewCeler()
-		initCmd := initCmd{}
 		url := "https://github.com/celer-pkg/test-conf.git"
-		
-		err := executeCommandForTest(initCmd.Command(celer), celer, url, "")
+
+		err := executeCommandForTest(celer, url, "")
 		if err != nil {
 			t.Fatalf("Init with URL should succeed: %v", err)
 		}
 
-		// Verify both celer.toml and conf directory exist
+		// Verify both celer.toml and conf directory exist.
 		celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 		confDir := filepath.Join(dirs.WorkspaceDir, "conf")
-		
+
 		if !fileio.PathExists(celerPath) {
 			t.Error("celer.toml should be created")
 		}
@@ -297,8 +282,8 @@ func BenchmarkInitCmd_Completion(b *testing.B) {
 	initCmd := initCmd{}
 	celer := configs.NewCeler()
 	cmd := initCmd.Command(celer)
-	
-	for i := 0; i < b.N; i++ {
+
+	for b.Loop() {
 		initCmd.completion(cmd, []string{}, "--u")
 	}
 }
@@ -369,12 +354,11 @@ func TestInitCmd_URLValidation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			initCmd := &initCmd{}
-			
+
 			// Trim whitespace like the actual implementation does
 			url := strings.TrimSpace(tt.url)
-			
+
 			err := initCmd.validateURL(url)
-			
 			if tt.expectError && err == nil {
 				t.Errorf("Expected error for URL '%s' but got none", tt.url)
 			} else if !tt.expectError && err != nil {
@@ -415,24 +399,23 @@ func TestInitCmd_EdgeCases(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Clean up before each test
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// Clean up before each test.
 			os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
 			os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf"))
 
 			celer := configs.NewCeler()
-			initCmd := initCmd{}
-			
-			// For URLs with spaces, we might want to trim them
-			url := strings.TrimSpace(tt.url)
-			
-			err := executeCommandForTest(initCmd.Command(celer), celer, url, tt.branch)
-			
-			// These tests mainly verify that the command doesn't crash
-			// The actual validation of URLs/branches would happen in SetConfRepo
+
+			// For URLs with spaces, we might want to trim them.
+			url := strings.TrimSpace(test.url)
+
+			err := executeCommandForTest(celer, url, test.branch)
+
+			// These tests mainly verify that the command doesn't crash.
+			// The actual validation of URLs/branches would happen in SetConfRepo.
 			if err != nil {
-				t.Logf("Expected behavior: %s resulted in error: %v", tt.description, err)
+				t.Logf("Expected behavior: %s resulted in error: %v", test.description, err)
 			}
 		})
 	}

@@ -13,23 +13,24 @@ type initCmd struct {
 	celer  *configs.Celer
 	url    string
 	branch string
+	force  bool
 }
 
 func (i initCmd) Command(celer *configs.Celer) *cobra.Command {
 	i.celer = celer
 	command := &cobra.Command{
 		Use:   "init",
-		Short: "Initialize celer with optional configuration repository.",
+		Short: "Initialize celer with configuration repository.",
 		Long: `Initialize celer by creating a celer.toml configuration file.
-Optionally, you can specify a Git repository URL to clone configuration files
+You must specify a Git repository URL to clone configuration files
 from a remote repository.
 
 Examples:
-  celer init                                             # Initialize without conf repo
-  celer init --url https://github.com/example/conf       # Initialize with conf repo
-  celer init -u https://github.com/example/conf -b main  # With specific branch`,
+  celer init --url https://github.com/example/conf       	# Initialize with conf repo.
+  celer init -u https://github.com/example/conf -b main  	# With specific branch.
+  celer init --url https://github.com/example/conf --force  # Force re-initialize.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			i.runInit()
+			i.doInit()
 		},
 		ValidArgsFunction: i.completion,
 	}
@@ -37,11 +38,15 @@ Examples:
 	// Register flags.
 	command.Flags().StringVarP(&i.url, "url", "u", "", "URL of the configuration repository")
 	command.Flags().StringVarP(&i.branch, "branch", "b", "", "Branch of the configuration repository (default: repository's default branch)")
+	command.Flags().BoolVarP(&i.force, "force", "f", false, "Force re-initialize even if configuration exists")
+
+	// Mark url as required.
+	command.MarkFlagRequired("url")
 
 	return command
 }
 
-func (i *initCmd) runInit() {
+func (i *initCmd) doInit() {
 	// Initialize celer configuration
 	if err := i.celer.Init(); err != nil {
 		configs.PrintError(err, "Failed to initialize celer.")
@@ -51,33 +56,26 @@ func (i *initCmd) runInit() {
 	// Trim whitespace from URL
 	i.url = strings.TrimSpace(i.url)
 
-	// Setup configuration repository if URL is provided
-	if i.url != "" {
-		if err := i.validateURL(i.url); err != nil {
-			configs.PrintError(err, "Invalid URL.")
-			os.Exit(1)
-		}
+	// Setup configuration repository.
+	if err := i.validateURL(i.url); err != nil {
+		configs.PrintError(err, "Invalid URL.")
+		os.Exit(1)
+	}
 
-		if err := i.celer.SetConfRepo(i.url, i.branch); err != nil {
-			configs.PrintError(err, "Failed to setup configuration repository.")
-			os.Exit(1)
-		}
+	if err := i.celer.SetConfRepo(i.url, i.branch, i.force); err != nil {
+		configs.PrintError(err, "Failed to setup configuration repository.")
+		os.Exit(1)
+	}
 
-		configs.PrintSuccess("Successfully initialized celer with configuration repository: %s", i.url)
-		if i.branch != "" {
-			fmt.Printf("Using branch: %s\n", i.branch)
-		}
+	if i.branch != "" {
+		configs.PrintSuccess("Successfully initialized celer with configuration repository: %s --branch %s", i.url, i.branch)
 	} else {
-		configs.PrintSuccess("Initialize successfully.")
+		configs.PrintSuccess("Successfully initialized celer with configuration repository: %s", i.url)
 	}
 }
 
-// validateURL performs basic validation on the provided URL
+// validateURL performs basic validation on the provided URL.
 func (i *initCmd) validateURL(url string) error {
-	if url == "" {
-		return fmt.Errorf("URL cannot be empty")
-	}
-
 	// Basic URL validation - check for common protocols
 	if !strings.HasPrefix(url, "http://") &&
 		!strings.HasPrefix(url, "https://") &&
@@ -94,20 +92,10 @@ func (i initCmd) completion(cmd *cobra.Command, args []string, toComplete string
 	var suggestions []string
 
 	// Provide flag completion
-	for _, flag := range []string{"--url", "-u", "--branch", "-b"} {
+	for _, flag := range []string{"--url", "-u", "--branch", "-b", "--force", "-f"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}
-	}
-
-	// Provide URL suggestions when completing URL values
-	if strings.HasPrefix(toComplete, "https://") {
-		suggestions = append(suggestions,
-			"https://github.com/",
-			"https://gitlab.com/",
-			"https://bitbucket.org/",
-		)
-		return suggestions, cobra.ShellCompDirectiveNoSpace
 	}
 
 	return suggestions, cobra.ShellCompDirectiveNoFileComp
