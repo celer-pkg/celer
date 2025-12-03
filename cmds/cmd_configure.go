@@ -30,7 +30,7 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	c.celer = celer
 	command := &cobra.Command{
 		Use:   "configure",
-		Short: "Configure to change gloabal settings.",
+		Short: "Configure to change global settings.",
 		Run: func(cmd *cobra.Command, args []string) {
 			flags := cmd.Flags()
 
@@ -167,8 +167,14 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	command.RegisterFlagCompletionFunc("offline", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
+	command.RegisterFlagCompletionFunc("verbose", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
+	})
+	command.RegisterFlagCompletionFunc("ccache-compress", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
+	})
 
-	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose")
+	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose", "binary-cache-dir", "binary-cache-token", "proxy-host", "proxy-port", "ccache-dir", "ccache-maxsize", "ccache-compress")
 	return command
 }
 
@@ -210,7 +216,6 @@ func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete s
 		"--proxy-port",
 		"--ccache-compress",
 		"--ccache-dir",
-		"--ccache-enabled",
 		"--ccache-maxsize",
 	}
 

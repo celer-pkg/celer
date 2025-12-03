@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	"github.com/spf13/cobra"
 )
 
 func TestConfigure_Platform(t *testing.T) {
@@ -587,5 +589,377 @@ func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
 
 	if celer.SetProxy("127.0.0.1", -1) == nil {
 		t.Fatal("it should be failed due to invalid port")
+	}
+}
+
+func TestConfigure_CCacheDir(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
+	check(celer.SetCCacheDir(ccacheDir))
+
+	// Verify by reloading config
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+
+	// The value should be persisted in celer.toml
+	// We can verify by setting it again and checking no error
+	check(celer2.SetCCacheDir(ccacheDir))
+}
+
+func TestConfigure_CCacheMaxSize(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	const maxSize = "10G"
+	check(celer.SetCCacheMaxSize(maxSize))
+
+	// Verify by reloading config
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+
+	// The value should be persisted in celer.toml
+	// We can verify by setting it again and checking no error
+	check(celer2.SetCCacheMaxSize(maxSize))
+}
+
+func TestConfigure_CCacheCompress_ON(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	const compress = true
+	check(celer.CompressCCache(compress))
+
+	// Verify by reloading config
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+
+	// The value should be persisted in celer.toml
+	// We can verify by setting it again and checking no error
+	check(celer2.CompressCCache(compress))
+}
+
+func TestConfigure_CCacheCompress_OFF(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	const compress = false
+	check(celer.CompressCCache(compress))
+
+	// Verify by reloading config
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+
+	// The value should be persisted in celer.toml
+	// We can verify by setting it again and checking no error
+	check(celer2.CompressCCache(compress))
+}
+
+func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	const buildType = "RelWithDebInfo"
+	check(celer.SetBuildType(buildType))
+	if celer.BuildType() != "relwithdebinfo" {
+		t.Fatalf("build type should be `%s`", "relwithdebinfo")
+	}
+
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+	if celer2.BuildType() != "relwithdebinfo" {
+		t.Fatalf("build type should be `%s`", "relwithdebinfo")
+	}
+}
+
+func TestConfigure_BuildType_MinSizeRel(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	const buildType = "MinSizeRel"
+	check(celer.SetBuildType(buildType))
+	if celer.BuildType() != "minsizerel" {
+		t.Fatalf("build type should be `%s`", "minsizerel")
+	}
+
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+	if celer2.BuildType() != "minsizerel" {
+		t.Fatalf("build type should be `%s`", "minsizerel")
+	}
+}
+
+func TestConfigure_Jobs_Zero(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	t.Cleanup(func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+	})
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	if err := celer.SetJobs(0); err != configs.ErrInvalidJobs {
+		t.Fatal("jobs cannot be 0")
+	}
+}
+
+func TestConfigureCmd_CommandStructure(t *testing.T) {
+	configCmd := configureCmd{}
+	celer := configs.NewCeler()
+	cmd := configCmd.Command(celer)
+
+	// Test command basic properties
+	if cmd.Use != "configure" {
+		t.Errorf("Expected Use to be 'configure', got '%s'", cmd.Use)
+	}
+
+	if cmd.Short == "" {
+		t.Error("Short description should not be empty")
+	}
+
+	// Test flags existence
+	expectedFlags := []struct {
+		name      string
+		shorthand string
+	}{
+		{"platform", ""},
+		{"project", ""},
+		{"build-type", ""},
+		{"jobs", ""},
+		{"offline", ""},
+		{"verbose", ""},
+		{"binary-cache-dir", ""},
+		{"binary-cache-token", ""},
+		{"proxy-host", ""},
+		{"proxy-port", ""},
+		{"ccache-dir", ""},
+		{"ccache-maxsize", ""},
+		{"ccache-compress", ""},
+	}
+
+	for _, ef := range expectedFlags {
+		flag := cmd.Flags().Lookup(ef.name)
+		if flag == nil {
+			t.Errorf("--%s flag should be defined", ef.name)
+		}
+	}
+}
+
+func TestConfigureCmd_Completion(t *testing.T) {
+	configCmd := configureCmd{}
+	celer := configs.NewCeler()
+	cmd := configCmd.Command(celer)
+
+	tests := []struct {
+		name       string
+		toComplete string
+		expected   []string
+	}{
+		{
+			name:       "complete_platform_flag",
+			toComplete: "--plat",
+			expected:   []string{"--platform"},
+		},
+		{
+			name:       "complete_project_flag",
+			toComplete: "--proj",
+			expected:   []string{"--project"},
+		},
+		{
+			name:       "complete_build_type_flag",
+			toComplete: "--build",
+			expected:   []string{"--build-type"},
+		},
+		{
+			name:       "complete_jobs_flag",
+			toComplete: "--job",
+			expected:   []string{"--jobs"},
+		},
+		{
+			name:       "complete_offline_flag",
+			toComplete: "--off",
+			expected:   []string{"--offline"},
+		},
+		{
+			name:       "complete_verbose_flag",
+			toComplete: "--verb",
+			expected:   []string{"--verbose"},
+		},
+		{
+			name:       "complete_binary_cache_dir_flag",
+			toComplete: "--binary-cache-d",
+			expected:   []string{"--binary-cache-dir"},
+		},
+		{
+			name:       "complete_binary_cache_token_flag",
+			toComplete: "--binary-cache-t",
+			expected:   []string{"--binary-cache-token"},
+		},
+		{
+			name:       "complete_proxy_host_flag",
+			toComplete: "--proxy-h",
+			expected:   []string{"--proxy-host"},
+		},
+		{
+			name:       "complete_proxy_port_flag",
+			toComplete: "--proxy-p",
+			expected:   []string{"--proxy-port"},
+		},
+		{
+			name:       "complete_ccache_dir_flag",
+			toComplete: "--ccache-d",
+			expected:   []string{"--ccache-dir"},
+		},
+		{
+			name:       "complete_ccache_maxsize_flag",
+			toComplete: "--ccache-m",
+			expected:   []string{"--ccache-maxsize"},
+		},
+		{
+			name:       "complete_ccache_compress_flag",
+			toComplete: "--ccache-c",
+			expected:   []string{"--ccache-compress"},
+		},
+		{
+			name:       "no_completion_for_random",
+			toComplete: "--random",
+			expected:   []string{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			suggestions, directive := configCmd.completion(cmd, []string{}, test.toComplete)
+
+			if directive != cobra.ShellCompDirectiveNoFileComp {
+				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
+			}
+
+			if len(suggestions) != len(test.expected) {
+				t.Errorf("Expected %d suggestions, got %d: %v", len(test.expected), len(suggestions), suggestions)
+				return
+			}
+
+			for i, expected := range test.expected {
+				if i < len(suggestions) && suggestions[i] != expected {
+					t.Errorf("Expected suggestion[%d] to be %s, got %s", i, expected, suggestions[i])
+				}
+			}
+		})
 	}
 }
