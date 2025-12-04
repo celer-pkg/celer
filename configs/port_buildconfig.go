@@ -146,31 +146,13 @@ func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildCon
 
 	// List of all fields that need to be merged.
 	fields := []string{
-		"BuildSystem",
-		"CMakeGenerator",
-		"BuildTools",
-		"LibraryType",
-		"BuildShared",
-		"BuildStatic",
-		"CStandard",
-		"CXXStandard",
-		"Envs",
-		"Patches",
-		"BuildInSource",
-		"AutogenOptions",
-		"Options",
-		"Dependencies",
-		"DevDependencies",
-		"PreConfigure",
-		"FreeStyleConfigure",
-		"PostConfigure",
-		"PreBuild",
-		"FixBuild",
-		"FreeStyleBuild",
-		"PostBuild",
-		"PreInstall",
-		"FreeStyleInstall",
-		"PostInstall",
+		"BuildSystem", "CMakeGenerator", "BuildTools", "LibraryType",
+		"BuildShared", "BuildStatic", "CStandard", "CXXStandard",
+		"Envs", "Patches", "Dependencies", "DevDependencies",
+		"PreConfigure", "FreeStyleConfigure", "PostConfigure",
+		"PreBuild", "FixBuild", "FreeStyleBuild", "PostBuild",
+		"PreInstall", "FreeStyleInstall", "PostInstall",
+		"AutogenOptions", "Options",
 	}
 
 	for _, field := range fields {
@@ -178,7 +160,7 @@ func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildCon
 	}
 }
 
-// isZeroValue checks if a reflect.Value is the zero value for its type
+// isZeroValue checks if a reflect.Value is the zero value for its type.
 func isZeroValue(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.String:
