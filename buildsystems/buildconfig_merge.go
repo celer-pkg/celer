@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// mergePlatform merges the platform-specific fields into the BuildConfig struct.
-func (b *BuildConfig) mergePlatform() {
+// mergeConfig merges the platform-specific fields into the BuildConfig struct.
+func (b *BuildConfig) mergeConfig() {
 	switch b.buildTarget() {
 	case "windows":
 		b.BuildSystem = expr.If(b.BuildSystem_Windows != "", b.BuildSystem_Windows, b.BuildSystem)

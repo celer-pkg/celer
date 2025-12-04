@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 
 	"github.com/BurntSushi/toml"
 )
@@ -88,7 +89,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 				}
 
 				portInProject.ctx = p.ctx
-				p.mergeBuildConfig(index, portInProject.MatchedConfig)
+				p.mergeFromProject(index, portInProject.MatchedConfig)
 			}
 
 			p.BuildConfigs[index].Ctx = p.ctx
@@ -108,63 +109,93 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	return nil
 }
 
-func (p *Port) mergeBuildConfig(index int, overrideConfig *buildsystems.BuildConfig) {
+func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildConfig) {
 	if overrideConfig == nil {
 		return
 	}
 
-	if overrideConfig.BuildSystem != "" {
-		p.BuildConfigs[index].BuildSystem = overrideConfig.BuildSystem
+	// Helper function to merge field with platform variants.
+	mergeField := func(fieldName string) {
+		// Get field values from both configs.
+		srcVal := reflect.ValueOf(overrideConfig).Elem()
+		dstVal := reflect.ValueOf(&p.BuildConfigs[index]).Elem()
+
+		// Merge base field.
+		if srcField := srcVal.FieldByName(fieldName); srcField.IsValid() {
+			dstField := dstVal.FieldByName(fieldName)
+			if dstField.IsValid() && dstField.CanSet() {
+				if !isZeroValue(srcField) {
+					dstField.Set(srcField)
+				}
+			}
+		}
+
+		// Merge platform-specific variants.
+		for _, suffix := range []string{"_Windows", "_Linux", "_Darwin"} {
+			platformFieldName := fieldName + suffix
+			if srcField := srcVal.FieldByName(platformFieldName); srcField.IsValid() {
+				dstField := dstVal.FieldByName(platformFieldName)
+				if dstField.IsValid() && dstField.CanSet() {
+					if !isZeroValue(srcField) {
+						dstField.Set(srcField)
+					}
+				}
+			}
+		}
 	}
-	if len(overrideConfig.BuildTools) > 0 {
-		p.BuildConfigs[index].BuildTools = overrideConfig.BuildTools
+
+	// List of all fields that need to be merged.
+	fields := []string{
+		"BuildSystem",
+		"CMakeGenerator",
+		"BuildTools",
+		"LibraryType",
+		"BuildShared",
+		"BuildStatic",
+		"CStandard",
+		"CXXStandard",
+		"Envs",
+		"Patches",
+		"BuildInSource",
+		"AutogenOptions",
+		"Options",
+		"Dependencies",
+		"DevDependencies",
+		"PreConfigure",
+		"FreeStyleConfigure",
+		"PostConfigure",
+		"PreBuild",
+		"FixBuild",
+		"FreeStyleBuild",
+		"PostBuild",
+		"PreInstall",
+		"FreeStyleInstall",
+		"PostInstall",
 	}
-	if overrideConfig.LibraryType != "" {
-		p.BuildConfigs[index].LibraryType = overrideConfig.LibraryType
+
+	for _, field := range fields {
+		mergeField(field)
 	}
-	if overrideConfig.CStandard != "" {
-		p.BuildConfigs[index].CStandard = overrideConfig.CStandard
-	}
-	if overrideConfig.CXXStandard != "" {
-		p.BuildConfigs[index].CXXStandard = overrideConfig.CXXStandard
-	}
-	if len(overrideConfig.Envs) > 0 {
-		p.BuildConfigs[index].Envs = overrideConfig.Envs
-	}
-	if overrideConfig.Patches != nil {
-		p.BuildConfigs[index].Patches = overrideConfig.Patches
-	}
-	if len(overrideConfig.AutogenOptions) > 0 {
-		p.BuildConfigs[index].AutogenOptions = overrideConfig.AutogenOptions
-	}
-	if len(overrideConfig.Options) > 0 {
-		p.BuildConfigs[index].Options = overrideConfig.Options
-	}
-	if len(overrideConfig.Dependencies) > 0 {
-		p.BuildConfigs[index].Dependencies = overrideConfig.Dependencies
-	}
-	if len(overrideConfig.DevDependencies) > 0 {
-		p.BuildConfigs[index].DevDependencies = overrideConfig.DevDependencies
-	}
-	if len(overrideConfig.PreConfigure) > 0 {
-		p.BuildConfigs[index].PreConfigure = overrideConfig.PreConfigure
-	}
-	if len(overrideConfig.PostConfigure) > 0 {
-		p.BuildConfigs[index].PostConfigure = overrideConfig.PostConfigure
-	}
-	if len(overrideConfig.PreBuild) > 0 {
-		p.BuildConfigs[index].PreBuild = overrideConfig.PreBuild
-	}
-	if len(overrideConfig.FixBuild) > 0 {
-		p.BuildConfigs[index].FixBuild = overrideConfig.FixBuild
-	}
-	if len(overrideConfig.PostBuild) > 0 {
-		p.BuildConfigs[index].PostBuild = overrideConfig.PostBuild
-	}
-	if len(overrideConfig.PreInstall) > 0 {
-		p.BuildConfigs[index].PreInstall = overrideConfig.PreInstall
-	}
-	if len(overrideConfig.PostInstall) > 0 {
-		p.BuildConfigs[index].PostInstall = overrideConfig.PostInstall
+}
+
+// isZeroValue checks if a reflect.Value is the zero value for its type
+func isZeroValue(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.String:
+		return v.String() == ""
+	case reflect.Slice, reflect.Array:
+		return v.Len() == 0
+	case reflect.Pointer:
+		return v.IsNil()
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
+	default:
+		return v.IsZero()
 	}
 }
