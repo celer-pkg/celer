@@ -232,9 +232,31 @@ func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool
 func (t treeCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
-	// Support port completion.
+	// Support port completion from global ports.
 	if fileio.PathExists(dirs.PortsDir) {
 		filepath.WalkDir(dirs.PortsDir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !d.IsDir() && strings.HasSuffix(d.Name(), ".toml") {
+				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
+				libVersion := filepath.Base(filepath.Dir(path))
+				nameVersion := libName + "@" + libVersion
+
+				if strings.HasPrefix(nameVersion, toComplete) {
+					suggestions = append(suggestions, nameVersion)
+				}
+			}
+
+			return nil
+		})
+	}
+
+	// Support port completion from project-specific ports.
+	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, t.celer.Project().GetName())
+	if fileio.PathExists(projectPortsDir) {
+		filepath.WalkDir(projectPortsDir, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}

@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -28,7 +29,7 @@ func (r reverseCmd) Command(celer *configs.Celer) *cobra.Command {
 		Short: "Query libraries that depend on the specified package.",
 		Long: `Query libraries that depend on the specified package (reverse dependency lookup).
 
-This command searches through all installed packages to find which ones depend on
+This command searches through all packages to find which packages depend on
 the specified package. Useful for impact analysis and dependency management.
 
 Examples:
@@ -162,18 +163,14 @@ func (r reverseCmd) validatePackageName(packageName string) error {
 // hasDependency checks if a port has the target package as dependency
 func (r reverseCmd) hasDependency(port configs.Port, target string) bool {
 	// Check regular dependencies
-	for _, dependency := range port.MatchedConfig.Dependencies {
-		if dependency == target {
-			return true
-		}
+	if slices.Contains(port.MatchedConfig.Dependencies, target) {
+		return true
 	}
 
 	// Check dev dependencies if dev mode is enabled
 	if r.dev {
-		for _, dependency := range port.MatchedConfig.DevDependencies {
-			if dependency == target {
-				return true
-			}
+		if slices.Contains(port.MatchedConfig.DevDependencies, target) {
+			return true
 		}
 	}
 

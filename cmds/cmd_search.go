@@ -50,8 +50,14 @@ func (s searchCmd) Command(celer *configs.Celer) *cobra.Command {
 
 func (s searchCmd) search(pattern string) ([]string, error) {
 	var results []string
-	if fileio.PathExists(dirs.PortsDir) {
-		if err := filepath.WalkDir(dirs.PortsDir, func(path string, entity fs.DirEntry, err error) error {
+
+	// Helper function to search in a directory.
+	searchInDir := func(dir string) error {
+		if !fileio.PathExists(dir) {
+			return nil
+		}
+
+		return filepath.WalkDir(dir, func(path string, entity fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
@@ -89,17 +95,51 @@ func (s searchCmd) search(pattern string) ([]string, error) {
 			}
 
 			return nil
-		}); err != nil {
-			return nil, err
-		}
+		})
 	}
+
+	// Search in global ports.
+	if err := searchInDir(dirs.PortsDir); err != nil {
+		return nil, err
+	}
+
+	// Search in project-specific ports.
+	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, s.celer.Project().GetName())
+	if err := searchInDir(projectPortsDir); err != nil {
+		return nil, err
+	}
+
 	return results, nil
 }
 
 func (s searchCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
+
+	// Completion from global ports.
 	if fileio.PathExists(dirs.PortsDir) {
 		filepath.WalkDir(dirs.PortsDir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !d.IsDir() && d.Name() == "port.toml" {
+				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
+				libVersion := filepath.Base(filepath.Dir(path))
+				nameVersion := libName + "@" + libVersion
+
+				if strings.HasPrefix(nameVersion, toComplete) {
+					suggestions = append(suggestions, nameVersion)
+				}
+			}
+
+			return nil
+		})
+	}
+
+	// Completion from project-specific ports.
+	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, s.celer.Project().GetName())
+	if fileio.PathExists(projectPortsDir) {
+		filepath.WalkDir(projectPortsDir, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
