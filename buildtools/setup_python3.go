@@ -3,6 +3,7 @@ package buildtools
 import (
 	"celer/pkgs/cmd"
 	"celer/pkgs/env"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
@@ -139,7 +140,9 @@ func (p *python3) findInstalledVersion() error {
 }
 
 func (p python3) checkIfInstalled(target string) (bool, error) {
-	command := fmt.Sprintf("pip show %s >nul 2>&1 && echo yes || echo no", target)
+	// Redirect output to null device.
+	nullDevice := expr.If(runtime.GOOS == "windows", "nul", "/dev/null")
+	command := fmt.Sprintf("pip show %s >%s 2>&1 && echo yes || echo no", target, nullDevice)
 	executor := cmd.NewExecutor("", command)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
