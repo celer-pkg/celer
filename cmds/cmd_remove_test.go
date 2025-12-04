@@ -3,8 +3,12 @@ package cmds
 import (
 	"celer/configs"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
+	"celer/pkgs/fileio"
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -368,4 +372,134 @@ func TestRemoveCmd_Execute_ValidationError(t *testing.T) {
 	if !strings.Contains(err.Error(), "invalid package names") {
 		t.Errorf("Expected validation error, got: %v", err)
 	}
+}
+
+func TestRemoveCmd_Default(t *testing.T) {
+	installedPort := installForTestRemove(t, "glog@0.6.0", configs.RemoveOptions{})
+	if installed, err := installedPort.Installed(); err != nil {
+		t.Fatalf("failed to check installation status of glog@0.6.0: %v", err)
+	} else if installed {
+		t.Fatal("glog@0.6.0 should have been removed")
+	}
+}
+
+func TestRemoveCmd_BuildCache(t *testing.T) {
+	installedPort := installForTestRemove(t, "glog@0.6.0", configs.RemoveOptions{
+		BuildCache: true,
+	})
+	if installed, err := installedPort.Installed(); err != nil {
+		t.Fatalf("failed to check installation status of glog@0.6.0: %v", err)
+	} else if installed {
+		t.Fatal("glog@0.6.0 should have been removed")
+	}
+
+	if fileio.PathExists(installedPort.MatchedConfig.PortConfig.BuildDir) {
+		t.Fatalf("build cache for glog@0.6.0 should have been removed")
+	}
+}
+
+func TestRemoveCmd_Purge(t *testing.T) {
+	installedPort := installForTestRemove(t, "glog@0.6.0", configs.RemoveOptions{
+		Purge: true,
+	})
+
+	// Check if still installed.
+	if installed, err := installedPort.Installed(); err != nil {
+		t.Fatalf("failed to check installation status of glog@0.6.0: %v", err)
+	} else if installed {
+		t.Fatal("glog@0.6.0 should have been removed")
+	}
+
+	// Check if package files are removed.
+	if fileio.PathExists(installedPort.PackageDir) {
+		t.Fatalf("package files for glog@0.6.0 should have been purged")
+	}
+}
+
+func TestRemoveCmd_Recurse(t *testing.T) {
+	installedPort := installForTestRemove(t, "glog@0.6.0", configs.RemoveOptions{
+		Recurse: true,
+	})
+
+	// Check if still installed.
+	if installed, err := installedPort.Installed(); err != nil {
+		t.Fatalf("failed to check installation status of glog@0.6.0: %v", err)
+	} else if installed {
+		t.Fatal("glog@0.6.0 should have been removed")
+	}
+
+	// Check if dependency gflags@2.2.2 is also removed.
+	gflagsPort := configs.Port{}
+	if err := gflagsPort.Init(installedPort.MatchedConfig.Ctx, "gflags@2.2.2"); err != nil {
+		t.Fatalf("failed to initialize gflags@2.2.2 port: %v", err)
+	}
+	if installed, err := gflagsPort.Installed(); err != nil {
+		t.Fatalf("failed to check installation status of gflags@2.2.2: %v", err)
+	} else if installed {
+		t.Fatal("gflags@2.2.2 should have been removed")
+	}
+}
+
+func installForTestRemove(t *testing.T, nameVersion string, option configs.RemoveOptions) configs.Port {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Cleanup workspace.
+	check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+	check(os.RemoveAll(dirs.TmpDir))
+	check(os.RemoveAll(dirs.TestCacheDir))
+	check(os.RemoveAll(dirs.ConfDir))
+	check(os.RemoveAll(dirs.PackagesDir))
+	check(os.RemoveAll(dirs.InstalledDir))
+
+	var (
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
+		project         = "project_test_remove"
+	)
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+	check(celer.SetPlatform(platform))
+	check(celer.SetProject(project))
+	check(celer.Setup())
+
+	var (
+		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())
+		port          configs.Port
+		options       configs.InstallOptions
+	)
+
+	check(port.Init(celer, nameVersion))
+	check(port.InstallFromSource(options))
+
+	// Check if package dir exists.
+	packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
+	if !fileio.PathExists(packageDir) {
+		t.Fatalf("package dir cannot found : %s", packageDir)
+	}
+
+	// Check if installed.
+	installed, err := port.Installed()
+	check(err)
+	if !installed {
+		t.Fatal("package is not installed")
+	}
+
+	// Clean up.
+	// removeOptions := configs.RemoveOptions{
+	// 	Purge:      true,
+	// 	Recurse:    true,
+	// 	BuildCache: true,
+	// }
+	check(port.Remove(option))
+	return port
 }

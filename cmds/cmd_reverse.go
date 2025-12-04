@@ -182,7 +182,7 @@ func (r *reverseCmd) displayResults(libraries []string) {
 	color.Println(color.Cyan, "[Reverse Dependencies]:")
 	if len(libraries) > 0 {
 		for _, lib := range libraries {
-			color.Println(color.Green, lib)
+			fmt.Println(lib)
 		}
 		color.Printf(color.Gray, "\nTotal: %d package(s)\n", len(libraries))
 	} else {
