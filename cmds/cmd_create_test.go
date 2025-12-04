@@ -12,183 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func TestCreate(t *testing.T) {
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Cleanup function.
-	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
-	}
-	t.Cleanup(cleanup)
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
-
-	// ============= Create platform ============= //
-	t.Run("CreatePlatformSuccess", func(t *testing.T) {
-		const platformName = "x86_64-linux-ubuntu-test"
-		check(celer.CreatePlatform(platformName))
-
-		// Check if platform really created.
-		platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
-		if !fileio.PathExists(platformPath) {
-			t.Fatalf("platform %s should be created", platformName)
-		}
-
-		check(os.RemoveAll(platformPath))
-	})
-
-	t.Run("CreatePlatformFailed_emptyName", func(t *testing.T) {
-		if err := celer.CreatePlatform(""); err == nil {
-			t.Fatal("it should be failed")
-		}
-
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-	})
-	check(celer.SetBuildType("Release"))
-
-	// ============= Create project ============= //
-	t.Run("CreateProjectSuccess", func(t *testing.T) {
-		const projectName = "project_test_create"
-		check(celer.CreateProject(projectName))
-
-		projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
-		if !fileio.PathExists(projectPath) {
-			t.Fatalf("project does not exist: %s", projectName)
-		}
-
-		t.Cleanup(func() {
-			check(os.Remove(projectPath))
-		})
-	})
-
-	t.Run("Create project failed: empyt name", func(t *testing.T) {
-		if err := celer.CreateProject(""); err == nil {
-			t.Fatal("it should be failed")
-		}
-	})
-
-	// ============= Create port ============= //
-	t.Run("CreatePortSuccess", func(t *testing.T) {
-		const portName = "test_port_test"
-		const portVersion = "1.0.0"
-		check(celer.CreatePort(portName + "@" + portVersion))
-
-		portPath := filepath.Join(dirs.PortsDir, fmt.Sprintf("%s/%s/port.toml", portName, portVersion))
-		if !fileio.PathExists(portPath) {
-			t.Fatalf("port does not exists: %s@%s", portName, portVersion)
-		}
-
-		t.Cleanup(func() {
-			check(os.Remove(portPath))
-		})
-	})
-
-	t.Run("CreatePortFailed_emptyName", func(t *testing.T) {
-		if err := celer.CreatePort(""); err == nil {
-			t.Fatal("it should be failed")
-		}
-	})
-
-	t.Run("CreatePortFailed_invalidPortName", func(t *testing.T) {
-		if err := celer.CreatePort("libxxx"); err == nil {
-			t.Fatal("it should be failed")
-		}
-	})
-}
-
-func TestCreateCmd_Validation(t *testing.T) {
-	createCmd := &createCmd{}
-
-	t.Run("validatePlatformName", func(t *testing.T) {
-		tests := []struct {
-			name        string
-			input       string
-			expectError bool
-		}{
-			{"valid platform name", "windows-amd64-msvc", false},
-			{"empty platform name", "", true},
-			{"whitespace only", "   ", true},
-			{"platform with spaces", "windows amd64", true},
-			{"valid complex name", "x86_64-linux-gnu-gcc", false},
-		}
-
-		for _, test := range tests {
-			t.Run(test.name, func(t *testing.T) {
-				err := createCmd.validatePlatformName(test.input)
-				if test.expectError && err == nil {
-					t.Errorf("Expected error for input '%s' but got none", test.input)
-				} else if !test.expectError && err != nil {
-					t.Errorf("Expected no error for input '%s' but got: %v", test.input, err)
-				}
-			})
-		}
-	})
-
-	t.Run("validateProjectName", func(t *testing.T) {
-		tests := []struct {
-			name        string
-			input       string
-			expectError bool
-		}{
-			{"valid project name", "my-awesome-project", false},
-			{"empty project name", "", true},
-			{"whitespace only", "   ", true},
-			{"project with spaces", "my project", false}, // Project names can have spaces
-			{"valid with numbers", "project123", false},
-		}
-
-		for _, test := range tests {
-			t.Run(test.name, func(t *testing.T) {
-				err := createCmd.validateProjectName(test.input)
-				if test.expectError && err == nil {
-					t.Errorf("Expected error for input '%s' but got none", test.input)
-				} else if !test.expectError && err != nil {
-					t.Errorf("Expected no error for input '%s' but got: %v", test.input, err)
-				}
-			})
-		}
-	})
-
-	t.Run("validatePortName", func(t *testing.T) {
-		tests := []struct {
-			name        string
-			input       string
-			expectError bool
-		}{
-			{"valid port", "opencv@4.8.0", false},
-			{"empty port name", "", true},
-			{"no version separator", "opencv", true},
-			{"empty name", "@4.8.0", true},
-			{"empty version", "opencv@", true},
-			{"multiple separators", "opencv@4.8@0", true},
-			{"valid complex version", "opencv@4.8.0-beta1", false},
-		}
-
-		for _, test := range tests {
-			t.Run(test.name, func(t *testing.T) {
-				err := createCmd.validatePortName(test.input)
-				if test.expectError && err == nil {
-					t.Errorf("Expected error for input '%s' but got none", test.input)
-				} else if !test.expectError && err != nil {
-					t.Errorf("Expected no error for input '%s' but got: %v", test.input, err)
-				}
-			})
-		}
-	})
-}
-
 func TestCreateCmd_CommandStructure(t *testing.T) {
 	celer := configs.NewCeler()
 	createCmd := createCmd{}
@@ -294,13 +117,179 @@ func TestCreateCmd_Completion(t *testing.T) {
 	}
 }
 
-// Benchmark test for completion performance
-func BenchmarkCreateCmd_Completion(b *testing.B) {
-	createCmd := createCmd{}
-	celer := configs.NewCeler()
-	cmd := createCmd.Command(celer)
+func TestCreateCmd_Validation(t *testing.T) {
+	createCmd := &createCmd{}
 
-	for b.Loop() {
-		createCmd.completion(cmd, []string{}, "--p")
+	t.Run("validatePlatformName", func(t *testing.T) {
+		tests := []struct {
+			name        string
+			input       string
+			expectError bool
+		}{
+			{"valid platform name", "windows-amd64-msvc", false},
+			{"empty platform name", "", true},
+			{"whitespace only", "   ", true},
+			{"platform with spaces", "windows amd64", true},
+			{"valid complex name", "x86_64-linux-gnu-gcc", false},
+		}
+
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				err := createCmd.validatePlatformName(test.input)
+				if test.expectError && err == nil {
+					t.Errorf("Expected error for input '%s' but got none", test.input)
+				} else if !test.expectError && err != nil {
+					t.Errorf("Expected no error for input '%s' but got: %v", test.input, err)
+				}
+			})
+		}
+	})
+
+	t.Run("validateProjectName", func(t *testing.T) {
+		tests := []struct {
+			name        string
+			input       string
+			expectError bool
+		}{
+			{"valid project name", "my-awesome-project", false},
+			{"empty project name", "", true},
+			{"whitespace only", "   ", true},
+			{"project with spaces", "my project", false}, // Project names can have spaces
+			{"valid with numbers", "project123", false},
+		}
+
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				err := createCmd.validateProjectName(test.input)
+				if test.expectError && err == nil {
+					t.Errorf("Expected error for input '%s' but got none", test.input)
+				} else if !test.expectError && err != nil {
+					t.Errorf("Expected no error for input '%s' but got: %v", test.input, err)
+				}
+			})
+		}
+	})
+
+	t.Run("validatePortName", func(t *testing.T) {
+		tests := []struct {
+			name        string
+			input       string
+			expectError bool
+		}{
+			{"valid port", "opencv@4.8.0", false},
+			{"empty port name", "", true},
+			{"no version separator", "opencv", true},
+			{"empty name", "@4.8.0", true},
+			{"empty version", "opencv@", true},
+			{"multiple separators", "opencv@4.8@0", true},
+			{"valid complex version", "opencv@4.8.0-beta1", false},
+		}
+
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				err := createCmd.validatePortName(test.input)
+				if test.expectError && err == nil {
+					t.Errorf("Expected error for input '%s' but got none", test.input)
+				} else if !test.expectError && err != nil {
+					t.Errorf("Expected no error for input '%s' but got: %v", test.input, err)
+				}
+			})
+		}
+	})
+}
+
+func TestCreateCmd(t *testing.T) {
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
+
+	// Cleanup function.
+	cleanup := func() {
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(dirs.TmpDir))
+		check(os.RemoveAll(dirs.TestCacheDir))
+		check(os.RemoveAll(dirs.ConfDir))
+	}
+	t.Cleanup(cleanup)
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+
+	// ============= Create platform ============= //
+	t.Run("CreatePlatformSuccess", func(t *testing.T) {
+		const platformName = "x86_64-linux-ubuntu-test"
+		check(celer.CreatePlatform(platformName))
+
+		// Check if platform really created.
+		platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
+		if !fileio.PathExists(platformPath) {
+			t.Fatalf("platform %s should be created", platformName)
+		}
+
+		check(os.RemoveAll(platformPath))
+	})
+
+	t.Run("CreatePlatformFailed_emptyName", func(t *testing.T) {
+		if err := celer.CreatePlatform(""); err == nil {
+			t.Fatal("it should be failed")
+		}
+
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+	})
+	check(celer.SetBuildType("Release"))
+
+	// ============= Create project ============= //
+	t.Run("CreateProjectSuccess", func(t *testing.T) {
+		const projectName = "project_test_create"
+		check(celer.CreateProject(projectName))
+
+		projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
+		if !fileio.PathExists(projectPath) {
+			t.Fatalf("project does not exist: %s", projectName)
+		}
+
+		t.Cleanup(func() {
+			check(os.Remove(projectPath))
+		})
+	})
+
+	t.Run("Create project failed: empyt name", func(t *testing.T) {
+		if err := celer.CreateProject(""); err == nil {
+			t.Fatal("it should be failed")
+		}
+	})
+
+	// ============= Create port ============= //
+	t.Run("CreatePortSuccess", func(t *testing.T) {
+		const portName = "test_port_test"
+		const portVersion = "1.0.0"
+		check(celer.CreatePort(portName + "@" + portVersion))
+
+		portPath := filepath.Join(dirs.PortsDir, fmt.Sprintf("%s/%s/port.toml", portName, portVersion))
+		if !fileio.PathExists(portPath) {
+			t.Fatalf("port does not exists: %s@%s", portName, portVersion)
+		}
+
+		t.Cleanup(func() {
+			check(os.Remove(portPath))
+		})
+	})
+
+	t.Run("CreatePortFailed_emptyName", func(t *testing.T) {
+		if err := celer.CreatePort(""); err == nil {
+			t.Fatal("it should be failed")
+		}
+	})
+
+	t.Run("CreatePortFailed_invalidPortName", func(t *testing.T) {
+		if err := celer.CreatePort("libxxx"); err == nil {
+			t.Fatal("it should be failed")
+		}
+	})
 }

@@ -16,7 +16,7 @@ type createCmd struct {
 	port     string
 }
 
-func (c createCmd) Command(celer *configs.Celer) *cobra.Command {
+func (c *createCmd) Command(celer *configs.Celer) *cobra.Command {
 	c.celer = celer
 	command := &cobra.Command{
 		Use:   "create",
@@ -51,7 +51,7 @@ EXAMPLES:
 	return command
 }
 
-func (c createCmd) createPlatform(platformName string) {
+func (c *createCmd) createPlatform(platformName string) {
 	if err := c.celer.CreatePlatform(platformName); err != nil {
 		configs.PrintError(err, "%s could not be created.", platformName)
 		os.Exit(1)
@@ -60,7 +60,7 @@ func (c createCmd) createPlatform(platformName string) {
 	configs.PrintSuccess("%s is created, please proceed with its refinement.", platformName)
 }
 
-func (c createCmd) createProject(projectName string) {
+func (c *createCmd) createProject(projectName string) {
 	if err := c.celer.CreateProject(projectName); err != nil {
 		configs.PrintError(err, "%s could not be created.", projectName)
 		os.Exit(1)
@@ -69,7 +69,7 @@ func (c createCmd) createProject(projectName string) {
 	configs.PrintSuccess("%s is created, please proceed with its refinement.", projectName)
 }
 
-func (c createCmd) createPort(nameVersion string) {
+func (c *createCmd) createPort(nameVersion string) {
 	if err := c.celer.CreatePort(nameVersion); err != nil {
 		configs.PrintError(err, "%s could not be created.", nameVersion)
 		os.Exit(1)
@@ -158,7 +158,7 @@ func (c *createCmd) validatePortName(nameVersion string) error {
 	return nil
 }
 
-func (c createCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *createCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	for _, flag := range []string{"--platform", "--project", "--port"} {
 		if strings.HasPrefix(flag, toComplete) {

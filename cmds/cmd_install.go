@@ -26,7 +26,7 @@ type installCmd struct {
 	verbose    bool
 }
 
-func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
+func (i *installCmd) Command(celer *configs.Celer) *cobra.Command {
 	i.celer = celer
 	command := &cobra.Command{
 		Use:   "install",
@@ -127,7 +127,7 @@ func (i *installCmd) validateAndCleanInput(nameVersion string) (string, error) {
 	return name + "@" + version, nil
 }
 
-func (i installCmd) install(nameVersion string) {
+func (i *installCmd) install(nameVersion string) {
 	// Overwrite global config.
 	if i.jobs != i.celer.Global.Jobs {
 		i.celer.Global.Jobs = i.jobs
@@ -203,7 +203,7 @@ func (i installCmd) install(nameVersion string) {
 	}
 }
 
-func (i installCmd) buildSuggestions(suggestions *[]string, portDir string, toComplete string) {
+func (i *installCmd) buildSuggestions(suggestions *[]string, portDir string, toComplete string) {
 	err := filepath.WalkDir(portDir, func(path string, entity fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -227,7 +227,7 @@ func (i installCmd) buildSuggestions(suggestions *[]string, portDir string, toCo
 	}
 }
 
-func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (i *installCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	if fileio.PathExists(dirs.PortsDir) {

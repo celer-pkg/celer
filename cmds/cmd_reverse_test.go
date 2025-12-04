@@ -11,8 +11,49 @@ import (
 	"testing"
 )
 
-// TestReverse_ValidatePackageName tests input validation
-func TestReverse_ValidatePackageName(t *testing.T) {
+func TestReverseCmd_CommandStructure(t *testing.T) {
+	reverseCmd := reverseCmd{}
+	celer := configs.NewCeler()
+	cmd := reverseCmd.Command(celer)
+
+	// Test command basic properties.
+	if cmd.Use != "reverse" {
+		t.Errorf("Expected Use to be 'reverse', got '%s'", cmd.Use)
+	}
+
+	if cmd.Short == "" {
+		t.Error("Short description should not be empty")
+	}
+
+	// Test flags.
+	devFlag := cmd.Flags().Lookup("dev")
+	if devFlag == nil {
+		t.Error("--dev flag should be defined")
+	} else {
+		if devFlag.Shorthand != "d" {
+			t.Errorf("Expected dev flag shorthand to be 'd', got '%s'", devFlag.Shorthand)
+		}
+	}
+}
+
+func TestReverseCmd_Completion(t *testing.T) {
+	cmd := reverseCmd{}
+
+	suggestions, directive := cmd.completion(nil, []string{}, "test")
+
+	// Should return no file completion directive (cobra.ShellCompDirectiveNoFileComp)
+	// Note: The actual value might differ, so we just check it's a valid directive
+	if directive < 0 {
+		t.Errorf("expected valid completion directive, got %d", directive)
+	}
+
+	// Suggestions might be empty if no ports exist
+	if suggestions == nil {
+		t.Error("expected non-nil suggestions slice")
+	}
+}
+
+func TestReverseCmd_ValidatePackageName(t *testing.T) {
 	cmd := reverseCmd{}
 
 	tests := []struct {
@@ -40,8 +81,7 @@ func TestReverse_ValidatePackageName(t *testing.T) {
 	}
 }
 
-// TestReverse_EmptyPorts tests behavior when no ports directory exists
-func TestReverse_EmptyPorts(t *testing.T) {
+func TestReverseCmd_EmptyPorts(t *testing.T) {
 	// Create a temporary directory structure without ports
 	tempDir := t.TempDir()
 	originalPortsDir := dirs.PortsDir
@@ -62,7 +102,7 @@ func TestReverse_EmptyPorts(t *testing.T) {
 	}
 }
 
-func TestReverse_Without_Dev(t *testing.T) {
+func TestReverseCmd_Without_Dev(t *testing.T) {
 	// Check error.
 	check := func(err error) {
 		t.Helper()
@@ -124,7 +164,7 @@ func TestReverse_Without_Dev(t *testing.T) {
 	}
 }
 
-func TestReverse_With_Dev(t *testing.T) {
+func TestReverseCmd_With_Dev(t *testing.T) {
 	// Check error.
 	check := func(err error) {
 		t.Helper()
@@ -193,8 +233,7 @@ func TestReverse_With_Dev(t *testing.T) {
 	}
 }
 
-// TestReverse_HasDependency tests the dependency checking logic
-func TestReverse_HasDependency(t *testing.T) {
+func TestReverseCmd_HasDependency(t *testing.T) {
 	cmd := reverseCmd{}
 
 	// Mock port with dependencies
@@ -227,23 +266,5 @@ func TestReverse_HasDependency(t *testing.T) {
 
 	if !cmd.hasDependency(port, "dep1@1.0.0") {
 		t.Error("expected to find regular dependency in dev mode")
-	}
-}
-
-// TestReverse_Completion tests the autocompletion functionality
-func TestReverse_Completion(t *testing.T) {
-	cmd := reverseCmd{}
-
-	suggestions, directive := cmd.completion(nil, []string{}, "test")
-
-	// Should return no file completion directive (cobra.ShellCompDirectiveNoFileComp)
-	// Note: The actual value might differ, so we just check it's a valid directive
-	if directive < 0 {
-		t.Errorf("expected valid completion directive, got %d", directive)
-	}
-
-	// Suggestions might be empty if no ports exist
-	if suggestions == nil {
-		t.Error("expected non-nil suggestions slice")
 	}
 }

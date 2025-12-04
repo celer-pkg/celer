@@ -16,7 +16,7 @@ type initCmd struct {
 	force  bool
 }
 
-func (i initCmd) Command(celer *configs.Celer) *cobra.Command {
+func (i *initCmd) Command(celer *configs.Celer) *cobra.Command {
 	i.celer = celer
 	command := &cobra.Command{
 		Use:   "init",
@@ -90,7 +90,7 @@ func (i *initCmd) validateURL(url string) error {
 	return nil
 }
 
-func (i initCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (i *initCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Provide flag completion

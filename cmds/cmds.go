@@ -45,20 +45,20 @@ var rootCmd = &cobra.Command{
 // Execute register all commands and executes the command.
 func Execute() error {
 	commands := []Command{
-		versionCmd{},
-		initCmd{},
-		updateCmd{},
-		createCmd{},
-		configureCmd{},
-		installCmd{},
-		removeCmd{},
-		integrateCmd{},
-		deployCmd{},
-		treeCmd{},
-		cleanCmd{},
-		autoremoveCmd{},
-		reverseCmd{},
-		searchCmd{},
+		&versionCmd{},
+		&initCmd{},
+		&updateCmd{},
+		&createCmd{},
+		&configureCmd{},
+		&installCmd{},
+		&removeCmd{},
+		&integrateCmd{},
+		&deployCmd{},
+		&treeCmd{},
+		&cleanCmd{},
+		&autoremoveCmd{},
+		&reverseCmd{},
+		&searchCmd{},
 	}
 
 	// Create celer but init it in command.

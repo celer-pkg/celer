@@ -14,6 +14,152 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func TestConfigureCmd_CommandStructure(t *testing.T) {
+	configCmd := configureCmd{}
+	celer := configs.NewCeler()
+	cmd := configCmd.Command(celer)
+
+	// Test command basic properties
+	if cmd.Use != "configure" {
+		t.Errorf("Expected Use to be 'configure', got '%s'", cmd.Use)
+	}
+
+	if cmd.Short == "" {
+		t.Error("Short description should not be empty")
+	}
+
+	// Test flags existence
+	expectedFlags := []struct {
+		name      string
+		shorthand string
+	}{
+		{"platform", ""},
+		{"project", ""},
+		{"build-type", ""},
+		{"jobs", ""},
+		{"offline", ""},
+		{"verbose", ""},
+		{"binary-cache-dir", ""},
+		{"binary-cache-token", ""},
+		{"proxy-host", ""},
+		{"proxy-port", ""},
+		{"ccache-dir", ""},
+		{"ccache-maxsize", ""},
+		{"ccache-compress", ""},
+	}
+
+	for _, ef := range expectedFlags {
+		flag := cmd.Flags().Lookup(ef.name)
+		if flag == nil {
+			t.Errorf("--%s flag should be defined", ef.name)
+		}
+	}
+}
+
+func TestConfigureCmd_Completion(t *testing.T) {
+	configCmd := configureCmd{}
+	celer := configs.NewCeler()
+	cmd := configCmd.Command(celer)
+
+	tests := []struct {
+		name       string
+		toComplete string
+		expected   []string
+	}{
+		{
+			name:       "complete_platform_flag",
+			toComplete: "--plat",
+			expected:   []string{"--platform"},
+		},
+		{
+			name:       "complete_project_flag",
+			toComplete: "--proj",
+			expected:   []string{"--project"},
+		},
+		{
+			name:       "complete_build_type_flag",
+			toComplete: "--build",
+			expected:   []string{"--build-type"},
+		},
+		{
+			name:       "complete_jobs_flag",
+			toComplete: "--job",
+			expected:   []string{"--jobs"},
+		},
+		{
+			name:       "complete_offline_flag",
+			toComplete: "--off",
+			expected:   []string{"--offline"},
+		},
+		{
+			name:       "complete_verbose_flag",
+			toComplete: "--verb",
+			expected:   []string{"--verbose"},
+		},
+		{
+			name:       "complete_binary_cache_dir_flag",
+			toComplete: "--binary-cache-d",
+			expected:   []string{"--binary-cache-dir"},
+		},
+		{
+			name:       "complete_binary_cache_token_flag",
+			toComplete: "--binary-cache-t",
+			expected:   []string{"--binary-cache-token"},
+		},
+		{
+			name:       "complete_proxy_host_flag",
+			toComplete: "--proxy-h",
+			expected:   []string{"--proxy-host"},
+		},
+		{
+			name:       "complete_proxy_port_flag",
+			toComplete: "--proxy-p",
+			expected:   []string{"--proxy-port"},
+		},
+		{
+			name:       "complete_ccache_dir_flag",
+			toComplete: "--ccache-d",
+			expected:   []string{"--ccache-dir"},
+		},
+		{
+			name:       "complete_ccache_maxsize_flag",
+			toComplete: "--ccache-m",
+			expected:   []string{"--ccache-maxsize"},
+		},
+		{
+			name:       "complete_ccache_compress_flag",
+			toComplete: "--ccache-c",
+			expected:   []string{"--ccache-compress"},
+		},
+		{
+			name:       "no_completion_for_random",
+			toComplete: "--random",
+			expected:   []string{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			suggestions, directive := configCmd.completion(cmd, []string{}, test.toComplete)
+
+			if directive != cobra.ShellCompDirectiveNoFileComp {
+				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
+			}
+
+			if len(suggestions) != len(test.expected) {
+				t.Errorf("Expected %d suggestions, got %d: %v", len(test.expected), len(suggestions), suggestions)
+				return
+			}
+
+			for i, expected := range test.expected {
+				if i < len(suggestions) && suggestions[i] != expected {
+					t.Errorf("Expected suggestion[%d] to be %s, got %s", i, expected, suggestions[i])
+				}
+			}
+		})
+	}
+}
+
 func TestConfigure_Platform(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
@@ -893,151 +1039,5 @@ func TestConfigure_Jobs_Zero(t *testing.T) {
 
 	if err := celer.SetJobs(0); err == nil {
 		t.Fatal("jobs cannot be 0")
-	}
-}
-
-func TestConfigureCmd_CommandStructure(t *testing.T) {
-	configCmd := configureCmd{}
-	celer := configs.NewCeler()
-	cmd := configCmd.Command(celer)
-
-	// Test command basic properties
-	if cmd.Use != "configure" {
-		t.Errorf("Expected Use to be 'configure', got '%s'", cmd.Use)
-	}
-
-	if cmd.Short == "" {
-		t.Error("Short description should not be empty")
-	}
-
-	// Test flags existence
-	expectedFlags := []struct {
-		name      string
-		shorthand string
-	}{
-		{"platform", ""},
-		{"project", ""},
-		{"build-type", ""},
-		{"jobs", ""},
-		{"offline", ""},
-		{"verbose", ""},
-		{"binary-cache-dir", ""},
-		{"binary-cache-token", ""},
-		{"proxy-host", ""},
-		{"proxy-port", ""},
-		{"ccache-dir", ""},
-		{"ccache-maxsize", ""},
-		{"ccache-compress", ""},
-	}
-
-	for _, ef := range expectedFlags {
-		flag := cmd.Flags().Lookup(ef.name)
-		if flag == nil {
-			t.Errorf("--%s flag should be defined", ef.name)
-		}
-	}
-}
-
-func TestConfigureCmd_Completion(t *testing.T) {
-	configCmd := configureCmd{}
-	celer := configs.NewCeler()
-	cmd := configCmd.Command(celer)
-
-	tests := []struct {
-		name       string
-		toComplete string
-		expected   []string
-	}{
-		{
-			name:       "complete_platform_flag",
-			toComplete: "--plat",
-			expected:   []string{"--platform"},
-		},
-		{
-			name:       "complete_project_flag",
-			toComplete: "--proj",
-			expected:   []string{"--project"},
-		},
-		{
-			name:       "complete_build_type_flag",
-			toComplete: "--build",
-			expected:   []string{"--build-type"},
-		},
-		{
-			name:       "complete_jobs_flag",
-			toComplete: "--job",
-			expected:   []string{"--jobs"},
-		},
-		{
-			name:       "complete_offline_flag",
-			toComplete: "--off",
-			expected:   []string{"--offline"},
-		},
-		{
-			name:       "complete_verbose_flag",
-			toComplete: "--verb",
-			expected:   []string{"--verbose"},
-		},
-		{
-			name:       "complete_binary_cache_dir_flag",
-			toComplete: "--binary-cache-d",
-			expected:   []string{"--binary-cache-dir"},
-		},
-		{
-			name:       "complete_binary_cache_token_flag",
-			toComplete: "--binary-cache-t",
-			expected:   []string{"--binary-cache-token"},
-		},
-		{
-			name:       "complete_proxy_host_flag",
-			toComplete: "--proxy-h",
-			expected:   []string{"--proxy-host"},
-		},
-		{
-			name:       "complete_proxy_port_flag",
-			toComplete: "--proxy-p",
-			expected:   []string{"--proxy-port"},
-		},
-		{
-			name:       "complete_ccache_dir_flag",
-			toComplete: "--ccache-d",
-			expected:   []string{"--ccache-dir"},
-		},
-		{
-			name:       "complete_ccache_maxsize_flag",
-			toComplete: "--ccache-m",
-			expected:   []string{"--ccache-maxsize"},
-		},
-		{
-			name:       "complete_ccache_compress_flag",
-			toComplete: "--ccache-c",
-			expected:   []string{"--ccache-compress"},
-		},
-		{
-			name:       "no_completion_for_random",
-			toComplete: "--random",
-			expected:   []string{},
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := configCmd.completion(cmd, []string{}, test.toComplete)
-
-			if directive != cobra.ShellCompDirectiveNoFileComp {
-				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
-			}
-
-			if len(suggestions) != len(test.expected) {
-				t.Errorf("Expected %d suggestions, got %d: %v", len(test.expected), len(suggestions), suggestions)
-				return
-			}
-
-			for i, expected := range test.expected {
-				if i < len(suggestions) && suggestions[i] != expected {
-					t.Errorf("Expected suggestion[%d] to be %s, got %s", i, expected, suggestions[i])
-				}
-			}
-		})
 	}
 }

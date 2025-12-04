@@ -13,6 +13,99 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func TestInitCmd_CommandStructure(t *testing.T) {
+	initCmd := initCmd{}
+	celer := configs.NewCeler()
+	cmd := initCmd.Command(celer)
+
+	// Test command basic properties.
+	if cmd.Use != "init" {
+		t.Errorf("Expected Use to be 'init', got '%s'", cmd.Use)
+	}
+
+	if cmd.Short == "" {
+		t.Error("Short description should not be empty")
+	}
+
+	// Test flags.
+	urlFlag := cmd.Flags().Lookup("url")
+	if urlFlag == nil {
+		t.Error("--url flag should be defined")
+	} else {
+		if urlFlag.Shorthand != "u" {
+			t.Errorf("Expected url flag shorthand to be 'u', got '%s'", urlFlag.Shorthand)
+		}
+	}
+
+	branchFlag := cmd.Flags().Lookup("branch")
+	if branchFlag == nil {
+		t.Error("--branch flag should be defined")
+	} else {
+		if branchFlag.Shorthand != "b" {
+			t.Errorf("Expected branch flag shorthand to be 'b', got '%s'", branchFlag.Shorthand)
+		}
+	}
+}
+
+func TestInitCmd_Completion(t *testing.T) {
+	initCmd := initCmd{}
+	celer := configs.NewCeler()
+	cmd := initCmd.Command(celer)
+
+	tests := []struct {
+		name       string
+		toComplete string
+		expected   []string
+	}{
+		{
+			name:       "complete_url_flag",
+			toComplete: "--u",
+			expected:   []string{"--url"},
+		},
+		{
+			name:       "complete_url_short_flag",
+			toComplete: "-u",
+			expected:   []string{"-u"},
+		},
+		{
+			name:       "complete_branch_flag",
+			toComplete: "--b",
+			expected:   []string{"--branch"},
+		},
+		{
+			name:       "complete_branch_short_flag",
+			toComplete: "-b",
+			expected:   []string{"-b"},
+		},
+		{
+			name:       "no_completion_for_random",
+			toComplete: "--random",
+			expected:   []string{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			suggestions, directive := initCmd.completion(cmd, []string{}, test.toComplete)
+
+			if directive != cobra.ShellCompDirectiveNoFileComp {
+				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
+			}
+
+			if len(suggestions) != len(test.expected) {
+				t.Errorf("Expected %d suggestions, got %d: %v", len(test.expected), len(suggestions), suggestions)
+				return
+			}
+
+			for i, expected := range test.expected {
+				if i < len(suggestions) && suggestions[i] != expected {
+					t.Errorf("Expected suggestion[%d] to be %s, got %s", i, expected, suggestions[i])
+				}
+			}
+		})
+	}
+}
+
 func TestInitCmd_Command(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
@@ -100,132 +193,7 @@ func TestInitCmd_Command(t *testing.T) {
 	}
 }
 
-// executeCommandForTest simulates the command execution without calling os.Exit
-func executeCommandForTest(celer *configs.Celer, url, branch string) error {
-	// Set up initCmd instance
-	initCmd := &initCmd{
-		celer:  celer,
-		url:    url,
-		branch: branch,
-	}
-
-	// Initialize celer
-	if err := celer.Init(); err != nil {
-		return err
-	}
-
-	// Trim whitespace from URL
-	initCmd.url = strings.TrimSpace(initCmd.url)
-
-	// Set conf repo if URL is provided
-	if initCmd.url == "" {
-		return fmt.Errorf("no url provided when init")
-	}
-
-	if err := initCmd.validateURL(initCmd.url); err != nil {
-		return err
-	}
-	if err := celer.CloneConf(initCmd.url, initCmd.branch, initCmd.force); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func TestInitCmd_Completion(t *testing.T) {
-	initCmd := initCmd{}
-	celer := configs.NewCeler()
-	cmd := initCmd.Command(celer)
-
-	tests := []struct {
-		name       string
-		toComplete string
-		expected   []string
-	}{
-		{
-			name:       "complete_url_flag",
-			toComplete: "--u",
-			expected:   []string{"--url"},
-		},
-		{
-			name:       "complete_url_short_flag",
-			toComplete: "-u",
-			expected:   []string{"-u"},
-		},
-		{
-			name:       "complete_branch_flag",
-			toComplete: "--b",
-			expected:   []string{"--branch"},
-		},
-		{
-			name:       "complete_branch_short_flag",
-			toComplete: "-b",
-			expected:   []string{"-b"},
-		},
-		{
-			name:       "no_completion_for_random",
-			toComplete: "--random",
-			expected:   []string{},
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			suggestions, directive := initCmd.completion(cmd, []string{}, test.toComplete)
-
-			if directive != cobra.ShellCompDirectiveNoFileComp {
-				t.Errorf("Expected directive %v, got %v", cobra.ShellCompDirectiveNoFileComp, directive)
-			}
-
-			if len(suggestions) != len(test.expected) {
-				t.Errorf("Expected %d suggestions, got %d: %v", len(test.expected), len(suggestions), suggestions)
-				return
-			}
-
-			for i, expected := range test.expected {
-				if i < len(suggestions) && suggestions[i] != expected {
-					t.Errorf("Expected suggestion[%d] to be %s, got %s", i, expected, suggestions[i])
-				}
-			}
-		})
-	}
-}
-
-func TestInitCmd_CommandStructure(t *testing.T) {
-	initCmd := initCmd{}
-	celer := configs.NewCeler()
-	cmd := initCmd.Command(celer)
-
-	// Test command basic properties
-	if cmd.Use != "init" {
-		t.Errorf("Expected Use to be 'init', got '%s'", cmd.Use)
-	}
-
-	if cmd.Short == "" {
-		t.Error("Short description should not be empty")
-	}
-
-	// Test flags
-	urlFlag := cmd.Flags().Lookup("url")
-	if urlFlag == nil {
-		t.Error("--url flag should be defined")
-	} else {
-		if urlFlag.Shorthand != "u" {
-			t.Errorf("Expected url flag shorthand to be 'u', got '%s'", urlFlag.Shorthand)
-		}
-	}
-
-	branchFlag := cmd.Flags().Lookup("branch")
-	if branchFlag == nil {
-		t.Error("--branch flag should be defined")
-	} else {
-		if branchFlag.Shorthand != "b" {
-			t.Errorf("Expected branch flag shorthand to be 'b', got '%s'", branchFlag.Shorthand)
-		}
-	}
-}
-
-func TestInitCmd_Integration(t *testing.T) {
+func TestInitCmd_Initialize(t *testing.T) {
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -243,7 +211,7 @@ func TestInitCmd_Integration(t *testing.T) {
 	}
 	t.Cleanup(cleanup)
 
-	// Test init without URL (should fail)
+	// Test init without URL (should fail).
 	t.Run("init_without_url", func(t *testing.T) {
 		celer := configs.NewCeler()
 		if err := executeCommandForTest(celer, "", ""); err == nil {
@@ -287,15 +255,35 @@ func TestInitCmd_Integration(t *testing.T) {
 	})
 }
 
-// Benchmark test for performance.
-func BenchmarkInitCmd_Completion(b *testing.B) {
-	initCmd := initCmd{}
-	celer := configs.NewCeler()
-	cmd := initCmd.Command(celer)
-
-	for b.Loop() {
-		initCmd.completion(cmd, []string{}, "--u")
+func executeCommandForTest(celer *configs.Celer, url, branch string) error {
+	// Set up initCmd instance
+	initCmd := &initCmd{
+		celer:  celer,
+		url:    url,
+		branch: branch,
 	}
+
+	// Initialize celer
+	if err := celer.Init(); err != nil {
+		return err
+	}
+
+	// Trim whitespace from URL
+	initCmd.url = strings.TrimSpace(initCmd.url)
+
+	// Set conf repo if URL is provided
+	if initCmd.url == "" {
+		return fmt.Errorf("no url provided when init")
+	}
+
+	if err := initCmd.validateURL(initCmd.url); err != nil {
+		return err
+	}
+	if err := celer.CloneConf(initCmd.url, initCmd.branch, initCmd.force); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func TestInitCmd_URLValidation(t *testing.T) {
@@ -361,18 +349,18 @@ func TestInitCmd_URLValidation(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			initCmd := &initCmd{}
 
 			// Trim whitespace like the actual implementation does.
-			url := strings.TrimSpace(tt.url)
+			url := strings.TrimSpace(test.url)
 
 			err := initCmd.validateURL(url)
-			if tt.expectError && err == nil {
-				t.Errorf("Expected error for URL '%s' but got none", tt.url)
-			} else if !tt.expectError && err != nil {
-				t.Errorf("Expected no error for URL '%s' but got: %v", tt.url, err)
+			if test.expectError && err == nil {
+				t.Errorf("Expected error for URL '%s' but got none", test.url)
+			} else if !test.expectError && err != nil {
+				t.Errorf("Expected no error for URL '%s' but got: %v", test.url, err)
 			}
 		})
 	}

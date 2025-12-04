@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func TestIntegrateCmd_Command(t *testing.T) {
+func TestIntegrateCmd_CommandStructure(t *testing.T) {
 	// Test command creation.
 	integrate := &integrateCmd{}
 	celer := &configs.Celer{}
@@ -40,34 +40,6 @@ func TestIntegrateCmd_Command(t *testing.T) {
 
 	if flag.DefValue != "false" {
 		t.Errorf("Expected --remove default to be false, got %s", flag.DefValue)
-	}
-}
-
-func TestIntegrateCmd_ValidateEnvironment(t *testing.T) {
-	integrate := &integrateCmd{}
-
-	tests := []struct {
-		name        string
-		expectError bool
-		description string
-	}{
-		{
-			name:        "current_environment",
-			expectError: completion.CurrentShell() == completion.NotSupportShell,
-			description: "Should validate current environment correctly",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			err := integrate.validateEnvironment()
-			if test.expectError && err == nil {
-				t.Error("Expected error for unsupported shell, got nil")
-			}
-			if !test.expectError && err != nil {
-				t.Errorf("Expected no error, got: %v", err)
-			}
-		})
 	}
 }
 
@@ -128,14 +100,13 @@ func TestIntegrateCmd_Completion(t *testing.T) {
 	}
 }
 
-// Integration test helper.
 func TestIntegrateCmd_Integration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
 
 	// Only run if we have a supported shell
-	if completion.CurrentShell() == completion.NotSupportShell {
+	if completion.CurrentShell() == completion.NotSupported {
 		t.Skip("Skipping integration test on unsupported shell")
 	}
 

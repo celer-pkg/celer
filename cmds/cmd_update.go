@@ -22,7 +22,7 @@ type updateCmd struct {
 	force     bool
 }
 
-func (u updateCmd) Command(celer *configs.Celer) *cobra.Command {
+func (u *updateCmd) Command(celer *configs.Celer) *cobra.Command {
 	u.celer = celer
 	command := &cobra.Command{
 		Use:   "update",
@@ -69,19 +69,19 @@ func (u updateCmd) Command(celer *configs.Celer) *cobra.Command {
 	return command
 }
 
-func (u updateCmd) updateConfRepo() error {
+func (u *updateCmd) updateConfRepo() error {
 	title := "[update conf repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
 	return git.UpdateRepo(title, "", repoDir, u.force)
 }
 
-func (u updateCmd) updatePortsRepo() error {
+func (u *updateCmd) updatePortsRepo() error {
 	title := "[update ports repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
 	return git.UpdateRepo(title, "", repoDir, u.force)
 }
 
-func (u updateCmd) updatePorts(targets []string) error {
+func (u *updateCmd) updatePorts(targets []string) error {
 	if len(targets) == 0 {
 		return fmt.Errorf("no ports specified to update")
 	}
@@ -96,7 +96,7 @@ func (u updateCmd) updatePorts(targets []string) error {
 	return nil
 }
 
-func (u updateCmd) updatePortRepo(nameVersion string) error {
+func (u *updateCmd) updatePortRepo(nameVersion string) error {
 	// Read port file.
 	var port configs.Port
 	if err := port.Init(u.celer, nameVersion); err != nil {
@@ -132,7 +132,7 @@ func (u updateCmd) updatePortRepo(nameVersion string) error {
 	return nil
 }
 
-func (u updateCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (u *updateCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	var buildtreesDir = dirs.BuildtreesDir
 

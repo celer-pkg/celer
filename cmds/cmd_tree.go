@@ -28,7 +28,7 @@ type treeCmd struct {
 	hideDevDep bool
 }
 
-func (t treeCmd) Command(celer *configs.Celer) *cobra.Command {
+func (t *treeCmd) Command(celer *configs.Celer) *cobra.Command {
 	t.celer = celer
 	command := &cobra.Command{
 		Use:   "tree",
@@ -229,7 +229,7 @@ func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool
 	}
 }
 
-func (t treeCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (t *treeCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Support port completion from global ports.

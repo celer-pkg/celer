@@ -66,7 +66,7 @@ func (i *integrateCmd) execute() error {
 }
 
 func (i *integrateCmd) validateEnvironment() error {
-	if completion.CurrentShell() == completion.NotSupportShell {
+	if completion.CurrentShell() == completion.NotSupported {
 		if runtime.GOOS == "windows" {
 			return fmt.Errorf("unsupported shell environment, supported shells: powershell")
 		} else {

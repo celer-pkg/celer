@@ -26,7 +26,7 @@ type configureCmd struct {
 	ccache     configs.CCache
 }
 
-func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
+func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	c.celer = celer
 	command := &cobra.Command{
 		Use:   "configure",
@@ -224,7 +224,7 @@ Examples:
 	return command
 }
 
-func (c configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var fileNames []string
 	if fileio.PathExists(dir) {
 		entities, err := os.ReadDir(dir)
@@ -248,7 +248,7 @@ func (c configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cobr
 	return nil, cobra.ShellCompDirectiveNoFileComp
 }
 
-func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	commands := []string{
 		"--platform",
 		"--project",

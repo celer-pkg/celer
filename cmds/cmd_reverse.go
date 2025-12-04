@@ -22,7 +22,7 @@ type reverseCmd struct {
 	dev   bool
 }
 
-func (r reverseCmd) Command(celer *configs.Celer) *cobra.Command {
+func (r *reverseCmd) Command(celer *configs.Celer) *cobra.Command {
 	r.celer = celer
 	command := &cobra.Command{
 		Use:   "reverse",
@@ -68,7 +68,7 @@ Examples:
 	return command
 }
 
-func (r reverseCmd) query(target string) ([]string, error) {
+func (r *reverseCmd) query(target string) ([]string, error) {
 	var libraries []string
 	if !fileio.PathExists(dirs.PortsDir) {
 		return libraries, nil
@@ -108,7 +108,7 @@ func (r reverseCmd) query(target string) ([]string, error) {
 	return libraries, nil
 }
 
-func (r reverseCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (r *reverseCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 	if fileio.PathExists(dirs.PortsDir) {
 		filepath.WalkDir(dirs.PortsDir, func(path string, d fs.DirEntry, err error) error {
@@ -141,7 +141,7 @@ func (r reverseCmd) completion(cmd *cobra.Command, args []string, toComplete str
 }
 
 // validatePackageName validates the package name format (name@version)
-func (r reverseCmd) validatePackageName(packageName string) error {
+func (r *reverseCmd) validatePackageName(packageName string) error {
 	if packageName == "" {
 		return errors.New("package name cannot be empty")
 	}
@@ -161,7 +161,7 @@ func (r reverseCmd) validatePackageName(packageName string) error {
 }
 
 // hasDependency checks if a port has the target package as dependency
-func (r reverseCmd) hasDependency(port configs.Port, target string) bool {
+func (r *reverseCmd) hasDependency(port configs.Port, target string) bool {
 	// Check regular dependencies
 	if slices.Contains(port.MatchedConfig.Dependencies, target) {
 		return true
@@ -178,7 +178,7 @@ func (r reverseCmd) hasDependency(port configs.Port, target string) bool {
 }
 
 // displayResults shows the reverse dependency results
-func (r reverseCmd) displayResults(libraries []string) {
+func (r *reverseCmd) displayResults(libraries []string) {
 	color.Println(color.Cyan, "[Reverse Dependencies]:")
 	if len(libraries) > 0 {
 		for _, lib := range libraries {

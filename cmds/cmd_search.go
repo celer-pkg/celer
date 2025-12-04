@@ -17,7 +17,7 @@ type searchCmd struct {
 	celer *configs.Celer
 }
 
-func (s searchCmd) Command(celer *configs.Celer) *cobra.Command {
+func (s *searchCmd) Command(celer *configs.Celer) *cobra.Command {
 	s.celer = celer
 	command := &cobra.Command{
 		Use:   "search",
@@ -48,7 +48,7 @@ func (s searchCmd) Command(celer *configs.Celer) *cobra.Command {
 	return command
 }
 
-func (s searchCmd) search(pattern string) ([]string, error) {
+func (s *searchCmd) search(pattern string) ([]string, error) {
 	var results []string
 
 	// Helper function to search in a directory.
@@ -112,7 +112,7 @@ func (s searchCmd) search(pattern string) ([]string, error) {
 	return results, nil
 }
 
-func (s searchCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (s *searchCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Completion from global ports.
