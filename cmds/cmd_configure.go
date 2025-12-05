@@ -30,8 +30,8 @@ func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	c.celer = celer
 	command := &cobra.Command{
 		Use:   "configure",
-		Short: "Configure global settings for celer package manager.",
-		Long: `Configure global settings for celer package manager.
+		Short: "Configure global settings for your workspace.",
+		Long: `Configure global settings for your workspace.
 
 This command allows you to modify various configuration settings that affect
 how celer works. You can only configure one setting at a time due to the

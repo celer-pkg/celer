@@ -20,8 +20,8 @@ func (c *createCmd) Command(celer *configs.Celer) *cobra.Command {
 	c.celer = celer
 	command := &cobra.Command{
 		Use:   "create",
-		Short: "Create a platform, project, or port.",
-		Long: `Create a new platform, project, or port configuration.
+		Short: "Create a platform, project or port.",
+		Long: `Create a platform, project or port.
 
 This command helps you scaffold new configurations for different components
 in the celer package manager. You must specify exactly one type of component

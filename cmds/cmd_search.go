@@ -20,8 +20,8 @@ func (s *searchCmd) Command(celer *configs.Celer) *cobra.Command {
 	s.celer = celer
 	command := &cobra.Command{
 		Use:   "search",
-		Short: "Search matched ports.",
-		Long: `Search for available ports in the ports repository.
+		Short: "Search available ports from ports repository.",
+		Long: `Search available ports from ports repository.
 
 This command searches for ports by name and version pattern. It supports
 wildcard matching for flexible searches.

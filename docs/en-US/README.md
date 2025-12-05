@@ -69,18 +69,18 @@ Celer generates a platform-specific `toolchain_file.cmake` that bridges your pro
 
 ## 🆚 Celer vs Others
 
-Celer addresses critical pain points that traditional C/C++ package managers struggle with:
+Celer has solved critical pain points that traditional C/C++ package managers struggle with:
 
 | Challenge | Conan / Vcpkg / XMake | ✅ Celer |
 |-----------|----------------------|---------|
-| **Adding New Libraries** | Complex recipe scripts required | Just declare the build system type |
-| **Multi-Project Platforms** | Scattered dependency configs | Centralized project TOML files |
-| **Version Conflicts** | Manual conflict resolution | Automatic detection and reporting |
-| **Build Caching** | Limited or missing | Hash-based precision caching |
-| **Cross-Company Collaboration** | Manual environment setup | Portable toolchain file - works out of the box |
-| **Platform Customization** | Global settings cause conflicts | Project-level isolation |
+| **📦 Simplified Library Integration** | Complex recipe scripts required | Just declare the build system type |
+| **🏢 Project-Level Dependency Isolation** | Global configs cause conflicts | Project-level isolated configurations |
+| **🔗 Platform Multi-Project Management** | Manual per-project setup | Single TOML, auto-sync sub-projects |
+| **⚡ Intelligent Hash-Based Caching** | Limited or manual caching | Precision hash-based artifact caching |
+| **🔍 Automatic Conflict Detection** | Runtime discovery | Build-time checks and reporting |
+| **🤝 Seamless Cross-Company Collaboration** | Manual environment setup | Portable toolchain file - works out of the box |
 
-📖 [Detailed Comparison](./why_celer.md)
+📖 [Compare and learn: how celer solved problems.](./why_celer.md)
 
 ## 📚 Documentation
 
@@ -94,9 +94,6 @@ Celer addresses critical pain points that traditional C/C++ package managers str
 - [Generate CMake Configs](./advance_generate_cmake_config.md) - Auto-generate configs for non-CMake libraries
 - [Cache Build Artifacts](./advance_binary_cache.md) - Accelerate builds with smart caching
 
-**Learn More:**
-- [Why Choose Celer?](./why_celer.md) - Unique solutions from Celer
-
 <details>
 <summary><b>📋 Command Reference</b></summary>
 
@@ -104,25 +101,25 @@ Celer addresses critical pain points that traditional C/C++ package managers str
 
 | Command                               | Description |
 | ------------------------------------- | --------------------------------- |
-| [autoremove](./cmd_autoremove.md)     | Clean install directory - remove unnecessary files.|
+| [autoremove](./cmd_autoremove.md)     | Clean installed directory, remove project not required libraries.|
 | [clean](./cmd_clean.md)               | Remove build cache and clean project repo.|
-| [configure](./cmd_configure.md)       | Change global workspace settings.|
-| [create](./cmd_create.md)             | Create platform, project, or port. |
-| [deploy](./cmd_deploy.md)             | Deploy project.|
-| [init](./quick_start.md#3-setup-conf) | Initialize configuration repository.|
+| [configure](./cmd_configure.md)       | Configure global settings for current workspace.|
+| [create](./cmd_create.md)             | Create a platform, project or port. |
+| [deploy](./cmd_deploy.md)             | Deploy with selected platform and project.|
+| [init](./quick_start.md#3-setup-conf) | Initialize celer.|
 | [install](./cmd_install.md)           | Install a package.|
 | [integrate](./cmd_integrate.md)       | Integrate tab completion.|
 | [remove](./cmd_remove.md)             | Remove installed package.|
-| [search](./cmd_search.md)             | Search for packages.|
-| [tree](./cmd_tree.md)                 | Show dependencies of a port or project.| 
-| [update](./cmd_update.md)             | Update configuration repo, ports repo, or third-party repo.|
-| [version](./cmd_version.md)           | Show Celer version info. |
+| [search](./cmd_search.md)             | Search available ports from ports repository.|
+| [tree](./cmd_tree.md)                 | Show dependencies of a port or project.|
+| [update](./cmd_update.md)             | Update conf repo, ports config repo or third-party repo.|
+| [version](./cmd_version.md)           | Show version info of celer. |
 
 </details>
 
 ## 🤝 Contributing
 
-Celer is an open source project built with community contributions. You are welcome to contribute to:
+Celer is an open source project built with community contributions. We welcome contributions to:
 
 - **[celer](https://github.com/celer-pkg/celer)** - Core package manager implementation
 - **[ports](https://github.com/celer-pkg/ports)** - Package definitions and build configurations

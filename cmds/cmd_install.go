@@ -31,7 +31,7 @@ func (i *installCmd) Command(celer *configs.Celer) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "install",
 		Short: "Install a package.",
-		Long: `Install a package with specified name and version.
+		Long: `Install a package.
 
 This command installs packages from available ports, either from the global
 ports repository or from project-specific ports. The package name must be

@@ -24,7 +24,7 @@ func (a *autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 	a.celer = celer
 	command := &cobra.Command{
 		Use:   "autoremove",
-		Short: "Tidy up installation directory - removing project's unnecessary library files.",
+		Short: "Clean installed directory, remove project not required libraries.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := a.celer.Init(); err != nil {
 				configs.PrintError(err, "failed to init celer.")

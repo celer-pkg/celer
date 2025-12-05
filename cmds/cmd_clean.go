@@ -28,7 +28,7 @@ func (c *cleanCmd) Command(celer *configs.Celer) *cobra.Command {
 	c.celer = celer
 	command := &cobra.Command{
 		Use:   "clean",
-		Short: "Clean source and build cache for package or project",
+		Short: "Remove build cache and clean project repo.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := c.celer.Init(); err != nil {
 				configs.PrintError(err, "faild to init celer.")

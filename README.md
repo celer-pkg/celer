@@ -69,18 +69,18 @@ Celer generates a platform-specific `toolchain_file.cmake` that bridges your pro
 
 ## 🆚 Celer vs Others
 
-Celer addresses critical pain points that traditional C/C++ package managers struggle with:
+Celer has solved critical pain points that traditional C/C++ package managers struggle with:
 
 | Challenge | Conan / Vcpkg / XMake | ✅ Celer |
 |-----------|----------------------|---------|
-| **Adding New Libraries** | Complex recipe scripts required | Just declare the build system type |
-| **Multi-Project Platforms** | Scattered dependency configs | Centralized project TOML files |
-| **Version Conflicts** | Manual conflict resolution | Automatic detection and reporting |
-| **Build Caching** | Limited or missing | Hash-based precision caching |
-| **Cross-Company Collaboration** | Manual environment setup | Portable toolchain file - works out of the box |
-| **Platform Customization** | Global settings cause conflicts | Project-level isolation |
+| **📦 Simplified Library Integration** | Complex recipe scripts required | Just declare the build system type |
+| **🏢 Project-Level Dependency Isolation** | Global configs cause conflicts | Project-level isolated configurations |
+| **🔗 Platform Multi-Project Management** | Manual per-project setup | Single TOML, auto-sync sub-projects |
+| **⚡ Intelligent Hash-Based Caching** | Limited or manual caching | Precision hash-based artifact caching |
+| **🔍 Automatic Conflict Detection** | Runtime discovery | Build-time checks and reporting |
+| **🤝 Seamless Cross-Company Collaboration** | Manual environment setup | Portable toolchain file - works out of the box |
 
-📖 [Detailed Comparison](./docs/en-US/why_celer.md)
+📖 [Compare and learn: how celer solved problems.](./docs/en-US/why_celer.md)
 
 ## 📚 Documentation
 
@@ -94,9 +94,6 @@ Celer addresses critical pain points that traditional C/C++ package managers str
 - [Generate CMake Configs](./docs/en-US/advance_generate_cmake_config.md) - Auto-generate configs for non-CMake libraries
 - [Cache Build Artifacts](./docs/en-US/advance_binary_cache.md) - Accelerate builds with smart caching
 
-**Learn More:**
-- [Why Choose Celer?](./docs/en-US/why_celer.md) - Unique solutions from Celer
-
 <details>
 <summary><b>📋 Command Reference</b></summary>
 
@@ -104,30 +101,30 @@ Celer addresses critical pain points that traditional C/C++ package managers str
 
 | Command                                         | Description                                                                   |
 | ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| [autoremove](./docs/en-US/cmd_autoremove.md)    | Tidy up installation directory - removing project's unnecessary files.        |
-| [clean](./docs/en-US/cmd_clean.md)              | Remove build cache and clean repo for packages or projects.                   |
-| [configure](./docs/en-US/cmd_configure.md)      | Configure to change gloabal settings.                                         |
-| [create](./docs/en-US/cmd_create.md)            | Create a platform, project or port.                                           |
-| [deploy](./docs/en-US/cmd_deploy.md)            | Deploy with selected platform and project.                                    |
-| [init](./docs/en-US/quick_start.md#3-setup-conf)| Init with conf repo.                                                          |
-| [install](./docs/en-US/cmd_install.md)          | Install a package.                                                            |
-| [integrate](./docs/en-US/cmd_integrate.md)      | Integrate tab completion.                                                     |
-| [remove](./docs/en-US/cmd_remove.md)            | Remove a package.                                                             |
-| [search](./docs/en-US/cmd_search.md)            | Search matched ports.                                                         |
-| [tree](./docs/en-US/cmd_tree.md)                | Show the dependencies of a port or a project.                                 |
-| [update](./docs/en-US/cmd_update.md)            | Update conf repo, ports config repo or third-party repo.                      |
-| [version](./docs/en-US/cmd_version.md)          | Show version info of celer.                                                   |
+| [autoremove](./docs/en-US/cmd_autoremove.md)    | Clean installed directory, remove project not required libraries.|
+| [clean](./docs/en-US/cmd_clean.md)              | Remove build cache and clean project repo.|
+| [configure](./docs/en-US/cmd_configure.md)      | Configure global settings for current workspace.|
+| [create](./docs/en-US/cmd_create.md)            | Create a platform, project or port. |
+| [deploy](./docs/en-US/cmd_deploy.md)            | Deploy with selected platform and project.|
+| [init](./docs/en-US/quick_start.md#3-setup-conf)| Initialize celer.|
+| [install](./docs/en-US/cmd_install.md)          | Install a package.|
+| [integrate](./docs/en-US/cmd_integrate.md)      | Integrate tab completion.|
+| [remove](./docs/en-US/cmd_remove.md)            | Remove installed packages.|
+| [search](./docs/en-US/cmd_search.md)            | Search available ports from ports repository.|
+| [tree](./docs/en-US/cmd_tree.md)                | Show the dependencies of a port or a project.|
+| [update](./docs/en-US/cmd_update.md)            | Update conf repo, ports config repo or third-party repo.|
+| [version](./docs/en-US/cmd_version.md)          | Show version info of celer. |
 
 </details>
 
-## 🤝 Contribute
+## 🤝 Contributing
 
 Celer is an open source project built with community contributions. We welcome contributions to:
 
 - **[celer](https://github.com/celer-pkg/celer)** - Core package manager implementation
 - **[ports](https://github.com/celer-pkg/ports)** - Package definitions and build configurations
 
-Whether you want to add new features, improve documentation, or contribute new package definitions, we'd love your help!
+Whether you want to add new features, improve documentation, or contribute new package definitions, we welcome your help!
 
 ## 📄 License
 
