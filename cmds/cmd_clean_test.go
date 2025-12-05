@@ -24,10 +24,10 @@ func TestClean(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 

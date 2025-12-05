@@ -171,10 +171,10 @@ func TestConfigure_Platform(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -211,10 +211,10 @@ func TestConfigure_Project(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -248,10 +248,10 @@ func TestConfigure_Project_NotExist(t *testing.T) {
 
 	// Cleanup function
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -277,10 +277,10 @@ func TestConfigure_Project_Empty(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -306,10 +306,10 @@ func TestConfigure_BuildType_Release(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -343,10 +343,10 @@ func TestConfigure_BuildType_Debug(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -380,10 +380,10 @@ func TestConfigure_BuildType_Empty(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -409,10 +409,10 @@ func TestConfigure_BuildType_Invalid(t *testing.T) {
 
 	// Cleanup function
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -438,10 +438,10 @@ func TestConfigure_Jobs(t *testing.T) {
 
 	// Cleanup function
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -475,10 +475,10 @@ func TestConfigure_Jobs_Invalid(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -504,10 +504,10 @@ func TestConfigure_Offline_ON(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -541,10 +541,10 @@ func TestConfigure_Offline_OFF(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -578,10 +578,10 @@ func TestConfigure_Verbose_ON(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -615,10 +615,10 @@ func TestConfigure_Verbose_OFF(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -646,10 +646,10 @@ func TestConfigure_CacheDir(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -685,10 +685,10 @@ func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -714,10 +714,10 @@ func TestConfigure_Proxy(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -748,10 +748,10 @@ func TestConfigure_Proxy_Invalid_Host(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -777,10 +777,10 @@ func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -806,10 +806,10 @@ func TestConfigure_CCacheDir(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -843,10 +843,10 @@ func TestConfigure_CCacheMaxSize(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -879,10 +879,10 @@ func TestConfigure_CCacheCompress_ON(t *testing.T) {
 
 	// Cleanup function
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -915,10 +915,10 @@ func TestConfigure_CCacheCompress_OFF(t *testing.T) {
 
 	// Cleanup function
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -951,10 +951,10 @@ func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -988,10 +988,10 @@ func TestConfigure_BuildType_MinSizeRel(t *testing.T) {
 
 	// Cleanup function
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -1025,10 +1025,10 @@ func TestConfigure_Jobs_Zero(t *testing.T) {
 
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 

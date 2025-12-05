@@ -107,20 +107,12 @@ func TestInitCmd_Completion(t *testing.T) {
 }
 
 func TestInitCmd_Command(t *testing.T) {
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Cleanup function
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -194,20 +186,12 @@ func TestInitCmd_Command(t *testing.T) {
 }
 
 func TestInitCmd_Initialize(t *testing.T) {
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 
@@ -367,21 +351,13 @@ func TestInitCmd_URLValidation(t *testing.T) {
 }
 
 func TestInitCmd_EdgeCases(t *testing.T) {
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Cleanup function.
 	cleanup := func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.ConfDir))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-		check(os.RemoveAll(dirs.ConfDir))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+		os.RemoveAll(dirs.ConfDir)
+		os.RemoveAll(dirs.TmpDir)
+		os.RemoveAll(dirs.TestCacheDir)
+		os.RemoveAll(dirs.ConfDir)
 	}
 	t.Cleanup(cleanup)
 

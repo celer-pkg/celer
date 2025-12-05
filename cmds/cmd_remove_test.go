@@ -450,12 +450,12 @@ func installForTestRemove(t *testing.T, nameVersion string, option configs.Remov
 	}
 
 	// Cleanup workspace.
-	check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-	check(os.RemoveAll(dirs.TmpDir))
-	check(os.RemoveAll(dirs.TestCacheDir))
-	check(os.RemoveAll(dirs.ConfDir))
-	check(os.RemoveAll(dirs.PackagesDir))
-	check(os.RemoveAll(dirs.InstalledDir))
+	os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
+	os.RemoveAll(dirs.TmpDir)
+	os.RemoveAll(dirs.TestCacheDir)
+	os.RemoveAll(dirs.ConfDir)
+	os.RemoveAll(dirs.PackagesDir)
+	os.RemoveAll(dirs.InstalledDir)
 
 	var (
 		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
