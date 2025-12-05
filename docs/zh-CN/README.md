@@ -99,21 +99,21 @@ Celer 解决了传统 C/C++ 包管理器难以应对的核心痛点：
 
 ## 支持的命令列表
 
-| 命令                                   | 描述                                  |
-| ------------------------------------- | --------------------------------- |
-| [autoremove](./cmd_autoremove.md)     | 清理安装目录 - 移除项目不必要的文件。|
-| [clean](./cmd_clean.md)               | 移除构建缓存和清理项目的仓库。|
-| [configure](./cmd_configfure.md)      | 修改workspace的全局配置。|
-| [create](./cmd_create.md)             | 创建平台、项目或端口。 |
-| [deploy](./cmd_deploy.md)             | 部署项目。|
-| [init](./quick_start.md#3-setup-conf) | 初始化配置仓库。|
-| [install](./cmd_install.md)           | 安装一个库。|
-| [integrate](./cmd_integrate.md)       | 集成以支持tab补全。|
-| [remove](./cmd_remove.md)             | 移除已安装的库库。|
-| [search](./cmd_search.md)             | 搜索库库。|
-| [tree](./cmd_tree.md)                 | 显示三方库或项目的依赖关系。| 
-| [update](./cmd_update.md)             | 更新配置仓库、端口配置仓库或第三方仓库。|
-| [version](./cmd_version.md)           | 显示Celer版本信息。 |
+| 命令                                   | 描述  |
+| ------------------------------------- | -----|
+| [autoremove](./cmd_autoremove.md)     | 清理安装目录，移除项目不依赖的库 |
+| [clean](./cmd_clean.md)               | 删除构建缓存和清理项目仓库 |
+| [configure](./cmd_configfure.md)      | 修改workspace的全局配置 |
+| [create](./cmd_create.md)             | 创建平台、项目或端口 |
+| [deploy](./cmd_deploy.md)             | 以选择的*平台*和*项目*部署项目 |
+| [init](./quick_start.md#3-setup-conf) | 初始化Celer |
+| [install](./cmd_install.md)           | 安装一个库 |
+| [integrate](./cmd_integrate.md)       | 集成以支持tab补全 |
+| [remove](./cmd_remove.md)             | 移除已安装的库 |
+| [search](./cmd_search.md)             | 搜索库 |
+| [tree](./cmd_tree.md)                 | 显示三方库或项目的依赖关系 | 
+| [update](./cmd_update.md)             | 更新配置仓库、端口配置仓库或项目仓库 |
+| [version](./cmd_version.md)           | 显示Celer版本信息 |
 
 </details>
 

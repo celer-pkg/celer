@@ -28,30 +28,22 @@ func (c *cleanCmd) Command(celer *configs.Celer) *cobra.Command {
 	c.celer = celer
 	command := &cobra.Command{
 		Use:   "clean",
-		Short: "Remove build cache and clean project repo.",
+		Short: "Remove build cache and clean source repository.",
+		Long: `Remove build cache and clean source repository.
+
+This command removes build artifacts and caches for specified packages or
+projects. It can optionally clean dependencies recursively and handle both
+release and development builds.
+
+Examples:
+  celer clean x264@stable                           	# Clean specific package
+  celer clean my-project                            	# Clean project
+  celer clean x264@stable --dev                     	# Clean dev build cache
+  celer clean automake@1.18 --recurse               	# Clean with dependencies
+  celer clean --all                                 	# Clean all packages
+  celer clean x264@stable ffmpeg@3.4.13 --recurse   	# Clean multiple packages`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := c.celer.Init(); err != nil {
-				configs.PrintError(err, "faild to init celer.")
-				return
-			}
-
-			if c.all {
-				if err := c.cleanAll(); err != nil {
-					configs.PrintError(err, "failed to clean all packages.")
-					return
-				}
-				configs.PrintSuccess("all packages cleaned.")
-			} else {
-				if len(args) == 0 {
-					configs.PrintError(errors.New("no package or project specified"), "failed to collect port infos.")
-					return
-				}
-
-				if err := c.clean(args...); err != nil {
-					configs.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
-					return
-				}
-			}
+			c.execute(args)
 		},
 		ValidArgsFunction: c.completion,
 	}
@@ -62,6 +54,38 @@ func (c *cleanCmd) Command(celer *configs.Celer) *cobra.Command {
 	command.Flags().BoolVarP(&c.all, "all", "a", false, "clean all packages.")
 
 	return command
+}
+
+func (c *cleanCmd) execute(args []string) {
+	if err := c.celer.Init(); err != nil {
+		configs.PrintError(err, "failed to init celer.")
+		return
+	}
+
+	if c.all {
+		if err := c.cleanAll(); err != nil {
+			configs.PrintError(err, "failed to clean all packages.")
+			return
+		}
+		configs.PrintSuccess("all packages cleaned.")
+	} else {
+		if err := c.validateTargets(args); err != nil {
+			configs.PrintError(err, "invalid arguments.")
+			return
+		}
+
+		if err := c.clean(args...); err != nil {
+			configs.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
+			return
+		}
+	}
+}
+
+func (c *cleanCmd) validateTargets(targets []string) error {
+	if len(targets) == 0 {
+		return errors.New("no package or project specified")
+	}
+	return nil
 }
 
 func (c *cleanCmd) clean(targets ...string) error {
@@ -243,18 +267,15 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 
 func (c *cleanCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	var buildtreesDir = dirs.BuildtreesDir
 
 	// Support port completion.
-	if fileio.PathExists(buildtreesDir) {
-		entities, err := os.ReadDir(buildtreesDir)
-		if err != nil {
-			return suggestions, cobra.ShellCompDirectiveNoFileComp
-		}
-
-		for _, entity := range entities {
-			if entity.IsDir() && strings.HasPrefix(entity.Name(), toComplete) {
-				suggestions = append(suggestions, entity.Name())
+	if fileio.PathExists(dirs.BuildtreesDir) {
+		entities, err := os.ReadDir(dirs.BuildtreesDir)
+		if err == nil {
+			for _, entity := range entities {
+				if entity.IsDir() && strings.HasPrefix(entity.Name(), toComplete) {
+					suggestions = append(suggestions, entity.Name())
+				}
 			}
 		}
 	}
@@ -262,15 +283,13 @@ func (c *cleanCmd) completion(cmd *cobra.Command, args []string, toComplete stri
 	// Support project completion.
 	if fileio.PathExists(dirs.ConfProjectsDir) {
 		entities, err := os.ReadDir(dirs.ConfProjectsDir)
-		if err != nil {
-			return suggestions, cobra.ShellCompDirectiveNoFileComp
-		}
-
-		for _, entity := range entities {
-			if !entity.IsDir() && strings.HasSuffix(entity.Name(), ".toml") {
-				fileName := strings.TrimSuffix(entity.Name(), ".toml")
-				if strings.HasPrefix(fileName, toComplete) {
-					suggestions = append(suggestions, fileName)
+		if err == nil {
+			for _, entity := range entities {
+				if !entity.IsDir() && strings.HasSuffix(entity.Name(), ".toml") {
+					fileName := strings.TrimSuffix(entity.Name(), ".toml")
+					if strings.HasPrefix(fileName, toComplete) {
+						suggestions = append(suggestions, fileName)
+					}
 				}
 			}
 		}

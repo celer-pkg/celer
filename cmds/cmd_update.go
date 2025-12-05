@@ -26,8 +26,8 @@ func (u *updateCmd) Command(celer *configs.Celer) *cobra.Command {
 	u.celer = celer
 	command := &cobra.Command{
 		Use:   "update",
-		Short: "Update conf repo, ports config repo or third-party repo.",
-		Long: `Update command synchronizes local repositories with their remote counterparts.
+		Short: "Update conf repo, ports config repo or project repo.",
+		Long: `Update conf repo, ports config repo or project repo.
 
 This command supports three types of updates:
   1. Update conf repository (configuration files)
