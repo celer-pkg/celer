@@ -13,7 +13,7 @@ type versionCmd struct {
 	celer *configs.Celer
 }
 
-func (v versionCmd) Command(celer *configs.Celer) *cobra.Command {
+func (v *versionCmd) Command(celer *configs.Celer) *cobra.Command {
 	v.celer = celer
 	return &cobra.Command{
 		Use:   "version",
@@ -24,7 +24,7 @@ func (v versionCmd) Command(celer *configs.Celer) *cobra.Command {
 	}
 }
 
-func (v versionCmd) version() {
+func (v *versionCmd) version() {
 	toolchainPath, _ := filepath.Abs("toolchain_file.cmake")
 	toolchainPath = color.Sprintf(color.Magenta, "%s", toolchainPath)
 

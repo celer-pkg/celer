@@ -1,20 +1,23 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 	"testing"
 )
 
 func TestInstall_BuildType(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
+
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
 
 	// Check error.
 	var check = func(err error) {
@@ -23,12 +26,6 @@ func TestInstall_BuildType(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
 
 	var (
 		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
@@ -39,12 +36,11 @@ func TestInstall_BuildType(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
 	check(celer.Setup())
-	check(buildtools.CheckTools(celer, "git"))
 
 	t.Run("install with build type Release", func(t *testing.T) {
 		check(celer.SetBuildType("Release"))

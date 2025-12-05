@@ -8,7 +8,6 @@ var (
 	ErrOffline          = errors.New("currently, you're in offline mode")
 	ErrNotMatchedConfig = errors.New("no matched config found")
 	ErrInvalidBuildType = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
-	ErrInvalidJobs      = errors.New("invalid jobs, must be greater than 0")
 
 	ErrCacheDirNotConfigured   = errors.New("binary cache dir is not configured in celer.toml")
 	ErrCacheDirNotExist        = errors.New("binary cache dir not exist")

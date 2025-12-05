@@ -169,6 +169,7 @@ func (m meson) Build(options []string) error {
 	title := fmt.Sprintf("[build %s]", m.PortConfig.nameVersionDesc())
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(logPath)
+	executor.SetWorkDir(m.PortConfig.BuildDir)
 	if err := executor.Execute(); err != nil {
 		return err
 	}
@@ -188,9 +189,6 @@ func (m meson) Install(options []string) error {
 	if err := executor.Execute(); err != nil {
 		return err
 	}
-
-	// Remove `nul` file in workspace_dir.
-	os.Remove(filepath.Join(dirs.WorkspaceDir, "nul"))
 
 	return nil
 }

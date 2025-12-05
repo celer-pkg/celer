@@ -96,7 +96,7 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	}
 	if modified {
 		if !force {
-			return fmt.Errorf("repo file is modified, update is skipped ... ⭐⭐⭐ You can update forcibly with -f/--force ⭐⭐⭐")
+			return fmt.Errorf("repo file is modified, update is skipped ... ⭐⭐⭐ you can update forcibly with -f/--force ⭐⭐⭐")
 		}
 	}
 
@@ -115,19 +115,20 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 		return err
 	}
 	if isBranch {
-		var commands []string
-		commands = append(commands, "git reset --hard")
-		commands = append(commands, "git clean -xfd")
-		commands = append(commands, "git fetch origin "+repoRef)
-		commands = append(commands, "git checkout -B "+repoRef+" origin/"+repoRef)
-		commands = append(commands, "git pull origin "+repoRef)
-
+		commands := []string{
+			"git reset --hard",
+			"git clean -xfd",
+			"git fetch origin " + repoRef,
+			"git checkout -B " + repoRef + " origin/" + repoRef,
+			"git pull origin " + repoRef,
+		}
 		commandLine := strings.Join(commands, " && ")
 		executor := cmd.NewExecutor(title, commandLine)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
 			return err
 		}
+		return nil
 	}
 
 	// Update to tag.
@@ -136,12 +137,13 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 		return err
 	}
 	if isTag {
-		var commands []string
-		commands = append(commands, "git reset --hard")
-		commands = append(commands, "git clean -xfd")
-		commands = append(commands, "git tag -d "+repoRef+" || true")
-		commands = append(commands, "git fetch --tags origin")
-		commands = append(commands, "git checkout "+repoRef)
+		commands := []string{
+			"git reset --hard",
+			"git clean -xfd",
+			"git tag -d " + repoRef + " || true",
+			"git fetch --tags origin",
+			"git checkout " + repoRef,
+		}
 
 		commandLine := strings.Join(commands, " && ")
 		executor := cmd.NewExecutor(title, commandLine)
@@ -149,6 +151,7 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 		if err := executor.Execute(); err != nil {
 			return err
 		}
+		return nil
 	}
 
 	return fmt.Errorf("invalid repoRef: %s", repoRef)

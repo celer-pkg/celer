@@ -20,7 +20,7 @@ type autoremoveCmd struct {
 	buildCache  bool
 }
 
-func (a autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
+func (a *autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 	a.celer = celer
 	command := &cobra.Command{
 		Use:   "autoremove",
@@ -154,7 +154,7 @@ func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 	return nil
 }
 
-func (a autoremoveCmd) installedPackages() (packages []string, devPackages []string, err error) {
+func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []string, err error) {
 	libraryFolder := fmt.Sprintf("%s@%s@%s", a.celer.Platform().GetName(),
 		a.celer.Project().GetName(), a.celer.BuildType())
 	packages, err = a.readPackages(libraryFolder)
@@ -171,7 +171,7 @@ func (a autoremoveCmd) installedPackages() (packages []string, devPackages []str
 	return
 }
 
-func (a autoremoveCmd) readPackages(libraryFolder string) ([]string, error) {
+func (a *autoremoveCmd) readPackages(libraryFolder string) ([]string, error) {
 	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace")
 	pattern := filepath.Join(traceDir, "*@"+libraryFolder+".trace")
 	suffix := "@" + libraryFolder + ".trace"
@@ -191,7 +191,7 @@ func (a autoremoveCmd) readPackages(libraryFolder string) ([]string, error) {
 	return packages, nil
 }
 
-func (a autoremoveCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (a *autoremoveCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	// Support flags completion.

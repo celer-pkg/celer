@@ -16,6 +16,11 @@ import (
 func TestInstall_With_Force(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -30,12 +35,6 @@ func TestInstall_With_Force(t *testing.T) {
 		return info.ModTime()
 	}
 
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
-
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
@@ -47,12 +46,11 @@ func TestInstall_With_Force(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
-	check(buildtools.CheckTools(celer, "git"))
 
 	var (
 		options       configs.InstallOptions
@@ -93,6 +91,11 @@ func TestInstall_With_Force(t *testing.T) {
 func TestInstall_With_Force_Recurse(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -107,12 +110,6 @@ func TestInstall_With_Force_Recurse(t *testing.T) {
 		return info.ModTime()
 	}
 
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
-
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
@@ -124,7 +121,7 @@ func TestInstall_With_Force_Recurse(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))

@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -15,6 +14,11 @@ import (
 )
 
 func TestClean(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -22,12 +26,6 @@ func TestClean(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
 
 	// Init celer.
 	var (
@@ -38,11 +36,10 @@ func TestClean(t *testing.T) {
 
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(buildtools.CheckTools(celer, "git"))
 	check(celer.Deploy())
 
 	cleanCmd := cleanCmd{celer: celer}

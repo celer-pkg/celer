@@ -26,19 +26,44 @@ type installCmd struct {
 	verbose    bool
 }
 
-func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
+func (i *installCmd) Command(celer *configs.Celer) *cobra.Command {
 	i.celer = celer
 	command := &cobra.Command{
 		Use:   "install",
 		Short: "Install a package.",
-		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := i.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				os.Exit(1)
-			}
+		Long: `Install a package with specified name and version.
 
-			i.install(args[0])
+This command installs packages from available ports, either from the global
+ports repository or from project-specific ports. The package name must be
+specified in name@version format.
+
+FEATURES:
+  • Install packages with dependency resolution
+  • Support for development dependencies
+  • Force reinstallation with dependency handling
+  • Binary cache integration
+  • Parallel build support
+  • Circular dependency detection
+  • Version conflict checking
+
+FLAGS:
+  -d, --dev         Install as development dependency
+  -f, --force       Force reinstallation (uninstall first if exists)
+  -r, --recurse     With --force, recursively reinstall dependencies
+  -s, --store-cache Store build artifacts in binary cache after installation
+  -t, --cache-token Authentication token for binary cache operations
+  -j, --jobs        Number of parallel build jobs (default: system cores)
+  -v, --verbose     Enable verbose output for debugging
+
+EXAMPLES:
+  celer install opencv@4.8.0
+  celer install --dev gtest@1.12.1
+  celer install --force --recurse boost@1.82.0
+  celer install --store-cache --cache-token abc123 eigen@3.4.0
+  celer install --jobs 8 --verbose opencv@4.8.0`,
+		Args: cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			i.runInstall(args[0])
 		},
 		ValidArgsFunction: i.completion,
 	}
@@ -56,7 +81,53 @@ func (i installCmd) Command(celer *configs.Celer) *cobra.Command {
 	return command
 }
 
-func (i installCmd) install(nameVersion string) {
+func (i *installCmd) runInstall(nameVersion string) {
+	if err := i.celer.Init(); err != nil {
+		configs.PrintError(err, "Failed to initialize celer.")
+		os.Exit(1)
+	}
+
+	// Validate and clean input.
+	cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
+	if err != nil {
+		configs.PrintError(err, "Invalid package specification.")
+		os.Exit(1)
+	}
+
+	i.install(cleanedNameVersion)
+}
+
+// validateAndCleanInput validates and cleans the package name@version input.
+func (i *installCmd) validateAndCleanInput(nameVersion string) (string, error) {
+	if strings.TrimSpace(nameVersion) == "" {
+		return "", fmt.Errorf("package name cannot be empty")
+	}
+
+	// In Windows PowerShell, when handling completion,
+	// "`" is automatically added as an escape character before the "@".
+	// We need to remove this escape character.
+	cleaned := strings.ReplaceAll(nameVersion, "`", "")
+	cleaned = strings.TrimSpace(cleaned)
+
+	parts := strings.Split(cleaned, "@")
+	if len(parts) != 2 {
+		return "", fmt.Errorf("package must be specified in name@version format (e.g., opencv@4.8.0)")
+	}
+
+	name := strings.TrimSpace(parts[0])
+	version := strings.TrimSpace(parts[1])
+
+	if name == "" {
+		return "", fmt.Errorf("package name cannot be empty")
+	}
+	if version == "" {
+		return "", fmt.Errorf("package version cannot be empty")
+	}
+
+	return name + "@" + version, nil
+}
+
+func (i *installCmd) install(nameVersion string) {
 	// Overwrite global config.
 	if i.jobs != i.celer.Global.Jobs {
 		i.celer.Global.Jobs = i.jobs
@@ -64,25 +135,18 @@ func (i installCmd) install(nameVersion string) {
 	i.celer.Global.Verbose = i.verbose
 
 	if err := i.celer.Setup(); err != nil {
-		configs.PrintError(err, "failed to setup.")
+		configs.PrintError(err, "Failed to setup celer.")
 		os.Exit(1)
 	}
 
-	// In Windows PowerShell, when handling completion,
-	// "`" is automatically added as an escape character before the "@".
-	// We need to remove this escape character.
-	nameVersion = strings.ReplaceAll(nameVersion, "`", "")
-
+	// Parse name and version (already validated)
 	parts := strings.Split(nameVersion, "@")
-	if len(parts) != 2 {
-		configs.PrintError(fmt.Errorf("invalid name and version"), "failed to install %s.", nameVersion)
-		os.Exit(1)
-	}
+	name, version := parts[0], parts[1]
 
-	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName(), parts[0], parts[1], "port.toml")
-	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
+	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName(), name, version, "port.toml")
+	portInPorts := filepath.Join(dirs.PortsDir, name, version, "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
-		configs.PrintError(fmt.Errorf("port %s is not found", nameVersion), "failed to install %s.", nameVersion)
+		configs.PrintError(fmt.Errorf("port %s not found in available repositories", nameVersion), "Failed to install %s.", nameVersion)
 		os.Exit(1)
 	}
 
@@ -139,7 +203,7 @@ func (i installCmd) install(nameVersion string) {
 	}
 }
 
-func (i installCmd) buildSuggestions(suggestions *[]string, portDir string, toComplete string) {
+func (i *installCmd) buildSuggestions(suggestions *[]string, portDir string, toComplete string) {
 	err := filepath.WalkDir(portDir, func(path string, entity fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -163,7 +227,7 @@ func (i installCmd) buildSuggestions(suggestions *[]string, portDir string, toCo
 	}
 }
 
-func (i installCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (i *installCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
 
 	if fileio.PathExists(dirs.PortsDir) {

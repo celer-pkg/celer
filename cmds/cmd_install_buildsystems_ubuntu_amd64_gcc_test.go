@@ -87,7 +87,10 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 		t.SkipNow()
 	}
 
-	const project = "project_test_install"
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
 
 	// Check error.
 	var check = func(err error) {
@@ -97,16 +100,11 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 		}
 	}
 
-	t.Cleanup(func() {
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
-		check(os.RemoveAll(dirs.TmpDir))
-		check(os.RemoveAll(dirs.TestCacheDir))
-	})
-
 	// Init celer.
+	const project = "project_test_install"
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.SetConfRepo("https://github.com/celer-pkg/test-conf.git", ""))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	if platform != "" {
 		check(celer.SetPlatform(platform))

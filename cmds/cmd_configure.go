@@ -26,11 +26,57 @@ type configureCmd struct {
 	ccache     configs.CCache
 }
 
-func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
+func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	c.celer = celer
 	command := &cobra.Command{
 		Use:   "configure",
-		Short: "Configure to change gloabal settings.",
+		Short: "Configure global settings for celer package manager.",
+		Long: `Configure global settings for celer package manager.
+
+This command allows you to modify various configuration settings that affect
+how celer works. You can only configure one setting at a time due to the
+mutually exclusive nature of the flags.
+
+Available Configuration Options:
+
+  Platform Configuration:
+    --platform        Set the target platform (e.g., windows-amd64, linux-x64)
+    
+  Project Configuration:
+    --project         Set the current project configuration
+    
+  Build Configuration:
+    --build-type      Set the build type (Release, Debug, RelWithDebInfo, MinSizeRel)
+    --jobs            Set the number of parallel build jobs
+    
+  Runtime Options:
+    --offline         Enable/disable offline mode (true/false)
+    --verbose         Enable/disable verbose output (true/false)
+    
+  Binary Cache Configuration:
+    --binary-cache-dir    Set the binary cache directory path
+    --binary-cache-token  Set the binary cache authentication token
+    
+  Proxy Configuration:
+    --proxy-host      Set the proxy server hostname
+    --proxy-port      Set the proxy server port number
+    
+  CCache Configuration:
+    --ccache-dir      Set the ccache directory path
+    --ccache-maxsize  Set the maximum cache size (e.g., "5G", "1024M")
+    --ccache-compress Enable/disable ccache compression (true/false)
+
+Examples:
+  celer configure --platform windows-amd64        # Set target platform
+  celer configure --project myproject             # Set current project
+  celer configure --build-type Release            # Set build type to Release
+  celer configure --jobs 8                        # Use 8 parallel build jobs
+  celer configure --offline true                  # Enable offline mode
+  celer configure --verbose false                 # Disable verbose output
+  celer configure --binary-cache-dir /tmp/cache   # Set binary cache directory
+  celer configure --proxy-host proxy.example.com  # Set proxy host
+  celer configure --proxy-port 8080               # Set proxy port
+  celer configure --ccache-maxsize 5G             # Set ccache max size to 5GB`,
 		Run: func(cmd *cobra.Command, args []string) {
 			flags := cmd.Flags()
 
@@ -167,12 +213,18 @@ func (c configureCmd) Command(celer *configs.Celer) *cobra.Command {
 	command.RegisterFlagCompletionFunc("offline", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
+	command.RegisterFlagCompletionFunc("verbose", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
+	})
+	command.RegisterFlagCompletionFunc("ccache-compress", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
+	})
 
 	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose")
 	return command
 }
 
-func (c configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var fileNames []string
 	if fileio.PathExists(dir) {
 		entities, err := os.ReadDir(dir)
@@ -196,7 +248,7 @@ func (c configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cobr
 	return nil, cobra.ShellCompDirectiveNoFileComp
 }
 
-func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	commands := []string{
 		"--platform",
 		"--project",
@@ -210,7 +262,6 @@ func (c configureCmd) completion(cmd *cobra.Command, args []string, toComplete s
 		"--proxy-port",
 		"--ccache-compress",
 		"--ccache-dir",
-		"--ccache-enabled",
 		"--ccache-maxsize",
 	}
 

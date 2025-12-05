@@ -22,7 +22,7 @@ type Completion interface {
 type ShellType int8
 
 const (
-	NotSupportShell ShellType = iota
+	NotSupported ShellType = iota
 	BashShell
 	ZshShell
 	TypePowerShell
@@ -41,7 +41,7 @@ func CurrentShell() ShellType {
 		case "/usr/bin/zsh", "/bin/zsh":
 			return ZshShell
 		default:
-			return NotSupportShell
+			return NotSupported
 		}
 
 	default:

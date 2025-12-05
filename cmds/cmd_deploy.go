@@ -13,7 +13,7 @@ type deployCmd struct {
 	celer *configs.Celer
 }
 
-func (d deployCmd) Command(celer *configs.Celer) *cobra.Command {
+func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
 	d.celer = celer
 	command := &cobra.Command{
 		Use:   "deploy",
@@ -48,7 +48,7 @@ func (d deployCmd) Command(celer *configs.Celer) *cobra.Command {
 	return command
 }
 
-func (d deployCmd) checkProject() error {
+func (d *deployCmd) checkProject() error {
 	depcheck := depcheck.NewDepCheck()
 
 	var ports []configs.Port

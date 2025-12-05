@@ -634,7 +634,7 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 	}
 
 	// Merges the platform-specific fields into the BuildConfig struct.
-	b.mergePlatform()
+	b.mergeConfig()
 	return nil
 }
 

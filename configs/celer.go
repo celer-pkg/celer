@@ -207,7 +207,7 @@ func (c *Celer) Init() error {
 	}
 
 	if c.Global.Offline {
-		color.Println(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================\n")
+		color.Printf(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================\n")
 	}
 
 	// Clone ports repo if empty.
@@ -290,14 +290,24 @@ func (c *Celer) CreatePort(nameVersion string) error {
 	return nil
 }
 
-func (c *Celer) SetConfRepo(url, branch string) error {
-	// Clone conf repo.
+func (c *Celer) CloneConf(url, branch string, force bool) error {
+	// Remove existing conf repo if force is specified.
 	confDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	if !fileio.PathExists(filepath.Join(confDir, ".git")) {
+	if fileio.PathExists(confDir) {
+		if !force {
+			return fmt.Errorf("conf repo already exists, clone is skipped ... ⭐⭐⭐ you can use --force/-f to re-initialize it ⭐⭐⭐")
+		}
 		if err := os.RemoveAll(confDir); err != nil {
 			return err
 		}
-		return git.CloneRepo("[clone conf repo]", url, branch, false, 0, confDir)
+	}
+
+	// Clone conf repo.
+	if err := buildtools.CheckTools(c, "git"); err != nil {
+		return err
+	}
+	if err := git.CloneRepo("[clone conf repo]", url, branch, false, 0, confDir); err != nil {
+		return fmt.Errorf("clone conf repo: %w", err)
 	}
 
 	if err := c.readOrCreate(); err != nil {
@@ -332,8 +342,8 @@ func (c *Celer) SetBuildType(buildtype string) error {
 }
 
 func (c *Celer) SetJobs(jobs int) error {
-	if jobs < 0 {
-		return ErrInvalidJobs
+	if jobs <= 0 {
+		return fmt.Errorf("invalid jobs, must be greater than 0")
 	}
 
 	if err := c.readOrCreate(); err != nil {
@@ -485,7 +495,8 @@ func (c *Celer) SetCCacheDir(dir string) error {
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			Dir: dir,
+			Compress: true,
+			Dir:      dir,
 		}
 	} else {
 		c.configData.CCache.Dir = dir
@@ -505,7 +516,8 @@ func (c *Celer) SetCCacheMaxSize(maxSize string) error {
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			MaxSize: maxSize,
+			Compress: true,
+			MaxSize:  maxSize,
 		}
 	} else {
 		c.configData.CCache.MaxSize = maxSize
