@@ -6,7 +6,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -22,30 +21,54 @@ func (s *searchCmd) Command(celer *configs.Celer) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "search",
 		Short: "Search matched ports.",
-		Args:  cobra.ExactArgs(1),
+		Long: `Search for available ports in the ports repository.
+
+This command searches for ports by name and version pattern. It supports
+wildcard matching for flexible searches.
+
+Pattern matching rules:
+  - Exact match:     zlib@1.3.1
+  - Prefix match:    zlib*
+  - Suffix match:    *@1.3.1
+  - Contains match:  *lib*
+
+Examples:
+  celer search zlib@1.3.1    # Search for exact match
+  celer search zlib*         # Search for all zlib versions
+  celer search *@1.3.1       # Search for all ports with version 1.3.1
+  celer search *ffmpeg*      # Search for all ports containing 'ffmpeg'`,
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := s.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				os.Exit(1)
-			}
-
-			libraries, err := s.search(args[0])
-			if err != nil {
-				configs.PrintError(err, "failed to search available ports.")
-				os.Exit(1)
-			}
-
-			if len(libraries) > 0 {
-				color.Println(color.Cyan, "[Search result]:")
-				color.Println(color.Gray, strings.Join(libraries, "\n"))
-			} else {
-				color.Println(color.Red, "no matched port found.")
-			}
+			s.doSearch(args[0])
 		},
 		ValidArgsFunction: s.completion,
 	}
 
 	return command
+}
+
+func (s *searchCmd) doSearch(pattern string) {
+	// Initialize celer configuration.
+	if err := s.celer.Init(); err != nil {
+		configs.PrintError(err, "Failed to initialize celer.")
+		return
+	}
+
+	// Perform search.
+	libraries, err := s.search(pattern)
+	if err != nil {
+		configs.PrintError(err, "Failed to search available ports.")
+		return
+	}
+
+	// Display results.
+	if len(libraries) > 0 {
+		color.Println(color.Cyan, "[Search result]:")
+		color.Println(color.Gray, strings.Join(libraries, "\n"))
+		configs.PrintSuccess("Found %d port(s).", len(libraries))
+	} else {
+		color.Println(color.Red, "No matched port found.")
+	}
 }
 
 func (s *searchCmd) search(pattern string) ([]string, error) {
@@ -119,7 +142,7 @@ func (s *searchCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	if fileio.PathExists(dirs.PortsDir) {
 		filepath.WalkDir(dirs.PortsDir, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
-				return err
+				return nil // Skip errors in completion.
 			}
 
 			if !d.IsDir() && d.Name() == "port.toml" {
@@ -141,7 +164,7 @@ func (s *searchCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	if fileio.PathExists(projectPortsDir) {
 		filepath.WalkDir(projectPortsDir, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
-				return err
+				return nil // Skip errors in completion.
 			}
 
 			if !d.IsDir() && d.Name() == "port.toml" {
