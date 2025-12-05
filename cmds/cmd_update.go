@@ -27,34 +27,21 @@ func (u *updateCmd) Command(celer *configs.Celer) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "update",
 		Short: "Update conf repo, ports config repo or third-party repo.",
+		Long: `Update command synchronizes local repositories with their remote counterparts.
+
+This command supports three types of updates:
+  1. Update conf repository (configuration files)
+  2. Update ports repository (port configuration files)
+  3. Update source code repositories of third-party libraries
+
+Examples:
+  celer update --conf-repo              # Update conf repository
+  celer update --ports-repo             # Update ports repository
+  celer update zlib@1.3.1               # Update specific port
+  celer update --recurse ffmpeg@3.4.13  # Update port and all its dependencies
+  celer update --force xxx           	# Force update --conf-repo|--ports-repo|project (overwrites local changes)`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := u.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				os.Exit(1)
-			}
-
-			// Make sure git is available.
-			if err := buildtools.CheckTools(u.celer, "git"); err != nil {
-				configs.PrintError(err, "failed to check git tools.")
-				os.Exit(1)
-			}
-
-			if u.confRepo {
-				if err := u.updateConfRepo(); err != nil {
-					configs.PrintError(err, "failed to update conf repo.")
-					os.Exit(1)
-				}
-			} else if u.portsRepo {
-				if err := u.updatePortsRepo(); err != nil {
-					configs.PrintError(err, "failed to update ports repo.")
-					os.Exit(1)
-				}
-			} else {
-				if err := u.updatePorts(args); err != nil {
-					configs.PrintError(err, "failed to update port repo.")
-					os.Exit(1)
-				}
-			}
+			u.doUpdate(args)
 		},
 		ValidArgsFunction: u.completion,
 	}
@@ -69,6 +56,45 @@ func (u *updateCmd) Command(celer *configs.Celer) *cobra.Command {
 	return command
 }
 
+func (u *updateCmd) doUpdate(args []string) {
+	// Initialize celer configuration.
+	if err := u.celer.Init(); err != nil {
+		configs.PrintError(err, "Failed to initialize celer.")
+		return
+	}
+
+	// Make sure git is available.
+	if err := buildtools.CheckTools(u.celer, "git"); err != nil {
+		configs.PrintError(err, "Failed to check if git is available.")
+		return
+	}
+
+	// Perform update based on flags.
+	if u.confRepo {
+		if err := u.updateConfRepo(); err != nil {
+			configs.PrintError(err, "Failed to update conf repository.")
+			return
+		}
+		configs.PrintSuccess("Successfully updated conf repository.")
+	} else if u.portsRepo {
+		if err := u.updatePortsRepo(); err != nil {
+			configs.PrintError(err, "Failed to update ports repository.")
+			return
+		}
+		configs.PrintSuccess("Successfully updated ports repository.")
+	} else {
+		if err := u.updateProjectRepos(args); err != nil {
+			configs.PrintError(err, "Failed to update port repository.")
+			return
+		}
+		if len(args) == 1 {
+			configs.PrintSuccess("Successfully updated %s.", args[0])
+		} else {
+			configs.PrintSuccess("Successfully updated %d ports.", len(args))
+		}
+	}
+}
+
 func (u *updateCmd) updateConfRepo() error {
 	title := "[update conf repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
@@ -81,14 +107,17 @@ func (u *updateCmd) updatePortsRepo() error {
 	return git.UpdateRepo(title, "", repoDir, u.force)
 }
 
-func (u *updateCmd) updatePorts(targets []string) error {
-	if len(targets) == 0 {
+func (u *updateCmd) updateProjectRepos(nameVersions []string) error {
+	if len(nameVersions) == 0 {
 		return fmt.Errorf("no ports specified to update")
 	}
 
-	for _, target := range targets {
-		target = strings.ReplaceAll(target, "`", "")
-		if err := u.updatePortRepo(target); err != nil {
+	// Use visited map to prevent infinite recursion in case of circular dependencies.
+	visited := make(map[string]bool)
+
+	for _, nameVersion := range nameVersions {
+		nameVersion = strings.ReplaceAll(nameVersion, "`", "")
+		if err := u.updatePortRepo(nameVersion, visited); err != nil {
 			return err
 		}
 	}
@@ -96,30 +125,37 @@ func (u *updateCmd) updatePorts(targets []string) error {
 	return nil
 }
 
-func (u *updateCmd) updatePortRepo(nameVersion string) error {
+func (u *updateCmd) updatePortRepo(nameVersion string, visited map[string]bool) error {
+	// Check for circular dependencies.
+	if visited[nameVersion] {
+		return nil // Already processed, skip.
+	}
+	visited[nameVersion] = true
+
 	// Read port file.
 	var port configs.Port
 	if err := port.Init(u.celer, nameVersion); err != nil {
 		return fmt.Errorf("%s: %w", nameVersion, err)
 	}
 
-	// Update repos of port's depedencies.
+	// Update repos of port's dependencies.
 	if u.recurse {
 		for _, nameVersion := range port.MatchedConfig.Dependencies {
-			if err := u.updatePortRepo(nameVersion); err != nil {
+			if err := u.updatePortRepo(nameVersion, visited); err != nil {
 				return err
 			}
 		}
 	}
 
-	// No need to update port if it's not git repo or its code is not exist.
+	// No need to update port if it's not git repo or its code doesn't exist.
 	srcDir := filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src")
 	if !fileio.PathExists(srcDir) {
-		return fmt.Errorf("%s/%s/src is not found, update is skipped",
+		return fmt.Errorf("source directory not found: %s/%s/src (has the port been cloned?)",
 			filepath.ToSlash(dirs.BuildtreesDir), nameVersion)
 	}
+	// It may not happen, even archive repo is init as local git repo by celer.
 	if !strings.HasSuffix(port.Package.Url, ".git") {
-		return fmt.Errorf("%s/%s/src is not git repo, update is skipped",
+		return fmt.Errorf("%s/%s/src is not a git repository, update is skipped",
 			filepath.ToSlash(dirs.BuildtreesDir), nameVersion)
 	}
 
@@ -154,8 +190,8 @@ func (u *updateCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	if fileio.PathExists(dirs.ConfProjectsDir) {
 		entities, err := os.ReadDir(dirs.ConfProjectsDir)
 		if err != nil {
-			configs.PrintError(err, "failed to read %s: %s.\n", dirs.ConfProjectsDir, err)
-			os.Exit(1)
+			// Don't fail completion, just return what we have.
+			return suggestions, cobra.ShellCompDirectiveNoFileComp
 		}
 
 		for _, entity := range entities {

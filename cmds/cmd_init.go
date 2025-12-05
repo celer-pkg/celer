@@ -28,9 +28,9 @@ celer.toml configuration file and cloning configuration files from a
 remote Git repository.
 
 Examples:
-  celer init --url https://github.com/example/conf       	# Initialize with conf repo.
-  celer init -u https://github.com/example/conf -b main  	# With specific branch.
-  celer init --url https://github.com/example/conf --force	# Force re-initialize.`,
+  celer init --url https://github.com/example/conf       	# Initialize with conf repo
+  celer init -u https://github.com/example/conf -b main  	# With specific branch
+  celer init --url https://github.com/example/conf --force	# Force re-initialize`,
 		Run: func(cmd *cobra.Command, args []string) {
 			i.doInit()
 		},

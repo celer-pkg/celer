@@ -295,7 +295,7 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 	confDir := filepath.Join(dirs.WorkspaceDir, "conf")
 	if fileio.PathExists(confDir) {
 		if !force {
-			return fmt.Errorf("conf repo already exists, and you can use --force to re-initialize it")
+			return fmt.Errorf("conf repo already exists, clone is skipped ... ⭐⭐⭐ you can use --force/-f to re-initialize it ⭐⭐⭐")
 		}
 		if err := os.RemoveAll(confDir); err != nil {
 			return err

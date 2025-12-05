@@ -90,9 +90,9 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		if p.Parent != "" {
-			return fmt.Errorf("%s defined in %s is not exists", nameVersion, p.Parent)
+			return fmt.Errorf("%s specified in %s is not defined", nameVersion, p.Parent)
 		} else {
-			return fmt.Errorf("port does not exist: %s", nameVersion)
+			return fmt.Errorf("port %s is not defined", nameVersion)
 		}
 	}
 
