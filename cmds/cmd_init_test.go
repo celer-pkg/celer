@@ -14,6 +14,11 @@ import (
 )
 
 func TestInitCmd_CommandStructure(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	initCmd := initCmd{}
 	celer := configs.NewCeler()
 	cmd := initCmd.Command(celer)
@@ -48,6 +53,11 @@ func TestInitCmd_CommandStructure(t *testing.T) {
 }
 
 func TestInitCmd_Completion(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	initCmd := initCmd{}
 	celer := configs.NewCeler()
 	cmd := initCmd.Command(celer)
@@ -109,10 +119,7 @@ func TestInitCmd_Completion(t *testing.T) {
 func TestInitCmd_Command(t *testing.T) {
 	// Cleanup function
 	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
+		dirs.RemoveAllForTest()
 	}
 	t.Cleanup(cleanup)
 
@@ -186,14 +193,10 @@ func TestInitCmd_Command(t *testing.T) {
 }
 
 func TestInitCmd_Initialize(t *testing.T) {
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
 
 	// Test init without URL (should fail).
 	t.Run("init_without_url", func(t *testing.T) {
@@ -271,6 +274,11 @@ func executeCommandForTest(celer *configs.Celer, url, branch string) error {
 }
 
 func TestInitCmd_URLValidation(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	tests := []struct {
 		name        string
 		url         string
@@ -351,15 +359,10 @@ func TestInitCmd_URLValidation(t *testing.T) {
 }
 
 func TestInitCmd_EdgeCases(t *testing.T) {
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.ConfDir)
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
 
 	tests := []struct {
 		name        string

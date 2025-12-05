@@ -3,12 +3,18 @@ package cmds
 import (
 	"celer/cmds/completion"
 	"celer/configs"
+	"celer/pkgs/dirs"
 	"testing"
 
 	"github.com/spf13/cobra"
 )
 
 func TestIntegrateCmd_CommandStructure(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Test command creation.
 	integrate := &integrateCmd{}
 	celer := &configs.Celer{}
@@ -44,6 +50,11 @@ func TestIntegrateCmd_CommandStructure(t *testing.T) {
 }
 
 func TestIntegrateCmd_Completion(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	integrate := &integrateCmd{}
 	cmd := &cobra.Command{}
 
@@ -101,6 +112,11 @@ func TestIntegrateCmd_Completion(t *testing.T) {
 }
 
 func TestIntegrateCmd_Integration(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}

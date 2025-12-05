@@ -16,6 +16,11 @@ import (
 func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -23,15 +28,6 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -89,6 +85,11 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -96,15 +97,6 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -161,6 +153,11 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -168,15 +165,6 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -233,6 +221,11 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -240,15 +233,6 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -304,6 +288,11 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -311,15 +300,6 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -375,6 +355,11 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -382,15 +367,6 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()

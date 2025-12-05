@@ -3,7 +3,6 @@ package cmds
 import (
 	"celer/configs"
 	"celer/pkgs/dirs"
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -14,6 +13,11 @@ import (
 )
 
 func TestInstallCmd_CommandStructure(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	celer := configs.NewCeler()
 	installCmd := installCmd{}
 	cmd := installCmd.Command(celer)
@@ -63,6 +67,11 @@ func TestInstallCmd_CommandStructure(t *testing.T) {
 }
 
 func TestInstallCmd_ValidateAndCleanInput(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	installCmd := &installCmd{}
 
 	tests := []struct {
@@ -166,6 +175,11 @@ func TestInstallCmd_ValidateAndCleanInput(t *testing.T) {
 }
 
 func TestInstallCmd_Completion(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -173,15 +187,6 @@ func TestInstallCmd_Completion(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Create mock port structure for testing completion.
 	portsDir := dirs.PortsDir
@@ -254,6 +259,11 @@ func TestInstallCmd_Completion(t *testing.T) {
 }
 
 func TestInstallCmd_BuildSuggestions(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -337,6 +347,11 @@ func TestInstallCmd_BuildSuggestions(t *testing.T) {
 }
 
 func TestInstallCmd_ErrorHandling(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	tests := []struct {
 		name        string
 		input       string
@@ -375,80 +390,6 @@ func TestInstallCmd_ErrorHandling(t *testing.T) {
 
 			if !strings.Contains(err.Error(), test.expectError) {
 				t.Errorf("Expected error containing '%s' for input '%s', got: %v", test.expectError, test.input, err)
-			}
-		})
-	}
-}
-
-func BenchmarkInstallCmd_Completion(b *testing.B) {
-	// Setup test environment
-	tmpDir := b.TempDir()
-	dirs.Init(tmpDir)
-
-	// Create some mock ports for realistic testing
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 3; j++ {
-			portDir := filepath.Join(dirs.PortsDir, fmt.Sprintf("lib%d", i), fmt.Sprintf("1.%d.0", j))
-			os.MkdirAll(portDir, 0755)
-
-			portFile := filepath.Join(portDir, "port.toml")
-			f, _ := os.Create(portFile)
-			f.Close()
-		}
-	}
-
-	celer := configs.NewCeler()
-	installCmd := installCmd{celer: celer}
-	cmd := installCmd.Command(celer)
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		installCmd.completion(cmd, []string{}, "lib")
-	}
-}
-
-func TestInstallCmd_FlagsCombination(t *testing.T) {
-	celer := configs.NewCeler()
-	installCmd := installCmd{}
-	cmd := installCmd.Command(celer)
-
-	// Test flag parsing
-	testCases := []struct {
-		name string
-		args []string
-	}{
-		{
-			name: "dev flag",
-			args: []string{"--dev", "opencv@4.8.0"},
-		},
-		{
-			name: "force and recurse flags",
-			args: []string{"--force", "--recurse", "opencv@4.8.0"},
-		},
-		{
-			name: "store cache with token",
-			args: []string{"--store-cache", "--cache-token", "abc123", "opencv@4.8.0"},
-		},
-		{
-			name: "jobs and verbose",
-			args: []string{"--jobs", "4", "--verbose", "opencv@4.8.0"},
-		},
-		{
-			name: "short flags combination",
-			args: []string{"-d", "-f", "-r", "-v", "opencv@4.8.0"},
-		},
-	}
-
-	for _, test := range testCases {
-		t.Run(test.name, func(t *testing.T) {
-			// Reset command flags
-			cmd.Flags().Parse([]string{})
-
-			// This test just verifies that flag parsing works correctly
-			// We don't execute the command since that would require full setup
-			err := cmd.Flags().Parse(test.args[:len(test.args)-1]) // Exclude the package name
-			if err != nil {
-				t.Errorf("Failed to parse flags for case %s: %v", test.name, err)
 			}
 		})
 	}

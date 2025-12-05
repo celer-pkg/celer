@@ -7,7 +7,6 @@ import (
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 	"slices"
 	"testing"
@@ -16,6 +15,11 @@ import (
 func TestAutoRemove_With_Purge(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -23,15 +27,6 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	var equals = func(list1, list2 []string) bool {
 		if len(list1) != len(list2) {
@@ -136,6 +131,11 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 func TestAutoRemove_With_BuildCache(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -143,15 +143,6 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	var equals = func(list1, list2 []string) bool {
 		if len(list1) != len(list2) {

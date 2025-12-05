@@ -17,6 +17,11 @@ import (
 )
 
 func TestRemoveCmd_CommandStructure(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Test command creation
 	remove := &removeCmd{}
 	celer := &configs.Celer{}
@@ -75,6 +80,11 @@ func TestRemoveCmd_CommandStructure(t *testing.T) {
 }
 
 func TestRemoveCmd_Completion(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	remove := &removeCmd{}
 	cmd := &cobra.Command{}
 
@@ -183,6 +193,11 @@ func TestRemoveCmd_Completion(t *testing.T) {
 }
 
 func TestRemoveCmd_ValidatePackageNames(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	remove := &removeCmd{}
 
 	tests := []struct {
@@ -255,6 +270,11 @@ func TestRemoveCmd_ValidatePackageNames(t *testing.T) {
 }
 
 func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	remove := &removeCmd{}
 
 	// Create temporary test directory structure.
@@ -345,6 +365,11 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 }
 
 func TestRemoveCmd_GetInstalledPackages_NoTraceDir(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	remove := &removeCmd{}
 
 	// Backup original dirs.InstalledDir.
@@ -359,6 +384,11 @@ func TestRemoveCmd_GetInstalledPackages_NoTraceDir(t *testing.T) {
 }
 
 func TestRemoveCmd_Execute_ValidationError(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	remove := &removeCmd{
 		celer: &configs.Celer{},
 	}
@@ -450,12 +480,7 @@ func installForTestRemove(t *testing.T, nameVersion string, option configs.Remov
 	}
 
 	// Cleanup workspace.
-	os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-	os.RemoveAll(dirs.TmpDir)
-	os.RemoveAll(dirs.TestCacheDir)
-	os.RemoveAll(dirs.ConfDir)
-	os.RemoveAll(dirs.PackagesDir)
-	os.RemoveAll(dirs.InstalledDir)
+	dirs.RemoveAllForTest()
 
 	var (
 		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
@@ -494,12 +519,6 @@ func installForTestRemove(t *testing.T, nameVersion string, option configs.Remov
 		t.Fatal("package is not installed")
 	}
 
-	// Clean up.
-	// removeOptions := configs.RemoveOptions{
-	// 	Purge:      true,
-	// 	Recurse:    true,
-	// 	BuildCache: true,
-	// }
 	check(port.Remove(option))
 	return port
 }

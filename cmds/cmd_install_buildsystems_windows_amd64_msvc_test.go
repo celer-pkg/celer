@@ -72,7 +72,10 @@ func buildWithMSVC(t *testing.T, platform, nameVersion string, nobuild bool) {
 		t.SkipNow()
 	}
 
-	const project = "project_test_install"
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
 
 	// Check error.
 	var check = func(err error) {
@@ -82,16 +85,8 @@ func buildWithMSVC(t *testing.T, platform, nameVersion string, nobuild bool) {
 		}
 	}
 
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
-
 	// Init celer.
+	const project = "project_test_install"
 	celer := configs.NewCeler()
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))

@@ -9,13 +9,17 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 	"testing"
 )
 
 func TestInstall_CacheDir_Success(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
+
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
 
 	// Check error.
 	var check = func(err error) {
@@ -24,15 +28,6 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
@@ -103,6 +98,11 @@ func TestInstall_CacheDir_Success(t *testing.T) {
 func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -110,15 +110,6 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
@@ -200,6 +191,11 @@ func TestInstall_CacheDir_With_Deps_Success(t *testing.T) {
 func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -207,15 +203,6 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
@@ -289,6 +276,11 @@ func TestInstall_CacheDir_Prebuilt_Success(t *testing.T) {
 func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -296,15 +288,6 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
@@ -341,6 +324,11 @@ func TestInstall_CacheDir_DirNotDefined_Failed(t *testing.T) {
 func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -348,15 +336,6 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
@@ -393,6 +372,11 @@ func TestInstall_CacheDir_TokenNotDefined_Failed(t *testing.T) {
 func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -400,15 +384,6 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
@@ -445,6 +420,11 @@ func TestInstall_CacheDir_TokenNotSpecified_Failed(t *testing.T) {
 func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -452,15 +432,6 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
@@ -497,6 +468,11 @@ func TestInstall_CacheDir_TokenNotMatch_Failed(t *testing.T) {
 func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -504,15 +480,6 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
@@ -568,6 +535,11 @@ func TestInstall_CacheDir_With_Commit_Success(t *testing.T) {
 func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -575,15 +547,6 @@ func TestInstall_CacheDir_With_Commit_Failed(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))

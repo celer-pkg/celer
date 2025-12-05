@@ -4,7 +4,6 @@ import (
 	"celer/buildsystems"
 	"celer/configs"
 	"celer/pkgs/dirs"
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -12,6 +11,11 @@ import (
 )
 
 func TestReverseCmd_CommandStructure(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	reverseCmd := reverseCmd{}
 	celer := configs.NewCeler()
 	cmd := reverseCmd.Command(celer)
@@ -37,8 +41,12 @@ func TestReverseCmd_CommandStructure(t *testing.T) {
 }
 
 func TestReverseCmd_Completion(t *testing.T) {
-	cmd := reverseCmd{}
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
 
+	cmd := reverseCmd{}
 	suggestions, directive := cmd.completion(nil, []string{}, "test")
 
 	// Should return no file completion directive (cobra.ShellCompDirectiveNoFileComp)
@@ -54,7 +62,10 @@ func TestReverseCmd_Completion(t *testing.T) {
 }
 
 func TestReverseCmd_ValidatePackageName(t *testing.T) {
-	cmd := reverseCmd{}
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
 
 	tests := []struct {
 		name        string
@@ -71,17 +82,23 @@ func TestReverseCmd_ValidatePackageName(t *testing.T) {
 		{"missing name", "@3.4.0", true},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := cmd.validatePackageName(tt.packageName)
-			if (err != nil) != tt.wantError {
-				t.Errorf("validatePackageName() error = %v, wantError %v", err, tt.wantError)
+	cmd := reverseCmd{}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := cmd.validatePackageName(test.packageName)
+			if (err != nil) != test.wantError {
+				t.Errorf("validatePackageName() error = %v, wantError %v", err, test.wantError)
 			}
 		})
 	}
 }
 
 func TestReverseCmd_EmptyPorts(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Create a temporary directory structure without ports
 	tempDir := t.TempDir()
 	originalPortsDir := dirs.PortsDir
@@ -103,6 +120,11 @@ func TestReverseCmd_EmptyPorts(t *testing.T) {
 }
 
 func TestReverseCmd_Without_Dev(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	check := func(err error) {
 		t.Helper()
@@ -110,15 +132,6 @@ func TestReverseCmd_Without_Dev(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Helper function to check if two slices are equal (order-insensitive)
 	equals := func(list1, list2 []string) bool {
@@ -165,6 +178,11 @@ func TestReverseCmd_Without_Dev(t *testing.T) {
 }
 
 func TestReverseCmd_With_Dev(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	check := func(err error) {
 		t.Helper()
@@ -172,15 +190,6 @@ func TestReverseCmd_With_Dev(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Helper function to check if two slices are equal (order-insensitive)
 	equals := func(list1, list2 []string) bool {
@@ -234,6 +243,11 @@ func TestReverseCmd_With_Dev(t *testing.T) {
 }
 
 func TestReverseCmd_HasDependency(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	cmd := reverseCmd{}
 
 	// Mock port with dependencies

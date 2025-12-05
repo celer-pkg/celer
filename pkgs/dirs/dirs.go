@@ -73,3 +73,12 @@ func CleanTmpFilesDir() error {
 
 	return nil
 }
+
+func RemoveAllForTest() {
+	os.RemoveAll(filepath.Join(WorkspaceDir, "celer.toml"))
+	os.RemoveAll(TmpDir)
+	os.RemoveAll(ConfDir)
+	os.RemoveAll(TestCacheDir)
+	os.RemoveAll(PackagesDir)
+	os.RemoveAll(InstalledDir)
+}

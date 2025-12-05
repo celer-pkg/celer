@@ -7,12 +7,18 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/spf13/cobra"
 )
 
 func TestCreateCmd_CommandStructure(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	celer := configs.NewCeler()
 	createCmd := createCmd{}
 	cmd := createCmd.Command(celer)
@@ -52,6 +58,11 @@ func TestCreateCmd_CommandStructure(t *testing.T) {
 }
 
 func TestCreateCmd_Completion(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	createCmd := createCmd{}
 	celer := configs.NewCeler()
 	cmd := createCmd.Command(celer)
@@ -102,13 +113,7 @@ func TestCreateCmd_Completion(t *testing.T) {
 			}
 
 			for _, expected := range test.expected {
-				found := false
-				for _, suggestion := range suggestions {
-					if suggestion == expected {
-						found = true
-						break
-					}
-				}
+				found := slices.Contains(suggestions, expected)
 				if !found {
 					t.Errorf("Expected suggestion '%s' not found in %v", expected, suggestions)
 				}
@@ -118,6 +123,11 @@ func TestCreateCmd_Completion(t *testing.T) {
 }
 
 func TestCreateCmd_Validation(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	createCmd := &createCmd{}
 
 	t.Run("validatePlatformName", func(t *testing.T) {
@@ -199,6 +209,11 @@ func TestCreateCmd_Validation(t *testing.T) {
 }
 
 func TestCreateCmd(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
 	// Check error.
 	var check = func(err error) {
 		t.Helper()
@@ -206,15 +221,6 @@ func TestCreateCmd(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	// Cleanup function.
-	cleanup := func() {
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(dirs.TmpDir)
-		os.RemoveAll(dirs.TestCacheDir)
-		os.RemoveAll(dirs.ConfDir)
-	}
-	t.Cleanup(cleanup)
 
 	// Init celer.
 	celer := configs.NewCeler()
