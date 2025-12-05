@@ -8,7 +8,6 @@ import (
 	"celer/pkgs/fileio"
 	"fmt"
 	"io/fs"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -84,14 +83,14 @@ EXAMPLES:
 func (i *installCmd) runInstall(nameVersion string) {
 	if err := i.celer.Init(); err != nil {
 		configs.PrintError(err, "Failed to initialize celer.")
-		os.Exit(1)
+		return
 	}
 
 	// Validate and clean input.
 	cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
 	if err != nil {
 		configs.PrintError(err, "Invalid package specification.")
-		os.Exit(1)
+		return
 	}
 
 	i.install(cleanedNameVersion)
@@ -136,7 +135,7 @@ func (i *installCmd) install(nameVersion string) {
 
 	if err := i.celer.Setup(); err != nil {
 		configs.PrintError(err, "Failed to setup celer.")
-		os.Exit(1)
+		return
 	}
 
 	// Parse name and version (already validated)
@@ -147,7 +146,7 @@ func (i *installCmd) install(nameVersion string) {
 	portInPorts := filepath.Join(dirs.PortsDir, name, version, "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		configs.PrintError(fmt.Errorf("port %s not found in available repositories", nameVersion), "Failed to install %s.", nameVersion)
-		os.Exit(1)
+		return
 	}
 
 	// Install the port.
@@ -155,25 +154,25 @@ func (i *installCmd) install(nameVersion string) {
 	port.DevDep = i.dev
 	if err := port.Init(i.celer, nameVersion); err != nil {
 		configs.PrintError(err, "failed to init %s.", nameVersion)
-		os.Exit(1)
+		return
 	}
 
 	// Check circular dependence.
 	depcheck := depcheck.NewDepCheck()
 	if err := depcheck.CheckCircular(i.celer, port); err != nil {
 		configs.PrintError(err, "failed to check circular dependence.")
-		os.Exit(1)
+		return
 	}
 
 	// Check version conflict.
 	if err := depcheck.CheckConflict(i.celer, port); err != nil {
 		configs.PrintError(err, "failed to check version conflict.")
-		os.Exit(1)
+		return
 	}
 
 	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
 		configs.PrintError(err, "failed to check build tool: git.")
-		os.Exit(1)
+		return
 	}
 
 	// Do install.
@@ -186,7 +185,7 @@ func (i *installCmd) install(nameVersion string) {
 	fromWhere, err := port.Install(options)
 	if err != nil {
 		configs.PrintError(err, "failed to install %s.", nameVersion)
-		os.Exit(1)
+		return
 	}
 	if fromWhere != "" {
 		if port.DevDep {
@@ -223,7 +222,7 @@ func (i *installCmd) buildSuggestions(suggestions *[]string, portDir string, toC
 	})
 	if err != nil {
 		configs.PrintError(err, "failed to read %s.\n %s.\n", portDir, err)
-		os.Exit(1)
+		return
 	}
 }
 

@@ -3,7 +3,6 @@ package cmds
 import (
 	"celer/configs"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -54,7 +53,7 @@ EXAMPLES:
 func (c *createCmd) createPlatform(platformName string) {
 	if err := c.celer.CreatePlatform(platformName); err != nil {
 		configs.PrintError(err, "%s could not be created.", platformName)
-		os.Exit(1)
+		return
 	}
 
 	configs.PrintSuccess("%s is created, please proceed with its refinement.", platformName)
@@ -63,7 +62,7 @@ func (c *createCmd) createPlatform(platformName string) {
 func (c *createCmd) createProject(projectName string) {
 	if err := c.celer.CreateProject(projectName); err != nil {
 		configs.PrintError(err, "%s could not be created.", projectName)
-		os.Exit(1)
+		return
 	}
 
 	configs.PrintSuccess("%s is created, please proceed with its refinement.", projectName)
@@ -72,7 +71,7 @@ func (c *createCmd) createProject(projectName string) {
 func (c *createCmd) createPort(nameVersion string) {
 	if err := c.celer.CreatePort(nameVersion); err != nil {
 		configs.PrintError(err, "%s could not be created.", nameVersion)
-		os.Exit(1)
+		return
 	}
 
 	configs.PrintSuccess("%s is created, please proceed with its refinement.", nameVersion)
@@ -81,7 +80,7 @@ func (c *createCmd) createPort(nameVersion string) {
 func (c *createCmd) doCreate(cmd *cobra.Command) {
 	if err := c.celer.Init(); err != nil {
 		configs.PrintError(err, "Failed to initialize celer.")
-		os.Exit(1)
+		return
 	}
 
 	// Check that exactly one flag is provided
@@ -99,26 +98,26 @@ func (c *createCmd) doCreate(cmd *cobra.Command) {
 
 	if provided == 0 {
 		configs.PrintError(nil, "You must specify exactly one component to create (--platform, --project, or --port).")
-		os.Exit(1)
+		return
 	}
 
 	// Validate inputs and create
 	if c.platform != "" {
 		if err := c.validatePlatformName(c.platform); err != nil {
 			configs.PrintError(err, "Invalid platform name.")
-			os.Exit(1)
+			return
 		}
 		c.createPlatform(c.platform)
 	} else if c.project != "" {
 		if err := c.validateProjectName(c.project); err != nil {
 			configs.PrintError(err, "Invalid project name.")
-			os.Exit(1)
+			return
 		}
 		c.createProject(c.project)
 	} else if c.port != "" {
 		if err := c.validatePortName(c.port); err != nil {
 			configs.PrintError(err, "Invalid port name.")
-			os.Exit(1)
+			return
 		}
 		c.createPort(c.port)
 	}

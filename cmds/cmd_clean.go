@@ -32,24 +32,24 @@ func (c *cleanCmd) Command(celer *configs.Celer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := c.celer.Init(); err != nil {
 				configs.PrintError(err, "faild to init celer.")
-				os.Exit(1)
+				return
 			}
 
 			if c.all {
 				if err := c.cleanAll(); err != nil {
 					configs.PrintError(err, "failed to clean all packages.")
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("all packages cleaned.")
 			} else {
 				if len(args) == 0 {
 					configs.PrintError(errors.New("no package or project specified"), "failed to collect port infos.")
-					os.Exit(1)
+					return
 				}
 
 				if err := c.clean(args...); err != nil {
 					configs.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
-					os.Exit(1)
+					return
 				}
 			}
 		},
@@ -263,8 +263,7 @@ func (c *cleanCmd) completion(cmd *cobra.Command, args []string, toComplete stri
 	if fileio.PathExists(dirs.ConfProjectsDir) {
 		entities, err := os.ReadDir(dirs.ConfProjectsDir)
 		if err != nil {
-			configs.PrintError(err, "failed to read %s: %s.\n", dirs.ConfProjectsDir, err)
-			os.Exit(1)
+			return suggestions, cobra.ShellCompDirectiveNoFileComp
 		}
 
 		for _, entity := range entities {

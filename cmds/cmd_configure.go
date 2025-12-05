@@ -2,7 +2,6 @@ package cmds
 
 import (
 	"celer/configs"
-	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -84,14 +83,14 @@ Examples:
 			case flags.Changed("platform"):
 				if err := c.celer.SetPlatform(c.platform); err != nil {
 					configs.PrintError(err, "failed to set platform: %s.", c.platform)
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current platform: %s.", c.platform)
 
 			case flags.Changed("project"):
 				if err := c.celer.SetProject(c.project); err != nil {
 					configs.PrintError(err, "failed to set project: %s.", c.project)
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current project: %s.", c.project)
 
@@ -100,7 +99,7 @@ Examples:
 				if defaultPlatform != "" && c.celer.Global.Platform == "" {
 					if err := c.celer.SetPlatform(defaultPlatform); err != nil {
 						configs.PrintError(err, "failed to set platform: %s.", c.celer.Global.Platform)
-						os.Exit(1)
+						return
 					}
 					configs.PrintSuccess("platform is auto configured to %s defined in current project.", c.celer.Global.Platform)
 				}
@@ -108,28 +107,28 @@ Examples:
 			case flags.Changed("build-type"):
 				if err := c.celer.SetBuildType(c.buildType); err != nil {
 					configs.PrintError(err, "failed to set build type: %s.", c.buildType)
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current build type: %s.", c.buildType)
 
 			case flags.Changed("jobs"):
 				if err := c.celer.SetJobs(c.jobs); err != nil {
 					configs.PrintError(err, "failed to set job num: %d.", c.jobs)
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current job num: %d.", c.jobs)
 
 			case flags.Changed("offline"):
 				if err := c.celer.SetOffline(c.offline); err != nil {
 					configs.PrintError(err, "failed to set offline mode: %s.", expr.If(c.offline, "true", "false"))
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current offline mode: %s.", expr.If(c.offline, "true", "false"))
 
 			case flags.Changed("verbose"):
 				if err := c.celer.SetVerbose(c.verbose); err != nil {
 					configs.PrintError(err, "failed to set verbose mode: %s.", expr.If(c.verbose, "true", "false"))
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 
@@ -137,35 +136,35 @@ Examples:
 				cacheDir := expr.If(c.cacheDir != "", c.cacheDir, c.celer.BinaryCache().GetDir())
 				if err := c.celer.SetBinaryCache(cacheDir, c.cacheToken); err != nil {
 					configs.PrintError(err, "failed to set cache dir: %s.", cacheDir)
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current cache dir: %s.", expr.If(cacheDir != "", cacheDir, "empty"))
 
 			case flags.Changed("proxy-host"), flags.Changed("proxy-port"):
 				if err := c.celer.SetProxy(c.proxy.Host, c.proxy.Port); err != nil {
 					configs.PrintError(err, "failed to set proxy: %s:%d.", c.proxy.Host, c.proxy.Port)
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current proxy: %s:%d.", c.proxy.Host, c.proxy.Port)
 
 			case flags.Changed("ccache-dir"):
 				if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
 					configs.PrintError(err, "failed to update ccache dir.")
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current ccache dir: %s.", c.ccache.Dir)
 
 			case flags.Changed("ccache-maxsize"):
 				if err := c.celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
 					configs.PrintError(err, "failed to update ccache.maxsize.")
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current ccache maxsize: %s.", c.ccache.MaxSize)
 
 			case flags.Changed("ccache-compress"):
 				if err := c.celer.CompressCCache(c.ccache.Compress); err != nil {
 					configs.PrintError(err, "failed to update ccache.compress.")
-					os.Exit(1)
+					return
 				}
 				configs.PrintSuccess("current ccache compress: %s.", expr.If(c.ccache.Compress, "true", "false"))
 			}
@@ -229,8 +228,7 @@ func (c *configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cob
 	if fileio.PathExists(dir) {
 		entities, err := os.ReadDir(dir)
 		if err != nil {
-			color.Printf(color.Red, "failed to read %s: %s.\n", dir, err)
-			os.Exit(1)
+			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
 
 		for _, entity := range entities {
