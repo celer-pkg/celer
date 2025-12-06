@@ -6,7 +6,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
-	"crypto/md5"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -158,15 +157,6 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	}
 
 	return buffer.String(), nil
-}
-
-func (p Port) BuildHash(text string, err error) (string, error) {
-	if err != nil {
-		return "", err
-	}
-
-	bytes := md5.Sum([]byte(text))
-	return fmt.Sprintf("%x", bytes), nil
 }
 
 func (p Port) writeDivider(buffer *bytes.Buffer, parents []string, nameVersion, what string) {

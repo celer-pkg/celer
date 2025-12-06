@@ -67,17 +67,17 @@ func (b BinaryCache) Write(packageDir, meta string) error {
 	)
 
 	archiveName := fmt.Sprintf("%s@%s.tar.gz", libName, libVersion)
-	destPath := filepath.Join(os.TempDir(), archiveName)
-	if err := fileio.Targz(destPath, packageDir, false); err != nil {
+	archivePath := filepath.Join(os.TempDir(), archiveName)
+	if err := fileio.Targz(archivePath, packageDir, false); err != nil {
 		return err
 	}
-	defer os.Remove(destPath)
+	defer os.Remove(archivePath)
 
 	nameVersion := fmt.Sprintf("%s@%s", libName, libVersion)
 	destDir := filepath.Join(b.Dir, platformName, projectName, buildType, nameVersion)
 	metaDir := filepath.Join(destDir, "meta")
 
-	// Calculate checksum of description.
+	// Calculate checksum of metadata (this would be the cache key).
 	data := sha256.Sum256([]byte(meta))
 	hash := fmt.Sprintf("%x", data)
 
@@ -92,16 +92,15 @@ func (b BinaryCache) Write(packageDir, meta string) error {
 	}
 
 	// Move the tarball to cache dir.
-	if err := fileio.CopyFile(destPath, filepath.Join(destDir, hash+".tar.gz")); err != nil {
+	if err := fileio.CopyFile(archivePath, filepath.Join(destDir, hash+".tar.gz")); err != nil {
 		return err
 	}
 
-	// Write description to meta dir.
+	// Write metadata to meta dir.
 	if err := os.WriteFile(filepath.Join(metaDir, hash+".meta"), []byte(meta), os.ModePerm); err != nil {
 		return err
 	}
 
-	defer os.Remove(destPath)
 	return nil
 }
 
