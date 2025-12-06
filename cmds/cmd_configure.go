@@ -12,17 +12,17 @@ import (
 )
 
 type configureCmd struct {
-	celer      *configs.Celer
-	platform   string
-	project    string
-	buildType  string
-	jobs       int
-	offline    bool
-	verbose    bool
-	cacheDir   string
-	cacheToken string
-	proxy      configs.Proxy
-	ccache     configs.CCache
+	celer          *configs.Celer
+	platform       string
+	project        string
+	buildType      string
+	jobs           int
+	offline        bool
+	verbose        bool
+	binaryCacheDir string
+	cacheToken     string
+	proxy          configs.Proxy
+	ccache         configs.CCache
 }
 
 func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -77,6 +77,11 @@ Examples:
   celer configure --proxy-port 8080               # Set proxy port
   celer configure --ccache-maxsize 5G             # Set ccache max size to 5GB`,
 		Run: func(cmd *cobra.Command, args []string) {
+			if err := c.celer.Init(); err != nil {
+				configs.PrintError(err, "failed to init celer.")
+				return
+			}
+
 			flags := cmd.Flags()
 
 			switch {
@@ -133,12 +138,18 @@ Examples:
 				configs.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 
 			case flags.Changed("binary-cache-dir") || flags.Changed("binary-cache-token"):
-				cacheDir := expr.If(c.cacheDir != "", c.cacheDir, c.celer.BinaryCache().GetDir())
-				if err := c.celer.SetBinaryCache(cacheDir, c.cacheToken); err != nil {
-					configs.PrintError(err, "failed to set cache dir: %s.", cacheDir)
+				binaryCache := c.celer.BinaryCache()
+				var binaryCacheDir string
+				if binaryCache != nil {
+					binaryCacheDir = binaryCache.GetDir()
+				} else {
+					binaryCacheDir = c.binaryCacheDir
+				}
+				if err := c.celer.SetBinaryCache(binaryCacheDir, c.cacheToken); err != nil {
+					configs.PrintError(err, "failed to set cache dir: %s.", binaryCacheDir)
 					return
 				}
-				configs.PrintSuccess("current cache dir: %s.", expr.If(cacheDir != "", cacheDir, "empty"))
+				configs.PrintSuccess("current cache dir: %s.", expr.If(binaryCacheDir != "", binaryCacheDir, "empty"))
 
 			case flags.Changed("proxy-host"), flags.Changed("proxy-port"):
 				if err := c.celer.SetProxy(c.proxy.Host, c.proxy.Port); err != nil {
@@ -182,7 +193,7 @@ Examples:
 	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
 
 	// Binary cache flags.
-	flags.StringVar(&c.cacheDir, "binary-cache-dir", "", "configure binary cache dir.")
+	flags.StringVar(&c.binaryCacheDir, "binary-cache-dir", "", "configure binary cache dir.")
 	flags.StringVar(&c.cacheToken, "binary-cache-token", "", "configure binary cache token.")
 
 	// Proxy flags.

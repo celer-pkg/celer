@@ -5,10 +5,7 @@ import (
 )
 
 var (
-	ErrOffline          = errors.New("currently, you're in offline mode")
-	ErrNotMatchedConfig = errors.New("no matched config found")
-	ErrInvalidBuildType = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
-
+	ErrInvalidBuildType        = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
 	ErrCacheDirNotConfigured   = errors.New("binary cache dir is not configured in celer.toml")
 	ErrCacheDirNotExist        = errors.New("binary cache dir not exist")
 	ErrCacheTokenExist         = errors.New("binary cache token already exist, if you want to change it, please remove it first manually")
