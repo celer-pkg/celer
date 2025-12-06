@@ -86,7 +86,7 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 
 			var port configs.Port
 			if err := port.Init(r.celer, nameVersion); err != nil {
-				if errors.Is(err, configs.ErrNotMatchedConfig) {
+				if strings.Contains(err.Error(), "no matched config found for") {
 					return nil
 				}
 				return err

@@ -109,7 +109,7 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	// Set matchedConfig as prebuilt config when no config found in toml.
 	p.MatchedConfig = p.findMatchedConfig(p.ctx.BuildType())
 	if p.MatchedConfig == nil {
-		return fmt.Errorf("%w: %s", ErrNotMatchedConfig, p.NameVersion())
+		return fmt.Errorf("no matched config found for %s", p.NameVersion())
 	}
 	if p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "" {
 		p.Package.Url = p.MatchedConfig.Url
