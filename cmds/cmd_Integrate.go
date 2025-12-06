@@ -34,7 +34,7 @@ Examples:
 		Run: func(cobraCmd *cobra.Command, args []string) {
 			if err := i.execute(); err != nil {
 				configs.PrintError(err, "integration failed")
-				os.Exit(1)
+				return
 			}
 		},
 		ValidArgsFunction: i.completion,

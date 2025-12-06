@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"celer/configs"
+	"celer/context"
 	"celer/depcheck"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -32,15 +33,24 @@ func (t *treeCmd) Command(celer *configs.Celer) *cobra.Command {
 	t.celer = celer
 	command := &cobra.Command{
 		Use:   "tree",
-		Short: "Show the dependencies of a port or a project.",
-		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := t.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				os.Exit(1)
-			}
+		Short: "Show the dependency tree of a package or project.",
+		Long: `Show the dependency tree of a package or project.
 
-			t.tree(args[0])
+This command shows a hierarchical view of all dependencies for a given
+package or project, including both regular and development dependencies.
+It also performs dependency validation including circular dependency checks
+and version conflict detection.
+
+Examples:
+  celer tree boost@1.87.0              # Show dependencies for a specific package
+  celer tree my_project                # Show dependencies for a project
+  celer tree opencv@4.11.0 --hide-dev  # Hide development dependencies`,
+		Args: cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := t.tree(args[0]); err != nil {
+				configs.PrintError(err, "Failed to show dependency tree.")
+				return
+			}
 		},
 		ValidArgsFunction: t.completion,
 	}
@@ -50,24 +60,55 @@ func (t *treeCmd) Command(celer *configs.Celer) *cobra.Command {
 	return command
 }
 
-func (t *treeCmd) tree(target string) {
-	depcheck := depcheck.NewDepCheck()
+func (t *treeCmd) tree(target string) error {
+	// Initialize celer.
+	if err := t.celer.Init(); err != nil {
+		return fmt.Errorf("failed to initialize celer: %w", err)
+	}
+
+	// Validate target.
+	if err := t.validateTarget(target); err != nil {
+		return fmt.Errorf("invalid target: %w", err)
+	}
+
+	depchecker := depcheck.NewDepCheck()
+	if strings.Contains(target, "@") {
+		return t.showPortTree(target, depchecker)
+	}
+	return t.showProjectTree(target, depchecker)
+}
+
+// validateTarget validates the target parameter.
+func (t *treeCmd) validateTarget(target string) error {
+	target = strings.TrimSpace(target)
+	if target == "" {
+		return fmt.Errorf("target cannot be empty")
+	}
+	return nil
+}
+
+// showPortTree displays dependency tree for a port.
+func (t *treeCmd) showPortTree(target string, depchecker any) error {
 	if strings.Contains(target, "@") {
 		var port configs.Port
 		if err := port.Init(t.celer, target); err != nil {
-			configs.PrintError(err, "failed to init port.")
-			return
+			return fmt.Errorf("failed to initialize port %s: %w", target, err)
 		}
 
 		// Check circular dependence and version conflicts.
-		if err := depcheck.CheckCircular(t.celer, port); err != nil {
-			configs.PrintError(err, "failed to check circular dependence.")
-			return
+		// We know depchecker is *depcheck from NewDepCheck()
+		type depChecker interface {
+			CheckCircular(context.Context, configs.Port) error
+			CheckConflict(context.Context, ...configs.Port) error
+		}
+		checker := depchecker.(depChecker)
+
+		if err := checker.CheckCircular(t.celer, port); err != nil {
+			return fmt.Errorf("circular dependency detected: %w", err)
 		}
 
-		if err := depcheck.CheckConflict(t.celer, port); err != nil {
-			configs.PrintError(err, "failed to check version conflict.")
-			return
+		if err := checker.CheckConflict(t.celer, port); err != nil {
+			return fmt.Errorf("version conflict detected: %w", err)
 		}
 
 		rootInfo := portInfo{
@@ -76,63 +117,70 @@ func (t *treeCmd) tree(target string) {
 			devDep:      false,
 		}
 		if err := t.collectPortInfos(&rootInfo, target); err != nil {
-			configs.PrintError(err, "failed to collect port infos.")
-			return
+			return fmt.Errorf("failed to collect port information: %w", err)
 		}
 
 		t.printTree(&rootInfo)
-	} else {
-		var project configs.Project
-		if err := project.Init(t.celer, target); err != nil {
-			configs.PrintError(err, "failed to init project.")
-			return
+		return nil
+	}
+	return nil
+}
+
+// showProjectTree displays dependency tree for a project.
+func (t *treeCmd) showProjectTree(target string, depchecker any) error {
+	var project configs.Project
+	if err := project.Init(t.celer, target); err != nil {
+		return fmt.Errorf("failed to initialize project %s: %w", target, err)
+	}
+
+	rootInfo := portInfo{
+		nameVersion: target,
+		depth:       0,
+		devDep:      false,
+	}
+	nextDepth := rootInfo.depth + 1
+
+	// Define checker interface.
+	type depChecker interface {
+		CheckCircular(context.Context, configs.Port) error
+		CheckConflict(context.Context, ...configs.Port) error
+	}
+	checker := depchecker.(depChecker)
+
+	// Check circular dependence and version conflicts.
+	var ports []configs.Port
+	for _, nameVersion := range project.Ports {
+		var port configs.Port
+		if err := port.Init(t.celer, nameVersion); err != nil {
+			return fmt.Errorf("failed to initialize port %s: %w", nameVersion, err)
 		}
 
-		rootInfo := portInfo{
-			nameVersion: target,
-			depth:       0,
+		if err := checker.CheckCircular(t.celer, port); err != nil {
+			return fmt.Errorf("circular dependency detected in %s: %w", nameVersion, err)
+		}
+
+		ports = append(ports, port)
+	}
+	if err := checker.CheckConflict(t.celer, ports...); err != nil {
+		return fmt.Errorf("version conflicts detected: %w", err)
+	}
+
+	// Collect port info.
+	for _, port := range project.Ports {
+		portInfo := portInfo{
+			nameVersion: port,
+			depth:       nextDepth,
 			devDep:      false,
 		}
-		nextDepth := rootInfo.depth + 1
-
-		// Check circular dependence and version conflicts.
-		var ports []configs.Port
-		for _, nameVersion := range project.Ports {
-			var port configs.Port
-			if err := port.Init(t.celer, nameVersion); err != nil {
-				configs.PrintError(err, "failed to init port: %s", nameVersion)
-				return
-			}
-
-			if err := depcheck.CheckCircular(t.celer, port); err != nil {
-				configs.PrintError(err, "failed to check circular dependence.")
-				return
-			}
-
-			ports = append(ports, port)
-		}
-		if err := depcheck.CheckConflict(t.celer, ports...); err != nil {
-			configs.PrintError(err, "failed to check version conflicts.")
-			return
+		if err := t.collectPortInfos(&portInfo, port); err != nil {
+			return fmt.Errorf("failed to collect port information for %s: %w", port, err)
 		}
 
-		// Collect port info.
-		for _, port := range project.Ports {
-			portInfo := portInfo{
-				nameVersion: port,
-				depth:       nextDepth,
-				devDep:      false,
-			}
-			if err := t.collectPortInfos(&portInfo, port); err != nil {
-				configs.PrintError(err, "failed to collect port info.")
-				return
-			}
-
-			rootInfo.depedencies = append(rootInfo.depedencies, &portInfo)
-		}
-
-		t.printTree(&rootInfo)
+		rootInfo.depedencies = append(rootInfo.depedencies, &portInfo)
 	}
+
+	t.printTree(&rootInfo)
+	return nil
 }
 
 func (t *treeCmd) collectPortInfos(parent *portInfo, nameVersion string) error {
@@ -279,8 +327,7 @@ func (t *treeCmd) completion(cmd *cobra.Command, args []string, toComplete strin
 	if fileio.PathExists(dirs.ConfProjectsDir) {
 		entities, err := os.ReadDir(dirs.ConfProjectsDir)
 		if err != nil {
-			configs.PrintError(err, "failed to read %s: %s.\n", dirs.ConfProjectsDir, err)
-			os.Exit(1)
+			return suggestions, cobra.ShellCompDirectiveNoFileComp
 		}
 
 		for _, entity := range entities {

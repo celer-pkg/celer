@@ -3,7 +3,6 @@ package cmds
 import (
 	"celer/configs"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -52,7 +51,7 @@ func (i *initCmd) doInit() {
 	// Initialize celer configuration
 	if err := i.celer.Init(); err != nil {
 		configs.PrintError(err, "Failed to initialize celer.")
-		os.Exit(1)
+		return
 	}
 
 	// Trim whitespace from URL
@@ -61,12 +60,12 @@ func (i *initCmd) doInit() {
 	// Setup configuration repository.
 	if err := i.validateURL(i.url); err != nil {
 		configs.PrintError(err, "Invalid URL.")
-		os.Exit(1)
+		return
 	}
 
 	if err := i.celer.CloneConf(i.url, i.branch, i.force); err != nil {
 		configs.PrintError(err, "Failed to setup configuration repository.")
-		os.Exit(1)
+		return
 	}
 
 	if i.branch != "" {

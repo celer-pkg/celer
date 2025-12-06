@@ -99,8 +99,8 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 
 ## Supported Commands
 
-| Command                                         | Description                                                                   |
-| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| Command                                         | Description|
+| ----------------------------------------------- | -----------|
 | [autoremove](./docs/en-US/cmd_autoremove.md)    | Clean installed directory, remove project not required libraries.|
 | [clean](./docs/en-US/cmd_clean.md)              | Remove build cache and clean project repo.|
 | [configure](./docs/en-US/cmd_configure.md)      | Configure global settings for current workspace.|
@@ -112,8 +112,8 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 | [remove](./docs/en-US/cmd_remove.md)            | Remove installed packages.|
 | [search](./docs/en-US/cmd_search.md)            | Search available ports from ports repository.|
 | [tree](./docs/en-US/cmd_tree.md)                | Show the dependencies of a port or a project.|
-| [update](./docs/en-US/cmd_update.md)            | Update conf repo, ports config repo or third-party repo.|
-| [version](./docs/en-US/cmd_version.md)          | Show version info of celer. |
+| [update](./docs/en-US/cmd_update.md)            | Update conf repo, ports config repo or project repo.|
+| [version](./docs/en-US/cmd_version.md)          | Show version info of celer.|
 
 </details>
 

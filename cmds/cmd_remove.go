@@ -42,7 +42,7 @@ Examples:
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := r.execute(args); err != nil {
 				configs.PrintError(err, "removal failed")
-				os.Exit(1)
+				return
 			}
 		},
 		ValidArgsFunction: r.completion,

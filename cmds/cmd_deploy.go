@@ -4,7 +4,6 @@ import (
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/expr"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -21,23 +20,23 @@ func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := d.celer.Init(); err != nil {
 				configs.PrintError(err, "failed to init celer.")
-				os.Exit(1)
+				return
 			}
 
 			if err := d.celer.Setup(); err != nil {
 				configs.PrintError(err, "setup platform error.")
-				os.Exit(1)
+				return
 			}
 
 			// Check circular dependency and version conflict.
 			if err := d.checkProject(); err != nil {
 				configs.PrintError(err, "failed to check circular dependency and version conflict.")
-				os.Exit(1)
+				return
 			}
 
 			if err := d.celer.Deploy(); err != nil {
 				configs.PrintError(err, "failed to deploy celer.")
-				os.Exit(1)
+				return
 			}
 
 			projectName := expr.If(d.celer.Global.Project == "", "unnamed", d.celer.Global.Project)
