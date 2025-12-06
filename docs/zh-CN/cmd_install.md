@@ -15,7 +15,7 @@ celer install [package_name] [选项]
 | --dev             | -d   | 以开发模式安装（仅用于构建时依赖）     |
 | --force           | -f   | 强制重新安装（先卸载再安装）           |
 | --jobs            | -j   | 指定并行构建任务数                     |
-| --recurse         | -r   | 与 --force 配合，递归重新安装所有依赖  |
+| --recursive       | -r   | 与 --force 配合，递归重新安装所有依赖  |
 | --store-cache     | -s   | 安装后将构建产物存入缓存               |
 | --cache-token     | -t   | 与 --store-cache 配合，指定缓存令牌    |
 
@@ -62,7 +62,7 @@ celer install ffmpeg@5.1.6 -j 8
 ### 5️⃣ 递归强制重新安装（包含依赖）
 
 ```shell
-celer install ffmpeg@5.1.6 --force --recurse
+celer install ffmpeg@5.1.6 --force --recursive
 # 或使用简写
 celer install ffmpeg@5.1.6 -f -r
 ```

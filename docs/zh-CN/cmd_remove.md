@@ -10,11 +10,11 @@ celer remove [name@version] [选项]
 
 ## ⚙️ 命令选项
 
-| 选项              | 简写 | 说明                                  |
-|-------------------|------|--------------------------------------|
+| 选项              | 简写 | 说明                                 |
+|-------------------|------|------------------------------------|
 | --dev             | -d   | 移除开发模式安装的库                   |
 | --purge           | -p   | 移除库的同时删除其 package 文件        |
-| --recurse         | -r   | 移除库的同时删除其依赖项               |
+| --recursive       | -r   | 移除库的同时删除其依赖项               |
 | --build-cache     | -c   | 移除库的同时删除构建缓存               |
 
 ## 💡 使用示例
@@ -30,7 +30,7 @@ celer remove ffmpeg@5.1.6
 ### 2️⃣ 递归移除（包含依赖项）
 
 ```shell
-celer remove ffmpeg@5.1.6 --recurse
+celer remove ffmpeg@5.1.6 --recursive
 # 或使用简写
 celer remove ffmpeg@5.1.6 -r
 ```
@@ -70,7 +70,7 @@ celer remove ffmpeg@5.1.6 -c
 ### 6️⃣ 组合选项
 
 ```shell
-celer remove ffmpeg@5.1.6 --recurse --purge --build-cache
+celer remove ffmpeg@5.1.6 --recursive --purge --build-cache
 # 或使用简写
 celer remove ffmpeg@5.1.6 -r -p -c
 ```
@@ -86,7 +86,7 @@ celer remove ffmpeg@5.1.6 -r -p -c
 - 删除 `installed/celer/info/` 目录下的 `.trace` 文件
 - 删除 `installed/celer/hash/` 目录下的 `.hash` 文件
 
-### 递归移除（--recurse）
+### 递归移除（--recursive）
 - 在基本移除的基础上，递归删除所有依赖项
 - 仅删除不被其他库依赖的依赖项
 
@@ -102,7 +102,7 @@ celer remove ffmpeg@5.1.6 -r -p -c
 
 ## ⚠️ 注意事项
 
-1. **依赖关系检查**：使用 `--recurse` 时，系统会检查依赖关系，不会删除被其他库依赖的库
+1. **依赖关系检查**：使用 `--recursive` 时，系统会检查依赖关系，不会删除被其他库依赖的库
 2. **无法撤销**：移除操作不可撤销，删除的文件无法恢复
 3. **版本指定**：必须指定完整的库名和版本号，例如 `ffmpeg@5.1.6`
 4. **开发模式库**：开发模式安装的库（如构建工具）存储在 `installed/<platform>-dev/` 目录

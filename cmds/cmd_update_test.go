@@ -48,7 +48,7 @@ func TestUpdateCmd_CommandStructure(t *testing.T) {
 		{"conf-repo", "c", "false"},
 		{"ports-repo", "p", "false"},
 		{"force", "f", "false"},
-		{"recurse", "r", "false"},
+		{"recursive", "r", "false"},
 	}
 
 	for _, test := range tests {
@@ -117,9 +117,9 @@ func TestUpdateCmd_Completion(t *testing.T) {
 			expected:   []string{"--force"},
 		},
 		{
-			name:       "complete_recurse_flag",
+			name:       "complete_recursive_flag",
 			toComplete: "--r",
-			expected:   []string{"--recurse"},
+			expected:   []string{"--recursive"},
 		},
 		{
 			name:       "no_completion_for_random",
@@ -360,9 +360,9 @@ func TestUpdateCmd_UpdatePortRepo_SrcNotExist(t *testing.T) {
 	nameVersion := "zlib@123.456.789"
 
 	updateCmd := updateCmd{
-		celer:   celer,
-		recurse: false,
-		force:   false,
+		celer:     celer,
+		recursive: false,
+		force:     false,
 	}
 
 	visited := make(map[string]bool)
@@ -418,9 +418,9 @@ func TestUpdateCmd_UpdatePortRepo_NonGitRepo(t *testing.T) {
 		check(os.MkdirAll(srcDir, os.ModePerm))
 
 		updateCmd := updateCmd{
-			celer:   celer,
-			recurse: false,
-			force:   false,
+			celer:     celer,
+			recursive: false,
+			force:     false,
 		}
 
 		visited := make(map[string]bool)
@@ -472,9 +472,9 @@ func TestUpdateCmd_UpdatePortRepo_CircularDependency(t *testing.T) {
 		visited["test-port@1.0.0"] = true
 
 		updateCmd := updateCmd{
-			celer:   celer,
-			recurse: true,
-			force:   false,
+			celer:     celer,
+			recursive: true,
+			force:     false,
 		}
 
 		// This should return nil immediately due to visited check.

@@ -17,7 +17,7 @@ type removeCmd struct {
 	celer      *configs.Celer
 	dev        bool
 	purge      bool
-	recurse    bool
+	recursive  bool
 	buildCache bool
 }
 
@@ -50,7 +50,7 @@ Examples:
 
 	// Register flags.
 	command.Flags().BoolVarP(&r.buildCache, "build-cache", "c", false, "remove build cache along with the package")
-	command.Flags().BoolVarP(&r.recurse, "recurse", "r", false, "remove package dependencies recursively")
+	command.Flags().BoolVarP(&r.recursive, "recursive", "r", false, "remove package dependencies recursively")
 	command.Flags().BoolVarP(&r.purge, "purge", "p", false, "purge package files completely")
 	command.Flags().BoolVarP(&r.dev, "dev", "d", false, "remove from development dependencies")
 
@@ -99,7 +99,7 @@ func (r *removeCmd) validatePackageNames(nameVersions []string) error {
 func (r *removeCmd) removePackages(nameVersions []string) error {
 	removeOptions := configs.RemoveOptions{
 		Purge:      r.purge,
-		Recurse:    r.recurse,
+		Recursive:  r.recursive,
 		BuildCache: r.buildCache,
 	}
 
@@ -128,7 +128,7 @@ func (r *removeCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	// Add flag suggestions.
 	flags := []string{
 		"--build-cache", "-c",
-		"--recurse", "-r",
+		"--recursive", "-r",
 		"--purge", "-p",
 		"--dev", "-d",
 	}

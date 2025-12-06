@@ -18,7 +18,7 @@ type installCmd struct {
 	celer      *configs.Celer
 	dev        bool
 	force      bool
-	recurse    bool
+	recursive  bool
 	storeCache bool
 	cacheToken string
 	jobs       int
@@ -48,7 +48,7 @@ FEATURES:
 FLAGS:
   -d, --dev         Install as development dependency
   -f, --force       Force reinstallation (uninstall first if exists)
-  -r, --recurse     With --force, recursively reinstall dependencies
+  -r, --recursive   With --force, recursively reinstall dependencies
   -s, --store-cache Store build artifacts in binary cache after installation
   -t, --cache-token Authentication token for binary cache operations
   -j, --jobs        Number of parallel build jobs (default: system cores)
@@ -57,7 +57,7 @@ FLAGS:
 EXAMPLES:
   celer install opencv@4.8.0
   celer install --dev gtest@1.12.1
-  celer install --force --recurse boost@1.82.0
+  celer install --force --recursive boost@1.82.0
   celer install --store-cache --cache-token abc123 eigen@3.4.0
   celer install --jobs 8 --verbose opencv@4.8.0`,
 		Args: cobra.ExactArgs(1),
@@ -71,7 +71,7 @@ EXAMPLES:
 	flags := command.Flags()
 	flags.BoolVarP(&i.dev, "dev", "d", false, "install in dev mode.")
 	flags.BoolVarP(&i.force, "force", "f", false, "try to uninstall before installation.")
-	flags.BoolVarP(&i.recurse, "recurse", "r", false, "combine with --force, recursively reinstall dependencies.")
+	flags.BoolVarP(&i.recursive, "recursive", "r", false, "combine with --force, recursively reinstall dependencies.")
 	flags.BoolVarP(&i.storeCache, "store-cache", "s", false, "store artifact into cache after installation.")
 	flags.StringVarP(&i.cacheToken, "cache-token", "t", "", "combine with --store-cache, specify cache token.")
 	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "the number of jobs to run in parallel.")
@@ -178,7 +178,7 @@ func (i *installCmd) install(nameVersion string) {
 	// Do install.
 	options := configs.InstallOptions{
 		Force:      i.force,
-		Recurse:    i.recurse,
+		Recursive:  i.recursive,
 		StoreCache: i.storeCache,
 		CacheToken: i.cacheToken,
 	}
@@ -242,7 +242,7 @@ func (i *installCmd) completion(cmd *cobra.Command, args []string, toComplete st
 	commands := []string{
 		"--dev", "-d",
 		"--force", "-f",
-		"--recurse", "-r",
+		"--recursive", "-r",
 		"--store-cache", "-s",
 		"--jobs", "-j",
 		"--verbose", "-v",

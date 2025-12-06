@@ -22,7 +22,7 @@ celer clean [flags] [package/project...]
 | -------------- | ----- | ------------------------------------------- |
 | --all          | -a    | Clean build cache for all packages/projects  |
 | --dev          | -d    | Clean cache for dev mode packages/projects   |
-| --recurse      | -r    | Recursively clean cache for package/project and its dependencies |
+| --recursive    | -r    | Recursively clean cache for package/project and its dependencies |
 
 ## 💡 Usage Examples
 
@@ -45,7 +45,7 @@ celer clean -d pkgconf@2.4.3
 
 **4. Recursively clean cache for a package and its dependencies**
 ```shell
-celer clean --recurse ffmpeg@5.1.6
+celer clean --recursive ffmpeg@5.1.6
 # or
 celer clean -r ffmpeg@5.1.6
 ```

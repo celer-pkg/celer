@@ -48,7 +48,7 @@ func TestInstallCmd_CommandStructure(t *testing.T) {
 		}{
 			{"dev", "d"},
 			{"force", "f"},
-			{"recurse", "r"},
+			{"recursive", "r"},
 			{"store-cache", "s"},
 			{"cache-token", "t"},
 			{"jobs", "j"},

@@ -14,7 +14,7 @@ celer remove [name@version] [options]
 |-------------------|-------|-------------------------------------------------|
 | --dev             | -d    | Remove library installed in dev mode            |
 | --purge           | -p    | Remove library along with its package files     |
-| --recurse         | -r    | Remove library along with its dependencies      |
+| --recursive       | -r    | Remove library along with its dependencies      |
 | --build-cache     | -c    | Remove library along with build cache           |
 
 ## 💡 Usage Examples
@@ -30,7 +30,7 @@ celer remove ffmpeg@5.1.6
 ### 2️⃣ Recursive Removal (Including Dependencies)
 
 ```shell
-celer remove ffmpeg@5.1.6 --recurse
+celer remove ffmpeg@5.1.6 --recursive
 # Or use shorthand
 celer remove ffmpeg@5.1.6 -r
 ```
@@ -70,7 +70,7 @@ celer remove ffmpeg@5.1.6 -c
 ### 6️⃣ Combined Options
 
 ```shell
-celer remove ffmpeg@5.1.6 --recurse --purge --build-cache
+celer remove ffmpeg@5.1.6 --recursive --purge --build-cache
 # Or use shorthand
 celer remove ffmpeg@5.1.6 -r -p -c
 ```
@@ -86,7 +86,7 @@ celer remove ffmpeg@5.1.6 -r -p -c
 - Delete `.trace` files in `installed/celer/info/` directory
 - Delete `.hash` files in `installed/celer/hash/` directory
 
-### Recursive Removal (--recurse)
+### Recursive Removal (--recursive)
 - Based on basic removal, recursively delete all dependencies
 - Only delete dependencies not used by other libraries
 
@@ -102,7 +102,7 @@ celer remove ffmpeg@5.1.6 -r -p -c
 
 ## ⚠️ Notes
 
-1. **Dependency Check**: When using `--recurse`, the system checks dependencies and won't delete libraries depended on by other libraries
+1. **Dependency Check**: When using `--recursive`, the system checks dependencies and won't delete libraries depended on by other libraries
 2. **Irreversible**: Removal operations are irreversible, deleted files cannot be recovered
 3. **Version Specification**: Must specify complete library name and version number, e.g., `ffmpeg@5.1.6`
 4. **Dev Mode Libraries**: Libraries installed in dev mode (such as build tools) are stored in `installed/<platform>-dev/` directory

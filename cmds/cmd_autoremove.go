@@ -77,7 +77,7 @@ func (a *autoremoveCmd) autoremove() error {
 		}
 		remoteOptions := configs.RemoveOptions{
 			Purge:      a.purge,
-			Recurse:    false,
+			Recursive:  false,
 			BuildCache: a.buildCache,
 		}
 		if err := port.Remove(remoteOptions); err != nil {
@@ -101,7 +101,7 @@ func (a *autoremoveCmd) autoremove() error {
 		}
 		remoteOptions := configs.RemoveOptions{
 			Purge:      a.purge,
-			Recurse:    false,
+			Recursive:  false,
 			BuildCache: a.buildCache,
 		}
 		if err := port.Remove(remoteOptions); err != nil {

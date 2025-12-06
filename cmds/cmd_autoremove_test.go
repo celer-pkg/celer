@@ -108,7 +108,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 	t.Cleanup(func() {
 		remoteOptions := configs.RemoveOptions{
 			Purge:      true,
-			Recurse:    true,
+			Recursive:  true,
 			BuildCache: true,
 		}
 		check(port.Remove(remoteOptions))
@@ -229,7 +229,7 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 	t.Cleanup(func() {
 		remoteOptions := configs.RemoveOptions{
 			Purge:      true,
-			Recurse:    true,
+			Recursive:  true,
 			BuildCache: true,
 		}
 		check(port.Remove(remoteOptions))
