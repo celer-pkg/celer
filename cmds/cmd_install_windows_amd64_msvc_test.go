@@ -126,7 +126,7 @@ func buildWithMSVC(t *testing.T, platform, nameVersion string, nobuild bool) {
 	// Clean up.
 	removeOptions := configs.RemoveOptions{
 		Purge:      true,
-		Recurse:    true,
+		Recursive:  true,
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))

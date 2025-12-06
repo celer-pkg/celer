@@ -22,8 +22,8 @@ var preparedTmpDeps []string
 
 type InstallOptions struct {
 	// Reinstall options.
-	Force   bool
-	Recurse bool
+	Force     bool
+	Recursive bool
 
 	// Cache options.
 	StoreCache bool
@@ -32,7 +32,7 @@ type InstallOptions struct {
 
 type RemoveOptions struct {
 	Purge      bool
-	Recurse    bool
+	Recursive  bool
 	BuildCache bool
 }
 

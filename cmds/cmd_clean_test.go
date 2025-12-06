@@ -39,12 +39,12 @@ func TestCleanCmd_CommandStructure(t *testing.T) {
 	}
 
 	// Test flags.
-	recurseFlag := cmd.Flags().Lookup("recurse")
-	if recurseFlag == nil {
-		t.Error("--recurse flag should be defined")
+	recursiveFlag := cmd.Flags().Lookup("recursive")
+	if recursiveFlag == nil {
+		t.Error("--recursive flag should be defined")
 	} else {
-		if recurseFlag.Shorthand != "r" {
-			t.Errorf("Expected recurse flag shorthand to be 'r', got '%s'", recurseFlag.Shorthand)
+		if recursiveFlag.Shorthand != "r" {
+			t.Errorf("Expected recursive flag shorthand to be 'r', got '%s'", recursiveFlag.Shorthand)
 		}
 	}
 
@@ -167,9 +167,9 @@ func TestCleanCmd_Completion(t *testing.T) {
 			expectContain: []string{"-d"},
 		},
 		{
-			name:          "complete_recurse_flag",
+			name:          "complete_recursive_flag",
 			toComplete:    "--r",
-			expectContain: []string{"--recurse"},
+			expectContain: []string{"--recursive"},
 		},
 		{
 			name:          "complete_all_flag",
@@ -251,7 +251,7 @@ func TestClean(t *testing.T) {
 
 	t.Run("clean port", func(t *testing.T) {
 		cleanCmd.dev = false
-		cleanCmd.recurse = false
+		cleanCmd.recursive = false
 		cleanCmd.all = false
 		check(cleanCmd.clean("x264@stable"))
 		if fileio.PathExists(buildDir("x264@stable", false)) {
@@ -261,7 +261,7 @@ func TestClean(t *testing.T) {
 
 	t.Run("clean port for dev", func(t *testing.T) {
 		cleanCmd.dev = true
-		cleanCmd.recurse = false
+		cleanCmd.recursive = false
 		cleanCmd.all = false
 		check(cleanCmd.clean("m4@1.4.19"))
 		if fileio.PathExists(buildDir("m4@1.4.19", true)) {
@@ -271,7 +271,7 @@ func TestClean(t *testing.T) {
 
 	t.Run("clean recursive", func(t *testing.T) {
 		cleanCmd.dev = true
-		cleanCmd.recurse = true
+		cleanCmd.recursive = true
 		cleanCmd.all = false
 		check(cleanCmd.clean("automake@1.18"))
 
@@ -290,7 +290,7 @@ func TestClean(t *testing.T) {
 
 	t.Run("clean all", func(t *testing.T) {
 		cleanCmd.dev = true
-		cleanCmd.recurse = true
+		cleanCmd.recursive = true
 		cleanCmd.all = true
 
 		check(os.RemoveAll(dirs.InstalledDir))

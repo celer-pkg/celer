@@ -60,7 +60,7 @@ func TestInstall_FromPackage(t *testing.T) {
 
 		removeOptions := configs.RemoveOptions{
 			Purge:      false,
-			Recurse:    true,
+			Recursive:  true,
 			BuildCache: true,
 		}
 		check(port.Remove(removeOptions))
@@ -71,7 +71,7 @@ func TestInstall_FromPackage(t *testing.T) {
 		t.Cleanup(func() {
 			removeOptions := configs.RemoveOptions{
 				Purge:      true,
-				Recurse:    true,
+				Recursive:  true,
 				BuildCache: true,
 			}
 			check(port.Remove(removeOptions))
@@ -93,7 +93,7 @@ func TestInstall_FromPackage(t *testing.T) {
 		}
 		removeOptions := configs.RemoveOptions{
 			Purge:      true,
-			Recurse:    true,
+			Recursive:  true,
 			BuildCache: true,
 		}
 		check(port.Remove(removeOptions))

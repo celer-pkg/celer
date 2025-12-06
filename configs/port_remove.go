@@ -16,7 +16,7 @@ func (p Port) Remove(options RemoveOptions) error {
 	matchedConfig := p.MatchedConfig
 
 	// Try to remove dependencies firstly.
-	if options.Recurse {
+	if options.Recursive {
 		removeFunc := func(nameVersion string, devDep, native bool) error {
 			// Same name, version as parent and they are booth build with native toolchain, so skip.
 			if (devDep || native) && nameVersion == p.NameVersion() {

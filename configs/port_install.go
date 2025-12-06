@@ -40,7 +40,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		// Remove installed port with its build cache, logs.
 		remoteOptions := RemoveOptions{
 			Purge:      true,
-			Recurse:    options.Recurse,
+			Recursive:  options.Recursive,
 			BuildCache: true,
 		}
 		if err := p.Remove(remoteOptions); err != nil {
@@ -356,7 +356,7 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 		// Remove outdated package and install from source again.
 		remoteOptions := RemoveOptions{
 			Purge:      true,
-			Recurse:    false,
+			Recursive:  false,
 			BuildCache: true,
 		}
 		if err := p.Remove(remoteOptions); err != nil {
@@ -484,12 +484,12 @@ func (p Port) installDependencies(options InstallOptions) error {
 			return err
 		}
 
-		// Install it if not installed or forcing with recurse.
+		// Install it if not installed or forcing with recursive.
 		installed, err := port.Installed()
 		if err != nil {
 			return err
 		}
-		if !installed || (options.Force && options.Recurse) {
+		if !installed || (options.Force && options.Recursive) {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
@@ -512,12 +512,12 @@ func (p Port) installDependencies(options InstallOptions) error {
 			return err
 		}
 
-		// Install it if not installed or forcing with recurse.
+		// Install it if not installed or forcing with recursive.
 		installed, err := port.Installed()
 		if err != nil {
 			return err
 		}
-		if !installed || (options.Force && options.Recurse) {
+		if !installed || (options.Force && options.Recursive) {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}

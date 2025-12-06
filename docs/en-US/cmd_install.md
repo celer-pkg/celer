@@ -15,7 +15,7 @@ celer install [package_name] [options]
 | --dev             | -d    | Install in dev mode (for build-time dependencies only) |
 | --force           | -f    | Force reinstall (uninstall first, then install)    |
 | --jobs            | -j    | Specify number of parallel build jobs              |
-| --recurse         | -r    | With --force, recursively reinstall all dependencies |
+| --recursive       | -r    | With --force, recursively reinstall all dependencies |
 | --store-cache     | -s    | Store build artifacts into cache after installation |
 | --cache-token     | -t    | With --store-cache, specify cache token            |
 
@@ -62,7 +62,7 @@ celer install ffmpeg@5.1.6 -j 8
 ### 5️⃣ Recursively Force Reinstall (Including Dependencies)
 
 ```shell
-celer install ffmpeg@5.1.6 --force --recurse
+celer install ffmpeg@5.1.6 --force --recursive
 # Or use shorthand
 celer install ffmpeg@5.1.6 -f -r
 ```

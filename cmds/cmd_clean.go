@@ -17,11 +17,11 @@ import (
 )
 
 type cleanCmd struct {
-	celer   *configs.Celer
-	recurse bool
-	dev     bool
-	all     bool
-	cleaned []string
+	celer     *configs.Celer
+	recursive bool
+	dev       bool
+	all       bool
+	cleaned   []string
 }
 
 func (c *cleanCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -39,9 +39,9 @@ Examples:
   celer clean x264@stable                           	# Clean specific package
   celer clean my-project                            	# Clean project
   celer clean x264@stable --dev                     	# Clean dev build cache
-  celer clean automake@1.18 --recurse               	# Clean with dependencies
+  celer clean automake@1.18 --recursive              	# Clean with dependencies
   celer clean --all                                 	# Clean all packages
-  celer clean x264@stable ffmpeg@3.4.13 --recurse   	# Clean multiple packages`,
+  celer clean x264@stable ffmpeg@3.4.13 --recursive   	# Clean multiple packages`,
 		Run: func(cmd *cobra.Command, args []string) {
 			c.execute(args)
 		},
@@ -49,7 +49,7 @@ Examples:
 	}
 
 	// Register flags.
-	command.Flags().BoolVarP(&c.recurse, "recurse", "r", false, "clean package/project along with its depedencies.")
+	command.Flags().BoolVarP(&c.recursive, "recursive", "r", false, "clean package/project along with its depedencies.")
 	command.Flags().BoolVarP(&c.dev, "dev", "d", false, "clean package/project for dev mode.")
 	command.Flags().BoolVarP(&c.all, "all", "a", false, "clean all packages.")
 
@@ -227,7 +227,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 	}
 
 	// Clean dependencies.
-	if c.recurse {
+	if c.recursive {
 		for _, nameVersion := range matchedConfig.Dependencies {
 			var depPort configs.Port
 			depPort.Native = port.DevDep || port.Native
@@ -296,7 +296,7 @@ func (c *cleanCmd) completion(cmd *cobra.Command, args []string, toComplete stri
 	}
 
 	// Support flags completion.
-	for _, flag := range []string{"--dev", "-d", "--recurse", "-r", "--all", "-a"} {
+	for _, flag := range []string{"--dev", "-d", "--recursive", "-r", "--all", "-a"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}

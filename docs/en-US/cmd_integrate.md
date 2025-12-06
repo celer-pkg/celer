@@ -57,7 +57,7 @@ celer <Tab>
 Press Tab after typing a command to auto-complete available options:
 ```shell
 celer install --<Tab>
-# Shows: --dev, --force, --jobs, --recurse, --store-cache, --cache-token
+# Shows: --dev, --force, --jobs, --recursive, --store-cache, --cache-token
 ```
 
 ### Package Name Completion
