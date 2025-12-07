@@ -71,7 +71,7 @@ func TestInstall_BinaryCache_Success(t *testing.T) {
 	// Totally remove port and src.
 	var removeOptions = configs.RemoveOptions{
 		Purge:      true,
-		Recurse:    true,
+		Recursive:  true,
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))
@@ -154,7 +154,7 @@ func TestInstall_BinaryCache_With_Deps_Success(t *testing.T) {
 	// Totally remove port and src.
 	var removeOptions = configs.RemoveOptions{
 		Purge:      true,
-		Recurse:    true,
+		Recursive:  true,
 		BuildCache: true,
 	}
 	check(glogPort.Remove(removeOptions))
@@ -250,7 +250,7 @@ func TestInstall_BinaryCache_Prebuilt_Success(t *testing.T) {
 	// Totally remove port.
 	var removeOptions = configs.RemoveOptions{
 		Purge:      true,
-		Recurse:    true,
+		Recursive:  true,
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))
@@ -517,7 +517,7 @@ func TestInstall_BinaryCache_With_Commit_Success(t *testing.T) {
 	// Remove installed and src dir.
 	removeOptions := configs.RemoveOptions{
 		Purge:      true,
-		Recurse:    true,
+		Recursive:  true,
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))
@@ -580,7 +580,7 @@ func TestInstall_BinaryCache_With_Commit_Failed(t *testing.T) {
 	// Remove installed and src dir.
 	removeOptions := configs.RemoveOptions{
 		Purge:      true,
-		Recurse:    true,
+		Recursive:  true,
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))

@@ -88,7 +88,7 @@ func TestInstall_With_Force(t *testing.T) {
 	}
 }
 
-func TestInstall_With_Force_Recurse(t *testing.T) {
+func TestInstall_With_Force_Recursive(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
@@ -149,7 +149,7 @@ func TestInstall_With_Force_Recurse(t *testing.T) {
 
 	// Re-install with --force.
 	options.Force = true
-	options.Recurse = true
+	options.Recursive = true
 	check(glogPort.Init(celer, nameVersion))
 	_, err = glogPort.Install(options)
 	check(err)

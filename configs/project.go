@@ -130,8 +130,8 @@ func (p Project) GetPorts() []string {
 
 func (p Project) deploy() error {
 	options := InstallOptions{
-		Force:   true,
-		Recurse: true,
+		Force:     true,
+		Recursive: true,
 	}
 	for _, nameVersion := range p.Ports {
 		var port Port

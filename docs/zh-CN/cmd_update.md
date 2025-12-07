@@ -10,12 +10,12 @@ celer update [选项] [package_name]
 
 ## ⚙️ 命令选项
 
-| 选项          | 简写 | 说明                                   |
-|---------------|------|----------------------------------------|
-| --conf-repo   | -c   | 仅更新工作空间 conf 仓库            |
-| --ports-repo  | -p   | 仅更新 ports 仓库                   |
+| 选项           | 简写  | 说明  |
+|---------------|------|------|
+| --conf-repo   | -c   | 仅更新工作空间 conf 仓库 |
+| --ports-repo  | -p   | 仅更新 ports 仓库|
 | --force       | -f   | 与 --conf-repo 或 --ports-repo 配合强制更新 |
-| --recurse     | -r   | 递归更新软件包的所有依赖项       |
+| --recursive   | -r   | 递归更新软件包的所有依赖项 |
 
 ## 💡 使用示例
 
@@ -60,7 +60,7 @@ celer update -c -f
 ### 5️⃣ 递归更新（包含依赖）
 
 ```shell
-celer update --recurse ffmpeg@3.4.13
+celer update --recursive ffmpeg@3.4.13
 # 或使用简写
 celer update -r ffmpeg@3.4.13
 ```
@@ -70,7 +70,7 @@ celer update -r ffmpeg@3.4.13
 ### 6️⃣ 组合选项
 
 ```shell
-celer update --force --recurse ffmpeg@3.4.13
+celer update --force --recursive ffmpeg@3.4.13
 # 或使用简写
 celer update -f -r ffmpeg@3.4.13
 ```
@@ -102,7 +102,7 @@ celer update -f -r ffmpeg@3.4.13
 
 1. **网络连接**：更新操作需要网络连接以访问远程仓库
 2. **强制更新**：使用 `--force` 会覆盖本地修改，请谨慎使用
-3. **递归更新**：`--recurse` 会更新所有依赖项，可能耗时较长
+3. **递归更新**：`--recursive` 会更新所有依赖项，可能耗时较长
 4. **Git 仓库**：conf 和 ports 仓库通常是 Git 仓库，确保有相应权限
 5. **备份修改**：如果有自定义配置，建议在更新前备份
 

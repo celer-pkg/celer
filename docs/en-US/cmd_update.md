@@ -15,7 +15,7 @@ celer update [options] [package_name]
 | --conf-repo   | -c    | Update only the workspace conf repository          |
 | --ports-repo  | -p    | Update only the ports repository                   |
 | --force       | -f    | Combine with --conf-repo or --ports-repo to force update |
-| --recurse     | -r    | Recursively update all dependencies of a package   |
+| --recursive   | -r    | Recursively update all dependencies of a package   |
 
 ## 💡 Usage Examples
 
@@ -60,7 +60,7 @@ celer update -c -f
 ### 5️⃣ Recursive Update (Including Dependencies)
 
 ```shell
-celer update --recurse ffmpeg@3.4.13
+celer update --recursive ffmpeg@3.4.13
 # Or use shorthand
 celer update -r ffmpeg@3.4.13
 ```
@@ -70,7 +70,7 @@ celer update -r ffmpeg@3.4.13
 ### 6️⃣ Combined Options
 
 ```shell
-celer update --force --recurse ffmpeg@3.4.13
+celer update --force --recursive ffmpeg@3.4.13
 # Or use shorthand
 celer update -f -r ffmpeg@3.4.13
 ```
@@ -102,7 +102,7 @@ celer update -f -r ffmpeg@3.4.13
 
 1. **Network Connection**: Update operations require network access to remote repositories
 2. **Force Update**: Using `--force` will overwrite local modifications, use with caution
-3. **Recursive Update**: `--recurse` updates all dependencies, which may take a long time
+3. **Recursive Update**: `--recursive` updates all dependencies, which may take a long time
 4. **Git Repositories**: conf and ports repositories are typically Git repositories, ensure proper permissions
 5. **Backup Modifications**: If you have custom configurations, recommend backing up before updating
 

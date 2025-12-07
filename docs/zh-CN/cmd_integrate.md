@@ -57,7 +57,7 @@ celer <Tab>
 输入命令后按 Tab 键，自动补全可用选项：
 ```shell
 celer install --<Tab>
-# 显示: --dev, --force, --jobs, --recurse, --store-cache, --cache-token
+# 显示: --dev, --force, --jobs, --recursive, --store-cache, --cache-token
 ```
 
 ### 包名补全

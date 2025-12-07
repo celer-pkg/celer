@@ -50,7 +50,7 @@ func TestRemoveCmd_CommandStructure(t *testing.T) {
 		defaultValue string
 	}{
 		{"build-cache", "c", "false"},
-		{"recurse", "r", "false"},
+		{"recursive", "r", "false"},
 		{"purge", "p", "false"},
 		{"dev", "d", "false"},
 	}
@@ -118,19 +118,19 @@ func TestRemoveCmd_Completion(t *testing.T) {
 			name:             "empty_input",
 			toComplete:       "",
 			expectedPackages: []string{"boost@1.87.0"},
-			expectedFlags:    []string{"--build-cache", "-c", "--recurse", "-r", "--purge", "-p", "--dev", "-d"},
+			expectedFlags:    []string{"--build-cache", "-c", "--recursive", "-r", "--purge", "-p", "--dev", "-d"},
 		},
 		{
 			name:             "flag_prefix",
 			toComplete:       "--",
 			expectedPackages: []string{},
-			expectedFlags:    []string{"--build-cache", "--recurse", "--purge", "--dev"},
+			expectedFlags:    []string{"--build-cache", "--recursive", "--purge", "--dev"},
 		},
 		{
 			name:             "specific_flag",
 			toComplete:       "--rec",
 			expectedPackages: []string{},
-			expectedFlags:    []string{"--recurse"},
+			expectedFlags:    []string{"--recursive"},
 		},
 		{
 			name:             "short_flag",
@@ -446,9 +446,9 @@ func TestRemoveCmd_Purge(t *testing.T) {
 	}
 }
 
-func TestRemoveCmd_Recurse(t *testing.T) {
+func TestRemoveCmd_Recursive(t *testing.T) {
 	installedPort := installForTestRemove(t, "glog@0.6.0", configs.RemoveOptions{
-		Recurse: true,
+		Recursive: true,
 	})
 
 	// Check if still installed.

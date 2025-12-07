@@ -18,7 +18,7 @@ type updateCmd struct {
 	celer     *configs.Celer
 	confRepo  bool
 	portsRepo bool
-	recurse   bool
+	recursive bool
 	force     bool
 }
 
@@ -35,11 +35,11 @@ This command supports three types of updates:
   3. Update source code repositories of third-party libraries
 
 Examples:
-  celer update --conf-repo              # Update conf repository
-  celer update --ports-repo             # Update ports repository
-  celer update zlib@1.3.1               # Update specific port
-  celer update --recurse ffmpeg@3.4.13  # Update port and all its dependencies
-  celer update --force xxx           	# Force update --conf-repo|--ports-repo|project (overwrites local changes)`,
+  celer update --conf-repo              	# Update conf repository
+  celer update --ports-repo             	# Update ports repository
+  celer update zlib@1.3.1               	# Update specific port
+  celer update --recursive ffmpeg@3.4.13  	# Update port and all its dependencies
+  celer update --force xxx           		# Force update --conf-repo|--ports-repo|project (overwrites local changes)`,
 		Run: func(cmd *cobra.Command, args []string) {
 			u.doUpdate(args)
 		},
@@ -50,7 +50,7 @@ Examples:
 	command.Flags().BoolVarP(&u.confRepo, "conf-repo", "c", false, "update conf repo")
 	command.Flags().BoolVarP(&u.portsRepo, "ports-repo", "p", false, "update ports repo")
 	command.Flags().BoolVarP(&u.force, "force", "f", false, "update forcibly")
-	command.Flags().BoolVarP(&u.recurse, "recurse", "r", false, "update recursively")
+	command.Flags().BoolVarP(&u.recursive, "recursive", "r", false, "update recursively")
 
 	command.MarkFlagsMutuallyExclusive("conf-repo", "ports-repo")
 	return command
@@ -139,7 +139,7 @@ func (u *updateCmd) updatePortRepo(nameVersion string, visited map[string]bool) 
 	}
 
 	// Update repos of port's dependencies.
-	if u.recurse {
+	if u.recursive {
 		for _, nameVersion := range port.MatchedConfig.Dependencies {
 			if err := u.updatePortRepo(nameVersion, visited); err != nil {
 				return err
@@ -208,7 +208,7 @@ func (u *updateCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	flags := []string{
 		"--conf-repo", "-c",
 		"--ports-repo", "-p",
-		"--recurse", "-r",
+		"--recursive", "-r",
 		"--force", "-f",
 	}
 	for _, flag := range flags {

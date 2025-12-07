@@ -78,7 +78,7 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	check(port.Remove(configs.RemoveOptions{
 		Purge:      true,
 		BuildCache: true,
-		Recurse:    true,
+		Recursive:  true,
 	}))
 }
 
@@ -146,7 +146,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	check(port.Remove(configs.RemoveOptions{
 		Purge:      true,
 		BuildCache: true,
-		Recurse:    true,
+		Recursive:  true,
 	}))
 }
 
@@ -214,7 +214,7 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 	check(port.Remove(configs.RemoveOptions{
 		Purge:      true,
 		BuildCache: true,
-		Recurse:    true,
+		Recursive:  true,
 	}))
 }
 
@@ -281,7 +281,7 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	check(port.Remove(configs.RemoveOptions{
 		Purge:      true,
 		BuildCache: true,
-		Recurse:    true,
+		Recursive:  true,
 	}))
 }
 
@@ -348,7 +348,7 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 	check(port.Remove(configs.RemoveOptions{
 		Purge:      true,
 		BuildCache: true,
-		Recurse:    true,
+		Recursive:  true,
 	}))
 }
 
@@ -416,6 +416,6 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	check(port.Remove(configs.RemoveOptions{
 		Purge:      true,
 		BuildCache: true,
-		Recurse:    true,
+		Recursive:  true,
 	}))
 }
