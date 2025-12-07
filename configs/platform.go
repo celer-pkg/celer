@@ -101,6 +101,10 @@ func (p Platform) GetToolchain() context.Toolchain {
 	return p.Toolchain
 }
 
+func (p Platform) GetRootFS() context.RootFS {
+	return p.RootFS
+}
+
 func (p *Platform) Write(platformPath string) error {
 	// Create empty platform.
 	p.RootFS = &RootFS{

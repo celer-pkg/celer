@@ -54,14 +54,15 @@ func (c cmake) CheckTools() []string {
 }
 
 func (c *cmake) preConfigure() error {
+	toolchain := c.Ctx.Platform().GetToolchain()
+
 	// For MSVC build with Ninja generator, we need to set INCLUDE and LIB env vars.
 	// Visual Studio generator handles these automatically via MSBuild.
 	// Ninja generator requires explicit environment variables for RC.exe and link.exe to find system headers/libs.
 	// Note: Environment variables set in toolchain_file.cmake only affect CMake's configure phase,
 	// not the build phase when Ninja invokes RC.exe and link.exe.
 	if runtime.GOOS == "windows" && c.CMakeGenerator == "Ninja" {
-		if c.PortConfig.Toolchain.Name == "msvc" ||
-			c.PortConfig.Toolchain.Name == "clang-cl" {
+		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
 			msvcEnvs, err := c.readMSVCEnvs()
 			if err != nil {
 				return err
@@ -76,6 +77,9 @@ func (c *cmake) preConfigure() error {
 }
 
 func (c cmake) configureOptions() ([]string, error) {
+	toolchain := c.Ctx.Platform().GetToolchain()
+	rootfs := c.Ctx.Platform().GetRootFS()
+
 	// Format as cmake build type.
 	c.BuildType = c.formatBuildType()
 
@@ -83,7 +87,7 @@ func (c cmake) configureOptions() ([]string, error) {
 
 	// When use clang-cl with visual studio, we must to set toolset by "-T".
 	if runtime.GOOS == "windows" && strings.HasPrefix(c.CMakeGenerator, "Visual Studio") {
-		switch c.PortConfig.Toolchain.Name {
+		switch toolchain.GetName() {
 		case "clang-cl":
 			options = append(options, "-T ClangCL")
 		case "clang":
@@ -136,8 +140,8 @@ func (c cmake) configureOptions() ([]string, error) {
 	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.
 	tmpDepDir := filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder)
 	findRootPaths := []string{filepath.ToSlash(tmpDepDir)}
-	if c.PortConfig.Toolchain.RootFS != "" {
-		findRootPaths = append(findRootPaths, c.PortConfig.Toolchain.RootFS)
+	if rootfs != nil {
+		findRootPaths = append(findRootPaths, rootfs.GetFullPath())
 	}
 	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(findRootPaths, ";"))
 
@@ -327,10 +331,12 @@ func (c *cmake) detectGenerator() error {
 }
 
 func (c cmake) multiConfigGenerator() bool {
+	toolchain := c.Ctx.Platform().GetToolchain()
+
 	if runtime.GOOS == "windows" {
-		return c.PortConfig.Toolchain.Name == "msvc" ||
-			c.PortConfig.Toolchain.Name == "clang-cl" ||
-			c.PortConfig.Toolchain.Name == "clang"
+		return toolchain.GetName() == "msvc" ||
+			toolchain.GetName() == "clang-cl" ||
+			toolchain.GetName() == "clang"
 	}
 
 	return false

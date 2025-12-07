@@ -44,7 +44,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	p.tmpDepsDir = filepath.Join(dirs.TmpDepsDir, libraryFolder)
 
 	portConfig := buildsystems.PortConfig{
-		Toolchain:       p.toolchain(),
+		Ctx:             p.ctx,
 		LibName:         p.Name,
 		LibVersion:      p.Version,
 		Archive:         p.Package.Archive,
@@ -73,6 +73,8 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	}
 
 	if len(p.BuildConfigs) > 0 {
+		toolchain := p.ctx.Platform().GetToolchain()
+
 		for index := range p.BuildConfigs {
 			// Merge ports defined in project if exists.
 			portInPorts := filepath.Join(dirs.PortsDir, p.Name, p.Version, "port.toml")
@@ -96,7 +98,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 			p.BuildConfigs[index].PortConfig = portConfig
 			p.BuildConfigs[index].DevDep = p.DevDep
 			p.BuildConfigs[index].Native = p.Native || p.DevDep
-			p.BuildConfigs[index].Optimize = p.ctx.Optimize(p.MatchedConfig.BuildSystem, portConfig.Toolchain.Name)
+			p.BuildConfigs[index].Optimize = p.ctx.Optimize(p.MatchedConfig.BuildSystem, toolchain.GetName())
 			if err := p.BuildConfigs[index].InitBuildSystem(p.BuildConfigs[index].Optimize); err != nil {
 				return err
 			}

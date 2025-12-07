@@ -555,7 +555,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Fixup pkg config files.
-		var prefix = expr.If(p.toolchain().RootFS == "" || (p.DevDep || p.Native),
+		var prefix = expr.If(p.ctx.RootFS() != nil || (p.DevDep || p.Native),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().GetHostName()+"-dev"),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
 		)
@@ -598,7 +598,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Fixup pkg config files.
-		var prefix = expr.If(p.toolchain().RootFS == "" || (p.DevDep || p.Native),
+		var prefix = expr.If(p.ctx.RootFS() != nil || (p.DevDep || p.Native),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().GetHostName()+"-dev"),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
 		)

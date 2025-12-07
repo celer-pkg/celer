@@ -42,9 +42,11 @@ func (m *makefiles) CheckTools() []string {
 }
 
 func (m *makefiles) preConfigure() error {
+	toolchain := m.Ctx.Platform().GetToolchain()
+
 	// `clang` inside visual studio cannot be used to compile makefiles project.
-	if runtime.GOOS == "windows" && strings.Contains(m.PortConfig.Toolchain.Fullpath, "Microsoft Visual Studio") {
-		if m.PortConfig.Toolchain.Name != "msvc" {
+	if runtime.GOOS == "windows" && strings.Contains(toolchain.GetFullPath(), "Microsoft Visual Studio") {
+		if toolchain.GetName() != "msvc" {
 			return fmt.Errorf("visual studio's clang-cl or clang cannot be used to compile makefiles project, only msvc is supported")
 		}
 	}
@@ -87,7 +89,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	}
 
 	// Remove common cross compile args for native build.
-	if m.PortConfig.Toolchain.Native || m.BuildConfig.DevDep {
+	if m.PortConfig.Native || m.BuildConfig.DevDep {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.HasPrefix(element, "--host=") ||
 				strings.HasPrefix(element, "--sysroot=") ||
@@ -100,7 +102,8 @@ func (m makefiles) configureOptions() ([]string, error) {
 		})
 	} else {
 		if m.shouldAddHost(options) {
-			options = append(options, fmt.Sprintf("--host=%s", m.PortConfig.Toolchain.Host))
+			toolchain := m.Ctx.Platform().GetToolchain()
+			options = append(options, fmt.Sprintf("--host=%s", toolchain.GetHost()))
 		}
 	}
 
@@ -141,7 +144,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	}
 
 	// Add ccache support for projects that need explicit --cc parameter, like ffmpeg.
-	if m.PortConfig.Toolchain.CCacheEnabled {
+	if m.PortConfig.CCacheEnabled {
 		for index, option := range options {
 			if after, ok := strings.CutPrefix(option, "--cc="); ok {
 				options[index] = fmt.Sprintf("--cc='ccache %s'", after)
@@ -219,12 +222,12 @@ func (m makefiles) Configure(options []string) error {
 	}
 
 	// msvc and clang-cl need to set build environment event in dev mode.
-	if m.DevDep &&
-		m.PortConfig.Toolchain.Name != "msvc" &&
-		m.PortConfig.Toolchain.Name != "clang-cl" {
-		m.PortConfig.Toolchain.ClearEnvs()
+	toolchain := m.Ctx.Platform().GetToolchain()
+	rootfs := m.Ctx.Platform().GetRootFS()
+	if m.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
+		toolchain.ClearEnvs()
 	} else {
-		m.PortConfig.Toolchain.SetEnvs(m.BuildConfig)
+		toolchain.SetEnvs(rootfs, m.Name(), m.PortConfig.CCacheEnabled)
 	}
 
 	// Set optimization flags with build_type.

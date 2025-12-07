@@ -37,10 +37,13 @@ func (g gyp) configured() bool {
 }
 
 func (g gyp) Configure(options []string) error {
+	toolchain := g.Ctx.Platform().GetToolchain()
+	rootfs := g.Ctx.Platform().GetRootFS()
+
 	if g.DevDep {
-		g.PortConfig.Toolchain.ClearEnvs()
+		toolchain.ClearEnvs()
 	} else {
-		g.PortConfig.Toolchain.SetEnvs(g.BuildConfig)
+		toolchain.SetEnvs(rootfs, g.Name(), g.PortConfig.CCacheEnabled)
 	}
 
 	// Set optimization flags with build_type.
