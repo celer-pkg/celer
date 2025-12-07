@@ -52,7 +52,7 @@ func (b BinaryCache) Write(packageDir, meta string) error {
 		return fmt.Errorf("package dir does not exist: %s", packageDir)
 	}
 
-	// Create a tarball from package dir.
+	// Validate packageDir format.
 	parts := strings.Split(filepath.Base(packageDir), "@")
 	if len(parts) != 5 {
 		return fmt.Errorf("invalid package dir: %s", packageDir)

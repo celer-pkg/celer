@@ -85,7 +85,7 @@ func TestInstall_BinaryCache_Success(t *testing.T) {
 	}
 
 	// Install from cache should success.
-	installed, err = port.InstallFromCache(installOptions)
+	installed, err = port.InstallFromBinaryCache(installOptions)
 	check(err)
 	if !installed {
 		t.Fatal("should install successfully from cache")
@@ -168,7 +168,7 @@ func TestInstall_BinaryCache_With_Deps_Success(t *testing.T) {
 	}
 
 	// Install from cache should success.
-	installed, err = glogPort.InstallFromCache(options)
+	installed, err = glogPort.InstallFromBinaryCache(options)
 	check(err)
 	if !installed {
 		t.Fatal("should install successfully from cache")
@@ -263,7 +263,7 @@ func TestInstall_BinaryCache_Prebuilt_Success(t *testing.T) {
 	}
 
 	// Install from cache should success.
-	installed, err = port.InstallFromCache(options)
+	installed, err = port.InstallFromBinaryCache(options)
 	check(err)
 	if !installed {
 		t.Fatal("should install successfully from cache")
@@ -525,7 +525,7 @@ func TestInstall_BinaryCache_With_Commit_Success(t *testing.T) {
 
 	// Install from cache with commit.
 	port.Package.Commit = commit
-	installed, err := port.InstallFromCache(options)
+	installed, err := port.InstallFromBinaryCache(options)
 	check(err)
 	if !installed {
 		t.Fatal("should be installed from cache")
@@ -588,7 +588,7 @@ func TestInstall_BinaryCache_With_Commit_Failed(t *testing.T) {
 
 	// Install from cache with not matched commit.
 	port.Package.Commit = "not_matched_commit_xxxxxx"
-	installed, err := port.InstallFromCache(options)
+	installed, err := port.InstallFromBinaryCache(options)
 	if err == nil || !errors.Is(err, configs.ErrCacheNotFoundWithCommit) {
 		t.Fatal("should return ErrCacheNotFoundWithCommit")
 	}
