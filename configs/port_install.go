@@ -89,10 +89,10 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 
 	// 2. try to install from cache (only when not storing cache and not forcing).
 	if !options.StoreCache && !options.Force {
-		if installed, err := p.InstallFromCache(options); err != nil {
+		if installed, err := p.InstallFromBinaryCache(options); err != nil {
 			return "", err
 		} else if installed {
-			return "cache", nil
+			return "binary cache", nil
 		}
 	}
 
@@ -131,7 +131,7 @@ func (p Port) Clone() error {
 	return nil
 }
 
-func (p Port) doInstallFromCache(options InstallOptions) (bool, error) {
+func (p Port) doInstallFromBinaryCache(options InstallOptions) (bool, error) {
 	// No cache dir configured, skip it.
 	binaryCache := p.ctx.BinaryCache()
 	if binaryCache == nil {
@@ -185,8 +185,9 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 	}()
 
 	// Validate cache dir before building to avoid wasting build time.
+	// Note: only store cache for non-devdep and non-native builds.
 	var writeCacheAfterInstall bool
-	if options.StoreCache {
+	if options.StoreCache && !p.MatchedConfig.DevDep && !p.MatchedConfig.Native {
 		binaryCache := p.ctx.BinaryCache()
 		if binaryCache == nil {
 			return ErrCacheDirNotConfigured
@@ -386,10 +387,10 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	return true, nil
 }
 
-func (p Port) InstallFromCache(options InstallOptions) (bool, error) {
-	installed, err := p.doInstallFromCache(options)
+func (p Port) InstallFromBinaryCache(options InstallOptions) (bool, error) {
+	installed, err := p.doInstallFromBinaryCache(options)
 	if err != nil {
-		return false, fmt.Errorf("failed to install from cache.\n %w", err)
+		return false, fmt.Errorf("failed to install from binary cache.\n %w", err)
 	}
 
 	if installed {
@@ -410,7 +411,7 @@ func (p Port) InstallFromCache(options InstallOptions) (bool, error) {
 			return false, ErrCacheDirNotConfigured
 		}
 		fromDir := binaryCache.GetDir()
-		return true, p.writeTraceFile(fmt.Sprintf("cache [%s]", fromDir))
+		return true, p.writeTraceFile(fmt.Sprintf("binary cache, dir: %q", fromDir))
 	} else if p.Package.Commit != "" {
 		return false, ErrCacheNotFoundWithCommit
 	}
