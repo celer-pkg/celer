@@ -36,14 +36,15 @@ func (f freeStyle) configured() bool {
 }
 
 func (f freeStyle) Configure(options []string) error {
+	toolchain := f.Ctx.Platform().GetToolchain()
+	rootfs := f.Ctx.Platform().GetRootFS()
+
 	if len(f.FreeStyleConfigure) > 0 {
 		// msvc and clang-cl need to set build environment event in dev mode.
-		if f.DevDep &&
-			f.PortConfig.Toolchain.Name != "msvc" &&
-			f.PortConfig.Toolchain.Name != "clang-cl" {
-			f.PortConfig.Toolchain.ClearEnvs()
+		if f.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
+			toolchain.ClearEnvs()
 		} else {
-			f.PortConfig.Toolchain.SetEnvs(f.BuildConfig)
+			toolchain.SetEnvs(rootfs, f.Name(), f.PortConfig.CCacheEnabled)
 		}
 
 		f.setOptimizeFlags()
@@ -68,14 +69,15 @@ func (f freeStyle) Configure(options []string) error {
 }
 
 func (f freeStyle) Build(options []string) error {
+	toolchain := f.Ctx.Platform().GetToolchain()
+	rootfs := f.Ctx.Platform().GetRootFS()
+
 	if len(f.FreeStyleBuild) > 0 {
 		// msvc and clang-cl need to set build environment event in dev mode.
-		if f.DevDep &&
-			f.PortConfig.Toolchain.Name != "msvc" &&
-			f.PortConfig.Toolchain.Name != "clang-cl" {
-			f.PortConfig.Toolchain.ClearEnvs()
+		if f.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
+			toolchain.ClearEnvs()
 		} else {
-			f.PortConfig.Toolchain.SetEnvs(f.BuildConfig)
+			toolchain.SetEnvs(rootfs, f.Name(), f.PortConfig.CCacheEnabled)
 		}
 
 		f.setOptimizeFlags()
@@ -94,14 +96,15 @@ func (f freeStyle) Build(options []string) error {
 }
 
 func (f freeStyle) Install(options []string) error {
+	toolchain := f.Ctx.Platform().GetToolchain()
+	rootfs := f.Ctx.Platform().GetRootFS()
+
 	if len(f.FreeStyleInstall) > 0 {
 		// msvc and clang-cl need to set build environment event in dev mode.
-		if f.DevDep &&
-			f.PortConfig.Toolchain.Name != "msvc" &&
-			f.PortConfig.Toolchain.Name != "clang-cl" {
-			f.PortConfig.Toolchain.ClearEnvs()
+		if f.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
+			toolchain.ClearEnvs()
 		} else {
-			f.PortConfig.Toolchain.SetEnvs(f.BuildConfig)
+			toolchain.SetEnvs(rootfs, f.Name(), f.PortConfig.CCacheEnabled)
 		}
 
 		f.setOptimizeFlags()

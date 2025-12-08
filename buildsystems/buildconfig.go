@@ -23,24 +23,25 @@ const supportedString = "cmake, makefiles, meson, qmake, b2, gyp, nobuild, prebu
 var supportedArray = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "nobuild", "prebuilt", "freestyle"}
 
 type PortConfig struct {
-	LibName         string     // like: `ffmpeg`
-	LibVersion      string     // like: `4.4`
-	Archive         string     // like: `ffmpeg-4.4.tar.xz`
-	Url             string     // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
-	IgnoreSubmodule bool       // whether ignore submodule during git clone.
-	HostName        string     // like: `x86_64-linux`, `x86_64-windows`
-	ProjectName     string     // toml filename in conf/projects.
-	Toolchain       *Toolchain // same with `Toolchain` in config/toolchain.go
-	SrcDir          string     // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
-	RepoDir         string     // for example: ${workspace}/buildtrees/icu@75.1/src
-	BuildDir        string     // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
-	PackageDir      string     // for example: ${workspace}/packages/ffmpeg-3.4.13-x86_64-linux-20.04-Release
-	LibraryFolder   string     // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
-	IncludeDirs     []string   // headers not in standard include path.
-	LibDirs         []string   // libs not in standard lib path.
-	Jobs            int        // number of jobs to run in parallel
-	DevDep          bool       // whether dev dependency
-	Native          bool       // whether native build
+	LibName         string          // like: `ffmpeg`
+	LibVersion      string          // like: `4.4`
+	Archive         string          // like: `ffmpeg-4.4.tar.xz`
+	Url             string          // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
+	IgnoreSubmodule bool            // whether ignore submodule during git clone.
+	HostName        string          // like: `x86_64-linux`, `x86_64-windows`
+	ProjectName     string          // toml filename in conf/projects.
+	SrcDir          string          // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
+	RepoDir         string          // for example: ${workspace}/buildtrees/icu@75.1/src
+	BuildDir        string          // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
+	PackageDir      string          // for example: ${workspace}/packages/ffmpeg-3.4.13-x86_64-linux-20.04-Release
+	LibraryFolder   string          // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
+	IncludeDirs     []string        // headers not in standard include path.
+	LibDirs         []string        // libs not in standard lib path.
+	Jobs            int             // number of jobs to run in parallel
+	DevDep          bool            // whether dev dependency
+	Native          bool            // whether native build
+	CCacheEnabled   bool            // whether ccache enabled
+	Ctx             context.Context `toml:"-"`
 }
 
 func (p PortConfig) nameVersionDesc() string {
@@ -483,30 +484,34 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
 	b.expandOptionsVariables()
 
+	toolchain := b.Ctx.Platform().GetToolchain()
+	rootfs := b.Ctx.Platform().GetRootFS()
+
 	// nobuild config do not have crosstool.
-	if b.PortConfig.Toolchain != nil {
+	if toolchain != nil {
 		b.setupEnvs()
 		defer b.rollbackEnvs()
 
 		// Create a symlink in the sysroot that points to the installed directory,
 		// then the pc file would be found by other libraries.
-		if b.PortConfig.Toolchain.RootFS != "" {
+		if rootfs != nil {
 			// This symblink is used to find library via toolchain_file.cmake
+			sysrootDir := rootfs.GetFullPath()
 			if err := b.checkSymlink(dirs.InstalledDir,
-				filepath.Join(b.PortConfig.Toolchain.RootFS, "installed"),
+				filepath.Join(sysrootDir, "installed"),
 			); err != nil {
 				return err
 			}
 
 			// Create tmp dir in rootfs if not exist.
-			rootfsTmp := filepath.Join(b.PortConfig.Toolchain.RootFS, "tmp")
+			rootfsTmp := filepath.Join(sysrootDir, "tmp")
 			if err := os.MkdirAll(rootfsTmp, os.ModePerm); err != nil {
 				return err
 			}
 
 			// This symblink is used to find library during build.
 			if err := b.checkSymlink(dirs.TmpDepsDir,
-				filepath.Join(b.PortConfig.Toolchain.RootFS, "tmp", "deps")); err != nil {
+				filepath.Join(sysrootDir, "tmp", "deps")); err != nil {
 				return err
 			}
 		}
@@ -575,7 +580,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	}
 
 	// Fixup pkg config files.
-	var prefix = expr.If(b.PortConfig.Toolchain.RootFS == "" || b.DevDep,
+	var prefix = expr.If(rootfs == nil || b.DevDep,
 		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.HostName+"-dev"),
 		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.LibraryFolder),
 	)
@@ -586,13 +591,13 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	// Generate cmake configs.
 	portDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
 	preferedPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
-	cmakeConfig, err := generator.FindMatchedConfig(portDir, preferedPortDir, b.PortConfig.Toolchain.SystemName, b.LibraryType)
+	cmakeConfig, err := generator.FindMatchedConfig(portDir, preferedPortDir, toolchain.GetSystemName(), b.LibraryType)
 	if err != nil {
 		return fmt.Errorf("find matched config %s\n %w", b.PortConfig.nameVersionDesc(), err)
 	}
 	if cmakeConfig != nil {
 		cmakeConfig.Version = b.PortConfig.LibVersion
-		cmakeConfig.SystemName = b.PortConfig.Toolchain.SystemName
+		cmakeConfig.SystemName = toolchain.GetSystemName()
 		cmakeConfig.Libname = b.PortConfig.LibName
 		cmakeConfig.BuildType = b.BuildType
 		if err := cmakeConfig.Generate(b.PortConfig.PackageDir); err != nil {
@@ -689,12 +694,15 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 
 // expandOptionsVariables Replace placeholders with real paths and values.
 func (b *BuildConfig) expandOptionsVariables() {
+	toolchain := b.Ctx.Platform().GetToolchain()
+	rootfs := b.Ctx.Platform().GetRootFS()
+
 	for index, argument := range b.Options {
 		if strings.Contains(argument, "${HOST}") {
 			if b.DevDep {
 				b.Options = slices.Delete(b.Options, index, index+1)
 			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${HOST}", b.PortConfig.Toolchain.Host)
+				b.Options[index] = strings.ReplaceAll(argument, "${HOST}", toolchain.GetHost())
 			}
 		}
 
@@ -702,7 +710,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 			if b.DevDep {
 				b.Options = slices.Delete(b.Options, index, index+1)
 			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${SYSTEM_NAME}", strings.ToLower(b.PortConfig.Toolchain.SystemName))
+				b.Options[index] = strings.ReplaceAll(argument, "${SYSTEM_NAME}", strings.ToLower(toolchain.GetSystemName()))
 			}
 		}
 
@@ -710,15 +718,15 @@ func (b *BuildConfig) expandOptionsVariables() {
 			if b.DevDep {
 				b.Options = slices.Delete(b.Options, index, index+1)
 			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${SYSTEM_PROCESSOR}", b.PortConfig.Toolchain.SystemProcessor)
+				b.Options[index] = strings.ReplaceAll(argument, "${SYSTEM_PROCESSOR}", toolchain.GetSystemProcessor())
 			}
 		}
 
 		if strings.Contains(argument, "${SYSROOT}") {
 			if b.DevDep {
 				b.Options = slices.Delete(b.Options, index, index+1)
-			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${SYSROOT}", b.PortConfig.Toolchain.RootFS)
+			} else if rootfs != nil {
+				b.Options[index] = strings.ReplaceAll(argument, "${SYSROOT}", rootfs.GetFullPath())
 			}
 		}
 
@@ -726,7 +734,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 			if b.DevDep {
 				b.Options = slices.Delete(b.Options, index, index+1)
 			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${CROSSTOOL_PREFIX}", b.PortConfig.Toolchain.CrosstoolPrefix)
+				b.Options[index] = strings.ReplaceAll(argument, "${CROSSTOOL_PREFIX}", toolchain.GetCrosstoolPrefix())
 			}
 		}
 
@@ -744,11 +752,15 @@ func (b *BuildConfig) expandOptionsVariables() {
 // expandCommandsVariables expands placeholder variables in the given string and returns the result.
 // Placeholders like ${CC}, ${CXX}, ${SYSROOT}, etc. are replaced with actual values.
 func (b BuildConfig) expandCommandsVariables(content string) string {
-	content = strings.ReplaceAll(content, "${SYSTEM_NAME}", b.PortConfig.Toolchain.SystemName)
-	content = strings.ReplaceAll(content, "${HOST}", b.PortConfig.Toolchain.Host)
-	content = strings.ReplaceAll(content, "${SYSTEM_PROCESSOR}", b.PortConfig.Toolchain.SystemProcessor)
-	content = strings.ReplaceAll(content, "${SYSROOT}", b.PortConfig.Toolchain.RootFS)
-	content = strings.ReplaceAll(content, "${CROSSTOOL_PREFIX}", b.PortConfig.Toolchain.CrosstoolPrefix)
+	toolchain := b.Ctx.Platform().GetToolchain()
+	rootfs := b.Ctx.Platform().GetRootFS()
+
+	content = strings.ReplaceAll(content, "${SYSTEM_NAME}", toolchain.GetSystemName())
+	if rootfs != nil {
+		content = strings.ReplaceAll(content, "${SYSROOT}", rootfs.GetFullPath())
+	}
+	content = strings.ReplaceAll(content, "${SYSTEM_PROCESSOR}", toolchain.GetSystemProcessor())
+	content = strings.ReplaceAll(content, "${CROSSTOOL_PREFIX}", toolchain.GetCrosstoolPrefix())
 	content = strings.ReplaceAll(content, "${BUILD_DIR}", b.PortConfig.BuildDir)
 	content = strings.ReplaceAll(content, "${PACKAGE_DIR}", b.PortConfig.PackageDir)
 	content = strings.ReplaceAll(content, "${DEPS_DEV_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev"))
@@ -759,8 +771,8 @@ func (b BuildConfig) expandCommandsVariables(content string) string {
 	content = strings.ReplaceAll(content, "${SRC_DIR}", b.PortConfig.SrcDir)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths
-	content = strings.ReplaceAll(content, "${CC}", b.PortConfig.Toolchain.CC)
-	content = strings.ReplaceAll(content, "${CXX}", b.PortConfig.Toolchain.CXX)
+	content = strings.ReplaceAll(content, "${CC}", toolchain.GetCC())
+	content = strings.ReplaceAll(content, "${CXX}", toolchain.GetCXX())
 
 	if b.DevDep {
 		content = strings.ReplaceAll(content, "${DEPS_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev"))
@@ -848,22 +860,28 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 		}
 	}
 
+	var (
+		toolchain = b.Ctx.Platform().GetToolchain()
+		rootfs    = b.Ctx.Platform().GetRootFS()
+	)
+
 	// sysroot and tmp dir.
 	if b.DevDep {
 		// Append CFLAGS/CXXFLAGS/LDFLAGS
 		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
-	} else if b.PortConfig.Toolchain.RootFS != "" {
+	} else if rootfs != nil {
 		// Update CFLAGS/CXXFLAGS
+		sysrootDir := rootfs.GetFullPath()
 		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
-		for _, dir := range b.PortConfig.Toolchain.IncludeDirs {
-			appendIncludeDir(filepath.Join(b.PortConfig.Toolchain.RootFS, dir))
+		for _, dir := range rootfs.GetIncludeDirs() {
+			appendIncludeDir(filepath.Join(sysrootDir, dir))
 		}
 
 		// Append LDFLAGS
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
-		for _, dir := range b.PortConfig.Toolchain.LibDirs {
-			appendLibDir(filepath.Join(b.PortConfig.Toolchain.RootFS, dir))
+		for _, dir := range rootfs.GetLibDirs() {
+			appendLibDir(filepath.Join(sysrootDir, dir))
 		}
 	}
 	appendEnv("CFLAGS", strings.Join(cflags, " "))
@@ -908,16 +926,18 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 
 	// In Windows, ccache cannot work with MSVC normally when build makefiles projects,
 	// because MSYS2 shell cannot execute "ccache cl.exe" properly.
-	appendEnv("CC", b.PortConfig.Toolchain.CC)
-	appendEnv("CXX", b.PortConfig.Toolchain.CXX)
+	appendEnv("CC", toolchain.GetCC())
+	appendEnv("CXX", toolchain.GetCXX())
 
 	return strings.Join(args, " "), nil
 }
 
 func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
+	toolchain := b.Ctx.Platform().GetToolchain()
+
 	// Read MSVC environment variables.
 	// TODO: the `x64` may be different depending on the platform.
-	command := fmt.Sprintf(`call "%s" x64 && set`, b.PortConfig.Toolchain.MSVC.VCVars)
+	command := fmt.Sprintf(`call "%s" x64 && set`, toolchain.GetMSVC().VCVars)
 	executor := cmd.NewExecutor("[read msvc envs]", command)
 	output, err := executor.ExecuteOutput()
 	if err != nil {

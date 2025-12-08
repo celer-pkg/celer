@@ -88,8 +88,9 @@ func (b *BuildConfig) setupEnvs() {
 	}
 
 	if b.buildSystem.Name() != "cmake" {
+		toolchain := b.Ctx.Platform().GetToolchain()
 		// This allows the bin to locate the libraries in the relative lib dir.
-		if strings.ToLower(b.PortConfig.Toolchain.SystemName) == "linux" &&
+		if strings.ToLower(toolchain.GetSystemName()) == "linux" &&
 			b.buildSystem.Name() == "makefiles" {
 			b.envBackup.setenv("LDFLAGS", env.JoinSpace("-Wl,-rpath=\\$$ORIGIN/../lib", os.Getenv("LDFLAGS")))
 		}
@@ -142,6 +143,7 @@ func (b BuildConfig) setupPkgConfig() {
 		sysrootDir    string
 	)
 
+	rootfs := b.Ctx.Platform().GetRootFS()
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
 
 	switch runtime.GOOS {
@@ -168,20 +170,18 @@ func (b BuildConfig) setupPkgConfig() {
 
 	case "linux":
 		// Pkg config paths and sysroot dir.
-		if b.PortConfig.Toolchain.RootFS != "" {
+		if rootfs != nil {
+			sysrootDir = rootfs.GetFullPath()
+
 			// PKG_CONFIG related.
-			for _, configPath := range b.PortConfig.Toolchain.PkgConfigPath {
-				configLibDirs = append(configLibDirs, filepath.Join(
-					b.PortConfig.Toolchain.RootFS, configPath,
-				))
+			for _, configPath := range rootfs.GetPkgConfigPath() {
+				configLibDirs = append(configLibDirs, filepath.Join(sysrootDir, configPath))
 			}
 
-			sysrootDir = b.PortConfig.Toolchain.RootFS
 			pathDivider = ":"
 
 			// Tmpdeps dir is a symlink in rootfs.
-			rootfs := b.PortConfig.Toolchain.RootFS
-			tmpDepsDir := filepath.Join(rootfs, "tmp", "deps", b.PortConfig.LibraryFolder)
+			tmpDepsDir := filepath.Join(sysrootDir, "tmp", "deps", b.PortConfig.LibraryFolder)
 
 			// Append pkgconfig with tmp/deps directory.
 			configPaths = append([]string{
@@ -210,11 +210,13 @@ func (b BuildConfig) setupPkgConfig() {
 }
 
 func (b *BuildConfig) setLanguageStandards() {
+	toolchain := b.Ctx.Platform().GetToolchain()
+
 	// Set C standard.
-	cstandard := expr.If(b.CStandard != "", b.CStandard, b.PortConfig.Toolchain.CStandard)
+	cstandard := expr.If(b.CStandard != "", b.CStandard, toolchain.GetCStandard())
 	if cstandard != "" {
 		var cflag string
-		switch b.PortConfig.Toolchain.Name {
+		switch toolchain.GetName() {
 		case "gcc", "clang":
 			cflag = "-std=" + cstandard
 
@@ -222,17 +224,17 @@ func (b *BuildConfig) setLanguageStandards() {
 			cflag = "/std:" + cstandard
 
 		default:
-			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
+			panic("unsupported toolchain: " + toolchain.GetName())
 		}
 
 		b.envBackup.setenv("CFLAGS", env.JoinSpace(cflag, os.Getenv("CFLAGS")))
 	}
 
 	// Set C++ standard.
-	cxxstandard := expr.If(b.CXXStandard != "", b.CXXStandard, b.PortConfig.Toolchain.CXXStandard)
+	cxxstandard := expr.If(b.CXXStandard != "", b.CXXStandard, toolchain.GetCXXStandard())
 	if cxxstandard != "" {
 		var cxxflag string
-		switch b.PortConfig.Toolchain.Name {
+		switch toolchain.GetName() {
 		case "gcc", "clang":
 			cxxflag = "-std=" + cxxstandard
 
@@ -240,7 +242,7 @@ func (b *BuildConfig) setLanguageStandards() {
 			cxxflag = "/std:" + cxxstandard
 
 		default:
-			panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
+			panic("unsupported toolchain: " + toolchain.GetName())
 		}
 
 		b.envBackup.setenv("CXXFLAGS", env.JoinSpace(cxxflag, os.Getenv("CXXFLAGS")))
@@ -248,25 +250,26 @@ func (b *BuildConfig) setLanguageStandards() {
 }
 
 func (b *BuildConfig) setEnvFlags() {
+	rootfs := b.Ctx.Platform().GetRootFS()
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
 
 	// sysroot and tmp dir.
-	if b.PortConfig.Toolchain.RootFS != "" {
+	if rootfs != nil {
 		// Set sysroot.
-		rootfs := b.PortConfig.Toolchain.RootFS
-		b.envBackup.setenv("SYSROOT", rootfs)
+		sysrootDir := rootfs.GetFullPath()
+		b.envBackup.setenv("SYSROOT", sysrootDir)
 
 		// Update CFLAGS/CXXFLAGS
 		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
-		for _, item := range b.PortConfig.Toolchain.IncludeDirs {
-			includeDir := filepath.Join(b.PortConfig.Toolchain.RootFS, item)
+		for _, item := range rootfs.GetIncludeDirs() {
+			includeDir := filepath.Join(sysrootDir, item)
 			b.appendIncludeDir(includeDir)
 		}
 
 		// Update LDFLAGS
 		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
-		for _, item := range b.PortConfig.Toolchain.LibDirs {
-			libDir := filepath.Join(b.PortConfig.Toolchain.RootFS, item)
+		for _, item := range rootfs.GetLibDirs() {
+			libDir := filepath.Join(sysrootDir, item)
 			b.appendLibDir(libDir)
 		}
 	} else {
@@ -290,7 +293,8 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 		return
 	}
 
-	switch b.PortConfig.Toolchain.Name {
+	toolchain := b.Ctx.Platform().GetToolchain()
+	switch toolchain.GetName() {
 	case "gcc", "clang":
 		cflags := strings.Fields(os.Getenv("CFLAGS"))
 		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
@@ -336,7 +340,7 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 		}
 
 	default:
-		panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
+		panic("unsupported toolchain: " + toolchain.GetName())
 	}
 }
 
@@ -350,7 +354,8 @@ func (b *BuildConfig) appendLibDir(libDir string) {
 		return
 	}
 
-	switch b.PortConfig.Toolchain.Name {
+	toolchain := b.Ctx.Platform().GetToolchain()
+	switch toolchain.GetName() {
 	case "gcc", "clang":
 		ldflags := os.Getenv("LDFLAGS")
 		parts := strings.Fields(ldflags)
@@ -386,6 +391,6 @@ func (b *BuildConfig) appendLibDir(libDir string) {
 		}
 
 	default:
-		panic("unsupported toolchain: " + b.PortConfig.Toolchain.Name)
+		panic("unsupported toolchain: " + toolchain.GetName())
 	}
 }

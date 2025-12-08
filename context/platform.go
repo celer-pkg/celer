@@ -7,6 +7,7 @@ type Platform interface {
 	GetName() string
 	GetHostName() string
 	GetToolchain() Toolchain
+	GetRootFS() RootFS
 }
 
 type Toolchain interface {
@@ -33,6 +34,8 @@ type Toolchain interface {
 	GetSTRIP() string
 	GetREADELF() string
 	GetMSVC() *MSVC
+	SetEnvs(rootfs RootFS, buildsystem string, ccacheEnabled bool)
+	ClearEnvs()
 }
 
 type RootFS interface {

@@ -38,17 +38,18 @@ func (b b2) CheckTools() []string {
 }
 
 func (b *b2) preConfigure() error {
+	toolchain := b.Ctx.Platform().GetToolchain()
+
 	// `clang` inside visual studio cannot be used to compile b2 project.
-	if runtime.GOOS == "windows" && strings.Contains(b.PortConfig.Toolchain.Fullpath, "Microsoft Visual Studio") {
-		if b.PortConfig.Toolchain.Name == "clang" {
+	if runtime.GOOS == "windows" && strings.Contains(toolchain.GetFullPath(), "Microsoft Visual Studio") {
+		if toolchain.GetName() == "clang" {
 			return fmt.Errorf("visual studio's clang cannot be used to compile b2 project, msvc or clang-cl is required")
 		}
 	}
 
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
 	if runtime.GOOS == "windows" {
-		if b.PortConfig.Toolchain.Name == "msvc" ||
-			b.PortConfig.Toolchain.Name == "clang-cl" {
+		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
 			msvcEnvs, err := b.readMSVCEnvs()
 			if err != nil {
 				return err
@@ -73,6 +74,8 @@ func (b b2) configured() bool {
 }
 
 func (b b2) Configure(options []string) error {
+	toolchain := b.Ctx.Platform().GetToolchain()
+
 	// Clean build cache.
 	if err := b.Clean(); err != nil {
 		return err
@@ -99,36 +102,36 @@ func (b b2) Configure(options []string) error {
 		defer file.Close()
 
 		// Override project-config.jam.
-		cxx := filepath.Join(b.PortConfig.Toolchain.Fullpath, b.PortConfig.Toolchain.CXX)
+		cxx := filepath.Join(toolchain.GetFullPath(), toolchain.GetCXX())
 
 		var buffer bytes.Buffer
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			line := scanner.Text()
 			if strings.Contains(line, "using gcc ;") {
-				if b.PortConfig.Toolchain.CCacheEnabled {
+				if b.PortConfig.CCacheEnabled {
 					line = fmt.Sprintf(`using gcc : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
 				} else {
 					line = fmt.Sprintf(`using gcc : : "%s" ;`, filepath.ToSlash(cxx))
 				}
 			} else if strings.Contains(line, "using msvc ;") {
-				switch b.PortConfig.Toolchain.Name {
+				switch toolchain.GetName() {
 				case "clang-cl":
-					if b.PortConfig.Toolchain.CCacheEnabled {
+					if b.PortConfig.CCacheEnabled {
 						line = fmt.Sprintf(`using clang-win : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
 					} else {
 						line = fmt.Sprintf(`using clang-win : : "%s" ;`, filepath.ToSlash(cxx))
 					}
 
 				case "msvc":
-					if b.PortConfig.Toolchain.CCacheEnabled {
+					if b.PortConfig.CCacheEnabled {
 						line = fmt.Sprintf(`using msvc : %s : "ccache" "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
 					} else {
 						line = fmt.Sprintf(`using msvc : %s : "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
 					}
 
 				default:
-					return fmt.Errorf("unsupported toolchain: %s for b2", b.PortConfig.Toolchain.Name)
+					return fmt.Errorf("unsupported toolchain: %s for b2", toolchain.GetName())
 				}
 			}
 			buffer.WriteString(line + "\n")
@@ -145,27 +148,28 @@ func (b b2) Configure(options []string) error {
 
 func (b b2) buildOptions() ([]string, error) {
 	var options = slices.Clone(b.Options)
+	toolchain := b.Ctx.Platform().GetToolchain()
 
 	// Set build toolset.
 	switch runtime.GOOS {
 	case "windows":
-		switch b.PortConfig.Toolchain.Name {
+		switch toolchain.GetName() {
 		case "msvc":
 			options = append(options, "toolset=msvc-"+b.msvcVersion())
 		case "clang-cl":
 			options = append(options, "toolset=clang-win")
 		default:
-			return nil, fmt.Errorf("unsupported toolchain: %s for b2", b.PortConfig.Toolchain.Name)
+			return nil, fmt.Errorf("unsupported toolchain: %s for b2", toolchain.GetName())
 		}
 	case "linux":
 		// Set build toolset with toolchain name.
-		options = append(options, "toolset="+b.PortConfig.Toolchain.Name)
+		options = append(options, "toolset="+toolchain.GetName())
 	default:
 		return nil, fmt.Errorf("unsupported platform: %s", runtime.GOOS)
 	}
 
 	// Set build architecture.
-	switch b.PortConfig.Toolchain.SystemProcessor {
+	switch toolchain.GetSystemProcessor() {
 	case "x86_64", "amd64":
 		options = append(options, "address-model=64", "architecture=x86")
 	case "x86":
@@ -175,7 +179,7 @@ func (b b2) buildOptions() ([]string, error) {
 	case "arm":
 		options = append(options, "address-model=32", "architecture=arm")
 	default:
-		return nil, fmt.Errorf("unsupported architecture: %s", b.PortConfig.Toolchain.SystemProcessor)
+		return nil, fmt.Errorf("unsupported architecture: %s", toolchain.GetSystemProcessor())
 	}
 
 	// Set build type.
@@ -260,10 +264,12 @@ func (b b2) Install(options []string) error {
 }
 
 func (b b2) msvcVersion() string {
+	toolchain := b.Ctx.Platform().GetToolchain()
+
 	// Split by "." to get major, minor, patch
-	parts := strings.Split(b.PortConfig.Toolchain.Version, ".")
+	parts := strings.Split(toolchain.GetVersion(), ".")
 	if len(parts) < 2 {
-		panic(fmt.Errorf("invalid MSVC version format: %s", b.PortConfig.Toolchain.Version))
+		panic(fmt.Errorf("invalid MSVC version format: %s", toolchain.GetVersion()))
 	}
 
 	// Parse major and minor

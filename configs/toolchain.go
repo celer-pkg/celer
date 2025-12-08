@@ -252,6 +252,100 @@ func (t Toolchain) GetCrosstoolPrefixPath() string {
 	return filepath.Join(t.fullpath, t.CrosstoolPrefix)
 }
 
+func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, ccacheEnabled bool) {
+	os.Setenv("CROSSTOOL_PREFIX", t.GetCrosstoolPrefix())
+	os.Setenv("HOST", t.GetHost())
+
+	if ccacheEnabled {
+		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables
+		// because MSYS2 shell cannot handle "ccache cl.exe" as a command.
+		if runtime.GOOS == "windows" && (t.GetName() == "msvc" || t.GetName() == "clang-cl") && buildsystem == "makefiles" {
+			os.Setenv("CC", t.GetCC())
+			os.Setenv("CXX", t.GetCXX())
+		} else {
+			if rootfs != nil {
+				sysrootDir := rootfs.GetFullPath()
+				os.Setenv("CC", "ccache "+t.GetCC()+" --sysroot="+sysrootDir)
+				os.Setenv("CXX", "ccache "+t.GetCXX()+" --sysroot="+sysrootDir)
+			} else {
+				os.Setenv("CC", "ccache "+t.GetCC())
+				os.Setenv("CXX", "ccache "+t.GetCXX())
+			}
+		}
+	} else {
+		if rootfs != nil {
+			sysrootDir := rootfs.GetFullPath()
+			os.Setenv("CC", t.GetCC()+" --sysroot="+sysrootDir)
+			os.Setenv("CXX", t.GetCXX()+" --sysroot="+sysrootDir)
+		}
+	}
+
+	if t.GetAS() != "" {
+		os.Setenv("AS", t.GetAS())
+	}
+
+	if t.GetFC() != "" {
+		os.Setenv("FC", t.GetFC())
+	}
+
+	if t.GetRANLIB() != "" {
+		os.Setenv("RANLIB", t.GetRANLIB())
+	}
+
+	if t.GetAR() != "" {
+		os.Setenv("AR", t.GetAR())
+	}
+
+	if t.GetLD() != "" {
+		os.Setenv("LD", t.GetLD())
+	}
+
+	if t.GetNM() != "" {
+		os.Setenv("NM", t.GetNM())
+	}
+
+	if t.GetOBJCOPY() != "" {
+		os.Setenv("OBJCOPY", t.GetOBJCOPY())
+	}
+
+	if t.GetOBJDUMP() != "" {
+		os.Setenv("OBJDUMP", t.GetOBJDUMP())
+	}
+
+	if t.GetSTRIP() != "" {
+		os.Setenv("STRIP", t.GetSTRIP())
+	}
+
+	if t.GetREADELF() != "" {
+		os.Setenv("READELF", t.GetREADELF())
+	}
+}
+
+func (t Toolchain) ClearEnvs() {
+	os.Unsetenv("CROSSTOOL_PREFIX")
+	os.Unsetenv("SYSROOT")
+	os.Unsetenv("HOST")
+	os.Unsetenv("CC")
+	os.Unsetenv("CXX")
+	os.Unsetenv("AS")
+	os.Unsetenv("FC")
+	os.Unsetenv("RANLIB")
+	os.Unsetenv("AR")
+	os.Unsetenv("LD")
+	os.Unsetenv("NM")
+	os.Unsetenv("OBJCOPY")
+	os.Unsetenv("OBJDUMP")
+	os.Unsetenv("STRIP")
+	os.Unsetenv("READELF")
+
+	// MSVC related envs.
+	os.Unsetenv("INCLUDE")
+	os.Unsetenv("LIB")
+	os.Unsetenv("LIBPATH")
+	os.Unsetenv("VSINSTALLDIR")
+	os.Unsetenv("VCINSTALLDIR")
+}
+
 type WindowsKit struct {
 	InstalledDir string `toml:"installed_dir"`
 	Version      string `toml:"version"`

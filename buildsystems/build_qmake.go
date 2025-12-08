@@ -53,7 +53,7 @@ func (q qmake) configureOptions() ([]string, error) {
 	var options = slices.Clone(q.Options)
 
 	// Remove common cross compile args for native build.
-	if q.PortConfig.Toolchain.Native || q.BuildConfig.DevDep {
+	if q.PortConfig.Native || q.BuildConfig.DevDep {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.Contains(element, "-sysroot=")
 		})
@@ -90,13 +90,14 @@ func (q qmake) configured() bool {
 }
 
 func (q qmake) Configure(options []string) error {
+	toolchain := q.Ctx.Platform().GetToolchain()
+	rootfs := q.Ctx.Platform().GetRootFS()
+
 	// In windows, we set msvc related environments.
-	if q.DevDep ||
-		q.PortConfig.Toolchain.Name == "msvc" ||
-		q.PortConfig.Toolchain.Name == "clang" {
-		q.PortConfig.Toolchain.ClearEnvs()
+	if q.DevDep || toolchain.GetName() == "msvc" || toolchain.GetName() == "clang" {
+		toolchain.ClearEnvs()
 	} else {
-		q.PortConfig.Toolchain.SetEnvs(q.BuildConfig)
+		toolchain.SetEnvs(rootfs, q.Name(), q.PortConfig.CCacheEnabled)
 	}
 
 	// Set optimization flags with build_type.
