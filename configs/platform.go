@@ -102,6 +102,9 @@ func (p Platform) GetToolchain() context.Toolchain {
 }
 
 func (p Platform) GetRootFS() context.RootFS {
+	if p.RootFS == nil {
+		return nil
+	}
 	return p.RootFS
 }
 

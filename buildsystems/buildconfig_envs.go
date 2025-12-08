@@ -171,19 +171,17 @@ func (b BuildConfig) setupPkgConfig() {
 	case "linux":
 		// Pkg config paths and sysroot dir.
 		if rootfs != nil {
+			sysrootDir = rootfs.GetFullPath()
+
 			// PKG_CONFIG related.
 			for _, configPath := range rootfs.GetPkgConfigPath() {
-				configLibDirs = append(configLibDirs, filepath.Join(
-					rootfs.GetFullPath(), configPath,
-				))
+				configLibDirs = append(configLibDirs, filepath.Join(sysrootDir, configPath))
 			}
 
-			sysrootDir = rootfs.GetFullPath()
 			pathDivider = ":"
 
 			// Tmpdeps dir is a symlink in rootfs.
-			rootfs := rootfs.GetFullPath()
-			tmpDepsDir := filepath.Join(rootfs, "tmp", "deps", b.PortConfig.LibraryFolder)
+			tmpDepsDir := filepath.Join(sysrootDir, "tmp", "deps", b.PortConfig.LibraryFolder)
 
 			// Append pkgconfig with tmp/deps directory.
 			configPaths = append([]string{
@@ -258,19 +256,20 @@ func (b *BuildConfig) setEnvFlags() {
 	// sysroot and tmp dir.
 	if rootfs != nil {
 		// Set sysroot.
-		b.envBackup.setenv("SYSROOT", rootfs.GetFullPath())
+		sysrootDir := rootfs.GetFullPath()
+		b.envBackup.setenv("SYSROOT", sysrootDir)
 
 		// Update CFLAGS/CXXFLAGS
 		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		for _, item := range rootfs.GetIncludeDirs() {
-			includeDir := filepath.Join(rootfs.GetFullPath(), item)
+			includeDir := filepath.Join(sysrootDir, item)
 			b.appendIncludeDir(includeDir)
 		}
 
 		// Update LDFLAGS
 		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
 		for _, item := range rootfs.GetLibDirs() {
-			libDir := filepath.Join(rootfs.GetFullPath(), item)
+			libDir := filepath.Join(sysrootDir, item)
 			b.appendLibDir(libDir)
 		}
 	} else {

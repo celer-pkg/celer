@@ -496,21 +496,22 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		// then the pc file would be found by other libraries.
 		if rootfs != nil {
 			// This symblink is used to find library via toolchain_file.cmake
+			sysrootDir := rootfs.GetFullPath()
 			if err := b.checkSymlink(dirs.InstalledDir,
-				filepath.Join(rootfs.GetFullPath(), "installed"),
+				filepath.Join(sysrootDir, "installed"),
 			); err != nil {
 				return err
 			}
 
 			// Create tmp dir in rootfs if not exist.
-			rootfsTmp := filepath.Join(rootfs.GetFullPath(), "tmp")
+			rootfsTmp := filepath.Join(sysrootDir, "tmp")
 			if err := os.MkdirAll(rootfsTmp, os.ModePerm); err != nil {
 				return err
 			}
 
 			// This symblink is used to find library during build.
 			if err := b.checkSymlink(dirs.TmpDepsDir,
-				filepath.Join(rootfs.GetFullPath(), "tmp", "deps")); err != nil {
+				filepath.Join(sysrootDir, "tmp", "deps")); err != nil {
 				return err
 			}
 		}
@@ -759,7 +760,6 @@ func (b BuildConfig) expandCommandsVariables(content string) string {
 		content = strings.ReplaceAll(content, "${SYSROOT}", rootfs.GetFullPath())
 	}
 	content = strings.ReplaceAll(content, "${SYSTEM_PROCESSOR}", toolchain.GetSystemProcessor())
-	content = strings.ReplaceAll(content, "${SYSROOT}", rootfs.GetFullPath())
 	content = strings.ReplaceAll(content, "${CROSSTOOL_PREFIX}", toolchain.GetCrosstoolPrefix())
 	content = strings.ReplaceAll(content, "${BUILD_DIR}", b.PortConfig.BuildDir)
 	content = strings.ReplaceAll(content, "${PACKAGE_DIR}", b.PortConfig.PackageDir)
@@ -872,15 +872,16 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
 	} else if rootfs != nil {
 		// Update CFLAGS/CXXFLAGS
+		sysrootDir := rootfs.GetFullPath()
 		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		for _, dir := range rootfs.GetIncludeDirs() {
-			appendIncludeDir(filepath.Join(rootfs.GetFullPath(), dir))
+			appendIncludeDir(filepath.Join(sysrootDir, dir))
 		}
 
 		// Append LDFLAGS
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
 		for _, dir := range rootfs.GetLibDirs() {
-			appendLibDir(filepath.Join(rootfs.GetFullPath(), dir))
+			appendLibDir(filepath.Join(sysrootDir, dir))
 		}
 	}
 	appendEnv("CFLAGS", strings.Join(cflags, " "))

@@ -3,7 +3,6 @@ package configs
 import (
 	"celer/context"
 	"celer/pkgs/dirs"
-	"celer/pkgs/expr"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -264,12 +263,21 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, ccacheEnab
 			os.Setenv("CC", t.GetCC())
 			os.Setenv("CXX", t.GetCXX())
 		} else {
-			os.Setenv("CC", "ccache "+expr.If(rootfs != nil, t.GetCC()+" --sysroot="+rootfs.GetFullPath(), t.GetCC()))
-			os.Setenv("CXX", "ccache "+expr.If(rootfs != nil, t.GetCXX()+" --sysroot="+rootfs.GetFullPath(), t.GetCXX()))
+			if rootfs != nil {
+				sysrootDir := rootfs.GetFullPath()
+				os.Setenv("CC", "ccache "+t.GetCC()+" --sysroot="+sysrootDir)
+				os.Setenv("CXX", "ccache "+t.GetCXX()+" --sysroot="+sysrootDir)
+			} else {
+				os.Setenv("CC", "ccache "+t.GetCC())
+				os.Setenv("CXX", "ccache "+t.GetCXX())
+			}
 		}
 	} else {
-		os.Setenv("CC", expr.If(rootfs != nil, t.GetCC()+" --sysroot="+rootfs.GetFullPath(), t.GetCC()))
-		os.Setenv("CXX", expr.If(rootfs != nil, t.GetCXX()+" --sysroot="+rootfs.GetFullPath(), t.GetCXX()))
+		if rootfs != nil {
+			sysrootDir := rootfs.GetFullPath()
+			os.Setenv("CC", t.GetCC()+" --sysroot="+sysrootDir)
+			os.Setenv("CXX", t.GetCXX()+" --sysroot="+sysrootDir)
+		}
 	}
 
 	if t.GetAS() != "" {

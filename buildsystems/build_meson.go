@@ -280,16 +280,17 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	if !m.DevDep && rootfs != nil {
 		// In meson, `sys_root` will be joined as the suffix with
 		// the prefix in .pc files to locate libraries.
-		buffers.WriteString(fmt.Sprintf("sys_root = '%s'\n", rootfs))
+		sysrootDir := rootfs.GetFullPath()
+		fmt.Fprintf(&buffers, "sys_root = '%s'\n", sysrootDir)
 
 		for _, item := range rootfs.GetIncludeDirs() {
-			includeDir := filepath.Join(rootfs.GetFullPath(), item)
+			includeDir := filepath.Join(sysrootDir, item)
 			includeDir = filepath.ToSlash(includeDir)
 			m.appendIncludeArgs(&includeArgs, includeDir)
 		}
 
 		for _, item := range rootfs.GetLibDirs() {
-			libDir := filepath.Join(rootfs.GetFullPath(), item)
+			libDir := filepath.Join(sysrootDir, item)
 			libDir = filepath.ToSlash(libDir)
 			m.appendLinkArgs(&linkArgs, libDir)
 		}
