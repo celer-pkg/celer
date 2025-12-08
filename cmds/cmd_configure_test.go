@@ -816,7 +816,7 @@ func TestConfigure_CCacheCompress_ON(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 
 	const compress = true
-	check(celer.CompressCCache(compress))
+	check(celer.SetCCacheCompressed(compress))
 
 	// Verify by reloading config.
 	celer2 := configs.NewCeler()
@@ -824,7 +824,7 @@ func TestConfigure_CCacheCompress_ON(t *testing.T) {
 
 	// The value should be persisted in celer.toml,
 	// We can verify by setting it again and checking no error.
-	check(celer2.CompressCCache(compress))
+	check(celer2.SetCCacheCompressed(compress))
 }
 
 func TestConfigure_CCacheCompress_OFF(t *testing.T) {
@@ -848,7 +848,7 @@ func TestConfigure_CCacheCompress_OFF(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 
 	const compress = false
-	check(celer.CompressCCache(compress))
+	check(celer.SetCCacheCompressed(compress))
 
 	// Verify by reloading config.
 	celer2 := configs.NewCeler()
@@ -856,7 +856,7 @@ func TestConfigure_CCacheCompress_OFF(t *testing.T) {
 
 	// The value should be persisted in celer.toml,
 	// We can verify by setting it again and checking no error.
-	check(celer2.CompressCCache(compress))
+	check(celer2.SetCCacheCompressed(compress))
 }
 
 func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {

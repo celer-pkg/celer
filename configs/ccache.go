@@ -9,10 +9,14 @@ import (
 	"strings"
 )
 
+const ccacheDefaultMaxSize = "10G"
+
 type CCache struct {
-	Dir      string `toml:"dir,omitempty"`
-	MaxSize  string `toml:"maxsize,omitempty"`
-	Compress bool   `toml:"compress,omitempty"`
+	Enabled       bool   `toml:"enabled"`
+	Dir           string `toml:"dir"`
+	MaxSize       string `toml:"maxsize"`
+	Compress      bool   `toml:"compress"`
+	RemoteStorage string `toml:"remote_storage"`
 
 	ctx context.Context `toml:"-"`
 }
@@ -36,6 +40,10 @@ func (c *CCache) Validate() error {
 		os.Setenv("CCACHE_COMPRESS", "true")
 	} else {
 		os.Setenv("CCACHE_NOCOMPRESS", "true")
+	}
+
+	if c.RemoteStorage != "" {
+		os.Setenv("CCACHE_REMOTE_STORAGE", c.RemoteStorage)
 	}
 
 	return nil

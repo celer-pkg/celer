@@ -43,7 +43,7 @@ func (g gyp) Configure(options []string) error {
 	if g.DevDep {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, g.Name(), g.PortConfig.CCacheEnabled)
+		toolchain.SetEnvs(rootfs, g.Name(), g.Ctx.CCacheEnabled())
 	}
 
 	// Set optimization flags with build_type.

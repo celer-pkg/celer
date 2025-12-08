@@ -488,6 +488,28 @@ func (c *Celer) SetProxy(host string, port int) error {
 	return nil
 }
 
+func (c *Celer) SetCCacheEnabled(enabled bool) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.CCache == nil {
+		c.configData.CCache = &CCache{
+			Enabled:  enabled,
+			Compress: true,
+			MaxSize:  ccacheDefaultMaxSize,
+		}
+	} else {
+		c.configData.CCache.Enabled = enabled
+	}
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Celer) SetCCacheDir(dir string) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
@@ -495,6 +517,7 @@ func (c *Celer) SetCCacheDir(dir string) error {
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
+			MaxSize:  ccacheDefaultMaxSize,
 			Compress: true,
 			Dir:      dir,
 		}
@@ -530,7 +553,7 @@ func (c *Celer) SetCCacheMaxSize(maxSize string) error {
 	return nil
 }
 
-func (c *Celer) CompressCCache(compress bool) error {
+func (c *Celer) SetCCacheCompressed(compress bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
@@ -538,9 +561,32 @@ func (c *Celer) CompressCCache(compress bool) error {
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
 			Compress: compress,
+			MaxSize:  ccacheDefaultMaxSize,
 		}
 	} else {
 		c.configData.CCache.Compress = compress
+	}
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetCCacheRemoteStorage(remoteStorage string) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.CCache == nil {
+		c.configData.CCache = &CCache{
+			Compress:      true,
+			MaxSize:       ccacheDefaultMaxSize,
+			RemoteStorage: remoteStorage,
+		}
+	} else {
+		c.configData.CCache.RemoteStorage = remoteStorage
 	}
 
 	if err := c.save(); err != nil {
