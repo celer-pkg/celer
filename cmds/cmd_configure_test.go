@@ -127,6 +127,11 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--proxy-port"},
 		},
 		{
+			name:       "complete_ccache_enable_flag",
+			toComplete: "--ccache-e",
+			expected:   []string{"--ccache-enabled"},
+		},
+		{
 			name:       "complete_ccache_dir_flag",
 			toComplete: "--ccache-d",
 			expected:   []string{"--ccache-dir"},
@@ -137,9 +142,14 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--ccache-maxsize"},
 		},
 		{
-			name:       "complete_ccache_compress_flag",
-			toComplete: "--ccache-c",
-			expected:   []string{"--ccache-compress"},
+			name:       "complete_ccache_remote_storage_flag",
+			toComplete: "--ccache-remote-s",
+			expected:   []string{"--ccache-remote-storage"},
+		},
+		{
+			name:       "complete_ccache_remote_only_flag",
+			toComplete: "--ccache-remote-o",
+			expected:   []string{"--ccache-remote-only"},
 		},
 		{
 			name:       "no_completion_for_random",

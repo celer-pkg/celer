@@ -560,10 +560,6 @@ func (c *Celer) SetCCacheMaxSize(maxSize string) error {
 }
 
 func (c *Celer) SetCCacheRemoteStorage(remoteStorage string) error {
-	if remoteStorage == "" {
-		return fmt.Errorf("ccache remote storage is empty")
-	}
-
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
