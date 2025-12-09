@@ -149,8 +149,8 @@ celer install ffmpeg@5.1.6 -s -t token_xxx
 - [快速开始](./quick_start.md)
 - [Deploy 命令](./cmd_deploy.md) - 部署整个项目
 - [Remove 命令](./cmd_remove.md) - 移除已安装的库
-- [端口配置](./advance_port.md) - 配置第三方库
-- [二进制缓存](./advance_cache_artifacts.md) - 配置构建缓存
+- [端口配置](./article_port.md) - 配置第三方库
+- [二进制缓存](./article_cache_artifacts.md) - 配置构建缓存
 
 ---
 

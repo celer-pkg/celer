@@ -33,7 +33,7 @@ celer create --platform x86_64-linux-xxxx
 > Generated file location: `conf/platforms/`  
 > Please edit the generated configuration file according to your target environment
 
-For more platform configuration details, see [Platform Introduction](./advance_platform.md)
+For more platform configuration details, see [Platform Introduction](./article_platform.md)
 
 ### 2️⃣ Create a New Project
 
@@ -44,7 +44,7 @@ celer create --project xxxx
 > Generated file location: `conf/projects/`  
 > Please edit the generated configuration file according to your target project
 
-For more project configuration details, see [Project Introduction](./advance_project.md)
+For more project configuration details, see [Project Introduction](./article_project.md)
 
 ### 3️⃣ Create a New Port
 
@@ -55,13 +55,13 @@ celer create --port xxxx
 > Generated file location example: `workspace/ports/glog/0.6.0/port.toml`  
 > Please edit the generated configuration file according to your target library
 
-For more port configuration details, see [Port Introduction](./advance_port.md)
+For more port configuration details, see [Port Introduction](./article_port.md)
 
 ---
 
 ## 📚 Related Documentation
 
 - [Quick Start](./quick_start.md)
-- [Platform Introduction](./advance_platform.md)
-- [Project Introduction](./advance_project.md)
-- [Port Introduction](./advance_port.md)
+- [Platform Introduction](./article_platform.md)
+- [Project Introduction](./article_project.md)
+- [Port Introduction](./article_port.md)

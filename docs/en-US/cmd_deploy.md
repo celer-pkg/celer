@@ -87,8 +87,8 @@ cmake --build build
 - [Quick Start](./quick_start.md)
 - [Configure Command](./cmd_configure.md) - Configure platform and project
 - [Install Command](./cmd_install.md) - Install individual ports
-- [Project Configuration](./advance_project.md) - Configure project dependencies
-- [Platform Configuration](./advance_platform.md) - Configure target platform
+- [Project Configuration](./article_project.md) - Configure project dependencies
+- [Platform Configuration](./article_platform.md) - Configure target platform
 
 ---
 

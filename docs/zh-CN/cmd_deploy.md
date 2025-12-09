@@ -87,8 +87,8 @@ cmake --build build
 - [快速开始](./quick_start.md)
 - [Configure 命令](./cmd_configure.md) - 配置平台和项目
 - [Install 命令](./cmd_install.md) - 安装单个端口
-- [项目配置](./advance_project.md) - 配置项目依赖
-- [平台配置](./advance_platform.md) - 配置目标平台
+- [项目配置](./article_project.md) - 配置项目依赖
+- [平台配置](./article_platform.md) - 配置目标平台
 
 ---
 

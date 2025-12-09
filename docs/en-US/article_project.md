@@ -353,7 +353,7 @@ celer tree project_001
 
 - [Quick Start Guide](./quick_start.md) - Get started with Celer
 - [Create Project](./cmd_create.md) - Using the celer create command
-- [Platform Configuration](./advance_platform.md) - Configure compilation toolchains
+- [Platform Configuration](./article_platform.md) - Configure compilation toolchains
 
 ---
 

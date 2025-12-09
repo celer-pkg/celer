@@ -14,8 +14,8 @@ const ccacheDefaultMaxSize = "10G"
 
 type CCache struct {
 	Enabled       bool   `toml:"enabled"`                  // ENV: CCACHE_ENABLED
-	Dir           string `toml:"dir"`                      // ENV: CCACHE_DIR
 	MaxSize       string `toml:"maxsize"`                  // ENV: CCACHE_MAXSIZE
+	Dir           string `toml:"dir"`                      // ENV: CCACHE_DIR
 	RemoteStorage string `toml:"remote_storage,omitempty"` // ENV: CCACHE_REMOTE_STORAGE
 	RemoteOnly    bool   `toml:"remote_only,omitempty"`    // ENV: CCACHE_REMOTE_ONLY
 

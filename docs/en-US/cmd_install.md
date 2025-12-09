@@ -149,8 +149,8 @@ The directory name includes:
 - [Quick Start](./quick_start.md)
 - [Deploy Command](./cmd_deploy.md) - Deploy entire project
 - [Remove Command](./cmd_remove.md) - Remove installed libraries
-- [Port Configuration](./advance_port.md) - Configure third-party libraries
-- [Binary Cache](./advance_cache_artifacts.md) - Configure build cache
+- [Port Configuration](./article_port.md) - Configure third-party libraries
+- [Binary Cache](./article_cache_artifacts.md) - Configure build cache
 
 ---
 

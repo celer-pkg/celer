@@ -181,7 +181,7 @@ system_processor = "x86_64"
 
 - [Quick Start Guide](./quick_start.md) - Get started with Celer
 - [Project Configuration](./cmd_create.md#2-create-a-new-project) - Select platform in celer.toml
-- [Build Configuration](./advance_buildconfig.md) - Configure build options and dependencies
+- [Build Configuration](./article_buildconfig.md) - Configure build options and dependencies
 
 ---
 

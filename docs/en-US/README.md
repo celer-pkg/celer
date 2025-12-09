@@ -91,8 +91,8 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 - [Add a New Port](./cmd_create.md#3-create-a-new-port) - Host your own libraries
 
 **Advanced Features:**
-- [Generate CMake Configs](./advance_generate_cmake_config.md) - Auto-generate configs for non-CMake libraries
-- [Cache Build Artifacts](./advance_binary_cache.md) - Accelerate builds with smart caching
+- [Generate CMake Configs](./article_generate_cmake_config.md) - Auto-generate configs for non-CMake libraries
+- [Cache Build Artifacts](./article_binary_cache.md) - Accelerate builds with smart caching
 
 <details>
 <summary><b>📋 Command Reference</b></summary>

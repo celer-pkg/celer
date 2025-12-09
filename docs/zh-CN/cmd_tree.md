@@ -98,7 +98,7 @@ celer tree
 - [快速开始](./quick_start.md)
 - [Install 命令](./cmd_install.md) - 安装第三方库
 - [Reverse 命令](./cmd_reverse.md) - 分析反向依赖关系
-- [项目配置](./advance_project.md) - 配置项目依赖
+- [项目配置](./article_project.md) - 配置项目依赖
 
 ---
 

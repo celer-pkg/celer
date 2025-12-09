@@ -112,8 +112,8 @@ celer update -f -r ffmpeg@3.4.13
 
 - [Quick Start](./quick_start.md)
 - [Install Command](./cmd_install.md) - Install third-party libraries
-- [Port Configuration](./advance_port.md) - Learn about port configuration files
-- [Platform Configuration](./advance_platform.md) - Learn about platform configuration files
+- [Port Configuration](./article_port.md) - Learn about port configuration files
+- [Platform Configuration](./article_platform.md) - Learn about platform configuration files
 
 ---
 
