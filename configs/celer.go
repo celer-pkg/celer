@@ -12,6 +12,7 @@ import (
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -565,6 +566,17 @@ func (c *Celer) SetCCacheRemoteStorage(remoteStorage string) error {
 
 	if err := c.readOrCreate(); err != nil {
 		return err
+	}
+
+	// Validate URL format if remote storage is provided
+	if remoteStorage != "" {
+		parsedURL, err := url.Parse(remoteStorage)
+		if err != nil {
+			return fmt.Errorf("invalid remote storage URL: %w", err)
+		}
+		if parsedURL.Scheme == "" || parsedURL.Host == "" {
+			return fmt.Errorf("remote storage URL must include scheme and host (e.g., http://server:port/path)")
+		}
 	}
 
 	if c.configData.CCache == nil {

@@ -950,3 +950,85 @@ func TestConfigure_Jobs_Zero(t *testing.T) {
 		t.Fatal("jobs cannot be 0")
 	}
 }
+
+func TestConfigure_CCacheRemoteStorage_Valid(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	const remoteStorage = "http://localhost:8080/ccache"
+	check(celer.SetCCacheRemoteStorage(remoteStorage))
+
+	// Verify by reloading config.
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+
+	// The value should be persisted in celer.toml,
+	// We can verify by setting it again and checking no error.
+	check(celer2.SetCCacheRemoteStorage(remoteStorage))
+}
+
+func TestConfigure_CCacheRemoteStorage_InvalidURL(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	// Test invalid URL (missing scheme)
+	if err := celer.SetCCacheRemoteStorage("localhost:8080/ccache"); err == nil {
+		t.Fatal("should fail for URL without scheme")
+	}
+}
+
+func TestConfigure_CCacheRemoteStorage_Empty(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	// Empty string should be allowed (to clear the setting)
+	check(celer.SetCCacheRemoteStorage(""))
+}
