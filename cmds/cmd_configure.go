@@ -67,7 +67,7 @@ Available Configuration Options:
   	--ccache-enabled      	Set whether ccache is enabled (true/false)
     --ccache-dir      		Set the ccache directory path
     --ccache-maxsize  		Set the maximum cache size (e.g., "5G", "1024M")
-	--ccache-remote-address Set remote storage address for ccache
+	--ccache-remote-storage Set remote storage address for ccache
 
 Examples:
   celer configure --platform windows-amd64        # Set target platform

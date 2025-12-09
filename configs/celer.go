@@ -536,6 +536,10 @@ func (c *Celer) SetCCacheDir(dir string) error {
 }
 
 func (c *Celer) SetCCacheMaxSize(maxSize string) error {
+	if maxSize == "" || (!strings.HasSuffix(maxSize, "M") && !strings.HasSuffix(maxSize, "G")) {
+		return fmt.Errorf("ccache maxsize must end with `M` or `G`: %s", maxSize)
+	}
+
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
@@ -556,6 +560,10 @@ func (c *Celer) SetCCacheMaxSize(maxSize string) error {
 }
 
 func (c *Celer) SetCCacheRemoteStorage(remoteStorage string) error {
+	if remoteStorage == "" {
+		return fmt.Errorf("ccache remote storage is empty")
+	}
+
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
