@@ -495,9 +495,8 @@ func (c *Celer) SetCCacheEnabled(enabled bool) error {
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			Enabled:  enabled,
-			Compress: true,
-			MaxSize:  ccacheDefaultMaxSize,
+			Enabled: enabled,
+			MaxSize: ccacheDefaultMaxSize,
 		}
 	} else {
 		c.configData.CCache.Enabled = enabled
@@ -515,11 +514,14 @@ func (c *Celer) SetCCacheDir(dir string) error {
 		return err
 	}
 
+	if !fileio.PathExists(dir) {
+		return fmt.Errorf("ccache dir does not exist: %s", dir)
+	}
+
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			MaxSize:  ccacheDefaultMaxSize,
-			Compress: true,
-			Dir:      dir,
+			MaxSize: ccacheDefaultMaxSize,
+			Dir:     dir,
 		}
 	} else {
 		c.configData.CCache.Dir = dir
@@ -539,32 +541,10 @@ func (c *Celer) SetCCacheMaxSize(maxSize string) error {
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			Compress: true,
-			MaxSize:  maxSize,
+			MaxSize: maxSize,
 		}
 	} else {
 		c.configData.CCache.MaxSize = maxSize
-	}
-
-	if err := c.save(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Celer) SetCCacheCompressed(compress bool) error {
-	if err := c.readOrCreate(); err != nil {
-		return err
-	}
-
-	if c.configData.CCache == nil {
-		c.configData.CCache = &CCache{
-			Compress: compress,
-			MaxSize:  ccacheDefaultMaxSize,
-		}
-	} else {
-		c.configData.CCache.Compress = compress
 	}
 
 	if err := c.save(); err != nil {
@@ -581,12 +561,32 @@ func (c *Celer) SetCCacheRemoteStorage(remoteStorage string) error {
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			Compress:      true,
 			MaxSize:       ccacheDefaultMaxSize,
 			RemoteStorage: remoteStorage,
 		}
 	} else {
 		c.configData.CCache.RemoteStorage = remoteStorage
+	}
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetCCacheRemoteOnly(remoteOnly bool) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.CCache == nil {
+		c.configData.CCache = &CCache{
+			MaxSize:    ccacheDefaultMaxSize,
+			RemoteOnly: remoteOnly,
+		}
+	} else {
+		c.configData.CCache.RemoteOnly = remoteOnly
 	}
 
 	if err := c.save(); err != nil {

@@ -67,7 +67,6 @@ Available Configuration Options:
   	--ccache-enabled      	Set whether ccache is enabled (true/false)
     --ccache-dir      		Set the ccache directory path
     --ccache-maxsize  		Set the maximum cache size (e.g., "5G", "1024M")
-    --ccache-compress 		Enable/disable ccache compression (true/false)
 	--ccache-remote-address Set remote storage address for ccache
 
 Examples:
@@ -184,19 +183,19 @@ Examples:
 				}
 				configs.PrintSuccess("current ccache maxsize: %s.", c.ccache.MaxSize)
 
-			case flags.Changed("ccache-compress"):
-				if err := c.celer.SetCCacheCompressed(c.ccache.Compress); err != nil {
-					configs.PrintError(err, "failed to update ccache.compress.")
-					return
-				}
-				configs.PrintSuccess("current ccache compress: %s.", expr.If(c.ccache.Compress, "true", "false"))
-
 			case flags.Changed("ccache-remote-storage"):
 				if err := c.celer.SetCCacheRemoteStorage(c.ccache.RemoteStorage); err != nil {
 					configs.PrintError(err, "failed to update ccache.remote_storage.")
 					return
 				}
 				configs.PrintSuccess("current ccache remote storage: %s.", c.ccache.RemoteStorage)
+
+			case flags.Changed("ccache-remote-only"):
+				if err := c.celer.SetCCacheRemoteOnly(c.ccache.RemoteOnly); err != nil {
+					configs.PrintError(err, "failed to update ccache.remote_only.")
+					return
+				}
+				configs.PrintSuccess("current ccache remote only: %s.", expr.If(c.ccache.RemoteOnly, "true", "false"))
 			}
 		},
 		ValidArgsFunction: c.completion,
@@ -223,8 +222,8 @@ Examples:
 	flags.BoolVar(&c.ccache.Enabled, "ccache-enabled", false, "configure ccache enabled.")
 	flags.StringVar(&c.ccache.Dir, "ccache-dir", "", "configure ccache dir.")
 	flags.StringVar(&c.ccache.MaxSize, "ccache-maxsize", "", "configure ccache maxsize.")
-	flags.BoolVar(&c.ccache.Compress, "ccache-compress", false, "configure ccache compress.")
 	flags.StringVar(&c.ccache.RemoteStorage, "ccache-remote-storage", "", "configure ccache remote storage.")
+	flags.BoolVar(&c.ccache.RemoteOnly, "ccache-remote-only", false, "configure ccache remote only.")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -242,7 +241,12 @@ Examples:
 	command.RegisterFlagCompletionFunc("verbose", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
-	command.RegisterFlagCompletionFunc("ccache-compress", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+
+	// CCache flag completions.
+	command.RegisterFlagCompletionFunc("ccache-enabled", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
+	})
+	command.RegisterFlagCompletionFunc("ccache-remote-only", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
 
@@ -286,10 +290,10 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--proxy-host",
 		"--proxy-port",
 		"--ccache-enabled",
-		"--ccache-compress",
 		"--ccache-dir",
 		"--ccache-maxsize",
 		"--ccache-remote-storage",
+		"--ccache-remote-only",
 	}
 
 	var suggestions []string
