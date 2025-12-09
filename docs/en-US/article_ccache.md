@@ -236,7 +236,7 @@ ccache -M 20G
 # Should return OK
 curl -X GET http://SERVER_IP:8080/health
 
-# Should return 201 Created（or 204 No Content）
+# Should return 201 Created (or 204 No Content)
 curl -X PUT -d "test data" http://SERVER_IP:8080/ccache/test.txt
 
 # Should return "test data"
