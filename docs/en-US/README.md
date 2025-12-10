@@ -91,8 +91,9 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 - [Add a New Port](./cmd_create.md#3-create-a-new-port) - Host your own libraries
 
 **Advanced Features:**
-- [Generate CMake Configs](./advance_generate_cmake_config.md) - Auto-generate configs for non-CMake libraries
-- [Cache Build Artifacts](./advance_binary_cache.md) - Accelerate builds with smart caching
+- [Generate CMake Configs](./article_generate_cmake_config.md) - Auto-generate configs for non-CMake libraries
+- [Cache Build Artifacts](./article_binary_cache.md) - Accelerate builds with smart caching
+- [Support CCache](./article_ccache.md) - Speeds up recompilation by caching previous compilations
 
 <details>
 <summary><b>📋 Command Reference</b></summary>
@@ -110,6 +111,7 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 | [install](./cmd_install.md)           | Install a package.|
 | [integrate](./cmd_integrate.md)       | Integrate tab completion.|
 | [remove](./cmd_remove.md)             | Remove installed package.|
+| [reverse](./cmd_reverse.md)           | Reverse query dependencies on the specified library. |
 | [search](./cmd_search.md)             | Search available ports from ports repository.|
 | [tree](./cmd_tree.md)                 | Show dependencies of a port or project.|
 | [update](./cmd_update.md)             | Update conf repo, ports config repo or project repo.|

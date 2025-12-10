@@ -112,8 +112,8 @@ celer update -f -r ffmpeg@3.4.13
 
 - [快速开始](./quick_start.md)
 - [Install 命令](./cmd_install.md) - 安装第三方库
-- [端口配置](./advance_port.md) - 了解端口配置文件
-- [平台配置](./advance_platform.md) - 了解平台配置文件
+- [端口配置](./article_port.md) - 了解端口配置文件
+- [平台配置](./article_platform.md) - 了解平台配置文件
 
 ---
 

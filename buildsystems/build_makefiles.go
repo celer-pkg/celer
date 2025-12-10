@@ -144,7 +144,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	}
 
 	// Add ccache support for projects that need explicit --cc parameter, like ffmpeg.
-	if m.PortConfig.CCacheEnabled {
+	if m.Ctx.CCacheEnabled() {
 		for index, option := range options {
 			if after, ok := strings.CutPrefix(option, "--cc="); ok {
 				options[index] = fmt.Sprintf("--cc='ccache %s'", after)
@@ -227,7 +227,7 @@ func (m makefiles) Configure(options []string) error {
 	if m.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, m.Name(), m.PortConfig.CCacheEnabled)
+		toolchain.SetEnvs(rootfs, m.Name(), m.Ctx.CCacheEnabled())
 	}
 
 	// Set optimization flags with build_type.

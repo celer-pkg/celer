@@ -91,7 +91,7 @@ Celer supports the following wildcard patterns:
 
 - [Quick Start](./quick_start.md)
 - [Install Command](./cmd_install.md) - Install searched ports
-- [Port Configuration](./advance_port.md) - Learn about port configuration
+- [Port Configuration](./article_port.md) - Learn about port configuration
 
 ---
 

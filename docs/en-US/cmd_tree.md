@@ -98,7 +98,7 @@ celer tree
 - [Quick Start](./quick_start.md)
 - [Install Command](./cmd_install.md) - Install third-party libraries
 - [Reverse Command](./cmd_reverse.md) - Analyze reverse dependencies
-- [Project Configuration](./advance_project.md) - Configure project dependencies
+- [Project Configuration](./article_project.md) - Configure project dependencies
 
 ---
 

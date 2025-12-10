@@ -12,6 +12,7 @@ import (
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -488,15 +489,40 @@ func (c *Celer) SetProxy(host string, port int) error {
 	return nil
 }
 
-func (c *Celer) SetCCacheDir(dir string) error {
+func (c *Celer) SetCCacheEnabled(enabled bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			Compress: true,
-			Dir:      dir,
+			Enabled: enabled,
+			MaxSize: ccacheDefaultMaxSize,
+		}
+	} else {
+		c.configData.CCache.Enabled = enabled
+	}
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetCCacheDir(dir string) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if !fileio.PathExists(dir) {
+		return fmt.Errorf("ccache dir does not exist: %s", dir)
+	}
+
+	if c.configData.CCache == nil {
+		c.configData.CCache = &CCache{
+			MaxSize: ccacheDefaultMaxSize,
+			Dir:     dir,
 		}
 	} else {
 		c.configData.CCache.Dir = dir
@@ -510,14 +536,17 @@ func (c *Celer) SetCCacheDir(dir string) error {
 }
 
 func (c *Celer) SetCCacheMaxSize(maxSize string) error {
+	if maxSize == "" || (!strings.HasSuffix(maxSize, "M") && !strings.HasSuffix(maxSize, "G")) {
+		return fmt.Errorf("ccache maxsize must end with `M` or `G`: %s", maxSize)
+	}
+
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			Compress: true,
-			MaxSize:  maxSize,
+			MaxSize: maxSize,
 		}
 	} else {
 		c.configData.CCache.MaxSize = maxSize
@@ -530,17 +559,50 @@ func (c *Celer) SetCCacheMaxSize(maxSize string) error {
 	return nil
 }
 
-func (c *Celer) CompressCCache(compress bool) error {
+func (c *Celer) SetCCacheRemoteStorage(remoteStorage string) error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	// Validate URL format if remote storage is provided
+	if remoteStorage != "" {
+		parsedURL, err := url.Parse(remoteStorage)
+		if err != nil {
+			return fmt.Errorf("invalid remote storage URL: %w", err)
+		}
+		if parsedURL.Scheme == "" || parsedURL.Host == "" {
+			return fmt.Errorf("remote storage URL must include scheme and host (e.g., http://server:port/path)")
+		}
+	}
+
+	if c.configData.CCache == nil {
+		c.configData.CCache = &CCache{
+			MaxSize:       ccacheDefaultMaxSize,
+			RemoteStorage: remoteStorage,
+		}
+	} else {
+		c.configData.CCache.RemoteStorage = remoteStorage
+	}
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetCCacheRemoteOnly(remoteOnly bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
 	if c.configData.CCache == nil {
 		c.configData.CCache = &CCache{
-			Compress: compress,
+			MaxSize:    ccacheDefaultMaxSize,
+			RemoteOnly: remoteOnly,
 		}
 	} else {
-		c.configData.CCache.Compress = compress
+		c.configData.CCache.RemoteOnly = remoteOnly
 	}
 
 	if err := c.save(); err != nil {
@@ -746,5 +808,5 @@ func (c *Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 }
 
 func (c *Celer) CCacheEnabled() bool {
-	return c.configData.CCache != nil && c.configData.CCache.Validate() == nil
+	return c.configData.CCache != nil && c.configData.CCache.Enabled
 }

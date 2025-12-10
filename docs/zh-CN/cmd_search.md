@@ -91,7 +91,7 @@ Celer 支持以下通配符模式：
 
 - [快速开始](./quick_start.md)
 - [Install 命令](./cmd_install.md) - 安装搜索到的端口
-- [端口配置](./advance_port.md) - 了解端口配置
+- [端口配置](./article_port.md) - 了解端口配置
 
 ---
 

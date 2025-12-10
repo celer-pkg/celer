@@ -21,9 +21,12 @@ celer configure [flags]
 | --proxy-port              | integer | Configure proxy port                   |
 | --binary-cache-dir        | string  | Configure binary cache directory       |
 | --binary-cache-token      | string  | Configure binary cache token           |
-| --ccache-compress         | boolean | Configure ccache compression           |
+| --ccache-enabled          | boolean | Configure ccache enabled               |
 | --ccache-dir              | string  | Configure ccache working directory     |
-| --ccache-maxsize          | string  | Set ccache max size (e.g., "10G")      |
+| --ccache-maxsize          | string  | configure ccache maxsize               |
+| --ccache-remote-storage   | string  | configure ccache remote storage        |
+| --ccache-remote-only      | string  | configure ccache remote only           |
+
 
 ### 1️⃣ Configure Platform
 
@@ -104,9 +107,11 @@ celer configure --binary-cache-dir /home/xxx/cache --binary-cache-token token_12
 ### Enable ccache to Accelerate Builds
 
 ```shell
+celer configure --ccache-enabled true
 celer configure --ccache-dir /home/xxx/.ccache
 celer configure --ccache-maxsize 5G
-celer configure --ccache-compress true
+celer configure --ccache-remote-storage http://SERVER_IP:8080/ccache
+celer configure --ccache-remote-only true
 ```
 
 > Enable compiler caching to speed up repeated builds.

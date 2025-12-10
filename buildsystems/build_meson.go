@@ -134,7 +134,7 @@ func (m meson) Configure(options []string) error {
 	if m.DevDep && (toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cli") {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, m.Name(), m.PortConfig.CCacheEnabled)
+		toolchain.SetEnvs(rootfs, m.Name(), m.Ctx.CCacheEnabled())
 	}
 
 	// Create build dir if not exists.
@@ -151,7 +151,7 @@ func (m meson) Configure(options []string) error {
 	} else {
 		targetToolchain = toolchain
 	}
-	crossFile, err := m.generateCrossFile(targetToolchain, rootfs, m.PortConfig.CCacheEnabled)
+	crossFile, err := m.generateCrossFile(targetToolchain, rootfs, m.Ctx.CCacheEnabled())
 	if err != nil {
 		return fmt.Errorf("generate cross_file.toml for meson: %v", err)
 	}

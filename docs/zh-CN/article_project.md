@@ -353,7 +353,7 @@ celer tree project_001
 
 - [快速开始指南](./quick_start.md) - 开始使用 Celer
 - [创建项目](./cmd_create.md) - 使用 celer create 命令
-- [平台配置](./advance_platform.md) - 配置编译工具链
+- [平台配置](./article_platform.md) - 配置编译工具链
 
 ---
 

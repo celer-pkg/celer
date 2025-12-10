@@ -40,7 +40,6 @@ type PortConfig struct {
 	Jobs            int             // number of jobs to run in parallel
 	DevDep          bool            // whether dev dependency
 	Native          bool            // whether native build
-	CCacheEnabled   bool            // whether ccache enabled
 	Ctx             context.Context `toml:"-"`
 }
 

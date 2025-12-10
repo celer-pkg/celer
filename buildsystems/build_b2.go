@@ -109,7 +109,7 @@ func (b b2) Configure(options []string) error {
 		for scanner.Scan() {
 			line := scanner.Text()
 			if strings.Contains(line, "using gcc ;") {
-				if b.PortConfig.CCacheEnabled {
+				if b.Ctx.CCacheEnabled() {
 					line = fmt.Sprintf(`using gcc : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
 				} else {
 					line = fmt.Sprintf(`using gcc : : "%s" ;`, filepath.ToSlash(cxx))
@@ -117,14 +117,14 @@ func (b b2) Configure(options []string) error {
 			} else if strings.Contains(line, "using msvc ;") {
 				switch toolchain.GetName() {
 				case "clang-cl":
-					if b.PortConfig.CCacheEnabled {
+					if b.Ctx.CCacheEnabled() {
 						line = fmt.Sprintf(`using clang-win : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
 					} else {
 						line = fmt.Sprintf(`using clang-win : : "%s" ;`, filepath.ToSlash(cxx))
 					}
 
 				case "msvc":
-					if b.PortConfig.CCacheEnabled {
+					if b.Ctx.CCacheEnabled() {
 						line = fmt.Sprintf(`using msvc : %s : "ccache" "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
 					} else {
 						line = fmt.Sprintf(`using msvc : %s : "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))

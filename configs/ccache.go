@@ -2,6 +2,7 @@ package configs
 
 import (
 	"celer/context"
+	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
@@ -9,15 +10,25 @@ import (
 	"strings"
 )
 
+const ccacheDefaultMaxSize = "10G"
+
 type CCache struct {
-	Dir      string `toml:"dir,omitempty"`
-	MaxSize  string `toml:"maxsize,omitempty"`
-	Compress bool   `toml:"compress,omitempty"`
+	Enabled       bool   `toml:"enabled"`                  // ENV: CCACHE_ENABLED
+	MaxSize       string `toml:"maxsize"`                  // ENV: CCACHE_MAXSIZE
+	Dir           string `toml:"dir"`                      // ENV: CCACHE_DIR
+	RemoteStorage string `toml:"remote_storage,omitempty"` // ENV: CCACHE_REMOTE_STORAGE
+	RemoteOnly    bool   `toml:"remote_only,omitempty"`    // ENV: CCACHE_REMOTE_ONLY
 
 	ctx context.Context `toml:"-"`
 }
 
 func (c *CCache) Validate() error {
+	if c.Enabled {
+		os.Unsetenv("CCACHE_DISABLE")
+	} else {
+		os.Setenv("CCACHE_DISABLE", "1")
+	}
+
 	if c.Dir == "" {
 		c.Dir = filepath.Join(os.Getenv("HOME"), ".ccache")
 	} else if !fileio.PathExists(c.Dir) {
@@ -32,12 +43,19 @@ func (c *CCache) Validate() error {
 
 	os.Setenv("CCACHE_DIR", c.Dir)
 	os.Setenv("CCACHE_MAXSIZE", c.MaxSize)
-	if c.Compress {
-		os.Setenv("CCACHE_COMPRESS", "true")
-	} else {
-		os.Setenv("CCACHE_NOCOMPRESS", "true")
+
+	if c.RemoteStorage != "" {
+		os.Setenv("CCACHE_REMOTE_STORAGE", c.RemoteStorage)
+
+		if c.RemoteOnly {
+			os.Setenv("CCACHE_REMOTE_ONLY", "1")
+		} else {
+			os.Unsetenv("CCACHE_REMOTE_ONLY")
+		}
 	}
 
+	// Default to workspace dir as base dir.
+	os.Setenv("CCACHE_BASEDIR", dirs.WorkspaceDir)
 	return nil
 }
 

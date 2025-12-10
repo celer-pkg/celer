@@ -21,9 +21,11 @@ celer configure [flags]
 | --proxy-port              | 整数    | 配置代理端口                           |
 | --binary-cache-dir        | 字符串  | 配置二进制缓存目录                     |
 | --binary-cache-token      | 字符串 | 配置二进制缓存令牌                     |
-| --ccache-compress         | 布尔    | 配置 ccache 压缩                       |
+| --ccache-enabled          | 布尔    | 配置 ccache 是否启用                |
 | --ccache-dir              | 字符串  | 配置 ccache 工作目录                   |
 | --ccache-maxsize          | 字符串  | 设置 ccache 最大空间（如 "10G"）        |
+| --ccache-remote-storage   | 字符串  | 设置 ccache 缓存服务地址                |
+| --ccache-remote-only      | 布尔    | 设置 ccache 是否只启用服务器缓存        |
 
 ### 1️⃣ 配置平台
 
@@ -104,9 +106,11 @@ celer configure --binary-cache-dir /home/xxx/cache --binary-cache-token token_12
 ### 启用 ccache 加速构建
 
 ```shell
+celer configure --ccache-enabled true
 celer configure --ccache-dir /home/xxx/.ccache
 celer configure --ccache-maxsize 5G
-celer configure --ccache-compress tre
+celer configure --ccache-remote-storage http://SERVER_IP:8080/ccache
+celer configure --ccache-remote-only true
 ```
 
 >启用编译器缓存以加速重复构建。

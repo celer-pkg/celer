@@ -48,9 +48,11 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"binary-cache-token", ""},
 		{"proxy-host", ""},
 		{"proxy-port", ""},
+		{"ccache-enabled", ""},
 		{"ccache-dir", ""},
 		{"ccache-maxsize", ""},
-		{"ccache-compress", ""},
+		{"ccache-remote-storage", ""},
+		{"ccache-remote-only", ""},
 	}
 
 	for _, ef := range expectedFlags {
@@ -127,6 +129,11 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--proxy-port"},
 		},
 		{
+			name:       "complete_ccache_enable_flag",
+			toComplete: "--ccache-e",
+			expected:   []string{"--ccache-enabled"},
+		},
+		{
 			name:       "complete_ccache_dir_flag",
 			toComplete: "--ccache-d",
 			expected:   []string{"--ccache-dir"},
@@ -137,9 +144,14 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--ccache-maxsize"},
 		},
 		{
-			name:       "complete_ccache_compress_flag",
-			toComplete: "--ccache-c",
-			expected:   []string{"--ccache-compress"},
+			name:       "complete_ccache_remote_storage_flag",
+			toComplete: "--ccache-remote-s",
+			expected:   []string{"--ccache-remote-storage"},
+		},
+		{
+			name:       "complete_ccache_remote_only_flag",
+			toComplete: "--ccache-remote-o",
+			expected:   []string{"--ccache-remote-only"},
 		},
 		{
 			name:       "no_completion_for_random",
@@ -730,6 +742,74 @@ func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
 	}
 }
 
+func TestConfigure_CCacheEnabled_ON(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
+	check(os.MkdirAll(ccacheDir, os.ModePerm))
+	check(celer.SetCCacheDir(ccacheDir))
+	check(celer.SetCCacheEnabled(true))
+
+	// Verify by reloading config.
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+
+	if celer2.CCache.Enabled != true {
+		t.Fatalf("ccache enabled should be `%v`", true)
+	}
+}
+
+func TestConfigure_CCacheEnabled_OFF(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
+	check(os.MkdirAll(ccacheDir, os.ModePerm))
+	check(celer.SetCCacheDir(ccacheDir))
+	check(celer.SetCCacheEnabled(false))
+
+	// Verify by reloading config.
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+
+	if celer2.CCache.Enabled != false {
+		t.Fatalf("ccache enabled should be `%v`", false)
+	}
+}
+
 func TestConfigure_CCacheDir(t *testing.T) {
 	// Cleanup.
 	t.Cleanup(func() {
@@ -793,70 +873,6 @@ func TestConfigure_CCacheMaxSize(t *testing.T) {
 	// The value should be persisted in celer.toml,
 	// We can verify by setting it again and checking no error.
 	check(celer2.SetCCacheMaxSize(maxSize))
-}
-
-func TestConfigure_CCacheCompress_ON(t *testing.T) {
-	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
-
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
-	check(celer.SetBuildType("Release"))
-
-	const compress = true
-	check(celer.CompressCCache(compress))
-
-	// Verify by reloading config.
-	celer2 := configs.NewCeler()
-	check(celer2.Init())
-
-	// The value should be persisted in celer.toml,
-	// We can verify by setting it again and checking no error.
-	check(celer2.CompressCCache(compress))
-}
-
-func TestConfigure_CCacheCompress_OFF(t *testing.T) {
-	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
-
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
-	check(celer.SetBuildType("Release"))
-
-	const compress = false
-	check(celer.CompressCCache(compress))
-
-	// Verify by reloading config.
-	celer2 := configs.NewCeler()
-	check(celer2.Init())
-
-	// The value should be persisted in celer.toml,
-	// We can verify by setting it again and checking no error.
-	check(celer2.CompressCCache(compress))
 }
 
 func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {
@@ -947,4 +963,86 @@ func TestConfigure_Jobs_Zero(t *testing.T) {
 	if err := celer.SetJobs(0); err == nil {
 		t.Fatal("jobs cannot be 0")
 	}
+}
+
+func TestConfigure_CCacheRemoteStorage_Valid(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	const remoteStorage = "http://localhost:8080/ccache"
+	check(celer.SetCCacheRemoteStorage(remoteStorage))
+
+	// Verify by reloading config.
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+
+	// The value should be persisted in celer.toml,
+	// We can verify by setting it again and checking no error.
+	check(celer2.SetCCacheRemoteStorage(remoteStorage))
+}
+
+func TestConfigure_CCacheRemoteStorage_InvalidURL(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	// Test invalid URL (missing scheme)
+	if err := celer.SetCCacheRemoteStorage("localhost:8080/ccache"); err == nil {
+		t.Fatal("should fail for URL without scheme")
+	}
+}
+
+func TestConfigure_CCacheRemoteStorage_Empty(t *testing.T) {
+	// Cleanup.
+	t.Cleanup(func() {
+		dirs.RemoveAllForTest()
+	})
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.SetBuildType("Release"))
+
+	// Empty string should be allowed (to clear the setting)
+	check(celer.SetCCacheRemoteStorage(""))
 }
