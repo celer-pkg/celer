@@ -808,5 +808,5 @@ func (c *Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 }
 
 func (c *Celer) CCacheEnabled() bool {
-	return c.configData.CCache != nil && c.configData.CCache.Validate() == nil
+	return c.configData.CCache != nil && c.configData.CCache.Enabled
 }

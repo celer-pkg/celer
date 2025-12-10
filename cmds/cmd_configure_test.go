@@ -48,9 +48,11 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"binary-cache-token", ""},
 		{"proxy-host", ""},
 		{"proxy-port", ""},
+		{"ccache-enabled", ""},
 		{"ccache-dir", ""},
 		{"ccache-maxsize", ""},
-		{"ccache-compress", ""},
+		{"ccache-remote-storage", ""},
+		{"ccache-remote-only", ""},
 	}
 
 	for _, ef := range expectedFlags {
@@ -762,13 +764,14 @@ func TestConfigure_CCacheEnabled_ON(t *testing.T) {
 
 	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
 	check(os.MkdirAll(ccacheDir, os.ModePerm))
+	check(celer.SetCCacheDir(ccacheDir))
 	check(celer.SetCCacheEnabled(true))
 
 	// Verify by reloading config.
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
 
-	if celer2.CCacheEnabled() != true {
+	if celer2.CCache.Enabled != true {
 		t.Fatalf("ccache enabled should be `%v`", true)
 	}
 }
@@ -795,13 +798,14 @@ func TestConfigure_CCacheEnabled_OFF(t *testing.T) {
 
 	ccacheDir := filepath.Join(dirs.TmpDir, "ccache")
 	check(os.MkdirAll(ccacheDir, os.ModePerm))
+	check(celer.SetCCacheDir(ccacheDir))
 	check(celer.SetCCacheEnabled(false))
 
 	// Verify by reloading config.
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
 
-	if celer2.CCacheEnabled() != false {
+	if celer2.CCache.Enabled != false {
 		t.Fatalf("ccache enabled should be `%v`", false)
 	}
 }
