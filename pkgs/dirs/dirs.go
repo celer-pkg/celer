@@ -81,4 +81,5 @@ func RemoveAllForTest() {
 	os.RemoveAll(TestCacheDir)
 	os.RemoveAll(PackagesDir)
 	os.RemoveAll(InstalledDir)
+	os.RemoveAll(BuildtreesDir)
 }
