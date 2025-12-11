@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"celer/configs"
+	"celer/depcheck"
 	"celer/pkgs/dirs"
 	"fmt"
 	"path/filepath"
@@ -118,6 +119,17 @@ func (a *autoremoveCmd) collectPackages(nameVersion string) error {
 		return err
 	}
 
+	// Check circular dependence.
+	depcheck := depcheck.NewDepCheck()
+	if err := depcheck.CheckCircular(a.celer, port); err != nil {
+		return fmt.Errorf("found circular dependence when collecting package %s", nameVersion)
+	}
+
+	// Check version conflict.
+	if err := depcheck.CheckConflict(a.celer, port); err != nil {
+		return fmt.Errorf("found version conflict when collecting package %s", nameVersion)
+	}
+
 	// Add if not added before.
 	if !slices.Contains(a.packages, nameVersion) {
 		a.packages = append(a.packages, nameVersion)
@@ -139,6 +151,17 @@ func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 	var port configs.Port
 	if err := port.Init(a.celer, nameVersion); err != nil {
 		return err
+	}
+
+	// Check circular dependence.
+	depcheck := depcheck.NewDepCheck()
+	if err := depcheck.CheckCircular(a.celer, port); err != nil {
+		return fmt.Errorf("found circular dependence when collecting dev package %s", nameVersion)
+	}
+
+	// Check version conflict.
+	if err := depcheck.CheckConflict(a.celer, port); err != nil {
+		return fmt.Errorf("found version conflict when collecting dev package %s", nameVersion)
 	}
 
 	for _, devDepNameVersion := range port.MatchedConfig.DevDependencies {
