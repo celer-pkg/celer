@@ -15,9 +15,7 @@ import (
 
 func TestCreateCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	celer := configs.NewCeler()
 	createCmd := createCmd{}
@@ -59,9 +57,7 @@ func TestCreateCmd_CommandStructure(t *testing.T) {
 
 func TestCreateCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	createCmd := createCmd{}
 	celer := configs.NewCeler()
@@ -124,9 +120,7 @@ func TestCreateCmd_Completion(t *testing.T) {
 
 func TestCreateCmd_Validation(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	createCmd := &createCmd{}
 
@@ -210,9 +204,7 @@ func TestCreateCmd_Validation(t *testing.T) {
 
 func TestCreateCmd(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {

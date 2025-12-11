@@ -17,9 +17,7 @@ func TestInstall_BinaryCache_Success(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -99,9 +97,7 @@ func TestInstall_BinaryCache_With_Deps_Success(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -192,9 +188,7 @@ func TestInstall_BinaryCache_Prebuilt_Success(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -277,9 +271,7 @@ func TestInstall_BinaryCache_DirNotDefined_Failed(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -325,9 +317,7 @@ func TestInstall_BinaryCache_TokenNotDefined_Failed(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -373,9 +363,7 @@ func TestInstall_BinaryCache_TokenNotSpecified_Failed(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -421,9 +409,7 @@ func TestInstall_BinaryCache_TokenNotMatch_Failed(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -469,9 +455,7 @@ func TestInstall_BinaryCache_With_Commit_Success(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -536,9 +520,7 @@ func TestInstall_BinaryCache_With_Commit_Failed(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {

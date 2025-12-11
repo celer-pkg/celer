@@ -17,9 +17,7 @@ import (
 
 func TestCleanCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	cleanCmd := cleanCmd{}
 	celer := configs.NewCeler()
@@ -69,9 +67,7 @@ func TestCleanCmd_CommandStructure(t *testing.T) {
 
 func TestCleanCmd_ValidateTargets(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	tests := []struct {
 		name        string
@@ -121,9 +117,7 @@ func TestCleanCmd_ValidateTargets(t *testing.T) {
 
 func TestCleanCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Setup test environment.
 	os.MkdirAll(dirs.BuildtreesDir, 0755)
@@ -209,9 +203,7 @@ func TestCleanCmd_Completion(t *testing.T) {
 
 func TestClean(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {

@@ -16,9 +16,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -132,9 +130,7 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {

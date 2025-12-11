@@ -14,9 +14,7 @@ import (
 
 func TestTreeCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	treeCmd := treeCmd{}
 	celer := configs.NewCeler()
@@ -58,9 +56,7 @@ func TestTreeCmd_CommandStructure(t *testing.T) {
 
 func TestTreeCmd_ValidateTarget(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	treeCmd := treeCmd{}
 
@@ -117,9 +113,7 @@ func TestTreeCmd_ValidateTarget(t *testing.T) {
 
 func TestTreeCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Setup test environment
 	setupTestEnvironment(t)
@@ -186,9 +180,7 @@ func TestTreeCmd_Completion(t *testing.T) {
 
 func TestTreeCmd_PrintTree(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	treeCmd := treeCmd{}
 
@@ -234,9 +226,7 @@ func TestTreeCmd_PrintTree(t *testing.T) {
 
 func TestTreeCmd_CollectPortInfos(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// This test would require actual port configuration files
 	// For now, we test that the method signature is correct
@@ -258,9 +248,7 @@ func TestTreeCmd_CollectPortInfos(t *testing.T) {
 
 func TestTreeCmd_Execute_InvalidTarget(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	treeCmd := treeCmd{}
 	celer := configs.NewCeler()

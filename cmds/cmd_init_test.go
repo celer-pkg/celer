@@ -15,9 +15,7 @@ import (
 
 func TestInitCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	initCmd := initCmd{}
 	celer := configs.NewCeler()
@@ -54,9 +52,7 @@ func TestInitCmd_CommandStructure(t *testing.T) {
 
 func TestInitCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	initCmd := initCmd{}
 	celer := configs.NewCeler()
@@ -194,9 +190,7 @@ func TestInitCmd_Command(t *testing.T) {
 
 func TestInitCmd_Initialize(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Test init without URL (should fail).
 	t.Run("init_without_url", func(t *testing.T) {
@@ -275,9 +269,7 @@ func executeCommandForTest(celer *configs.Celer, url, branch string) error {
 
 func TestInitCmd_URLValidation(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	tests := []struct {
 		name        string
@@ -360,9 +352,7 @@ func TestInitCmd_URLValidation(t *testing.T) {
 
 func TestInitCmd_EdgeCases(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	tests := []struct {
 		name        string

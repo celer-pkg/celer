@@ -18,9 +18,7 @@ import (
 
 func TestUpdateCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	updateCmd := updateCmd{}
 	celer := configs.NewCeler()
@@ -72,9 +70,7 @@ func TestUpdateCmd_CommandStructure(t *testing.T) {
 
 func TestUpdateCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -169,9 +165,7 @@ func TestUpdateCmd_Completion(t *testing.T) {
 
 func TestUpdateCmd_UpdateConfRepo(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -211,9 +205,7 @@ func TestUpdateCmd_UpdateConfRepo(t *testing.T) {
 
 func TestUpdateCmd_UpdateConfRepo_Force(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -252,9 +244,7 @@ func TestUpdateCmd_UpdateConfRepo_Force(t *testing.T) {
 
 func TestUpdateCmd_UpdatePortsRepo(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -294,9 +284,7 @@ func TestUpdateCmd_UpdatePortsRepo(t *testing.T) {
 
 func TestUpdateCmd_UpdateProjectRepos_NoTargets(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -329,9 +317,7 @@ func TestUpdateCmd_UpdateProjectRepos_NoTargets(t *testing.T) {
 
 func TestUpdateCmd_UpdatePortRepo_SrcNotExist(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -378,9 +364,7 @@ func TestUpdateCmd_UpdatePortRepo_SrcNotExist(t *testing.T) {
 
 func TestUpdateCmd_UpdatePortRepo_NonGitRepo(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -437,9 +421,7 @@ func TestUpdateCmd_UpdatePortRepo_NonGitRepo(t *testing.T) {
 
 func TestUpdateCmd_UpdatePortRepo_CircularDependency(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -488,9 +470,7 @@ func TestUpdateCmd_UpdatePortRepo_CircularDependency(t *testing.T) {
 
 func TestUpdateCmd_UpdatePortRepo_WithGitRepo(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -553,9 +533,7 @@ func TestUpdateCmd_UpdatePortRepo_WithGitRepo(t *testing.T) {
 
 func TestUpdateCmd_UpdatePorts_BacktickRemoval(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -597,9 +575,7 @@ func TestUpdateCmd_UpdatePorts_BacktickRemoval(t *testing.T) {
 
 func TestUpdateCmd_DoUpdate_ConfRepo(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -632,9 +608,7 @@ func TestUpdateCmd_DoUpdate_ConfRepo(t *testing.T) {
 
 func TestUpdateCmd_DoUpdate_PortsRepo(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {

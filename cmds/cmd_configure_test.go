@@ -16,9 +16,7 @@ import (
 
 func TestConfigureCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	configCmd := configureCmd{}
 	celer := configs.NewCeler()
@@ -65,9 +63,7 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 
 func TestConfigureCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	configCmd := configureCmd{}
 	celer := configs.NewCeler()
@@ -184,9 +180,7 @@ func TestConfigureCmd_Completion(t *testing.T) {
 
 func TestConfigure_Platform(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -220,9 +214,7 @@ func TestConfigure_Platform(t *testing.T) {
 
 func TestConfigure_Project(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -253,9 +245,7 @@ func TestConfigure_Project(t *testing.T) {
 
 func TestConfigure_Project_NotExist(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -278,9 +268,7 @@ func TestConfigure_Project_NotExist(t *testing.T) {
 
 func TestConfigure_Project_Empty(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -303,9 +291,7 @@ func TestConfigure_Project_Empty(t *testing.T) {
 
 func TestConfigure_BuildType_Release(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -336,9 +322,7 @@ func TestConfigure_BuildType_Release(t *testing.T) {
 
 func TestConfigure_BuildType_Debug(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -369,9 +353,7 @@ func TestConfigure_BuildType_Debug(t *testing.T) {
 
 func TestConfigure_BuildType_Empty(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -394,9 +376,7 @@ func TestConfigure_BuildType_Empty(t *testing.T) {
 
 func TestConfigure_BuildType_Invalid(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -419,9 +399,7 @@ func TestConfigure_BuildType_Invalid(t *testing.T) {
 
 func TestConfigure_Jobs(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -451,9 +429,7 @@ func TestConfigure_Jobs(t *testing.T) {
 }
 
 func TestConfigure_Jobs_Invalid(t *testing.T) {
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -478,9 +454,7 @@ func TestConfigure_Jobs_Invalid(t *testing.T) {
 
 func TestConfigure_Offline_ON(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -511,9 +485,7 @@ func TestConfigure_Offline_ON(t *testing.T) {
 
 func TestConfigure_Offline_OFF(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -544,9 +516,7 @@ func TestConfigure_Offline_OFF(t *testing.T) {
 
 func TestConfigure_Verbose_ON(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -577,9 +547,7 @@ func TestConfigure_Verbose_ON(t *testing.T) {
 
 func TestConfigure_Verbose_OFF(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -604,9 +572,7 @@ func TestConfigure_Verbose_OFF(t *testing.T) {
 
 func TestConfigure_CacheDir(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -639,9 +605,7 @@ func TestConfigure_CacheDir(t *testing.T) {
 
 func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -664,9 +628,7 @@ func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
 
 func TestConfigure_Proxy(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -694,9 +656,7 @@ func TestConfigure_Proxy(t *testing.T) {
 
 func TestConfigure_Proxy_Invalid_Host(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -719,9 +679,7 @@ func TestConfigure_Proxy_Invalid_Host(t *testing.T) {
 
 func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -744,9 +702,7 @@ func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
 
 func TestConfigure_CCacheEnabled_ON(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -778,9 +734,7 @@ func TestConfigure_CCacheEnabled_ON(t *testing.T) {
 
 func TestConfigure_CCacheEnabled_OFF(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -812,9 +766,7 @@ func TestConfigure_CCacheEnabled_OFF(t *testing.T) {
 
 func TestConfigure_CCacheDir(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -845,9 +797,7 @@ func TestConfigure_CCacheDir(t *testing.T) {
 
 func TestConfigure_CCacheMaxSize(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -877,9 +827,7 @@ func TestConfigure_CCacheMaxSize(t *testing.T) {
 
 func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -910,9 +858,7 @@ func TestConfigure_BuildType_RelWithDebInfo(t *testing.T) {
 
 func TestConfigure_BuildType_MinSizeRel(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -943,9 +889,7 @@ func TestConfigure_BuildType_MinSizeRel(t *testing.T) {
 
 func TestConfigure_Jobs_Zero(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -967,9 +911,7 @@ func TestConfigure_Jobs_Zero(t *testing.T) {
 
 func TestConfigure_CCacheRemoteStorage_Valid(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -999,9 +941,7 @@ func TestConfigure_CCacheRemoteStorage_Valid(t *testing.T) {
 
 func TestConfigure_CCacheRemoteStorage_InvalidURL(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -1025,9 +965,7 @@ func TestConfigure_CCacheRemoteStorage_InvalidURL(t *testing.T) {
 
 func TestConfigure_CCacheRemoteStorage_Empty(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {

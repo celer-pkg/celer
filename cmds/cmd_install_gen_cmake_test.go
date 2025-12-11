@@ -17,9 +17,7 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -52,11 +50,10 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	_, err := port.Install(options)
 	check(err)
 
+	// Clear build dir.
 	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
+	check(os.RemoveAll(buildDir))
 	check(os.MkdirAll(buildDir, os.ModePerm))
-	t.Cleanup(func() {
-		check(os.RemoveAll(buildDir))
-	})
 
 	// Build test project.
 	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
@@ -86,9 +83,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -124,10 +119,8 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 
 	// Build test project.
 	buildDir := filepath.Join(dirs.TmpFilesDir, "build_cmake_test")
+	check(os.RemoveAll(buildDir))
 	check(os.MkdirAll(buildDir, os.ModePerm))
-	t.Cleanup(func() {
-		check(os.RemoveAll(buildDir))
-	})
 
 	// Build test project.
 	executer := cmd.NewExecutor("configure test project", "cmake",
@@ -154,9 +147,7 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -190,12 +181,10 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 	_, err := port.Install(options)
 	check(err)
 
-	// Build test project.
+	// Clear build dir.
 	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
+	check(os.RemoveAll(buildDir))
 	check(os.MkdirAll(buildDir, os.ModePerm))
-	t.Cleanup(func() {
-		check(os.RemoveAll(buildDir))
-	})
 
 	// Build test project.
 	executer := cmd.NewExecutor("configure test project", "cmake",
@@ -222,9 +211,7 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -258,11 +245,10 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 	_, err := port.Install(options)
 	check(err)
 
+	// Clear build dir.
 	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
+	check(os.RemoveAll(buildDir))
 	check(os.MkdirAll(buildDir, os.ModePerm))
-	t.Cleanup(func() {
-		check(os.RemoveAll(buildDir))
-	})
 
 	// Build test project.
 	executer := cmd.NewExecutor("configure test project", "cmake",
@@ -289,9 +275,7 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -325,11 +309,10 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 	_, err := port.Install(options)
 	check(err)
 
+	// Clear build dir.
 	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
+	check(os.RemoveAll(buildDir))
 	check(os.MkdirAll(buildDir, os.ModePerm))
-	t.Cleanup(func() {
-		check(os.RemoveAll(buildDir))
-	})
 
 	// Build test project.
 	executer := cmd.NewExecutor("configure test project", "cmake",
@@ -356,9 +339,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -392,12 +373,10 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 	_, err := port.Install(options)
 	check(err)
 
-	// Build test project.
+	// Clear build dir.
 	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
+	check(os.RemoveAll(buildDir))
 	check(os.MkdirAll(buildDir, os.ModePerm))
-	t.Cleanup(func() {
-		check(os.RemoveAll(buildDir))
-	})
 
 	// Build test project.
 	executer := cmd.NewExecutor("configure test project", "cmake",

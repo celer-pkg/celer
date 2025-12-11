@@ -14,9 +14,7 @@ import (
 
 func TestInstallCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	celer := configs.NewCeler()
 	installCmd := installCmd{}
@@ -68,9 +66,7 @@ func TestInstallCmd_CommandStructure(t *testing.T) {
 
 func TestInstallCmd_ValidateAndCleanInput(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	installCmd := &installCmd{}
 
@@ -176,9 +172,7 @@ func TestInstallCmd_ValidateAndCleanInput(t *testing.T) {
 
 func TestInstallCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -260,9 +254,7 @@ func TestInstallCmd_Completion(t *testing.T) {
 
 func TestInstallCmd_BuildSuggestions(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -348,9 +340,7 @@ func TestInstallCmd_BuildSuggestions(t *testing.T) {
 
 func TestInstallCmd_ErrorHandling(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	tests := []struct {
 		name        string
