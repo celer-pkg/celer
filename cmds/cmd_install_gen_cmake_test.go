@@ -54,6 +54,7 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
 	check(os.RemoveAll(buildDir))
 	check(os.MkdirAll(buildDir, os.ModePerm))
+	t.Cleanup(func() { os.RemoveAll(buildDir) })
 
 	// Build test project.
 	if err := buildtools.CheckTools(celer, "cmake"); err != nil {
