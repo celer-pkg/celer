@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"celer/configs"
+	"celer/depcheck"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -92,6 +93,17 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 				return err
 			}
 
+			// Check circular dependence.
+			depcheck := depcheck.NewDepCheck()
+			if err := depcheck.CheckCircular(r.celer, port); err != nil {
+				return fmt.Errorf("found circular dependence: %w", err)
+			}
+
+			// Check version conflict.
+			if err := depcheck.CheckConflict(r.celer, port); err != nil {
+				return fmt.Errorf("found version conflict: %w", err)
+			}
+
 			// Check dependencies based on mode
 			if r.hasDependency(port, target) {
 				libraries = append(libraries, nameVersion)
@@ -103,7 +115,7 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 		return nil, err
 	}
 
-	// Sort results for consistent output
+	// Sort results for consistent output.
 	sort.Strings(libraries)
 	return libraries, nil
 }

@@ -204,7 +204,7 @@ func (c *cleanCmd) cleanAll() error {
 
 func (c *cleanCmd) doClean(port configs.Port) error {
 	// Ignore already cleaned ports.
-	if slices.Contains(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.Native, "@dev", "")) {
+	if slices.Contains(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.Native, " [dev]", "")) {
 		return nil
 	}
 
@@ -259,7 +259,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 		}
 	}
 
-	c.cleaned = append(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.Native, "@dev", ""))
+	c.cleaned = append(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.Native, " [dev]", ""))
 	color.Printf(color.Gray, "✔ %-25s%s\n", port.NameVersion(), expr.If(port.DevDep || port.Native, " -- [dev]", ""))
 
 	return nil

@@ -79,7 +79,7 @@ func (d *depcheck) CheckConflict(ctx context.Context, ports ...configs.Port) err
 				conflicts = append(conflicts, fmt.Sprintf(format, nameVersion, info.parent))
 			}
 
-			summaries = append(summaries, fmt.Sprintf("    - %s", strings.Join(conflicts, ", ")))
+			summaries = append(summaries, strings.Join(conflicts, ", "))
 		}
 	}
 	if len(summaries) > 0 {
@@ -100,7 +100,7 @@ func (d *depcheck) CheckCircular(ctx context.Context, port configs.Port) error {
 
 func (d *depcheck) checkCircular(port configs.Port) error {
 	if port.DevDep || port.Native {
-		portKey := port.NameVersion() + "@dev"
+		portKey := port.NameVersion() + " [dev]"
 
 		// Check if the port is already in the path.
 		if slices.Contains(d.path, portKey) {

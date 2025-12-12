@@ -316,7 +316,7 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 		}
 	}
 	if metaFile == "" {
-		suffix := expr.If(p.DevDep, "@dev", "")
+		suffix := expr.If(p.DevDep, " [dev]", "")
 		return false, fmt.Errorf("invalid package %s, since meta file is not found for %s", p.PackageDir, p.NameVersion()+suffix)
 	}
 
@@ -536,7 +536,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Ignore duplicated.
-		if slices.Contains(preparedTmpDeps, nameVersion+"@dev") {
+		if slices.Contains(preparedTmpDeps, nameVersion+" [dev]") {
 			continue
 		}
 
@@ -564,7 +564,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Provider tmp deps recursively.
-		preparedTmpDeps = append(preparedTmpDeps, nameVersion+"@dev")
+		preparedTmpDeps = append(preparedTmpDeps, nameVersion+" [dev]")
 		if err := port.providerTmpDeps(); err != nil {
 			return err
 		}
@@ -579,7 +579,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Ignore duplicated.
-		if slices.Contains(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.Native, "@dev", "")) {
+		if slices.Contains(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.Native, " [dev]", "")) {
 			continue
 		}
 
@@ -607,7 +607,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Provider tmp deps recursively.
-		preparedTmpDeps = append(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.Native, "@dev", ""))
+		preparedTmpDeps = append(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.Native, " [dev]", ""))
 		if err := port.providerTmpDeps(); err != nil {
 			return err
 		}
