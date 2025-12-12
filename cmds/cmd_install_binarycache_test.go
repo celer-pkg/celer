@@ -3,10 +3,10 @@ package cmds
 import (
 	"celer/configs"
 	"celer/pkgs/dirs"
+	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
-	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -308,7 +308,7 @@ func TestInstall_BinaryCache_DirNotDefined_Failed(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != configs.ErrCacheDirNotConfigured {
+	if err := port.InstallFromSource(options); err != errors.ErrCacheDirNotConfigured {
 		t.Fatal("should return ErrCacheDirNotConfigured")
 	}
 }
@@ -354,7 +354,7 @@ func TestInstall_BinaryCache_TokenNotDefined_Failed(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotConfigured {
+	if err := port.InstallFromSource(options); err != errors.ErrCacheTokenNotConfigured {
 		t.Fatal("should return ErrCacheTokenNotConfigured")
 	}
 }
@@ -400,7 +400,7 @@ func TestInstall_BinaryCache_TokenNotSpecified_Failed(t *testing.T) {
 		CacheToken: "", // Token not specified
 	}
 	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotSpecified {
+	if err := port.InstallFromSource(options); err != errors.ErrCacheTokenNotSpecified {
 		t.Fatal("should return ErrCacheTokenNotSpecified")
 	}
 }
@@ -446,7 +446,7 @@ func TestInstall_BinaryCache_TokenNotMatch_Failed(t *testing.T) {
 		CacheToken: "token_654321", // Token not match.
 	}
 	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != configs.ErrCacheTokenNotMatch {
+	if err := port.InstallFromSource(options); err != errors.ErrCacheTokenNotMatch {
 		t.Fatal("should return ErrCacheTokenNotMatch")
 	}
 }
@@ -571,7 +571,7 @@ func TestInstall_BinaryCache_With_Commit_Failed(t *testing.T) {
 	// Install from cache with not matched commit.
 	port.Package.Commit = "not_matched_commit_xxxxxx"
 	installed, err := port.InstallFromBinaryCache(options)
-	if err == nil || !errors.Is(err, configs.ErrCacheNotFoundWithCommit) {
+	if err == nil || !errors.Is(err, errors.ErrCacheNotFoundWithCommit) {
 		t.Fatal("should return ErrCacheNotFoundWithCommit")
 	}
 	if installed {

@@ -3,6 +3,7 @@ package depcheck
 import (
 	"celer/configs"
 	"celer/context"
+	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"fmt"
 	"log"
@@ -64,6 +65,9 @@ func (d *depcheck) CheckConflict(ctx context.Context, ports ...configs.Port) err
 		}
 
 		if err := d.collectInfos(port.NameVersion(), port.DevDep, port.Native); err != nil {
+			if errors.Is(err, errors.ErrNoMatchedConfigFound) {
+				return nil
+			}
 			return err
 		}
 	}
@@ -95,7 +99,15 @@ func (d *depcheck) CheckCircular(ctx context.Context, port configs.Port) error {
 	d.versionInfos = make(map[string][]versionInfo)
 	d.visited = make(map[string]bool)
 	d.path = make([]string, 0)
-	return d.checkCircular(port)
+
+	if err := d.checkCircular(port); err != nil {
+		if errors.Is(err, errors.ErrNoMatchedConfigFound) {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (d *depcheck) checkCircular(port configs.Port) error {
@@ -161,6 +173,9 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 			Native: true,
 		}
 		if err := devPort.Init(d.ctx, nameVersion); err != nil {
+			if errors.Is(err, errors.ErrNoMatchedConfigFound) {
+				return nil
+			}
 			return err
 		}
 
@@ -197,6 +212,9 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 			Native: port.DevDep || port.Native,
 		}
 		if err := devPort.Init(d.ctx, nameVersion); err != nil {
+			if errors.Is(err, errors.ErrNoMatchedConfigFound) {
+				return nil
+			}
 			return err
 		}
 

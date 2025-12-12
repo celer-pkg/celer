@@ -4,8 +4,8 @@ import (
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/encrypt"
+	"celer/pkgs/errors"
 	"celer/pkgs/expr"
-	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -369,8 +369,8 @@ func TestConfigure_BuildType_Empty(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetBuildType(""); err != configs.ErrInvalidBuildType {
-		t.Fatal(configs.ErrInvalidBuildType)
+	if err := celer.SetBuildType(""); err != errors.ErrInvalidBuildType {
+		t.Fatal(errors.ErrInvalidBuildType)
 	}
 }
 
@@ -392,8 +392,8 @@ func TestConfigure_BuildType_Invalid(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetBuildType("xxxx"); err != configs.ErrInvalidBuildType {
-		t.Fatal(configs.ErrInvalidBuildType)
+	if err := celer.SetBuildType("xxxx"); err != errors.ErrInvalidBuildType {
+		t.Fatal(errors.ErrInvalidBuildType)
 	}
 }
 
@@ -621,8 +621,8 @@ func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"); errors.Is(err, configs.ErrCacheDirNotExist) {
-		t.Fatal(configs.ErrCacheDirNotExist)
+	if err := celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"); errors.Is(err, errors.ErrCacheDirNotExist) {
+		t.Fatal(errors.ErrCacheDirNotExist)
 	}
 }
 

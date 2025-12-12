@@ -5,8 +5,8 @@ import (
 	"celer/depcheck"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
+	"celer/pkgs/errors"
 	"celer/pkgs/fileio"
-	"errors"
 	"fmt"
 	"io/fs"
 	"path/filepath"
@@ -87,7 +87,7 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 
 			var port configs.Port
 			if err := port.Init(r.celer, nameVersion); err != nil {
-				if strings.Contains(err.Error(), "no matched config found for") {
+				if errors.Is(err, errors.ErrNoMatchedConfigFound) {
 					return nil
 				}
 				return err

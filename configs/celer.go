@@ -8,6 +8,7 @@ import (
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/encrypt"
+	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
@@ -327,7 +328,7 @@ func (c *Celer) SetBuildType(buildtype string) error {
 	buildtype = strings.ToLower(buildtype)
 
 	if buildtype != "release" && buildtype != "debug" && buildtype != "relwithdebinfo" && buildtype != "minsizerel" {
-		return ErrInvalidBuildType
+		return errors.ErrInvalidBuildType
 	}
 
 	if err := c.readOrCreate(); err != nil {
@@ -430,14 +431,14 @@ func (c *Celer) SetBinaryCache(dir, token string) error {
 	if c.configData.BinaryCache != nil {
 		dir = expr.If(dir != "", dir, c.configData.BinaryCache.Dir)
 		if !fileio.PathExists(dir) {
-			return ErrCacheDirNotExist
+			return errors.ErrCacheDirNotExist
 		}
 	}
 
 	if token != "" {
 		tokenFile := filepath.Join(dir, "token")
 		if fileio.PathExists(tokenFile) {
-			return ErrCacheTokenExist
+			return errors.ErrCacheTokenExist
 		}
 
 		// Token of cache dir should be encrypted.
