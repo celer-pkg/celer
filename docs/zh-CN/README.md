@@ -94,6 +94,7 @@ Celer 解决了传统 C/C++ 包管理器难以应对的核心痛点：
 - [生成 CMake 配置文件](./article_generate_cmake_config.md) - 为非 CMake 库自动生成配置
 - [缓存构建产物](./article_binary_cache.md) - 通过智能缓存加速构建
 - [支持CCache](./article_ccache.md) - 通过缓存编译结果来加速重新编译
+- [库版本冲突和环形依赖检测](./article_detect_conflict_circular.md) - 在编译前提前发现导致环形依赖和冲突的错误配置
 
 <details>
 <summary><b>📋 命令参考</b></summary>
