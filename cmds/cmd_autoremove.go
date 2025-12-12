@@ -122,7 +122,7 @@ func (a *autoremoveCmd) collectPackages(nameVersion string) error {
 	// Check circular dependence.
 	depcheck := depcheck.NewDepCheck()
 	if err := depcheck.CheckCircular(a.celer, port); err != nil {
-		return fmt.Errorf("found circular dependence when collecting package %s", nameVersion)
+		return fmt.Errorf("found circular dependence when collecting package %s: %w", nameVersion, err)
 	}
 
 	// Check version conflict.
