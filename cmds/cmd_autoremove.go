@@ -127,7 +127,7 @@ func (a *autoremoveCmd) collectPackages(nameVersion string) error {
 
 	// Check version conflict.
 	if err := depcheck.CheckConflict(a.celer, port); err != nil {
-		return fmt.Errorf("found version conflict when collecting package %s", nameVersion)
+		return fmt.Errorf("found version conflict when collecting package %s: %w", nameVersion, err)
 	}
 
 	// Add if not added before.
