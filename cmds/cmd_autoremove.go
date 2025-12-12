@@ -161,7 +161,7 @@ func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 
 	// Check version conflict.
 	if err := depcheck.CheckConflict(a.celer, port); err != nil {
-		return fmt.Errorf("found version conflict when collecting dev package %s", nameVersion)
+		return fmt.Errorf("found version conflict when collecting dev package %s: %w", nameVersion, err)
 	}
 
 	for _, devDepNameVersion := range port.MatchedConfig.DevDependencies {
