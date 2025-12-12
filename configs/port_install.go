@@ -4,6 +4,7 @@ import (
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/encrypt"
+	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -190,22 +191,22 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 	if options.StoreCache && !p.MatchedConfig.DevDep && !p.MatchedConfig.Native {
 		binaryCache := p.ctx.BinaryCache()
 		if binaryCache == nil {
-			return ErrCacheDirNotConfigured
+			return errors.ErrCacheDirNotConfigured
 		}
 		if binaryCache.GetDir() == "" {
-			return ErrCacheDirNotConfigured
+			return errors.ErrCacheDirNotConfigured
 		}
 
 		if !fileio.PathExists(filepath.Join(binaryCache.GetDir(), "token")) {
-			return ErrCacheTokenNotConfigured
+			return errors.ErrCacheTokenNotConfigured
 		}
 
 		if options.CacheToken == "" {
-			return ErrCacheTokenNotSpecified
+			return errors.ErrCacheTokenNotSpecified
 		}
 
 		if !encrypt.CheckToken(binaryCache.GetDir(), options.CacheToken) {
-			return ErrCacheTokenNotMatch
+			return errors.ErrCacheTokenNotMatch
 		}
 
 		writeCacheAfterInstall = true
@@ -237,11 +238,11 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 		// Store cache after installation.
 		if writeCacheAfterInstall {
 			if p.ctx.BinaryCache() == nil {
-				return ErrCacheDirNotConfigured
+				return errors.ErrCacheDirNotConfigured
 			}
 			binaryCache := p.ctx.BinaryCache()
 			if binaryCache.GetDir() == "" {
-				return ErrCacheDirNotConfigured
+				return errors.ErrCacheDirNotConfigured
 			}
 			if err := binaryCache.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 				return err
@@ -316,7 +317,7 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 		}
 	}
 	if metaFile == "" {
-		suffix := expr.If(p.DevDep, "@dev", "")
+		suffix := expr.If(p.DevDep, " [dev]", "")
 		return false, fmt.Errorf("invalid package %s, since meta file is not found for %s", p.PackageDir, p.NameVersion()+suffix)
 	}
 
@@ -405,15 +406,15 @@ func (p Port) InstallFromBinaryCache(options InstallOptions) (bool, error) {
 
 		binaryCache := p.ctx.BinaryCache()
 		if binaryCache == nil {
-			return false, ErrCacheDirNotConfigured
+			return false, errors.ErrCacheDirNotConfigured
 		}
 		if binaryCache.GetDir() == "" {
-			return false, ErrCacheDirNotConfigured
+			return false, errors.ErrCacheDirNotConfigured
 		}
 		fromDir := binaryCache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("binary cache, dir: %q", fromDir))
 	} else if p.Package.Commit != "" {
-		return false, ErrCacheNotFoundWithCommit
+		return false, errors.ErrCacheNotFoundWithCommit
 	}
 
 	return false, nil
@@ -536,7 +537,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Ignore duplicated.
-		if slices.Contains(preparedTmpDeps, nameVersion+"@dev") {
+		if slices.Contains(preparedTmpDeps, nameVersion+" [dev]") {
 			continue
 		}
 
@@ -564,7 +565,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Provider tmp deps recursively.
-		preparedTmpDeps = append(preparedTmpDeps, nameVersion+"@dev")
+		preparedTmpDeps = append(preparedTmpDeps, nameVersion+" [dev]")
 		if err := port.providerTmpDeps(); err != nil {
 			return err
 		}
@@ -579,7 +580,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Ignore duplicated.
-		if slices.Contains(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.Native, "@dev", "")) {
+		if slices.Contains(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.Native, " [dev]", "")) {
 			continue
 		}
 
@@ -607,7 +608,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Provider tmp deps recursively.
-		preparedTmpDeps = append(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.Native, "@dev", ""))
+		preparedTmpDeps = append(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.Native, " [dev]", ""))
 		if err := port.providerTmpDeps(); err != nil {
 			return err
 		}

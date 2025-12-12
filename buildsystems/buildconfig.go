@@ -45,7 +45,7 @@ type PortConfig struct {
 
 func (p PortConfig) nameVersionDesc() string {
 	if p.DevDep {
-		return fmt.Sprintf("%s@%s@dev", p.LibName, p.LibVersion)
+		return fmt.Sprintf("%s@%s [dev]", p.LibName, p.LibVersion)
 	} else {
 		return fmt.Sprintf("%s@%s", p.LibName, p.LibVersion)
 	}

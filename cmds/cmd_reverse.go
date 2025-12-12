@@ -2,10 +2,11 @@ package cmds
 
 import (
 	"celer/configs"
+	"celer/depcheck"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
+	"celer/pkgs/errors"
 	"celer/pkgs/fileio"
-	"errors"
 	"fmt"
 	"io/fs"
 	"path/filepath"
@@ -86,10 +87,21 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 
 			var port configs.Port
 			if err := port.Init(r.celer, nameVersion); err != nil {
-				if strings.Contains(err.Error(), "no matched config found for") {
+				if errors.Is(err, errors.ErrNoMatchedConfigFound) {
 					return nil
 				}
 				return err
+			}
+
+			// Check circular dependence.
+			depcheck := depcheck.NewDepCheck()
+			if err := depcheck.CheckCircular(r.celer, port); err != nil {
+				return fmt.Errorf("found circular dependence: %w", err)
+			}
+
+			// Check version conflict.
+			if err := depcheck.CheckConflict(r.celer, port); err != nil {
+				return fmt.Errorf("found version conflict: %w", err)
 			}
 
 			// Check dependencies based on mode
@@ -103,7 +115,7 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 		return nil, err
 	}
 
-	// Sort results for consistent output
+	// Sort results for consistent output.
 	sort.Strings(libraries)
 	return libraries, nil
 }

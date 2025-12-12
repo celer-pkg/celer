@@ -5,6 +5,7 @@ import (
 	"celer/context"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
+	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -109,7 +110,7 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	// Set matchedConfig as prebuilt config when no config found in toml.
 	p.MatchedConfig = p.findMatchedConfig(p.ctx.BuildType())
 	if p.MatchedConfig == nil {
-		return fmt.Errorf("no matched config found for %s", p.NameVersion())
+		return fmt.Errorf("%w for %s", errors.ErrNoMatchedConfigFound, p.NameVersion())
 	}
 	if p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "" {
 		p.Package.Url = p.MatchedConfig.Url
