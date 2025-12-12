@@ -18,9 +18,7 @@ import (
 
 func TestRemoveCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Test command creation
 	remove := &removeCmd{}
@@ -81,9 +79,7 @@ func TestRemoveCmd_CommandStructure(t *testing.T) {
 
 func TestRemoveCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	remove := &removeCmd{}
 	cmd := &cobra.Command{}
@@ -194,9 +190,7 @@ func TestRemoveCmd_Completion(t *testing.T) {
 
 func TestRemoveCmd_ValidatePackageNames(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	remove := &removeCmd{}
 
@@ -271,9 +265,7 @@ func TestRemoveCmd_ValidatePackageNames(t *testing.T) {
 
 func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	remove := &removeCmd{}
 
@@ -366,9 +358,7 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 
 func TestRemoveCmd_GetInstalledPackages_NoTraceDir(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	remove := &removeCmd{}
 
@@ -385,9 +375,7 @@ func TestRemoveCmd_GetInstalledPackages_NoTraceDir(t *testing.T) {
 
 func TestRemoveCmd_Execute_ValidationError(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	remove := &removeCmd{
 		celer: &configs.Celer{},

@@ -14,9 +14,7 @@ import (
 
 func TestSearchCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Test command creation
 	search := &searchCmd{}
@@ -47,9 +45,7 @@ func TestSearchCmd_CommandStructure(t *testing.T) {
 
 func TestSearchCmd_Search_ExactMatch(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -87,9 +83,7 @@ func TestSearchCmd_Search_ExactMatch(t *testing.T) {
 
 func TestSearchCmd_Search_PrefixMatch(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -123,9 +117,7 @@ func TestSearchCmd_Search_PrefixMatch(t *testing.T) {
 
 func TestSearchCmd_Search_SuffixMatch(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -161,9 +153,7 @@ func TestSearchCmd_Search_SuffixMatch(t *testing.T) {
 
 func TestSearchCmd_Search_ContainsMatch(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -199,9 +189,7 @@ func TestSearchCmd_Search_ContainsMatch(t *testing.T) {
 
 func TestSearchCmd_Search_NoMatch(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -234,9 +222,7 @@ func TestSearchCmd_Search_NoMatch(t *testing.T) {
 
 func TestSearchCmd_Search_PortsDirNotExist(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -269,9 +255,7 @@ func TestSearchCmd_Search_PortsDirNotExist(t *testing.T) {
 
 func TestSearchCmd_Search_ProjectSpecificPorts(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -320,9 +304,7 @@ func TestSearchCmd_Search_ProjectSpecificPorts(t *testing.T) {
 
 func TestSearchCmd_Search_InvalidWildcard(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -356,9 +338,7 @@ func TestSearchCmd_Search_InvalidWildcard(t *testing.T) {
 
 func TestSearchCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -426,9 +406,7 @@ func TestSearchCmd_Completion(t *testing.T) {
 
 func TestSearchCmd_Completion_ErrorHandling(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -461,9 +439,7 @@ func TestSearchCmd_Completion_ErrorHandling(t *testing.T) {
 
 func TestSearchCmd_DoSearch_Integration(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -492,9 +468,7 @@ func TestSearchCmd_DoSearch_Integration(t *testing.T) {
 
 func TestSearchCmd_Search_DuplicateResults(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -549,9 +523,7 @@ func TestSearchCmd_Search_DuplicateResults(t *testing.T) {
 
 func TestSearchCmd_Search_EmptyPortsDir(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
@@ -585,9 +557,7 @@ func TestSearchCmd_Search_EmptyPortsDir(t *testing.T) {
 
 func TestSearchCmd_Search_SpecialCharacters(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {

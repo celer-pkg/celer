@@ -12,9 +12,7 @@ import (
 
 func TestReverseCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	reverseCmd := reverseCmd{}
 	celer := configs.NewCeler()
@@ -42,9 +40,7 @@ func TestReverseCmd_CommandStructure(t *testing.T) {
 
 func TestReverseCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	cmd := reverseCmd{}
 	suggestions, directive := cmd.completion(nil, []string{}, "test")
@@ -63,9 +59,7 @@ func TestReverseCmd_Completion(t *testing.T) {
 
 func TestReverseCmd_ValidatePackageName(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	tests := []struct {
 		name        string
@@ -95,9 +89,7 @@ func TestReverseCmd_ValidatePackageName(t *testing.T) {
 
 func TestReverseCmd_EmptyPorts(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Create a temporary directory structure without ports
 	tempDir := t.TempDir()
@@ -121,9 +113,7 @@ func TestReverseCmd_EmptyPorts(t *testing.T) {
 
 func TestReverseCmd_Without_Dev(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	check := func(err error) {
@@ -179,9 +169,7 @@ func TestReverseCmd_Without_Dev(t *testing.T) {
 
 func TestReverseCmd_With_Dev(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	check := func(err error) {
@@ -244,9 +232,7 @@ func TestReverseCmd_With_Dev(t *testing.T) {
 
 func TestReverseCmd_HasDependency(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	cmd := reverseCmd{}
 

@@ -11,9 +11,7 @@ import (
 
 func TestIntegrateCmd_CommandStructure(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Test command creation.
 	integrate := &integrateCmd{}
@@ -51,9 +49,7 @@ func TestIntegrateCmd_CommandStructure(t *testing.T) {
 
 func TestIntegrateCmd_Completion(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	integrate := &integrateCmd{}
 	cmd := &cobra.Command{}
@@ -113,9 +109,7 @@ func TestIntegrateCmd_Completion(t *testing.T) {
 
 func TestIntegrateCmd_Integration(t *testing.T) {
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")

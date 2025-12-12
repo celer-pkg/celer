@@ -63,9 +63,7 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	}
 
 	// Cleanup.
-	t.Cleanup(func() {
-		dirs.RemoveAllForTest()
-	})
+	dirs.RemoveAllForTest()
 
 	// Check error.
 	var check = func(err error) {
