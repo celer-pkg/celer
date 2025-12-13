@@ -34,7 +34,7 @@ type Toolchain interface {
 	GetSTRIP() string
 	GetREADELF() string
 	GetMSVC() *MSVC
-	SetEnvs(rootfs RootFS, buildsystem string, ccacheEnabled bool)
+	SetEnvs(rootfs RootFS, buildsystem string)
 	ClearEnvs()
 }
 

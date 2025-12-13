@@ -97,7 +97,7 @@ func (q qmake) Configure(options []string) error {
 	if q.DevDep || toolchain.GetName() == "msvc" || toolchain.GetName() == "clang" {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, q.Name(), q.Ctx.CCacheEnabled())
+		toolchain.SetEnvs(rootfs, q.Name())
 	}
 
 	// Set optimization flags with build_type.

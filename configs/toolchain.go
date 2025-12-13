@@ -252,11 +252,11 @@ func (t Toolchain) GetCrosstoolPrefixPath() string {
 	return filepath.Join(t.fullpath, t.CrosstoolPrefix)
 }
 
-func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, ccacheEnabled bool) {
+func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 	os.Setenv("CROSSTOOL_PREFIX", t.GetCrosstoolPrefix())
 	os.Setenv("HOST", t.GetHost())
 
-	if ccacheEnabled {
+	if t.ctx.CCacheEnabled() {
 		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables
 		// because MSYS2 shell cannot handle "ccache cl.exe" as a command.
 		if runtime.GOOS == "windows" && (t.GetName() == "msvc" || t.GetName() == "clang-cl") && buildsystem == "makefiles" {

@@ -227,7 +227,7 @@ func (m makefiles) Configure(options []string) error {
 	if m.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, m.Name(), m.Ctx.CCacheEnabled())
+		toolchain.SetEnvs(rootfs, m.Name())
 	}
 
 	// Set optimization flags with build_type.
