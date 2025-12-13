@@ -44,7 +44,7 @@ func (f freeStyle) Configure(options []string) error {
 		if f.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 			toolchain.ClearEnvs()
 		} else {
-			toolchain.SetEnvs(rootfs, f.Name(), f.Ctx.CCacheEnabled())
+			toolchain.SetEnvs(rootfs, f.Name())
 		}
 
 		f.setOptimizeFlags()
@@ -77,7 +77,7 @@ func (f freeStyle) Build(options []string) error {
 		if f.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 			toolchain.ClearEnvs()
 		} else {
-			toolchain.SetEnvs(rootfs, f.Name(), f.Ctx.CCacheEnabled())
+			toolchain.SetEnvs(rootfs, f.Name())
 		}
 
 		f.setOptimizeFlags()
@@ -104,7 +104,7 @@ func (f freeStyle) Install(options []string) error {
 		if f.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 			toolchain.ClearEnvs()
 		} else {
-			toolchain.SetEnvs(rootfs, f.Name(), f.Ctx.CCacheEnabled())
+			toolchain.SetEnvs(rootfs, f.Name())
 		}
 
 		f.setOptimizeFlags()

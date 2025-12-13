@@ -134,7 +134,7 @@ func (m meson) Configure(options []string) error {
 	if m.DevDep && (toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cli") {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, m.Name(), m.Ctx.CCacheEnabled())
+		toolchain.SetEnvs(rootfs, m.Name())
 	}
 
 	// Create build dir if not exists.
@@ -145,9 +145,7 @@ func (m meson) Configure(options []string) error {
 	// Assemble command.
 	var targetToolchain context.Toolchain
 	if m.BuildConfig.DevDep {
-		targetToolchain = nativeToolchain{
-			msvc: toolchain.GetMSVC(),
-		}
+		targetToolchain = nativeToolchain{msvc: toolchain.GetMSVC()}
 	} else {
 		targetToolchain = toolchain
 	}
