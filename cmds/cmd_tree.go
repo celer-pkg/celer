@@ -120,7 +120,8 @@ func (t *treeCmd) showPortTree(target string, depchecker any) error {
 		return fmt.Errorf("failed to collect port information: %w", err)
 	}
 
-	color.Printf(color.Blue, "Display dependencies in tree view\n---------------------------------------\n")
+	color.Printf(color.Title, "Display dependencies in tree view:\n")
+	color.Printf(color.Line, "--------------------------------------------\n")
 	t.printTree(&rootInfo)
 	return nil
 }
@@ -178,7 +179,7 @@ func (t *treeCmd) showProjectTree(target string, depchecker any) error {
 		rootInfo.depedencies = append(rootInfo.depedencies, &portInfo)
 	}
 
-	color.Printf(color.Blue, "Display dependencies in tree view\n--------------------------------------------\n")
+	color.Printf(color.Title, "Display dependencies in tree view\n--------------------------------------------\n")
 	t.printTree(&rootInfo)
 	return nil
 }
@@ -241,8 +242,8 @@ func (t *treeCmd) printTree(info *portInfo) {
 	depCount, devDepCount := t.countDependencies(info)
 
 	// Print statistics.
-	color.Printf(color.Blue, "---------------------------------------------\n")
-	color.Printf(color.Blue, "Summary: dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
+	color.Printf(color.Line, "---------------------------------------------\n")
+	color.Printf(color.Bottom, "Summary: dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
 }
 
 func (t *treeCmd) countDependencies(info *portInfo) (int, int) {

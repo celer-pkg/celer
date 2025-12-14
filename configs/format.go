@@ -28,10 +28,10 @@ func PrintError(err error, format string, args ...any) {
 
 func PrintWarning(err error, format string, args ...any) string {
 	details := strings.ReplaceAll(err.Error(), "\n", "\n--> ")
-	return color.Sprintf(color.Yellow, "\n[❕︎] %s\n[☛] %s.\n", fmt.Sprintf(format, args...), details)
+	return color.Sprintf(color.Warning, "\n[❕︎] %s\n[☛] %s.\n", fmt.Sprintf(format, args...), details)
 }
 
 func SprintWarning(err error, format string, args ...any) string {
 	details := strings.ReplaceAll(err.Error(), "\n", "\n--> ")
-	return color.Sprintf(color.Yellow, "\n[❕︎] %s\n[☛] %s.\n", fmt.Sprintf(format, args...), details)
+	return color.Sprintf(color.Warning, "\n[❕︎] %s\n[☛] %s.\n", fmt.Sprintf(format, args...), details)
 }

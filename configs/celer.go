@@ -209,7 +209,7 @@ func (c *Celer) Init() error {
 	}
 
 	if c.Global.Offline {
-		color.Printf(color.Yellow, "\n================ WARNING: You're in offline mode currently! ================\n")
+		color.Printf(color.Warning, "\n================ WARNING: You're in offline mode currently! ================\n")
 	}
 
 	// Clone ports repo if empty.

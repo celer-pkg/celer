@@ -34,7 +34,7 @@ const (
 	Title  string = BrightBlue
 	List   string = Gray
 	Bottom string = BrightBlue
-	Line   string = Gray
+	Line   string = BrightBlue
 )
 
 func NewWriter(w io.Writer, colorFmt string) *Writer {

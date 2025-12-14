@@ -5,6 +5,7 @@ import (
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
+	"fmt"
 	"io/fs"
 	"path/filepath"
 	"strings"
@@ -62,13 +63,14 @@ func (s *searchCmd) doSearch(pattern string) {
 	}
 
 	// Display results.
-	color.Printf(color.Title, "Search results\n")
-	color.Printf(color.Line, "-----------------------------------\n")
+	title := fmt.Sprintf("Search results that match pattern '%s':", pattern)
+	color.Println(color.Title, title)
+	color.Println(color.Line, strings.Repeat("-", len(title)))
 	if len(libraries) > 0 {
 		for _, lib := range libraries {
 			color.Println(color.List, lib)
 		}
-		color.Printf(color.Line, "-----------------------------------\n")
+		color.Println(color.Line, strings.Repeat("-", len(title)))
 		color.Printf(color.Bottom, "Total: %d port(s)\n", len(libraries))
 	} else {
 		color.Println(color.Error, "no matched port found.")

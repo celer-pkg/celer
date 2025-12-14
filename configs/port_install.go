@@ -31,7 +31,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	// If already installed and not with "--force/-f", report and return.
 	if installed && !options.Force {
 		if p.IsHostSupported() {
-			title := color.Sprintf(color.Green, "\n[✔] ---- package: %s\n", p.NameVersion())
+			title := color.Sprintf(color.Success, "\n[✔] ---- package: %s\n", p.NameVersion())
 			fmt.Printf("%sLocation: %s\n", title, installedDir)
 		}
 		return "", nil
@@ -57,7 +57,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	// Clear the tmp/deps dir, then copy only the required library files into it.
 	// This ensures the folder contains exactly the libraries required by the current port.
 	if p.Parent == "" {
-		color.Printf(color.Blue, "\n[clean tmps for %s]: %s\n", p.NameVersion(), dirs.TmpDepsDir)
+		color.Printf(color.Title, "\n[clean tmps for %s]: %s\n", p.NameVersion(), dirs.TmpDepsDir)
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
 			return "", err
 		}
@@ -335,7 +335,7 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	var metaFileBackup string
 	localMeta := string(metaBytes)
 	if localMeta != newMeta {
-		color.Printf(color.Yellow, "\n================ The outdated package of %s will be removed now. ================\n", p.NameVersion())
+		color.Printf(color.Warning, "\n================ The outdated package of %s will be removed now. ================\n", p.NameVersion())
 
 		// Backup installed meta file to tmp dir.
 		metaFileBackup = filepath.Join(dirs.TmpDir, filepath.Base(p.metaFile)+".old")
@@ -451,7 +451,7 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 
 	// Prepare build dependencies.
 	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
-		color.Printf(color.Blue, "\n[prepare build dependencies for %s]:\n", p.NameVersion())
+		color.Printf(color.Title, "\n[prepare build dependencies for %s]:\n", p.NameVersion())
 		preparedTmpDeps = []string{}
 		if err := p.providerTmpDeps(); err != nil {
 			return err
@@ -634,7 +634,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	}
 
 	// Print install trace.
-	title := color.Sprintf(color.Green, "\n[✔] ---- package: %s is installed from %s\n",
+	title := color.Sprintf(color.Success, "\n[✔] ---- package: %s is installed from %s\n",
 		p.NameVersion(), installedFrom)
 	fmt.Printf("%sLocation: %s\n", title, p.InstalledDir)
 	return nil
