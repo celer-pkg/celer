@@ -19,7 +19,7 @@ func Encode(content string) ([]byte, error) {
 func CheckToken(tokenDir, encoded string) bool {
 	bytes, err := os.ReadFile(filepath.Join(tokenDir, "token"))
 	if err != nil {
-		color.Printf(color.Yellow, "failed to read token:\n %s", err)
+		color.Printf(color.Warning, "failed to read token:\n %s", err)
 		return false
 	}
 	return bcrypt.CompareHashAndPassword(bytes, []byte(encoded)) == nil

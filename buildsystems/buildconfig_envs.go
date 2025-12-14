@@ -51,7 +51,7 @@ func (b *BuildConfig) setupEnvs() {
 
 		index := strings.Index(env, "=")
 		if index == -1 {
-			color.Printf(color.Yellow, "invalid environment variable `%s` and is ignored.", env)
+			color.Printf(color.Warning, "invalid environment variable `%s` and is ignored.", env)
 			continue
 		}
 
