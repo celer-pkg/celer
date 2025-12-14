@@ -6,6 +6,8 @@ import (
 )
 
 const (
+	White   string = "\033[37m%s\033[0m"
+	Black   string = "\033[30m%s\033[0m"
 	Red     string = "\033[31m%s\033[0m"
 	Green   string = "\033[32m%s\033[0m"
 	Yellow  string = "\033[33m%s\033[0m"
@@ -13,6 +15,26 @@ const (
 	Magenta string = "\033[35m%s\033[0m"
 	Cyan    string = "\033[36m%s\033[0m"
 	Gray    string = "\033[90m%s\033[0m"
+
+	BrightRed     string = "\033[91m%s\033[0m"
+	BrightGreen   string = "\033[92m%s\033[0m"
+	BrightYellow  string = "\033[93m%s\033[0m"
+	BrightBlue    string = "\033[94m%s\033[0m"
+	BrightMagenta string = "\033[95m%s\033[0m"
+	BrightCyan    string = "\033[96m%s\033[0m"
+	BrightWhite   string = "\033[97m%s\033[0m"
+
+	BoldGray string = "\033[1;90m%s\033[0m"
+
+	Success string = BrightGreen
+	Error   string = BrightRed
+	Warning string = BrightYellow
+	Info    string = BrightCyan
+
+	Title  string = BrightBlue
+	List   string = Gray
+	Bottom string = BrightBlue
+	Line   string = BrightBlue
 )
 
 func NewWriter(w io.Writer, colorFmt string) *Writer {

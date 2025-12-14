@@ -4,6 +4,7 @@ import (
 	"celer/configs"
 	"celer/context"
 	"celer/depcheck"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -89,40 +90,39 @@ func (t *treeCmd) validateTarget(target string) error {
 
 // showPortTree displays dependency tree for a port.
 func (t *treeCmd) showPortTree(target string, depchecker any) error {
-	if strings.Contains(target, "@") {
-		var port configs.Port
-		if err := port.Init(t.celer, target); err != nil {
-			return fmt.Errorf("failed to initialize port %s: %w", target, err)
-		}
-
-		// Check circular dependence and version conflicts.
-		// We know depchecker is *depcheck from NewDepCheck()
-		type depChecker interface {
-			CheckCircular(context.Context, configs.Port) error
-			CheckConflict(context.Context, ...configs.Port) error
-		}
-		checker := depchecker.(depChecker)
-
-		if err := checker.CheckCircular(t.celer, port); err != nil {
-			return fmt.Errorf("circular dependency detected: %w", err)
-		}
-
-		if err := checker.CheckConflict(t.celer, port); err != nil {
-			return fmt.Errorf("version conflict detected: %w", err)
-		}
-
-		rootInfo := portInfo{
-			nameVersion: target,
-			depth:       0,
-			devDep:      false,
-		}
-		if err := t.collectPortInfos(&rootInfo, target); err != nil {
-			return fmt.Errorf("failed to collect port information: %w", err)
-		}
-
-		t.printTree(&rootInfo)
-		return nil
+	var port configs.Port
+	if err := port.Init(t.celer, target); err != nil {
+		return fmt.Errorf("failed to initialize port %s: %w", target, err)
 	}
+
+	// Check circular dependence and version conflicts.
+	// We know depchecker is *depcheck from NewDepCheck()
+	type depChecker interface {
+		CheckCircular(context.Context, configs.Port) error
+		CheckConflict(context.Context, ...configs.Port) error
+	}
+	checker := depchecker.(depChecker)
+
+	if err := checker.CheckCircular(t.celer, port); err != nil {
+		return fmt.Errorf("circular dependency detected: %w", err)
+	}
+
+	if err := checker.CheckConflict(t.celer, port); err != nil {
+		return fmt.Errorf("version conflict detected: %w", err)
+	}
+
+	rootInfo := portInfo{
+		nameVersion: target,
+		depth:       0,
+		devDep:      false,
+	}
+	if err := t.collectPortInfos(&rootInfo, target); err != nil {
+		return fmt.Errorf("failed to collect port information: %w", err)
+	}
+
+	color.Printf(color.Title, "Display dependencies in tree view:\n")
+	color.Printf(color.Line, "--------------------------------------------\n")
+	t.printTree(&rootInfo)
 	return nil
 }
 
@@ -179,6 +179,9 @@ func (t *treeCmd) showProjectTree(target string, depchecker any) error {
 		rootInfo.depedencies = append(rootInfo.depedencies, &portInfo)
 	}
 
+	title := "Display dependencies in tree view"
+	separator := strings.Repeat("-", len(title))
+	color.Printf(color.Title, "%s\n%s\n", title, separator)
 	t.printTree(&rootInfo)
 	return nil
 }
@@ -236,6 +239,56 @@ func (t *treeCmd) collectPortInfos(parent *portInfo, nameVersion string) error {
 
 func (t *treeCmd) printTree(info *portInfo) {
 	t.printTreeWithPrefix(info, "", true)
+
+	// Count dependencies.
+	depCount, devDepCount := t.countDependencies(info)
+
+	// Print statistics.
+	color.Printf(color.Line, "---------------------------------------------\n")
+	color.Printf(color.Bottom, "Summary: dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
+}
+
+func (t *treeCmd) countDependencies(info *portInfo) (int, int) {
+	depCount := 0
+	devDepCount := 0
+	visited := make(map[string]bool)
+
+	t.countDependenciesRecursive(info, visited, &depCount, &devDepCount)
+	return depCount, devDepCount
+}
+
+func (t *treeCmd) countDependenciesRecursive(info *portInfo, visited map[string]bool, depCount *int, devDepCount *int) {
+	// Skip root node.
+	if info.depth == 0 {
+		for _, nameVersion := range info.depedencies {
+			t.countDependenciesRecursive(nameVersion, visited, depCount, devDepCount)
+		}
+		for _, nameVersion := range info.devDependencies {
+			t.countDependenciesRecursive(nameVersion, visited, depCount, devDepCount)
+		}
+		return
+	}
+
+	// Check if already visited.
+	if visited[info.nameVersion] {
+		return
+	}
+	visited[info.nameVersion] = true
+
+	// Count this dependency.
+	if info.devDep {
+		*devDepCount++
+	} else {
+		*depCount++
+	}
+
+	// Recursively count children.
+	for _, child := range info.depedencies {
+		t.countDependenciesRecursive(child, visited, depCount, devDepCount)
+	}
+	for _, child := range info.devDependencies {
+		t.countDependenciesRecursive(child, visited, depCount, devDepCount)
+	}
 }
 
 func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool) {
@@ -253,7 +306,7 @@ func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool
 	if info.devDep {
 		line += " -- [dev]"
 	}
-	fmt.Println(prefix + line)
+	color.Println(color.Gray, prefix+line)
 
 	// Prepare the prefix for the next level.
 	var nextPrefix string

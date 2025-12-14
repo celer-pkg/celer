@@ -58,7 +58,7 @@ Examples:
 				return fmt.Errorf("failed to query reverse dependencies: %w", err)
 			}
 
-			r.displayResults(libraries)
+			r.displayResults(args[0], libraries)
 			return nil
 		},
 		ValidArgsFunction: r.completion,
@@ -190,14 +190,22 @@ func (r *reverseCmd) hasDependency(port configs.Port, target string) bool {
 }
 
 // displayResults shows the reverse dependency results
-func (r *reverseCmd) displayResults(libraries []string) {
-	color.Println(color.Cyan, "[Reverse Dependencies]:")
+func (r *reverseCmd) displayResults(target string, libraries []string) {
+	var title string
+	if r.dev {
+		title = fmt.Sprintf("Reverse dependencies of %s as dev:", target)
+	} else {
+		title = fmt.Sprintf("Reverse dependencies of %s:", target)
+	}
+	color.Println(color.Title, title)
+	color.Println(color.Title, strings.Repeat("-", len(title)))
 	if len(libraries) > 0 {
 		for _, lib := range libraries {
 			fmt.Println(lib)
 		}
-		color.Printf(color.Gray, "\nTotal: %d package(s)\n", len(libraries))
+		color.Println(color.Line, strings.Repeat("-", len(title)))
+		color.Printf(color.Bottom, "Total: %d package(s)\n", len(libraries))
 	} else {
-		color.Println(color.Red, "no reverse dependencies found.")
+		color.Println(color.Error, "no reverse dependencies found.")
 	}
 }

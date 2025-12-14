@@ -70,7 +70,7 @@ func (e Executor) Execute() error {
 
 func (e Executor) doExecute(buffer *bytes.Buffer) error {
 	if e.title != "" {
-		color.Printf(color.Blue, "\n%s: %s\n", e.title, e.cmd+" "+strings.Join(e.args, " "))
+		color.Printf(color.Title, "\n%s: %s\n", e.title, e.cmd+" "+strings.Join(e.args, " "))
 	}
 
 	var cmd *exec.Cmd
