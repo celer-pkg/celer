@@ -179,7 +179,9 @@ func (t *treeCmd) showProjectTree(target string, depchecker any) error {
 		rootInfo.depedencies = append(rootInfo.depedencies, &portInfo)
 	}
 
-	color.Printf(color.Title, "Display dependencies in tree view\n--------------------------------------------\n")
+	title := "Display dependencies in tree view"
+	separator := strings.Repeat("-", len(title))
+	color.Printf(color.Title, "%s\n%s\n", title, separator)
 	t.printTree(&rootInfo)
 	return nil
 }
