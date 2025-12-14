@@ -191,13 +191,14 @@ func (r *reverseCmd) hasDependency(port configs.Port, target string) bool {
 
 // displayResults shows the reverse dependency results
 func (r *reverseCmd) displayResults(libraries []string) {
-	color.Println(color.Blue, "reverse dependencies\n---------------------------------------")
+	color.Printf(color.Blue, "reverse dependencies\n-----------------------------------\n")
 	if len(libraries) > 0 {
 		for _, lib := range libraries {
-			color.Println(color.Gray, lib)
+			fmt.Println(lib)
 		}
-		color.Printf(color.Blue, "\nTotal: %d package(s)\n", len(libraries))
+		color.Printf(color.Blue, "-----------------------------------\n")
+		color.Printf(color.Green, "Total: %d package(s)\n", len(libraries))
 	} else {
-		color.Println(color.Red, "no reverse dependencies found.")
+		color.Println(color.Error, "no reverse dependencies found.")
 	}
 }
