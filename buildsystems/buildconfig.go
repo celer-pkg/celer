@@ -956,7 +956,7 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 				parts[0] = "PATH"
 			}
 			msvcEnvs[parts[0]] = parts[1]
-			color.Printf(color.Gray, "-- %s=%s\n", parts[0], parts[1])
+			color.Printf(color.List, "-- %s=%s\n", parts[0], parts[1])
 		}
 	}
 

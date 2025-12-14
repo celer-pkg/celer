@@ -83,7 +83,7 @@ func (p Port) Remove(options RemoveOptions) error {
 func (p Port) doRemovePort() error {
 	if fileio.PathExists(p.InstalledDir) {
 		color.Printf(color.Title, "\n[remove installed %s]: %s\n", p.NameVersion(), p.InstalledDir)
-		color.Printf(color.Gray, "✔ rm -rf %s\n", p.InstalledDir)
+		color.Printf(color.List, "✔ rm -rf %s\n", p.InstalledDir)
 	}
 
 	if !fileio.PathExists(p.traceFile) {

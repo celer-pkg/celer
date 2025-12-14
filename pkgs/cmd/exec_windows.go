@@ -137,7 +137,7 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 	}
 
 	if e.title != "" {
-		color.Printf(color.Blue, "\n%s: %s\n", e.title, message)
+		color.Printf(color.Title, "\n%s: %s\n", e.title, message)
 	}
 
 	if err := cmd.Run(); err != nil {

@@ -245,7 +245,7 @@ func (t *treeCmd) printTree(info *portInfo) {
 
 	// Print statistics.
 	color.Printf(color.Line, "---------------------------------------------\n")
-	color.Printf(color.Bottom, "Summary: dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
+	color.Printf(color.Summary, "Summary: dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
 }
 
 func (t *treeCmd) countDependencies(info *portInfo) (int, int) {
@@ -306,7 +306,7 @@ func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool
 	if info.devDep {
 		line += " -- [dev]"
 	}
-	color.Println(color.Gray, prefix+line)
+	color.Println(color.List, prefix+line)
 
 	// Prepare the prefix for the next level.
 	var nextPrefix string

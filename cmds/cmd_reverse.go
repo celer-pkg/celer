@@ -204,7 +204,7 @@ func (r *reverseCmd) displayResults(target string, libraries []string) {
 			fmt.Println(lib)
 		}
 		color.Println(color.Line, strings.Repeat("-", len(title)))
-		color.Printf(color.Bottom, "Total: %d package(s)\n", len(libraries))
+		color.Printf(color.Summary, "Total: %d package(s)\n", len(libraries))
 	} else {
 		color.Println(color.Error, "no reverse dependencies found.")
 	}

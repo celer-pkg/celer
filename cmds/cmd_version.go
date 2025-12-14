@@ -26,17 +26,17 @@ func (v *versionCmd) Command(celer *configs.Celer) *cobra.Command {
 
 func (v *versionCmd) version() {
 	toolchainPath, _ := filepath.Abs("toolchain_file.cmake")
-	toolchainPath = color.Sprintf(color.Magenta, "%s", toolchainPath)
+	toolchainPath = color.Sprintf(color.Important, "%s", toolchainPath)
 
-	content := fmt.Sprintf("\nWelcome to celer (%s).\n"+
+	content := fmt.Sprintf("%s - Welcome to celer\n"+
 		"--------------------------------------------\n"+
 		"This is a lightweight pkg-manager for C/C++.\n\n"+
 		"How to apply it in your cmake project: \n"+
 		"option1: %s\n"+
 		"option2: %s\n\n",
 		v.celer.Version(),
-		color.Sprintf(color.Blue, "set(CMAKE_TOOLCHAIN_FILE \"%s\")", toolchainPath),
-		color.Sprintf(color.Blue, "cmake .. -DCMAKE_TOOLCHAIN_FILE=%s", toolchainPath),
+		color.Sprintf(color.Title, "set(CMAKE_TOOLCHAIN_FILE \"%s\")", toolchainPath),
+		color.Sprintf(color.Title, "cmake .. -DCMAKE_TOOLCHAIN_FILE=\"%s\"", toolchainPath),
 	)
 	fmt.Print(content)
 }

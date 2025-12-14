@@ -199,8 +199,8 @@ func (b *BuildTool) checkAndFix() error {
 	}
 
 	// Print download & extract info.
-	title := color.Sprintf(color.Success, "\n[✔] ---- Tool: %s\n", fileio.FileBaseName(b.Url))
-	fmt.Printf("%sLocation: %s\n", title, location)
+	color.Printf(color.Title, "\n[✔] ---- Tool: %s\n", fileio.FileBaseName(b.Url))
+	color.Printf(color.List, "Location: %s\n", location)
 
 	return nil
 }

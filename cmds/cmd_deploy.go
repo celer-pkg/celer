@@ -3,13 +3,19 @@ package cmds
 import (
 	"celer/configs"
 	"celer/depcheck"
+	"celer/pkgs/color"
 	"celer/pkgs/expr"
+	"celer/timemachine"
+	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 type deployCmd struct {
-	celer *configs.Celer
+	celer      *configs.Celer
+	force      bool
+	exportPath string
 }
 
 func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -17,14 +23,30 @@ func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy with selected platform and project.",
+		Long: `Deploy builds and installs all packages defined in the project.
+
+After successful deployment, you can optionally export a snapshot
+for reproducible builds using the --export flag.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := d.celer.Init(); err != nil {
 				configs.PrintError(err, "failed to init celer.")
 				return
 			}
 
+			// Display deployment header.
+			fmt.Printf("%s %s %s %s\n",
+				color.Sprint(color.Title, "Deploy with platform:"),
+				color.Sprint(color.Important, d.celer.Global.Platform),
+				color.Sprint(color.Title, "& project:"),
+				color.Sprint(color.Important, d.celer.Global.Project),
+			)
+
+			titleLen := len("Deploy with platform: ") + len(d.celer.Global.Platform) + len(" & project: ") + len(d.celer.Global.Project)
+			title := strings.Repeat("-", titleLen)
+			color.Println(color.Line, strings.Repeat("-", len(title)))
+
 			if err := d.celer.Setup(); err != nil {
-				configs.PrintError(err, "setup platform error.")
+				configs.PrintError(err, "failed to setup celer.")
 				return
 			}
 
@@ -34,15 +56,28 @@ func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
 				return
 			}
 
-			if err := d.celer.Deploy(); err != nil {
+			if err := d.celer.Deploy(d.force); err != nil {
 				configs.PrintError(err, "failed to deploy celer.")
 				return
 			}
 
 			projectName := expr.If(d.celer.Global.Project == "", "unnamed", d.celer.Global.Project)
-			configs.PrintSuccess("The deployment is ready for project: %s.", projectName)
+			configs.PrintSuccess("The deployment is ready for project: %s", projectName)
+
+			// Export snapshot if requested.
+			if d.exportPath != "" {
+				if err := timemachine.Export(d.celer, d.exportPath); err != nil {
+					configs.PrintError(err, "failed to export workspace.")
+					return
+				}
+			}
 		},
+		ValidArgsFunction: d.completion,
 	}
+
+	flags := command.Flags()
+	flags.StringVar(&d.exportPath, "export", "", "Export workspace snapshot after successfully deployed.")
+	flags.BoolVarP(&d.force, "force", "f", false, "Force deployment, ignoring any installed packages.")
 
 	return command
 }
@@ -71,4 +106,14 @@ func (d *deployCmd) checkProject() error {
 	}
 
 	return nil
+}
+
+func (d *deployCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	var suggestions []string
+	for _, flag := range []string{"--export", "--force"} {
+		if strings.HasPrefix(flag, toComplete) {
+			suggestions = append(suggestions, flag)
+		}
+	}
+	return suggestions, cobra.ShellCompDirectiveNoFileComp
 }

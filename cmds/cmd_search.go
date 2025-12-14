@@ -71,7 +71,7 @@ func (s *searchCmd) doSearch(pattern string) {
 			color.Println(color.List, lib)
 		}
 		color.Println(color.Line, strings.Repeat("-", len(title)))
-		color.Printf(color.Bottom, "Total: %d port(s)\n", len(libraries))
+		color.Printf(color.Summary, "Total: %d port(s)\n", len(libraries))
 	} else {
 		color.Println(color.Error, "no matched port found.")
 	}
