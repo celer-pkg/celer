@@ -197,8 +197,8 @@ func (r *reverseCmd) displayResults(target string, libraries []string) {
 	} else {
 		title = fmt.Sprintf("Reverse dependencies of %s:", target)
 	}
-	color.Println(color.BrightBlue, title)
-	color.Println(color.BrightBlue, strings.Repeat("-", len(title)))
+	color.Println(color.Title, title)
+	color.Println(color.Title, strings.Repeat("-", len(title)))
 	if len(libraries) > 0 {
 		for _, lib := range libraries {
 			fmt.Println(lib)
