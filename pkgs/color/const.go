@@ -1,6 +1,6 @@
 package color
 
-// SGR variables for ANSI escape codes
+// Font styles for ANSI escape codes
 const (
 	Reset     = "0"
 	Bold      = "1"

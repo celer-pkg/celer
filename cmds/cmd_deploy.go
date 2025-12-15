@@ -35,15 +35,16 @@ for reproducible builds using the --export flag.`,
 
 			// Display deployment header.
 			fmt.Printf("%s %s %s %s\n",
-				color.Sprint(color.Title, "Deploy with platform:"),
-				color.Sprint(color.Important, d.celer.Global.Platform),
-				color.Sprint(color.Title, "& project:"),
-				color.Sprint(color.Important, d.celer.Global.Project),
+				color.Color("Deploy with platform:", color.Blue, color.Bold),
+				color.Color(d.celer.Global.Platform, color.BrightMagenta, color.Bold),
+				color.Color("& project:", color.Blue, color.Bold),
+				color.Color(d.celer.Global.Project, color.BrightMagenta, color.Bold),
 			)
-
-			titleLen := len("Deploy with platform: ") + len(d.celer.Global.Platform) + len(" & project: ") + len(d.celer.Global.Project)
-			title := strings.Repeat("-", titleLen)
-			color.Println(color.Line, strings.Repeat("-", len(title)))
+			titleLen := len(fmt.Sprintf("Deploy with platform: %s & project: %s",
+				d.celer.Global.Platform,
+				d.celer.Global.Project,
+			))
+			color.Println(color.Line, strings.Repeat("-", titleLen))
 
 			if err := d.celer.Setup(); err != nil {
 				configs.PrintError(err, "failed to setup celer.")

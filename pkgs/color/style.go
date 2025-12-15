@@ -18,7 +18,7 @@ func (s *Style) Add(code string) *Style {
 	return s
 }
 
-// Methods for style attributes
+// Methods for style attributes.
 func (s *Style) Bold() *Style      { return s.Add(Bold) }
 func (s *Style) Italic() *Style    { return s.Add(Italic) }
 func (s *Style) Underline() *Style { return s.Add(Underline) }
@@ -26,7 +26,7 @@ func (s *Style) Dim() *Style       { return s.Add(Dim) }
 func (s *Style) Reverse() *Style   { return s.Add(Reverse) }
 func (s *Style) Strike() *Style    { return s.Add(Strike) }
 
-// Functions for common colors
+// Functions for common colors.
 func (s *Style) Red() *Style     { return s.Add(Red) }
 func (s *Style) Green() *Style   { return s.Add(Green) }
 func (s *Style) Yellow() *Style  { return s.Add(Yellow) }
@@ -36,7 +36,7 @@ func (s *Style) Magenta() *Style { return s.Add(Magenta) }
 func (s *Style) White() *Style   { return s.Add(White) }
 func (s *Style) Black() *Style   { return s.Add(Black) }
 
-// Bright color methods
+// Bright color methods.
 func (s *Style) BrightRed() *Style     { return s.Add(BrightRed) }
 func (s *Style) BrightGreen() *Style   { return s.Add(BrightGreen) }
 func (s *Style) BrightYellow() *Style  { return s.Add(BrightYellow) }
@@ -46,7 +46,7 @@ func (s *Style) BrightMagenta() *Style { return s.Add(BrightMagenta) }
 func (s *Style) BrightWhite() *Style   { return s.Add(BrightWhite) }
 func (s *Style) BrightBlack() *Style   { return s.Add(BrightBlack) }
 
-// Background color methods
+// Background color methods.
 func (s *Style) BgRed() *Style     { return s.Add(BgRed) }
 func (s *Style) BgGreen() *Style   { return s.Add(BgGreen) }
 func (s *Style) BgYellow() *Style  { return s.Add(BgYellow) }
@@ -55,7 +55,7 @@ func (s *Style) BgCyan() *Style    { return s.Add(BgCyan) }
 func (s *Style) BgMagenta() *Style { return s.Add(BgMagenta) }
 func (s *Style) BgWhite() *Style   { return s.Add(BgWhite) }
 
-// 256-color and RGB methods
+// 256-color and RGB methods.
 func (s *Style) Color256(code int) *Style {
 	return s.Add(fmt.Sprintf("38;5;%d", code))
 }
@@ -64,7 +64,7 @@ func (s *Style) BgColor256(code int) *Style {
 	return s.Add(fmt.Sprintf("48;5;%d", code))
 }
 
-// RGB true color methods
+// RGB true color methods.
 func (s *Style) RGB(r, g, b int) *Style {
 	return s.Add(fmt.Sprintf("38;2;%d;%d;%d", r, g, b))
 }
@@ -73,7 +73,7 @@ func (s *Style) BgRGB(r, g, b int) *Style {
 	return s.Add(fmt.Sprintf("48;2;%d;%d;%d", r, g, b))
 }
 
-// String returns the ANSI escape sequence
+// String returns the ANSI escape sequence.
 func (s *Style) String() string {
 	if len(s.codes) == 0 {
 		return ""
@@ -81,7 +81,7 @@ func (s *Style) String() string {
 	return esc + strings.Join(s.codes, ";") + "m"
 }
 
-// Format returns a format string for use with fmt.Printf
+// Format returns a format string for use with fmt.Printf.
 func (s *Style) Format() string {
 	if len(s.codes) == 0 {
 		return "%s"
@@ -89,7 +89,7 @@ func (s *Style) Format() string {
 	return s.String() + "%s" + reset
 }
 
-// Apply applies the style to the given text
+// Apply applies the style to the given text.
 func (s *Style) Apply(text string) string {
 	if len(s.codes) == 0 {
 		return text
@@ -97,17 +97,17 @@ func (s *Style) Apply(text string) string {
 	return s.String() + text + reset
 }
 
-// Sprint formats and applies the style
-func (s *Style) Sprint(a ...interface{}) string {
+// Sprint formats and applies the style.
+func (s *Style) Sprint(a ...any) string {
 	return s.Apply(fmt.Sprint(a...))
 }
 
-// Sprintf formats and applies the style
-func (s *Style) Sprintf(format string, a ...interface{}) string {
+// Sprintf formats and applies the style.
+func (s *Style) Sprintf(format string, a ...any) string {
 	return s.Apply(fmt.Sprintf(format, a...))
 }
 
-// Convenience function - direct use
+// Convenience function - direct use.
 func Color(text string, codes ...string) string {
 	if len(codes) == 0 {
 		return text
@@ -115,7 +115,7 @@ func Color(text string, codes ...string) string {
 	return esc + strings.Join(codes, ";") + "m" + text + reset
 }
 
-// Chainable convenience wrapper
+// Chainable convenience wrapper.
 func Stylize(text string) *styleBuilder {
 	return &styleBuilder{text: text}
 }

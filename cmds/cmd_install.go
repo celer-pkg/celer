@@ -4,6 +4,7 @@ import (
 	"celer/buildtools"
 	"celer/configs"
 	"celer/depcheck"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -127,6 +128,18 @@ func (i *installCmd) validateAndCleanInput(nameVersion string) (string, error) {
 }
 
 func (i *installCmd) install(nameVersion string) {
+	// Display install header.
+	fmt.Printf("%s %s %s %s\n",
+		color.Color("Install", color.Blue, color.Bold),
+		color.Color(nameVersion, color.BrightMagenta, color.Bold),
+		color.Color("with platform", color.Blue, color.Bold),
+		color.Color(i.celer.Global.Platform, color.BrightMagenta, color.Bold),
+	)
+	titleLen := len(fmt.Sprintf("Install %s with platform %s",
+		nameVersion, i.celer.Global.Platform,
+	))
+	color.Println(color.Line, strings.Repeat("-", titleLen))
+
 	// Overwrite global config.
 	if i.jobs != i.celer.Global.Jobs {
 		i.celer.Global.Jobs = i.jobs
