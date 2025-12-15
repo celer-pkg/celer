@@ -99,7 +99,7 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 - [Detect version conflict and circular dependencies](./article_detect_conflict_circular.md) - Auto detect version conflict and circular dependencies before building any libraries
 - [Export snapshot](./cmd_deploy_export.md) - Export a reproducible workspace snapshot after deployed successfully.
 
-## 📋 Supported Commands
+## 📋 Commands
 
 | Command                               | Description |
 | ------------------------------------- | ------------|
