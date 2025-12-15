@@ -212,7 +212,7 @@ func (e *Exporter) exportToolchainFile() error {
 	dst := filepath.Join(e.exportDir, "toolchain_file.cmake")
 
 	if !fileio.PathExists(src) {
-		return fmt.Errorf("toolchain file not found (skipping)")
+		return fmt.Errorf("toolchain file not found")
 	}
 
 	return fileio.CopyFile(src, dst)

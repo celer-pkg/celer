@@ -88,9 +88,9 @@ func (c *Collector) GetPortCommit(port *configs.Port) (string, error) {
 	}
 
 	// For git repositories, read the actual commit from the cloned repo.
-	commit, error := git.ReadLocalCommit(port.Package.SrcDir)
-	if error != nil {
-		return "", fmt.Errorf("failed to read local commit for %s: %w", port.NameVersion(), error)
+	commit, err := git.ReadLocalCommit(port.Package.SrcDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to read local commit for %s: %w", port.NameVersion(), err)
 	}
 	if commit != "" {
 		return commit, nil
