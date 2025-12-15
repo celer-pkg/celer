@@ -66,6 +66,7 @@ Celer 生成平台特定的 `toolchain_file.cmake`，作为项目与预配置构
 | **⚡ 智能二进制缓存** | 基于哈希的制品缓存，通过本地网络共享消除冗余构建，支持私有库的预编译二进制分发。 |
 | **💻 开发者模式** | 通过 `celer deploy` 一次性生成 `toolchain_file.cmake`，然后使用任意 IDE 开发。 |
 | **🔄 CI/CD 集成** | 在 `conf/projects` 中配置项目，无缝集成到持续集成流水线。 |
+| 📸 **Workspace快照** | 可复现的工作区快照，简化错误修复与功能开发|
 
 ## 🆚 Celer vs 其他工具
 

@@ -66,6 +66,7 @@ Celer generates a platform-specific `toolchain_file.cmake` that bridges your pro
 | **⚡ Intelligent Binary Caching** | Hash-based artifact caching via local network shares eliminates redundant builds. Supports pre-built binary distribution for private libraries. |
 | **💻 Developer Mode** | Generate `toolchain_file.cmake` once with `celer deploy`, then use any IDE for development. |
 | **🔄 CI/CD Integration** | Configure projects in `conf/projects` for seamless continuous integration pipelines. |
+| 📸 **Workspace Snapshot** | A reproducible workspace snapshot makes it easy to fix bugs and add features. |
 
 ## 🆚 Celer vs Others
 
