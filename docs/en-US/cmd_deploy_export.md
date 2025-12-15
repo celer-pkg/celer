@@ -17,7 +17,7 @@ celer deploy --export=<export-directory>
 3. **celer.toml**: Workspace configuration
 4. **toolchain_file.cmake**: CMake toolchain file
 5. **snapshot.json**: Dependency snapshot with actual git commits
-6. **celer**: The celer execuable file currently using
+6. **celer**: The celer executable file currently using
 
 ## Key Features
 
