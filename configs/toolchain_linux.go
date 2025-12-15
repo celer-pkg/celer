@@ -132,8 +132,8 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 
 	if !silent {
 		// Print download & extract info.
-		color.Printf(color.Title, "\n[✔] ---- Toolchain: %s\n", t.displayName)
-		color.Printf(color.List, "Location: %s\n", t.rootDir)
+		color.Printf(color.List, "\n[✔] -- toolchain: %s\n", t.displayName)
+		color.Printf(color.Hint, "Location: %s\n", t.rootDir)
 	}
 
 	return nil

@@ -63,6 +63,7 @@ func (b bash) installBinary() error {
 	if err := fileio.CopyFile(executable, filepath.Join(binDir, "celer")); err != nil {
 		return fmt.Errorf("failed to copy celer to ~/.local/bin.\n %w", err)
 	}
+	fmt.Println("[integrate] celer -> ~/.local/bin")
 
 	// Check if already contains the line.
 	bashrcPath := filepath.Join(b.homeDir, ".bashrc")
@@ -85,7 +86,6 @@ func (b bash) installBinary() error {
 		return fmt.Errorf("failed to write to ~/.bashrc.\n %w", err)
 	}
 
-	fmt.Println("[integrate] celer -> ~/.local/bin")
 	return nil
 }
 

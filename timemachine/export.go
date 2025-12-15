@@ -41,6 +41,9 @@ func Export(celer *configs.Celer, exportDir string) error {
 // Export performs the export operation.
 func (e *Exporter) Export() error {
 	// Create export directory.
+	if err := os.RemoveAll(e.exportDir); err != nil {
+		return fmt.Errorf("failed to clear existing export directory: %w", err)
+	}
 	if err := os.MkdirAll(e.exportDir, os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create export directory: %w", err)
 	}
@@ -50,52 +53,50 @@ func (e *Exporter) Export() error {
 	color.Println(color.Line, strings.Repeat("-", len(title)))
 
 	// 1. Collect used ports.
-	color.Println(color.List, "✔ Collecting dependencies...")
+	color.Println(color.Hint, "✔ Collecting dependencies...")
 	usedPorts, err := e.collector.CollectUsedPorts(e.celer)
 	if err != nil {
 		return fmt.Errorf("failed to collect ports: %w", err)
 	}
 	e.usedPorts = usedPorts
-	color.Printf(color.List, "  Found %d port(s)\n", len(e.usedPorts))
+	color.Printf(color.Hint, "  Found %d port(s)\n", len(e.usedPorts))
 
 	// 2. Export ports with fixed commits.
-	color.Println(color.List, "✔ Exporting ports...")
+	color.Println(color.Hint, "✔ Exporting ports...")
 	portSnapshots, err := e.exportPorts()
 	if err != nil {
 		return fmt.Errorf("failed to export ports: %w", err)
 	}
 
 	// 3. Export conf directory.
-	color.Println(color.List, "✔ Exporting configuration...")
+	color.Println(color.Hint, "✔ Exporting configuration...")
 	if err := e.exportConf(); err != nil {
 		return fmt.Errorf("failed to export conf: %w", err)
 	}
 
 	// 4. Export celer.toml.
-	color.Println(color.List, "✔ Exporting celer.toml...")
+	color.Println(color.Hint, "✔ Exporting celer.toml...")
 	if err := e.exportCelerToml(); err != nil {
 		return fmt.Errorf("failed to export celer.toml: %w", err)
 	}
 
 	// 5. Export toolchain_file.cmake (if exists).
-	color.Println(color.List, "✔ Exporting toolchain file...")
+	color.Println(color.Hint, "✔ Exporting toolchain file...")
 	if err := e.exportToolchainFile(); err != nil {
-		// Non-fatal if toolchain file doesn't exist.
-		color.Printf(color.Warning, "  Warning: %v\n", err)
+		return fmt.Errorf("failed to export toolchain_file.cmake: %w", err)
 	}
 
 	// 6. Export celer executable.
-	color.Println(color.List, "✔ Exporting celer executable...")
+	color.Println(color.Hint, "✔ Exporting celer executable...")
 	if err := e.exportCelerExecutable(); err != nil {
-		// Non-fatal if executable doesn't exist.
-		color.Printf(color.Warning, "  Warning: %v\n", err)
+		return fmt.Errorf("failed to export celer executable: %w", err)
 	}
 
 	// 7. Generate snapshot.
-	color.Println(color.List, "✔ Generating snapshot...")
+	color.Println(color.Hint, "✔ Generating snapshot...")
 	snapshot := &Snapshot{
 		ExportedAt:   time.Now(),
-		CelerVersion: "0.1.0", // TODO: Get from version.
+		CelerVersion: e.celer.Version(),
 		Platform:     e.celer.Platform().GetName(),
 		Project:      e.celer.Project().GetName(),
 		Dependencies: portSnapshots,
@@ -110,7 +111,6 @@ func (e *Exporter) Export() error {
 	return nil
 }
 
-// exportPorts exports ports with fixed commits.
 func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 	portsDir := filepath.Join(e.exportDir, "ports")
 	if err := os.MkdirAll(portsDir, os.ModePerm); err != nil {
@@ -172,12 +172,10 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 	return snapshots, nil
 }
 
-// exportConf copies the conf directory (excluding .git).
 func (e *Exporter) exportConf() error {
 	srcConf := dirs.ConfDir
 	dstConf := filepath.Join(e.exportDir, "conf")
 
-	// Copy conf directory but skip .git directory.
 	return filepath.Walk(srcConf, func(srcPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -202,7 +200,6 @@ func (e *Exporter) exportConf() error {
 	})
 }
 
-// exportCelerToml copies celer.toml.
 func (e *Exporter) exportCelerToml() error {
 	src := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 	dst := filepath.Join(e.exportDir, "celer.toml")
@@ -210,7 +207,6 @@ func (e *Exporter) exportCelerToml() error {
 	return fileio.CopyFile(src, dst)
 }
 
-// exportToolchainFile copies toolchain_file.cmake.
 func (e *Exporter) exportToolchainFile() error {
 	src := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
 	dst := filepath.Join(e.exportDir, "toolchain_file.cmake")
@@ -222,32 +218,15 @@ func (e *Exporter) exportToolchainFile() error {
 	return fileio.CopyFile(src, dst)
 }
 
-// exportCelerExecutable copies celer executable.
 func (e *Exporter) exportCelerExecutable() error {
-	// Try to find celer executable in workspace.
-	possibleNames := []string{"celer", "celer.exe"}
-	var src string
-
-	for _, name := range possibleNames {
-		candidate := filepath.Join(dirs.WorkspaceDir, name)
-		if fileio.PathExists(candidate) {
-			src = candidate
-			break
-		}
+	exePath, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("failed to get celer executable path: %w", err)
 	}
 
-	if src == "" {
-		return fmt.Errorf("celer executable not found (skipping)")
-	}
-
-	dst := filepath.Join(e.exportDir, filepath.Base(src))
-	if err := fileio.CopyFile(src, dst); err != nil {
+	dst := filepath.Join(e.exportDir, filepath.Base(exePath))
+	if err := fileio.CopyFile(exePath, dst); err != nil {
 		return err
-	}
-
-	// Make it executable on Unix systems.
-	if err := os.Chmod(dst, 0755); err != nil {
-		return fmt.Errorf("failed to set executable permission: %w", err)
 	}
 
 	return nil

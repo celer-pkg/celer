@@ -58,6 +58,7 @@ func (z zsh) installBinary() error {
 	if err := fileio.CopyFile(executable, filepath.Join(z.homeDir, ".local/bin/celer")); err != nil {
 		return fmt.Errorf("failed to copy celer to ~/.local/bin.\n %w", err)
 	}
+	fmt.Println("[integrate] celer --> ~/.local/bin")
 
 	// Check if already contains the line.
 	zshrcPath := filepath.Join(z.homeDir, ".zshrc")
@@ -79,7 +80,6 @@ func (z zsh) installBinary() error {
 		return fmt.Errorf("failed to write to ~/.zshrc: %w", err)
 	}
 
-	fmt.Println("[integrate] celer --> ~/.local/bin")
 	return nil
 }
 

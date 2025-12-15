@@ -35,7 +35,7 @@ celer tree ffmpeg@5.1.6 --hide-dev
 ### 3️⃣ Show Project Dependency Tree
 
 ```shell
-celer tree
+celer tree project_xxx
 ```
 
 > Execute in the project directory to display all dependencies for the current project.
@@ -45,11 +45,17 @@ celer tree
 ## 📊 Example Output
 
 ```
-libcurl@3.8.1  
-├── zlib@1.3.1  
-├── openssl@3.1.4  
-└── [dev] cmake@3.28.3  
-    └── [dev] ninja@1.12.0  
+display dependencies in tree view:
+--------------------------------------------
+libffi@3.4.8
+├── macros@1.20.2 -- [dev]
+│   └── automake@1.18 -- [dev]
+│       └── autoconf@2.72 -- [dev]
+│           └── m4@1.4.19 -- [dev]
+└── libtool@2.5.4 -- [dev]
+    └── m4@1.4.19 -- [dev]
+---------------------------------------------
+summary: dependencies: 0  dev_dependencies: 5
 ```
 
 ### Output Description

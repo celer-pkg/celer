@@ -199,8 +199,8 @@ func (b *BuildTool) checkAndFix() error {
 	}
 
 	// Print download & extract info.
-	color.Printf(color.Title, "\n[✔] ---- Tool: %s\n", fileio.FileBaseName(b.Url))
-	color.Printf(color.List, "Location: %s\n", location)
+	color.Printf(color.List, "\n[✔] -- tool: %s\n", fileio.FileBaseName(b.Url))
+	color.Printf(color.Hint, "Location: %s\n", location)
 
 	return nil
 }

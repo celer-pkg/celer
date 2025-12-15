@@ -48,7 +48,7 @@ celer reverse nasm@2.16.03 --dev
   package2@version2
   package3@version3
 
-Total: 3 package(s)
+total: 3 package(s)
 ```
 
 如果没有找到反向依赖：

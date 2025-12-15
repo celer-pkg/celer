@@ -87,7 +87,7 @@ func (p Port) doRemovePort() error {
 
 		defer func() {
 			if noError {
-				color.Printf(color.List, "✔ rm -rf %s\n", p.InstalledDir)
+				color.Printf(color.Hint, "✔ rm -rf %s\n", p.InstalledDir)
 			}
 		}()
 	}

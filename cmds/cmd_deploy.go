@@ -4,9 +4,7 @@ import (
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/color"
-	"celer/pkgs/expr"
 	"celer/timemachine"
-	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -34,17 +32,11 @@ for reproducible builds using the --export flag.`,
 			}
 
 			// Display deployment header.
-			fmt.Printf("%s %s %s %s\n",
-				color.Color("Deploy with platform:", color.Blue, color.Bold),
-				color.Color(d.celer.Global.Platform, color.BrightMagenta, color.Bold),
-				color.Color("& project:", color.Blue, color.Bold),
-				color.Color(d.celer.Global.Project, color.BrightMagenta, color.Bold),
-			)
-			titleLen := len(fmt.Sprintf("Deploy with platform: %s & project: %s",
-				d.celer.Global.Platform,
-				d.celer.Global.Project,
-			))
-			color.Println(color.Line, strings.Repeat("-", titleLen))
+			color.Println(color.Title, "=======================================================================")
+			color.Println(color.Title, "🚀 start to deploy with below configurations: ")
+			color.Printf(color.Title, "🛠️  platform: %s\n", d.celer.Global.Platform)
+			color.Printf(color.Title, "🛠️  project : %s\n", d.celer.Global.Project)
+			color.Println(color.Title, "=======================================================================")
 
 			if err := d.celer.Setup(); err != nil {
 				configs.PrintError(err, "failed to setup celer.")
@@ -62,8 +54,7 @@ for reproducible builds using the --export flag.`,
 				return
 			}
 
-			projectName := expr.If(d.celer.Global.Project == "", "unnamed", d.celer.Global.Project)
-			configs.PrintSuccess("The deployment is ready for project: %s", projectName)
+			configs.PrintSuccess("%s has been successfully deployed.", d.celer.Global.Project)
 
 			// Export snapshot if requested.
 			if d.exportPath != "" {
