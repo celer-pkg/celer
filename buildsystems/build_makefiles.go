@@ -67,7 +67,7 @@ func (m *makefiles) preConfigure() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[post confiure %s]", m.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[pre configure %s]", m.PortConfig.nameVersionDesc())
 		command = m.expandCommandsVariables(command)
 		executor := cmd.NewExecutor(title, command)
 		executor.SetWorkDir(m.PortConfig.RepoDir)
