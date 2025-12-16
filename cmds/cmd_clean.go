@@ -196,7 +196,7 @@ func (c *cleanCmd) cleanAll() error {
 			}
 		}
 
-		color.Printf(color.Gray, "✔ %s\n", entity.Name())
+		color.Printf(color.Hint, "✔ %s\n", entity.Name())
 	}
 
 	return nil
@@ -260,7 +260,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 	}
 
 	c.cleaned = append(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.Native, " [dev]", ""))
-	color.Printf(color.Gray, "✔ %-25s%s\n", port.NameVersion(), expr.If(port.DevDep || port.Native, " -- [dev]", ""))
+	color.Printf(color.Hint, "✔ %-25s%s\n", port.NameVersion(), expr.If(port.DevDep || port.Native, " -- [dev]", ""))
 
 	return nil
 }

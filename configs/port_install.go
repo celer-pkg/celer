@@ -31,8 +31,8 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	// If already installed and not with "--force/-f", report and return.
 	if installed && !options.Force {
 		if p.IsHostSupported() {
-			title := color.Sprintf(color.Success, "\n[✔] ---- package: %s\n", p.NameVersion())
-			fmt.Printf("%sLocation: %s\n", title, installedDir)
+			color.Printf(color.List, "\n[✔] -- package: %s\n", p.NameVersion())
+			color.Printf(color.Hint, "Location: %s\n", installedDir)
 		}
 		return "", nil
 	}
@@ -61,12 +61,12 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
 			return "", err
 		}
-		color.Printf(color.Gray, "✔ rm -rf %s\n", dirs.TmpDepsDir)
+		color.Printf(color.Hint, "✔ rm -rf %s\n", dirs.TmpDepsDir)
 
 		if err := os.MkdirAll(dirs.TmpDepsDir, os.ModePerm); err != nil {
 			return "", err
 		}
-		color.Printf(color.Gray, "✔ mkdir -p %s\n", dirs.TmpDepsDir)
+		color.Printf(color.Hint, "✔ mkdir -p %s\n", dirs.TmpDepsDir)
 	}
 
 	// No config or explicit prebuilt-with-url -> treat as nobuild or prebuilt.
@@ -570,7 +570,7 @@ func (p Port) providerTmpDeps() error {
 			return err
 		}
 
-		color.Printf(color.Gray, "✔ %-15s -- [dev]\n", port.NameVersion())
+		color.Printf(color.Hint, "✔ %-15s -- [dev]\n", port.NameVersion())
 	}
 
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
@@ -614,7 +614,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		content := expr.If(port.DevDep || port.Native, "✔ %-15s -- [dev]\n", "✔ %s\n")
-		color.Printf(color.Gray, content, port.NameVersion())
+		color.Printf(color.Hint, content, port.NameVersion())
 	}
 
 	return nil
@@ -634,8 +634,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	}
 
 	// Print install trace.
-	title := color.Sprintf(color.Success, "\n[✔] ---- package: %s is installed from %s\n",
-		p.NameVersion(), installedFrom)
-	fmt.Printf("%sLocation: %s\n", title, p.InstalledDir)
+	color.Printf(color.List, "\n[✔] -- package: %s is installed from %s\n", p.NameVersion(), installedFrom)
+	color.Printf(color.Hint, "Location: %s\n", p.InstalledDir)
 	return nil
 }

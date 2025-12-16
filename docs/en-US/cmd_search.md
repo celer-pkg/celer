@@ -18,8 +18,11 @@ celer search ffmpeg@5.1.6
 
 Output:
 ```
-[Search result]:
+search results that match pattern 'ffmpeg@5.1.6':
+------------------------------------------
 ffmpeg@5.1.6
+------------------------------------------
+total: 1 port(s)
 ```
 
 > Search using the complete library name and version number for exact match.
@@ -32,10 +35,14 @@ celer search open*
 
 Output:
 ```
-[Search result]:
+search results that match pattern 'open*':
+------------------------------------------
 opencv@4.11.0
+opencv_contrib@4.11.0
 openssl@1.1.1w
 openssl@3.5.0
+------------------------------------------
+total: 4 port(s)
 ```
 
 > Search for all ports starting with `open`.
@@ -48,9 +55,12 @@ celer search *ssl
 
 Output:
 ```
-[Search result]:
+search results that match pattern '*ssl':
+------------------------------------------
 openssl@1.1.1w
 openssl@3.5.0
+------------------------------------------
+total: 2 port(s)
 ```
 
 > Search for all ports ending with `ssl`.

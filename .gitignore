@@ -12,6 +12,7 @@
 **/__debug_*
 **/token
 **/ccache
+**/snapshot-*
 *.exe
 celer
 celer.toml

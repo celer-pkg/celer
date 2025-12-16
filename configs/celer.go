@@ -224,11 +224,8 @@ func (c *Celer) Setup() error {
 	return c.platform.setup()
 }
 
-func (c *Celer) Deploy() error {
-	if err := c.platform.setup(); err != nil {
-		return err
-	}
-	if err := c.project.deploy(); err != nil {
+func (c *Celer) Deploy(force bool) error {
+	if err := c.project.deploy(force); err != nil {
 		return err
 	}
 

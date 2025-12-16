@@ -9,11 +9,11 @@ import (
 const ClearScreen = "\033[2J"
 
 func SprintSuccess(format string, args ...any) string {
-	return color.Sprintf(color.Magenta, "\n[✔] ======== %s ========\n", fmt.Sprintf(format, args...))
+	return color.Sprintf(color.Important, "\n[✔] ======== %s ========\n", fmt.Sprintf(format, args...))
 }
 
 func PrintSuccess(format string, args ...any) {
-	color.Printf(color.Magenta, "\n[✔] ======== %s ========\n", fmt.Sprintf(format, args...))
+	color.Printf(color.Important, "\n[✔] ======== %s ========\n", fmt.Sprintf(format, args...))
 }
 
 func SprintError(err error, format string, args ...any) string {

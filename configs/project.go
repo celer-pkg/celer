@@ -128,9 +128,9 @@ func (p Project) GetPorts() []string {
 	return p.Ports
 }
 
-func (p Project) deploy() error {
+func (p Project) deploy(force bool) error {
 	options := InstallOptions{
-		Force:     true,
+		Force:     force,
 		Recursive: true,
 	}
 	for _, nameVersion := range p.Ports {

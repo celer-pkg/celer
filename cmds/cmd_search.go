@@ -63,15 +63,15 @@ func (s *searchCmd) doSearch(pattern string) {
 	}
 
 	// Display results.
-	title := fmt.Sprintf("Search results that match pattern '%s':", pattern)
+	title := fmt.Sprintf("search results that match pattern '%s':", pattern)
 	color.Println(color.Title, title)
 	color.Println(color.Line, strings.Repeat("-", len(title)))
 	if len(libraries) > 0 {
 		for _, lib := range libraries {
-			color.Println(color.List, lib)
+			color.Println(color.Hint, lib)
 		}
 		color.Println(color.Line, strings.Repeat("-", len(title)))
-		color.Printf(color.Bottom, "Total: %d port(s)\n", len(libraries))
+		color.Printf(color.Summary, "total: %d port(s)\n", len(libraries))
 	} else {
 		color.Println(color.Error, "no matched port found.")
 	}

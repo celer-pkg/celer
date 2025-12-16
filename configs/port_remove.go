@@ -81,9 +81,15 @@ func (p Port) Remove(options RemoveOptions) error {
 }
 
 func (p Port) doRemovePort() error {
+	var noError = true
 	if fileio.PathExists(p.InstalledDir) {
 		color.Printf(color.Title, "\n[remove installed %s]: %s\n", p.NameVersion(), p.InstalledDir)
-		color.Printf(color.Gray, "✔ rm -rf %s\n", p.InstalledDir)
+
+		defer func() {
+			if noError {
+				color.Printf(color.Hint, "✔ rm -rf %s\n", p.InstalledDir)
+			}
+		}()
 	}
 
 	if !fileio.PathExists(p.traceFile) {
@@ -93,6 +99,7 @@ func (p Port) doRemovePort() error {
 	// Open install info file.
 	file, err := os.OpenFile(p.traceFile, os.O_RDONLY, os.ModePerm)
 	if err != nil {
+		noError = false
 		return fmt.Errorf("cannot open install info file: %s", err)
 	}
 
@@ -109,11 +116,13 @@ func (p Port) doRemovePort() error {
 			fileToRemove = filepath.Join(dirs.WorkspaceDir, "installed", line)
 		}
 		if err := p.removeFiles(fileToRemove); err != nil {
+			noError = false
 			return fmt.Errorf("cannot remove file: %s", err)
 		}
 
 		// Try remove parent folder if it's empty.
 		if err := fileio.RemoveFolderRecursively(filepath.Dir(fileToRemove)); err != nil {
+			noError = false
 			return fmt.Errorf("cannot remove parent folder: %s", err)
 		}
 
@@ -126,18 +135,22 @@ func (p Port) doRemovePort() error {
 	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
 	cmakeConfigDir := filepath.Join(dirs.InstalledDir, platformProject, "lib", "cmake", portName)
 	if err := os.RemoveAll(cmakeConfigDir); err != nil {
+		noError = false
 		return fmt.Errorf("cannot remove cmake config folder: %s", err)
 	}
 	if err := fileio.RemoveFolderRecursively(filepath.Dir(cmakeConfigDir)); err != nil {
+		noError = false
 		return fmt.Errorf("cannot clean cmake config folder: %s", err)
 	}
 
 	// Remove info file and clean info dir.
 	if err := os.Remove(p.traceFile); err != nil {
+		noError = false
 		return fmt.Errorf("cannot remove info file: %s", err)
 	}
 	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace")
 	if err := fileio.RemoveFolderRecursively(traceDir); err != nil {
+		noError = false
 		return fmt.Errorf("cannot remove info dir: %s", err)
 	}
 
@@ -146,12 +159,14 @@ func (p Port) doRemovePort() error {
 	if buildSystem != "nobuild" {
 		if fileio.PathExists(p.metaFile) {
 			if err := os.Remove(p.metaFile); err != nil {
+				noError = false
 				return fmt.Errorf("cannot remove meta file: %s", err)
 			}
 		}
 
 		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "meta")
 		if err := fileio.RemoveFolderRecursively(metaDir); err != nil {
+			noError = false
 			return fmt.Errorf("cannot remove meta dir: %s", err)
 		}
 	}

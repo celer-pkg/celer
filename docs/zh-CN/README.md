@@ -66,6 +66,7 @@ Celer 生成平台特定的 `toolchain_file.cmake`，作为项目与预配置构
 | **⚡ 智能二进制缓存** | 基于哈希的制品缓存，通过本地网络共享消除冗余构建，支持私有库的预编译二进制分发。 |
 | **💻 开发者模式** | 通过 `celer deploy` 一次性生成 `toolchain_file.cmake`，然后使用任意 IDE 开发。 |
 | **🔄 CI/CD 集成** | 在 `conf/projects` 中配置项目，无缝集成到持续集成流水线。 |
+| 📸 **Workspace快照** | 可复现的工作区快照，简化错误修复与功能开发|
 
 ## 🆚 Celer vs 其他工具
 
@@ -95,11 +96,9 @@ Celer 解决了传统 C/C++ 包管理器难以应对的核心痛点：
 - [缓存构建产物](./article_binary_cache.md) - 通过智能缓存加速构建
 - [支持CCache](./article_ccache.md) - 通过缓存编译结果来加速重新编译
 - [库版本冲突和环形依赖检测](./article_detect_conflict_circular.md) - 在编译前提前发现导致环形依赖和冲突的错误配置
+- [导出快照](./cmd_deploy_export.md) - 当部署项目成功后允许导出当前的workspace为一个可以回溯编译的快照
 
-<details>
-<summary><b>📋 命令参考</b></summary>
-
-## 支持的命令列表
+## 📋 命令列表
 
 | 命令                                   | 描述  |
 | ------------------------------------- | -----|
@@ -108,7 +107,7 @@ Celer 解决了传统 C/C++ 包管理器难以应对的核心痛点：
 | [configure](./cmd_configfure.md)      | 修改workspace的全局配置 |
 | [create](./cmd_create.md)             | 创建平台、项目或端口 |
 | [deploy](./cmd_deploy.md)             | 以选择的*平台*和*项目*部署项目 |
-| [init](./quick_start.md#3-setup-conf) | 初始化Celer |
+| [init](./quick_start.md#3-setup-conf) | 用一个conf仓库初始化Celer |
 | [install](./cmd_install.md)           | 安装一个库 |
 | [integrate](./cmd_integrate.md)       | 集成以支持tab补全 |
 | [remove](./cmd_remove.md)             | 移除已安装的库 |
@@ -117,8 +116,6 @@ Celer 解决了传统 C/C++ 包管理器难以应对的核心痛点：
 | [tree](./cmd_tree.md)                 | 显示三方库或项目的依赖关系 | 
 | [update](./cmd_update.md)             | 更新配置仓库、端口配置仓库或项目仓库 |
 | [version](./cmd_version.md)           | 显示Celer版本信息 |
-
-</details>
 
 ## 🤝 贡献
 

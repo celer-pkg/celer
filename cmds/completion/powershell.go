@@ -63,6 +63,7 @@ func (p powershell) installBinary() error {
 	if err := fileio.CopyFile(executable, dest); err != nil {
 		return fmt.Errorf("failed to copy celer.exe to `%s`.\n %w", dest, err)
 	}
+	fmt.Printf("[integrate] celer.exe -> %s\n", filepath.Dir(dest))
 
 	// Add celer.exe to PATH if it's not already there.
 	pathEnv := os.Getenv("PATH")
@@ -72,7 +73,6 @@ func (p powershell) installBinary() error {
 		}
 	}
 
-	fmt.Printf("[integrate] celer.exe -> %s\n", filepath.Dir(dest))
 	return nil
 }
 

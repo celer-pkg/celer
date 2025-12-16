@@ -226,7 +226,7 @@ func TestClean(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Deploy())
+	check(celer.Deploy(true))
 
 	cleanCmd := cleanCmd{celer: celer}
 
@@ -288,7 +288,7 @@ func TestClean(t *testing.T) {
 		check(os.RemoveAll(dirs.InstalledDir))
 		check(os.RemoveAll(dirs.PackagesDir))
 
-		check(celer.Deploy())
+		check(celer.Deploy(true))
 		check(cleanCmd.cleanAll())
 
 		checkList := map[string]bool{

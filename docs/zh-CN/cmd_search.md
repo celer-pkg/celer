@@ -18,8 +18,11 @@ celer search ffmpeg@5.1.6
 
 输出结果：
 ```
-[Search result]:
+search results that match pattern 'ffmpeg@5.1.6':
+------------------------------------------
 ffmpeg@5.1.6
+------------------------------------------
+total: 1 port(s)
 ```
 
 > 使用完整的库名和版本号进行精确搜索。
@@ -32,10 +35,14 @@ celer search open*
 
 输出结果：
 ```
-[Search result]:
+search results that match pattern 'open*':
+------------------------------------------
 opencv@4.11.0
+opencv_contrib@4.11.0
 openssl@1.1.1w
 openssl@3.5.0
+------------------------------------------
+total: 4 port(s)
 ```
 
 > 搜索所有以 `open` 开头的端口。
@@ -48,9 +55,12 @@ celer search *ssl
 
 输出结果：
 ```
-[Search result]:
+search results that match pattern '*ssl':
+------------------------------------------
 openssl@1.1.1w
 openssl@3.5.0
+------------------------------------------
+total: 2 port(s)
 ```
 
 > 搜索所有以 `ssl` 结尾的端口。

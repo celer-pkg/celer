@@ -66,6 +66,7 @@ Celer generates a platform-specific `toolchain_file.cmake` that bridges your pro
 | **⚡ Intelligent Binary Caching** | Hash-based artifact caching via local network shares eliminates redundant builds. Supports pre-built binary distribution for private libraries. |
 | **💻 Developer Mode** | Generate `toolchain_file.cmake` once with `celer deploy`, then use any IDE for development. |
 | **🔄 CI/CD Integration** | Configure projects in `conf/projects` for seamless continuous integration pipelines. |
+| 📸 **Workspace Snapshot** | A reproducible workspace snapshot makes it easy to fix bugs and add features. |
 
 ## 🆚 Celer vs Others
 
@@ -95,11 +96,9 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 - [Cache Build Artifacts](./docs/en-US/article_binary_cache.md) - Accelerate builds with smart caching
 - [Support CCache](./docs/en-US/article_ccache.md) - Speeds up recompilation by caching previous compilations
 - [Detect version conflict and circular dependencies](./docs/en-US/article_detect_conflict_circular.md) - Auto detect version conflict and circular dependencies before building any libraries
+- [Export snapshot](./docs/en-US/cmd_deploy_export.md) - Export a reproducible workspace snapshot after deployed successfully.
 
-<details>
-<summary><b>📋 Command Reference</b></summary>
-
-## Supported Commands
+## 📋 Commands
 
 | Command                                         | Description|
 | ----------------------------------------------- | -----------|
@@ -108,16 +107,15 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 | [configure](./docs/en-US/cmd_configure.md)      | Configure global settings for current workspace.|
 | [create](./docs/en-US/cmd_create.md)            | Create a platform, project or port. |
 | [deploy](./docs/en-US/cmd_deploy.md)            | Deploy with selected platform and project.|
-| [init](./docs/en-US/quick_start.md#3-setup-conf)| Initialize celer.|
+| [init](./docs/en-US/quick_start.md#3-setup-conf)| Initialize celer with a conf repo.|
 | [install](./docs/en-US/cmd_install.md)          | Install a package.|
 | [integrate](./docs/en-US/cmd_integrate.md)      | Integrate tab completion.|
 | [remove](./docs/en-US/cmd_remove.md)            | Remove installed packages.|
+| [reverse](./docs/en-US/cmd_reverse.md)          | Reverse query dependencies on the specified library. |
 | [search](./docs/en-US/cmd_search.md)            | Search available ports from ports repository.|
 | [tree](./docs/en-US/cmd_tree.md)                | Show the dependencies of a port or a project.|
 | [update](./docs/en-US/cmd_update.md)            | Update conf repo, ports config repo or project repo.|
 | [version](./docs/en-US/cmd_version.md)          | Show version info of celer.|
-
-</details>
 
 ## 🤝 Contributing
 

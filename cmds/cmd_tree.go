@@ -120,7 +120,7 @@ func (t *treeCmd) showPortTree(target string, depchecker any) error {
 		return fmt.Errorf("failed to collect port information: %w", err)
 	}
 
-	color.Printf(color.Title, "Display dependencies in tree view:\n")
+	color.Printf(color.Title, "display dependencies in tree view:\n")
 	color.Printf(color.Line, "--------------------------------------------\n")
 	t.printTree(&rootInfo)
 	return nil
@@ -179,7 +179,7 @@ func (t *treeCmd) showProjectTree(target string, depchecker any) error {
 		rootInfo.depedencies = append(rootInfo.depedencies, &portInfo)
 	}
 
-	title := "Display dependencies in tree view"
+	title := "display dependencies in tree view"
 	separator := strings.Repeat("-", len(title))
 	color.Printf(color.Title, "%s\n%s\n", title, separator)
 	t.printTree(&rootInfo)
@@ -245,7 +245,7 @@ func (t *treeCmd) printTree(info *portInfo) {
 
 	// Print statistics.
 	color.Printf(color.Line, "---------------------------------------------\n")
-	color.Printf(color.Bottom, "Summary: dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
+	color.Printf(color.Summary, "summary: dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
 }
 
 func (t *treeCmd) countDependencies(info *portInfo) (int, int) {
@@ -306,7 +306,7 @@ func (t *treeCmd) printTreeWithPrefix(info *portInfo, prefix string, isLast bool
 	if info.devDep {
 		line += " -- [dev]"
 	}
-	color.Println(color.Gray, prefix+line)
+	color.Println(color.Hint, prefix+line)
 
 	// Prepare the prefix for the next level.
 	var nextPrefix string
