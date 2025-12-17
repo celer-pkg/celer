@@ -93,7 +93,7 @@ func (e *Exporter) Export() error {
 	}
 
 	// 7. Generate snapshot.
-	color.Println(color.Hint, "✔ Generating snapshot...")
+	color.Println(color.Hint, "✔ Generating snapshot report...")
 	snapshot := &Snapshot{
 		ExportedAt:   time.Now(),
 		CelerVersion: e.celer.Version(),
