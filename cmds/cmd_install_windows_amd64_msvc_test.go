@@ -1,4 +1,4 @@
-//go:build windows && amd64 && integration_msvc
+//go:build windows && amd64 && test_msvc
 
 package cmds
 
