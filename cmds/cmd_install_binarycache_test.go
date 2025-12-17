@@ -514,6 +514,9 @@ func TestInstall_BinaryCache_With_Commit_Success(t *testing.T) {
 	if !installed {
 		t.Fatal("should be installed from cache")
 	}
+
+	// Clean up.
+	check(port.Remove(removeOptions))
 }
 
 func TestInstall_BinaryCache_With_Commit_Failed(t *testing.T) {
