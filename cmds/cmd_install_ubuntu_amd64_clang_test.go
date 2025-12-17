@@ -38,11 +38,11 @@ func TestInstall_FreeStyle_AMD64_Clang(t *testing.T) {
 }
 
 func TestInstall_Prebuilt_Clang(t *testing.T) {
-	buildWithClang(t, "clang", "prebuilt-x264@stable", false)
+	buildWithClang(t, ubuntu_clang_21_1_4, "prebuilt-x264@stable", false)
 }
 
 func TestInstall_Nobuild_Clang(t *testing.T) {
-	buildWithClang(t, "clang", "gnulib@master", true)
+	buildWithClang(t, ubuntu_clang_21_1_4, "gnulib@master", true)
 }
 
 func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
