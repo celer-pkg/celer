@@ -1,0 +1,12 @@
+{
+    // Used to run tests with "Run Test | Debug Test" CodeLens buttons.
+    "go.testFlags": [
+        "-tags=test_gcc,test_clang,test_aarch64_gcc,test_msvc,test_clang_cl"
+    ],
+    // Used by the Go language server gopls to recognize all test files.
+    "gopls": {
+        "build.buildFlags": [
+            "-tags=test_gcc,test_clang,test_aarch64_gcc,test_msvc,test_clang_cl"
+        ]
+    }
+}

@@ -1,4 +1,4 @@
-//go:build windows && amd64
+//go:build windows && amd64 && test_clang_cl
 
 package cmds
 
@@ -58,10 +58,6 @@ func TestInstall_Nobuild_Clang(t *testing.T) {
 }
 
 func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
-	if os.Getenv("TEST_CLANG_CL") != "true" {
-		t.SkipNow()
-	}
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 

@@ -27,10 +27,8 @@ jobs:
       run: go build -v ./...
 
     - name: Test(ARM64_GCC)
-      env:
-        TEST_ARM64_GCC: true
       run: |
         go test -v ./depcheck/... -timeout 1h
         go test -v ./configs/...  -timeout 1h
         go test -v ./pkgs/git/... -timeout 1h
-        go test -v ./cmds/... -timeout 1h
+        go test -tags=test_aarch64_gcc -v ./cmds/... -timeout 1h

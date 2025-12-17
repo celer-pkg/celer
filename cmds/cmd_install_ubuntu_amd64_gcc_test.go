@@ -1,4 +1,4 @@
-//go:build linux && amd64
+//go:build linux && amd64 && test_gcc
 
 package cmds
 
@@ -7,7 +7,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -83,10 +82,6 @@ func TestInstall_Nobuild_AMD64_GCC(t *testing.T) {
 }
 
 func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool) {
-	if os.Getenv("TEST_AMD64_GCC") != "true" {
-		t.SkipNow()
-	}
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 

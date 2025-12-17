@@ -1,4 +1,4 @@
-//go:build linux && amd64
+//go:build linux && amd64 && test_clang
 
 package cmds
 
@@ -7,7 +7,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -47,10 +46,6 @@ func TestInstall_Nobuild_Clang(t *testing.T) {
 }
 
 func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
-	if os.Getenv("TEST_CLANG") != "ON" {
-		t.SkipNow()
-	}
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
