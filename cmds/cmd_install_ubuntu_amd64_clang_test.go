@@ -60,14 +60,9 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	// Init celer.
 	const project = "project_test_install"
 	celer := configs.NewCeler()
-	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.InitWithPlatform(platform))
 	check(celer.SetBuildType("Release"))
-	if platform != "" {
-		check(celer.SetPlatform(platform))
-	} else {
-		platform = celer.Platform().GetHostName()
-	}
 	check(celer.SetProject(project))
 	check(celer.Setup())
 
@@ -84,7 +79,7 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	if !nobuild {
 		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
 		if !fileio.PathExists(packageDir) {
-			t.Fatal("package dir cannot found")
+			t.Fatal("package dir cannot found: " + packageDir)
 		}
 	}
 

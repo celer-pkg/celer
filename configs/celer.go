@@ -70,7 +70,13 @@ type configData struct {
 	CCache      *CCache      `toml:"ccache,omitempty"`
 }
 
+// Init initializes celer with existing platform.
 func (c *Celer) Init() error {
+	return c.InitWithPlatform(c.configData.Global.Platform)
+}
+
+// InitWithPlatform initializes celer with platform.
+func (c *Celer) InitWithPlatform(platform string) error {
 	c.platform.ctx = c
 
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
@@ -94,6 +100,14 @@ func (c *Celer) Init() error {
 			return fmt.Errorf("failed to marshal conf.\n %w", err)
 		}
 
+		// Set platform and init platform if specified.
+		if platform != "" {
+			c.configData.Global.Platform = platform
+			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
+				return err
+			}
+		}
+
 		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
 			return err
 		}
@@ -110,7 +124,10 @@ func (c *Celer) Init() error {
 		// Use lower case build type in celer as default.
 		c.Global.BuildType = strings.ToLower(c.Global.BuildType)
 
-		// Init platform with platform name.
+		// Set platform and init platform if specified.
+		if platform != "" {
+			c.configData.Global.Platform = platform
+		}
 		if c.configData.Global.Platform != "" {
 			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
 				return err
@@ -144,9 +161,9 @@ func (c *Celer) Init() error {
 	// Celer support detect local toolchain, if platform name is not specified, use default toolchain:
 	// Windows: default is msvc,
 	// Linux: default is gcc.
-	if c.platform.Name == "" {
+	if c.configData.Global.Platform == "" {
 		var toolchain = Toolchain{ctx: c}
-		if err := toolchain.Detect(c.platform.Name); err != nil {
+		if err := toolchain.Detect(c.configData.Global.Platform); err != nil {
 			return fmt.Errorf("detect celer.toolchain: %w", err)
 		}
 		c.platform.Toolchain = &toolchain
@@ -174,7 +191,7 @@ func (c *Celer) Init() error {
 	}
 
 	// No platform name, detect default platform.
-	if c.platform.Name == "" {
+	if c.configData.Global.Platform == "" {
 		switch runtime.GOOS {
 		case "windows":
 			if c.platform.Toolchain.Name == "msvc" || c.platform.Toolchain.Name == "clang" || c.platform.Toolchain.Name == "clang-cl" {
