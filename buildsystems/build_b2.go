@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"celer/context"
 	"celer/pkgs/cmd"
+	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -85,6 +86,14 @@ func (b b2) Configure(options []string) error {
 	logPath := b.getLogPath("configure")
 	title := fmt.Sprintf("[configure %s]", b.PortConfig.nameVersionDesc())
 	configure := expr.If(runtime.GOOS == "windows", "bootstrap.bat", "./bootstrap.sh")
+
+	// For cross-compilation, set --prefix to dependency directory.
+	rootfs := b.Ctx.RootFS()
+	if !b.DevDep && rootfs != nil {
+		depsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+		configure = fmt.Sprintf("%s --prefix=%s", configure, depsDir)
+	}
+
 	executor := cmd.NewExecutor(title, configure)
 	executor.SetWorkDir(b.PortConfig.SrcDir)
 	executor.SetLogPath(logPath)
@@ -104,15 +113,32 @@ func (b b2) Configure(options []string) error {
 		// Override project-config.jam.
 		cxx := filepath.Join(toolchain.GetFullPath(), toolchain.GetCXX())
 
+		// For cross-compilation, use version identifier to distinguish toolchain.
+		var toolchainVersion string
+		rootfs := b.Ctx.RootFS()
+		if !b.DevDep && rootfs != nil {
+			toolchainVersion = toolchain.GetVersion()
+		} else {
+			toolchainVersion = ""
+		}
+
 		var buffer bytes.Buffer
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			line := scanner.Text()
 			if strings.Contains(line, "using gcc ;") {
-				if b.Ctx.CCacheEnabled() {
-					line = fmt.Sprintf(`using gcc : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
+				if toolchainVersion != "" {
+					if b.Ctx.CCacheEnabled() {
+						line = fmt.Sprintf(`using gcc : %s : "ccache" "%s" ;`, toolchainVersion, filepath.ToSlash(cxx))
+					} else {
+						line = fmt.Sprintf(`using gcc : %s : "%s" ;`, toolchainVersion, filepath.ToSlash(cxx))
+					}
 				} else {
-					line = fmt.Sprintf(`using gcc : : "%s" ;`, filepath.ToSlash(cxx))
+					if b.Ctx.CCacheEnabled() {
+						line = fmt.Sprintf(`using gcc : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
+					} else {
+						line = fmt.Sprintf(`using gcc : : "%s" ;`, filepath.ToSlash(cxx))
+					}
 				}
 			} else if strings.Contains(line, "using msvc ;") {
 				switch toolchain.GetName() {
@@ -163,9 +189,26 @@ func (b b2) buildOptions() ([]string, error) {
 		}
 	case "linux":
 		// Set build toolset with toolchain name.
-		options = append(options, "toolset="+toolchain.GetName())
+		rootfs := b.Ctx.RootFS()
+		if !b.DevDep && rootfs != nil {
+			options = append(options, "toolset="+toolchain.GetName()+"-"+toolchain.GetVersion())
+		} else {
+			options = append(options, "toolset="+toolchain.GetName())
+		}
 	default:
 		return nil, fmt.Errorf("unsupported platform: %s", runtime.GOOS)
+	}
+
+	// Set compiler and linker flags for cross-compilation.
+	rootfs := b.Ctx.RootFS()
+	if !b.DevDep && rootfs != nil {
+		sysroot := rootfs.GetFullPath()
+		if sysroot != "" {
+			// Add sysroot to both C and C++ compiler flags, and linker flags.
+			options = append(options, fmt.Sprintf(`cflags="--sysroot=%s"`, sysroot))
+			options = append(options, fmt.Sprintf(`cxxflags="--sysroot=%s"`, sysroot))
+			options = append(options, fmt.Sprintf(`linkflags="--sysroot=%s"`, sysroot))
+		}
 	}
 
 	// Set build architecture.
