@@ -95,6 +95,18 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
 		writeIfNotEmpty("CMAKE_READELF", t.READELF)
 
+		// For clang, if using lld, add linker flags and use LLVM runtime libraries
+		if t.Name == "clang" && t.LD != "" && strings.Contains(t.LD, "lld") {
+			fmt.Fprint(toolchain, "\n# Use LLVM lld linker and compiler-rt runtime for clang.\n")
+			// Use LLVM's runtime libraries instead of GCC's libgcc
+			fmt.Fprintf(toolchain, "string(APPEND CMAKE_C_FLAGS_INIT \" --rtlib=compiler-rt --unwindlib=libunwind\")\n")
+			fmt.Fprintf(toolchain, "string(APPEND CMAKE_CXX_FLAGS_INIT \" --rtlib=compiler-rt --unwindlib=libunwind\")\n")
+			// Use lld linker and LLVM runtime libraries (needed for linking phase)
+			fmt.Fprintf(toolchain, "string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT \" -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind\")\n")
+			fmt.Fprintf(toolchain, "string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT \" -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind\")\n")
+			fmt.Fprintf(toolchain, "string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT \" -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind\")\n")
+		}
+
 	case "msvc", "clang-cl":
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))

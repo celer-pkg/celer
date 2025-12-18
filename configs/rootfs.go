@@ -85,8 +85,8 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 	fmt.Fprintf(toolchain, `
 # SYSROOT for cross-compile.
 set(CMAKE_SYSROOT 	"%s")
-set(CMAKE_C_FLAGS   "--sysroot=${CMAKE_SYSROOT} ${CMAKE_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "--sysroot=${CMAKE_SYSROOT} ${CMAKE_CXX_FLAGS}")
+string(APPEND CMAKE_C_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")
+string(APPEND CMAKE_CXX_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")
 
 # Search programs in the host environment.
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
