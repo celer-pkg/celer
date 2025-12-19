@@ -281,6 +281,12 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 				ccFlags := " --sysroot=" + sysrootDir
 				cxxFlags := ccFlags
 
+				// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
+				if t.GetName() == "clang" {
+					ccFlags += " --gcc-toolchain=/usr"
+					cxxFlags += " --gcc-toolchain=/usr"
+				}
+
 				// For clang with lld, add LLVM runtime library flags.
 				if t.GetName() == "clang" && strings.Contains(t.GetLD(), "lld") {
 					ccFlags += " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
@@ -298,6 +304,12 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 			sysrootDir := rootfs.GetFullPath()
 			ccFlags := " --sysroot=" + sysrootDir
 			cxxFlags := ccFlags
+
+			// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
+			if t.GetName() == "clang" {
+				ccFlags += " --gcc-toolchain=/usr"
+				cxxFlags += " --gcc-toolchain=/usr"
+			}
 
 			// For clang with lld, add LLVM runtime library flags.
 			if t.GetName() == "clang" && strings.Contains(t.GetLD(), "lld") {

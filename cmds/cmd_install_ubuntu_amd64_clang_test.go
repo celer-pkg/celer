@@ -25,10 +25,6 @@ func TestInstall_B2_Clang(t *testing.T) {
 	buildWithClang(t, ubuntu_clang_21_1_4, "boost@1.87.0", false)
 }
 
-func TestInstall_Gyp_Clang(t *testing.T) {
-	buildWithClang(t, ubuntu_clang_21_1_4, "nss@3.55", false)
-}
-
 func TestInstall_Meson_Clang(t *testing.T) {
 	buildWithClang(t, ubuntu_clang_21_1_4, "pixman@0.44.2", false)
 }

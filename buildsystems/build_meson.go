@@ -274,6 +274,20 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		sysrootArg := fmt.Sprintf("'--sysroot=%s'", sysrootDir)
 		includeArgs = append(includeArgs, sysrootArg)
 		linkArgs = append(linkArgs, sysrootArg)
+
+		// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
+		if toolchain.GetName() == "clang" {
+			if len(includeArgs) == 0 {
+				includeArgs = append(includeArgs, "'--gcc-toolchain=/usr'")
+			} else {
+				includeArgs = append(includeArgs, "    '--gcc-toolchain=/usr'")
+			}
+			if len(linkArgs) == 0 {
+				linkArgs = append(linkArgs, "'--gcc-toolchain=/usr'")
+			} else {
+				linkArgs = append(linkArgs, "    '--gcc-toolchain=/usr'")
+			}
+		}
 	}
 
 	// This allows the bin to locate the libraries in the relative lib dir.

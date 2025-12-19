@@ -769,9 +769,16 @@ func (b BuildConfig) expandCommandsVariables(content string) string {
 	content = strings.ReplaceAll(content, "${REPO_DIR}", b.PortConfig.RepoDir)
 	content = strings.ReplaceAll(content, "${SRC_DIR}", b.PortConfig.SrcDir)
 
-	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths
-	content = strings.ReplaceAll(content, "${CC}", toolchain.GetCC())
-	content = strings.ReplaceAll(content, "${CXX}", toolchain.GetCXX())
+	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
+	// For Clang with sysroot, add --gcc-toolchain to find GCC runtime files.
+	ccValue := toolchain.GetCC()
+	cxxValue := toolchain.GetCXX()
+	if !b.DevDep && rootfs != nil && toolchain.GetName() == "clang" {
+		ccValue += " --gcc-toolchain=/usr"
+		cxxValue += " --gcc-toolchain=/usr"
+	}
+	content = strings.ReplaceAll(content, "${CC}", ccValue)
+	content = strings.ReplaceAll(content, "${CXX}", cxxValue)
 
 	if b.DevDep {
 		content = strings.ReplaceAll(content, "${DEPS_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev"))
