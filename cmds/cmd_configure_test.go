@@ -622,8 +622,8 @@ func TestConfigure_BinaryCacheDir_DirNotExist(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetBinaryCacheDir(dirs.TestCacheDir); errors.Is(err, errors.ErrBinaryCacheDirNotExist) {
-		t.Fatal(errors.ErrBinaryCacheDirNotExist)
+	if err := celer.SetBinaryCacheDir(dirs.TestCacheDir); !errors.Is(err, errors.ErrBinaryCacheDirNotExist) {
+		t.Fatal("expected error for binary cache dir not exist")
 	}
 }
 
