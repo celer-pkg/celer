@@ -437,40 +437,60 @@ func (c *Celer) SetVerbose(vebose bool) error {
 	return nil
 }
 
-func (c *Celer) SetBinaryCache(dir, token string) error {
+func (c *Celer) SetBinaryCacheDir(dir string) error {
+	// Check dir empty and exist.
+	if strings.TrimSpace(dir) == "" {
+		return errors.ErrBinaryCacheInvalid
+	}
+	if !fileio.PathExists(dir) {
+		return errors.ErrBinaryCacheDirNotExist
+	}
+
+	// Set binary cache dir.
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
-
-	if c.configData.BinaryCache != nil {
-		dir = expr.If(dir != "", dir, c.configData.BinaryCache.Dir)
-		if !fileio.PathExists(dir) {
-			return errors.ErrCacheDirNotExist
-		}
-	}
-
-	if token != "" {
-		tokenFile := filepath.Join(dir, "token")
-		if fileio.PathExists(tokenFile) {
-			return errors.ErrCacheTokenExist
-		}
-
-		// Token of cache dir should be encrypted.
-		bytes, err := encrypt.Encode(token)
-		if err != nil {
-			return fmt.Errorf("encode cache token: %w", err)
-		}
-		if err := os.WriteFile(tokenFile, bytes, os.ModePerm); err != nil {
-			return fmt.Errorf("write cache token: %w", err)
-		}
-	}
-
 	c.configData.BinaryCache = &BinaryCache{
 		Dir: dir,
 		ctx: c,
 	}
 	if err := c.save(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetBinaryCacheToken(token string) error {
+	if strings.TrimSpace(token) == "" {
+		return errors.ErrBinaryCacheTokenInvalid
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	// Binary cache dir must be configured already.
+	if c.configData.BinaryCache == nil {
+		return errors.ErrBinaryCacheDirNotConfigured
+	}
+	dir := c.configData.BinaryCache.Dir
+	if !fileio.PathExists(dir) {
+		return errors.ErrBinaryCacheDirNotExist
+	}
+
+	tokenFile := filepath.Join(dir, "token")
+	if fileio.PathExists(tokenFile) {
+		return errors.ErrBinaryCacheTokenExist
+	}
+
+	// Write token to file with encrypted text.
+	bytes, err := encrypt.Encode(token)
+	if err != nil {
+		return fmt.Errorf("encode cache token: %w", err)
+	}
+	if err := os.WriteFile(tokenFile, bytes, os.ModePerm); err != nil {
+		return fmt.Errorf("write cache token: %w", err)
 	}
 
 	return nil

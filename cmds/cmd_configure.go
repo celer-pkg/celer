@@ -141,19 +141,18 @@ Examples:
 				}
 				configs.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 
-			case flags.Changed("binary-cache-dir") || flags.Changed("binary-cache-token"):
-				binaryCache := c.celer.BinaryCache()
-				var binaryCacheDir string
-				if binaryCache != nil {
-					binaryCacheDir = binaryCache.GetDir()
-				} else {
-					binaryCacheDir = c.binaryCacheDir
-				}
-				if err := c.celer.SetBinaryCache(binaryCacheDir, c.cacheToken); err != nil {
-					configs.PrintError(err, "failed to set cache dir: %s.", binaryCacheDir)
+			case flags.Changed("binary-cache-dir"):
+				if err := c.celer.SetBinaryCacheDir(c.binaryCacheDir); err != nil {
+					configs.PrintError(err, "failed to set binary cache dir: %s.", c.binaryCacheDir)
 					return
 				}
-				configs.PrintSuccess("current cache dir: %s.", expr.If(binaryCacheDir != "", binaryCacheDir, "empty"))
+				configs.PrintSuccess("current cache dir: %s.", expr.If(c.binaryCacheDir != "", c.binaryCacheDir, "empty"))
+			case flags.Changed("binary-cache-token"):
+				if err := c.celer.SetBinaryCacheToken(c.cacheToken); err != nil {
+					configs.PrintError(err, "failed to set binary cache token: %s.", c.cacheToken)
+					return
+				}
+				configs.PrintSuccess("current cache token: %s.", expr.If(c.cacheToken != "", c.cacheToken, "empty"))
 
 			case flags.Changed("proxy-host"), flags.Changed("proxy-port"):
 				if err := c.celer.SetProxy(c.proxy.Host, c.proxy.Port); err != nil {

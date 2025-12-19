@@ -570,7 +570,7 @@ func TestConfigure_Verbose_OFF(t *testing.T) {
 	}
 }
 
-func TestConfigure_CacheDir(t *testing.T) {
+func TestConfigure_BinaryCacheDir(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -590,7 +590,8 @@ func TestConfigure_CacheDir(t *testing.T) {
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-	check(celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
+	check(celer.SetBinaryCacheToken("token_123456"))
 
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
@@ -603,7 +604,7 @@ func TestConfigure_CacheDir(t *testing.T) {
 	}
 }
 
-func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
+func TestConfigure_BinaryCacheDir_DirNotExist(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -621,8 +622,8 @@ func TestConfigure_CacheDir_DirNotExist(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"); errors.Is(err, errors.ErrCacheDirNotExist) {
-		t.Fatal(errors.ErrCacheDirNotExist)
+	if err := celer.SetBinaryCacheDir(dirs.TestCacheDir); errors.Is(err, errors.ErrBinaryCacheDirNotExist) {
+		t.Fatal(errors.ErrBinaryCacheDirNotExist)
 	}
 }
 

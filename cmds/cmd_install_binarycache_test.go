@@ -14,8 +14,6 @@ import (
 )
 
 func TestInstall_BinaryCache_Success(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -44,7 +42,8 @@ func TestInstall_BinaryCache_Success(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
+	check(celer.SetBinaryCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
 
@@ -94,8 +93,6 @@ func TestInstall_BinaryCache_Success(t *testing.T) {
 }
 
 func TestInstall_BinaryCache_With_Deps_Success(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -124,7 +121,8 @@ func TestInstall_BinaryCache_With_Deps_Success(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
+	check(celer.SetBinaryCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
 
@@ -185,8 +183,6 @@ func TestInstall_BinaryCache_With_Deps_Success(t *testing.T) {
 }
 
 func TestInstall_BinaryCache_Prebuilt_Success(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -215,7 +211,8 @@ func TestInstall_BinaryCache_Prebuilt_Success(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
+	check(celer.SetBinaryCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
 
@@ -268,8 +265,6 @@ func TestInstall_BinaryCache_Prebuilt_Success(t *testing.T) {
 }
 
 func TestInstall_BinaryCache_DirNotDefined_Failed(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -298,7 +293,7 @@ func TestInstall_BinaryCache_DirNotDefined_Failed(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetBinaryCache("", "token_123456"))
+	// check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
 
@@ -308,14 +303,12 @@ func TestInstall_BinaryCache_DirNotDefined_Failed(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrCacheDirNotConfigured {
+	if err := port.InstallFromSource(options); err != errors.ErrBinaryCacheDirNotConfigured {
 		t.Fatal("should return ErrCacheDirNotConfigured")
 	}
 }
 
 func TestInstall_BinaryCache_TokenNotDefined_Failed(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -344,7 +337,8 @@ func TestInstall_BinaryCache_TokenNotDefined_Failed(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetBinaryCache(dirs.TestCacheDir, ""))
+	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
+	// check(celer.SetBinaryCacheToken(""))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
 
@@ -354,14 +348,12 @@ func TestInstall_BinaryCache_TokenNotDefined_Failed(t *testing.T) {
 		CacheToken: "token_123456",
 	}
 	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrCacheTokenNotConfigured {
+	if err := port.InstallFromSource(options); err != errors.ErrBinaryCacheTokenNotConfigured {
 		t.Fatal("should return ErrCacheTokenNotConfigured")
 	}
 }
 
 func TestInstall_BinaryCache_TokenNotSpecified_Failed(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -390,7 +382,8 @@ func TestInstall_BinaryCache_TokenNotSpecified_Failed(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
+	check(celer.SetBinaryCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
 
@@ -400,14 +393,12 @@ func TestInstall_BinaryCache_TokenNotSpecified_Failed(t *testing.T) {
 		CacheToken: "", // Token not specified
 	}
 	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrCacheTokenNotSpecified {
+	if err := port.InstallFromSource(options); err != errors.ErrBinaryCacheTokenNotSpecified {
 		t.Fatal("should return ErrCacheTokenNotSpecified")
 	}
 }
 
 func TestInstall_BinaryCache_TokenNotMatch_Failed(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -436,7 +427,8 @@ func TestInstall_BinaryCache_TokenNotMatch_Failed(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
+	check(celer.SetBinaryCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
 
@@ -446,14 +438,12 @@ func TestInstall_BinaryCache_TokenNotMatch_Failed(t *testing.T) {
 		CacheToken: "token_654321", // Token not match.
 	}
 	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrCacheTokenNotMatch {
+	if err := port.InstallFromSource(options); err != errors.ErrBinaryCacheTokenNotMatch {
 		t.Fatal("should return ErrCacheTokenNotMatch")
 	}
 }
 
 func TestInstall_BinaryCache_With_Commit_Success(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -482,7 +472,8 @@ func TestInstall_BinaryCache_With_Commit_Success(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
+	check(celer.SetBinaryCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
 
@@ -520,8 +511,6 @@ func TestInstall_BinaryCache_With_Commit_Success(t *testing.T) {
 }
 
 func TestInstall_BinaryCache_With_Commit_Failed(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -550,7 +539,8 @@ func TestInstall_BinaryCache_With_Commit_Failed(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetBinaryCache(dirs.TestCacheDir, "token_123456"))
+	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
+	check(celer.SetBinaryCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
 	check(celer.Setup())
 
