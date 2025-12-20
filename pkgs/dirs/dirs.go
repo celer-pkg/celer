@@ -106,6 +106,9 @@ func cleanRepos(buildtreesDir string) error {
 		for _, entity := range entities {
 			if entity.Name() == "src" {
 				repoDir := filepath.Join(buildDir, entity.Name())
+				if !pathExists(filepath.Join(repoDir, ".git")) {
+					continue
+				}
 				if err := os.Chdir(repoDir); err != nil {
 					return fmt.Errorf("cannot change dir to repo dir: %w", err)
 				}
