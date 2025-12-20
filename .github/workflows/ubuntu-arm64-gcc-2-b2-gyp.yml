@@ -1,0 +1,44 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: ubuntu-arm64-gcc-b2-gyp
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build_test:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22.1'
+
+    - name: Free disk space
+      run: |
+        echo "Disk space before cleanup:"
+        df -h
+        
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        sudo docker image prune --all --force
+        
+        echo "Disk space after cleanup:"
+        df -h
+
+    - name: Install build-tools
+      run: sudo apt update && sudo apt install -y build-essential git
+
+    - name: Build Celer
+      run: go build -v ./...
+
+    - name: Test(ARM64_GCC_B2_Gyp)
+      run: go test -tags=test_aarch64_gcc -v ./cmds/ -run "TestInstall_(B2|Gyp)_ARM64_GCC" -timeout 2h
