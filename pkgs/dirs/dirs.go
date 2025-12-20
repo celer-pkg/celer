@@ -3,6 +3,7 @@ package dirs
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -81,5 +82,55 @@ func RemoveAllForTest() {
 	os.RemoveAll(TestCacheDir)
 	os.RemoveAll(PackagesDir)
 	os.RemoveAll(InstalledDir)
-	os.RemoveAll(BuildtreesDir)
+	cleanRepos(BuildtreesDir)
+}
+
+func cleanRepos(buildtreesDir string) error {
+	// Check buildtrees dir.
+	if !pathExists(buildtreesDir) {
+		return nil
+	}
+
+	// Read sub dirs to git clean src folders.
+	entities, err := os.ReadDir(buildtreesDir)
+	if err != nil {
+		return fmt.Errorf("cannot read buildtrees dir: %w", err)
+	}
+	for _, entity := range entities {
+		buildDir := filepath.Join(buildtreesDir, entity.Name())
+		entities, err := os.ReadDir(buildDir)
+		if err != nil {
+			return fmt.Errorf("cannot read build dir: %w", err)
+		}
+
+		for _, entity := range entities {
+			if entity.Name() == "src" {
+				repoDir := filepath.Join(buildDir, entity.Name())
+				if err := os.Chdir(repoDir); err != nil {
+					return fmt.Errorf("cannot change dir to repo dir: %w", err)
+				}
+
+				cmd := exec.Command("git", "clean", "-xfd")
+				if err := cmd.Start(); err != nil {
+					return err
+				}
+
+				cmd = exec.Command("git", "reset", "--hard")
+				if err := cmd.Start(); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+
+	return !os.IsNotExist(err)
 }

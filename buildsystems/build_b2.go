@@ -180,7 +180,7 @@ func (b b2) Configure(options []string) error {
 						}
 					}
 				}
-			} else if strings.Contains(line, "using msvc ;") {
+			} else if strings.Contains(line, "using msvc ;") || strings.Contains(line, "using clang-win") {
 				switch toolchain.GetName() {
 				case "clang-cl":
 					if b.Ctx.CCacheEnabled() {
@@ -307,9 +307,6 @@ func (b b2) buildOptions() ([]string, error) {
 			options = append(options, libraryType.disableShared)
 		}
 	}
-
-	// It's suggested for windows.
-	options = append(options, "--abbreviate-paths")
 
 	// Note: `threading=multi` will make boost link pthread in linux.
 	// In embedded system, `threading=multi` is not supported,
