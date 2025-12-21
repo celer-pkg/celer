@@ -178,7 +178,7 @@ func TestUpdateCmd_UpdateConfRepo(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 
 	// Create update command
@@ -218,7 +218,7 @@ func TestUpdateCmd_UpdateConfRepo_Force(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 
 	// Create update command with force
@@ -257,7 +257,7 @@ func TestUpdateCmd_UpdatePortsRepo(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.Setup())
 
@@ -297,7 +297,7 @@ func TestUpdateCmd_UpdateProjectRepos_NoTargets(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 
 	// Create update command.
@@ -336,7 +336,7 @@ func TestUpdateCmd_UpdatePortRepo_SrcNotExist(t *testing.T) {
 
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -383,7 +383,7 @@ func TestUpdateCmd_UpdatePortRepo_NonGitRepo(t *testing.T) {
 
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -440,7 +440,7 @@ func TestUpdateCmd_UpdatePortRepo_CircularDependency(t *testing.T) {
 
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -489,7 +489,7 @@ func TestUpdateCmd_UpdatePortRepo_WithGitRepo(t *testing.T) {
 
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -552,7 +552,7 @@ func TestUpdateCmd_UpdatePorts_BacktickRemoval(t *testing.T) {
 
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -588,7 +588,7 @@ func TestUpdateCmd_DoUpdate_ConfRepo(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 
 	// Create update command
@@ -621,7 +621,7 @@ func TestUpdateCmd_DoUpdate_PortsRepo(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.Setup())
 

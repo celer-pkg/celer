@@ -56,7 +56,7 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	// Init celer.
 	const project = "project_test_install"
 	celer := configs.NewCeler()
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.InitWithPlatform(platform))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))

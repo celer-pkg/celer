@@ -1,7 +1,7 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: ubuntu-amd64-gcc-prebuilt-nobuild
+name: ubuntu-arm64-gcc-makefiles
 
 on:
   push:
@@ -34,11 +34,11 @@ jobs:
         echo "Disk space after cleanup:"
         df -h
 
-    - name: Install build tools
+    - name: Install build-tools
       run: sudo apt update && sudo apt install -y build-essential git
 
     - name: Build Celer
       run: go build -v ./...
 
-    - name: Test(AMD64_GCC_Prebuilt_Nobuild)
-      run: go test -tags=test_gcc -v ./cmds/ -run "TestInstall_(Prebuilt|Nobuild)_AMD64_GCC" -timeout 1h
+    - name: Test(AArch64_GCC_Makefiles)
+      run: go test -tags=test_aarch64_gcc -v ./cmds/ -run "TestInstall_Makefiles_AArch64_GCC" -timeout 1h

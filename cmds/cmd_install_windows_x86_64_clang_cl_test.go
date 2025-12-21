@@ -13,33 +13,33 @@ import (
 	"testing"
 )
 
-func TestInstall_CMake_Clang(t *testing.T) {
+func TestInstall_CMake_x86_64_Clang(t *testing.T) {
 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
-	buildWithClang(t, platform, "gflags@2.2.2", false)
+	buildWithX86_64Clang(t, platform, "gflags@2.2.2", false)
 }
 
 // TODO: it works in local but fails in test.
-// func TestInstall_B2_Clang(t *testing.T) {
+// func TestInstall_B2_x86_64_Clang(t *testing.T) {
 // 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
-// 	buildWithClang(t, platform, "boost@1.87.0", false)
+// 	buildWithX86_64Clang(t, platform, "boost@1.87.0", false)
 // }
 
-func TestInstall_Meson_Clang(t *testing.T) {
+func TestInstall_Meson_x86_64_Clang(t *testing.T) {
 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
-	buildWithClang(t, platform, "pkgconf@2.4.3", false)
+	buildWithX86_64Clang(t, platform, "pkgconf@2.4.3", false)
 }
 
-func TestInstall_Prebuilt_Clang(t *testing.T) {
+func TestInstall_Prebuilt_x86_64_Clang(t *testing.T) {
 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
-	buildWithClang(t, platform, "prebuilt-x264@stable", false)
+	buildWithX86_64Clang(t, platform, "prebuilt-x264@stable", false)
 }
 
-func TestInstall_Nobuild_Clang(t *testing.T) {
+func TestInstall_Nobuild_x86_64_Clang(t *testing.T) {
 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
-	buildWithClang(t, platform, "gnulib@master", true)
+	buildWithX86_64Clang(t, platform, "gnulib@master", true)
 }
 
-func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
+func buildWithX86_64Clang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -55,7 +55,7 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	const project = "project_test_install"
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	if platform != "" {

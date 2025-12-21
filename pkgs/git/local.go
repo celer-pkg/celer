@@ -43,7 +43,8 @@ func CheckIfLocalCommit(repoDir, repoRef string) (bool, error) {
 
 // IsModified check if repo is modified.
 func IsModified(repoDir string) (bool, error) {
-	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
+	cmd := exec.Command("git", "status", "--porcelain")
+	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return false, fmt.Errorf("failed to check if repo is modified.\n %s", output)
@@ -54,7 +55,8 @@ func IsModified(repoDir string) (bool, error) {
 
 // ReadLocalCommit read git commit hash.
 func ReadLocalCommit(repoDir string) (string, error) {
-	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("read git commit hash: %s", output)
@@ -66,6 +68,7 @@ func ReadLocalCommit(repoDir string) (string, error) {
 // DefaultBranch read git default branch.
 func DefaultBranch(repoDir string) (string, error) {
 	cmd := exec.Command("git", "remote", "show", "origin")
+	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("read git default branch: %s", output)
@@ -85,8 +88,9 @@ func DefaultBranch(repoDir string) (string, error) {
 }
 
 func BranchOfLocal(repoDir string) (string, error) {
-	command := exec.Command("git", "-C", repoDir, "rev-parse", "--abbrev-ref", "HEAD")
-	output, err := command.CombinedOutput()
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	cmd.Dir = repoDir
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("get current branch name: %s", output)
 	}

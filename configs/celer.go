@@ -307,32 +307,37 @@ func (c *Celer) CreatePort(nameVersion string) error {
 }
 
 func (c *Celer) CloneConf(url, branch string, force bool) error {
-	// Remove existing conf repo if force is specified.
-	confDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	if fileio.PathExists(confDir) {
-		if !force {
-			return fmt.Errorf("conf repo already exists, clone is skipped ... ⭐⭐⭐ you can use --force/-f to re-initialize it ⭐⭐⭐")
-		}
-		if err := os.RemoveAll(confDir); err != nil {
-			return err
-		}
-	}
-
-	// Clone conf repo.
 	if err := buildtools.CheckTools(c, "git"); err != nil {
 		return err
 	}
-	if err := git.CloneRepo("[clone conf repo]", url, branch, false, 0, confDir); err != nil {
-		return fmt.Errorf("clone conf repo: %w", err)
-	}
 
-	if err := c.readOrCreate(); err != nil {
-		return err
-	}
+	confDir := filepath.Join(dirs.WorkspaceDir, "conf")
+	if fileio.PathExists(confDir) {
+		modified, err := git.IsModified(confDir)
+		if err != nil {
+			return err
+		}
+		if modified && !force {
+			return fmt.Errorf("conf repo has local modifications, update is skipped ... ⭐⭐⭐ you can try with --force/-f ⭐⭐⭐")
+		}
 
-	c.Global.ConfRepo = url
-	if err := c.save(); err != nil {
-		return err
+		if err := git.UpdateRepo("[update conf repo]", branch, confDir, force); err != nil {
+			return fmt.Errorf("update conf repo: %w", err)
+		}
+	} else {
+		// Clone conf repo.
+		if err := git.CloneRepo("[clone conf repo]", url, branch, false, 0, confDir); err != nil {
+			return fmt.Errorf("clone conf repo: %w", err)
+		}
+
+		if err := c.readOrCreate(); err != nil {
+			return err
+		}
+
+		c.Global.ConfRepo = url
+		if err := c.save(); err != nil {
+			return err
+		}
 	}
 
 	return nil
