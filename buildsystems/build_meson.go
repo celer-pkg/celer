@@ -263,13 +263,42 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	var (
 		includeArgs []string
 		linkArgs    []string
+		sysrootDir  string
 	)
+
+	// Set sysroot path for cross-compilation.
+	if !m.DevDep && rootfs != nil {
+		sysrootDir = rootfs.GetFullPath()
+
+		// Add --sysroot to compiler and linker args.
+		sysrootArg := fmt.Sprintf("'--sysroot=%s'", sysrootDir)
+		includeArgs = append(includeArgs, sysrootArg)
+		linkArgs = append(linkArgs, sysrootArg)
+
+		// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
+		if toolchain.GetName() == "clang" {
+			if len(includeArgs) == 0 {
+				includeArgs = append(includeArgs, "'--gcc-toolchain=/usr'")
+			} else {
+				includeArgs = append(includeArgs, "    '--gcc-toolchain=/usr'")
+			}
+			if len(linkArgs) == 0 {
+				linkArgs = append(linkArgs, "'--gcc-toolchain=/usr'")
+			} else {
+				linkArgs = append(linkArgs, "    '--gcc-toolchain=/usr'")
+			}
+		}
+	}
 
 	// This allows the bin to locate the libraries in the relative lib dir.
 	switch runtime.GOOS {
 	case "linux":
 		if toolchain.GetName() == "gcc" || toolchain.GetName() == "clang" {
-			linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+			if len(linkArgs) == 0 {
+				linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+			} else {
+				linkArgs = append(linkArgs, "    '-Wl,-rpath=$ORIGIN/../lib'")
+			}
 		}
 	case "darwin":
 		// TODO: it may supported in the future for darwin.
@@ -278,7 +307,6 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	if !m.DevDep && rootfs != nil {
 		// In meson, `sys_root` will be joined as the suffix with
 		// the prefix in .pc files to locate libraries.
-		sysrootDir := rootfs.GetFullPath()
 		fmt.Fprintf(&buffers, "sys_root = '%s'\n", sysrootDir)
 
 		for _, item := range rootfs.GetIncludeDirs() {
@@ -321,6 +349,8 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		}
 	}
 
+	// Use [built-in options] section for Meson 0.56+ (recommended way)
+	fmt.Fprintf(&buffers, "\n[built-in options]\n")
 	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(includeArgs, ",\n"))
 	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(includeArgs, ",\n"))
 	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ",\n"))

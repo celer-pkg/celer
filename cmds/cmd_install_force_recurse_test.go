@@ -5,7 +5,6 @@ import (
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -14,8 +13,6 @@ import (
 )
 
 func TestInstall_With_Force(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -87,8 +84,6 @@ func TestInstall_With_Force(t *testing.T) {
 }
 
 func TestInstall_With_Force_Recursive(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 

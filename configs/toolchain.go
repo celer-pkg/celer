@@ -95,6 +95,19 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
 		writeIfNotEmpty("CMAKE_READELF", t.READELF)
 
+		// For clang, if using lld, add LLVM runtime library flags to linker.
+		if t.Name == "clang" && t.LD != "" && strings.Contains(t.LD, "lld") {
+			// Use LLVM's libc++ for C++ standard library.
+			fmt.Fprint(toolchain, "\n# Use LLVM lld linker, compiler-rt runtime and libc++ for clang.\n")
+			fmt.Fprintf(toolchain, "string(APPEND CMAKE_CXX_FLAGS_INIT \" -stdlib=libc++\")\n")
+
+			// These flags are only needed during linking, if we set them in CMAKE_C_FLAGS_INIT,
+			// they may cause warnings during compilation.
+			fmt.Fprintf(toolchain, "string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT \" -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind\")\n")
+			fmt.Fprintf(toolchain, "string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT \" -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind\")\n")
+			fmt.Fprintf(toolchain, "string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT \" -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind\")\n")
+		}
+
 	case "msvc", "clang-cl":
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
 		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
@@ -257,7 +270,7 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 	os.Setenv("HOST", t.GetHost())
 
 	if t.ctx.CCacheEnabled() {
-		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables
+		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables,
 		// because MSYS2 shell cannot handle "ccache cl.exe" as a command.
 		if runtime.GOOS == "windows" && (t.GetName() == "msvc" || t.GetName() == "clang-cl") && buildsystem == "makefiles" {
 			os.Setenv("CC", t.GetCC())
@@ -265,8 +278,22 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 		} else {
 			if rootfs != nil {
 				sysrootDir := rootfs.GetFullPath()
-				os.Setenv("CC", "ccache "+t.GetCC()+" --sysroot="+sysrootDir)
-				os.Setenv("CXX", "ccache "+t.GetCXX()+" --sysroot="+sysrootDir)
+				ccFlags := " --sysroot=" + sysrootDir
+				cxxFlags := ccFlags
+
+				// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
+				if t.GetName() == "clang" {
+					ccFlags += " --gcc-toolchain=/usr"
+					cxxFlags += " --gcc-toolchain=/usr"
+				}
+
+				// For clang with lld, add LLVM runtime library flags.
+				if t.GetName() == "clang" && strings.Contains(t.GetLD(), "lld") {
+					ccFlags += " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
+					cxxFlags += " -stdlib=libc++ -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
+				}
+				os.Setenv("CC", "ccache "+t.GetCC()+ccFlags)
+				os.Setenv("CXX", "ccache "+t.GetCXX()+cxxFlags)
 			} else {
 				os.Setenv("CC", "ccache "+t.GetCC())
 				os.Setenv("CXX", "ccache "+t.GetCXX())
@@ -275,8 +302,22 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 	} else {
 		if rootfs != nil {
 			sysrootDir := rootfs.GetFullPath()
-			os.Setenv("CC", t.GetCC()+" --sysroot="+sysrootDir)
-			os.Setenv("CXX", t.GetCXX()+" --sysroot="+sysrootDir)
+			ccFlags := " --sysroot=" + sysrootDir
+			cxxFlags := ccFlags
+
+			// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
+			if t.GetName() == "clang" {
+				ccFlags += " --gcc-toolchain=/usr"
+				cxxFlags += " --gcc-toolchain=/usr"
+			}
+
+			// For clang with lld, add LLVM runtime library flags.
+			if t.GetName() == "clang" && strings.Contains(t.GetLD(), "lld") {
+				ccFlags += " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
+				cxxFlags += " -stdlib=libc++ -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
+			}
+			os.Setenv("CC", t.GetCC()+ccFlags)
+			os.Setenv("CXX", t.GetCXX()+cxxFlags)
 		}
 	}
 

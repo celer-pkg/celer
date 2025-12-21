@@ -14,8 +14,6 @@ import (
 )
 
 func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -81,8 +79,6 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -145,8 +141,6 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -209,8 +203,6 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -273,8 +265,6 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -337,8 +327,6 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 }
 
 func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
-	fmt.Printf("-- GITHUB_ACTIONS: %s\n", expr.If(os.Getenv("GITHUB_ACTIONS") != "", os.Getenv("GITHUB_ACTIONS"), "false"))
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 

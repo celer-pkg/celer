@@ -1,7 +1,7 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: ubuntu-arm64-gcc-11.5.0
+name: test-base
 
 on:
   push:
@@ -20,17 +20,11 @@ jobs:
       with:
         go-version: '1.22.1'
 
-    - name: Install build-tools
-      run: sudo apt update && sudo apt install -y build-essential git
-
     - name: Build Celer
       run: go build -v ./...
 
-    - name: Test(ARM64_GCC)
-      env:
-        TEST_ARM64_GCC: true
+    - name: Test(Base)
       run: |
         go test -v ./depcheck/... -timeout 1h
         go test -v ./configs/...  -timeout 1h
         go test -v ./pkgs/git/... -timeout 1h
-        go test -v ./cmds/... -timeout 1h

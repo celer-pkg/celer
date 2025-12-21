@@ -191,22 +191,22 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 	if options.StoreCache && !p.MatchedConfig.DevDep && !p.MatchedConfig.Native {
 		binaryCache := p.ctx.BinaryCache()
 		if binaryCache == nil {
-			return errors.ErrCacheDirNotConfigured
+			return errors.ErrBinaryCacheDirNotConfigured
 		}
 		if binaryCache.GetDir() == "" {
-			return errors.ErrCacheDirNotConfigured
+			return errors.ErrBinaryCacheDirNotConfigured
 		}
 
 		if !fileio.PathExists(filepath.Join(binaryCache.GetDir(), "token")) {
-			return errors.ErrCacheTokenNotConfigured
+			return errors.ErrBinaryCacheTokenNotConfigured
 		}
 
 		if options.CacheToken == "" {
-			return errors.ErrCacheTokenNotSpecified
+			return errors.ErrBinaryCacheTokenNotSpecified
 		}
 
 		if !encrypt.CheckToken(binaryCache.GetDir(), options.CacheToken) {
-			return errors.ErrCacheTokenNotMatch
+			return errors.ErrBinaryCacheTokenNotMatch
 		}
 
 		writeCacheAfterInstall = true
@@ -238,11 +238,11 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 		// Store cache after installation.
 		if writeCacheAfterInstall {
 			if p.ctx.BinaryCache() == nil {
-				return errors.ErrCacheDirNotConfigured
+				return errors.ErrBinaryCacheDirNotConfigured
 			}
 			binaryCache := p.ctx.BinaryCache()
 			if binaryCache.GetDir() == "" {
-				return errors.ErrCacheDirNotConfigured
+				return errors.ErrBinaryCacheDirNotConfigured
 			}
 			if err := binaryCache.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 				return err
@@ -406,10 +406,10 @@ func (p Port) InstallFromBinaryCache(options InstallOptions) (bool, error) {
 
 		binaryCache := p.ctx.BinaryCache()
 		if binaryCache == nil {
-			return false, errors.ErrCacheDirNotConfigured
+			return false, errors.ErrBinaryCacheDirNotConfigured
 		}
 		if binaryCache.GetDir() == "" {
-			return false, errors.ErrCacheDirNotConfigured
+			return false, errors.ErrBinaryCacheDirNotConfigured
 		}
 		fromDir := binaryCache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("binary cache, dir: %q", fromDir))

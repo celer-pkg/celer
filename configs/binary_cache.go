@@ -19,10 +19,10 @@ type BinaryCache struct {
 
 func (b BinaryCache) Validate() error {
 	if b.Dir == "" {
-		return fmt.Errorf("cache dir is empty")
+		return fmt.Errorf("binary cache dir is empty")
 	}
 	if !fileio.PathExists(b.Dir) {
-		return fmt.Errorf("cache dir does not exist: %s", b.Dir)
+		return fmt.Errorf("binary cache dir does not exist: %s", b.Dir)
 	}
 	return nil
 }

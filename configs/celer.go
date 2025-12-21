@@ -70,7 +70,13 @@ type configData struct {
 	CCache      *CCache      `toml:"ccache,omitempty"`
 }
 
+// Init initializes celer with existing platform.
 func (c *Celer) Init() error {
+	return c.InitWithPlatform(c.configData.Global.Platform)
+}
+
+// InitWithPlatform initializes celer with platform.
+func (c *Celer) InitWithPlatform(platform string) error {
 	c.platform.ctx = c
 
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
@@ -94,6 +100,14 @@ func (c *Celer) Init() error {
 			return fmt.Errorf("failed to marshal conf.\n %w", err)
 		}
 
+		// Set platform and init platform if specified.
+		if platform != "" {
+			c.configData.Global.Platform = platform
+			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
+				return err
+			}
+		}
+
 		if err := os.WriteFile(configPath, bytes, os.ModePerm); err != nil {
 			return err
 		}
@@ -110,7 +124,10 @@ func (c *Celer) Init() error {
 		// Use lower case build type in celer as default.
 		c.Global.BuildType = strings.ToLower(c.Global.BuildType)
 
-		// Init platform with platform name.
+		// Set platform and init platform if specified.
+		if platform != "" {
+			c.configData.Global.Platform = platform
+		}
 		if c.configData.Global.Platform != "" {
 			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
 				return err
@@ -144,9 +161,9 @@ func (c *Celer) Init() error {
 	// Celer support detect local toolchain, if platform name is not specified, use default toolchain:
 	// Windows: default is msvc,
 	// Linux: default is gcc.
-	if c.platform.Name == "" {
+	if c.configData.Global.Platform == "" {
 		var toolchain = Toolchain{ctx: c}
-		if err := toolchain.Detect(c.platform.Name); err != nil {
+		if err := toolchain.Detect(c.configData.Global.Platform); err != nil {
 			return fmt.Errorf("detect celer.toolchain: %w", err)
 		}
 		c.platform.Toolchain = &toolchain
@@ -174,7 +191,7 @@ func (c *Celer) Init() error {
 	}
 
 	// No platform name, detect default platform.
-	if c.platform.Name == "" {
+	if c.configData.Global.Platform == "" {
 		switch runtime.GOOS {
 		case "windows":
 			if c.platform.Toolchain.Name == "msvc" || c.platform.Toolchain.Name == "clang" || c.platform.Toolchain.Name == "clang-cl" {
@@ -420,40 +437,60 @@ func (c *Celer) SetVerbose(vebose bool) error {
 	return nil
 }
 
-func (c *Celer) SetBinaryCache(dir, token string) error {
+func (c *Celer) SetBinaryCacheDir(dir string) error {
+	// Check dir empty and exist.
+	if strings.TrimSpace(dir) == "" {
+		return errors.ErrBinaryCacheInvalid
+	}
+	if !fileio.PathExists(dir) {
+		return errors.ErrBinaryCacheDirNotExist
+	}
+
+	// Set binary cache dir.
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
-
-	if c.configData.BinaryCache != nil {
-		dir = expr.If(dir != "", dir, c.configData.BinaryCache.Dir)
-		if !fileio.PathExists(dir) {
-			return errors.ErrCacheDirNotExist
-		}
-	}
-
-	if token != "" {
-		tokenFile := filepath.Join(dir, "token")
-		if fileio.PathExists(tokenFile) {
-			return errors.ErrCacheTokenExist
-		}
-
-		// Token of cache dir should be encrypted.
-		bytes, err := encrypt.Encode(token)
-		if err != nil {
-			return fmt.Errorf("encode cache token: %w", err)
-		}
-		if err := os.WriteFile(tokenFile, bytes, os.ModePerm); err != nil {
-			return fmt.Errorf("write cache token: %w", err)
-		}
-	}
-
 	c.configData.BinaryCache = &BinaryCache{
 		Dir: dir,
 		ctx: c,
 	}
 	if err := c.save(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetBinaryCacheToken(token string) error {
+	if strings.TrimSpace(token) == "" {
+		return errors.ErrBinaryCacheTokenInvalid
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	// Binary cache dir must be configured already.
+	if c.configData.BinaryCache == nil {
+		return errors.ErrBinaryCacheDirNotConfigured
+	}
+	dir := c.configData.BinaryCache.Dir
+	if !fileio.PathExists(dir) {
+		return errors.ErrBinaryCacheDirNotExist
+	}
+
+	tokenFile := filepath.Join(dir, "token")
+	if fileio.PathExists(tokenFile) {
+		return errors.ErrBinaryCacheTokenExist
+	}
+
+	// Write token to file with encrypted text.
+	bytes, err := encrypt.Encode(token)
+	if err != nil {
+		return fmt.Errorf("encode cache token: %w", err)
+	}
+	if err := os.WriteFile(tokenFile, bytes, os.ModePerm); err != nil {
+		return fmt.Errorf("write cache token: %w", err)
 	}
 
 	return nil

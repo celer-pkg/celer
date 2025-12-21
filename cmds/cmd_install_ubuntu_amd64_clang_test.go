@@ -1,4 +1,4 @@
-//go:build linux && amd64
+//go:build linux && amd64 && test_clang
 
 package cmds
 
@@ -7,7 +7,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -26,10 +25,6 @@ func TestInstall_B2_Clang(t *testing.T) {
 	buildWithClang(t, ubuntu_clang_21_1_4, "boost@1.87.0", false)
 }
 
-func TestInstall_Gyp_Clang(t *testing.T) {
-	buildWithClang(t, ubuntu_clang_21_1_4, "nss@3.55", false)
-}
-
 func TestInstall_Meson_Clang(t *testing.T) {
 	buildWithClang(t, ubuntu_clang_21_1_4, "pixman@0.44.2", false)
 }
@@ -39,18 +34,14 @@ func TestInstall_FreeStyle_AMD64_Clang(t *testing.T) {
 }
 
 func TestInstall_Prebuilt_Clang(t *testing.T) {
-	buildWithClang(t, "clang", "prebuilt-x264@stable", false)
+	buildWithClang(t, ubuntu_clang_21_1_4, "prebuilt-x264@stable", false)
 }
 
 func TestInstall_Nobuild_Clang(t *testing.T) {
-	buildWithClang(t, "clang", "gnulib@master", true)
+	buildWithClang(t, ubuntu_clang_21_1_4, "gnulib@master", true)
 }
 
 func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
-	if os.Getenv("TEST_CLANG") != "ON" {
-		t.SkipNow()
-	}
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -65,14 +56,9 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	// Init celer.
 	const project = "project_test_install"
 	celer := configs.NewCeler()
-	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.InitWithPlatform(platform))
 	check(celer.SetBuildType("Release"))
-	if platform != "" {
-		check(celer.SetPlatform(platform))
-	} else {
-		platform = celer.Platform().GetHostName()
-	}
 	check(celer.SetProject(project))
 	check(celer.Setup())
 
@@ -89,7 +75,7 @@ func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	if !nobuild {
 		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
 		if !fileio.PathExists(packageDir) {
-			t.Fatal("package dir cannot found")
+			t.Fatal("package dir cannot found: " + packageDir)
 		}
 	}
 

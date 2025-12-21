@@ -71,8 +71,8 @@ func DefaultBranch(repoDir string) (string, error) {
 		return "", fmt.Errorf("read git default branch: %s", output)
 	}
 
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(string(output), "\n")
+	for line := range lines {
 		if strings.Contains(line, "HEAD branch") {
 			parts := strings.Split(line, ":")
 			if len(parts) > 1 {
