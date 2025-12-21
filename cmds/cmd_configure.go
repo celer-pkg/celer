@@ -42,7 +42,7 @@ mutually exclusive nature of the flags.
 Available Configuration Options:
 
   Platform Configuration:
-    --platform        Set the target platform (e.g., windows-amd64, linux-x64)
+    --platform        Set the target platform (e.g., windows-x86_64, linux-x64)
     
   Project Configuration:
     --project         Set the current project configuration
@@ -70,7 +70,7 @@ Available Configuration Options:
 	--ccache-remote-storage Set remote storage address for ccache
 
 Examples:
-  celer configure --platform windows-amd64        # Set target platform
+  celer configure --platform windows-x86_64        # Set target platform
   celer configure --project myproject             # Set current project
   celer configure --build-type Release            # Set build type to Release
   celer configure --jobs 8                        # Use 8 parallel build jobs

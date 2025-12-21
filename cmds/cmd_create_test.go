@@ -130,10 +130,10 @@ func TestCreateCmd_Validation(t *testing.T) {
 			input       string
 			expectError bool
 		}{
-			{"valid platform name", "windows-amd64-msvc", false},
+			{"valid platform name", "windows-x86_64-msvc", false},
 			{"empty platform name", "", true},
 			{"whitespace only", "   ", true},
-			{"platform with spaces", "windows amd64", true},
+			{"platform with spaces", "windows x86_64", true},
 			{"valid complex name", "x86_64-linux-gnu-gcc", false},
 		}
 

@@ -287,7 +287,7 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 	testFiles := []string{
 		"boost@1.87.0@x86_64-linux.trace",
 		"openssl@3.5.0@x86_64-linux-dev.trace",
-		"opencv@4.11.0@arm64-linux.trace",
+		"opencv@4.11.0@aarch64-linux.trace",
 		"invalid-file.txt",
 		"no-extension",
 	}

@@ -11,64 +11,64 @@ import (
 	"testing"
 )
 
-const ubuntu_arm64_gcc_11_5_0 = "aarch64-linux-ubuntu-22.04-gcc-11.5.0"
+const ubuntu_aarch64_gcc_11_5_0 = "aarch64-linux-ubuntu-22.04-gcc-11.5.0"
 
-func TestInstall_Makefiles_AArch64_GCC(t *testing.T) {
+func TestInstall_AArch64_GCC_Makefiles(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
 		buildWithAArch64GCC(t, "", "x264@stable", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithAArch64GCC(t, ubuntu_arm64_gcc_11_5_0, "x264@stable", false)
+		buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "x264@stable", false)
 	})
 }
 
-func TestInstall_CMake_AArch64_GCC(t *testing.T) {
+func TestInstall_AArch64_GCC_CMake(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
 		buildWithAArch64GCC(t, "", "glog@0.6.0", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithAArch64GCC(t, ubuntu_arm64_gcc_11_5_0, "glog@0.6.0", false)
+		buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "glog@0.6.0", false)
 	})
 }
 
-func TestInstall_B2_AArch64_GCC(t *testing.T) {
+func TestInstall_AArch64_GCC_B2(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
 		buildWithAArch64GCC(t, "", "boost@1.87.0", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithAArch64GCC(t, ubuntu_arm64_gcc_11_5_0, "boost@1.87.0", false)
+		buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "boost@1.87.0", false)
 	})
 }
 
-func TestInstall_Gyp_AArch64_GCC(t *testing.T) {
+func TestInstall_AArch64_GCC_Gyp(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
 		buildWithAArch64GCC(t, "", "nss@3.55", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithAArch64GCC(t, ubuntu_arm64_gcc_11_5_0, "nss@3.55", false)
+		buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "nss@3.55", false)
 	})
 }
 
-func TestInstall_Meson_AArch64_GCC(t *testing.T) {
+func TestInstall_AArch64_GCC_Meson(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
 		buildWithAArch64GCC(t, "", "pixman@0.44.2", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithAArch64GCC(t, ubuntu_arm64_gcc_11_5_0, "pixman@0.44.2", false)
+		buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "pixman@0.44.2", false)
 	})
 }
 
-func TestInstall_Prebuilt_AArch64_GCC(t *testing.T) {
-	buildWithAArch64GCC(t, ubuntu_arm64_gcc_11_5_0, "prebuilt-x264@stable", false)
+func TestInstall_AArch64_GCC_Prebuilt(t *testing.T) {
+	buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "prebuilt-x264@stable", false)
 }
 
-func TestInstall_Nobuild_AArch64_GCC(t *testing.T) {
-	buildWithAArch64GCC(t, ubuntu_arm64_gcc_11_5_0, "gnulib@master", true)
+func TestInstall_AArch64_GCC_Nobuild(t *testing.T) {
+	buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "gnulib@master", true)
 }
 
 func buildWithAArch64GCC(t *testing.T, platform, nameVersion string, nobuild bool) {

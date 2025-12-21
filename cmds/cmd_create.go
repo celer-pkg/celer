@@ -27,12 +27,12 @@ in the celer package manager. You must specify exactly one type of component
 to create using the mutually exclusive flags.
 
 COMPONENT TYPES:
-  --platform    Create a new platform configuration (e.g., windows-amd64, linux-x64)
+  --platform    Create a new platform configuration (e.g., windows-x86_64, linux-x64)
   --project     Create a new project configuration
   --port        Create a new port with name@version format
 
 EXAMPLES:
-  celer create --platform windows-amd64-msvc
+  celer create --platform windows-x86_64-msvc
   celer create --project my-awesome-project
   celer create --port opencv@4.8.0`,
 		Run: func(cmd *cobra.Command, args []string) {
