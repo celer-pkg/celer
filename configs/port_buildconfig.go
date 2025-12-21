@@ -149,7 +149,7 @@ func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildCon
 	// List of all fields that need to be merged.
 	fields := []string{
 		"BuildSystem", "CMakeGenerator", "BuildTools", "LibraryType",
-		"BuildShared", "BuildStatic", "CStandard", "CXXStandard",
+		"BuildShared", "BuildStatic", "CStandard", "CXXStandard", "BuildType",
 		"Envs", "Patches", "Dependencies", "DevDependencies",
 		"PreConfigure", "CustomConfigure", "PostConfigure",
 		"PreBuild", "FixBuild", "CustomBuild", "PostBuild",

@@ -216,7 +216,11 @@ func (p Port) Write(portPath string) error {
 func (p *Port) findMatchedConfig(buildType string) *buildsystems.BuildConfig {
 	for index, config := range p.BuildConfigs {
 		if p.checkPatternMatch(config.Pattern) {
-			p.BuildConfigs[index].BuildType = buildType
+			// If build type is not specified in port.toml,
+			// then set it to the build type defined in celer.toml.
+			if p.BuildConfigs[index].BuildType == "" {
+				p.BuildConfigs[index].BuildType = buildType
+			}
 
 			// If LibraryType is empty, set it to `shared`.
 			if strings.TrimSpace(config.LibraryType) == "" {
