@@ -20,9 +20,9 @@ func (b *BuildConfig) mergeConfig() {
 		"BuildSystem", "CMakeGenerator", "BuildTools", "LibraryType",
 		"BuildShared", "BuildStatic", "CStandard", "CXXStandard",
 		"Envs", "Patches", "Dependencies", "DevDependencies",
-		"PreConfigure", "FreeStyleConfigure", "PostConfigure",
-		"PreBuild", "FixBuild", "FreeStyleBuild", "PostBuild",
-		"PreInstall", "FreeStyleInstall", "PostInstall",
+		"PreConfigure", "CustomConfigure", "PostConfigure",
+		"PreBuild", "FixBuild", "CustomBuild", "PostBuild",
+		"PreInstall", "CustomInstall", "PostInstall",
 		"AutogenOptions", "Options",
 	}
 
