@@ -11,37 +11,37 @@ import (
 	"testing"
 )
 
-const ubuntu_clang_21_1_4 = "x86_64-linux-ubuntu-22.04-clang-21.1.4"
+const ubuntu_x86_64_clang_21_1_4 = "x86_64-linux-ubuntu-22.04-clang-21.1.4"
 
-func TestInstall_Makefiles_Clang(t *testing.T) {
-	buildWithClang(t, ubuntu_clang_21_1_4, "x264@stable", false)
+func TestInstall_x86_64_Clang_Makefiles(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "x264@stable", false)
 }
 
-func TestInstall_CMake_Clang(t *testing.T) {
-	buildWithClang(t, ubuntu_clang_21_1_4, "glog@0.6.0", false)
+func TestInstall_x86_64_Clang_CMake(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "glog@0.6.0", false)
 }
 
-func TestInstall_B2_Clang(t *testing.T) {
-	buildWithClang(t, ubuntu_clang_21_1_4, "boost@1.87.0", false)
+func TestInstall_x86_64_Clang_B2(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "boost@1.87.0", false)
 }
 
-func TestInstall_Meson_Clang(t *testing.T) {
-	buildWithClang(t, ubuntu_clang_21_1_4, "pixman@0.44.2", false)
+func TestInstall_x86_64_Clang_Meson(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "pixman@0.44.2", false)
 }
 
-func TestInstall_FreeStyle_AMD64_Clang(t *testing.T) {
-	buildWithClang(t, ubuntu_clang_21_1_4, "qpOASES_e@3.1.2", false)
+func TestInstall_x86_64_Clang_FreeStyle(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "qpOASES_e@3.1.2", false)
 }
 
-func TestInstall_Prebuilt_Clang(t *testing.T) {
-	buildWithClang(t, ubuntu_clang_21_1_4, "prebuilt-x264@stable", false)
+func TestInstall_x86_64_Clang_Prebuilt(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "prebuilt-x264@stable", false)
 }
 
-func TestInstall_Nobuild_Clang(t *testing.T) {
-	buildWithClang(t, ubuntu_clang_21_1_4, "gnulib@master", true)
+func TestInstall_x86_64_Clang_Nobuild(t *testing.T) {
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "gnulib@master", true)
 }
 
-func buildWithClang(t *testing.T, platform, nameVersion string, nobuild bool) {
+func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 

@@ -41,4 +41,4 @@ jobs:
       run: go build -v ./...
 
     - name: Test(x86_64_GCC_Prebuilt)
-      run: go test -tags=test_gcc -v ./cmds/ -run "TestInstall_Prebuilt_x86_64_GCC" -timeout 1h
+      run: go test -tags=test_gcc -v ./cmds/ -run "TestInstall_x86_64_GCC_Prebuilt" -timeout 1h

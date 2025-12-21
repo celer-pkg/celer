@@ -41,4 +41,4 @@ jobs:
       run: go build -v ./...
 
     - name: Test(AArch64_GCC_Gyp)
-      run: go test -tags=test_aarch64_gcc -v ./cmds/ -run "TestInstall_Gyp_AArch64_GCC" -timeout 1h
+      run: go test -tags=test_aarch64_gcc -v ./cmds/ -run "TestInstall_AArch64_GCC_Gyp" -timeout 1h

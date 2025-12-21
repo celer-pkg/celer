@@ -33,4 +33,4 @@ jobs:
         run: go build -v ./...
 
       - name: Test(x86_64_MSVC_Meson)
-        run: go test -tags=test_msvc -v ./cmds/ -run "TestInstall_Meson_x86_64_MSVC" -timeout 1h
+        run: go test -tags=test_msvc -v ./cmds/ -run "TestInstall_x86_64_MSVC_Meson" -timeout 1h

@@ -41,4 +41,4 @@ jobs:
       run: go build -v ./...
 
     - name: Test(Clang_CMAKE)
-      run: go test -tags=test_clang -v ./cmds/ -run "TestInstall_CMake_Clang" -timeout 1h
+      run: go test -tags=test_clang -v ./cmds/ -run "TestInstall_x86_64_Clang_CMake" -timeout 1h
