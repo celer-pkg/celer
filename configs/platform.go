@@ -15,9 +15,9 @@ import (
 )
 
 type Platform struct {
-	RootFS     *RootFS     `toml:"rootfs"`
 	Toolchain  *Toolchain  `toml:"toolchain"`
 	WindowsKit *WindowsKit `toml:"windows_kit"`
+	RootFS     *RootFS     `toml:"rootfs"`
 
 	// Internal fields.
 	Name string          `toml:"-"`

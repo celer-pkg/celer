@@ -18,9 +18,9 @@ import (
 	"strings"
 )
 
-const supportedString = "cmake, makefiles, meson, qmake, b2, gyp, nobuild, prebuilt, freestyle"
+const supportedString = "cmake, makefiles, meson, qmake, b2, gyp, nobuild, prebuilt, custom"
 
-var supportedArray = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "nobuild", "prebuilt", "freestyle"}
+var supportedArray = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "nobuild", "prebuilt", "custom"}
 
 type PortConfig struct {
 	LibName         string          // like: `ffmpeg`
@@ -186,10 +186,10 @@ type BuildConfig struct {
 	PreConfigure_Darwin  []string `toml:"pre_configure_darwin,omitempty"`
 
 	// Event hooks for Configure
-	FreeStyleConfigure         []string `toml:"configure,omitempty"`
-	FreeStyleConfigure_Windows []string `toml:"configure_windows,omitempty"`
-	FreeStyleConfigure_Linux   []string `toml:"configure_linux,omitempty"`
-	FreeStyleConfigure_Darwin  []string `toml:"configure_darwin,omitempty"`
+	CustomConfigure         []string `toml:"configure,omitempty"`
+	CustomConfigure_Windows []string `toml:"configure_windows,omitempty"`
+	CustomConfigure_Linux   []string `toml:"configure_linux,omitempty"`
+	CustomConfigure_Darwin  []string `toml:"configure_darwin,omitempty"`
 
 	// Event hooks for PostConfigure
 	PostConfigure         []string `toml:"post_configure,omitempty"`
@@ -210,10 +210,10 @@ type BuildConfig struct {
 	FixBuild_Darwin  []string `toml:"fix_build_darwin,omitempty"`
 
 	// Event hooks for Build
-	FreeStyleBuild         []string `toml:"build,omitempty"`
-	FreeStyleBuild_Windows []string `toml:"build_windows,omitempty"`
-	FreeStyleBuild_Linux   []string `toml:"build_linux,omitempty"`
-	FreeStyleBuild_Darwin  []string `toml:"build_darwin,omitempty"`
+	CustomBuild         []string `toml:"build,omitempty"`
+	CustomBuild_Windows []string `toml:"build_windows,omitempty"`
+	CustomBuild_Linux   []string `toml:"build_linux,omitempty"`
+	CustomBuild_Darwin  []string `toml:"build_darwin,omitempty"`
 
 	// Event hooks for PostBuild
 	PostBuild         []string `toml:"post_build,omitempty"`
@@ -228,10 +228,10 @@ type BuildConfig struct {
 	PreInstall_Darwin  []string `toml:"pre_install_darwin,omitempty"`
 
 	// Event hooks for Install
-	FreeStyleInstall         []string `toml:"install,omitempty"`
-	FreeStyleInstall_Windows []string `toml:"install_windows,omitempty"`
-	FreeStyleInstall_Linux   []string `toml:"install_linux,omitempty"`
-	FreeStyleInstall_Darwin  []string `toml:"install_darwin,omitempty"`
+	CustomInstall         []string `toml:"install,omitempty"`
+	CustomInstall_Windows []string `toml:"install_windows,omitempty"`
+	CustomInstall_Linux   []string `toml:"install_linux,omitempty"`
+	CustomInstall_Darwin  []string `toml:"install_darwin,omitempty"`
 
 	// Event hooks for PostInstall
 	PostInstall         []string `toml:"post_install,omitempty"`
@@ -631,8 +631,8 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 		b.buildSystem = NewPrebuilt(b, optimize)
 	case "nobuild":
 		b.buildSystem = NewNoBuild(b, optimize)
-	case "freestyle":
-		b.buildSystem = NewFreeStyle(b, optimize)
+	case "custom":
+		b.buildSystem = NewCustom(b, optimize)
 	default:
 		return fmt.Errorf("unsupported build system: %s", b.BuildSystem)
 	}

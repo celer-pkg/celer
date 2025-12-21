@@ -29,7 +29,7 @@ func TestInstall_x86_64_Clang_Meson(t *testing.T) {
 	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "pixman@0.44.2", false)
 }
 
-func TestInstall_x86_64_Clang_FreeStyle(t *testing.T) {
+func TestInstall_x86_64_Clang_Custom(t *testing.T) {
 	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "qpOASES_e@3.1.2", false)
 }
 

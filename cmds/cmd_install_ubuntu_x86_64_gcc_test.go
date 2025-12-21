@@ -63,7 +63,7 @@ func TestInstall_x86_64_GCC_Meson(t *testing.T) {
 	})
 }
 
-func TestInstall_x86_64_GCC_FreeStyle(t *testing.T) {
+func TestInstall_x86_64_GCC_Custom(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
 		buildWithAMD64GCC(t, "", "qpOASES_e@3.1.2", false)
 	})
