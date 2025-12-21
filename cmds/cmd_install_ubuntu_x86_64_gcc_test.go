@@ -1,4 +1,4 @@
-//go:build linux && amd64 && test_aarch64_gcc
+//go:build linux && amd64 && test_gcc
 
 package cmds
 
@@ -11,67 +11,77 @@ import (
 	"testing"
 )
 
-const ubuntu_arm64_gcc_11_5_0 = "aarch64-linux-ubuntu-22.04-gcc-11.5.0"
+const ubuntu_amd64_gcc_11_5_0 = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
 
-func TestInstall_Makefiles_ARM64_GCC(t *testing.T) {
+func TestInstall_Makefiles_x86_64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, "", "x264@stable", false)
+		buildWithX86_64GCC(t, "", "x264@stable", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, ubuntu_arm64_gcc_11_5_0, "x264@stable", false)
+		buildWithX86_64GCC(t, ubuntu_amd64_gcc_11_5_0, "x264@stable", false)
 	})
 }
 
-func TestInstall_CMake_ARM64_GCC(t *testing.T) {
+func TestInstall_CMake_x86_64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, "", "glog@0.6.0", false)
+		buildWithX86_64GCC(t, "", "glog@0.6.0", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, ubuntu_arm64_gcc_11_5_0, "glog@0.6.0", false)
+		buildWithX86_64GCC(t, ubuntu_amd64_gcc_11_5_0, "glog@0.6.0", false)
 	})
 }
 
-func TestInstall_B2_ARM64_GCC(t *testing.T) {
+func TestInstall_B2_x86_64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, "", "boost@1.87.0", false)
-	})
-
-	t.Run("portbal_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, ubuntu_arm64_gcc_11_5_0, "boost@1.87.0", false)
-	})
-}
-
-func TestInstall_Gyp_ARM64_GCC(t *testing.T) {
-	t.Run("local_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, "", "nss@3.55", false)
+		buildWithX86_64GCC(t, "", "boost@1.87.0", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, ubuntu_arm64_gcc_11_5_0, "nss@3.55", false)
+		buildWithX86_64GCC(t, ubuntu_amd64_gcc_11_5_0, "boost@1.87.0", false)
 	})
 }
 
-func TestInstall_Meson_ARM64_GCC(t *testing.T) {
+func TestInstall_Gyp_x86_64_GCC(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, "", "pixman@0.44.2", false)
+		buildWithX86_64GCC(t, "", "nss@3.55", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithARM64GCC(t, ubuntu_arm64_gcc_11_5_0, "pixman@0.44.2", false)
+		buildWithX86_64GCC(t, ubuntu_amd64_gcc_11_5_0, "nss@3.55", false)
 	})
 }
 
-func TestInstall_Prebuilt_ARM64_GCC(t *testing.T) {
-	buildWithARM64GCC(t, ubuntu_arm64_gcc_11_5_0, "prebuilt-x264@stable", false)
+func TestInstall_Meson_x86_64_GCC(t *testing.T) {
+	t.Run("local_gcc", func(t *testing.T) {
+		buildWithX86_64GCC(t, "", "pixman@0.44.2", false)
+	})
+
+	t.Run("portable_gcc", func(t *testing.T) {
+		buildWithX86_64GCC(t, ubuntu_amd64_gcc_11_5_0, "pixman@0.44.2", false)
+	})
 }
 
-func TestInstall_Nobuild_ARM64_GCC(t *testing.T) {
-	buildWithARM64GCC(t, ubuntu_arm64_gcc_11_5_0, "gnulib@master", true)
+func TestInstall_FreeStyle_x86_64_GCC(t *testing.T) {
+	t.Run("local_gcc", func(t *testing.T) {
+		buildWithX86_64GCC(t, "", "qpOASES_e@3.1.2", false)
+	})
+
+	t.Run("portable_gcc", func(t *testing.T) {
+		buildWithX86_64GCC(t, ubuntu_amd64_gcc_11_5_0, "qpOASES_e@3.1.2", false)
+	})
 }
 
-func buildWithARM64GCC(t *testing.T, platform, nameVersion string, nobuild bool) {
+func TestInstall_Prebuilt_x86_64_GCC(t *testing.T) {
+	buildWithX86_64GCC(t, ubuntu_amd64_gcc_11_5_0, "prebuilt-x264@stable", false)
+}
+
+func TestInstall_Nobuild_x86_64_GCC(t *testing.T) {
+	buildWithX86_64GCC(t, ubuntu_amd64_gcc_11_5_0, "gnulib@master", true)
+}
+
+func buildWithX86_64GCC(t *testing.T, platform, nameVersion string, nobuild bool) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -110,7 +120,7 @@ func buildWithARM64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 	if !nobuild {
 		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
 		if !fileio.PathExists(packageDir) {
-			t.Fatal("package dir cannot found")
+			t.Fatalf("package dir cannot found : %s", packageDir)
 		}
 	}
 

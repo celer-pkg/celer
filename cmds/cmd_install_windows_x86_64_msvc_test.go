@@ -13,61 +13,61 @@ import (
 	"testing"
 )
 
-func TestInstall_Makefiles_MSVC(t *testing.T) {
+func TestInstall_Makefiles_x86_64_MSVC(t *testing.T) {
 	t.Run("detect_msvc", func(t *testing.T) {
-		buildWithMSVC(t, "", "x264@stable", false)
+		buildWithX86_64MSVC(t, "", "x264@stable", false)
 	})
 
 	t.Run("fixed_msvc", func(t *testing.T) {
 		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
-		buildWithMSVC(t, platform, "x264@stable", false)
+		buildWithX86_64MSVC(t, platform, "x264@stable", false)
 	})
 }
 
-func TestInstall_CMake_MSVC(t *testing.T) {
+func TestInstall_CMake_x86_64_MSVC(t *testing.T) {
 	t.Run("detect_msvc", func(t *testing.T) {
-		buildWithMSVC(t, "", "gflags@2.2.2", false)
+		buildWithX86_64MSVC(t, "", "gflags@2.2.2", false)
 	})
 
 	t.Run("fixed_msvc", func(t *testing.T) {
 		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
-		buildWithMSVC(t, platform, "gflags@2.2.2", false)
+		buildWithX86_64MSVC(t, platform, "gflags@2.2.2", false)
 	})
 }
 
-func TestInstall_B2_MSVC(t *testing.T) {
+func TestInstall_B2_x86_64_MSVC(t *testing.T) {
 	t.Run("detect_msvc", func(t *testing.T) {
-		buildWithMSVC(t, "", "boost@1.87.0", false)
+		buildWithX86_64MSVC(t, "", "boost@1.87.0", false)
 	})
 
 	t.Run("fixed_msvc", func(t *testing.T) {
 		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
-		buildWithMSVC(t, platform, "boost@1.87.0", false)
+		buildWithX86_64MSVC(t, platform, "boost@1.87.0", false)
 	})
 }
 
-func TestInstall_Meson_MSVC(t *testing.T) {
+func TestInstall_Meson_x86_64_MSVC(t *testing.T) {
 	t.Run("detect_msvc", func(t *testing.T) {
-		buildWithMSVC(t, "", "pkgconf@2.4.3", false)
+		buildWithX86_64MSVC(t, "", "pkgconf@2.4.3", false)
 	})
 
 	t.Run("fixed_msvc", func(t *testing.T) {
 		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
-		buildWithMSVC(t, platform, "pkgconf@2.4.3", false)
+		buildWithX86_64MSVC(t, platform, "pkgconf@2.4.3", false)
 	})
 }
 
-func TestInstall_Prebuilt_MSVC(t *testing.T) {
+func TestInstall_Prebuilt_x86_64_MSVC(t *testing.T) {
 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
-	buildWithMSVC(t, platform, "prebuilt-x264@stable", false)
+	buildWithX86_64MSVC(t, platform, "prebuilt-x264@stable", false)
 }
 
-func TestInstall_Nobuild_MSVC(t *testing.T) {
+func TestInstall_Nobuild_x86_64_MSVC(t *testing.T) {
 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
-	buildWithMSVC(t, platform, "gnulib@master", true)
+	buildWithX86_64MSVC(t, platform, "gnulib@master", true)
 }
 
-func buildWithMSVC(t *testing.T, platform, nameVersion string, nobuild bool) {
+func buildWithX86_64MSVC(t *testing.T, platform, nameVersion string, nobuild bool) {
 	if os.Getenv("TEST_MSVC") != "true" {
 		t.SkipNow()
 	}

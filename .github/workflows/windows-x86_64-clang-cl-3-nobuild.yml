@@ -1,7 +1,7 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: windows-amd64-msvc-cmake-makefiles
+name: windows-amd64-clang-cl-nobuild
 
 on:
   push:
@@ -32,5 +32,5 @@ jobs:
       - name: Build
         run: go build -v ./...
 
-      - name: Test(AMD64_MSVC_CMAKE_Makefiles)
-        run: go test -tags=test_msvc -v ./cmds/ -run "TestInstall_(CMake|Makefiles)_MSVC" -timeout 2h
+      - name: Test(AMD64_Clang-CL_Nobuild)
+        run: go test -tags=test_clang_cl -v ./cmds/ -run "TestInstall_Nobuild_x86_64_Clang" -timeout 1h
