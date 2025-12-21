@@ -66,6 +66,7 @@ func ReadLocalCommit(repoDir string) (string, error) {
 // DefaultBranch read git default branch.
 func DefaultBranch(repoDir string) (string, error) {
 	cmd := exec.Command("git", "remote", "show", "origin")
+	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("read git default branch: %s", output)
