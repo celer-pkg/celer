@@ -39,7 +39,7 @@ func TestInstall_BinaryCache_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
@@ -118,7 +118,7 @@ func TestInstall_BinaryCache_With_Deps_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
@@ -208,7 +208,7 @@ func TestInstall_BinaryCache_Prebuilt_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
@@ -290,7 +290,7 @@ func TestInstall_BinaryCache_DirNotDefined_Failed(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	// check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
@@ -334,7 +334,7 @@ func TestInstall_BinaryCache_TokenNotDefined_Failed(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
@@ -379,7 +379,7 @@ func TestInstall_BinaryCache_TokenNotSpecified_Failed(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
@@ -424,7 +424,7 @@ func TestInstall_BinaryCache_TokenNotMatch_Failed(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
@@ -469,7 +469,7 @@ func TestInstall_BinaryCache_With_Commit_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
@@ -536,7 +536,7 @@ func TestInstall_BinaryCache_With_Commit_Failed(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))

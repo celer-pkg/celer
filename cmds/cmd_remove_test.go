@@ -479,7 +479,7 @@ func installForTestRemove(t *testing.T, nameVersion string, option configs.Remov
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", false))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
