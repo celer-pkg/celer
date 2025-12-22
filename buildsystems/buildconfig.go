@@ -129,7 +129,7 @@ type BuildConfig struct {
 	BuildStatic         string `toml:"build_static,omitempty"`
 	BuildStatic_Windows string `toml:"build_static_windows,omitempty"`
 	BuildStatic_Linux   string `toml:"build_static_linux,omitempty"`
-	BuildStatic_Darwin  string `toml:"build_static_windows,omitempty"`
+	BuildStatic_Darwin  string `toml:"build_static_darwin,omitempty"`
 
 	// C Standard
 	CStandard         string `toml:"c_standard,omitempty"`
@@ -142,6 +142,12 @@ type BuildConfig struct {
 	CXXStandard_Windows string `toml:"cxx_standard_windows,omitempty"`
 	CXXStandard_Linux   string `toml:"cxx_standard_linux,omitempty"`
 	CXXStandard_Darwin  string `toml:"cxx_standard_darwin,omitempty"`
+
+	// Build Type
+	BuildType         string `toml:"build_type,omitempty"`
+	BuildType_Windows string `toml:"build_type_windows,omitempty"`
+	BuildType_Linux   string `toml:"build_type_linux,omitempty"`
+	BuildType_Darwin  string `toml:"build_type_darwin,omitempty"`
 
 	// Environment Variables
 	Envs         []string `toml:"envs,omitempty"`
@@ -250,7 +256,6 @@ type BuildConfig struct {
 	DevDep      bool              `toml:"-"`
 	Native      bool              `toml:"-"`
 	PortConfig  PortConfig        `toml:"-"`
-	BuildType   string            `toml:"-"` // It'll be converted to lowercase in use.
 	Optimize    *context.Optimize `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup

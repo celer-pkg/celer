@@ -107,6 +107,14 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 		return fmt.Errorf("failed to unmarshal %s.\n %w", portPath, err)
 	}
 
+	// Convert build type to lowercase for all build configs.
+	for i := range p.BuildConfigs {
+		p.BuildConfigs[i].BuildType = strings.ToLower(p.BuildConfigs[i].BuildType)
+		p.BuildConfigs[i].BuildType_Windows = strings.ToLower(p.BuildConfigs[i].BuildType_Windows)
+		p.BuildConfigs[i].BuildType_Linux = strings.ToLower(p.BuildConfigs[i].BuildType_Linux)
+		p.BuildConfigs[i].BuildType_Darwin = strings.ToLower(p.BuildConfigs[i].BuildType_Darwin)
+	}
+
 	// Set matchedConfig as prebuilt config when no config found in toml.
 	p.MatchedConfig = p.findMatchedConfig(p.ctx.BuildType())
 	if p.MatchedConfig == nil {
@@ -216,7 +224,11 @@ func (p Port) Write(portPath string) error {
 func (p *Port) findMatchedConfig(buildType string) *buildsystems.BuildConfig {
 	for index, config := range p.BuildConfigs {
 		if p.checkPatternMatch(config.Pattern) {
-			p.BuildConfigs[index].BuildType = buildType
+			// If build type is not specified in port.toml,
+			// then set it to the build type defined in celer.toml.
+			if p.BuildConfigs[index].BuildType == "" {
+				p.BuildConfigs[index].BuildType = buildType
+			}
 
 			// If LibraryType is empty, set it to `shared`.
 			if strings.TrimSpace(config.LibraryType) == "" {

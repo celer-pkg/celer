@@ -58,6 +58,11 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	}
 
 	matchedConfig := port.MatchedConfig
+
+	// The build type is one of the key fields to identify a build config.
+	if matchedConfig.BuildType == "" {
+		matchedConfig.BuildType = p.ctx.BuildType()
+	}
 	port.BuildConfigs = []buildsystems.BuildConfig{*matchedConfig}
 
 	bytes, err := toml.Marshal(port)

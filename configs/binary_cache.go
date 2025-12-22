@@ -63,7 +63,7 @@ func (b BinaryCache) Write(packageDir, meta string) error {
 		libVersion   = parts[1]
 		platformName = parts[2]
 		projectName  = parts[3]
-		buildType    = parts[4]
+		buildType    = strings.ToLower(parts[4])
 	)
 
 	archiveName := fmt.Sprintf("%s@%s.tar.gz", libName, libVersion)

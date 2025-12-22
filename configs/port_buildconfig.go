@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -89,8 +90,16 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 				if err := toml.Unmarshal(bytes, &portInProject); err != nil {
 					return fmt.Errorf("failed to unmarshal project port.\n %w", err)
 				}
-
 				portInProject.ctx = p.ctx
+
+				// Convert build type to lowercase for all build configs in project port.
+				for i := range portInProject.BuildConfigs {
+					portInProject.BuildConfigs[i].BuildType = strings.ToLower(portInProject.BuildConfigs[i].BuildType)
+					portInProject.BuildConfigs[i].BuildType_Windows = strings.ToLower(portInProject.BuildConfigs[i].BuildType_Windows)
+					portInProject.BuildConfigs[i].BuildType_Linux = strings.ToLower(portInProject.BuildConfigs[i].BuildType_Linux)
+					portInProject.BuildConfigs[i].BuildType_Darwin = strings.ToLower(portInProject.BuildConfigs[i].BuildType_Darwin)
+				}
+
 				p.mergeFromProject(index, portInProject.MatchedConfig)
 			}
 
@@ -149,7 +158,7 @@ func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildCon
 	// List of all fields that need to be merged.
 	fields := []string{
 		"BuildSystem", "CMakeGenerator", "BuildTools", "LibraryType",
-		"BuildShared", "BuildStatic", "CStandard", "CXXStandard",
+		"BuildShared", "BuildStatic", "CStandard", "CXXStandard", "BuildType",
 		"Envs", "Patches", "Dependencies", "DevDependencies",
 		"PreConfigure", "CustomConfigure", "PostConfigure",
 		"PreBuild", "FixBuild", "CustomBuild", "PostBuild",

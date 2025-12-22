@@ -18,7 +18,7 @@ func (b *BuildConfig) mergeConfig() {
 	// List of all fields that need platform-specific merging
 	fields := []string{
 		"BuildSystem", "CMakeGenerator", "BuildTools", "LibraryType",
-		"BuildShared", "BuildStatic", "CStandard", "CXXStandard",
+		"BuildShared", "BuildStatic", "CStandard", "CXXStandard", "BuildType",
 		"Envs", "Patches", "Dependencies", "DevDependencies",
 		"PreConfigure", "CustomConfigure", "PostConfigure",
 		"PreBuild", "FixBuild", "CustomBuild", "PostBuild",
@@ -52,6 +52,14 @@ func (b *BuildConfig) mergeConfig() {
 	buildInSourceField := bVal.FieldByName("BuildInSource" + platformSuffix)
 	if buildInSourceField.IsValid() && !buildInSourceField.IsNil() {
 		bVal.FieldByName("BuildInSource").SetBool(buildInSourceField.Elem().Bool())
+	}
+
+	// Ensure BuildType is always lowercase after platform-specific merge.
+	buildTypeField := bVal.FieldByName("BuildType")
+	if buildTypeField.IsValid() && buildTypeField.CanSet() {
+		if buildType := buildTypeField.String(); buildType != "" {
+			buildTypeField.SetString(strings.ToLower(buildType))
+		}
 	}
 }
 

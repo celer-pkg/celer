@@ -24,6 +24,7 @@ build_shared        = "--with-shared"       # optional field
 build_static        = "--with-static"       # optional field
 c_standard          = "c99"                 # optional field
 cxx_standard        = "cxx17"               # optional field
+build_type          = "release"             # optional field, default is build_type in celer.toml
 envs                = [...]                 # optional field
 patches             = [...]                 # optional field
 build_in_source     = false                 # optional field, default is **false**
@@ -126,29 +127,37 @@ When **library_type** is set to **shared**, Celer will try to read the value in 
 - c_standard's candicated values：**c90**, **c99**, **c11**, **c17**, **c23**；  
 - cxx_standard's candicated values：**c++11**、**c++14**、**c++17**、**c++20**；
 
-### 1.2.8 envs
+### 1.2.8 build_type
+
+&emsp;&emsp;Optional, default is empty, used to specify the build type. When build_type is specified in port.toml, it will override the global build_type setting defined in celer.toml. This is useful for libraries that require a specific build type.
+- build_type's candidate values：**release**, **debug**, **relwithdebinfo**, **minsizerel**；
+- If not specified, the build_type defined in celer.toml will be used (defaults to **release**)
+
+>**Note:** build_type also affects binary cache key calculation. Different build_type values will generate different cache entries.
+
+### 1.2.9 envs
 
 &emsp;&emsp;Optional, you can define some environment variables here, such as **CXXFLAGS=-fPIC**, or even compile some libraries need to set specified environment variables, such as: the **libxext** library needs to set the environment variable: **"xorg_cv_malloc0_returns_null=yes"** when cross-compiling to the aarch64 platform, the purpose is to mask the compiler check error report;  
 &emsp;&emsp;In addition, it should be noted that each library's **toml** file supports defining **envs**, but when compiling them, **envs** are completely independent of each other, as each library compilation ends, the **envs** defined in the **toml** file will be cleared from the current process, and when compiling the next library, if the corresponding **toml** file defines new **envs**, then set the new environment variables.
 
-### 1.2.9 patches
+### 1.2.10 patches
 
 &emsp;&emsp;Optional. Some library source codes may contain issues that cause compilation errors. Traditionally, this requires manual source code modification and recompilation. To avoid manual intervention, we can create fix patches for these modifications. You may place multiple patch files (git patch or Linux patch formats supported) in the port's version directory. As this field accepts an array, multiple patches can be defined. Celer will attempt to apply these patches automatically before each configure step.
 
-### 1.2.10 build_in_source
+### 1.2.11 build_in_source
 
 &emsp;&emsp;Optional, a few third-party libraries (e.g., NASM, Boost) require in-source configure and build. Note: This **build_in_source** option primarily serves makefiles projects.   
 >Please note that: b2 builds are already encapsulated as a dedicated buildsystem (i.e., buildsystem = "b2").
 
-### 1.2.11 autogen_options
+### 1.2.12 autogen_options
 
 &emsp;&emsp;Optional, a few third-party libraries (e.g., NASM, Boost) require running **./autogen.sh** before configure. This field is used to specify the options to be passed to **./autogen.sh**.
 
-### 1.2.12 dependencies
+### 1.2.13 dependencies
 
 &emsp;&emsp; Optional, if your third-party library depends on other third-party libraries during compilation, you need to define them here. These libraries will be compiled and installed before the current library. Note that the format is **name@version**, and we must explicitly specify the version of the current library.
 
-### 1.2.13 dev_dependencies
+### 1.2.14 dev_dependencies
 
 &emsp;&emsp;Optional, similar to **dependencies**, but here the third-party library dependencies are tools required during compilation, such as: many makefiles projects require **autoconf**, **nasm**, etc. tools before configure. Any library defined in **dev_dependencies** will be compiled and installed using the local tooolchain compiler. They will be installed to a specific directory, such as: **installed/x86_64-linux-dev**, and the **installed/x86_64-linux-dev/bin** path will be automatically added to the **PATH** environment variable, enabling access to these tools during compilation.
 
@@ -156,7 +165,7 @@ When **library_type** is set to **shared**, Celer will try to read the value in 
 >- To avoid manually installing some local tools using **sudo apt install xxx**.  
 >- When compiling a third-party library that is a newer version, even if you install these tools using **apt**, you may still encounter errors such as **autoconf** version too low. In this case, you need to manually download the tool source code, compile it locally, and install it to the system directory. This is not only time-consuming but also pollutes the system environment.
 
-### 1.2.14 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
+### 1.2.15 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
 
 &emsp;&emsp;Optional, there are always libraries with problematic code. When compilation fails, we can provide patches to fix the source code. For relatively minor issues like incorrect output filenames, we can add corrective commands in **post_install**. Similarly, if file-related issues occur in other stages, we can apply pre-processing or post-processing adjustments at the corresponding steps. A typical example is the libffi library, which doesn't compile smoothly on Windows—various pre-and post-processing steps are required to make it work.
 
