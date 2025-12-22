@@ -80,9 +80,6 @@ func (c cmake) configureOptions() ([]string, error) {
 	toolchain := c.Ctx.Platform().GetToolchain()
 	rootfs := c.Ctx.Platform().GetRootFS()
 
-	// Format as cmake build type.
-	c.BuildType = c.formatBuildType()
-
 	var options = slices.Clone(c.Options)
 
 	// When use clang-cl with visual studio, we must to set toolset by "-T".
@@ -117,7 +114,7 @@ func (c cmake) configureOptions() ([]string, error) {
 			if c.DevDep {
 				options = append(options, "-DCMAKE_BUILD_TYPE=Release")
 			} else {
-				options = append(options, "-DCMAKE_BUILD_TYPE="+c.BuildType)
+				options = append(options, "-DCMAKE_BUILD_TYPE="+c.formatBuildType())
 			}
 		}
 	}
@@ -234,8 +231,7 @@ func (c cmake) buildOptions() ([]string, error) {
 	// CMAKE_BUILD_TYPE is useless for MSVC, use --config Debug/Relase instead.
 	var options []string
 	if c.multiConfigGenerator() {
-		c.BuildType = c.formatBuildType()
-		options = append(options, "--config", c.BuildType)
+		options = append(options, "--config", c.formatBuildType())
 	}
 
 	return options, nil
@@ -265,8 +261,7 @@ func (c cmake) installOptions() ([]string, error) {
 	// CMAKE_BUILD_TYPE is useless for MSVC, use --config Debug/Relase instead.
 	var options []string
 	if !c.multiConfigGenerator() {
-		c.BuildType = c.formatBuildType()
-		options = append(options, "--config", c.BuildType)
+		options = append(options, "--config", c.formatBuildType())
 	}
 
 	return options, nil
