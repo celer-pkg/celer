@@ -136,35 +136,43 @@ options = [
 - c_standard 的候选值：**c90**, **c99**, **c11**, **c17**, **c23**;
 - cxx_standard 的候选值：**c++11**、**c++14**、**c++17**、**c++20**；
 
-### 1.2.8 envs
+### 1.2.8 build_type
+
+&emsp;&emsp;可选配置，默认值为空，用于指定构建类型。当在 port.toml 中指定 build_type 时，它会覆盖 celer.toml 中定义的全局 build_type 设置。这对于某些需要特定构建类型的库非常有用。
+- build_type 的候选值：**release**, **debug**, **relwithdebinfo**, **minsizerel**；
+- 如果未指定，则使用 celer.toml 中定义的 build_type（默认为 **release**）
+
+>**注意：** build_type 也会影响 binary cache 的键值计算，不同的 build_type 会生成不同的缓存。
+
+### 1.2.9 envs
 &emsp;&emsp;可选配置，默认值为空，用于定义一些环境变量，例如 **CXXFLAGS=-fPIC**，或者甚至编译一些库需要设置指定的环境变量，例如：**libxext** 库在交叉编译到 aarch64 平台时需要设置环境变量：**"xorg_cv_malloc0_returns_null=yes"**，目的是屏蔽编译器检查错误报告；  
 &emsp;&emsp;此外需注意，每个库的 toml 文件虽然支持定义 envs 环境变量，但在实际编译过程中，这些环境变量彼此完全独立——每当一个库编译完成时，其 toml 文件中定义的 envs 会从当前进程中被清除。当编译下一个库时，若对应的 toml 文件定义了新的 envs，则会重新设置新的环境变量。
 
-### 1.2.9 patches
+### 1.2.10 patches
 
 &emsp;&emsp;可选配置，默认值为空，用于定义一些补丁文件，例如：某些库的源代码包含问题，导致编译错误。传统上，这需要手动修改源代码并重新编译。为了避免手动干预，我们可以为这些修改创建修复补丁。您可以将多个补丁文件（git 补丁或 Linux 补丁格式均支持）放在端口版本目录中。由于此字段接受数组，因此可以定义多个补丁。Celer 会尝试在每个 configure 步骤之前自动应用这些补丁。
 
-### 1.2.10 build_in_source
+### 1.2.11 build_in_source
 
 &emsp;&emsp;可选配置，默认值为空，用于指定一些库需要在源代码目录中进行配置和构建，例如：**NASM**、**Boost** 等库。注意：此 **build_in_source** 选项主要适用于 makefiles 项目。  
 >需注意：b2 构建已经被封装为专用的构建系统（即 buildsystem = "b2"）。
 
-### 1.2.11 autogen_options
+### 1.2.12 autogen_options
 
 &emsp;&emsp;可选配置，默认值为空，用于指定一些库需要在源代码目录中运行 **./autogen.sh** 脚本，例如：**NASM**、**Boost** 等库。注意：此 **autogen_options** 选项主要适用于 makefiles 项目。
 
-### 1.2.12 dependencies
+### 1.2.13 dependencies
 
 &emsp;&emsp; 可选配置，默认为空，若当前第三方库在编译时依赖其他第三方库，需在此处定义。这些依赖库将在当前库之前完成编译安装。需注意格式必须为 name@version，且必须显式指定依赖库的版本号。
 
-### 1.2.13 dev_dependencies
+### 1.2.14 dev_dependencies
 &emsp;&emsp;可选配置，默认为空，与 dependencies 类似，但此处定义的第三方库依赖项是编译期间所需的工具。例如：许多 makefiles 项目在配置前需要 autoconf、nasm 等工具。所有在 dev_dependencies 中定义的库都将使用本地工具链编译器进行编译安装，它们会被安装到特定目录（如 installed/x86_64-linux-dev），且 installed/x86_64-linux-dev/bin 路径将自动加入 PATH 环境变量，确保编译期间可访问这些工具。
 
 >为什么需要 **dev_dependencies**:   
 >- 避免手动使用 **sudo apt install xxx** 安装一些本地工具。  
 >- 当编译一个第三方库的新版本时，即使你使用 **apt** 安装了这些工具，仍然可能遇到 **autoconf** 版本过低的错误。在这种情况下，你需要手动下载工具的源代码，本地编译安装，而不是污染系统环境。
 
-### 1.2.14 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
+### 1.2.15 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
 
 &emsp;&emsp;可选配置，默认为空，某些库可能存在代码问题导致编译失败时，可通过补丁修复源码。对于相对较小的问题（如输出文件名错误），可在 post_install 中添加修正命令；同理，若其他阶段出现文件相关问题，也可在对应步骤进行预处理或后处理调整。典型案例如 libffi 库在 Windows 上无法直接编译通过——必须通过多项预处理和后处理步骤才能使其正常工作。
 
