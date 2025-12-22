@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     name: Build and Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
         include:
@@ -82,7 +82,7 @@ jobs:
   release:
     name: Create Release
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
