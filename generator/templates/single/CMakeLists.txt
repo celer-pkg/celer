@@ -1,0 +1,78 @@
+cmake_minimum_required(VERSION 3.14)
+project(@LIBNAME@ VERSION @VERSION@ LANGUAGES C CXX)
+
+# Create library target.
+add_library(${PROJECT_NAME} INTERFACE)
+add_library(@NAMESPACE@::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+target_link_directories(${PROJECT_NAME} INTERFACE
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib>
+  $<INSTALL_INTERFACE:lib>
+)
+target_link_libraries(${PROJECT_NAME} INTERFACE
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib>
+  $<INSTALL_INTERFACE:@FILENAME@>
+)
+
+# Install header files.
+install(
+  DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
+  DESTINATION include/${PROJECT_NAME}
+)
+
+# Install library files.
+file(GLOB_RECURSE LIB_FILES
+  "${PROJECT_SOURCE_DIR}/lib/*.so*"
+  "${PROJECT_SOURCE_DIR}/lib/*.a"
+  "${PROJECT_SOURCE_DIR}/lib/*.lib"
+  "${PROJECT_SOURCE_DIR}/lib/*.dylib*"
+)
+if (LIB_FILES)
+  install(FILES ${LIB_FILES} DESTINATION lib)
+endif()
+
+# Install dll and bin files.
+file(GLOB_RECURSE BIN_FILES "${PROJECT_SOURCE_DIR}/bin/*")
+if (BIN_FILES)
+  install(FILES ${BIN_FILES} DESTINATION bin)
+endif()
+
+# Create and install the config files.
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  "${PROJECT_SOURCE_DIR}/cmake/Config.cmake.in"
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
+)
+
+# Create and write the version file.
+write_basic_package_version_file(
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  VERSION ${PACKAGE_VERSION}
+  COMPATIBILITY AnyNewerVersion
+)
+
+# Exporting targets from the build trees.
+install(TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}Targets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include/${PROJECT_NAME}
+)
+
+# Install the export set.
+install(
+  EXPORT ${PROJECT_NAME}Targets
+  FILE ${PROJECT_NAME}Targets.cmake
+  DESTINATION lib/cmake/${PROJECT_NAME}
+  NAMESPACE ${NAMESPACE}::
+)
+
+# Install the config and version files.
+install(
+  FILES
+    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+  DESTINATION
+    lib/cmake/${PROJECT_NAME}
+)
