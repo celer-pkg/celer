@@ -1,32 +1,104 @@
 package generator
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
+
+	"github.com/BurntSushi/toml"
 )
 
-type generator struct {
-	// It's the name of the binary file.
-	// in linux, it would be libyaml-cpp.a or libyaml-cpp.so.0.8.0
-	// in windows, it would be yaml-cpp.lib or yaml-cpp.dll
-	Filename string `toml:"filename"`
+func (c *cmakeConfig) GenerateCMakeLists(repoDir, libName string) error {
+	if err := os.MkdirAll(filepath.Join(repoDir, "cmake"), os.ModePerm); err != nil {
+		return err
+	}
 
-	Soname  string `toml:"soname"`  // linux, for example: libyaml-cpp.so.0.8
-	Impname string `toml:"impname"` // windows, for example: yaml-cpp.lib
+	// Write the Config.cmake.in file.
+	configBytes, err := templates.ReadFile("templates/Config.cmake.in")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(repoDir, "cmake", "Config.cmake.in"), configBytes, os.ModePerm); err != nil {
+		return err
+	}
 
-	Components []component `toml:"components"` // case for cmake component
-	Libraries  []string    `toml:"libraries"`  // case for interface type.
+	// Generate CMakeLists.txt with the template.
+	cmakeListBytes, err := templates.ReadFile("templates/single/CMakeLists.txt.in")
+	if err != nil {
+		return err
+	}
 
-	// Internal fields.
-	Namespace  string `toml:"-"` // if empty, use libName instead
-	SystemName string `toml:"-"` // for example: Linux, Windows or Darwin
-	Libname    string `toml:"-"`
-	Version    string `toml:"-"`
-	BuildType  string `toml:"-"`
-	Libtype    string `toml:"-"` // it would be static, shared or imported
+	// Set namespace to libName if it is empty.
+	if c.Namespace == "" {
+		c.Namespace = libName
+	}
+
+	// If version is empty or invalid, set to 0.0.1
+	if c.Version == "" || !c.isValidVersionFormat(c.Version) {
+		c.Version = "0.0.1"
+	}
+
+	// Replace the placeholders with the actual values.
+	cmakeListContent := string(cmakeListBytes)
+	cmakeListContent = strings.ReplaceAll(cmakeListContent, "@NAMESPACE@", c.Namespace)
+	cmakeListContent = strings.ReplaceAll(cmakeListContent, "@LIBNAME@", libName)
+	cmakeListContent = strings.ReplaceAll(cmakeListContent, "@VERSION@", c.Version)
+	cmakeListContent = strings.ReplaceAll(cmakeListContent, "@FILENAME@", c.Filename)
+
+	return os.WriteFile(filepath.Join(repoDir, "CMakeLists.txt"), []byte(cmakeListContent), os.ModePerm)
 }
 
-func (c *generator) Generate(packagesDir string) error {
-	c.Libtype = strings.ToLower(c.Libtype)
+// ReadCMakeConfig Find matched cmake config.
+func ReadCMakeConfig(cmakeConfigPath, systemName, libraryType string) (*cmakeConfig, error) {
+	// Read the cmake_config.toml file.
+	bytes, err := os.ReadFile(cmakeConfigPath)
+	if err != nil {
+		return nil, err
+	}
+	var cmakeConfigs cmakeConfigs
+	if err := toml.Unmarshal(bytes, &cmakeConfigs); err != nil {
+		return nil, err
+	}
 
-	return nil
+	var cmakeConfig *cmakeConfig
+	configRefer := strings.ToLower(fmt.Sprintf("%s_%s", systemName, libraryType))
+
+	switch configRefer {
+	case "linux_static":
+		cmakeConfig = &cmakeConfigs.LinuxStatic
+
+	case "linux_shared":
+		cmakeConfig = &cmakeConfigs.LinuxShared
+
+	case "windows_static":
+		cmakeConfig = &cmakeConfigs.WindowsStatic
+
+	case "windows_shared":
+		cmakeConfig = &cmakeConfigs.WindowsShared
+
+	case "linux_interface":
+		cmakeConfig = &cmakeConfigs.LinuxInterface
+
+	case "windows_interface":
+		cmakeConfig = &cmakeConfigs.WindowsInterface
+
+	default:
+		return nil, fmt.Errorf("unknown config refer: %s", configRefer)
+	}
+
+	cmakeConfig.Namespace = cmakeConfigs.Namespace
+	cmakeConfig.Libtype = libraryType
+	return cmakeConfig, nil
+}
+
+func (c *cmakeConfig) isValidVersionFormat(version string) bool {
+	// Match pattern:
+	// 1. ^\d+(\.\d+)*$ -- number version (1, 1.2, 1.2.3, 1.2.3.4)
+	// 2. ^\d+(\.\d+)*[-+][a-zA-Z0-9._]+$ -- number version with suffix (1.0.0-alpha1, 2.0+beta)
+
+	pattern := `^(\d+(\.\d+)*)([-+][a-zA-Z0-9._]+)?$`
+	matched, _ := regexp.MatchString(pattern, version)
+	return matched
 }

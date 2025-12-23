@@ -92,6 +92,7 @@ type cmakeConfig struct {
 	// in linux, it would be libyaml-cpp.a or libyaml-cpp.so.0.8.0
 	// in windows, it would be yaml-cpp.lib or yaml-cpp.dll
 	Filename string `toml:"filename"`
+	Version  string `toml:"version"`
 
 	Soname  string `toml:"soname"`  // linux, for example: libyaml-cpp.so.0.8
 	Impname string `toml:"impname"` // windows, for example: yaml-cpp.lib
@@ -102,8 +103,6 @@ type cmakeConfig struct {
 	// Internal fields.
 	Namespace  string `toml:"-"` // if empty, use libName instead
 	SystemName string `toml:"-"` // for example: Linux, Windows or Darwin
-	Libname    string `toml:"-"`
-	Version    string `toml:"-"`
 	BuildType  string `toml:"-"`
 	Libtype    string `toml:"-"` // it would be static, shared or imported
 }
@@ -122,36 +121,36 @@ type generate interface {
 
 func (c cmakeConfig) Generate(packagesDir string) error {
 	c.Libtype = strings.ToLower(c.Libtype)
-	var generators []generate
+	// var generators []generate
 
-	if c.Libtype == "interface" {
-		generators = []generate{
-			&config{c},
-			&configVersion{c},
-		}
-	} else {
-		if len(c.Components) == 0 {
-			generators = []generate{
-				&config{c},
-				&targets{c},
-				&configVersion{c},
-				&targetsBuildType{c},
-			}
-		} else {
-			generators = []generate{
-				&config{c},
-				&configVersion{c},
-				&modules{c},
-				&modulesBuildType{c},
-			}
-		}
-	}
+	// if c.Libtype == "interface" {
+	// 	generators = []generate{
+	// 		&config{c},
+	// 		&configVersion{c},
+	// 	}
+	// } else {
+	// 	if len(c.Components) == 0 {
+	// 		generators = []generate{
+	// 			&config{c},
+	// 			&targets{c},
+	// 			&configVersion{c},
+	// 			&targetsBuildType{c},
+	// 		}
+	// 	} else {
+	// 		generators = []generate{
+	// 			&config{c},
+	// 			&configVersion{c},
+	// 			&modules{c},
+	// 			&modulesBuildType{c},
+	// 		}
+	// 	}
+	// }
 
-	for _, gen := range generators {
-		if err := gen.generate(packagesDir); err != nil {
-			return fmt.Errorf("generate cmake config: %w", err)
-		}
-	}
+	// for _, gen := range generators {
+	// 	if err := gen.generate(packagesDir); err != nil {
+	// 		return fmt.Errorf("generate cmake config: %w", err)
+	// 	}
+	// }
 
 	return nil
 }
