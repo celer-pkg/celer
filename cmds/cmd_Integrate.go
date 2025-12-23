@@ -1,7 +1,7 @@
 package cmds
 
 import (
-	"celer/cmds/completion"
+	"celer/completion"
 	"celer/configs"
 	"fmt"
 	"os"
