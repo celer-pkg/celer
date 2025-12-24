@@ -11,6 +11,7 @@ import (
 )
 
 func (c *cmakeConfig) GenerateCMakeLists(repoDir, libName string) error {
+	// Create the cmake directory.
 	if err := os.MkdirAll(filepath.Join(repoDir, "cmake"), os.ModePerm); err != nil {
 		return err
 	}
@@ -62,6 +63,7 @@ func ReadCMakeConfig(cmakeConfigPath, systemName, libraryType string) (*cmakeCon
 		return nil, err
 	}
 
+	// Find the matched config.
 	var cmakeConfig *cmakeConfig
 	configRefer := strings.ToLower(fmt.Sprintf("%s_%s", systemName, libraryType))
 
@@ -88,16 +90,16 @@ func ReadCMakeConfig(cmakeConfigPath, systemName, libraryType string) (*cmakeCon
 		return nil, fmt.Errorf("unknown config refer: %s", configRefer)
 	}
 
+	// Set common fields.
 	cmakeConfig.Namespace = cmakeConfigs.Namespace
 	cmakeConfig.Libtype = libraryType
 	return cmakeConfig, nil
 }
 
 func (c *cmakeConfig) isValidVersionFormat(version string) bool {
-	// Match pattern:
+	// Match patterns:
 	// 1. ^\d+(\.\d+)*$ -- number version (1, 1.2, 1.2.3, 1.2.3.4)
 	// 2. ^\d+(\.\d+)*[-+][a-zA-Z0-9._]+$ -- number version with suffix (1.0.0-alpha1, 2.0+beta)
-
 	pattern := `^(\d+(\.\d+)*)([-+][a-zA-Z0-9._]+)?$`
 	matched, _ := regexp.MatchString(pattern, version)
 	return matched

@@ -66,7 +66,7 @@ install(
   EXPORT ${PROJECT_NAME}Targets
   FILE ${PROJECT_NAME}Targets.cmake
   DESTINATION lib/cmake/${PROJECT_NAME}
-  NAMESPACE ${NAMESPACE}::
+  NAMESPACE @NAMESPACE@::
 )
 
 # Install the config and version files.

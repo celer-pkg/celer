@@ -90,7 +90,31 @@ func CopyDir(srcDir, dstDir string) error {
 
 // RenameDir rename files in src to dest.
 func RenameDir(srcDir, dstDir string) error {
-	return filepath.Walk(srcDir, func(srcPath string, info os.FileInfo, err error) error {
+	// Check if dstDir is a child of srcDir to avoid conflicts.
+	srcDirAbs, err := filepath.Abs(srcDir)
+	if err != nil {
+		return fmt.Errorf("get absolute path for srcDir: %w", err)
+	}
+	dstDirAbs, err := filepath.Abs(dstDir)
+	if err != nil {
+		return fmt.Errorf("get absolute path for dstDir: %w", err)
+	}
+
+	// If dstDir is within srcDir, use a temp directory first.
+	if relPath, err := filepath.Rel(srcDirAbs, dstDirAbs); err == nil && !strings.HasPrefix(relPath, "..") {
+		tempDir := filepath.Join(filepath.Dir(srcDirAbs), ".temp_rename_"+filepath.Base(srcDirAbs))
+		if err := RenameDir(srcDirAbs, tempDir); err != nil {
+			os.RemoveAll(tempDir)
+			return err
+		}
+		if err := RenameDir(tempDir, dstDir); err != nil {
+			os.RemoveAll(tempDir)
+			return err
+		}
+		return nil
+	}
+
+	if err := filepath.Walk(srcDir, func(srcPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -115,7 +139,12 @@ func RenameDir(srcDir, dstDir string) error {
 		}
 
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+
+	// Remove the source directory after all files are moved
+	return os.RemoveAll(srcDir)
 }
 
 // CopyFile copy file from src to dest.
