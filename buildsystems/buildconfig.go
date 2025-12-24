@@ -375,7 +375,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		// Generate a CMakeLists.txt for prebuilt project.
 		if cmakeConfigPath != "" {
 			systemName := b.Ctx.Platform().GetToolchain().GetSystemName()
-			cmakeConfig, err := generator.ReadCMakeConfig(cmakeConfigPath, systemName, b.LibraryType)
+			cmakeConfig, err := generator.ReadCMakeConfig(cmakeConfigPath, systemName)
 			if err != nil {
 				return err
 			}

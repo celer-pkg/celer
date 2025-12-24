@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"celer/pkgs/expr"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +10,37 @@ import (
 
 	"github.com/BurntSushi/toml"
 )
+
+// ReadCMakeConfig Find matched cmake config.
+func ReadCMakeConfig(cmakeConfigPath, systemName string) (*cmakeConfig, error) {
+	// Read the cmake_config.toml file.
+	bytes, err := os.ReadFile(cmakeConfigPath)
+	if err != nil {
+		return nil, err
+	}
+	var cmakeConfigs cmakeConfigs
+	if err := toml.Unmarshal(bytes, &cmakeConfigs); err != nil {
+		return nil, err
+	}
+
+	// Find the matched config.
+	var cmakeConfig *cmakeConfig
+
+	switch strings.ToLower(systemName) {
+	case "linux":
+		cmakeConfig = &cmakeConfigs.Linux
+
+	case "windows":
+		cmakeConfig = &cmakeConfigs.Windows
+
+	default:
+		return nil, fmt.Errorf("unknown config refer: %s", systemName)
+	}
+
+	// Set common fields.
+	cmakeConfig.Namespace = cmakeConfigs.Namespace
+	return cmakeConfig, nil
+}
 
 func (c *cmakeConfig) GenerateCMakeLists(repoDir, libName string) error {
 	// Create the cmake directory.
@@ -26,7 +58,8 @@ func (c *cmakeConfig) GenerateCMakeLists(repoDir, libName string) error {
 	}
 
 	// Generate CMakeLists.txt with the template.
-	cmakeListBytes, err := templates.ReadFile("templates/single/CMakeLists.txt.in")
+	tempalte := expr.If(len(c.Components) == 0, "templates/single/CMakeLists.txt.in", "templates/components/CMakeLists.txt.in")
+	cmakeListBytes, err := templates.ReadFile(tempalte)
 	if err != nil {
 		return err
 	}
@@ -42,58 +75,50 @@ func (c *cmakeConfig) GenerateCMakeLists(repoDir, libName string) error {
 	}
 
 	// Replace the placeholders with the actual values.
-	cmakeListContent := string(cmakeListBytes)
-	cmakeListContent = strings.ReplaceAll(cmakeListContent, "@NAMESPACE@", c.Namespace)
-	cmakeListContent = strings.ReplaceAll(cmakeListContent, "@LIBNAME@", libName)
-	cmakeListContent = strings.ReplaceAll(cmakeListContent, "@VERSION@", c.Version)
-	cmakeListContent = strings.ReplaceAll(cmakeListContent, "@FILENAME@", c.Filename)
+	content := string(cmakeListBytes)
+	content = strings.ReplaceAll(content, "@NAMESPACE@", c.Namespace)
+	content = strings.ReplaceAll(content, "@LIBNAME@", libName)
+	content = strings.ReplaceAll(content, "@VERSION@", c.Version)
 
-	return os.WriteFile(filepath.Join(repoDir, "CMakeLists.txt"), []byte(cmakeListContent), os.ModePerm)
+	if len(c.Filenames) == 0 {
+		content = strings.ReplaceAll(content, "@FILENAMES@", c.Filename)
+	} else {
+		content = strings.ReplaceAll(content, "@FILENAMES@", strings.Join(c.Filenames, " "))
+	}
+
+	if strings.Contains(content, "@COMPONENTS@") {
+		components, err := c.generateComponents()
+		if err != nil {
+			return err
+		}
+		content = strings.ReplaceAll(content, "@COMPONENTS@", components)
+	}
+
+	return os.WriteFile(filepath.Join(repoDir, "CMakeLists.txt"), []byte(content), os.ModePerm)
 }
 
-// ReadCMakeConfig Find matched cmake config.
-func ReadCMakeConfig(cmakeConfigPath, systemName, libraryType string) (*cmakeConfig, error) {
-	// Read the cmake_config.toml file.
-	bytes, err := os.ReadFile(cmakeConfigPath)
-	if err != nil {
-		return nil, err
+func (c *cmakeConfig) generateComponents() (string, error) {
+	var components strings.Builder
+	for _, component := range c.Components {
+		bytes, err := templates.ReadFile("templates/components/Component.cmake.in")
+		if err != nil {
+			return "", err
+		}
+
+		content := string(bytes)
+		content = strings.ReplaceAll(content, "@COMPONENT@", component.Component)
+		content = strings.ReplaceAll(content, "@FILENAME@", component.Filename)
+
+		if len(component.Dependencies) == 0 {
+			content = strings.ReplaceAll(content, "@DEPENDENCIES@", "\n")
+		} else {
+			content = strings.ReplaceAll(content, "@DEPENDENCIES@", strings.Join(component.Dependencies, " ")+"\n")
+		}
+
+		components.WriteString(content)
+		components.WriteString("\n")
 	}
-	var cmakeConfigs cmakeConfigs
-	if err := toml.Unmarshal(bytes, &cmakeConfigs); err != nil {
-		return nil, err
-	}
-
-	// Find the matched config.
-	var cmakeConfig *cmakeConfig
-	configRefer := strings.ToLower(fmt.Sprintf("%s_%s", systemName, libraryType))
-
-	switch configRefer {
-	case "linux_static":
-		cmakeConfig = &cmakeConfigs.LinuxStatic
-
-	case "linux_shared":
-		cmakeConfig = &cmakeConfigs.LinuxShared
-
-	case "windows_static":
-		cmakeConfig = &cmakeConfigs.WindowsStatic
-
-	case "windows_shared":
-		cmakeConfig = &cmakeConfigs.WindowsShared
-
-	case "linux_interface":
-		cmakeConfig = &cmakeConfigs.LinuxInterface
-
-	case "windows_interface":
-		cmakeConfig = &cmakeConfigs.WindowsInterface
-
-	default:
-		return nil, fmt.Errorf("unknown config refer: %s", configRefer)
-	}
-
-	// Set common fields.
-	cmakeConfig.Namespace = cmakeConfigs.Namespace
-	cmakeConfig.Libtype = libraryType
-	return cmakeConfig, nil
+	return components.String(), nil
 }
 
 func (c *cmakeConfig) isValidVersionFormat(version string) bool {

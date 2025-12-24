@@ -208,15 +208,17 @@ func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 
 // Clean clean git repo.
 func Clean(title, repoDir string) error {
-	var commands []string
-	commands = append(commands, "git reset --hard")
-	commands = append(commands, "git clean -xfd")
+	if fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		var commands []string
+		commands = append(commands, "git reset --hard")
+		commands = append(commands, "git clean -xfd")
 
-	commandLine := strings.Join(commands, " && ")
-	executor := cmd.NewExecutor(title, commandLine)
-	executor.SetWorkDir(repoDir)
-	if err := executor.Execute(); err != nil {
-		return err
+		commandLine := strings.Join(commands, " && ")
+		executor := cmd.NewExecutor(title, commandLine)
+		executor.SetWorkDir(repoDir)
+		if err := executor.Execute(); err != nil {
+			return err
+		}
 	}
 
 	return nil
