@@ -10,7 +10,7 @@ add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 # Install header files.
 install(
   DIRECTORY "${PROJECT_SOURCE_DIR}/include/"
-  DESTINATION include/${PROJECT_NAME}
+  DESTINATION include
 )
 
 # Install library files.

@@ -36,7 +36,7 @@ func TestInstall_Generate_CMake_Prebuilt_Single_Target(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "optimize_generating_cmake_config", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -101,7 +101,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Libraries(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "optimize_generating_cmake_config", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -163,7 +163,7 @@ func TestInstall_Generate_CMake_Prebuilt_Components(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "optimize_generating_cmake_config", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -225,7 +225,7 @@ func TestInstall_Generate_CMake_Source_Single_Target(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "optimize_generating_cmake_config", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -287,7 +287,7 @@ func TestInstall_Generate_CMake_Source_Components(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "optimize_generating_cmake_config", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
@@ -349,7 +349,7 @@ func TestInstall_Generate_CMake_Prebuilt_Interface_Head_Only(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "optimize_generating_cmake_config", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))

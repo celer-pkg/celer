@@ -4,5 +4,5 @@ project(tests VERSION 0.1.0 LANGUAGES C CXX)
 
 add_executable(tests main.cpp)
 
-find_package(FFmpeg REQUIRED)
+find_package(prebuilt-ffmpeg-interface REQUIRED)
 target_link_libraries(tests PRIVATE FFmpeg::prebuilt-ffmpeg-interface)

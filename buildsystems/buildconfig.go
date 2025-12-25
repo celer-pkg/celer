@@ -307,22 +307,25 @@ func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// In default, clone or download into repo dir.
 	var cmakeConfigPath string
-	destDir := b.PortConfig.RepoDir
+	var destDir = b.PortConfig.RepoDir
+
+	// Check cmake_config.toml in port dirs.
+	publicPortDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
+	projectPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
+	publicConfigPath := filepath.Join(publicPortDir, "cmake_config.toml")
+	projectConfigPath := filepath.Join(projectPortDir, "cmake_config.toml")
+
+	// Check if cmake_config.toml exists in port dirs or project port dirs.
+	// Note: The project port dir has higher priority.
+	if fileio.PathExists(publicConfigPath) {
+		cmakeConfigPath = publicConfigPath
+	}
+	if fileio.PathExists(projectConfigPath) {
+		cmakeConfigPath = projectConfigPath
+	}
+
+	// If no cmake_config.toml found, download into package dir directly for prebuilt.
 	if b.buildSystem.Name() == "prebuilt" {
-		publicPortDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
-		projectPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
-		publicConfigPath := filepath.Join(publicPortDir, "cmake_config.toml")
-		projectConfigPath := filepath.Join(projectPortDir, "cmake_config.toml")
-
-		// Check if cmake_config.toml exists in port dirs or project port dirs.
-		if fileio.PathExists(publicConfigPath) {
-			cmakeConfigPath = publicConfigPath
-		}
-		if fileio.PathExists(projectConfigPath) {
-			cmakeConfigPath = projectConfigPath
-		}
-
-		// If no cmake_config.toml found, download into package dir directly for prebuilt.
 		if cmakeConfigPath == "" {
 			destDir = b.PortConfig.PackageDir
 		}
@@ -372,24 +375,24 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			}
 		}
 
-		// Generate a CMakeLists.txt for prebuilt project.
-		if cmakeConfigPath != "" {
-			systemName := b.Ctx.Platform().GetToolchain().GetSystemName()
-			cmakeConfig, err := generator.ReadCMakeConfig(cmakeConfigPath, systemName)
-			if err != nil {
-				return err
-			}
-			if err := cmakeConfig.GenerateCMakeLists(destDir, b.PortConfig.LibName); err != nil {
-				return err
-			}
-		}
-
 		// Init downloaded source as git repo for tracking file change,
 		// and only for buildtrees source dir.
 		if strings.Contains(destDir, dirs.BuildtreesDir) {
 			if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
 				return err
 			}
+		}
+	}
+
+	// Generate a CMakeLists.txt for none-cmake project.
+	if cmakeConfigPath != "" && b.buildSystem.Name() != "cmake" {
+		systemName := b.Ctx.Platform().GetToolchain().GetSystemName()
+		cmakeConfig, err := generator.ReadCMakeConfig(cmakeConfigPath, systemName)
+		if err != nil {
+			return err
+		}
+		if err := cmakeConfig.GenerateCMakeLists(destDir, b.PortConfig.LibName, b.PortConfig.LibVersion); err != nil {
+			return err
 		}
 	}
 
