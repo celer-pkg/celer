@@ -1,6 +1,6 @@
 # Generate CMake Config Files
 
-> **Automatically generate standard CMake config files for non-CMake libraries**
+> **Automatically generate standard CMake config files for prebuilt libraries**
 
 ## 🎯 Why Do You Need This?
 
@@ -87,7 +87,7 @@ impname = "libx264.lib"       # Import library name (.lib)
 | `soname` | Shared library symbol name (symlink) | Linux | Required for shared |
 | `impname` | Import library filename | Windows | Required for shared |
 
-> 💡 *If `namespace` is not specified, the library name will be used as default
+> 💡 *If `namespace` is not specified, the library name will be used as default.
 
 #### Step 3: Generated Files
 
@@ -97,8 +97,7 @@ After compilation and installation, the following will be generated in `lib/cmak
 lib/cmake/x264/
 ├── x264Config.cmake           # Main config file
 ├── x264ConfigVersion.cmake    # Version information
-├── x264Targets.cmake          # Target definitions
-└── x264Targets-release.cmake  # Release configuration
+└── x264Targets.cmake          # Release configuration
 ```
 
 #### Step 4: Use in Your Project
@@ -112,8 +111,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 ```
 
 ---
-
-## 2️⃣ Multi-Component Library Configuration
 
 ## 2️⃣ Multi-Component Library Configuration
 
@@ -142,109 +139,33 @@ ffmpeg/
 ```toml
 namespace = "FFmpeg"
 
-[linux_shared]
+[linux]
 # avutil component - Basic utility library (no dependencies)
-[[linux_shared.components]]
+[[linux.components]]
 component = "avutil"                    # Component name
-soname = "libavutil.so.55"             # Symbol name
-filename = "libavutil.so.55.78.100"    # Actual filename
+filename = "libavutil.so.55"            # Lib filename
 dependencies = []                       # No dependencies
 
 # avcodec component - Codec library (depends on avutil)
-[[linux_shared.components]]
+[[linux.components]]
 component = "avcodec"
-soname = "libavcodec.so.57"
-filename = "libavcodec.so.57.107.100"
+filename = "libavcodec.so.57"
 dependencies = ["avutil"]              # Depends on avutil
 
-[[linux_shared.components]]
+[[linux.components]]
 component = "avdevice"
-soname = "libavdevice.so.57"
-filename = "libavdevice.so.57.10.100"
+filename = "libavdevice.so.57"
 dependencies = ["avformat", "avutil"]
 
-[[linux_shared.components]]
-component = "avfilter"
-soname = "libavfilter.so.6"
-filename = "libavfilter.so.6.107.100"
-dependencies = ["swscale", "swresample"]
+[[linux.components]]
+...
 
-[[linux_shared.components]]
-component = "avformat"
-soname = "libavformat.so.57"
-filename = "libavformat.so.57.83.100"
-dependencies = ["avcodec", "avutil"]
-
-[[linux_shared.components]]
-component = "postproc"
-soname = "libpostproc.so.54"
-filename = "libpostproc.so.54.7.100"
-dependencies = ["avcodec", "swscale", "avutil"]
-
-[[linux_shared.components]]
-component = "swresample"
-soname = "libswresample.so.2"
-filename = "libswresample.so.2.9.100"
-dependencies = ["avcodec", "swscale", "avutil", "avformat"]
-
-[[linux_shared.components]]
-component = "swscale"
-soname = "libswscale.so.4"
-filename = "libswscale.so.4.8.100"
-dependencies = ["avcodec", "avutil", "avformat"]
-
-[windows_shared]
-[[windows_shared.components]]
-component = "avutil"
-impname = "avutil.lib"
-filename = "avutil-55.dll"
-dependencies = []
-
-[[windows_shared.components]]
-component = "avcodec"
-impname = "avcodec.lib"
-filename = "avcodec-57.dll"
-dependencies = ["avutil"]
-
-[[windows_shared.components]]
-component = "avdevice"
-impname = "avdevice.lib"
-filename = "avdevice-57.dll"
-dependencies = ["avformat", "avutil"]
-
-[[windows_shared.components]]
-component = "avfilter"
-impname = "avfilter.lib"
-filename = "avfilter-6.dll"
-dependencies = ["swscale", "swresample"]
-
-[[windows_shared.components]]
-component = "avformat"
-impname = "avformat.lib"
-filename = "avformat-57.dll"
-dependencies = ["avcodec", "avutil"]
-
-[[windows_shared.components]]
-component = "postproc"
-impname = "postproc.lib"
-filename = "postproc-54.dll"
-dependencies = ["avcodec", "swscale", "avutil"]
-
-[[windows_shared.components]]
-component = "swresample"
-impname = "swresample.lib"
-filename = "swresample-2.dll"
-dependencies = ["avcodec", "swscale", "avutil", "avformat"]
-
-[[windows_shared.components]]
-component = "swscale"
-impname = "swscale.lib"
-filename = "swscale-4.dll"
-dependencies = ["avcodec", "avutil", "avformat"]
+[windows]
+...
 ```
 
 > **Note:**  
-> Note that different components may have different dependencies, Celer supports defining the dependency relation for them in the `dependencies` field.
+> Note that different components may have different dependencies, CMake will generate cmake config files with dependency relation inside.
 
 After compiling and installing, you can see the generated cmake config files as follows:
 
@@ -254,8 +175,7 @@ lib
     └─── FFmpeg
         ├── FFmpegConfig.cmake
         ├── FFmpegConfigVersion.cmake
-        ├── FFmpegModules-release.cmake
-        └── FFmpegModules.cmake
+        └── FFmpegTarget.cmake
 ```
 
 Finally, you can use it in your cmake project as follows:
@@ -293,15 +213,13 @@ ref = "5.1.6"
 url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
 pattern = "x86_64-linux*"
 build_system = "prebuilt"
-library_type = "interface"  # ---- it should be changed to `interface`
 ```
->To generate interface type cmake configs, you need to set `library_type` as **interface**.
 
 ```toml
 namespace = "FFmpeg"
 
-[linux_interface]
-libraries = [
+[linux]
+filenames = [
     "libavutil.so.57",
     "libavcodec.so.59",
     "libavdevice.so.59",
@@ -311,21 +229,31 @@ libraries = [
     "libswresample.so.4",
     "libswscale.so.6",
 ]
+
+[windows]
+filenames = [
+    "avutil.lib",
+    "avcodec.lib",
+    "avdevice.lib",
+    "avfilter.lib",
+    "avformat.lib",
+    "postproc.lib",
+    "swresample.lib",
+    "swscale.lib",
+]
 ```
 
-> Because it is an interface type cmake config file, we only need to list all the libraries that need to be linked in the **libraries** field.
+> 💡 **Tip**: For Interface type, just list all the libraries that need to be linked. No need to specify components or dependencies.
 
-After compiling and installing, you can see the generated cmake config files as follows:
+**Step 3: Generated Files**
 
 ```
-lib
-└── cmake
-    └── FFmpeg
-        ├── FFmpegConfig.cmake
-        └── FFmpegConfigVersion.cmake
+lib/cmake/FFmpeg/
+├── FFmpegConfig.cmake
+└── FFmpegConfigVersion.cmake
 ```
 
-Finally, you can use it in your cmake project as follows:
+**Step 4: Use in Your Project**
 
 ```cmake
 find_package(FFmpeg REQUIRED)
@@ -333,5 +261,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE FFmpeg::prebuilt-ffmpeg)
 ```
 
 > **Note:**  
-> **1.** If namespace is not specified, it will be the same as the library name. And the namespace is also the prefix of the config file name.  
-> **2.** The installed libraries files would be removed when there is any wrong in the cmake config file.
+> **1.** If namespace is not specified, it will default to the library name.

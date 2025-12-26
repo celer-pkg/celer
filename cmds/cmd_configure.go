@@ -110,7 +110,7 @@ Examples:
 						configs.PrintError(err, "failed to set platform: %s.", c.celer.Global.Platform)
 						return
 					}
-					configs.PrintSuccess("platform is auto configured to %s defined in current project.", c.celer.Global.Platform)
+					configs.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Global.Platform)
 				}
 
 			case flags.Changed("build-type"):

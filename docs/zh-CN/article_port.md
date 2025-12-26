@@ -98,7 +98,17 @@ options = [
 
 ### 1.2.2 build_system
 
-&emsp;&emsp;不同的构建工具在交叉编译配置上有显著差异。为了简化使用，Celer 抽象出统一的构建系统选项，目前支持 **b2**, **cmake**, **gyp**, **makefiles**, 和**meson**。未来版本将扩展支持更多工具，如 **bazel**, **msbuild** 和 **scons**等。 
+&emsp;&emsp;不同的构建工具在交叉编译配置上有显著差异。为了简化使用，Celer 抽象出统一的构建系统选项，目前支持的构建系统如下:
+
+- **cmake**: 标准 CMake 构建系统
+- **makefiles**: Autotools/Makefiles 构建系统
+- **meson**: Meson 构建系统
+- **b2**: Boost.Build 系统
+- **gyp**: GYP 构建系统
+- **qmake**: Qt 构建系统
+- **prebuilt**: 预编译库
+- **nobuild**: 无需构建的纯头文件库
+- **custom**: 自定义构建逻辑
 
 ### 1.2.3 cmake_generator
 
