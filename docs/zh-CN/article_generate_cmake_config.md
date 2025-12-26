@@ -112,6 +112,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 
 ---
 
+## 2️⃣ 多组件库配置
+
 ### 使用场景
 
 适用于包含多个独立模块的库，每个模块可以单独使用，例如：
@@ -137,140 +139,89 @@ ffmpeg
 ```toml
 namespace = "FFmpeg"
 
-[linux_shared]
+[linux]
 # avutil 组件 - 基础工具库（无依赖）
-[[linux_shared.components]]
+[[linux.components]]
 component = "avutil"                    # 组件名
-soname = "libavutil.so.55"             # 符号名
-filename = "libavutil.so.55.78.100"    # 实际文件名
-dependencies = []                       # 此组件无依赖
+filename = "libavutil.so.55"            # 库文件名
+dependencies = []                       # 无依赖
 
 # avcodec 组件 - 编解码器（依赖 avutil）
-[[linux_shared.components]]
+[[linux.components]]
 component = "avcodec"
-soname = "libavcodec.so.57"
-filename = "libavcodec.so.57.107.100"
+filename = "libavcodec.so.57"
 dependencies = ["avutil"]              # 依赖 avutil
 
-# avformat 组件 - 格式处理（依赖 avcodec 和 avutil）
-[[linux_shared.components]]
-component = "avformat"
-soname = "libavformat.so.57"
-filename = "libavformat.so.57.83.100"
-dependencies = ["avcodec", "avutil"]   # 依赖多个组件
+[[linux.components]]
+component = "avdevice"
+filename = "libavdevice.so.57"
+dependencies = ["avformat", "avutil"]
 
-# avfilter 组件 - 滤镜（依赖其他处理库）
-[[linux_shared.components]]
-component = "avfilter"
-soname = "libavfilter.so.6"
-filename = "libavfilter.so.6.107.100"
-dependencies = ["swscale", "swresample"]  # 跨组件依赖
+[[linux.components]]
+...
 
-# ... 其他组件配置
-
-[windows_shared]
-# Windows 平台的组件配置
-[[windows_shared.components]]
-component = "avutil"
-impname = "avutil.lib"     # Windows 导入库
-filename = "avutil-55.dll" # DLL 文件
-dependencies = []
-
-[[windows_shared.components]]
-component = "avcodec"
-impname = "avcodec.lib"
-filename = "avcodec-57.dll"
-dependencies = ["avutil"]
-
-# ... 其他 Windows 组件
+[windows]
+...
 ```
 
-**组件配置字段说明：**
+> **注意：**  
+> 不同的组件可能有不同的依赖关系，CMake 会在生成的配置文件中自动处理这些依赖。
 
-| 字段 | 说明 | 示例 |
-|------|------|------|
-| `component` | 组件名称，用于 CMake 目标 | `"avcodec"` |
-| `filename` | 实际库文件名 | `"libavcodec.so.57.107.100"` |
-| `soname` | Linux 共享库符号名 | `"libavcodec.so.57"` |
-| `impname` | Windows 导入库名 | `"avcodec.lib"` |
-| `dependencies` | 该组件依赖的其他组件 | `["avutil", "avformat"]` |
+编译安装后，会生成如下配置文件：
 
-> ⚠️ **重要**：`dependencies` 字段中的依赖项必须是同一库的其他组件名称，Celer 会自动处理它们之间的链接关系。
-
-#### 步骤3：生成的文件
-
-编译安装后生成：
-
-```shell
-lib/cmake/FFmpeg
-├── FFmpegConfig.cmake           # 主配置文件
-├── FFmpegConfigVersion.cmake    # 版本信息
-├── FFmpegModules.cmake          # 模块定义
-└── FFmpegModules-release.cmake  # Release 配置
+```
+lib
+└── cmake
+    └─── FFmpeg
+        ├── FFmpegConfig.cmake
+        ├── FFmpegConfigVersion.cmake
+        └── FFmpegTarget.cmake
 ```
 
-#### 步骤4：在项目中使用
+最后，在你的 CMake 项目中可以这样使用：
 
 ```cmake
 find_package(FFmpeg REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    FFmpeg::avutil    
+    FFmpeg::avutil
     FFmpeg::avcodec
-    FFmpeg::avformat
+    FFmpeg::avdevice
     FFmpeg::avfilter
+    FFmpeg::avformat
+    FFmpeg::postproc
+    FFmpeg::swresample
+    FFmpeg::swscale
 )
 ```
 
 ---
 
-### 使用场景
+## 3️⃣ 预构建库 CMake 配置生成
 
-适用于以下情况：
-- **预编译二进制库**：已编译好的 SDK，不需要从源码构建
-- **Header-only 库**：仅包含头文件的库
-- **简单包装**：将多个库打包成一个统一接口
+对于预构建库（`build_system = "prebuilt"`），你可以手动创建 `cmake_config.toml` 文件，无需手动配置。
 
-### 什么是 Interface 库？
-
-Interface 库是 CMake 的一种特殊目标类型，它：
-- ❌ 不产生实际的库文件
-- ✅ 只传递编译选项、头文件路径和链接库
-- ✅ 适合预构建库或纯头文件库
-
-### 配置步骤
-
-#### 步骤1：设置 port.toml
-
-在 `port.toml` 中将 `library_type` 设置为 `interface`：
+```
+prebuilt-ffmpeg
+└── 5.1.6
+    ├── cmake_config.toml
+    └── port.toml
+```
 
 ```toml
 [package]
 ref = "5.1.6"
 
 [[build_configs]]
-url = "https://example.com/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
+url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
 pattern = "x86_64-linux*"
 build_system = "prebuilt"
-library_type = "interface"  # ← 关键：设置为 interface
 ```
-
-#### 步骤2：创建 cmake_config.toml
-
-```shell
-prebuilt-ffmpeg
-└── 5.1.6
-    ├── cmake_config.toml  # ← 创建此文件
-    └── port.toml
-```
-
-`cmake_config.toml` 内容：
 
 ```toml
 namespace = "FFmpeg"
 
-# Interface 类型配置
-[linux_interface]
-libraries = [
+[linux]
+filenames = [
     "libavutil.so.57",
     "libavcodec.so.59",
     "libavdevice.so.59",
@@ -281,35 +232,38 @@ libraries = [
     "libswscale.so.6",
 ]
 
-[windows_interface]
-libraries = [
-    "avutil-57.dll",
-    "avcodec-59.dll",
-    "avformat-59.dll",
-    # ... 其他库
+[windows]
+filenames = [
+    "avutil.lib",
+    "avcodec.lib",
+    "avdevice.lib",
+    "avfilter.lib",
+    "avformat.lib",
+    "postproc.lib",
+    "swresample.lib",
+    "swscale.lib",
 ]
 ```
 
-> 💡 **简化配置**：Interface 类型只需列出所有需要链接的库文件名，无需指定组件或依赖关系。
+> 💡 **提示**：对于 Interface 类型，只需列出所有需要链接的库文件名，无需指定组件或依赖关系。
 
-#### 步骤3：生成的文件
+**步骤3：生成的文件**
 
-```shell
+```
 lib/cmake/FFmpeg/
-├── FFmpegConfig.cmake          # 主配置文件
-└── FFmpegConfigVersion.cmake   # 版本信息
+├── FFmpegConfig.cmake
+└── FFmpegConfigVersion.cmake
 ```
 
-> ℹ️ **注意**：Interface 库生成的配置文件更少，因为不需要定义具体的目标。
-
-#### 步骤4：在项目中使用
+**步骤4：在项目中使用**
 
 ```cmake
 find_package(FFmpeg REQUIRED)
-
-# 使用 interface 目标（使用库名作为目标名）
 target_link_libraries(${PROJECT_NAME} PRIVATE FFmpeg::prebuilt-ffmpeg)
 ```
+
+> **注意：**  
+> **1.** 如果未指定 `namespace`，将使用库名作为默认值。
 
 ---
 

@@ -13,17 +13,17 @@ import (
 )
 
 type Project struct {
-	DefaultPlatform string            `toml:"default_platform,omitempty"`
-	BuildType       string            `toml:"build_type"`
-	Ports           []string          `toml:"ports"`
-	Vars            []string          `toml:"vars"`
-	Envs            []string          `toml:"envs"`
-	Micros          []string          `toml:"micros"`
-	Flags           []string          `toml:"flags"`
-	OptimizeGCC     *context.Optimize `toml:"optimize_gcc"`
-	OptimizeMSVC    *context.Optimize `toml:"optimize_msvc"`
-	OptimizeClang   *context.Optimize `toml:"optimize_clang"`
-	Optimize        *context.Optimize `toml:"optimize"`
+	TargetPlatform string            `toml:"target_platform,omitempty"`
+	BuildType      string            `toml:"build_type"`
+	Ports          []string          `toml:"ports"`
+	Vars           []string          `toml:"vars"`
+	Envs           []string          `toml:"envs"`
+	Micros         []string          `toml:"micros"`
+	Flags          []string          `toml:"flags"`
+	OptimizeGCC    *context.Optimize `toml:"optimize_gcc"`
+	OptimizeMSVC   *context.Optimize `toml:"optimize_msvc"`
+	OptimizeClang  *context.Optimize `toml:"optimize_clang"`
+	Optimize       *context.Optimize `toml:"optimize"`
 
 	// Internal fields.
 	Name string `toml:"-"`
@@ -120,8 +120,8 @@ func (p Project) GetName() string {
 	return p.Name
 }
 
-func (p Project) GetDefaultPlatform() string {
-	return p.DefaultPlatform
+func (p Project) GetTargetPlatform() string {
+	return p.TargetPlatform
 }
 
 func (p Project) GetPorts() []string {

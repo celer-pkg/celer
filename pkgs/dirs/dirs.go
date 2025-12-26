@@ -81,7 +81,7 @@ func RemoveAllForTest() {
 	os.RemoveAll(TestCacheDir)
 	os.RemoveAll(PackagesDir)
 	os.RemoveAll(InstalledDir)
-	cleanRepos(BuildtreesDir)
+	os.RemoveAll(BuildtreesDir)
 }
 
 func cleanRepos(buildtreesDir string) error {

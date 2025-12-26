@@ -87,7 +87,17 @@ The following are fields and their descriptions:
 
 ### 1.2.2 build_system
 
-&emsp;&emsp;Different build tools vary significantly in their cross-compilation configurations. To simplify usage, Celer abstracts them into unified buildsystem options, currently supporting **b2**, **cmake**, **gyp**, **makefiles** and **meson**. Future versions will extend support to more tools like **bazel**, **msbuild**, and **scons**.
+&emsp;&emsp;Different build tools vary significantly in their cross-compilation configurations. To simplify usage, Celer abstracts them into unified buildsystem options, celer supports build systems as shown below:
+
+- **cmake**: Standard CMake build system
+- **makefiles**: Autotools/Makefiles build system
+- **meson**: Meson build system
+- **b2**: Boost.Build system
+- **gyp**: GYP build system
+- **qmake**: Qt build system
+- **prebuilt**: Pre-built library
+- **nobuild**: Header-only libraries requiring no compilation
+- **custom**: Custom build logic
 
 ### 1.2.3 cmake_generator
 

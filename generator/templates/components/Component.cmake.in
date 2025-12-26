@@ -1,0 +1,25 @@
+# ==================== component: @COMPONENT@ ====================
+add_library(@COMPONENT@ INTERFACE)
+add_library(${PROJECT_NAME}::@COMPONENT@ ALIAS @COMPONENT@)
+
+target_include_directories(@COMPONENT@ INTERFACE
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+target_link_directories(@COMPONENT@ INTERFACE
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib>
+  $<INSTALL_INTERFACE:lib>
+)
+
+target_link_libraries(@COMPONENT@ INTERFACE
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib>
+  $<INSTALL_INTERFACE:@FILENAME@>
+  @DEPENDENCIES@)
+
+target_link_libraries(${PROJECT_NAME} INTERFACE @COMPONENT@)
+
+install(TARGETS @COMPONENT@
+  EXPORT ${PROJECT_NAME}Targets
+  INCLUDES DESTINATION include
+)

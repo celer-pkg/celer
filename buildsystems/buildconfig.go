@@ -305,9 +305,31 @@ func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string
 }
 
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
-	// Skip if source dir exists or build system is prebuilt.
-	// For prebuilt, we always download via http, ftp or others.
-	destDir := expr.If(b.buildSystem.Name() == "prebuilt", b.PortConfig.PackageDir, b.PortConfig.RepoDir)
+	// In default, clone or download into repo dir.
+	var cmakeConfigPath string
+	var destDir = b.PortConfig.RepoDir
+
+	// Check cmake_config.toml in port dirs.
+	publicPortDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
+	projectPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
+	publicConfigPath := filepath.Join(publicPortDir, "cmake_config.toml")
+	projectConfigPath := filepath.Join(projectPortDir, "cmake_config.toml")
+
+	// Check if cmake_config.toml exists in port dirs or project port dirs.
+	// Note: The project port dir has higher priority.
+	if fileio.PathExists(publicConfigPath) {
+		cmakeConfigPath = publicConfigPath
+	}
+	if fileio.PathExists(projectConfigPath) {
+		cmakeConfigPath = projectConfigPath
+	}
+
+	// If no cmake_config.toml found, download into package dir directly for prebuilt.
+	if b.buildSystem.Name() == "prebuilt" {
+		if cmakeConfigPath == "" {
+			destDir = b.PortConfig.PackageDir
+		}
+	}
 	if fileio.PathExists(destDir) {
 		entities, err := os.ReadDir(destDir)
 		if err != nil {
@@ -353,11 +375,24 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			}
 		}
 
-		// Init downloaded source as git repo for tracking file change.
-		if b.buildSystem.Name() != "prebuilt" {
+		// Init downloaded source as git repo for tracking file change,
+		// and only for buildtrees source dir.
+		if strings.Contains(destDir, dirs.BuildtreesDir) {
 			if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
 				return err
 			}
+		}
+	}
+
+	// Generate a CMakeLists.txt for none-cmake project.
+	if cmakeConfigPath != "" && b.buildSystem.Name() != "cmake" {
+		systemName := b.Ctx.Platform().GetToolchain().GetSystemName()
+		cmakeConfig, err := generator.ReadCMakeConfig(cmakeConfigPath, systemName)
+		if err != nil {
+			return err
+		}
+		if err := cmakeConfig.GenerateCMakeLists(destDir, b.PortConfig.LibName, b.PortConfig.LibVersion); err != nil {
+			return err
 		}
 	}
 
@@ -501,9 +536,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		if rootfs != nil {
 			// This symblink is used to find library via toolchain_file.cmake
 			sysrootDir := rootfs.GetFullPath()
-			if err := b.checkSymlink(dirs.InstalledDir,
-				filepath.Join(sysrootDir, "installed"),
-			); err != nil {
+			if err := b.checkSymlink(dirs.InstalledDir, filepath.Join(sysrootDir, "installed")); err != nil {
 				return err
 			}
 
@@ -593,21 +626,21 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	}
 
 	// Generate cmake configs.
-	portDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
-	preferedPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
-	cmakeConfig, err := generator.FindMatchedConfig(portDir, preferedPortDir, toolchain.GetSystemName(), b.LibraryType)
-	if err != nil {
-		return fmt.Errorf("find matched config %s\n %w", b.PortConfig.nameVersionDesc(), err)
-	}
-	if cmakeConfig != nil {
-		cmakeConfig.Version = b.PortConfig.LibVersion
-		cmakeConfig.SystemName = toolchain.GetSystemName()
-		cmakeConfig.Libname = b.PortConfig.LibName
-		cmakeConfig.BuildType = b.BuildType
-		if err := cmakeConfig.Generate(b.PortConfig.PackageDir); err != nil {
-			return err
-		}
-	}
+	// portDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
+	// preferedPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
+	// cmakeConfig, err := generator.FindMatchedConfig(portDir, preferedPortDir, toolchain.GetSystemName(), b.LibraryType)
+	// if err != nil {
+	// 	return fmt.Errorf("find matched config %s\n %w", b.PortConfig.nameVersionDesc(), err)
+	// }
+	// if cmakeConfig != nil {
+	// 	cmakeConfig.Version = b.PortConfig.LibVersion
+	// 	cmakeConfig.SystemName = toolchain.GetSystemName()
+	// 	cmakeConfig.Libname = b.PortConfig.LibName
+	// 	cmakeConfig.BuildType = b.BuildType
+	// 	if err := cmakeConfig.GenerateCMakeConfigs(b.PortConfig.PackageDir); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }

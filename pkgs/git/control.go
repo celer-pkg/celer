@@ -109,8 +109,14 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 		repoRef = branch
 	}
 
+	// Get repo URL.
+	repoUrl, err := GetRepoUrl(repoDir)
+	if err != nil {
+		return err
+	}
+
 	// Update to branch.
-	isBranch, err := CheckIfRemoteBranch(repoDir, repoRef)
+	isBranch, err := CheckIfRemoteBranch(repoUrl, repoRef)
 	if err != nil {
 		return err
 	}
@@ -132,7 +138,7 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	}
 
 	// Update to tag.
-	isTag, err := CheckIfRemoteTag(repoDir, repoRef)
+	isTag, err := CheckIfRemoteTag(repoUrl, repoRef)
 	if err != nil {
 		return err
 	}
@@ -208,15 +214,17 @@ func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 
 // Clean clean git repo.
 func Clean(title, repoDir string) error {
-	var commands []string
-	commands = append(commands, "git reset --hard")
-	commands = append(commands, "git clean -xfd")
+	if fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		var commands []string
+		commands = append(commands, "git reset --hard")
+		commands = append(commands, "git clean -xfd")
 
-	commandLine := strings.Join(commands, " && ")
-	executor := cmd.NewExecutor(title, commandLine)
-	executor.SetWorkDir(repoDir)
-	if err := executor.Execute(); err != nil {
-		return err
+		commandLine := strings.Join(commands, " && ")
+		executor := cmd.NewExecutor(title, commandLine)
+		executor.SetWorkDir(repoDir)
+		if err := executor.Execute(); err != nil {
+			return err
+		}
 	}
 
 	return nil
