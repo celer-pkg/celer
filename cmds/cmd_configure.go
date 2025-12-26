@@ -104,9 +104,9 @@ Examples:
 				configs.PrintSuccess("current project: %s.", c.project)
 
 				// Auto configure platform.
-				defaultPlatform := c.celer.Project().GetDefaultPlatform()
-				if defaultPlatform != "" && c.celer.Global.Platform == "" {
-					if err := c.celer.SetPlatform(defaultPlatform); err != nil {
+				targetPlatform := c.celer.Project().GetTargetPlatform()
+				if targetPlatform != "" && c.celer.Global.Platform == "" {
+					if err := c.celer.SetPlatform(targetPlatform); err != nil {
 						configs.PrintError(err, "failed to set platform: %s.", c.celer.Global.Platform)
 						return
 					}
