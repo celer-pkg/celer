@@ -62,7 +62,7 @@ Celer generates a platform-specific `toolchain_file.cmake` that bridges your pro
 | **🔧 Configurable Cross-Compilation Platforms** | Pre-define toolchains for ARM, x86, RISC-V, Windows, Linux, and more with friendly TOML configurations. |
 | **📁 Project-Level Dependency Management** | Each project maintains its own dependency versions, environment variables, macros, and CMake variables - preventing global conflicts. |
 | **🛠️ Multi-Build System Support** | Native support for **CMake**, **Makefiles**, **Meson**, **B2**, **Bazel**, **QMake**, **GYP** - no need to write complex scripts. |
-| **📦 Auto CMake Config Generation** | Non-CMake libraries automatically get CMake config files generated, ensuring seamless integration. |
+| **📦 Auto CMake Config Generation** | Prebuilt libraries automatically get CMake config files generated, ensuring seamless integration. |
 | **⚡ Intelligent Binary Caching** | Hash-based artifact caching via local network shares eliminates redundant builds. Supports pre-built binary distribution for private libraries. |
 | **💻 Developer Mode** | Generate `toolchain_file.cmake` once with `celer deploy`, then use any IDE for development. |
 | **🔄 CI/CD Integration** | Configure projects in `conf/projects` for seamless continuous integration pipelines. |
@@ -92,8 +92,8 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 - [Add a New Port](./docs/en-US/cmd_create.md#3-create-a-new-port) - Host your own libraries
 
 **Advanced Features:**
-- [Generate CMake Configs](./docs/en-US/article_generate_cmake_config.md) - Auto-generate configs for non-CMake libraries
-- [Cache Build Artifacts](./docs/en-US/article_binary_cache.md) - Accelerate builds with smart caching
+- [Generate CMake Configs](./docs/en-US/article_generate_cmake_config.md) - Auto-generate configs for prebuilt libraries
+- [Binary Cache](./docs/en-US/article_binary_cache.md) - Accelerate integration by caching build artifact of every library
 - [Support CCache](./docs/en-US/article_ccache.md) - Speeds up recompilation by caching previous compilations
 - [Detect version conflict and circular dependencies](./docs/en-US/article_detect_conflict_circular.md) - Auto detect version conflict and circular dependencies before building any libraries
 - [Export snapshot](./docs/en-US/cmd_deploy_export.md) - Export a reproducible workspace snapshot after deployed successfully.

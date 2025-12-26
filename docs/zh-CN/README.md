@@ -62,7 +62,7 @@ Celer 生成平台特定的 `toolchain_file.cmake`，作为项目与预配置构
 | **🔧 可配置化的交叉编译平台** | 通过友好的 TOML 配置预定义 ARM、x86、Windows、Linux 等平台的工具链。 |
 | **📁 项目级依赖管理** | 每个项目维护独立的依赖版本、环境变量、宏定义和 CMake 变量 - 避免全局冲突。 |
 | **🛠️ 多构建系统支持** | 原生支持 **CMake**、**Makefiles**、**Meson**、**B2**、**QMake**、**GYP** - 无需编写复杂脚本。 |
-| **📦 自动生成 CMake 配置** | 为非 CMake 库自动生成 CMake config 文件，确保无缝集成。 |
+| **📦 自动生成 CMake 配置** | 为预编译号的二进制库自动生成 CMake config 文件，确保无缝集成。 |
 | **⚡ 智能二进制缓存** | 基于哈希的制品缓存，通过本地网络共享消除冗余构建，支持私有库的预编译二进制分发。 |
 | **💻 开发者模式** | 通过 `celer deploy` 一次性生成 `toolchain_file.cmake`，然后使用任意 IDE 开发。 |
 | **🔄 CI/CD 集成** | 在 `conf/projects` 中配置项目，无缝集成到持续集成流水线。 |
@@ -92,8 +92,8 @@ Celer 解决了传统 C/C++ 包管理器难以应对的核心痛点：
 - [添加新包](./cmd_create.md#3-创建一个新的端口) - 托管你自己的库
 
 **高级功能：**
-- [生成 CMake 配置文件](./article_generate_cmake_config.md) - 为非 CMake 库自动生成配置
-- [缓存构建产物](./article_binary_cache.md) - 通过智能缓存加速构建
+- [生成 CMake 配置文件](./article_generate_cmake_config.md) - 为预编译好的二进制库自动生成配置
+- [缓存构建产物](./article_binary_cache.md) - 通过智能缓存每个库的编译产物来加速项目集成
 - [支持CCache](./article_ccache.md) - 通过缓存编译结果来加速重新编译
 - [库版本冲突和环形依赖检测](./article_detect_conflict_circular.md) - 在编译前提前发现导致环形依赖和冲突的错误配置
 - [导出快照](./cmd_deploy_export.md) - 当部署项目成功后允许导出当前的workspace为一个可以回溯编译的快照
