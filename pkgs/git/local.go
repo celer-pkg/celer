@@ -1,11 +1,27 @@
 package git
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 )
+
+// GetRepoUrl get git repo origin URL.
+func GetRepoUrl(repoDir string) (string, error) {
+	cmd := exec.Command("git", "remote", "get-url", "origin")
+	cmd.Dir = repoDir
+
+	var buffer bytes.Buffer
+	cmd.Stdout = &buffer
+
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("can not get origin URL: %v", err)
+	}
+
+	return strings.TrimSpace(buffer.String()), nil
+}
 
 // CheckIfLocalBranch check if repoRef is a branch.
 func CheckIfLocalBranch(repoDir, repoRef string) (bool, error) {

@@ -109,8 +109,14 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 		repoRef = branch
 	}
 
+	// Get repo URL.
+	repoUrl, err := GetRepoUrl(repoDir)
+	if err != nil {
+		return err
+	}
+
 	// Update to branch.
-	isBranch, err := CheckIfRemoteBranch(repoDir, repoRef)
+	isBranch, err := CheckIfRemoteBranch(repoUrl, repoRef)
 	if err != nil {
 		return err
 	}
@@ -132,7 +138,7 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	}
 
 	// Update to tag.
-	isTag, err := CheckIfRemoteTag(repoDir, repoRef)
+	isTag, err := CheckIfRemoteTag(repoUrl, repoRef)
 	if err != nil {
 		return err
 	}
