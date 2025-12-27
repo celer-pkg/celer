@@ -152,7 +152,7 @@ func (i *installCmd) install(nameVersion string) {
 	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName(), name, version, "port.toml")
 	portInPorts := filepath.Join(dirs.PortsDir, name, version, "port.toml")
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
-		configs.PrintError(fmt.Errorf("port %s not found in available repositories", nameVersion), "Failed to install %s.", nameVersion)
+		configs.PrintError(fmt.Errorf("port %s is not yet available in the ports collection. You may consider contributing by hosting it in the ports", nameVersion), "Failed to install %s.", nameVersion)
 		return
 	}
 
