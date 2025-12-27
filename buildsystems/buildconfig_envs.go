@@ -96,7 +96,7 @@ func (b *BuildConfig) setupEnvs() {
 		}
 
 		// C/C++ standard.
-		b.setLanguageStandards()
+		b.setLanguageStandard()
 
 		// Set CFLGAGS/CXXFLAGS/LDFLAGS.
 		b.setEnvFlags()
@@ -104,9 +104,6 @@ func (b *BuildConfig) setupEnvs() {
 		// Setup pkg-config.
 		b.setupPkgConfig()
 	}
-
-	// C/C++ standard.
-	b.setLanguageStandards()
 
 	// Set CFLGAGS/CXXFLAGS/LDFLAGS.
 	b.setEnvFlags()
@@ -209,7 +206,7 @@ func (b BuildConfig) setupPkgConfig() {
 	b.envBackup.setenv("PKG_CONFIG_SYSROOT_DIR", sysrootDir)
 }
 
-func (b *BuildConfig) setLanguageStandards() {
+func (b *BuildConfig) setLanguageStandard() {
 	toolchain := b.Ctx.Platform().GetToolchain()
 
 	// Set C standard.

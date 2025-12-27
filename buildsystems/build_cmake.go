@@ -134,6 +134,18 @@ func (c cmake) configureOptions() ([]string, error) {
 		}
 	}
 
+	// Set C standard.
+	if c.CStandard != "" {
+		options = append(options, "-DCMAKE_C_STANDARD="+strings.TrimPrefix(c.CStandard, "c"))
+		options = append(options, "-DCMAKE_C_STANDARD_REQUIRED=ON")
+	}
+
+	// Set C++ standard.
+	if c.CXXStandard != "" {
+		options = append(options, "-DCMAKE_CXX_STANDARD="+strings.TrimPrefix(c.CXXStandard, "c++"))
+		options = append(options, "-DCMAKE_CXX_STANDARD_REQUIRED=ON")
+	}
+
 	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.
 	tmpDepDir := filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder)
 	findRootPaths := []string{filepath.ToSlash(tmpDepDir)}
