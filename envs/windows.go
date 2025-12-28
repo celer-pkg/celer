@@ -69,6 +69,7 @@ func CleanEnv() {
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
 }
 
+// setEnvIfNotEmpty sets an environment variable only if the provided value is non-empty.
 func setEnvIfNotEmpty(key, value string) {
 	if value != "" {
 		os.Setenv(key, value)
