@@ -49,7 +49,7 @@ func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, depth int, 
 	// ============ Clone specific tag ============
 	isTag, err := CheckIfRemoteTag(repoUrl, repoRef)
 	if err != nil {
-		return fmt.Errorf("failed to check if remote tag.\n %w", err)
+		return fmt.Errorf("failed to check if remote tag: %s.\n %w", repoRef, err)
 	}
 	if isTag {
 		command := cloneRepo(repoRef, repoUrl, repoDir, depth)

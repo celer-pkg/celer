@@ -54,7 +54,7 @@ func ReadRemoteCommit(repoUrl, repoRef string) (string, error) {
 	// Try to get latest commit of tag.
 	isTag, err := CheckIfRemoteTag(repoUrl, repoRef)
 	if err != nil {
-		return "", fmt.Errorf("failed to check if remote tag.\n %w", err)
+		return "", fmt.Errorf("failed to check if remote tag: %s.\n %w", repoRef, err)
 	}
 	if isTag {
 		command := fmt.Sprintf("git ls-remote %s %s", repoUrl, "refs/tags/"+repoRef)

@@ -32,23 +32,23 @@ func CleanEnv() {
 	os.Clearenv()
 
 	// Restore necessary environemnts.
-	os.Setenv("TEMP", temp)
-	os.Setenv("TMP", tmp)
-	os.Setenv("OS", operatingSystem)
-	os.Setenv("HOMEDRIVE", homeDriver)
-	os.Setenv("HOMEPATH", homePath)
-	os.Setenv("USERNAME", username)
-	os.Setenv("USERPROFILE", userProfile)
-	os.Setenv("SystemRoot", systemRoot)
-	os.Setenv("SystemDrive", systemDrive)
-	os.Setenv("LOCALAPPDATA", localAppData)
-	os.Setenv("PROCESSOR_ARCHITECTURE", processorArchitecture)
-	os.Setenv("PROCESSOR_IDENTIFIER", processorIdentifier)
-	os.Setenv("PROCESSOR_LEVEL", processorLevel)
-	os.Setenv("PROCESSOR_REVISION", processorRevision)
-	os.Setenv("NUMBER_OF_PROCESSORS", numberOfProcessors)
-	os.Setenv("CELER_PORTS_REPO", portsRepo)
-	os.Setenv("GITHUB_ACTIONS", githubActions)
+	setEnvIfNotEmpty("TEMP", temp)
+	setEnvIfNotEmpty("TMP", tmp)
+	setEnvIfNotEmpty("OS", operatingSystem)
+	setEnvIfNotEmpty("HOMEDRIVE", homeDriver)
+	setEnvIfNotEmpty("HOMEPATH", homePath)
+	setEnvIfNotEmpty("USERNAME", username)
+	setEnvIfNotEmpty("USERPROFILE", userProfile)
+	setEnvIfNotEmpty("SystemRoot", systemRoot)
+	setEnvIfNotEmpty("SystemDrive", systemDrive)
+	setEnvIfNotEmpty("LOCALAPPDATA", localAppData)
+	setEnvIfNotEmpty("PROCESSOR_ARCHITECTURE", processorArchitecture)
+	setEnvIfNotEmpty("PROCESSOR_IDENTIFIER", processorIdentifier)
+	setEnvIfNotEmpty("PROCESSOR_LEVEL", processorLevel)
+	setEnvIfNotEmpty("PROCESSOR_REVISION", processorRevision)
+	setEnvIfNotEmpty("NUMBER_OF_PROCESSORS", numberOfProcessors)
+	setEnvIfNotEmpty("CELER_PORTS_REPO", portsRepo)
+	setEnvIfNotEmpty("GITHUB_ACTIONS", githubActions)
 
 	// Reset PATH.
 	var paths []string
@@ -67,4 +67,11 @@ func CleanEnv() {
 	// Use PATH instead of Path.
 	os.Unsetenv("Path")
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
+}
+
+// setEnvIfNotEmpty sets an environment variable only if the provided value is non-empty.
+func setEnvIfNotEmpty(key, value string) {
+	if value != "" {
+		os.Setenv(key, value)
+	}
 }
