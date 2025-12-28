@@ -556,7 +556,7 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Fixup pkg config files.
-		var prefix = expr.If(p.ctx.RootFS() != nil || (p.DevDep || p.Native),
+		var prefix = expr.If(p.DevDep || p.Native,
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().GetHostName()+"-dev"),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
 		)
@@ -599,9 +599,9 @@ func (p Port) providerTmpDeps() error {
 		}
 
 		// Fixup pkg config files.
-		var prefix = expr.If(p.ctx.RootFS() != nil || (p.DevDep || p.Native),
+		var prefix = expr.If(port.DevDep || port.Native,
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.ctx.Platform().GetHostName()+"-dev"),
-			filepath.Join(string(os.PathSeparator), "tmp", "deps", p.MatchedConfig.PortConfig.LibraryFolder),
+			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.MatchedConfig.PortConfig.LibraryFolder),
 		)
 		if err := fileio.FixupPkgConfig(port.tmpDepsDir, prefix); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config.\n %w", err)
