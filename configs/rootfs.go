@@ -88,15 +88,21 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 
 	// SYSROOT section.
 	fmt.Fprintf(&buffer, "\n# SYSROOT for cross-compile.\n")
-	fmt.Fprintf(&buffer, "set(%-30s%q)\n", "CMAKE_SYSROOT", rootfsPath)
+	fmt.Fprintf(&buffer, "set(%-22s%q)\n", "CMAKE_SYSROOT", rootfsPath)
 
 	var cFlags, cxxFlags, sharedLdFlags, moduleLdFlags, exeLdFlags []string
 	cFlags = append(cFlags, "--sysroot=${CMAKE_SYSROOT}")
 	cxxFlags = append(cxxFlags, "--sysroot=${CMAKE_SYSROOT}")
 
-	// Include directories section.
+	// Include directories section,
+	// Note: for default include dirs like `/usr/include`, we must don't need to add them here.
 	if len(r.IncludeDirs) > 0 {
 		for _, incDir := range r.IncludeDirs {
+			if strings.Contains(incDir, "usr/include") {
+				return fmt.Errorf("usr/include should not be added to rootfs.include_dirs, " +
+					"it'll cause system headers cannot be found error")
+			}
+
 			incPath := filepath.Join("${CMAKE_SYSROOT}", incDir)
 			incPath = filepath.ToSlash(incPath)
 			cFlags = append(cFlags, "-isystem "+incPath)
@@ -116,15 +122,15 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 	}
 
 	// Write compiler flags.
-	fmt.Fprintf(&buffer, "string(APPEND CMAKE_C_FLAGS_INIT %q)\n", strings.Join(cFlags, " "))
-	fmt.Fprintf(&buffer, "string(APPEND CMAKE_CXX_FLAGS_INIT %q)\n", strings.Join(cxxFlags, " "))
+	fmt.Fprintf(&buffer, "set(%-22s%q)\n", "CMAKE_C_FLAGS_INIT", strings.Join(cFlags, " "))
+	fmt.Fprintf(&buffer, "set(%-22s%q)\n", "CMAKE_CXX_FLAGS_INIT", strings.Join(cxxFlags, " "))
 
 	// Write linker flags if any.
 	if len(sharedLdFlags) > 0 {
 		fmt.Fprintf(&buffer, "\n# Linker needs rpath-link to resolve NEEDED dependencies from sysroot.\n")
-		fmt.Fprintf(&buffer, "string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT %q)\n", strings.Join(sharedLdFlags, " "))
-		fmt.Fprintf(&buffer, "string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT %q)\n", strings.Join(moduleLdFlags, " "))
-		fmt.Fprintf(&buffer, "string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT %q)\n", strings.Join(exeLdFlags, " "))
+		fmt.Fprintf(&buffer, "set(%-32s%q)\n", "CMAKE_SHARED_LINKER_FLAGS_INIT", strings.Join(sharedLdFlags, " "))
+		fmt.Fprintf(&buffer, "set(%-32s%q)\n", "CMAKE_MODULE_LINKER_FLAGS_INIT", strings.Join(moduleLdFlags, " "))
+		fmt.Fprintf(&buffer, "set(%-32s%q)\n", "CMAKE_EXE_LINKER_FLAGS_INIT", strings.Join(exeLdFlags, " "))
 	}
 
 	// CMake search paths section.
