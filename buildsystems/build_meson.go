@@ -397,10 +397,10 @@ func (m meson) appendLinkArgs(linkArgs *[]string, linkDir string) {
 		if toolchain.GetName() == "gcc" || toolchain.GetName() == "clang" {
 			if len(*linkArgs) == 0 {
 				*linkArgs = append(*linkArgs, fmt.Sprintf("'-L %s'", linkDir))
-				*linkArgs = append(*linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, linkDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf(`'-Wl,-rpath-link=%s'`, linkDir))
 			} else {
 				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-L %s'", linkDir))
-				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-Wl,-rpath-link,%s'", linkDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-Wl,-rpath-link=%s'", linkDir))
 			}
 		}
 

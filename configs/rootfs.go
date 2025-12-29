@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"bytes"
 	"celer/context"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -82,19 +83,59 @@ func (r RootFS) GetLibDirs() []string {
 
 func (r RootFS) Generate(toolchain *strings.Builder) error {
 	rootfsPath := "${CELER_ROOT}/" + strings.TrimPrefix(r.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
-	fmt.Fprintf(toolchain, `
-# SYSROOT for cross-compile.
-set(CMAKE_SYSROOT 	"%s")
-string(APPEND CMAKE_C_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")
-string(APPEND CMAKE_CXX_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")
 
-# Search programs in the host environment.
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+	var buffer bytes.Buffer
 
-# Search libraries and headers in the target environment.
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-`, rootfsPath)
+	// SYSROOT section.
+	fmt.Fprintf(&buffer, "\n# SYSROOT for cross-compile.\n")
+	fmt.Fprintf(&buffer, "set(%-30s%q)\n", "CMAKE_SYSROOT", rootfsPath)
+
+	var cFlags, cxxFlags, sharedLdFlags, moduleLdFlags, exeLdFlags []string
+	cFlags = append(cFlags, "--sysroot=${CMAKE_SYSROOT}")
+	cxxFlags = append(cxxFlags, "--sysroot=${CMAKE_SYSROOT}")
+
+	// Include directories section.
+	if len(r.IncludeDirs) > 0 {
+		for _, incDir := range r.IncludeDirs {
+			incPath := filepath.Join("${CMAKE_SYSROOT}", incDir)
+			incPath = filepath.ToSlash(incPath)
+			cFlags = append(cFlags, "-isystem "+incPath)
+			cxxFlags = append(cxxFlags, "-isystem "+incPath)
+		}
+	}
+
+	// Linker rpath-link section.
+	if len(r.LibDirs) > 0 {
+		for _, libDir := range r.LibDirs {
+			libPath := filepath.Join("${CMAKE_SYSROOT}", libDir)
+			libPath = filepath.ToSlash(libPath)
+			sharedLdFlags = append(sharedLdFlags, "-Wl,-rpath-link="+libPath)
+			moduleLdFlags = append(moduleLdFlags, "-Wl,-rpath-link="+libPath)
+			exeLdFlags = append(exeLdFlags, "-Wl,-rpath-link="+libPath)
+		}
+	}
+
+	// Write compiler flags.
+	fmt.Fprintf(&buffer, "string(APPEND CMAKE_C_FLAGS_INIT %q)\n", strings.Join(cFlags, " "))
+	fmt.Fprintf(&buffer, "string(APPEND CMAKE_CXX_FLAGS_INIT %q)\n", strings.Join(cxxFlags, " "))
+
+	// Write linker flags if any.
+	if len(sharedLdFlags) > 0 {
+		fmt.Fprintf(&buffer, "\n# Linker needs rpath-link to resolve NEEDED dependencies from sysroot.\n")
+		fmt.Fprintf(&buffer, "string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT %q)\n", strings.Join(sharedLdFlags, " "))
+		fmt.Fprintf(&buffer, "string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT %q)\n", strings.Join(moduleLdFlags, " "))
+		fmt.Fprintf(&buffer, "string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT %q)\n", strings.Join(exeLdFlags, " "))
+	}
+
+	// CMake search paths section.
+	fmt.Fprintf(&buffer, "\n# Search programs in the host environment.\n")
+	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)\n")
+	fmt.Fprintf(&buffer, "\n# Search libraries and headers in the target environment.\n")
+	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)\n")
+	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)\n")
+	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)\n")
+
+	// Write all at once.
+	toolchain.WriteString(buffer.String())
 	return nil
 }

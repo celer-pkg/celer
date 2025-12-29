@@ -361,7 +361,7 @@ func (b *BuildConfig) appendLibDir(libDir string) {
 		linkFlag := "-L" + libDir
 
 		// -Wl,-rpath-link, used to specify the directory that libraries looking for indirectly.
-		rpathlinkFlag := "-Wl,-rpath-link," + libDir
+		rpathlinkFlag := "-Wl,-rpath-link=" + libDir
 
 		var newAppended = false
 		if !slices.Contains(parts, linkFlag) {
