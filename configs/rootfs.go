@@ -88,11 +88,11 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 
 	// SYSROOT section.
 	fmt.Fprintf(&buffer, "\n# SYSROOT for cross-compile.\n")
-	fmt.Fprintf(&buffer, "set(%-22s%q)\n", "CMAKE_SYSROOT", rootfsPath)
+	fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", rootfsPath)
 
-	var cFlags, cxxFlags, sharedLdFlags, moduleLdFlags, exeLdFlags []string
-	cFlags = append(cFlags, "--sysroot=${CMAKE_SYSROOT}")
-	cxxFlags = append(cxxFlags, "--sysroot=${CMAKE_SYSROOT}")
+	// Append --sysroot to compiler flags.
+	fmt.Fprintf(&buffer, "string(APPEND CMAKE_C_FLAGS_INIT \" --sysroot=${CMAKE_SYSROOT}\")\n")
+	fmt.Fprintf(&buffer, "string(APPEND CMAKE_CXX_FLAGS_INIT \" --sysroot=${CMAKE_SYSROOT}\")\n")
 
 	// Include directories section,
 	// Note: for default include dirs like `/usr/include`, we must don't need to add them here.
@@ -103,34 +103,22 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 					"it'll cause system headers cannot be found error")
 			}
 
-			incPath := filepath.Join("${CMAKE_SYSROOT}", incDir)
-			incPath = filepath.ToSlash(incPath)
-			cFlags = append(cFlags, "-isystem "+incPath)
-			cxxFlags = append(cxxFlags, "-isystem "+incPath)
+			incPath := filepath.ToSlash(filepath.Join("${CMAKE_SYSROOT}", incDir))
+			fmt.Fprintf(&buffer, "string(APPEND CMAKE_C_FLAGS_INIT \" -isystem %s\")\n", incPath)
+			fmt.Fprintf(&buffer, "string(APPEND CMAKE_CXX_FLAGS_INIT \" -isystem %s\")\n", incPath)
 		}
 	}
 
 	// Linker rpath-link section.
 	if len(r.LibDirs) > 0 {
+		fmt.Fprintf(&buffer, "\n# Linker needs rpath-link to resolve NEEDED dependencies from sysroot.\n")
 		for _, libDir := range r.LibDirs {
 			libPath := filepath.Join("${CMAKE_SYSROOT}", libDir)
 			libPath = filepath.ToSlash(libPath)
-			sharedLdFlags = append(sharedLdFlags, "-Wl,-rpath-link="+libPath)
-			moduleLdFlags = append(moduleLdFlags, "-Wl,-rpath-link="+libPath)
-			exeLdFlags = append(exeLdFlags, "-Wl,-rpath-link="+libPath)
+			fmt.Fprintf(&buffer, "string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT \" -Wl,-rpath-link=%s\")\n", libPath)
+			fmt.Fprintf(&buffer, "string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT \" -Wl,-rpath-link=%s\")\n", libPath)
+			fmt.Fprintf(&buffer, "string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT \" -Wl,-rpath-link=%s\")\n", libPath)
 		}
-	}
-
-	// Write compiler flags.
-	fmt.Fprintf(&buffer, "set(%-22s%q)\n", "CMAKE_C_FLAGS_INIT", strings.Join(cFlags, " "))
-	fmt.Fprintf(&buffer, "set(%-22s%q)\n", "CMAKE_CXX_FLAGS_INIT", strings.Join(cxxFlags, " "))
-
-	// Write linker flags if any.
-	if len(sharedLdFlags) > 0 {
-		fmt.Fprintf(&buffer, "\n# Linker needs rpath-link to resolve NEEDED dependencies from sysroot.\n")
-		fmt.Fprintf(&buffer, "set(%-32s%q)\n", "CMAKE_SHARED_LINKER_FLAGS_INIT", strings.Join(sharedLdFlags, " "))
-		fmt.Fprintf(&buffer, "set(%-32s%q)\n", "CMAKE_MODULE_LINKER_FLAGS_INIT", strings.Join(moduleLdFlags, " "))
-		fmt.Fprintf(&buffer, "set(%-32s%q)\n", "CMAKE_EXE_LINKER_FLAGS_INIT", strings.Join(exeLdFlags, " "))
 	}
 
 	// CMake search paths section.
