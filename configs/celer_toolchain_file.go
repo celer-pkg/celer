@@ -21,6 +21,12 @@ func (c *Celer) GenerateToolchainFile() error {
 		return err
 	}
 
+	// Set CMAKE_PREFIX_PATH before setting CMAKE_SYSROOT to
+	// locate libraries of dependencies FIRST (before sysroot)
+	installedDir := "${CELER_ROOT}/installed/" + c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
+	fmt.Fprintf(&toolchain, "\n# Package search paths.\n")
+	fmt.Fprintf(&toolchain, "list(APPEND CMAKE_PREFIX_PATH %q)\n", installedDir)
+
 	// Rootfs related.
 	rootfs := c.RootFS()
 	if rootfs != nil {
@@ -33,7 +39,6 @@ func (c *Celer) GenerateToolchainFile() error {
 	c.writePkgConfig(&toolchain)
 
 	// Set CMAKE_FIND_ROOT_PATH.
-	installedDir := "${CELER_ROOT}/installed/" + c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
 	var rootpaths = []string{installedDir}
 	if c.RootFS() != nil {
 		rootpaths = append(rootpaths, "${CMAKE_SYSROOT}")
@@ -44,10 +49,6 @@ func (c *Celer) GenerateToolchainFile() error {
 	fmt.Fprintf(&toolchain, "else()\n")
 	fmt.Fprintf(&toolchain, "    set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";"))
 	fmt.Fprintf(&toolchain, "endif()\n")
-
-	// Set CMAKE_PREFIX_PATH.
-	fmt.Fprintf(&toolchain, "\n# Package search paths.\n")
-	fmt.Fprintf(&toolchain, "list(APPEND CMAKE_PREFIX_PATH %q)\n", installedDir)
 
 	// Set CCache only when enabled.
 	if c.configData.CCache != nil {

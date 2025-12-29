@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"bytes"
 	"celer/context"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -82,19 +83,53 @@ func (r RootFS) GetLibDirs() []string {
 
 func (r RootFS) Generate(toolchain *strings.Builder) error {
 	rootfsPath := "${CELER_ROOT}/" + strings.TrimPrefix(r.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
-	fmt.Fprintf(toolchain, `
-# SYSROOT for cross-compile.
-set(CMAKE_SYSROOT 	"%s")
-string(APPEND CMAKE_C_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")
-string(APPEND CMAKE_CXX_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")
 
-# Search programs in the host environment.
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+	var buffer bytes.Buffer
 
-# Search libraries and headers in the target environment.
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-`, rootfsPath)
+	// SYSROOT section.
+	fmt.Fprintf(&buffer, "\n# SYSROOT for cross-compile.\n")
+	fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", rootfsPath)
+
+	// Append --sysroot to compiler flags.
+	fmt.Fprintf(&buffer, "string(APPEND CMAKE_C_FLAGS_INIT \" --sysroot=${CMAKE_SYSROOT}\")\n")
+	fmt.Fprintf(&buffer, "string(APPEND CMAKE_CXX_FLAGS_INIT \" --sysroot=${CMAKE_SYSROOT}\")\n")
+
+	// Include directories section,
+	// Note: for default include dirs like `/usr/include`, we must don't need to add them here.
+	if len(r.IncludeDirs) > 0 {
+		for _, incDir := range r.IncludeDirs {
+			if strings.Contains(incDir, "usr/include") {
+				return fmt.Errorf("usr/include should not be added to rootfs.include_dirs, " +
+					"it'll cause system headers cannot be found error")
+			}
+
+			incPath := filepath.ToSlash(filepath.Join("${CMAKE_SYSROOT}", incDir))
+			fmt.Fprintf(&buffer, "string(APPEND CMAKE_C_FLAGS_INIT \" -isystem %s\")\n", incPath)
+			fmt.Fprintf(&buffer, "string(APPEND CMAKE_CXX_FLAGS_INIT \" -isystem %s\")\n", incPath)
+		}
+	}
+
+	// Linker rpath-link section.
+	if len(r.LibDirs) > 0 {
+		fmt.Fprintf(&buffer, "\n# Linker needs rpath-link to resolve NEEDED dependencies from sysroot.\n")
+		for _, libDir := range r.LibDirs {
+			libPath := filepath.Join("${CMAKE_SYSROOT}", libDir)
+			libPath = filepath.ToSlash(libPath)
+			fmt.Fprintf(&buffer, "string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT \" -Wl,-rpath-link=%s\")\n", libPath)
+			fmt.Fprintf(&buffer, "string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT \" -Wl,-rpath-link=%s\")\n", libPath)
+			fmt.Fprintf(&buffer, "string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT \" -Wl,-rpath-link=%s\")\n", libPath)
+		}
+	}
+
+	// CMake search paths section.
+	fmt.Fprintf(&buffer, "\n# Search programs in the host environment.\n")
+	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)\n")
+	fmt.Fprintf(&buffer, "\n# Search libraries and headers in the target environment.\n")
+	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)\n")
+	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)\n")
+	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)\n")
+
+	// Write all at once.
+	toolchain.WriteString(buffer.String())
 	return nil
 }
