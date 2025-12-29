@@ -270,6 +270,16 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	if !m.DevDep && rootfs != nil {
 		sysrootDir = rootfs.GetFullPath()
 
+		// Set CMAKE_PREFIX_PATH for CMake-based dependency detection,
+		// This prevents CMake from finding host system libraries.
+		cmakePrefixPaths := []string{
+			filepath.ToSlash(filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder)),
+		}
+		for _, libDir := range rootfs.GetLibDirs() {
+			cmakePrefixPaths = append(cmakePrefixPaths, "    "+filepath.ToSlash(filepath.Join(sysrootDir, libDir)))
+		}
+		fmt.Fprintf(&buffers, "cmake_prefix_path = ['%s']\n", strings.Join(cmakePrefixPaths, ",\n"))
+
 		// Add --sysroot to compiler and linker args.
 		sysrootArg := fmt.Sprintf("'--sysroot=%s'", sysrootDir)
 		includeArgs = append(includeArgs, sysrootArg)
@@ -304,6 +314,11 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		// TODO: it may supported in the future for darwin.
 	}
 
+	// Allow meson to locate libraries of dependencies FIRST (before sysroot).
+	depDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder)
+	m.appendIncludeArgs(&includeArgs, filepath.Join(depDir, "include"))
+	m.appendLinkArgs(&linkArgs, filepath.Join(depDir, "lib"))
+
 	if !m.DevDep && rootfs != nil {
 		// In meson, `sys_root` will be joined as the suffix with
 		// the prefix in .pc files to locate libraries.
@@ -321,12 +336,6 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 			m.appendLinkArgs(&linkArgs, libDir)
 		}
 	}
-
-	// Allow meson to locate libraries of dependecies.
-	depIncludeDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "include")
-	depLinkDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder, "lib")
-	m.appendIncludeArgs(&includeArgs, depIncludeDir)
-	m.appendLinkArgs(&linkArgs, depLinkDir)
 
 	// Allow meson to locate libraries of MSVC.
 	if runtime.GOOS == "windows" && (toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl") {
