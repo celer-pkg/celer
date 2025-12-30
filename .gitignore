@@ -1,7 +1,9 @@
 **/build
 /.idea
-**/ports
-**/conf
+/ports
+/conf
+/cmds/ports
+/cmds/conf
 **/packages
 **/tmp
 **/buildtrees
@@ -16,4 +18,3 @@
 *.exe
 celer
 celer.toml
-nul
