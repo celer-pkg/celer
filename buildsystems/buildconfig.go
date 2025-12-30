@@ -310,7 +310,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	var destDir = b.PortConfig.RepoDir
 
 	// Check cmake_config.toml in port dirs.
-	publicPortDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
+	publicPortDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
 	projectPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
 	publicConfigPath := filepath.Join(publicPortDir, "cmake_config.toml")
 	projectConfigPath := filepath.Join(projectPortDir, "cmake_config.toml")
@@ -437,7 +437,7 @@ func (b BuildConfig) Patch() error {
 			}
 
 			// Find patch file to apply.
-			defaultPatchPath := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion, patch)
+			defaultPatchPath := filepath.Join(dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion), patch)
 			preferedPatchPath := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion, patch)
 
 			var patchPath string
@@ -483,7 +483,7 @@ func (b BuildConfig) Patch() error {
 		}
 		return nil
 	}
-	portDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
+	portDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
 	if err := overrideFiles(portDir); err != nil {
 		return fmt.Errorf("failed to override files from port dir.\n %w", err)
 	}

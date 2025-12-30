@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
+	"unicode"
 )
 
 var (
@@ -48,6 +50,33 @@ func Init(workspaceDir string) {
 	TmpFilesDir = filepath.Join(WorkspaceDir, "tmp", "files")
 	TmpDepsDir = filepath.Join(WorkspaceDir, "tmp", "deps")
 	TestCacheDir = filepath.Join(WorkspaceDir, "cachedir")
+}
+
+// GetPortDir returns the port directory path with first-letter classification.
+// For example: GetPortDir("glog", "0.6.0") returns "ports/g/glog/0.6.0"
+func GetPortDir(name, version string) string {
+	if name == "" {
+		return ""
+	}
+
+	// Get first character and convert to lowercase
+	firstChar := strings.ToLower(string([]rune(name)[0]))
+
+	// Use only letters/digits, default to "other" for special chars
+	if len(firstChar) > 0 {
+		r := []rune(firstChar)[0]
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+			firstChar = "other"
+		}
+	}
+
+	return filepath.Join(PortsDir, firstChar, name, version)
+}
+
+// GetPortPath returns the port.toml file path with first-letter classification.
+// For example: GetPortPath("glog", "0.6.0") returns "ports/g/glog/0.6.0/port.toml"
+func GetPortPath(name, version string) string {
+	return filepath.Join(GetPortDir(name, version), "port.toml")
 }
 
 // ParentDir return the parent directory of path.

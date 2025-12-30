@@ -758,7 +758,8 @@ func (c *Celer) clonePorts() error {
 			return err
 		}
 
-		command := fmt.Sprintf("git clone %s %s", portsRepoUrl, portsDir)
+		// command := fmt.Sprintf("git clone %s %s", portsRepoUrl, portsDir) // TODO: Recover after the test is completed.
+		command := fmt.Sprintf("git clone --branch classify_ports_with_first_letter %s %s", portsRepoUrl, portsDir)
 		executor := cmd.NewExecutor("[clone ports]", command)
 		if err := executor.Execute(); err != nil {
 			return err

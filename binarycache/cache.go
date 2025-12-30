@@ -60,7 +60,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	}
 
 	portInProject := filepath.Join(dirs.ConfProjectsDir, p.Project, parts[0], parts[1], "port.toml")
-	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
+	portInPorts := dirs.GetPortPath(parts[0], parts[1])
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		return "", fmt.Errorf("port %s not found", p.NameVersion)
 	}
