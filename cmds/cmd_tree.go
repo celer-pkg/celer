@@ -341,8 +341,10 @@ func (t *treeCmd) completion(cmd *cobra.Command, args []string, toComplete strin
 			}
 
 			if !d.IsDir() && strings.HasSuffix(d.Name(), ".toml") {
-				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
-				libVersion := filepath.Base(filepath.Dir(path))
+				// For example: ports/t/testlib/1.0.0/port.toml
+				portDir := filepath.Dir(path)                   // ports/t/testlib/1.0.0
+				libVersion := filepath.Base(portDir)            // 1.0.0
+				libName := filepath.Base(filepath.Dir(portDir)) // testlib
 				nameVersion := libName + "@" + libVersion
 
 				if strings.HasPrefix(nameVersion, toComplete) {

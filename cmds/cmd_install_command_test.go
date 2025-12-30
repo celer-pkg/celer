@@ -183,7 +183,7 @@ func TestInstallCmd_Completion(t *testing.T) {
 	}
 
 	// Create mock port structure for testing completion.
-	testPortDir := dirs.GetPortPath("testlib", "1.0.0")
+	testPortDir := dirs.GetPortDir("testlib", "1.0.0")
 	check(os.MkdirAll(testPortDir, os.ModePerm))
 
 	// Create a port.toml file
@@ -278,7 +278,10 @@ func TestInstallCmd_BuildSuggestions(t *testing.T) {
 	}
 
 	for _, port := range testPorts {
-		portDir := filepath.Join(tmpDir, port.name, port.version)
+		// Create directory with first-letter classification
+		// e.g., tmpDir/o/opencv/4.8.0/port.toml
+		firstChar := strings.ToLower(string(port.name[0]))
+		portDir := filepath.Join(tmpDir, firstChar, port.name, port.version)
 		check(os.MkdirAll(portDir, os.ModePerm))
 
 		portFile := filepath.Join(portDir, "port.toml")
