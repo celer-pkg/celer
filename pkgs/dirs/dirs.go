@@ -63,11 +63,9 @@ func GetPortDir(name, version string) string {
 	firstChar := strings.ToLower(string([]rune(name)[0]))
 
 	// Use only letters/digits, default to "other" for special chars
-	if len(firstChar) > 0 {
-		r := []rune(firstChar)[0]
-		if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
-			firstChar = "other"
-		}
+	r := []rune(firstChar)[0]
+	if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+		firstChar = "other"
 	}
 
 	return filepath.Join(PortsDir, firstChar, name, version)
