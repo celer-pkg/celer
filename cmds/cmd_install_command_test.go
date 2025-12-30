@@ -183,8 +183,7 @@ func TestInstallCmd_Completion(t *testing.T) {
 	}
 
 	// Create mock port structure for testing completion.
-	portsDir := dirs.PortsDir
-	testPortDir := filepath.Join(portsDir, "testlib", "1.0.0")
+	testPortDir := dirs.GetPortPath("testlib", "1.0.0")
 	check(os.MkdirAll(testPortDir, os.ModePerm))
 
 	// Create a port.toml file

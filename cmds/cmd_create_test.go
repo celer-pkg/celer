@@ -4,7 +4,6 @@ import (
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -227,7 +226,7 @@ func TestCreateCmd(t *testing.T) {
 		// Check if platform really created.
 		platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
 		if !fileio.PathExists(platformPath) {
-			t.Fatalf("platform %s should be created", platformName)
+			t.Errorf("platform file does not exist: %s", platformPath)
 		}
 
 		check(os.RemoveAll(platformPath))
@@ -235,7 +234,7 @@ func TestCreateCmd(t *testing.T) {
 
 	t.Run("CreatePlatformFailed_emptyName", func(t *testing.T) {
 		if err := celer.CreatePlatform(""); err == nil {
-			t.Fatal("it should be failed")
+			t.Errorf("it should be failed")
 		}
 
 		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
@@ -249,7 +248,7 @@ func TestCreateCmd(t *testing.T) {
 
 		projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
 		if !fileio.PathExists(projectPath) {
-			t.Fatalf("project does not exist: %s", projectName)
+			t.Errorf("project does not exist: %s", projectName)
 		}
 
 		t.Cleanup(func() {
@@ -259,7 +258,7 @@ func TestCreateCmd(t *testing.T) {
 
 	t.Run("Create project failed: empyt name", func(t *testing.T) {
 		if err := celer.CreateProject(""); err == nil {
-			t.Fatal("it should be failed")
+			t.Errorf("it should be failed")
 		}
 	})
 
@@ -269,9 +268,9 @@ func TestCreateCmd(t *testing.T) {
 		const portVersion = "1.0.0"
 		check(celer.CreatePort(portName + "@" + portVersion))
 
-		portPath := filepath.Join(dirs.PortsDir, fmt.Sprintf("%s/%s/port.toml", portName, portVersion))
+		portPath := dirs.GetPortPath(portName, portVersion)
 		if !fileio.PathExists(portPath) {
-			t.Fatalf("port does not exists: %s@%s", portName, portVersion)
+			t.Errorf("port does not exists: %s@%s", portName, portVersion)
 		}
 
 		t.Cleanup(func() {
@@ -281,13 +280,13 @@ func TestCreateCmd(t *testing.T) {
 
 	t.Run("CreatePortFailed_emptyName", func(t *testing.T) {
 		if err := celer.CreatePort(""); err == nil {
-			t.Fatal("it should be failed")
+			t.Errorf("it should be failed")
 		}
 	})
 
 	t.Run("CreatePortFailed_invalidPortName", func(t *testing.T) {
 		if err := celer.CreatePort("libxxx"); err == nil {
-			t.Fatal("it should be failed")
+			t.Errorf("it should be failed")
 		}
 	})
 }

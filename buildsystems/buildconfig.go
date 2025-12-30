@@ -625,23 +625,6 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		return fmt.Errorf("fixup pkg-config\n %w", err)
 	}
 
-	// Generate cmake configs.
-	// portDir := filepath.Join(dirs.PortsDir, b.PortConfig.LibName, b.PortConfig.LibVersion)
-	// preferedPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
-	// cmakeConfig, err := generator.FindMatchedConfig(portDir, preferedPortDir, toolchain.GetSystemName(), b.LibraryType)
-	// if err != nil {
-	// 	return fmt.Errorf("find matched config %s\n %w", b.PortConfig.nameVersionDesc(), err)
-	// }
-	// if cmakeConfig != nil {
-	// 	cmakeConfig.Version = b.PortConfig.LibVersion
-	// 	cmakeConfig.SystemName = toolchain.GetSystemName()
-	// 	cmakeConfig.Libname = b.PortConfig.LibName
-	// 	cmakeConfig.BuildType = b.BuildType
-	// 	if err := cmakeConfig.GenerateCMakeConfigs(b.PortConfig.PackageDir); err != nil {
-	// 		return err
-	// 	}
-	// }
-
 	return nil
 }
 

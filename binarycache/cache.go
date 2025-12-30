@@ -176,14 +176,14 @@ func (p Port) readPatch(portNameVersion, patchFileName string) (string, error) {
 		return "", fmt.Errorf("invalid port name and version: %s", p.NameVersion)
 	}
 
-	defaultPatchPath := filepath.Join(dirs.PortsDir, parts[0], parts[1], patchFileName)
-	preferedPatchPath := filepath.Join(dirs.ConfProjectsDir, p.Project, parts[0], parts[1], patchFileName)
+	portPatchPath := filepath.Join(dirs.GetPortPath(parts[0], parts[1]), patchFileName)
+	projectPatchPath := filepath.Join(dirs.ConfProjectsDir, p.Project, parts[0], parts[1], patchFileName)
 
 	var patchPath string
-	if fileio.PathExists(preferedPatchPath) {
-		patchPath = preferedPatchPath
-	} else if fileio.PathExists(defaultPatchPath) {
-		patchPath = defaultPatchPath
+	if fileio.PathExists(projectPatchPath) {
+		patchPath = projectPatchPath
+	} else if fileio.PathExists(portPatchPath) {
+		patchPath = portPatchPath
 	} else {
 		return "", fmt.Errorf("patch %s not found", patchFileName)
 	}
