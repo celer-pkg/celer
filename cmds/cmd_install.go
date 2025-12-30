@@ -150,7 +150,7 @@ func (i *installCmd) install(nameVersion string) {
 	name, version := parts[0], parts[1]
 
 	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName(), name, version, "port.toml")
-	portInPorts := filepath.Join(dirs.PortsDir, name, version, "port.toml")
+	portInPorts := dirs.GetPortPath(name, version)
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		configs.PrintError(fmt.Errorf("port %s is not yet available in the ports collection. You may consider contributing by hosting it in the ports", nameVersion), "Failed to install %s.", nameVersion)
 		return
@@ -216,8 +216,10 @@ func (i *installCmd) buildSuggestions(suggestions *[]string, portDir string, toC
 		}
 
 		if !entity.IsDir() && entity.Name() == "port.toml" {
-			libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
-			libVersion := filepath.Base(filepath.Dir(path))
+			// For example: ports/t/testlib/1.0.0/port.toml
+			portDir := filepath.Dir(path)                   // ports/t/testlib/1.0.0
+			libVersion := filepath.Base(portDir)            // 1.0.0
+			libName := filepath.Base(filepath.Dir(portDir)) // testlib
 			nameVersion := libName + "@" + libVersion
 
 			if strings.HasPrefix(nameVersion, toComplete) {

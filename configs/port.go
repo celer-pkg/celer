@@ -88,7 +88,7 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 
 	// Read name and version.
 	portInProject := filepath.Join(dirs.ConfProjectsDir, ctx.Project().GetName(), parts[0], parts[1], "port.toml")
-	portInPorts := filepath.Join(dirs.PortsDir, parts[0], parts[1], "port.toml")
+	portInPorts := dirs.GetPortPath(parts[0], parts[1])
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		if p.Parent != "" {
 			return fmt.Errorf("%s specified in %s is not defined", nameVersion, p.Parent)

@@ -78,7 +78,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 
 		for index := range p.BuildConfigs {
 			// Merge ports defined in project if exists.
-			portInPorts := filepath.Join(dirs.PortsDir, p.Name, p.Version, "port.toml")
+			portInPorts := dirs.GetPortPath(p.Name, p.Version)
 			portInProject := filepath.Join(dirs.ConfProjectsDir, p.ctx.Project().GetName(), p.Name, p.Version, "port.toml")
 			if fileio.PathExists(portInPorts) && fileio.PathExists(portInProject) {
 				bytes, err := os.ReadFile(portInProject)

@@ -487,7 +487,7 @@ func TestSearchCmd_Search_DuplicateResults(t *testing.T) {
 	check(celer.Setup())
 
 	// Create a port that exists in both global and project-specific locations.
-	globalPortDir := filepath.Join(dirs.PortsDir, "duplib", "1.0.0")
+	globalPortDir := dirs.GetPortDir("duplib", "1.0.0")
 	projectPortDir := filepath.Join(dirs.ConfProjectsDir, "project_test_01", "duplib", "1.0.0")
 
 	check(os.MkdirAll(globalPortDir, os.ModePerm))

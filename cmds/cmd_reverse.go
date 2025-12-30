@@ -81,8 +81,10 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 		}
 
 		if !entity.IsDir() && entity.Name() == "port.toml" {
-			libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
-			libVersion := filepath.Base(filepath.Dir(path))
+			// for example: ports/t/testlib/1.0.0/port.toml
+			portDir := filepath.Dir(path)                   // ports/t/testlib/1.0.0
+			libVersion := filepath.Base(portDir)            // 1.0.0
+			libName := filepath.Base(filepath.Dir(portDir)) // testlib
 			nameVersion := libName + "@" + libVersion
 
 			var port configs.Port
@@ -129,8 +131,10 @@ func (r *reverseCmd) completion(cmd *cobra.Command, args []string, toComplete st
 			}
 
 			if !d.IsDir() && d.Name() == "port.toml" {
-				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
-				libVersion := filepath.Base(filepath.Dir(path))
+				// With first-letter classification: ports/t/testlib/1.0.0/port.toml
+				portDir := filepath.Dir(path)                   // ports/t/testlib/1.0.0
+				libVersion := filepath.Base(portDir)            // 1.0.0
+				libName := filepath.Base(filepath.Dir(portDir)) // testlib
 				nameVersion := libName + "@" + libVersion
 
 				if strings.HasPrefix(nameVersion, toComplete) {

@@ -33,7 +33,7 @@ func TestDepCheck_CheckCircular_Normal(t *testing.T) {
 
 	depcheck := NewDepCheck()
 	if err := depcheck.CheckCircular(celer, port); err != nil {
-		t.FailNow()
+		t.Fatal(err)
 	}
 }
 
@@ -64,7 +64,7 @@ func TestDepCheck_CheckCircular_Dependencies(t *testing.T) {
 	if err := depcheck.CheckCircular(celer, port); err != nil {
 		t.Log(err.Error())
 	} else {
-		t.FailNow()
+		t.Fatal(err)
 	}
 }
 
