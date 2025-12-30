@@ -293,13 +293,13 @@ func (c *Celer) CreatePort(nameVersion string) error {
 		return fmt.Errorf("invalid port name version")
 	}
 
-	parentDir := filepath.Join(dirs.PortsDir, parts[0])
-	if err := os.MkdirAll(parentDir, os.ModePerm); err != nil {
+	portDir := dirs.GetPortDir(parts[0], parts[1])
+	if err := os.MkdirAll(portDir, os.ModePerm); err != nil {
 		return err
 	}
 
 	var port Port
-	portPath := filepath.Join(parentDir, parts[1], "port.toml")
+	portPath := filepath.Join(portDir, "port.toml")
 	if err := port.Write(portPath); err != nil {
 		return err
 	}
