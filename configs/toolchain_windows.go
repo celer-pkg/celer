@@ -3,6 +3,7 @@
 package configs
 
 import (
+	"celer/buildsystems"
 	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
@@ -15,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -113,6 +115,16 @@ func (t *Toolchain) Validate() error {
 		default:
 			return fmt.Errorf("toolchain.ar is empty")
 		}
+	}
+
+	// Validate toolchain.c_standard.
+	if strings.TrimSpace(t.CStandard) != "" && !slices.Contains(buildsystems.CStandards, t.CStandard) {
+		return fmt.Errorf("toolchain.c_standard should be one of %s", strings.Join(buildsystems.CStandards, ", "))
+	}
+
+	// Validate toolchain.cxx_standard.
+	if strings.TrimSpace(t.CStandard) != "" && !slices.Contains(buildsystems.CXXStandards, t.CXXStandard) {
+		return fmt.Errorf("toolchain.cxx_standard should be one of %s", strings.Join(buildsystems.CXXStandards, ", "))
 	}
 
 	switch {
