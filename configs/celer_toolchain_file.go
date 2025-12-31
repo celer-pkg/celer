@@ -24,7 +24,7 @@ func (c *Celer) GenerateToolchainFile() error {
 	// Set CMAKE_PREFIX_PATH before setting CMAKE_SYSROOT to
 	// locate libraries of dependencies FIRST (before sysroot)
 	installedDir := "${CELER_ROOT}/installed/" + c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
-	fmt.Fprintf(&toolchain, "\n# Package search paths.\n")
+	fmt.Fprintf(&toolchain, "\n# Dependency search paths.\n")
 	fmt.Fprintf(&toolchain, "list(APPEND CMAKE_PREFIX_PATH %q)\n", installedDir)
 
 	// Rootfs related.
@@ -67,7 +67,7 @@ func (c *Celer) GenerateToolchainFile() error {
 		if len(parts) == 1 {
 			fmt.Fprintf(&toolchain, `set(%s CACHE INTERNAL "defined by celer globally.")`+"\n", item)
 		} else if len(parts) == 2 {
-			fmt.Fprintf(&toolchain, `set(%s "%s" CACHE INTERNAL "defined by celer globally.")`+"\n", parts[0], parts[1])
+			fmt.Fprintf(&toolchain, `set(%s %s CACHE INTERNAL "defined by celer globally.")`+"\n", parts[0], parts[1])
 		} else {
 			return fmt.Errorf("invalid cmake var: %s", item)
 		}
@@ -85,13 +85,32 @@ func (c *Celer) GenerateToolchainFile() error {
 		fmt.Fprintf(&toolchain, `set(ENV{%s} "%s")`+"\n", parts[0], parts[1])
 	}
 
-	for index, item := range c.project.Micros {
+	for index, item := range c.project.Macros {
 		if index == 0 {
-			fmt.Fprintf(&toolchain, "\n# Global micros.\n")
+			fmt.Fprintf(&toolchain, "\n# Global macros.\n")
 		}
 		fmt.Fprintf(&toolchain, "add_compile_definitions(%s)\n", item)
 	}
 
+	for index, item := range c.project.Flags {
+		if index == 0 {
+			fmt.Fprintf(&toolchain, "\n# Global flags.\n")
+		}
+		fmt.Fprintf(&toolchain, "add_compile_options(%s)\n", item)
+	}
+
+	for index, item := range c.project.Properties {
+		if index == 0 {
+			fmt.Fprintf(&toolchain, "\n# Global properties.\n")
+		}
+		parts := strings.Split(item, "=")
+		if len(parts) != 2 {
+			return fmt.Errorf("invalid property: %s", item)
+		}
+		fmt.Fprintf(&toolchain, "set_property(GLOBAL PROPERTY %s %s)\n", parts[0], parts[1])
+	}
+
+	// Compile flags.
 	optimize := c.Optimize("cmake", c.platform.GetToolchain().GetName())
 	if optimize != nil {
 		fmt.Fprintf(&toolchain, "\n# Compile flags.\n")

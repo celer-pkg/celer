@@ -9,7 +9,7 @@
 - 📦 **Ports（依赖库）** - 项目所需的第三方库
 - 🔧 **Vars（CMake 变量）** - 全局 CMake 构建变量
 - 🌍 **Envs（环境变量）** - 构建时需要的环境变量
-- 🏷️ **Micros（宏定义）** - C/C++ 预处理器宏
+- 🏷️ **Macros（宏定义）** - C/C++ 预处理器宏
 - ⚙️ **Compile Options（编译选项）** - 编译器标志和优化选项
 
 **为什么需要项目配置？**
@@ -65,7 +65,7 @@ envs = [
     "ENV_VAR1=001"
 ]
 
-micros = [
+macros = [
     "MICRO_VAR1=111",
     "MICRO_VAR2"
 ]
@@ -106,7 +106,7 @@ micros = [
 | `ports` | ❌ | 定义当前项目依赖的第三方库。格式为 `包名@版本号` | `["x264@stable", "zlib@1.3.1"]` |
 | `vars` | ❌ | 定义当前项目所需的全局 CMake 变量。格式为 `变量名=值` | `["CMAKE_BUILD_TYPE=Release"]` |
 | `envs` | ❌ | 定义当前项目所需的全局环境变量。格式为 `变量名=值` | `["xorg_cv_malloc0_returns_null=yes"]` |
-| `micros` | ❌ | 定义当前项目所需的 C/C++ 宏定义。格式为 `宏名=值` 或 `宏名` | `["DEBUG=1", "ENABLE_LOGGING"]` |
+| `macros` | ❌ | 定义当前项目所需的 C/C++ 宏定义。格式为 `宏名=值` 或 `宏名` | `["DEBUG=1", "ENABLE_LOGGING"]` |
 | `optimize` | ❌ | 定义固定一个编译器的编译优化选项 | 见下文详细说明 |
 | `optimize_gcc` | ❌ | 定义 GCC 编译器的优化选项 | 见下文详细说明 |
 | `optimize_clang` | ❌ | 定义 Clang 编译器的优化选项 | 见下文详细说明 |
@@ -165,7 +165,7 @@ envs = [
 ]
 ```
 
-### 4️⃣ Micros（宏定义）
+### 4️⃣ Macros（宏定义）
 
 定义 C/C++ 预处理器宏，在编译时注入到代码中。
 
@@ -173,7 +173,7 @@ envs = [
 
 **示例：**
 ```toml
-micros = [
+macros = [
     "DEBUG=1",              # 启用调试模式（有值宏）
     "ENABLE_LOGGING",       # 启用日志功能（无值宏）
     "MAX_BUFFER_SIZE=4096", # 定义缓冲区大小

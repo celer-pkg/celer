@@ -98,8 +98,15 @@ func (p Port) Commit(nameVersion string, devDep bool) (string, error) {
 		}
 		return commit, nil
 	} else {
-		archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-		filePath := filepath.Join(dirs.DownloadedDir, archive)
+		// Get archive file path.
+		var filePath string
+		if after, ok := strings.CutPrefix(port.Package.Url, "file:///"); ok {
+			filePath = after
+		} else {
+			archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
+			filePath = filepath.Join(dirs.DownloadedDir, archive)
+		}
+
 		commit, err := fileio.CalculateChecksum(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of part's archive %s.\n %w", nameVersion, err)

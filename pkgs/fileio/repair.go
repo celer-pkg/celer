@@ -86,7 +86,7 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 		}
 
 		simpleName := FileBaseName(r.downloader.url)
-		destDir := filepath.Join(dirs.DownloadedToolsDir, simpleName)
+		destDir := filepath.Join(r.destDir, simpleName)
 
 		// Skip if destDir exist.
 		if PathExists(destDir) {

@@ -9,7 +9,7 @@ Project configuration defines how Celer manages dependencies and build environme
 - 📦 **Ports (Dependencies)** - Third-party libraries required by the project
 - 🔧 **Vars (CMake Variables)** - Global CMake build variables
 - 🌍 **Envs (Environment Variables)** - Environment variables needed during build
-- 🏷️ **Micros (Macro Definitions)** - C/C++ preprocessor macros
+- 🏷️ **Macros (Macro Definitions)** - C/C++ preprocessor macros
 - ⚙️ **Compile Options (Optimization Flags)** - Compiler flags and optimization options
 
 **Why do we need project configuration?**
@@ -65,7 +65,7 @@ envs = [
     "ENV_VAR1=001"
 ]
 
-micros = [
+macros = [
     "MICRO_VAR1=111",
     "MICRO_VAR2"
 ]
@@ -106,7 +106,7 @@ micros = [
 | `ports` | ❌ | Define third-party libraries the current project depends on. Format: `package@version` | `["x264@stable", "zlib@1.3.1"]` |
 | `vars` | ❌ | Define global CMake variables required by the current project. Format: `variable=value` | `["CMAKE_BUILD_TYPE=Release"]` |
 | `envs` | ❌ | Define global environment variables required by the current project. Format: `variable=value` | `["xorg_cv_malloc0_returns_null=yes"]` |
-| `micros` | ❌ | Define C/C++ macro definitions required by the current project. Format: `macro=value` or `macro` | `["DEBUG=1", "ENABLE_LOGGING"]` |
+| `macros` | ❌ | Define C/C++ macro definitions required by the current project. Format: `macro=value` or `macro` | `["DEBUG=1", "ENABLE_LOGGING"]` |
 | `optimize` | ❌ | Define compilation optimization options for a fixed compiler | See detailed description below |
 | `optimize_gcc` | ❌ | Define optimization options for GCC compiler | See detailed description below |
 | `optimize_clang` | ❌ | Define optimization options for Clang compiler | See detailed description below |
@@ -165,7 +165,7 @@ envs = [
 ]
 ```
 
-### 4️⃣ Micros (Macro Definitions)
+### 4️⃣ Macros (Macro Definitions)
 
 Define C/C++ preprocessor macros to be injected into code during compilation.
 
@@ -173,7 +173,7 @@ Define C/C++ preprocessor macros to be injected into code during compilation.
 
 **Example:**
 ```toml
-micros = [
+macros = [
     "DEBUG=1",              # Enable debug mode (macro with value)
     "ENABLE_LOGGING",       # Enable logging (value-less macro)
     "MAX_BUFFER_SIZE=4096", # Define buffer size
