@@ -62,7 +62,7 @@ func (t *Toolchain) Validate() error {
 	}
 
 	// Validate toolchain.cxx_standard.
-	if strings.TrimSpace(t.CStandard) != "" && !slices.Contains(buildsystems.CXXStandards, t.CXXStandard) {
+	if strings.TrimSpace(t.CXXStandard) != "" && !slices.Contains(buildsystems.CXXStandards, t.CXXStandard) {
 		return fmt.Errorf("toolchain.cxx_standard should be one of %s", strings.Join(buildsystems.CXXStandards, ", "))
 	}
 
