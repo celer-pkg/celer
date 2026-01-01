@@ -282,6 +282,22 @@ func (b BuildConfig) Validate() error {
 		return fmt.Errorf("cxx_standard should be one of %s", strings.Join(CXXStandards, ", "))
 	}
 
+	// Validate build_shared.
+	if b.BuildShared != "" && b.BuildShared != "_" {
+		validSharedOptions := []string{"--enable-shared", "--with-shared", "--disable-shared", "--without-shared"}
+		if !slices.Contains(validSharedOptions, b.BuildShared) {
+			return fmt.Errorf("invalid build_shared value %q: must be \"\", \"_\", or one of: %v", b.BuildShared, validSharedOptions)
+		}
+	}
+
+	// Validate build_static.
+	if b.BuildStatic != "" && b.BuildStatic != "_" {
+		validStaticOptions := []string{"--enable-static", "--with-static", "--disable-static", "--without-static"}
+		if !slices.Contains(validStaticOptions, b.BuildStatic) {
+			return fmt.Errorf("invalid build_static value %q: must be \"\", \"_\", or one of: %v", b.BuildStatic, validStaticOptions)
+		}
+	}
+
 	return nil
 }
 

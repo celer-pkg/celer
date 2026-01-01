@@ -123,11 +123,18 @@ The following are fields and their descriptions:
 - **meson**: "--default-library=shared"
 - **b2**: "link=shared runtime-link=shared"
 
->**Note**:  
->
->**1.** Since most C/C++ libraries don't support explicitly compiling static libraries only, **build_static**'s default value is empty unless manually specified in **port.toml**.  
->
->**2.** Some makefiles project's build target is an execuable, not library. In this case, you can set **build_shared** and **build_static** to **no** to disable compiling dynamic library and static library respectively.
+**Candidate Values:**
+
+| Value | Description | Example |
+|-------|-------------|---------|
+| `""` (empty string) | Use build system's default value | `build_shared = ""` → automatically uses `--enable-shared` |
+| `"_"` | Explicitly disable this option, no parameters added | `build_shared = "_"` → no shared library parameters added |
+| Custom string | Specify a custom configure parameter | `build_shared = "--with-shared"` |
+| `"enable\|disable"` | Specify both enable and disable parameters | `build_shared = "--enable-shared\|--disable-shared"` |
+
+>**Note:**  
+>**1:** Since most C/C++ libraries don't support explicitly compiling static libraries only, **build_static**'s default value is empty unless manually specified in port.toml.  
+>**2:** Some makefiles projects have executable build targets, not libraries. In this case, you should set **build_shared** and **build_static** to **`"_"`** to explicitly disable library compilation options.
 
 When **library_type** is set to **shared**, Celer will try to read the value in **build_shared** as the compilation option parameter, otherwise read the value in **build_static** as the compilation option parameter.
 
