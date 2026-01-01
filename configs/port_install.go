@@ -54,7 +54,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		}
 	}
 
-	// Clear the tmp/deps dir, then copy only the required library files into it.
+	// Clear the tmp/deps dir, then copy library files of dependencies into it.
 	// This ensures the folder contains exactly the libraries required by the current port.
 	if p.Parent == "" {
 		color.Printf(color.Title, "\n[clean tmps for %s]: %s\n", p.NameVersion(), dirs.TmpDepsDir)
@@ -81,14 +81,14 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "prebuilt", nil
 	}
 
-	// 1. try to install from package.
+	// 1. Try to install from package.
 	if installed, err := p.InstallFromPackage(options); err != nil {
 		return "", err
 	} else if installed {
 		return "package", nil
 	}
 
-	// 2. try to install from cache (only when not storing cache and not forcing).
+	// 2. Try to install from cache (only when not storing cache and not forcing).
 	if !options.StoreCache && !options.Force {
 		if installed, err := p.InstallFromBinaryCache(options); err != nil {
 			return "", err
@@ -97,7 +97,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		}
 	}
 
-	// 3. fallback: install from source.
+	// 3. Fallback: install from source.
 	if err := p.InstallFromSource(options); err != nil {
 		return "", err
 	}

@@ -11,15 +11,16 @@ import (
 )
 
 type Toolchain struct {
-	Url             string `toml:"url"`               // Download url or local file url.
-	Name            string `toml:"name"`              // It should be "gcc", "msvc", "clang-cl", "clang" and "msys2".
-	Version         string `toml:"version"`           // It should be version of gcc/msvc/clang.
-	Archive         string `toml:"archive,omitempty"` // Archive can be changed to avoid conflict.
-	Path            string `toml:"path"`              // Runtime path of tool, it's relative path and would be converted to absolute path later.
-	SystemName      string `toml:"system_name"`       // It would be "Windows", "Linux", "Android" and so on.
-	SystemProcessor string `toml:"system_processor"`  // It would be "x86_64", "aarch64" and so on.
-	Host            string `toml:"host"`              // It would be "x86_64-linux-gnu", "aarch64-linux-gnu" and so on.
-	CrosstoolPrefix string `toml:"crosstool_prefix"`  // It would be like "x86_64-linux-gnu-"
+	Url             string `toml:"url"`                       // Download url or local file url.
+	Name            string `toml:"name"`                      // It should be "gcc", "msvc", "clang-cl", "clang" and "msys2".
+	Version         string `toml:"version"`                   // It should be version of gcc/msvc/clang.
+	Archive         string `toml:"archive,omitempty"`         // Archive can be changed to avoid conflict.
+	Path            string `toml:"path"`                      // Runtime path of tool, it's relative path and would be converted to absolute path later.
+	SystemName      string `toml:"system_name"`               // It would be "Windows", "Linux", "Android" and so on.
+	SystemProcessor string `toml:"system_processor"`          // It would be "x86_64", "aarch64" and so on.
+	Host            string `toml:"host"`                      // It would be "x86_64-linux-gnu", "aarch64-linux-gnu" and so on.
+	EmbeddedSystem  bool   `toml:"embedded_system,omitempty"` // Whether it's for embedded system, like mcu or bare-metal.
+	CrosstoolPrefix string `toml:"crosstool_prefix"`          // It would be like "x86_64-linux-gnu-"
 
 	// C/C++ standard.
 	CStandard   string `toml:"c_standard,omitempty"`
@@ -165,6 +166,26 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_CXX_STANDARD", strings.TrimPrefix(t.CXXStandard, "c++"))
 			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_CXX_STANDARD_REQUIRED", "ON")
 		}
+	}
+
+	if t.EmbeddedSystem {
+		fmt.Fprint(toolchain, "\n# Embedded system settings.\n")
+		fmt.Fprintf(toolchain, "set(CMAKE_SYSTEM_INCLUDE_PATH %s)\n", "\"/include\"")
+		fmt.Fprintf(toolchain, "set(CMAKE_SYSTEM_LIBRARY_PATH %s)\n", "\"/lib\"")
+		fmt.Fprintf(toolchain, "set(CMAKE_SYSTEM_PROGRAM_PATH %s)\n", "\"/bin\"")
+		fmt.Fprintf(toolchain, "set(CMAKE_TRY_COMPILE_TARGET_TYPE %s)\n", "STATIC_LIBRARY")
+
+		fmt.Fprintf(toolchain, "set(CMAKE_C_USE_RESPONSE_FILE_FOR_OBJECTS %s)\n", "0")
+		fmt.Fprintf(toolchain, "set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_OBJECTS %s)\n", "0")
+		fmt.Fprintf(toolchain, "set(CMAKE_ASM_USE_RESPONSE_FILE_FOR_OBJECTS %s)\n", "0")
+		fmt.Fprintf(toolchain, "set(CMAKE_C_USE_RESPONSE_FILE_FOR_LIBRARIES %s)\n", "0")
+		fmt.Fprintf(toolchain, "set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_LIBRARIES %s)\n", "0")
+		fmt.Fprintf(toolchain, "set(CMAKE_ASM_USE_RESPONSE_FILE_FOR_LIBRARIES %s)\n", "0")
+		fmt.Fprintf(toolchain, "set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES %s)\n", "0")
+		fmt.Fprintf(toolchain, "set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES %s)\n", "0")
+		fmt.Fprintf(toolchain, "set(CMAKE_ASM_USE_RESPONSE_FILE_FOR_INCLUDES %s)\n", "0")
+
+		fmt.Fprintf(toolchain, "set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS FALSE)\n")
 	}
 
 	return nil

@@ -95,6 +95,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `cxx` | ✅ | C++ compiler executable name | `x86_64-linux-gnu-g++`<br>`clang++` |
 | `name` | ✅ | Toolchain name (for identification) | `gcc`, `clang`, `msvc` |
 | `version` | ✅ | Toolchain version number | `9.5`, `11.3`, `14.0.0` |
+| `embedded_system` | ❌ | Whether this is for embedded systems (like MCU or bare-metal) | `true` (MCU/bare-metal)<br>`false` or omit (regular systems) |
 | `fc` | ❌ | Fortran compiler (if needed) | `x86_64-linux-gnu-gfortran` |
 | `ranlib` | ❌ | Library index generator | `x86_64-linux-gnu-ranlib` |
 | `ar` | ❌ | Static library archiver | `x86_64-linux-gnu-ar` |
@@ -152,6 +153,34 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   cc = "clang"
   cxx = "clang++"
 ```
+
+### Embedded System Platform Configurations
+
+#### ARM Cortex-M MCU Configuration
+
+Embedded systems (like MCUs or bare-metal environments) require special configuration because they don't have a full operating system:
+
+```toml
+[toolchain]
+  url = "https://developer.arm.com/-/media/Files/downloads/gnu-rm/gcc-arm-none-eabi-10.3.tar.bz2"
+  path = "gcc-arm-none-eabi-10.3/bin"
+  system_name = "Generic"
+  system_processor = "arm"
+  host = "arm-none-eabi"
+  crosstool_prefix = "arm-none-eabi-"
+  embedded_system = true
+  cc = "arm-none-eabi-gcc"
+  cxx = "arm-none-eabi-g++"
+  ar = "arm-none-eabi-ar"
+  objcopy = "arm-none-eabi-objcopy"
+  objdump = "arm-none-eabi-objdump"
+```
+
+> 💡 **Key Points**:
+> - `embedded_system = true` tells Celer this is an embedded environment
+> - `system_name = "Generic"` indicates no specific operating system
+> - `host = "arm-none-eabi"` is the standard triple for bare-metal ARM toolchain
+> - No rootfs configuration needed, as MCUs don't have a filesystem
 
 ### Windows Platform Configurations
 

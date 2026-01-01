@@ -20,7 +20,6 @@ type Project struct {
 	Envs           []string          `toml:"envs"`
 	Macros         []string          `toml:"macros"`
 	Flags          []string          `toml:"flags"`
-	Properties     []string          `toml:"properties"`
 	OptimizeGCC    *context.Optimize `toml:"optimize_gcc"`
 	OptimizeMSVC   *context.Optimize `toml:"optimize_msvc"`
 	OptimizeClang  *context.Optimize `toml:"optimize_clang"`

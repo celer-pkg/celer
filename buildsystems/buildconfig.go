@@ -307,7 +307,6 @@ func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// In default, clone or download into repo dir.
 	var cmakeConfigPath string
-	var destDir = b.PortConfig.RepoDir
 
 	// Check cmake_config.toml in port dirs.
 	publicPortDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
@@ -324,14 +323,8 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		cmakeConfigPath = projectConfigPath
 	}
 
-	// If no cmake_config.toml found, download into package dir directly for prebuilt.
-	if b.buildSystem.Name() == "prebuilt" {
-		if cmakeConfigPath == "" {
-			destDir = b.PortConfig.PackageDir
-		}
-	}
-	if fileio.PathExists(destDir) {
-		entities, err := os.ReadDir(destDir)
+	if fileio.PathExists(b.PortConfig.RepoDir) {
+		entities, err := os.ReadDir(b.PortConfig.RepoDir)
 		if err != nil {
 			return fmt.Errorf("failed to check if empty: %w", err)
 		}
@@ -340,7 +333,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		}
 
 		// Remove empty folder to let download or clone again.
-		if err := os.RemoveAll(destDir); err != nil {
+		if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
 			return fmt.Errorf("failed to remove empty src dir: %w", err)
 		}
 	}
@@ -356,29 +349,29 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	} else {
 		// Check and repair resource.
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
-		repair := fileio.NewRepair(repoUrl, archive, ".", destDir)
+		repair := fileio.NewRepair(repoUrl, archive, ".", b.PortConfig.RepoDir)
 		if err := repair.CheckAndRepair(b.Ctx); err != nil {
 			return err
 		}
 
 		// Move extracted files to repo dir.
-		entities, err := os.ReadDir(destDir)
+		entities, err := os.ReadDir(b.PortConfig.RepoDir)
 		if err != nil || len(entities) == 0 {
 			return fmt.Errorf("failed to find extracted files under repo dir")
 		}
 
 		// Move extracted files to repo dir if it's not "include".
 		if len(entities) == 1 && entities[0].Name() != "include" {
-			srcDir := filepath.Join(destDir, entities[0].Name())
-			if err := fileio.RenameDir(srcDir, destDir); err != nil {
+			srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
+			if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
 				return err
 			}
 		}
 
 		// Init downloaded source as git repo for tracking file change,
 		// and only for buildtrees source dir.
-		if strings.Contains(destDir, dirs.BuildtreesDir) {
-			if err := git.InitRepo(destDir, "init for tracking file change"); err != nil {
+		if strings.Contains(b.PortConfig.RepoDir, dirs.BuildtreesDir) {
+			if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
 				return err
 			}
 		}
@@ -391,7 +384,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		if err != nil {
 			return err
 		}
-		if err := cmakeConfig.GenerateCMakeLists(destDir, b.PortConfig.LibName, b.PortConfig.LibVersion); err != nil {
+		if err := cmakeConfig.GenerateCMakeLists(b.PortConfig.RepoDir, b.PortConfig.LibName, b.PortConfig.LibVersion); err != nil {
 			return err
 		}
 	}

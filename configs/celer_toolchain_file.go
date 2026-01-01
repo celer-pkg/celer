@@ -99,17 +99,6 @@ func (c *Celer) GenerateToolchainFile() error {
 		fmt.Fprintf(&toolchain, "add_compile_options(%s)\n", item)
 	}
 
-	for index, item := range c.project.Properties {
-		if index == 0 {
-			fmt.Fprintf(&toolchain, "\n# Global properties.\n")
-		}
-		parts := strings.Split(item, "=")
-		if len(parts) != 2 {
-			return fmt.Errorf("invalid property: %s", item)
-		}
-		fmt.Fprintf(&toolchain, "set_property(GLOBAL PROPERTY %s %s)\n", parts[0], parts[1])
-	}
-
 	// Compile flags.
 	optimize := c.Optimize("cmake", c.platform.GetToolchain().GetName())
 	if optimize != nil {

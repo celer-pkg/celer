@@ -3,6 +3,7 @@ package buildsystems
 import (
 	"celer/context"
 	"celer/pkgs/fileio"
+	"os"
 	"path/filepath"
 )
 
@@ -81,8 +82,33 @@ func (p *prebuilt) installOptions() ([]string, error) {
 }
 
 func (p *prebuilt) Install(options []string) error {
+	// If CMakeLists.txt exists, use CMake to install.
 	if fileio.PathExists(filepath.Join(p.PortConfig.RepoDir, "CMakeLists.txt")) {
 		return p.cmakeInside.Install(options)
+	} else {
+		// For pure prebuilt without CMakeLists.txt, just copy files from repo dir to package dir.
+		if err := os.MkdirAll(p.PortConfig.PackageDir, os.ModePerm); err != nil {
+			return err
+		}
+
+		entities, err := os.ReadDir(p.PortConfig.RepoDir)
+		if err != nil {
+			return err
+		}
+
+		for _, entity := range entities {
+			srcPath := filepath.Join(p.PortConfig.RepoDir, entity.Name())
+			destPath := filepath.Join(p.PortConfig.PackageDir, entity.Name())
+			if entity.IsDir() {
+				if err := fileio.CopyDir(srcPath, destPath); err != nil {
+					return err
+				}
+			} else {
+				if err := fileio.CopyFile(srcPath, destPath); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
 	}
-	return nil
 }

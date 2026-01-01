@@ -95,6 +95,7 @@
 | `cxx` | ✅ | C++ 编译器可执行文件名 | `x86_64-linux-gnu-g++`<br>`clang++` |
 | `name` | ✅ | 工具链名称（用于标识） | `gcc`, `clang`, `msvc` |
 | `version` | ✅ | 工具链版本号 | `9.5`, `11.3`, `14.0.0` |
+| `embedded_system` | ❌ | 是否为嵌入式系统环境（如 MCU、裸机） | `true`（MCU/裸机）<br>`false` 或不设置（常规系统） |
 | `fc` | ❌ | Fortran 编译器（如果需要） | `x86_64-linux-gnu-gfortran` |
 | `ranlib` | ❌ | 库索引生成器 | `x86_64-linux-gnu-ranlib` |
 | `ar` | ❌ | 静态库归档器 | `x86_64-linux-gnu-ar` |
@@ -152,6 +153,34 @@
   cc = "clang"
   cxx = "clang++"
 ```
+
+### 嵌入式系统平台配置
+
+#### ARM Cortex-M MCU 配置
+
+嵌入式系统（如 MCU 或裸机环境）需要特殊配置，因为它们没有完整的操作系统：
+
+```toml
+[toolchain]
+  url = "https://developer.arm.com/-/media/Files/downloads/gnu-rm/gcc-arm-none-eabi-10.3.tar.bz2"
+  path = "gcc-arm-none-eabi-10.3/bin"
+  system_name = "Generic"
+  system_processor = "arm"
+  host = "arm-none-eabi"
+  crosstool_prefix = "arm-none-eabi-"
+  embedded_system = true
+  cc = "arm-none-eabi-gcc"
+  cxx = "arm-none-eabi-g++"
+  ar = "arm-none-eabi-ar"
+  objcopy = "arm-none-eabi-objcopy"
+  objdump = "arm-none-eabi-objdump"
+```
+
+> 💡 **关键要点**：
+> - `embedded_system = true` 告诉 Celer 这是嵌入式环境
+> - `system_name = "Generic"` 表示没有特定操作系统
+> - `host = "arm-none-eabi"` 是裸机 ARM 工具链的标准三元组
+> - 不需要 rootfs 配置，因为 MCU 没有文件系统
 
 ### Windows 平台配置
 
