@@ -18,9 +18,11 @@ import (
 	"strings"
 )
 
-const supportedString = "cmake, makefiles, meson, qmake, b2, gyp, nobuild, prebuilt, custom"
-
-var supportedArray = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "nobuild", "prebuilt", "custom"}
+var (
+	CStandards   = []string{"c90", "c99", "c11", "c17", "c23"}
+	CXXStandards = []string{"c++98", "c++11", "c++14", "c++17", "c++20", "c++23"}
+	buildSystems = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "nobuild", "prebuilt", "custom"}
+)
 
 type PortConfig struct {
 	LibName         string          // like: `ffmpeg`
@@ -262,12 +264,22 @@ type BuildConfig struct {
 }
 
 func (b BuildConfig) Validate() error {
+	// Validate buildsystem.
 	if b.BuildSystem == "" {
-		return fmt.Errorf("build_tool is empty, it should be one of %s", supportedString)
+		return fmt.Errorf("build_system is empty, it should be one of %s", strings.Join(buildSystems, ", "))
+	}
+	if !slices.Contains(buildSystems, b.BuildSystem) {
+		return fmt.Errorf("unsupported build system: %s, it should be one of %s", b.BuildSystem, strings.Join(buildSystems, ", "))
 	}
 
-	if !slices.Contains(supportedArray, b.BuildSystem) {
-		return fmt.Errorf("unsupported build tool: %s, it should be one of %s", b.BuildSystem, supportedString)
+	// Validate c_standard.
+	if strings.TrimSpace(b.CStandard) != "" && !slices.Contains(CStandards, b.CStandard) {
+		return fmt.Errorf("c_standard should be one of %s", strings.Join(CStandards, ", "))
+	}
+
+	// Validate cxx_standard.
+	if strings.TrimSpace(b.CXXStandard) != "" && !slices.Contains(CXXStandards, b.CXXStandard) {
+		return fmt.Errorf("cxx_standard should be one of %s", strings.Join(CXXStandards, ", "))
 	}
 
 	return nil

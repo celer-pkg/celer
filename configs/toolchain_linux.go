@@ -3,6 +3,7 @@
 package configs
 
 import (
+	"celer/buildsystems"
 	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/color"
@@ -13,6 +14,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -49,9 +51,19 @@ func (t *Toolchain) Validate() error {
 		return fmt.Errorf("toolchain.system_processor is empty")
 	}
 
-	// Validate toolchain prefix path and convert to absolute path.
-	if t.CrosstoolPrefix == "" {
+	// Validate toolchain.crosstool_prefix path and convert to absolute path.
+	if strings.TrimSpace(t.CrosstoolPrefix) == "" {
 		return fmt.Errorf("toolchain.crosstool_prefix should be like 'x86_64-linux-gnu-', but it's empty")
+	}
+
+	// Validate toolchain.c_standard.
+	if strings.TrimSpace(t.CStandard) != "" && !slices.Contains(buildsystems.CStandards, t.CStandard) {
+		return fmt.Errorf("toolchain.c_standard should be one of %s", strings.Join(buildsystems.CStandards, ", "))
+	}
+
+	// Validate toolchain.cxx_standard.
+	if strings.TrimSpace(t.CXXStandard) != "" && !slices.Contains(buildsystems.CXXStandards, t.CXXStandard) {
+		return fmt.Errorf("toolchain.cxx_standard should be one of %s", strings.Join(buildsystems.CXXStandards, ", "))
 	}
 
 	// Validate toolchain.host.
