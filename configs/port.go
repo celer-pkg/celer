@@ -148,7 +148,7 @@ func (p Port) Installed() (bool, error) {
 		return false, nil
 	}
 
-	// No meta file means not installed.
+	// For buildsystem other than nobuild, check if meta file outdated.
 	if p.MatchedConfig.BuildSystem != "nobuild" {
 		// Check if meta file exists.
 		if !fileio.PathExists(p.metaFile) {

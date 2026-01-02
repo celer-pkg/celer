@@ -134,9 +134,18 @@ options = [
 - **meson**: "--default-library=shared"
 - **b2**: "link=shared runtime-link=shared"
 
+**候选值说明：**
+
+| 候选值 | 说明 | 示例 |
+|--------|------|------|
+| `""` (空字符串) | 使用构建系统的默认值 | `build_shared = ""` → 自动使用 `--enable-shared` |
+| `"_"` | 显式禁用该选项，不添加任何参数 | `build_shared = "_"` → 不添加任何共享库相关参数 |
+| 自定义字符串 | 指定具体的配置参数 | `build_shared = "--with-shared"` |
+| `"enable\|disable"` | 同时指定启用和禁用参数 | `build_shared = "--enable-shared\|--disable-shared"` |
+
 >**注意：**  
 >**1:** 由于大多数 C/C++ 库不支持显式地仅编译静态库，因此除非在 port.toml 中手动指定 **build_static**，否则默认值为空。  
->**2:** 有些makefiles项目的构建目标是一个可执行文件，而不是库。在这种情况下，您可以将 **build_shared** 和 **build_static** 设置为 **no** 来分别禁用编译动态库和静态库。
+>**2:** 有些 makefiles 项目的构建目标是一个可执行文件，而不是库。在这种情况下，您应该将 **build_shared** 和 **build_static** 设置为 **`"_"`** 来显式禁用库编译选项。 
 
 当 **library_type** 被设置为 **shared** 时，尝试读取 **build_shared** 中的值作为编译选项参数，否则读取 **build_static** 中的值作为编译选项参数。
 

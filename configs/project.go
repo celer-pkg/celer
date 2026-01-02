@@ -18,7 +18,7 @@ type Project struct {
 	Ports          []string          `toml:"ports"`
 	Vars           []string          `toml:"vars"`
 	Envs           []string          `toml:"envs"`
-	Micros         []string          `toml:"micros"`
+	Macros         []string          `toml:"macros"`
 	Flags          []string          `toml:"flags"`
 	OptimizeGCC    *context.Optimize `toml:"optimize_gcc"`
 	OptimizeMSVC   *context.Optimize `toml:"optimize_msvc"`
@@ -78,8 +78,8 @@ func (p Project) Write(platformPath string) error {
 	if len(p.Envs) == 0 {
 		p.Envs = []string{}
 	}
-	if len(p.Micros) == 0 {
-		p.Micros = []string{}
+	if len(p.Macros) == 0 {
+		p.Macros = []string{}
 	}
 
 	// Default opt level values.

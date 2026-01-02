@@ -60,6 +60,7 @@ Celer generates a platform-specific `toolchain_file.cmake` that bridges your pro
 | Feature | What You Get |
 | --- | --- |
 | **🔧 Configurable Cross-Compilation Platforms** | Pre-define toolchains for ARM, x86, RISC-V, Windows, Linux, and more with friendly TOML configurations. |
+| **🎮 Embedded System Support** | First-class support for MCU and bare-metal environments with `embedded_system` flag - no OS dependencies required. |
 | **📁 Project-Level Dependency Management** | Each project maintains its own dependency versions, environment variables, macros, and CMake variables - preventing global conflicts. |
 | **🛠️ Multi-Build System Support** | Native support for **CMake**, **Makefiles**, **Meson**, **B2**, **Bazel**, **QMake**, **GYP** - no need to write complex scripts. |
 | **📦 Auto CMake Config Generation** | Prebuilt libraries automatically get CMake config files generated, ensuring seamless integration. |

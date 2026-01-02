@@ -109,14 +109,14 @@ func (m makefiles) configureOptions() ([]string, error) {
 
 	// Set build library type.
 	switch m.BuildConfig.BuildShared {
-	case "no":
+	case "_":
 		m.BuildConfig.BuildShared = ""
 	case "":
 		m.BuildConfig.BuildShared = "--enable-shared"
 	}
 
 	switch m.BuildConfig.BuildStatic {
-	case "no":
+	case "_":
 		m.BuildConfig.BuildStatic = ""
 	case "":
 		m.BuildConfig.BuildStatic = "--enable-static"
