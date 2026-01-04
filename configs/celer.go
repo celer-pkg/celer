@@ -484,7 +484,7 @@ func (c *Celer) SetBinaryCacheToken(token string) error {
 		return errors.ErrBinaryCacheDirNotExist
 	}
 
-	tokenFile := filepath.Join(dir, "token")
+	tokenFile := filepath.Join(dir, ".token")
 	if fileio.PathExists(tokenFile) {
 		return errors.ErrBinaryCacheTokenExist
 	}
