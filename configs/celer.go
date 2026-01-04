@@ -486,7 +486,7 @@ func (c *Celer) SetBinaryCacheToken(token string) error {
 
 	tokenFile := filepath.Join(dir, ".token")
 	if fileio.PathExists(tokenFile) {
-		return errors.ErrBinaryCacheTokenExist
+		return errors.ErrBinaryCacheTokenExists
 	}
 
 	// Write token to file with encrypted text.
@@ -538,6 +538,13 @@ func (c *Celer) SetCCacheEnabled(enabled bool) error {
 		c.configData.CCache = &CCache{
 			Enabled: enabled,
 			MaxSize: ccacheDefaultMaxSize,
+		}
+
+		switch runtime.GOOS {
+		case "windows":
+			c.configData.CCache.Dir = filepath.Join(os.Getenv("USERPROFILE"), ".ccache")
+		default:
+			c.configData.CCache.Dir = filepath.Join(os.Getenv("HOME"), ".cache", ".ccache")
 		}
 	} else {
 		c.configData.CCache.Enabled = enabled
@@ -611,7 +618,7 @@ func (c *Celer) SetCCacheRemoteStorage(remoteStorage string) error {
 			return fmt.Errorf("invalid remote storage URL: %w", err)
 		}
 		if parsedURL.Scheme == "" || parsedURL.Host == "" {
-			return fmt.Errorf("remote storage URL must include scheme and host (e.g., http://server:port/path)")
+			return fmt.Errorf("remote storage URL must contain scheme and host (e.g., http://server:port/path)")
 		}
 	}
 

@@ -62,8 +62,8 @@ EXAMPLES:
   celer install --store-cache --cache-token abc123 eigen@3.4.0
   celer install --jobs 8 --verbose opencv@4.8.0`,
 		Args: cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			i.runInstall(args[0])
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return i.runInstall(args[0])
 		},
 		ValidArgsFunction: i.completion,
 	}
@@ -78,23 +78,24 @@ EXAMPLES:
 	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "the number of jobs to run in parallel.")
 	flags.BoolVarP(&i.verbose, "verbose", "v", false, "verbose detail information.")
 
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 
-func (i *installCmd) runInstall(nameVersion string) {
+func (i *installCmd) runInstall(nameVersion string) error {
 	if err := i.celer.Init(); err != nil {
-		configs.PrintError(err, "Failed to initialize celer.")
-		return
+		return configs.PrintError(err, "Failed to initialize celer.")
 	}
 
 	// Validate and clean input.
 	cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
 	if err != nil {
-		configs.PrintError(err, "Invalid package specification.")
-		return
+		return configs.PrintError(err, "Invalid package specification.")
 	}
 
-	i.install(cleanedNameVersion)
+	return i.install(cleanedNameVersion)
 }
 
 // validateAndCleanInput validates and cleans the package name@version input.
@@ -127,7 +128,7 @@ func (i *installCmd) validateAndCleanInput(nameVersion string) (string, error) {
 	return name + "@" + version, nil
 }
 
-func (i *installCmd) install(nameVersion string) {
+func (i *installCmd) install(nameVersion string) error {
 	// Display install header.
 	color.Println(color.Title, "=======================================================================")
 	color.Printf(color.Title, "🚀 start to install %s\n", nameVersion)
@@ -141,8 +142,7 @@ func (i *installCmd) install(nameVersion string) {
 	i.celer.Global.Verbose = i.verbose
 
 	if err := i.celer.Setup(); err != nil {
-		configs.PrintError(err, "Failed to setup celer.")
-		return
+		return configs.PrintError(err, "Failed to setup celer.")
 	}
 
 	// Parse name and version (already validated)
@@ -152,34 +152,30 @@ func (i *installCmd) install(nameVersion string) {
 	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName(), name, version, "port.toml")
 	portInPorts := dirs.GetPortPath(name, version)
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
-		configs.PrintError(fmt.Errorf("port %s is not yet available in the ports collection. You may consider contributing by hosting it in the ports", nameVersion), "Failed to install %s.", nameVersion)
-		return
+		err := fmt.Errorf("port %s is not yet available in the ports collection. You may consider contributing by hosting it in the ports", nameVersion)
+		return configs.PrintError(err, "Failed to install %s.", nameVersion)
 	}
 
 	// Install the port.
 	var port configs.Port
 	port.DevDep = i.dev
 	if err := port.Init(i.celer, nameVersion); err != nil {
-		configs.PrintError(err, "failed to init %s.", nameVersion)
-		return
+		return configs.PrintError(err, "failed to init %s.", nameVersion)
 	}
 
 	// Check circular dependence.
 	depcheck := depcheck.NewDepCheck()
 	if err := depcheck.CheckCircular(i.celer, port); err != nil {
-		configs.PrintError(err, "failed to check circular dependence.")
-		return
+		return configs.PrintError(err, "failed to check circular dependence.")
 	}
 
 	// Check version conflict.
 	if err := depcheck.CheckConflict(i.celer, port); err != nil {
-		configs.PrintError(err, "failed to check version conflict.")
-		return
+		return configs.PrintError(err, "failed to check version conflict.")
 	}
 
 	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
-		configs.PrintError(err, "failed to check build tool: git.")
-		return
+		return configs.PrintError(err, "failed to check build tool: git.")
 	}
 
 	// Do install.
@@ -191,8 +187,7 @@ func (i *installCmd) install(nameVersion string) {
 	}
 	fromWhere, err := port.Install(options)
 	if err != nil {
-		configs.PrintError(err, "failed to install %s.", nameVersion)
-		return
+		return configs.PrintError(err, "failed to install %s.", nameVersion)
 	}
 	if fromWhere != "" {
 		if port.DevDep {
@@ -207,6 +202,8 @@ func (i *installCmd) install(nameVersion string) {
 			configs.PrintSuccess("install %s successfully.", nameVersion)
 		}
 	}
+
+	return nil
 }
 
 func (i *installCmd) buildSuggestions(suggestions *[]string, portDir string, toComplete string) {

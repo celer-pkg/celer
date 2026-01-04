@@ -80,10 +80,9 @@ Examples:
   celer configure --proxy-host proxy.example.com  # Set proxy host
   celer configure --proxy-port 8080               # Set proxy port
   celer configure --ccache-maxsize 5G             # Set ccache max size to 5GB`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := c.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
+				return configs.PrintError(err, "failed to init celer.")
 			}
 
 			flags := cmd.Flags()
@@ -91,15 +90,13 @@ Examples:
 			switch {
 			case flags.Changed("platform"):
 				if err := c.celer.SetPlatform(c.platform); err != nil {
-					configs.PrintError(err, "failed to set platform: %s.", c.platform)
-					return
+					return configs.PrintError(err, "failed to set platform.")
 				}
 				configs.PrintSuccess("current platform: %s.", c.platform)
 
 			case flags.Changed("project"):
 				if err := c.celer.SetProject(c.project); err != nil {
-					configs.PrintError(err, "failed to set project: %s.", c.project)
-					return
+					return configs.PrintError(err, "failed to set project: %s.", c.project)
 				}
 				configs.PrintSuccess("current project: %s.", c.project)
 
@@ -107,95 +104,84 @@ Examples:
 				targetPlatform := c.celer.Project().GetTargetPlatform()
 				if targetPlatform != "" && c.celer.Global.Platform == "" {
 					if err := c.celer.SetPlatform(targetPlatform); err != nil {
-						configs.PrintError(err, "failed to set platform: %s.", c.celer.Global.Platform)
-						return
+						return configs.PrintError(err, "failed to set platform: %s.", c.celer.Global.Platform)
 					}
 					configs.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Global.Platform)
 				}
 
 			case flags.Changed("build-type"):
 				if err := c.celer.SetBuildType(c.buildType); err != nil {
-					configs.PrintError(err, "failed to set build type: %s.", c.buildType)
-					return
+					return configs.PrintError(err, "failed to set build type: %s.", c.buildType)
 				}
 				configs.PrintSuccess("current build type: %s.", c.buildType)
 
 			case flags.Changed("jobs"):
 				if err := c.celer.SetJobs(c.jobs); err != nil {
-					configs.PrintError(err, "failed to set job num: %d.", c.jobs)
-					return
+					return configs.PrintError(err, "failed to set job num: %d.", c.jobs)
 				}
 				configs.PrintSuccess("current job num: %d.", c.jobs)
 
 			case flags.Changed("offline"):
 				if err := c.celer.SetOffline(c.offline); err != nil {
-					configs.PrintError(err, "failed to set offline mode: %s.", expr.If(c.offline, "true", "false"))
-					return
+					return configs.PrintError(err, "failed to set offline mode: %s.", expr.If(c.offline, "true", "false"))
 				}
 				configs.PrintSuccess("current offline mode: %s.", expr.If(c.offline, "true", "false"))
 
 			case flags.Changed("verbose"):
 				if err := c.celer.SetVerbose(c.verbose); err != nil {
-					configs.PrintError(err, "failed to set verbose mode: %s.", expr.If(c.verbose, "true", "false"))
-					return
+					return configs.PrintError(err, "failed to set verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 				}
 				configs.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 
 			case flags.Changed("binary-cache-dir"):
 				if err := c.celer.SetBinaryCacheDir(c.binaryCacheDir); err != nil {
-					configs.PrintError(err, "failed to set binary cache dir: %s.", c.binaryCacheDir)
-					return
+					return configs.PrintError(err, "failed to set binary cache dir: %s.", c.binaryCacheDir)
 				}
 				configs.PrintSuccess("current cache dir: %s.", expr.If(c.binaryCacheDir != "", c.binaryCacheDir, "empty"))
 			case flags.Changed("binary-cache-token"):
 				if err := c.celer.SetBinaryCacheToken(c.cacheToken); err != nil {
-					configs.PrintError(err, "failed to set binary cache token: %s.", c.cacheToken)
-					return
+					return configs.PrintError(err, "failed to set binary cache token: %s.", c.cacheToken)
 				}
 				configs.PrintSuccess("current cache token: %s.", expr.If(c.cacheToken != "", c.cacheToken, "empty"))
 
 			case flags.Changed("proxy-host"), flags.Changed("proxy-port"):
 				if err := c.celer.SetProxy(c.proxy.Host, c.proxy.Port); err != nil {
-					configs.PrintError(err, "failed to set proxy: %s:%d.", c.proxy.Host, c.proxy.Port)
-					return
+					return configs.PrintError(err, "failed to set proxy: %s:%d.", c.proxy.Host, c.proxy.Port)
 				}
 				configs.PrintSuccess("current proxy: %s:%d.", c.proxy.Host, c.proxy.Port)
 
 			case flags.Changed("ccache-enabled"):
 				if err := c.celer.SetCCacheEnabled(c.ccache.Enabled); err != nil {
-					configs.PrintError(err, "failed to update ccache enabled.")
-					return
+					return configs.PrintError(err, "failed to update ccache enabled.")
 				}
 				configs.PrintSuccess("current ccache enabled: %s.", expr.If(c.ccache.Enabled, "true", "false"))
 
 			case flags.Changed("ccache-dir"):
 				if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
-					configs.PrintError(err, "failed to update ccache dir.")
-					return
+					return configs.PrintError(err, "failed to update ccache dir.")
 				}
 				configs.PrintSuccess("current ccache dir: %s.", c.ccache.Dir)
 
 			case flags.Changed("ccache-maxsize"):
 				if err := c.celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
-					configs.PrintError(err, "failed to update ccache.maxsize.")
-					return
+					return configs.PrintError(err, "failed to update ccache.maxsize.")
 				}
 				configs.PrintSuccess("current ccache maxsize: %s.", c.ccache.MaxSize)
 
 			case flags.Changed("ccache-remote-storage"):
 				if err := c.celer.SetCCacheRemoteStorage(c.ccache.RemoteStorage); err != nil {
-					configs.PrintError(err, "failed to update ccache.remote_storage.")
-					return
+					return configs.PrintError(err, "failed to update ccache.remote_storage.")
 				}
 				configs.PrintSuccess("current ccache remote storage: %s.", c.ccache.RemoteStorage)
 
 			case flags.Changed("ccache-remote-only"):
 				if err := c.celer.SetCCacheRemoteOnly(c.ccache.RemoteOnly); err != nil {
-					configs.PrintError(err, "failed to update ccache.remote_only.")
-					return
+					return configs.PrintError(err, "failed to update ccache.remote_only.")
 				}
 				configs.PrintSuccess("current ccache remote only: %s.", expr.If(c.ccache.RemoteOnly, "true", "false"))
 			}
+
+			return nil
 		},
 		ValidArgsFunction: c.completion,
 	}
@@ -250,6 +236,11 @@ Examples:
 	})
 
 	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose")
+
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
+
 	return command
 }
 

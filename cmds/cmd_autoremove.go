@@ -25,18 +25,17 @@ func (a *autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "autoremove",
 		Short: "Clean installed directory, remove project not required libraries.",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := a.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
+				return configs.PrintError(err, "failed to init celer.")
 			}
 
 			if err := a.autoremove(); err != nil {
-				configs.PrintError(err, "failed to autoremove.")
-				return
+				return configs.PrintError(err, "failed to autoremove.")
 			}
 
 			configs.PrintSuccess("autoremove successfully.")
+			return nil
 		},
 		ValidArgsFunction: a.completion,
 	}
@@ -44,6 +43,9 @@ func (a *autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 	command.Flags().BoolVarP(&a.buildCache, "build-cache", "c", false, "autoremove packages along with build cache.")
 	command.Flags().BoolVarP(&a.purge, "purge", "p", false, "autoremove packages along with its package file.")
 
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 

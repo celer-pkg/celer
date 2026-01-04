@@ -39,11 +39,11 @@ Examples:
   celer remove boost@1.87.0 -d       # Remove boost from dev dependencies
   celer remove boost@1.87.0 -rpc     # Remove with all cleanup options`,
 		Args: cobra.MinimumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := r.execute(args); err != nil {
-				configs.PrintError(err, "removal failed")
-				return
+				return configs.PrintError(err, "removal failed")
 			}
+			return nil
 		},
 		ValidArgsFunction: r.completion,
 	}
@@ -54,6 +54,9 @@ Examples:
 	command.Flags().BoolVarP(&r.purge, "purge", "p", false, "purge package files completely")
 	command.Flags().BoolVarP(&r.dev, "dev", "d", false, "remove from development dependencies")
 
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 

@@ -42,8 +42,8 @@ Examples:
   celer clean automake@1.18 --recursive              	# Clean with dependencies
   celer clean --all                                 	# Clean all packages
   celer clean x264@stable ffmpeg@3.4.13 --recursive   	# Clean multiple packages`,
-		Run: func(cmd *cobra.Command, args []string) {
-			c.execute(args)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return c.execute(args)
 		},
 		ValidArgsFunction: c.completion,
 	}
@@ -53,32 +53,33 @@ Examples:
 	command.Flags().BoolVarP(&c.dev, "dev", "d", false, "clean package/project for dev mode.")
 	command.Flags().BoolVarP(&c.all, "all", "a", false, "clean all packages.")
 
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 
-func (c *cleanCmd) execute(args []string) {
+func (c *cleanCmd) execute(args []string) error {
 	if err := c.celer.Init(); err != nil {
-		configs.PrintError(err, "failed to init celer.")
-		return
+		return configs.PrintError(err, "failed to init celer.")
 	}
 
 	if c.all {
 		if err := c.cleanAll(); err != nil {
-			configs.PrintError(err, "failed to clean all packages.")
-			return
+			return configs.PrintError(err, "failed to clean all packages.")
 		}
 		configs.PrintSuccess("all packages cleaned.")
 	} else {
 		if err := c.validateTargets(args); err != nil {
-			configs.PrintError(err, "invalid arguments.")
-			return
+			return configs.PrintError(err, "invalid arguments.")
 		}
 
 		if err := c.clean(args...); err != nil {
-			configs.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
-			return
+			return configs.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
 		}
 	}
+
+	return nil
 }
 
 func (c *cleanCmd) validateTargets(targets []string) error {

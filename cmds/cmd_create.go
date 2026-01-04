@@ -35,8 +35,8 @@ EXAMPLES:
   celer create --platform windows-x86_64-msvc
   celer create --project my-awesome-project
   celer create --port opencv@4.8.0`,
-		Run: func(cmd *cobra.Command, args []string) {
-			c.doCreate(cmd)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return c.doCreate(cmd)
 		},
 		ValidArgsFunction: c.completion,
 	}
@@ -47,40 +47,43 @@ EXAMPLES:
 	command.Flags().StringVar(&c.port, "port", "", "create a new port.")
 
 	command.MarkFlagsMutuallyExclusive("platform", "project", "port")
+
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 
-func (c *createCmd) createPlatform(platformName string) {
+func (c *createCmd) createPlatform(platformName string) error {
 	if err := c.celer.CreatePlatform(platformName); err != nil {
-		configs.PrintError(err, "%s could not be created.", platformName)
-		return
+		return configs.PrintError(err, "%s could not be created.", platformName)
 	}
 
 	configs.PrintSuccess("%s is created, please proceed with its refinement.", platformName)
+	return nil
 }
 
-func (c *createCmd) createProject(projectName string) {
+func (c *createCmd) createProject(projectName string) error {
 	if err := c.celer.CreateProject(projectName); err != nil {
-		configs.PrintError(err, "%s could not be created.", projectName)
-		return
+		return configs.PrintError(err, "%s could not be created.", projectName)
 	}
 
 	configs.PrintSuccess("%s is created, please proceed with its refinement.", projectName)
+	return nil
 }
 
-func (c *createCmd) createPort(nameVersion string) {
+func (c *createCmd) createPort(nameVersion string) error {
 	if err := c.celer.CreatePort(nameVersion); err != nil {
-		configs.PrintError(err, "%s could not be created.", nameVersion)
-		return
+		return configs.PrintError(err, "%s could not be created.", nameVersion)
 	}
 
 	configs.PrintSuccess("%s is created, please proceed with its refinement.", nameVersion)
+	return nil
 }
 
-func (c *createCmd) doCreate(cmd *cobra.Command) {
+func (c *createCmd) doCreate(cmd *cobra.Command) error {
 	if err := c.celer.Init(); err != nil {
-		configs.PrintError(err, "Failed to initialize celer.")
-		return
+		return configs.PrintError(err, "Failed to initialize celer.")
 	}
 
 	// Check that exactly one flag is provided
@@ -97,30 +100,29 @@ func (c *createCmd) doCreate(cmd *cobra.Command) {
 	}
 
 	if provided == 0 {
-		configs.PrintError(nil, "You must specify exactly one component to create (--platform, --project, or --port).")
-		return
+		err := fmt.Errorf("you must specify exactly one component to create (--platform, --project, or --port)")
+		return configs.PrintError(err, "You must specify exactly one component to create (--platform, --project, or --port).")
 	}
 
 	// Validate inputs and create
 	if c.platform != "" {
 		if err := c.validatePlatformName(c.platform); err != nil {
-			configs.PrintError(err, "Invalid platform name.")
-			return
+			return configs.PrintError(err, "Invalid platform name.")
 		}
-		c.createPlatform(c.platform)
+		return c.createPlatform(c.platform)
 	} else if c.project != "" {
 		if err := c.validateProjectName(c.project); err != nil {
-			configs.PrintError(err, "Invalid project name.")
-			return
+			return configs.PrintError(err, "Invalid project name.")
 		}
-		c.createProject(c.project)
+		return c.createProject(c.project)
 	} else if c.port != "" {
 		if err := c.validatePortName(c.port); err != nil {
-			configs.PrintError(err, "Invalid port name.")
-			return
+			return configs.PrintError(err, "Invalid port name.")
 		}
-		c.createPort(c.port)
+		return c.createPort(c.port)
 	}
+
+	return nil
 }
 
 // validatePlatformName validates platform name format

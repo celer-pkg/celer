@@ -50,14 +50,18 @@ func Printf(colorFmt *Style, format string, args ...any) {
 	fmt.Printf(colorFmt.Format(), fmt.Sprintf(format, args...))
 }
 
-func Println(colorFmt *Style, message string) {
-	fmt.Printf(colorFmt.Format()+"\n", message)
+func Fprintf(w io.Writer, style *Style, format string, args ...any) {
+	fmt.Fprintf(w, style.Format(), fmt.Sprintf(format, args...))
 }
 
-func Sprintf(colorFmt *Style, format string, args ...any) string {
-	return fmt.Sprintf(colorFmt.Format(), fmt.Sprintf(format, args...))
+func Println(style *Style, message string) {
+	fmt.Printf(style.Format()+"\n", message)
 }
 
-func Sprint(colorFmt *Style, message string) string {
-	return fmt.Sprintf(colorFmt.Format(), message)
+func Sprintf(style *Style, format string, args ...any) string {
+	return fmt.Sprintf(style.Format(), fmt.Sprintf(format, args...))
+}
+
+func Sprint(style *Style, message string) string {
+	return fmt.Sprintf(style.Format(), message)
 }
