@@ -39,27 +39,28 @@ Examples:
   celer search *@1.3.1       # Search for all ports with version 1.3.1
   celer search *ffmpeg*      # Search for all ports containing 'ffmpeg'`,
 		Args: cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			s.doSearch(args[0])
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return s.doSearch(args[0])
 		},
 		ValidArgsFunction: s.completion,
 	}
 
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 
-func (s *searchCmd) doSearch(pattern string) {
+func (s *searchCmd) doSearch(pattern string) error {
 	// Initialize celer configuration.
 	if err := s.celer.Init(); err != nil {
-		configs.PrintError(err, "Failed to initialize celer.")
-		return
+		return configs.PrintError(err, "Failed to initialize celer.")
 	}
 
 	// Perform search.
 	libraries, err := s.search(pattern)
 	if err != nil {
-		configs.PrintError(err, "Failed to search available ports.")
-		return
+		return configs.PrintError(err, "Failed to search available ports.")
 	}
 
 	// Display results.
@@ -75,6 +76,8 @@ func (s *searchCmd) doSearch(pattern string) {
 	} else {
 		color.Println(color.Error, "no matched port found.")
 	}
+
+	return nil
 }
 
 func (s *searchCmd) search(pattern string) ([]string, error) {

@@ -484,9 +484,9 @@ func (c *Celer) SetBinaryCacheToken(token string) error {
 		return errors.ErrBinaryCacheDirNotExist
 	}
 
-	tokenFile := filepath.Join(dir, "token")
+	tokenFile := filepath.Join(dir, ".token")
 	if fileio.PathExists(tokenFile) {
-		return errors.ErrBinaryCacheTokenExist
+		return errors.ErrBinaryCacheTokenExists
 	}
 
 	// Write token to file with encrypted text.
@@ -501,10 +501,32 @@ func (c *Celer) SetBinaryCacheToken(token string) error {
 	return nil
 }
 
-func (c *Celer) SetProxy(host string, port int) error {
+func (c *Celer) SetProxyHost(host string) error {
 	if strings.TrimSpace(host) == "" {
 		return fmt.Errorf("proxy host is invalid")
 	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.Proxy == nil {
+		c.configData.Proxy = &Proxy{
+			Host: host,
+			Port: 0,
+		}
+	} else {
+		c.configData.Proxy.Host = host
+	}
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetProxyPort(port int) error {
 	if port <= 0 {
 		return fmt.Errorf("proxy port is invalid")
 	}
@@ -515,15 +537,15 @@ func (c *Celer) SetProxy(host string, port int) error {
 
 	if c.configData.Proxy == nil {
 		c.configData.Proxy = &Proxy{
-			Host: host,
+			Host: "",
 			Port: port,
 		}
 	} else {
-		c.configData.Proxy.Host = host
 		c.configData.Proxy.Port = port
-		if err := c.save(); err != nil {
-			return err
-		}
+	}
+
+	if err := c.save(); err != nil {
+		return err
 	}
 
 	return nil
@@ -538,6 +560,13 @@ func (c *Celer) SetCCacheEnabled(enabled bool) error {
 		c.configData.CCache = &CCache{
 			Enabled: enabled,
 			MaxSize: ccacheDefaultMaxSize,
+		}
+
+		switch runtime.GOOS {
+		case "windows":
+			c.configData.CCache.Dir = filepath.Join(os.Getenv("USERPROFILE"), ".ccache")
+		default:
+			c.configData.CCache.Dir = filepath.Join(os.Getenv("HOME"), ".cache", ".ccache")
 		}
 	} else {
 		c.configData.CCache.Enabled = enabled
@@ -611,7 +640,7 @@ func (c *Celer) SetCCacheRemoteStorage(remoteStorage string) error {
 			return fmt.Errorf("invalid remote storage URL: %w", err)
 		}
 		if parsedURL.Scheme == "" || parsedURL.Host == "" {
-			return fmt.Errorf("remote storage URL must include scheme and host (e.g., http://server:port/path)")
+			return fmt.Errorf("remote storage URL must contain scheme and host (e.g., http://server:port/path)")
 		}
 	}
 

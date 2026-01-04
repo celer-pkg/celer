@@ -30,8 +30,8 @@ Examples:
   celer init --url https://github.com/example/conf       	# Initialize with conf repo
   celer init -u https://github.com/example/conf -b main  	# With specific branch
   celer init --url https://github.com/example/conf --force	# Force re-initialize`,
-		Run: func(cmd *cobra.Command, args []string) {
-			i.doInit()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return i.doInit()
 		},
 		ValidArgsFunction: i.completion,
 	}
@@ -44,14 +44,16 @@ Examples:
 	// Mark url as required.
 	command.MarkFlagRequired("url")
 
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 
-func (i *initCmd) doInit() {
+func (i *initCmd) doInit() error {
 	// Initialize celer configuration
 	if err := i.celer.Init(); err != nil {
-		configs.PrintError(err, "Failed to initialize celer.")
-		return
+		return configs.PrintError(err, "Failed to initialize celer.")
 	}
 
 	// Trim whitespace from URL
@@ -59,20 +61,20 @@ func (i *initCmd) doInit() {
 
 	// Setup configuration repository.
 	if err := i.validateURL(i.url); err != nil {
-		configs.PrintError(err, "Invalid URL.")
-		return
+		return configs.PrintError(err, "Invalid URL.")
 	}
 
 	if err := i.celer.CloneConf(i.url, i.branch, i.force); err != nil {
-		configs.PrintError(err, "Failed to setup configuration repository.")
-		return
+		return configs.PrintError(err, "Failed to setup configuration repository.")
 	}
 
 	if i.branch != "" {
-		configs.PrintSuccess("Successfully initialized celer with configuration repository: %s --branch %s", i.url, i.branch)
+		configs.PrintSuccess("Successfully initialized celer with repository: %s --branch %s", i.url, i.branch)
 	} else {
-		configs.PrintSuccess("Successfully initialized celer with configuration repository: %s", i.url)
+		configs.PrintSuccess("Successfully initialized celer with repository: %s", i.url)
 	}
+
+	return nil
 }
 
 // validateURL performs basic validation on the provided URL.

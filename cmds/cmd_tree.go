@@ -47,17 +47,21 @@ Examples:
   celer tree my_project                # Show dependencies for a project
   celer tree opencv@4.11.0 --hide-dev  # Hide development dependencies`,
 		Args: cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := t.tree(args[0]); err != nil {
-				configs.PrintError(err, "Failed to show dependency tree.")
-				return
+				return configs.PrintError(err, "Failed to show dependency tree.")
 			}
+			return nil
 		},
 		ValidArgsFunction: t.completion,
 	}
 
 	// Register flags.
 	command.Flags().BoolVar(&t.hideDevDep, "hide-dev", false, "hide dev dep in dependencies tree.")
+
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 

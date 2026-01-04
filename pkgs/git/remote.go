@@ -19,7 +19,7 @@ func CheckIfRemoteBranch(repoUrl, repoRef string) (bool, error) {
 
 // CheckIfRemoteTag check if repoRef is a tag.
 func CheckIfRemoteTag(repoUrl, repoRef string) (bool, error) {
-	command := fmt.Sprintf("git ls-remote --tags %s %s^{}", repoUrl, repoRef)
+	command := fmt.Sprintf("git ls-remote --tags %s %s", repoUrl, repoRef)
 	executor := cmd.NewExecutor("", command)
 	output, err := executor.ExecuteOutput()
 	if err != nil {

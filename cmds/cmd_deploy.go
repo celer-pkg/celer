@@ -25,10 +25,9 @@ func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
 
 After successful deployment, you can optionally export a snapshot
 for reproducible builds using the --export flag.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := d.celer.Init(); err != nil {
-				configs.PrintError(err, "failed to init celer.")
-				return
+				return configs.PrintError(err, "failed to init celer.")
 			}
 
 			// Display deployment header.
@@ -39,19 +38,16 @@ for reproducible builds using the --export flag.`,
 			color.Println(color.Title, "=======================================================================")
 
 			if err := d.celer.Setup(); err != nil {
-				configs.PrintError(err, "failed to setup celer.")
-				return
+				return configs.PrintError(err, "failed to setup celer.")
 			}
 
 			// Check circular dependency and version conflict.
 			if err := d.checkProject(); err != nil {
-				configs.PrintError(err, "failed to check circular dependency and version conflict.")
-				return
+				return configs.PrintError(err, "failed to check circular dependency and version conflict.")
 			}
 
 			if err := d.celer.Deploy(d.force); err != nil {
-				configs.PrintError(err, "failed to deploy celer.")
-				return
+				return configs.PrintError(err, "failed to deploy celer.")
 			}
 
 			configs.PrintSuccess("%s has been successfully deployed.", d.celer.Global.Project)
@@ -59,10 +55,11 @@ for reproducible builds using the --export flag.`,
 			// Export snapshot if requested.
 			if d.exportPath != "" {
 				if err := timemachine.Export(d.celer, d.exportPath); err != nil {
-					configs.PrintError(err, "failed to export workspace.")
-					return
+					return configs.PrintError(err, "failed to export workspace.")
 				}
 			}
+
+			return nil
 		},
 		ValidArgsFunction: d.completion,
 	}
@@ -71,6 +68,9 @@ for reproducible builds using the --export flag.`,
 	flags.StringVar(&d.exportPath, "export", "", "Export workspace snapshot after successfully deployed.")
 	flags.BoolVarP(&d.force, "force", "f", false, "Force deployment, ignoring any installed packages.")
 
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 

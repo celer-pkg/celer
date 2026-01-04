@@ -31,11 +31,11 @@ Supported shells: bash, zsh, powershell (Windows).
 Examples:
   celer integrate          # Install tab completion
   celer integrate --remove # Remove tab completion`,
-		Run: func(cobraCmd *cobra.Command, args []string) {
+		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			if err := i.execute(); err != nil {
-				configs.PrintError(err, "integration failed")
-				return
+				return configs.PrintError(err, "integration failed")
 			}
+			return nil
 		},
 		ValidArgsFunction: i.completion,
 	}
@@ -43,6 +43,9 @@ Examples:
 	// Register flags.
 	command.Flags().BoolVar(&i.remove, "remove", false, "remove shell tab completion")
 
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 

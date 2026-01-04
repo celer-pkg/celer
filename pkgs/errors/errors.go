@@ -10,7 +10,7 @@ var (
 	ErrBinaryCacheDirNotConfigured = errors.New("binary cache dir is not configured in celer.toml")
 	ErrBinaryCacheInvalid          = errors.New("binary cache dir is invalid")
 	ErrBinaryCacheDirNotExist      = errors.New("binary cache dir not exist")
-	ErrBinaryCacheTokenExist       = errors.New("binary cache token already exist, if you want to change it, please remove it first manually")
+	ErrBinaryCacheTokenExists      = errors.New("binary cache token already exist, if you want to change it, please remove it first manually")
 
 	ErrBinaryCacheTokenInvalid       = errors.New("binary cache dir is invalid")
 	ErrBinaryCacheTokenNotConfigured = errors.New("binary cache token is not configured in celer.toml")

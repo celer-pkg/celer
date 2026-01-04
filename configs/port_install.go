@@ -197,7 +197,7 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 			return errors.ErrBinaryCacheDirNotConfigured
 		}
 
-		if !fileio.PathExists(filepath.Join(binaryCache.GetDir(), "token")) {
+		if !fileio.PathExists(filepath.Join(binaryCache.GetDir(), ".token")) {
 			return errors.ErrBinaryCacheTokenNotConfigured
 		}
 

@@ -143,10 +143,16 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 		return err
 	}
 	if isTag {
+		// Delete local tag if exists (ignore error if not exists)
+		deleteTagCmd := "git tag -d " + repoRef
+		deleteExecutor := cmd.NewExecutor("", deleteTagCmd)
+		deleteExecutor.SetWorkDir(repoDir)
+		deleteExecutor.Execute() // Ignore error, tag may not exist.
+
+		// Fetch and checkout tag
 		commands := []string{
 			"git reset --hard",
 			"git clean -xfd",
-			"git tag -d " + repoRef + " || true",
 			"git fetch --tags origin",
 			"git checkout " + repoRef,
 		}

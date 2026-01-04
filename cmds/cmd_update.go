@@ -35,13 +35,14 @@ This command supports three types of updates:
   3. Update source code repositories of third-party libraries
 
 Examples:
-  celer update --conf-repo              	# Update conf repository
-  celer update --ports-repo             	# Update ports repository
-  celer update zlib@1.3.1               	# Update specific port
-  celer update --recursive ffmpeg@3.4.13  	# Update port and all its dependencies
-  celer update --force xxx           		# Force update --conf-repo|--ports-repo|project (overwrites local changes)`,
-		Run: func(cmd *cobra.Command, args []string) {
-			u.doUpdate(args)
+  celer update --conf-repo                      # Update conf repository
+  celer update --ports-repo                     # Update ports repository
+  celer update zlib@1.3.1                       # Update single port
+  celer update entt@3.16.0 fakeit@2.5.0         # Update multiple ports
+  celer update --recursive ffmpeg@3.4.13        # Update port and all its dependencies
+  celer update --force boost@1.82.0             # Force update (overwrites local changes)`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return u.doUpdate(args)
 		},
 		ValidArgsFunction: u.completion,
 	}
@@ -53,39 +54,38 @@ Examples:
 	command.Flags().BoolVarP(&u.recursive, "recursive", "r", false, "update recursively")
 
 	command.MarkFlagsMutuallyExclusive("conf-repo", "ports-repo")
+
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 
-func (u *updateCmd) doUpdate(args []string) {
+func (u *updateCmd) doUpdate(args []string) error {
 	// Initialize celer configuration.
 	if err := u.celer.Init(); err != nil {
-		configs.PrintError(err, "Failed to initialize celer.")
-		return
+		return configs.PrintError(err, "Failed to initialize celer.")
 	}
 
 	// Make sure git is available.
 	if err := buildtools.CheckTools(u.celer, "git"); err != nil {
-		configs.PrintError(err, "Failed to check if git is available.")
-		return
+		return configs.PrintError(err, "Failed to check if git is available.")
 	}
 
 	// Perform update based on flags.
 	if u.confRepo {
 		if err := u.updateConfRepo(); err != nil {
-			configs.PrintError(err, "Failed to update conf repository.")
-			return
+			return configs.PrintError(err, "Failed to update conf repository.")
 		}
 		configs.PrintSuccess("Successfully updated conf repository.")
 	} else if u.portsRepo {
 		if err := u.updatePortsRepo(); err != nil {
-			configs.PrintError(err, "Failed to update ports repository.")
-			return
+			return configs.PrintError(err, "Failed to update ports repository.")
 		}
 		configs.PrintSuccess("Successfully updated ports repository.")
 	} else {
 		if err := u.updateProjectRepos(args); err != nil {
-			configs.PrintError(err, "Failed to update port repository.")
-			return
+			return configs.PrintError(err, "Failed to update port repository.")
 		}
 		if len(args) == 1 {
 			configs.PrintSuccess("Successfully updated %s.", args[0])
@@ -93,6 +93,8 @@ func (u *updateCmd) doUpdate(args []string) {
 			configs.PrintSuccess("Successfully updated %d ports.", len(args))
 		}
 	}
+
+	return nil
 }
 
 func (u *updateCmd) updateConfRepo() error {
