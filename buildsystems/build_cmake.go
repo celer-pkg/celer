@@ -272,7 +272,7 @@ func (c cmake) Build(options []string) error {
 func (c cmake) installOptions() ([]string, error) {
 	// CMAKE_BUILD_TYPE is useless for MSVC, use --config Debug/Relase instead.
 	var options []string
-	if !c.multiConfigGenerator() {
+	if c.multiConfigGenerator() {
 		options = append(options, "--config", c.formatBuildType())
 	}
 
