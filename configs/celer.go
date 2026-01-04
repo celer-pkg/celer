@@ -501,10 +501,32 @@ func (c *Celer) SetBinaryCacheToken(token string) error {
 	return nil
 }
 
-func (c *Celer) SetProxy(host string, port int) error {
+func (c *Celer) SetProxyHost(host string) error {
 	if strings.TrimSpace(host) == "" {
 		return fmt.Errorf("proxy host is invalid")
 	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	if c.configData.Proxy == nil {
+		c.configData.Proxy = &Proxy{
+			Host: host,
+			Port: 0,
+		}
+	} else {
+		c.configData.Proxy.Host = host
+	}
+
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetProxyPort(port int) error {
 	if port <= 0 {
 		return fmt.Errorf("proxy port is invalid")
 	}
@@ -515,15 +537,15 @@ func (c *Celer) SetProxy(host string, port int) error {
 
 	if c.configData.Proxy == nil {
 		c.configData.Proxy = &Proxy{
-			Host: host,
+			Host: "",
 			Port: port,
 		}
 	} else {
-		c.configData.Proxy.Host = host
 		c.configData.Proxy.Port = port
-		if err := c.save(); err != nil {
-			return err
-		}
+	}
+
+	if err := c.save(); err != nil {
+		return err
 	}
 
 	return nil

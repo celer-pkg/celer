@@ -645,7 +645,8 @@ func TestConfigure_Proxy(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 
-	check(celer.SetProxy("127.0.0.1", 7890))
+	check(celer.SetProxyHost("127.0.0.1"))
+	check(celer.SetProxyPort(7890))
 	host, port := celer.ProxyHostPort()
 	if host != "127.0.0.1" {
 		t.Fatalf("proxy host should be `%s`", "127.0.0.1")
@@ -673,7 +674,7 @@ func TestConfigure_Proxy_Invalid_Host(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 
-	if celer.SetProxy("", 7890) == nil {
+	if celer.SetProxyHost("") == nil {
 		t.Fatal("it should be failed due to invalid host")
 	}
 }
@@ -696,7 +697,7 @@ func TestConfigure_Proxy_Invalid_Port(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 
-	if celer.SetProxy("127.0.0.1", -1) == nil {
+	if celer.SetProxyPort(-1) == nil {
 		t.Fatal("it should be failed due to invalid port")
 	}
 }

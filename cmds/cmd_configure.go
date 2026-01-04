@@ -144,11 +144,17 @@ Examples:
 				}
 				configs.PrintSuccess("current cache token: %s.", expr.If(c.cacheToken != "", c.cacheToken, "empty"))
 
-			case flags.Changed("proxy-host"), flags.Changed("proxy-port"):
-				if err := c.celer.SetProxy(c.proxy.Host, c.proxy.Port); err != nil {
-					return configs.PrintError(err, "failed to set proxy: %s:%d.", c.proxy.Host, c.proxy.Port)
+			case flags.Changed("proxy-host"):
+				if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
+					return configs.PrintError(err, "failed to set proxy host: %s.", c.proxy.Host)
 				}
-				configs.PrintSuccess("current proxy: %s:%d.", c.proxy.Host, c.proxy.Port)
+				configs.PrintSuccess("current proxy host: %s.", c.proxy.Host)
+
+			case flags.Changed("proxy-port"):
+				if err := c.celer.SetProxyPort(c.proxy.Port); err != nil {
+					return configs.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
+				}
+				configs.PrintSuccess("current proxy port: %d.", c.proxy.Port)
 
 			case flags.Changed("ccache-enabled"):
 				if err := c.celer.SetCCacheEnabled(c.ccache.Enabled); err != nil {

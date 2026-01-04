@@ -35,11 +35,12 @@ This command supports three types of updates:
   3. Update source code repositories of third-party libraries
 
 Examples:
-  celer update --conf-repo              	# Update conf repository
-  celer update --ports-repo             	# Update ports repository
-  celer update zlib@1.3.1               	# Update specific port
-  celer update --recursive ffmpeg@3.4.13  	# Update port and all its dependencies
-  celer update --force xxx           		# Force update --conf-repo|--ports-repo|project (overwrites local changes)`,
+  celer update --conf-repo                      # Update conf repository
+  celer update --ports-repo                     # Update ports repository
+  celer update zlib@1.3.1                       # Update single port
+  celer update entt@3.16.0 fakeit@2.5.0         # Update multiple ports
+  celer update --recursive ffmpeg@3.4.13        # Update port and all its dependencies
+  celer update --force boost@1.82.0             # Force update (overwrites local changes)`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return u.doUpdate(args)
 		},
