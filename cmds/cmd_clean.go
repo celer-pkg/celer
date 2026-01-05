@@ -60,6 +60,10 @@ Examples:
 }
 
 func (c *cleanCmd) execute(args []string) error {
+	if err := buildtools.CheckTools(c.celer, "git"); err != nil {
+		return err
+	}
+
 	if err := c.celer.Init(); err != nil {
 		return configs.PrintError(err, "failed to init celer.")
 	}
