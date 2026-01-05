@@ -44,22 +44,7 @@ Examples:
   celer reverse boost@1.87.0`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Validate package name format
-			if err := r.validatePackageName(args[0]); err != nil {
-				return fmt.Errorf("invalid package name: %w", err)
-			}
-
-			if err := r.celer.Init(); err != nil {
-				return fmt.Errorf("failed to init celer: %w", err)
-			}
-
-			libraries, err := r.query(args[0])
-			if err != nil {
-				return fmt.Errorf("failed to query reverse dependencies: %w", err)
-			}
-
-			r.displayResults(args[0], libraries)
-			return nil
+			return r.doExecute(args)
 		},
 		ValidArgsFunction: r.completion,
 	}
@@ -67,6 +52,25 @@ Examples:
 	// Register flags.
 	command.Flags().BoolVarP(&r.dev, "dev", "d", false, "include development dependencies in reverse lookup.")
 	return command
+}
+
+func (r *reverseCmd) doExecute(args []string) error {
+	// Validate package name format
+	if err := r.validatePackageName(args[0]); err != nil {
+		return fmt.Errorf("invalid package name: %w", err)
+	}
+
+	if err := r.celer.Init(); err != nil {
+		return fmt.Errorf("failed to init celer: %w", err)
+	}
+
+	libraries, err := r.query(args[0])
+	if err != nil {
+		return fmt.Errorf("failed to query reverse dependencies: %w", err)
+	}
+
+	r.displayResults(args[0], libraries)
+	return nil
 }
 
 func (r *reverseCmd) query(target string) ([]string, error) {
