@@ -2,6 +2,7 @@ package buildsystems
 
 import (
 	"bytes"
+	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
@@ -153,6 +154,7 @@ func (m meson) Configure(options []string) error {
 	if err != nil {
 		return fmt.Errorf("generate cross_file.toml for meson: %v", err)
 	}
+
 	joinedArgs := strings.Join(options, " ")
 	command := fmt.Sprintf("meson setup %s %s --cross-file %s", m.PortConfig.BuildDir, joinedArgs, crossFile)
 
@@ -226,6 +228,23 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	}
 
 	buffers.WriteString("cmake = 'cmake'\n")
+
+	// Explicitly set python to use host system's Python interpreter
+	// This prevents meson from using the target system's Python (e.g., ARM64 Python on x86_64 host)
+	// Use the Python3 path configured by buildtools for cross-platform compatibility.
+	if buildtools.Python3 != nil && buildtools.Python3.Path != "" {
+		pythonPath := filepath.ToSlash(buildtools.Python3.Path)
+		fmt.Fprintf(&buffers, "python = '%s'\n", pythonPath)
+	} else {
+		// Fallback to system Python based on OS
+		switch runtime.GOOS {
+		case "linux":
+			buffers.WriteString("python = '/usr/bin/python3'\n")
+		case "windows":
+			buffers.WriteString("python = 'python3'\n")
+		}
+	}
+
 	if ccacheEnabled {
 		// Meson requires array format for commands with arguments
 		fmt.Fprintf(&buffers, "c = ['ccache', '%s']\n", toolchain.GetCC())
