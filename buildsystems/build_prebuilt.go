@@ -97,6 +97,11 @@ func (p *prebuilt) Install(options []string) error {
 		}
 
 		for _, entity := range entities {
+			// .git should not be the installed files.
+			if entity.Name() == ".git" {
+				continue
+			}
+
 			srcPath := filepath.Join(p.PortConfig.RepoDir, entity.Name())
 			destPath := filepath.Join(p.PortConfig.PackageDir, entity.Name())
 			if entity.IsDir() {

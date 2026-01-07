@@ -38,6 +38,11 @@ func FixupPkgConfig(packageDir, prefix string) error {
 }
 
 func doFixupPkgConfig(pkgPath, prefix string) error {
+	// Ensure the file is writable before opening it for RDWR.
+	if err := os.Chmod(pkgPath, os.ModePerm); err != nil {
+		return err
+	}
+
 	pkgFile, err := os.OpenFile(pkgPath, os.O_RDWR, os.ModePerm)
 	if err != nil {
 		return err

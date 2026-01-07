@@ -179,6 +179,13 @@ func CopyFile(src, dest string) error {
 	}
 	defer srcFile.Close()
 
+	// Remove dest if it exists to avoid "permission denied" for read-only files.
+	if _, err := os.Lstat(dest); err == nil {
+		if err := os.Remove(dest); err != nil {
+			return err
+		}
+	}
+
 	destFile, err := os.Create(dest)
 	if err != nil {
 		return err
@@ -265,6 +272,13 @@ func fileCopy(src, dst string) error {
 	stat, err := srcFile.Stat()
 	if err != nil {
 		return err
+	}
+
+	// Remove dst if it exists to avoid "permission denied" for read-only files.
+	if _, err := os.Lstat(dst); err == nil {
+		if err := os.Remove(dst); err != nil {
+			return err
+		}
 	}
 
 	dstFile, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, stat.Mode())
