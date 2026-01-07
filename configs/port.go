@@ -3,7 +3,6 @@ package configs
 import (
 	"celer/buildsystems"
 	"celer/context"
-	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/errors"
 	"celer/pkgs/expr"
@@ -168,7 +167,6 @@ func (p Port) Installed() (bool, error) {
 		// Remove installed package if build config changed.
 		localMeta := string(metaBytes)
 		if localMeta != newMeta {
-			color.Printf(color.Warning, "\n================ The outdated package of %s will be removed in next install. ================", p.NameVersion())
 			return false, nil
 		}
 	}
