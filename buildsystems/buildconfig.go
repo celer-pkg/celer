@@ -419,13 +419,13 @@ func (b BuildConfig) Clean() error {
 	// Skip for empty folder.
 	entities, err := os.ReadDir(b.PortConfig.RepoDir)
 	if err != nil {
-		return fmt.Errorf("failed to read %s. \n %w", b.PortConfig.RepoDir, err)
+		return fmt.Errorf("failed to read %s \n %w", b.PortConfig.RepoDir, err)
 	}
 	if len(entities) == 0 {
 		if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
-			return fmt.Errorf("cannot remove empty folder: %s. \n %w", b.PortConfig.RepoDir, err)
+			return fmt.Errorf("cannot remove empty folder: %s \n %w", b.PortConfig.RepoDir, err)
 		}
-		color.Printf(color.Warning, "\n[%s] no source found, skip clean.\n", b.PortConfig.nameVersionDesc())
+		color.Printf(color.Warning, "\n[%s] no source found, skip clean\n", b.PortConfig.nameVersionDesc())
 		return nil
 	}
 
