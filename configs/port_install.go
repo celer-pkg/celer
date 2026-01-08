@@ -106,7 +106,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 
 func (p Port) Clone() error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
-		var port = Port{DevDep: p.DevDep}
+		var port = Port{DevDep: true}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
@@ -125,8 +125,11 @@ func (p Port) Clone() error {
 		}
 	}
 
-	if err := p.MatchedConfig.Clone(p.Package.Url, p.Package.Ref, p.Package.Archive, p.Package.Depth); err != nil {
-		return err
+	// url with "_" means virtual port, no need to clone.
+	if p.Package.Url != "_" {
+		if err := p.MatchedConfig.Clone(p.Package.Url, p.Package.Ref, p.Package.Archive, p.Package.Depth); err != nil {
+			return err
+		}
 	}
 
 	return nil
