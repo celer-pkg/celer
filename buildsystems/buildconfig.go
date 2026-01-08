@@ -737,10 +737,13 @@ func (b *BuildConfig) expandOptionsVariables() {
 		for _, item := range crossArgs {
 			if strings.Contains(argument, item) {
 				b.Options = slices.Delete(b.Options, index, index+1)
+				break
 			}
 		}
+	}
 
-		// Expand placeholders.
+	// Expand placeholders.
+	for index, argument := range b.Options {
 		b.Options[index] = b.Variables.Expand(argument)
 	}
 }
