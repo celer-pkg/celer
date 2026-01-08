@@ -352,6 +352,11 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 	// For git repo, clone it when source dir doesn't exists.
 	if strings.HasSuffix(repoUrl, ".git") {
+		// Skip cloning in offline mode.
+		if b.Ctx.Offline() {
+			return fmt.Errorf("cannot clone git repository in offline mode")
+		}
+
 		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
 		if err := git.CloneRepo(title, repoUrl, repoRef,
 			b.PortConfig.IgnoreSubmodule, depth,

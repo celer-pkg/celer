@@ -226,7 +226,7 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 		// Skip meta file and cache for ports with url="_".
 		// port with url="_" means no source repo and just in development.
 		if p.Package.Url == "_" {
-			color.Printf(color.Warning, "\n================ currently, %s is in development mode, skipping meta file generation and cache storing. ================\n", p.NameVersion())
+			color.Printf(color.Warning, "\n================ currently, you're in development mode, skipping meta file generation and cache storing. ================\n")
 			return nil
 		}
 

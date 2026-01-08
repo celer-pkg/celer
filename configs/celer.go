@@ -4,7 +4,6 @@ import (
 	"celer/buildtools"
 	"celer/context"
 	"celer/envs"
-	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/encrypt"
@@ -787,9 +786,7 @@ func (c *Celer) clonePorts() error {
 			return err
 		}
 
-		command := fmt.Sprintf("git clone %s %s", portsRepoUrl, portsDir)
-		executor := cmd.NewExecutor("[clone ports]", command)
-		if err := executor.Execute(); err != nil {
+		if err := git.CloneRepo("[clone ports]", portsRepoUrl, "", false, 0, portsDir); err != nil {
 			return err
 		}
 	}
