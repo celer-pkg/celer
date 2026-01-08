@@ -233,6 +233,8 @@ func (p *Port) findMatchedConfig(buildType string) *buildsystems.BuildConfig {
 				p.BuildConfigs[index].LibraryType = "shared"
 			}
 
+			// Placeholder variables.
+			p.BuildConfigs[index].Variables.Inflat(p.ctx.Vairables(), p.BuildConfigs[index])
 			return &p.BuildConfigs[index]
 		}
 	}

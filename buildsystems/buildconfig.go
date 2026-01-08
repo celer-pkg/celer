@@ -259,6 +259,7 @@ type BuildConfig struct {
 	Native      bool              `toml:"-"`
 	PortConfig  PortConfig        `toml:"-"`
 	Optimize    *context.Optimize `toml:"-"`
+	Variables   Variables         `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
 }
@@ -724,58 +725,23 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 
 // expandOptionsVariables Replace placeholders with real paths and values.
 func (b *BuildConfig) expandOptionsVariables() {
-	toolchain := b.Ctx.Platform().GetToolchain()
-	rootfs := b.Ctx.Platform().GetRootFS()
-
 	for index, argument := range b.Options {
-		if strings.Contains(argument, "${HOST}") {
-			if b.DevDep {
+		// Remove cross compile args when build in dev mode.
+		crossArgs := []string{
+			"${HOST}",
+			"${SYSTEM_NAME}",
+			"${SYSTEM_PROCESSOR}",
+			"${SYSROOT}",
+			"${CROSSTOOL_PREFIX}",
+		}
+		for _, item := range crossArgs {
+			if strings.Contains(argument, item) {
 				b.Options = slices.Delete(b.Options, index, index+1)
-			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${HOST}", toolchain.GetHost())
 			}
 		}
 
-		if strings.Contains(argument, "${SYSTEM_NAME}") {
-			if b.DevDep {
-				b.Options = slices.Delete(b.Options, index, index+1)
-			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${SYSTEM_NAME}", strings.ToLower(toolchain.GetSystemName()))
-			}
-		}
-
-		if strings.Contains(argument, "${SYSTEM_PROCESSOR}") {
-			if b.DevDep {
-				b.Options = slices.Delete(b.Options, index, index+1)
-			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${SYSTEM_PROCESSOR}", toolchain.GetSystemProcessor())
-			}
-		}
-
-		if strings.Contains(argument, "${SYSROOT}") {
-			if b.DevDep {
-				b.Options = slices.Delete(b.Options, index, index+1)
-			} else if rootfs != nil {
-				b.Options[index] = strings.ReplaceAll(argument, "${SYSROOT}", rootfs.GetFullPath())
-			}
-		}
-
-		if strings.Contains(argument, "${CROSSTOOL_PREFIX}") {
-			if b.DevDep {
-				b.Options = slices.Delete(b.Options, index, index+1)
-			} else {
-				b.Options[index] = strings.ReplaceAll(argument, "${CROSSTOOL_PREFIX}", toolchain.GetCrosstoolPrefix())
-			}
-		}
-
-		if strings.Contains(argument, "${DEPS_DIR}") {
-			b.Options[index] = strings.ReplaceAll(argument, "${DEPS_DIR}",
-				filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder))
-		}
-
-		if strings.Contains(argument, "${SRC_DIR}") {
-			b.Options[index] = strings.ReplaceAll(argument, "${SRC_DIR}", b.PortConfig.SrcDir)
-		}
+		// Expand placeholders.
+		b.Options[index] = b.Variables.Expand(argument)
 	}
 }
 
@@ -785,20 +751,7 @@ func (b BuildConfig) expandCommandsVariables(content string) string {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
 
-	content = strings.ReplaceAll(content, "${SYSTEM_NAME}", toolchain.GetSystemName())
-	if rootfs != nil {
-		content = strings.ReplaceAll(content, "${SYSROOT}", rootfs.GetFullPath())
-	}
-	content = strings.ReplaceAll(content, "${SYSTEM_PROCESSOR}", toolchain.GetSystemProcessor())
-	content = strings.ReplaceAll(content, "${CROSSTOOL_PREFIX}", toolchain.GetCrosstoolPrefix())
-	content = strings.ReplaceAll(content, "${BUILD_DIR}", b.PortConfig.BuildDir)
-	content = strings.ReplaceAll(content, "${PACKAGE_DIR}", b.PortConfig.PackageDir)
-	content = strings.ReplaceAll(content, "${DEPS_DEV_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev"))
-	content = strings.ReplaceAll(content, "${BUILDTREES_DIR}", dirs.BuildtreesDir)
-
-	// Replace ${SRC_DIR} with repoDir.
-	content = strings.ReplaceAll(content, "${REPO_DIR}", b.PortConfig.RepoDir)
-	content = strings.ReplaceAll(content, "${SRC_DIR}", b.PortConfig.SrcDir)
+	content = b.Variables.Expand(content)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
 	// For Clang with sysroot, add --gcc-toolchain to find GCC runtime files.
@@ -810,16 +763,6 @@ func (b BuildConfig) expandCommandsVariables(content string) string {
 	}
 	content = strings.ReplaceAll(content, "${CC}", ccValue)
 	content = strings.ReplaceAll(content, "${CXX}", cxxValue)
-
-	if b.DevDep {
-		content = strings.ReplaceAll(content, "${DEPS_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev"))
-	} else {
-		content = strings.ReplaceAll(content, "${DEPS_DIR}", filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder))
-	}
-
-	if buildtools.Python3 != nil {
-		content = strings.ReplaceAll(content, "${PYTHON3_PATH}", buildtools.Python3.Path)
-	}
 
 	return content
 }

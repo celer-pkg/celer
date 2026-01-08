@@ -9,11 +9,14 @@ type Context interface {
 	Jobs() int
 	Offline() bool
 	Verbose() bool
+	InstalledDir(cmakePath bool) string
+	InstalledDevDir(cmakePath bool) string
 	BinaryCache() BinaryCache
 	ProxyHostPort() (host string, port int)
 	Optimize(buildsystem, toolchain string) *Optimize
 	CCacheEnabled() bool
 	GenerateToolchainFile() error
+	Vairables() map[string]string
 }
 
 type BinaryCache interface {
