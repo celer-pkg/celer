@@ -2,6 +2,8 @@ package configs
 
 import (
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
+	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -15,17 +17,21 @@ func (c *Celer) GenerateToolchainFile() error {
 
 	fmt.Fprintf(&toolchain, "\n# Workspace root dir.\n")
 	fmt.Fprintf(&toolchain, `get_filename_component(CELER_ROOT "${CMAKE_CURRENT_LIST_FILE}" PATH)`+"\n")
-
-	// Toolchain related.
-	if err := c.platform.Toolchain.generate(&toolchain); err != nil {
-		return err
-	}
+	fmt.Fprintf(&toolchain, `set(ENV{PATH} "%s%s$ENV{PATH}")`+"\n", c.InstalledDevDir(true)+"/bin", string(os.PathListSeparator))
 
 	// Set CMAKE_PREFIX_PATH before setting CMAKE_SYSROOT to
 	// locate libraries of dependencies FIRST (before sysroot)
 	installedDir := c.InstalledDir(true)
 	fmt.Fprintf(&toolchain, "\n# Dependency search paths.\n")
 	fmt.Fprintf(&toolchain, "list(APPEND CMAKE_PREFIX_PATH %q)\n", c.InstalledDir(true))
+
+	// CUDA compiler configuration - MUST be set before toolchain to ensure CMake picks it up during compiler detection
+	c.writeCUDAConfig(&toolchain, installedDir)
+
+	// Toolchain related.
+	if err := c.platform.Toolchain.generate(&toolchain); err != nil {
+		return err
+	}
 
 	// Rootfs related.
 	rootfs := c.RootFS()
@@ -213,4 +219,30 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 		toolchain.WriteString(fmt.Sprintf(`list(JOIN PKG_CONFIG_PATH "%s" PKG_CONFIG_PATH_STR)`, string(os.PathListSeparator)) + "\n")
 		fmt.Fprintf(toolchain, "set(%s %q)\n", "ENV{PKG_CONFIG_PATH}", "${PKG_CONFIG_PATH_STR}")
 	}
+}
+
+// writeCUDAConfig detects CUDA dependencies and writes CUDA compiler configuration to toolchain file.
+func (c *Celer) writeCUDAConfig(toolchain *strings.Builder, installedDir string) {
+	// Check if nvcc exists in dev directory (use false to get actual filesystem path)
+	devDirActual := c.InstalledDevDir(false)
+	nvccPath := filepath.Join(devDirActual, "bin", expr.If(runtime.GOOS == "windows", "nvcc.exe", "nvcc"))
+	if !fileio.PathExists(nvccPath) {
+		return
+	}
+
+	// Check if CUDA headers exist in installed directory (installedDir is already CMake path format)
+	// Convert to actual filesystem path for checking
+	installedDirActual := c.InstalledDir(false)
+	cudaHeaderPath := filepath.Join(installedDirActual, "include", "cuda_runtime.h")
+	if !fileio.PathExists(cudaHeaderPath) {
+		return
+	}
+
+	// CUDA is available, write configuration
+	fmt.Fprintf(toolchain, "\n# CUDA compiler configuration (auto-detected).\n")
+
+	// Set CUDA toolkit root directory variables (installedDir already includes ${CELER_ROOT})
+	cudaToolkitRoot := filepath.ToSlash(installedDir)
+	fmt.Fprintf(toolchain, "set(CUDA_TOOLKIT_ROOT_DIR %q CACHE INTERNAL \"defined by celer globally.\")\n", cudaToolkitRoot)
+	fmt.Fprintf(toolchain, "set(CUDAToolkit_ROOT %q CACHE INTERNAL \"defined by celer globally.\")\n", cudaToolkitRoot)
 }
