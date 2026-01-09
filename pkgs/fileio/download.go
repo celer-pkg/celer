@@ -1,6 +1,7 @@
 package fileio
 
 import (
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"fmt"
@@ -25,6 +26,26 @@ func (d *downloader) SetArchive(archive string) *downloader {
 }
 
 func (d downloader) Start(httpClient *http.Client) (downloaded string, err error) {
+	return d.startWithRetry(httpClient, 3)
+}
+
+func (d downloader) startWithRetry(httpClient *http.Client, maxRetries int) (downloaded string, err error) {
+	var lastErr error
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		downloaded, err = d.startOnce(httpClient)
+		if err == nil {
+			return downloaded, nil
+		}
+		lastErr = err
+		color.Printf(color.Warning, "-- Download failed (attempt %d/%d): %v\n", attempt, maxRetries, err)
+		if attempt < maxRetries {
+			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
+		}
+	}
+	return "", fmt.Errorf("download failed after %d attempts.\n %w", maxRetries, lastErr)
+}
+
+func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err error) {
 	req, err := http.NewRequest("GET", d.url, nil)
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)

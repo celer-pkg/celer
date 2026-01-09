@@ -4,7 +4,6 @@ import (
 	"celer/buildtools"
 	"celer/context"
 	"celer/envs"
-	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/encrypt"
@@ -44,8 +43,9 @@ type Celer struct {
 	configData
 
 	// Internal fields.
-	platform Platform
-	project  Project
+	platform  Platform
+	project   Project
+	variables Variables
 }
 
 type global struct {
@@ -233,6 +233,9 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	if err := c.clonePorts(); err != nil {
 		return err
 	}
+
+	// Placeholder variables.
+	c.variables.Inflat(c)
 
 	return nil
 }
@@ -787,9 +790,7 @@ func (c *Celer) clonePorts() error {
 			return err
 		}
 
-		command := fmt.Sprintf("git clone %s %s", portsRepoUrl, portsDir)
-		executor := cmd.NewExecutor("[clone ports]", command)
-		if err := executor.Execute(); err != nil {
+		if err := git.CloneRepo("[clone ports]", portsRepoUrl, "", false, 0, portsDir); err != nil {
 			return err
 		}
 	}
@@ -855,6 +856,22 @@ func (c *Celer) Verbose() bool {
 	return c.configData.Global.Verbose
 }
 
+func (c *Celer) InstalledDir(cmakePath bool) string {
+	if cmakePath {
+		return "${CELER_ROOT}/installed/" + c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
+	} else {
+		return filepath.Join(dirs.WorkspaceDir, "installed", c.Global.Platform+"@"+c.Global.Project+"@"+c.Global.BuildType)
+	}
+}
+
+func (c *Celer) InstalledDevDir(cmakePath bool) string {
+	if cmakePath {
+		return "${CELER_ROOT}/installed/" + c.Platform().GetHostName() + "-dev"
+	} else {
+		return filepath.Join(dirs.WorkspaceDir, "installed", c.Platform().GetHostName()+"-dev")
+	}
+}
+
 func (c *Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 	if c.project.Optimize != nil {
 		return c.project.Optimize
@@ -878,4 +895,8 @@ func (c *Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
 
 func (c *Celer) CCacheEnabled() bool {
 	return c.configData.CCache != nil && c.configData.CCache.Enabled
+}
+
+func (c *Celer) Vairables() map[string]string {
+	return c.variables.pairs
 }

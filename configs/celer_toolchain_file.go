@@ -23,9 +23,9 @@ func (c *Celer) GenerateToolchainFile() error {
 
 	// Set CMAKE_PREFIX_PATH before setting CMAKE_SYSROOT to
 	// locate libraries of dependencies FIRST (before sysroot)
-	installedDir := "${CELER_ROOT}/installed/" + c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
+	installedDir := c.InstalledDir(true)
 	fmt.Fprintf(&toolchain, "\n# Dependency search paths.\n")
-	fmt.Fprintf(&toolchain, "list(APPEND CMAKE_PREFIX_PATH %q)\n", installedDir)
+	fmt.Fprintf(&toolchain, "list(APPEND CMAKE_PREFIX_PATH %q)\n", c.InstalledDir(true))
 
 	// Rootfs related.
 	rootfs := c.RootFS()
@@ -67,6 +67,7 @@ func (c *Celer) GenerateToolchainFile() error {
 		if len(parts) == 1 {
 			fmt.Fprintf(&toolchain, `set(%s CACHE INTERNAL "defined by celer globally.")`+"\n", item)
 		} else if len(parts) == 2 {
+			parts[1] = c.variables.Expand(parts[1])
 			fmt.Fprintf(&toolchain, `set(%s %s CACHE INTERNAL "defined by celer globally.")`+"\n", parts[0], parts[1])
 		} else {
 			return fmt.Errorf("invalid cmake var: %s", item)

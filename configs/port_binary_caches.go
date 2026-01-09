@@ -107,6 +107,15 @@ func (p Port) Commit(nameVersion string, devDep bool) (string, error) {
 			filePath = filepath.Join(dirs.DownloadedDir, archive)
 		}
 
+		// Check if archive file exists.
+		if !fileio.PathExists(filePath) {
+			return "", fmt.Errorf("archive file does not exist: %s \n "+
+				"maybe the archive is already downloaded, but with or without --dev flag \n "+
+				"please remove %s under buildtrees and try again",
+				nameVersion, nameVersion)
+		}
+
+		// Calculate checksum of archive file.
 		commit, err := fileio.CalculateChecksum(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of part's archive %s.\n %w", nameVersion, err)
