@@ -8,7 +8,9 @@ import (
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -68,8 +70,19 @@ func (p Port) Remove(options RemoveOptions) error {
 
 	// Remove build cache and logs.
 	if options.BuildCache {
+		// Try to remove build directory.
+		// For Bazel projects, bazel-output/external may contain special files that os.RemoveAll can't handle.
+		// Use exec rm -rf as a fallback for better compatibility.
 		if err := os.RemoveAll(matchedConfig.PortConfig.BuildDir); err != nil {
+			// Fallback: use system rm command for stubborn directories (e.g., Bazel's external/)
+			if runtime.GOOS != "windows" {
+				cmd := exec.Command("rm", "-rf", matchedConfig.PortConfig.BuildDir)
+				if err := cmd.Run(); err != nil {
+					return fmt.Errorf("failed to remove build cache.\n %w", err)
+				}
+			} else {
 			return fmt.Errorf("failed to remove build cache.\n %w", err)
+			}
 		}
 
 		if err := p.RemoveLogs(); err != nil {

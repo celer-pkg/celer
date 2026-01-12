@@ -15,8 +15,26 @@ import (
 
 var Python3 *python3
 
-// SetupPython3 checks if the python3 is installed.
-func SetupPython3(extraTools *[]string) error {
+// setupPython3 setup python3 in windows only, since linux always has builtin python always.
+func setupPython3() {
+	switch runtime.GOOS {
+	case "windows":
+		var python python3
+		if err := python.validate(); err != nil {
+			panic(err)
+		}
+		Python3 = &python
+
+	case "linux":
+		Python3 = &python3{
+			Path:    "/usr/bin/python3",
+			rootDir: "/usr/bin",
+		}
+	}
+}
+
+// installPythonTools checks if the python3 is installed.
+func installPythonTools(extraTools *[]string) error {
 	// Remove none python3:xxx from list.
 	*extraTools = slices.DeleteFunc(*extraTools, func(element string) bool {
 		return !strings.HasPrefix(element, "python3:")
@@ -28,21 +46,6 @@ func SetupPython3(extraTools *[]string) error {
 			return strings.HasPrefix(tool, "python3:")
 		})
 	}()
-
-	// Validate python3 in windows only, since linux always has builtin python always.
-	switch runtime.GOOS {
-	case "windows":
-		var python python3
-		if err := python.validate(); err != nil {
-			return err
-		}
-		Python3 = &python
-	case "linux":
-		Python3 = &python3{
-			Path:    "/usr/bin/python3",
-			rootDir: "/usr/bin",
-		}
-	}
 
 	// Install extra tools if not exist.
 	for _, tool := range *extraTools {

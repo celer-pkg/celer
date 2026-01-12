@@ -22,6 +22,10 @@ var (
 	static embed.FS
 )
 
+func init() {
+	setupPython3()
+}
+
 // CheckTools checks if tools exist and repair them if necessary.
 func CheckTools(ctx context.Context, tools ...string) error {
 	// Filter duplicated tools.
@@ -32,8 +36,18 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		}
 	}
 
+	// Determine current architecture.
+	arch := runtime.GOARCH
+	switch arch {
+	case "amd64", "x86_64":
+		arch = "x86_64"
+	case "arm64":
+		arch = "aarch64"
+	}
+
 	// Read and decode static file.
-	bytes, err := static.ReadFile(fmt.Sprintf("static/x86_64-%s.toml", runtime.GOOS))
+	staticFile := fmt.Sprintf("static/%s-%s.toml", arch, runtime.GOOS)
+	bytes, err := static.ReadFile(staticFile)
 	if err != nil {
 		return err
 	}
@@ -42,7 +56,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		return err
 	}
 
-	confToolsFile := filepath.Join(dirs.WorkspaceDir, "conf", "buildtools", "x86_64-"+runtime.GOOS+".toml")
+	confToolsFile := filepath.Join(dirs.WorkspaceDir, "conf", "buildtools", arch+"-"+runtime.GOOS+".toml")
 	if fileio.PathExists(confToolsFile) {
 		bytes, err := os.ReadFile(confToolsFile)
 		if err != nil {
@@ -105,7 +119,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	// Validate python3 and install python3 libraries.
 	if python3Required {
-		if err := SetupPython3(&uniqueTools); err != nil {
+		if err := installPythonTools(&uniqueTools); err != nil {
 			return err
 		}
 	}
@@ -156,20 +170,30 @@ func (b *BuildTool) validate() error {
 		return fmt.Errorf("url of %s is empty", b.Name)
 	}
 
-	// Validate paths.
-	if len(b.Paths) == 0 {
-		return fmt.Errorf("path of %s is empty", b.Name)
+	// Set rootDir and paths based on tool type.
+	// Single-file tools (has archive, no paths) are placed in versioned subdirectories: {name}-{version}/
+	// Archive tools (has paths) are extracted to subdirectories.
+	if len(b.Paths) > 0 {
+		// Archive with paths specified: extract to subdirectory
+		folderName := strings.Split(b.Paths[0], "/")[0]
+		b.rootDir = filepath.Join(dirs.DownloadedToolsDir, folderName)
+		for _, path := range b.Paths {
+			b.fullpaths = append(b.fullpaths, filepath.Join(dirs.DownloadedToolsDir, path))
+			b.cmakepaths = append(b.cmakepaths, "${CELER_ROOT}/downloads/tools/"+filepath.ToSlash(path))
+		}
+	} else {
+		// Single-file tool (e.g., bazel): place in subdirectory downloads/tools/{name}-{version}/
+		toolDir := fmt.Sprintf("%s-%s", b.Name, b.Version)
+		b.rootDir = filepath.Join(dirs.DownloadedToolsDir, toolDir)
+		if !slices.Contains(b.fullpaths, b.rootDir) {
+			b.fullpaths = append(b.fullpaths, b.rootDir)
+		}
+		cmakePath := fmt.Sprintf("${CELER_ROOT}/downloads/tools/%s", toolDir)
+		if !slices.Contains(b.cmakepaths, cmakePath) {
+			b.cmakepaths = append(b.cmakepaths, cmakePath)
+		}
 	}
 
-	// Set rootDir.
-	folderName := strings.Split(b.Paths[0], "/")[0]
-	b.rootDir = filepath.Join(dirs.DownloadedToolsDir, folderName)
-
-	// Assemble fullpaths and cmakepaths.
-	for _, path := range b.Paths {
-		b.fullpaths = append(b.fullpaths, filepath.Join(dirs.DownloadedToolsDir, path))
-		b.cmakepaths = append(b.cmakepaths, "${CELER_ROOT}/downloads/tools/"+filepath.ToSlash(path))
-	}
 	os.Setenv("PATH", env.JoinPaths("PATH", b.fullpaths...))
 
 	// Check and fix tool.
@@ -181,19 +205,34 @@ func (b *BuildTool) validate() error {
 }
 
 func (b *BuildTool) checkAndFix() error {
-	// Use archive name as download file name if specified.
-	archiveName := filepath.Base(b.Url)
-	if b.Archive != "" {
-		archiveName = b.Archive
+	// Determine folder name and location based on tool type
+	var folderName string
+	var archiveName string
+	var location string
+
+	if len(b.Paths) > 0 {
+		// Archive with paths: extract to subdirectory.
+		folderName = strings.Split(b.Paths[0], "/")[0]
+		location = filepath.Join(dirs.DownloadedToolsDir, b.Name)
+		// Use archive name as download file name if specified.
+		archiveName = filepath.Base(b.Url)
+		if b.Archive != "" {
+			archiveName = b.Archive
+		}
+	} else {
+		// Single-file tool: place in subdirectory downloads/tools/{name}-{version}/
+		folderName = fmt.Sprintf("%s-%s", b.Name, b.Version)
+		location = filepath.Join(dirs.DownloadedToolsDir, folderName)
+		// For single-file tools: download with original filename, but pass Archive for symlink creation
+		archiveName = "" // Empty means use original URL filename for download
 	}
 
-	// Default folder name would be the first folder of path, it also can be specified by archiveName.
-	folderName := strings.Split(b.Paths[0], "/")[0]
-
 	// Check and repair resource.
-	location := filepath.Join(dirs.DownloadedToolsDir, b.Name)
+	// For single-file tools, use Archive as the archive name for target file naming
+	if len(b.Paths) == 0 && b.Archive != "" {
+		archiveName = b.Archive
+	}
 	repair := fileio.NewRepair(b.Url, archiveName, folderName, dirs.DownloadedToolsDir)
-
 	if err := repair.CheckAndRepair(b.ctx); err != nil {
 		return err
 	}

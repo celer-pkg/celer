@@ -27,6 +27,12 @@ archive = "ninja-v1.12.1-windows-x86_64.zip"
 paths = ["ninja-v1.12.1-windows-x86_64"]
 
 [[build_tools]]
+name = "bazel"
+version = "7.4.1"
+url = "https://github.com/bazelbuild/bazel/releases/download/7.4.1/bazel-7.4.1-windows-x86_64.exe"
+archive = "bazel.exe"
+
+[[build_tools]]
 name = "strawberry-perl"
 version = "3.11.9"
 url = "https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54001_64bit_UCRT/strawberry-perl-5.40.0.1-64bit-portable.zip"
