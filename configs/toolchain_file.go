@@ -25,7 +25,7 @@ func (c *Celer) GenerateToolchainFile() error {
 	fmt.Fprintf(&toolchain, "\n# Dependency search paths.\n")
 	fmt.Fprintf(&toolchain, "list(APPEND CMAKE_PREFIX_PATH %q)\n", c.InstalledDir(true))
 
-	// CUDA compiler configuration - MUST be set before toolchain to ensure CMake picks it up during compiler detection
+	// CUDA compiler configuration - MUST be set before toolchain to ensure CMake picks it up during compiler detection.
 	c.writeCUDAConfig(&toolchain, installedDir)
 
 	// Toolchain related.
@@ -245,4 +245,9 @@ func (c *Celer) writeCUDAConfig(toolchain *strings.Builder, installedDir string)
 	cudaToolkitRoot := filepath.ToSlash(installedDir)
 	fmt.Fprintf(toolchain, "set(CUDA_TOOLKIT_ROOT_DIR %q CACHE INTERNAL \"defined by celer globally.\")\n", cudaToolkitRoot)
 	fmt.Fprintf(toolchain, "set(CUDAToolkit_ROOT %q CACHE INTERNAL \"defined by celer globally.\")\n", cudaToolkitRoot)
+
+	// Explicitly set CUDA compiler path to dev directory's nvcc
+	devDirCMake := c.InstalledDevDir(true)
+	nvccCMakePath := filepath.ToSlash(filepath.Join(devDirCMake, "bin", expr.If(runtime.GOOS == "windows", "nvcc.exe", "nvcc")))
+	fmt.Fprintf(toolchain, "set(CMAKE_CUDA_COMPILER %q CACHE FILEPATH \"CUDA compiler\")\n", nvccCMakePath)
 }

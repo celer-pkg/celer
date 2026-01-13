@@ -3,10 +3,12 @@ package buildsystems
 import (
 	"celer/context"
 	"celer/pkgs/cmd"
+	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -228,6 +230,34 @@ func (m makefiles) Configure(options []string) error {
 		toolchain.ClearEnvs()
 	} else {
 		toolchain.SetEnvs(rootfs, m.Name())
+	}
+
+	// If nasm is available in PATH (from dev_dependencies or system), use it instead of toolchain's AS.
+	// This is necessary because some projects (like x264) require nasm, not the toolchain's assembler (e.g., llvm-as)
+	// Note: nasm is always for x86_64 architecture, so we only set it for x86_64 builds.
+	processor := toolchain.GetSystemProcessor()
+	if strings.Contains(processor, "x86") || strings.Contains(processor, "amd64") {
+		var nasmPath string
+		// First, check if nasm is in dev dependencies (this ensures we use the correct architecture-specific nasm).
+		if slices.ContainsFunc(m.DevDependencies, func(element string) bool {
+			return strings.HasPrefix(element, "nasm@")
+		}) {
+			tmpDevDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.HostName+"-dev")
+			devNasmPath := filepath.Join(tmpDevDir, "bin", "nasm")
+			if fileio.PathExists(devNasmPath) {
+				nasmPath = devNasmPath
+			}
+		}
+		// If not found in dev dependencies, try to find nasm in PATH.
+		if nasmPath == "" {
+			if path, err := exec.LookPath("nasm"); err == nil {
+				nasmPath = path
+			}
+		}
+		// If nasm was found, set AS environment variable to use nasm instead of toolchain's AS.
+		if nasmPath != "" {
+			os.Setenv("AS", nasmPath)
+		}
 	}
 
 	// Set optimization flags with build_type.
