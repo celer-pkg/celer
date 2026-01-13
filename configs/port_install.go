@@ -463,7 +463,7 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
 		color.Printf(color.Title, "\n[prepare dependencies for %s]:\n", p.NameVersion())
 		preparedTmpDeps = []string{}
-		if err := p.providerTmpDeps(); err != nil {
+		if err := p.prepareTmpDeps(); err != nil {
 			return err
 		}
 	}
@@ -539,7 +539,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 	return nil
 }
 
-func (p Port) providerTmpDeps() error {
+func (p Port) prepareTmpDeps() error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
 		if (p.DevDep || p.Native) && p.NameVersion() == nameVersion {
@@ -574,7 +574,7 @@ func (p Port) providerTmpDeps() error {
 
 		// Provider tmp deps recursively.
 		preparedTmpDeps = append(preparedTmpDeps, nameVersion+" [dev]")
-		if err := port.providerTmpDeps(); err != nil {
+		if err := port.prepareTmpDeps(); err != nil {
 			return err
 		}
 
@@ -617,7 +617,7 @@ func (p Port) providerTmpDeps() error {
 
 		// Provider tmp deps recursively.
 		preparedTmpDeps = append(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.Native, " [dev]", ""))
-		if err := port.providerTmpDeps(); err != nil {
+		if err := port.prepareTmpDeps(); err != nil {
 			return err
 		}
 

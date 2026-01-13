@@ -7,6 +7,7 @@ import (
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -228,6 +229,12 @@ func (m makefiles) Configure(options []string) error {
 		toolchain.ClearEnvs()
 	} else {
 		toolchain.SetEnvs(rootfs, m.Name())
+	}
+
+	// If nasm is available in PATH (from dev_dependencies or system), use it instead of toolchain's AS
+	// This is necessary because some projects (like x264) require nasm, not the toolchain's assembler (e.g., llvm-as)
+	if nasmPath, err := exec.LookPath("nasm"); err == nil {
+		os.Setenv("AS", nasmPath)
 	}
 
 	// Set optimization flags with build_type.
