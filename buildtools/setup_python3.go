@@ -61,8 +61,14 @@ func installPythonTools(extraTools *[]string) error {
 		}
 
 		// Install the tool.
+		// Use Python3.Path instead of "python3" command to ensure it works on Windows.
 		title := "[python3 install tool]"
-		command := fmt.Sprintf("python3 -m pip install %s", tool)
+		var command string
+		if Python3 != nil && Python3.Path != "" {
+			command = fmt.Sprintf("\"%s\" -m pip install %s", Python3.Path, tool)
+		} else {
+			command = fmt.Sprintf("python3 -m pip install %s", tool)
+		}
 		executor := cmd.NewExecutor(title, command)
 		if err := executor.Execute(); err != nil {
 			return err

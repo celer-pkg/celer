@@ -6,6 +6,7 @@ import (
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
+	"celer/pkgs/env"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
@@ -60,7 +61,16 @@ func (m *meson) preConfigure() error {
 			}
 			m.msvcEnvs = msvcEnvs
 
-			os.Setenv("PATH", msvcEnvs["PATH"])
+			msvcPaths := strings.Split(msvcEnvs["PATH"], string(os.PathListSeparator))
+			mergedPath := env.JoinPaths("PATH", msvcPaths...)
+
+			// Ensure Python Scripts directory is in PATH if Python3 is available.
+			if buildtools.Python3 != nil && buildtools.Python3.Path != "" {
+				scriptsDir := filepath.Join(filepath.Dir(buildtools.Python3.Path), "Scripts")
+				mergedPath = env.JoinPaths("PATH", scriptsDir)
+			}
+
+			os.Setenv("PATH", mergedPath)
 			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
 			os.Setenv("LIB", msvcEnvs["LIB"])
 		}
