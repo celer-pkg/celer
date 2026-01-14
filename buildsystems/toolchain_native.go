@@ -20,8 +20,17 @@ func (n nativeToolchain) GetName() string {
 	}
 }
 
-func (n nativeToolchain) GetSystemName() string      { return expr.UpperFirst(runtime.GOOS) }
-func (n nativeToolchain) GetSystemProcessor() string { return "x86_64" }
+func (n nativeToolchain) GetSystemName() string { return expr.UpperFirst(runtime.GOOS) }
+func (n nativeToolchain) GetSystemProcessor() string {
+	switch runtime.GOARCH {
+	case "amd64":
+		return "x86_64"
+	case "arm64":
+		return "aarch64"
+	default:
+		panic("unsupported arch: " + runtime.GOARCH)
+	}
+}
 func (n nativeToolchain) GetPath() string            { return "" }
 func (n nativeToolchain) GetFullPath() string        { return "" }
 func (n nativeToolchain) GetVersion() string         { return "" }
@@ -34,43 +43,28 @@ func (n nativeToolchain) GetCXXStandard() string { return "" }
 
 // Core compiler tools.
 func (n nativeToolchain) GetCC() string {
-	switch runtime.GOOS {
-	case "windows":
-		return "cl"
-	default:
-		return "gcc"
-	}
+	return expr.If(runtime.GOOS == "windows", "cl", "gcc")
 }
 
 func (n nativeToolchain) GetCXX() string {
-	switch runtime.GOOS {
-	case "windows":
-		return "cl"
-	default:
-		return "g++"
-	}
+	return expr.If(runtime.GOOS == "windows", "cl", "g++")
 }
 
-func (n nativeToolchain) GetCPP() string { return "" }
+func (n nativeToolchain) GetCPP() string {
+	return expr.If(runtime.GOOS == "windows", "cl", "g++")
+}
+
 func (n nativeToolchain) GetAR() string {
-	switch runtime.GOOS {
-	case "windows":
-		return "lib"
-	default:
-		return "ar"
-	}
+	return expr.If(runtime.GOOS == "windows", "lib", "ar")
 }
 
 func (n nativeToolchain) GetLD() string {
-	switch runtime.GOOS {
-	case "windows":
-		return "link"
-	default:
-		return "ld"
-	}
+	return expr.If(runtime.GOOS == "windows", "link", "ld")
 }
 
-func (n nativeToolchain) GetAS() string { return "" }
+func (n nativeToolchain) GetAS() string {
+	return expr.If(runtime.GOOS == "windows", "ml", "as")
+}
 
 // Object file manipulation tools.
 func (n nativeToolchain) GetOBJCOPY() string { return "" }
