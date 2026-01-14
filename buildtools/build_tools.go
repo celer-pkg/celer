@@ -182,7 +182,7 @@ func (b *BuildTool) validate() error {
 			b.cmakepaths = append(b.cmakepaths, "${CELER_ROOT}/downloads/tools/"+filepath.ToSlash(path))
 		}
 	} else {
-		// Single-file tool (e.g., bazel): place in subdirectory downloads/tools/{name}-{version}/
+		// Single-file tool, place in subdirectory downloads/tools/{name}-{version}/
 		toolDir := fmt.Sprintf("%s-%s", b.Name, b.Version)
 		b.rootDir = filepath.Join(dirs.DownloadedToolsDir, toolDir)
 		if !slices.Contains(b.fullpaths, b.rootDir) {

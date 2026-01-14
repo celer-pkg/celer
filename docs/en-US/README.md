@@ -21,7 +21,7 @@ Celer is the C/C++ accelerator that solves real-world dependency management chal
 - 🎯 **Zero Project Intrusion** - Just one `toolchain_file.cmake`, no code changes needed
 - 🚀 **True Cross-Compilation** - Platform-aware dependency management with pre-configured toolchains
 - 📦 **Smart Caching** - Hash-based binary artifact caching saves hours of build time
-- 🔧 **Multi-Build System** - Native support for CMake, Make, Meson, Bazel, B2, QMake, GYP
+- 🔧 **Multi-Build System** - Native support for CMake, Make, Meson, B2, QMake, GYP
 - 🏢 **Enterprise Ready** - Project-level configurations prevent dependency version conflicts
 - 🔗 **Non-Intrusive Design** - Portable `toolchain_file.cmake` works standalone after generation
 
@@ -62,7 +62,7 @@ Celer generates a platform-specific `toolchain_file.cmake` that bridges your pro
 | **🔧 Configurable Cross-Compilation Platforms** | Pre-define toolchains for ARM, x86, RISC-V, Windows, Linux, and more with friendly TOML configurations. |
 | **🎮 Embedded System Support** | First-class support for MCU and bare-metal environments with `embedded_system` flag - no OS dependencies required. |
 | **📁 Project-Level Dependency Management** | Each project maintains its own dependency versions, environment variables, macros, and CMake variables - preventing global conflicts. |
-| **🛠️ Multi-Build System Support** | Native support for **CMake**, **Makefiles**, **Meson**, **B2**, **Bazel**, **QMake**, **GYP** - no need to write complex scripts. |
+| **🛠️ Multi-Build System Support** | Native support for **CMake**, **Makefiles**, **Meson**, **B2**, **QMake**, **GYP** - no need to write complex scripts. |
 | **📦 Auto CMake Config Generation** | Prebuilt libraries automatically get CMake config files generated, ensuring seamless integration. |
 | **⚡ Intelligent Binary Caching** | Hash-based artifact caching via local network shares eliminates redundant builds. Supports pre-built binary distribution for private libraries. |
 | **💻 Developer Mode** | Generate `toolchain_file.cmake` once with `celer deploy`, then use any IDE for development. |
