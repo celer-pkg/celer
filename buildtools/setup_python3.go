@@ -2,6 +2,7 @@ package buildtools
 
 import (
 	"celer/pkgs/cmd"
+	"celer/pkgs/color"
 	"celer/pkgs/env"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -151,6 +152,12 @@ func (p *python3) findInstalledVersion() error {
 	if err := p.createSymlink(p.rootDir); err != nil {
 		return err
 	}
+
+	// Print python3 information.
+	color.Printf(color.List, "\n[✔] -- python3 detected: %s\n", p.Path)
+	color.Printf(color.Hint, "Version: %s\n", p.version)
+	color.Printf(color.Hint, "Root directory: %s\n", p.rootDir)
+	color.Printf(color.Hint, "Scripts directory: %s\n", filepath.Join(p.rootDir, "Scripts"))
 
 	return nil
 }
