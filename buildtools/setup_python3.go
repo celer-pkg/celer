@@ -97,8 +97,19 @@ func (p *python3) validate() error {
 		return err
 	}
 
-	// In windows, Scripts is the destination that pip install to.
-	os.Setenv("PATH", env.JoinPaths("PATH", p.rootDir, filepath.Join(p.rootDir, "Scripts")))
+	// In windows, pip installs executables to Scripts directory.
+	paths := []string{p.rootDir}
+	scriptsDir := filepath.Join(p.rootDir, "Scripts")
+	if fileio.PathExists(scriptsDir) {
+		paths = append(paths, scriptsDir)
+	}
+
+	// Github actions may use bin instead of Scripts.
+	binDir := filepath.Join(p.rootDir, "bin")
+	if fileio.PathExists(binDir) {
+		paths = append(paths, binDir)
+	}
+	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
 	return nil
 }
 
@@ -157,7 +168,14 @@ func (p *python3) findInstalledVersion() error {
 	color.Printf(color.List, "\n[✔] -- python3 detected: %s\n", p.Path)
 	color.Printf(color.Hint, "Version: %s\n", p.version)
 	color.Printf(color.Hint, "Root directory: %s\n", p.rootDir)
-	color.Printf(color.Hint, "Scripts directory: %s\n", filepath.Join(p.rootDir, "Scripts"))
+	scriptsDir := filepath.Join(p.rootDir, "Scripts")
+	if fileio.PathExists(scriptsDir) {
+		color.Printf(color.Hint, "Scripts directory: %s\n", scriptsDir)
+	}
+	binDir := filepath.Join(p.rootDir, "bin")
+	if fileio.PathExists(binDir) {
+		color.Printf(color.Hint, "Bin directory: %s\n", binDir)
+	}
 
 	return nil
 }
