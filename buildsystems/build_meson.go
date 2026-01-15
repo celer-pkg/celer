@@ -234,20 +234,11 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	buffers.WriteString("cmake = 'cmake'\n")
 
 	// Explicitly set python to use host system's Python interpreter
-	// This prevents meson from using the target system's Python (e.g., ARM64 Python on x86_64 host)
-	// Use the Python3 path configured by buildtools for cross-platform compatibility.
-	if buildtools.Python3 != nil && buildtools.Python3.Path != "" {
-		pythonPath := filepath.ToSlash(buildtools.Python3.Path)
-		fmt.Fprintf(&buffers, "python = '%s'\n", pythonPath)
-	} else {
-		// Fallback to system Python based on OS
-		switch runtime.GOOS {
-		case "linux":
-			buffers.WriteString("python = '/usr/bin/python3'\n")
-		case "windows":
-			buffers.WriteString("python = 'python3'\n")
-		}
+	if buildtools.Python3 == nil || buildtools.Python3.Path == "" {
+		return "", fmt.Errorf("python3 should be set up in advance.")
 	}
+	pythonPath := filepath.ToSlash(buildtools.Python3.Path)
+	fmt.Fprintf(&buffers, "python = '%s'\n", pythonPath)
 
 	if ccacheEnabled {
 		// Meson requires array format for commands with arguments

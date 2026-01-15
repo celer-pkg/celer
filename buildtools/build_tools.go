@@ -84,25 +84,22 @@ func CheckTools(ctx context.Context, tools ...string) error {
 	}
 
 	var (
-		msys2Tool       *BuildTool
-		python3Required bool
+		msys2Tool   *BuildTool
+		python3Tool *BuildTool
 	)
 
 	// Validate tools in loop.
 	for _, tool := range uniqueTools {
-		// Skip python3 now, since it's not portable tool, we will validate it later.
-		if strings.HasPrefix(tool, "python3") {
-			python3Required = true
-			continue
-		}
-
-		// Find tool and validate it.
 		if tool := buildTools.findTool(ctx, tool); tool != nil {
 			if err := tool.validate(); err != nil {
 				return err
 			}
 
-			if tool.Name == "msys2" {
+			switch tool.Name {
+			case "python3":
+				python3Tool = tool
+
+			case "msys2":
 				msys2Tool = tool
 			}
 		}
@@ -113,24 +110,23 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		return buildTools.contains(element)
 	})
 
-	// Validate python3 and install python3 libraries.
-	if python3Required {
-		if err := setupPython3(); err != nil {
-			return err
-		}
+	// Install python3 packages.
+	if python3Tool != nil {
+		setupPython3(python3Tool.rootDir)
 		if err := pipInstall(&uniqueTools); err != nil {
 			return err
 		}
 	}
 
-	switch runtime.GOOS {
-	case "windows":
-		if msys2Tool != nil {
-			if err := SetupMSYS2(msys2Tool.rootDir, &uniqueTools); err != nil {
-				return err
-			}
+	// Setup msys2 for windows.
+	if msys2Tool != nil && runtime.GOOS == "windows" {
+		if err := SetupMSYS2(msys2Tool.rootDir, &uniqueTools); err != nil {
+			return err
 		}
-	case "linux":
+	}
+
+	// Check if package installed for linux.
+	if runtime.GOOS == "linux" {
 		if err := CheckSystemTools(uniqueTools); err != nil {
 			return err
 		}

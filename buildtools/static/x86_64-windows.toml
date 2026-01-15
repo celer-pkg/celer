@@ -53,3 +53,10 @@ version = "4.12.1"
 url = "https://github.com/ccache/ccache/releases/download/v4.12.1/ccache-4.12.1-windows-x86_64.zip"
 archive = "ccache-4.12.1-windows-x86_64.zip"
 paths = ["ccache-4.12.1-windows-x86_64"]
+
+[[build_tools]]
+name = "python3"
+version = "3.14.2"
+url = "https://www.python.org/ftp/python/3.14.2/python-3.14.2-win32.zip"
+archive = "python-3.14.2-win32.zip"
+paths = ["python-3.14.2-win32", "python-3.14.2-win32/Scripts"]
