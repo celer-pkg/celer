@@ -68,10 +68,6 @@ func TestInstall_x86_64_MSVC_Nobuild(t *testing.T) {
 }
 
 func buildWithAMD64MSVC(t *testing.T, platform, nameVersion string, nobuild bool) {
-	if os.Getenv("TEST_MSVC") != "true" {
-		t.SkipNow()
-	}
-
 	// Cleanup.
 	dirs.RemoveAllForTest()
 

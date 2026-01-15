@@ -37,8 +37,6 @@ func setupPython3() error {
 		}
 	}
 
-	// Make sure Python is available in PATH.
-	os.Setenv("PATH", env.JoinPaths("PATH", Python3.rootDir))
 	return nil
 }
 
@@ -98,7 +96,8 @@ func (p *python3) validate() error {
 		return err
 	}
 
-	// os.Setenv("PATH", env.JoinPaths("PATH", p.rootDir, filepath.Join(p.rootDir, "Scripts")))
+	// In windows, Scripts is the destination that pip install to.
+	os.Setenv("PATH", env.JoinPaths("PATH", p.rootDir, filepath.Join(p.rootDir, "Scripts")))
 	return nil
 }
 
