@@ -24,15 +24,15 @@ type msys2 struct {
 }
 
 // SetupMSYS2 checks and installs the required MSYS2 packages.
-func SetupMSYS2(rootDir string, extraTools *[]string) error {
+func SetupMSYS2(rootDir string, packages *[]string) error {
 	// Remove none msys2:xxx from list.
-	*extraTools = slices.DeleteFunc(*extraTools, func(element string) bool {
+	*packages = slices.DeleteFunc(*packages, func(element string) bool {
 		return !strings.HasPrefix(element, "msys2:")
 	})
 
 	defer func() {
 		// Remove msys2 related after setted up.
-		*extraTools = slices.DeleteFunc(*extraTools, func(tool string) bool {
+		*packages = slices.DeleteFunc(*packages, func(tool string) bool {
 			return strings.HasPrefix(tool, "msys2:")
 		})
 	}()
@@ -52,7 +52,7 @@ func SetupMSYS2(rootDir string, extraTools *[]string) error {
 	}
 
 	// Merge tools for installation.
-	msys2.BuiltinPackages = append(msys2.BuiltinPackages, *extraTools...)
+	msys2.BuiltinPackages = append(msys2.BuiltinPackages, *packages...)
 
 	// Check and install packages.
 	for _, item := range msys2.BuiltinPackages {

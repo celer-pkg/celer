@@ -657,8 +657,6 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 		b.buildSystem = NewGyp(b, optimize)
 	case "qmake":
 		b.buildSystem = NewQMake(b, optimize)
-	case "bazel":
-		b.buildSystem = NewBazel(b, optimize)
 	case "prebuilt":
 		b.buildSystem = NewPrebuilt(b, optimize)
 	case "nobuild":

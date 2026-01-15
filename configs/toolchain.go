@@ -30,19 +30,33 @@ type Toolchain struct {
 	CC  string `toml:"cc"`  // C language compiler.
 	CXX string `toml:"cxx"` // C++ language compiler.
 
-	// Suggested field.
-	AR string `toml:"ar"` // Archive static library.
-	LD string `toml:"ld"` // Link executable.
+	// Core compiler tools (Essential).
+	CPP string `toml:"cpp,omitempty"` // C preprocessor.
+	AR  string `toml:"ar,omitempty"`  // Archive static library.
+	LD  string `toml:"ld,omitempty"`  // Link executable.
+	AS  string `toml:"as,omitempty"`  // Assemble assembly code.
 
-	// Optional fields for linux.
-	AS      string `toml:"as,omitempty"`      // Assemble assembly code.
-	FC      string `toml:"fc,omitempty"`      // Compile Fortran code.
-	RANLIB  string `toml:"ranlib,omitempty"`  // Index static library.
-	NM      string `toml:"nm,omitempty"`      // List symbols in static library.
+	// Object file manipulation tools.
 	OBJCOPY string `toml:"objcopy,omitempty"` // Copy object file.
 	OBJDUMP string `toml:"objdump,omitempty"` // Dump object file.
 	STRIP   string `toml:"strip,omitempty"`   // Strip executable and library.
 	READELF string `toml:"readelf,omitempty"` // Read ELF file.
+	SIZE    string `toml:"size,omitempty"`    // Display file size.
+	STRINGS string `toml:"strings,omitempty"` // Display strings in file.
+
+	// Symbol and archive tools.
+	NM     string `toml:"nm,omitempty"`     // List symbols in object file.
+	RANLIB string `toml:"ranlib,omitempty"` // Index static library.
+
+	// Code coverage tools.
+	GCOV string `toml:"gcov,omitempty"` // Gcov code coverage.
+
+	// Debug and analysis tools.
+	ADDR2LINE string `toml:"addr2line,omitempty"` // Convert address to line number.
+	CXXFILT   string `toml:"cxxfilt,omitempty"`   // C++ symbol demangler.
+
+	// Additional compiler tools.
+	FC string `toml:"fc,omitempty"` // Compile Fortran code.
 
 	// Internal fields.
 	MSVC        context.MSVC `toml:"-"`
@@ -235,6 +249,10 @@ func (t Toolchain) GetCXX() string {
 	return t.CXX
 }
 
+func (t Toolchain) GetCPP() string {
+	return t.CPP
+}
+
 func (t Toolchain) GetAR() string {
 	return t.AR
 }
@@ -273,6 +291,26 @@ func (t Toolchain) GetSTRIP() string {
 
 func (t Toolchain) GetREADELF() string {
 	return t.READELF
+}
+
+func (t Toolchain) GetSIZE() string {
+	return t.SIZE
+}
+
+func (t Toolchain) GetSTRINGS() string {
+	return t.STRINGS
+}
+
+func (t Toolchain) GetGCOV() string {
+	return t.GCOV
+}
+
+func (t Toolchain) GetADDR2LINE() string {
+	return t.ADDR2LINE
+}
+
+func (t Toolchain) GetCXXFILT() string {
+	return t.CXXFILT
 }
 func (t Toolchain) GetMSVC() *context.MSVC {
 	return &t.MSVC

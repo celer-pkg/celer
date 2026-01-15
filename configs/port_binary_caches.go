@@ -110,9 +110,7 @@ func (p Port) Commit(nameVersion string, devDep bool) (string, error) {
 		// Check if archive file exists.
 		if !fileio.PathExists(filePath) {
 			return "", fmt.Errorf("archive file does not exist: %s \n "+
-				"maybe the archive is already downloaded, but with or without --dev flag \n "+
-				"please remove %s under buildtrees and try again",
-				nameVersion, nameVersion)
+				"please remove %s under buildtrees and try again", nameVersion, nameVersion)
 		}
 
 		// Calculate checksum of archive file.

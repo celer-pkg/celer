@@ -3,6 +3,7 @@ package fileio
 import (
 	"celer/context"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"fmt"
 	"net/http"
 	"os"
@@ -37,28 +38,68 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 
 	switch {
 	case strings.HasPrefix(r.downloader.url, "http"), strings.HasPrefix(r.downloader.url, "ftp"):
-		downloaded := filepath.Join(dirs.DownloadedDir, r.downloader.archive)
+		// Use archive name if specified, otherwise use filename from URL
+		fileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(r.downloader.url))
+		downloaded := filepath.Join(dirs.DownloadedDir, fileName)
 		destDir := filepath.Join(r.destDir, r.folder)
 
-		override, err := r.download(r.downloader.url, r.downloader.archive)
+		// Check if need to download.
+		needToDownload, err := r.needToDownload(r.downloader.url, fileName)
 		if err != nil {
 			return err
 		}
 
+		// Get the actual downloaded file path (downloader.Start may rename the file)
+		if needToDownload {
+			actualDownloaded, err := r.downloader.Start(r.httpClient)
+			if err != nil {
+				return fmt.Errorf("failed to download %s: %w", r.downloader.url, err)
+			}
+			downloaded = actualDownloaded
+		}
+
+		// Check if it's a single executable file (like .exe or standalone binaries).
+		isSingleFile := strings.HasSuffix(downloaded, ".exe") || !IsSupportedArchive(downloaded)
+
+		// Determine if repair is needed.
+		var needToRepair bool
+		if isSingleFile {
+			// For single files, check if the target file with the specified name exists,
+			// Use archive name if specified, otherwise use downloaded file name.
+			destFileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(downloaded))
+			destFile := filepath.Join(destDir, destFileName)
+			needToRepair = needToDownload || !PathExists(destFile)
+		} else {
+			// For archives, check if the destination directory exists.
+			needToRepair = needToDownload || !PathExists(destDir)
+		}
+
 		// Repair resource.
-		if override || !PathExists(destDir) {
-			// Remove for override.
+		if needToRepair {
+			// Remove for overwrite.
 			if err := os.RemoveAll(destDir); err != nil {
 				return err
 			}
 
-			if strings.HasSuffix(downloaded, ".exe") {
-				destFile := filepath.Join(destDir, filepath.Base(downloaded))
+			if isSingleFile {
+				// Create directory: downloads/tools/{name}/
 				if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-					return fmt.Errorf("failed to mkdir %s.\n %w", destDir, err)
+					return fmt.Errorf("failed to mkdir %s\n %w", destDir, err)
 				}
+
+				// Determine the destination file name:
+				// Use archive name if specified, otherwise use downloaded file name.
+				destFileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(downloaded))
+				destFile := filepath.Join(destDir, destFileName)
+
+				// Copy file with the specified name.
 				if err := CopyFile(downloaded, destFile); err != nil {
-					return fmt.Errorf("failed to rename %s.\n %w", downloaded, err)
+					return fmt.Errorf("failed to copy %s to %s\n %w", downloaded, destFile, err)
+				}
+
+				// Make sure the file is executable.
+				if err := os.Chmod(destFile, os.ModePerm); err != nil {
+					return fmt.Errorf("failed to chmod %s\n %w", destFile, err)
 				}
 			} else {
 				// Extract archive file.
@@ -66,7 +107,7 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 					return fmt.Errorf("failed to extract %s.\n %w", downloaded, err)
 				}
 
-				// Check if has nested folder (handling case where there's an nested folder).
+				// Check if has nested folder (handling case where there's a nested folder).
 				if err := moveNestedFolderIfExist(destDir); err != nil {
 					return fmt.Errorf("%s: move nested folder: %w", destDir, err)
 				}
@@ -125,29 +166,26 @@ func (r *Repair) MoveAllToParent() error {
 	return nil
 }
 
-func (r Repair) download(url, archive string) (override bool, err error) {
-	downloaded := filepath.Join(dirs.DownloadedDir, archive)
-	if PathExists(downloaded) {
+func (r Repair) needToDownload(url, archive string) (needToDownload bool, err error) {
+	destFilePath := filepath.Join(dirs.DownloadedDir, archive)
+	if PathExists(destFilePath) {
 		// Skip checking filesize and re-download.
 		if r.ctx.Offline() {
 			return false, nil
 		}
 
-		// Redownload if remote file size and local file size not match.
+		// Need to download if remote file size and local file size not match.
 		fileSize, err := FileSize(r.httpClient, url)
 		if err != nil {
 			return false, fmt.Errorf("get remote file size: %w", err)
 		}
-		info, err := os.Stat(downloaded)
+		info, err := os.Stat(destFilePath)
 		if err != nil {
 			return false, fmt.Errorf("%s: get local file size: %w", archive, err)
 		}
 
-		// Not every remote file has size, so we need to check if fileSize is greater than 0.
+		// Not all remote files have size, so we need to check if file size is greater than 0.
 		if fileSize > 0 && info.Size() != fileSize {
-			if _, err := r.downloader.Start(r.httpClient); err != nil {
-				return false, fmt.Errorf("%s: download: %w", archive, err)
-			}
 			return true, nil
 		}
 
@@ -156,10 +194,6 @@ func (r Repair) download(url, archive string) (override bool, err error) {
 		// Skip downloading in offline mode.
 		if r.ctx.Offline() {
 			return false, fmt.Errorf("you're in offline mode")
-		}
-
-		if _, err := r.downloader.Start(r.httpClient); err != nil {
-			return false, fmt.Errorf("failed to download %s.\n %w", archive, err)
 		}
 
 		return true, nil

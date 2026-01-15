@@ -69,11 +69,11 @@ func (p Port) Remove(options RemoveOptions) error {
 	// Remove build cache and logs.
 	if options.BuildCache {
 		if err := os.RemoveAll(matchedConfig.PortConfig.BuildDir); err != nil {
-			return fmt.Errorf("failed to remove build cache.\n %w", err)
+			return fmt.Errorf("failed to remove build cache \n %w", err)
 		}
 
 		if err := p.RemoveLogs(); err != nil {
-			return fmt.Errorf("failed to remove logs.\n %w", err)
+			return fmt.Errorf("failed to remove logs \n %w", err)
 		}
 	}
 

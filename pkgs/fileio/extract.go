@@ -12,6 +12,7 @@ import (
 
 func IsSupportedArchive(filePath string) bool {
 	return strings.HasSuffix(filePath, ".tar.gz") ||
+		strings.HasSuffix(filePath, ".tgz") ||
 		strings.HasSuffix(filePath, ".tar.xz") ||
 		strings.HasSuffix(filePath, ".tar.bz2") ||
 		strings.HasSuffix(filePath, ".zip") ||
