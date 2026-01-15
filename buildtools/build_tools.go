@@ -110,9 +110,18 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		return buildTools.contains(element)
 	})
 
+	// Check if we need to install python3 packages.
+	needPython3Packages := slices.ContainsFunc(uniqueTools, func(tool string) bool {
+		return strings.HasPrefix(tool, "python3:")
+	})
+
 	// Install python3 packages.
-	if python3Tool != nil {
-		setupPython3(python3Tool.rootDir)
+	if needPython3Packages {
+		if python3Tool != nil {
+			setupPython3(python3Tool.rootDir)
+		} else if runtime.GOOS == "linux" {
+			setupPython3("/usr/bin")
+		}
 		if err := pipInstall(&uniqueTools); err != nil {
 			return err
 		}
