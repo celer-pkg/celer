@@ -16,12 +16,17 @@ import (
 var Python3 *python3
 
 // setupPython3 setup python3 in windows only, since linux always has builtin python always.
-func setupPython3() {
+func setupPython3() error {
+	if Python3 != nil {
+		return nil
+	}
+
+	// Init python3.
 	switch runtime.GOOS {
 	case "windows":
 		var python python3
 		if err := python.validate(); err != nil {
-			panic(err)
+			return err
 		}
 		Python3 = &python
 
@@ -31,43 +36,46 @@ func setupPython3() {
 			rootDir: "/usr/bin",
 		}
 	}
+
+	// Make sure Python is available in PATH.
+	os.Setenv("PATH", env.JoinPaths("PATH", Python3.rootDir))
+	return nil
 }
 
-// installPythonTools checks if the python3 is installed.
-func installPythonTools(extraTools *[]string) error {
+// pipInstall checks if the python3 is installed.
+func pipInstall(libraries *[]string) error {
 	// Remove none python3:xxx from list.
-	*extraTools = slices.DeleteFunc(*extraTools, func(element string) bool {
+	*libraries = slices.DeleteFunc(*libraries, func(element string) bool {
 		return !strings.HasPrefix(element, "python3:")
 	})
 
 	defer func() {
 		// Remove python3 related after setted up.
-		*extraTools = slices.DeleteFunc(*extraTools, func(tool string) bool {
+		*libraries = slices.DeleteFunc(*libraries, func(tool string) bool {
 			return strings.HasPrefix(tool, "python3:")
 		})
 	}()
 
 	// Install extra tools if not exist.
-	for _, tool := range *extraTools {
-		tool = strings.TrimPrefix(tool, "python3:")
+	for _, library := range *libraries {
+		library = strings.TrimPrefix(library, "python3:")
 
 		// Check if the tool is already installed.
-		installed, err := Python3.checkIfInstalled(tool)
+		installed, err := Python3.checkIfInstalled(library)
 		if err != nil {
-			return fmt.Errorf("check if %s is installed: %s", tool, err)
+			return fmt.Errorf("check if %s is installed: %s", library, err)
 		}
 		if installed {
 			continue
 		}
 
-		// Install the tool.
 		// Use Python3.Path instead of "python3" command to ensure it works on Windows.
 		title := "[python3 install tool]"
 		var command string
 		if Python3 != nil && Python3.Path != "" {
-			command = fmt.Sprintf("\"%s\" -m pip install %s", Python3.Path, tool)
+			command = fmt.Sprintf("\"%s\" -m pip install %s", Python3.Path, library)
 		} else {
-			command = fmt.Sprintf("python3 -m pip install %s", tool)
+			command = fmt.Sprintf("python3 -m pip install %s", library)
 		}
 		executor := cmd.NewExecutor(title, command)
 		if err := executor.Execute(); err != nil {
@@ -90,7 +98,7 @@ func (p *python3) validate() error {
 		return err
 	}
 
-	os.Setenv("PATH", env.JoinPaths("PATH", p.rootDir, filepath.Join(p.rootDir, "Scripts")))
+	// os.Setenv("PATH", env.JoinPaths("PATH", p.rootDir, filepath.Join(p.rootDir, "Scripts")))
 	return nil
 }
 

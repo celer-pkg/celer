@@ -22,10 +22,6 @@ var (
 	static embed.FS
 )
 
-func init() {
-	setupPython3()
-}
-
 // CheckTools checks if tools exist and repair them if necessary.
 func CheckTools(ctx context.Context, tools ...string) error {
 	// Filter duplicated tools.
@@ -119,7 +115,10 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	// Validate python3 and install python3 libraries.
 	if python3Required {
-		if err := installPythonTools(&uniqueTools); err != nil {
+		if err := setupPython3(); err != nil {
+			return err
+		}
+		if err := pipInstall(&uniqueTools); err != nil {
 			return err
 		}
 	}
