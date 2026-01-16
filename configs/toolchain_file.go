@@ -239,15 +239,14 @@ func (c *Celer) writeCUDAConfig(toolchain *strings.Builder, installedDir string)
 	}
 
 	// CUDA is available, write configuration
-	fmt.Fprintf(toolchain, "\n# CUDA compiler configuration (auto-detected).\n")
-
-	// Set CUDA toolkit root directory variables (installedDir already includes ${CELER_ROOT})
 	cudaToolkitRoot := filepath.ToSlash(installedDir)
-	fmt.Fprintf(toolchain, "set(CUDA_TOOLKIT_ROOT_DIR %q CACHE INTERNAL \"defined by celer globally.\")\n", cudaToolkitRoot)
-	fmt.Fprintf(toolchain, "set(CUDAToolkit_ROOT %q CACHE INTERNAL \"defined by celer globally.\")\n", cudaToolkitRoot)
+	fmt.Fprintf(toolchain, "\n# CUDA compiler configuration.\n")
+	fmt.Fprintf(toolchain, "set(CUDA_TOOLKIT_ROOT_DIR %q CACHE INTERNAL \"CUDA Toolkit root directory.\")\n", cudaToolkitRoot)
+	fmt.Fprintf(toolchain, "set(CUDAToolkit_ROOT %q CACHE INTERNAL \"CUDA Toolkit root directory.\")\n", cudaToolkitRoot)
+	fmt.Fprintf(toolchain, "set(CMAKE_CUDA_FLAGS_INIT %q CACHE STRING \"CUDA compiler flags.\" FORCE)\n",
+		"-Wno-deprecated-gpu-targets --forward-unknown-opts --forward-slash-prefix-opts")
 
-	// Explicitly set CUDA compiler path to dev directory's nvcc
-	devDirCMake := c.InstalledDevDir(true)
-	nvccCMakePath := filepath.ToSlash(filepath.Join(devDirCMake, "bin", expr.If(runtime.GOOS == "windows", "nvcc.exe", "nvcc")))
-	fmt.Fprintf(toolchain, "set(CMAKE_CUDA_COMPILER %q CACHE FILEPATH \"CUDA compiler\")\n", nvccCMakePath)
+	fmt.Fprintf(toolchain, "\n# Set CUDA toolset for Visual Studio generator.\n")
+	fmt.Fprintf(toolchain, "set(CMAKE_GENERATOR_TOOLSET %q CACHE INTERNAL \"CUDA toolset for Visual Studio generator.\")\n", "cuda="+cudaToolkitRoot)
+	fmt.Fprintf(toolchain, "set(CMAKE_VS_PLATFORM_TOOLSET_CUDA %q CACHE INTERNAL \"CUDA toolset path for Visual Studio.\")\n", cudaToolkitRoot)
 }

@@ -70,10 +70,10 @@ func TestInstall_Cuda(t *testing.T) {
 	executer.SetWorkDir(buildDir)
 	check(executer.Execute())
 
-	// // Clear up.
-	// check(port.Remove(configs.RemoveOptions{
-	// 	Purge:      true,
-	// 	BuildCache: true,
-	// 	Recursive:  true,
-	// }))
+	// Clear up.
+	check(port.Remove(configs.RemoveOptions{
+		Purge:      true,
+		BuildCache: true,
+		Recursive:  true,
+	}))
 }

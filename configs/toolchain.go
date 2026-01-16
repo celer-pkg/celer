@@ -140,11 +140,11 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 			fmt.Fprintf(toolchain, "set(CMAKE_CXX_FLAGS_INIT \"${CMAKE_C_FLAGS_INIT}\")\n")
 
 			// Build RC compiler flags
+			fmt.Fprint(toolchain, "\n# RC FLAGS for RC compilers.\n")
 			fmt.Fprintf(toolchain, "set(CMAKE_RC_FLAGS_INIT \"/nologo\")\n")
 			for _, inc := range t.MSVC.Includes {
 				fmt.Fprintf(toolchain, "string(APPEND CMAKE_RC_FLAGS_INIT \" /I\\\"%s\\\"\")\n", filepath.ToSlash(inc))
 			}
-			fmt.Fprintf(toolchain, "set(CMAKE_RC_FLAGS \"${CMAKE_RC_FLAGS_INIT}\")\n")
 		} else {
 			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
 			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS", "/nologo")
@@ -153,7 +153,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		if len(t.MSVC.Libs) > 0 {
 			fmt.Fprint(toolchain, "\n# MSVC library paths for linker.\n")
 			// Use string(APPEND ...) for better readability
-			fmt.Fprintf(toolchain, "set(CMAKE_EXE_LINKER_FLAGS_INIT \"\")\n")
+			fmt.Fprintf(toolchain, "set(CMAKE_EXE_LINKER_FLAGS_INIT \" /NODEFAULTLIB:LIBCMT\")\n")
 			for _, lib := range t.MSVC.Libs {
 				// Windows SDK libs need to include the x64 subdirectory
 				libPath := filepath.ToSlash(lib)

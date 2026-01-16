@@ -90,6 +90,11 @@ func (p Port) Commit(nameVersion string, devDep bool) (string, error) {
 		}
 	}
 
+	// No commit hash for virtual project.
+	if port.Package.Url == "_" {
+		return "", nil
+	}
+
 	// Get commit hash or archive checksum.
 	if strings.HasSuffix(port.Package.Url, ".git") {
 		commit, err := git.ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
