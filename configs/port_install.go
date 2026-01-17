@@ -300,6 +300,16 @@ func (p Port) doInstallFromPackage(destDir string) error {
 		}
 	}
 
+	// Delete CUDA packages directory immediately after installation to free disk space.
+	// This is especially important for large files like CUDA toolkits in CI environments.
+	if os.Getenv("GITHUB_ACTIONS") == "true" && strings.Contains(strings.ToLower(p.Name), "cuda") {
+		if destDir == p.InstalledDir && fileio.PathExists(p.PackageDir) {
+			if err := os.RemoveAll(p.PackageDir); err != nil {
+				fmt.Printf("Warning: failed to delete CUDA package directory %s: %v\n", p.PackageDir, err)
+			}
+		}
+	}
+
 	return nil
 }
 

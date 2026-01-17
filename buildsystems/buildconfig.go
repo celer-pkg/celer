@@ -372,17 +372,6 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			return err
 		}
 
-		// Delete downloaded archive file immediately after extraction to free disk space.
-		// This is especially important for large files like CUDA toolkits in CI environments.
-		if os.Getenv("GITHUB_ACTIONS") == "true" && strings.Contains(archive, "cuda") {
-			downloadedFile := filepath.Join(dirs.DownloadedDir, archive)
-			if fileio.PathExists(downloadedFile) {
-				if err := os.Remove(downloadedFile); err != nil {
-					fmt.Printf("Warning: failed to delete downloaded cuda archive %s: %v\n", downloadedFile, err)
-				}
-			}
-		}
-
 		// Move extracted files to repo dir.
 		entities, err := os.ReadDir(b.PortConfig.RepoDir)
 		if err != nil || len(entities) == 0 {
