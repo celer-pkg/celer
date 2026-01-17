@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-func TestInstall_Cuda(t *testing.T) {
+func TestInstall_x86_64_GCC_CUDA(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
