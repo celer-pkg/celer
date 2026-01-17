@@ -254,24 +254,22 @@ func (c *Celer) writeCUDAConfig(toolchain *strings.Builder, installedDir string)
 	fmt.Fprintf(toolchain, `    set(CUDAToolkit_ROOT "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
 	fmt.Fprintf(toolchain, `    set(CMAKE_CUDA_COMPILER "${TMP_DEP_DIR}/bin/%s" CACHE INTERNAL "CUDA compiler" FORCE)`+"\n", nvccName)
 
-	fmt.Fprintf(toolchain, "\n")
-	fmt.Fprintf(toolchain, "    # Set CUDA toolset for Visual Studio generator (VS integration is in TMP_DEP_DIR).\n")
-	fmt.Fprintf(toolchain, `    if(EXISTS "${TMP_DEP_DIR}/extras/visual_studio_integration/MSBuildExtensions")`+"\n")
-	fmt.Fprintf(toolchain, `        set(CMAKE_GENERATOR_TOOLSET "cuda=${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset for Visual Studio generator.")`+"\n")
-	fmt.Fprintf(toolchain, `        set(CMAKE_VS_PLATFORM_TOOLSET_CUDA "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset path for Visual Studio.")`+"\n")
-	fmt.Fprintf(toolchain, "    endif()\n")
+	if runtime.GOOS == "windows" {
+		fmt.Fprintf(toolchain, "\n    # Set CUDA toolset for Visual Studio generator (VS integration is in TMP_DEP_DIR).\n")
+		fmt.Fprintf(toolchain, `    set(CMAKE_GENERATOR_TOOLSET "cuda=${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset for Visual Studio generator.")`+"\n")
+		fmt.Fprintf(toolchain, `    set(CMAKE_VS_PLATFORM_TOOLSET_CUDA "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset path for Visual Studio.")`+"\n")
+	}
 	fmt.Fprintf(toolchain, "else()\n")
 	fmt.Fprintf(toolchain, "    # CUDA compiler configuration.\n")
 	fmt.Fprintf(toolchain, "    set(CUDA_TOOLKIT_ROOT_DIR %q CACHE INTERNAL \"CUDA Toolkit root directory.\")\n", cudaToolkitRoot)
 	fmt.Fprintf(toolchain, "    set(CUDAToolkit_ROOT %q CACHE INTERNAL \"CUDA Toolkit root directory.\")\n", cudaToolkitRoot)
-	fmt.Fprintf(toolchain, "    set(CMAKE_CUDA_COMPILER %q CACHE FILEPATH \"CUDA compiler\" FORCE)\n", nvccCMakePath)
+	fmt.Fprintf(toolchain, "    set(CMAKE_CUDA_COMPILER %q CACHE INTERNAL \"CUDA compiler\" FORCE)\n", nvccCMakePath)
 
-	fmt.Fprintf(toolchain, "\n")
-	fmt.Fprintf(toolchain, "    # Set CUDA toolset for Visual Studio generator.\n")
-	fmt.Fprintf(toolchain, "    if(EXISTS %q)\n", cudaToolkitRoot+"/extras/visual_studio_integration/MSBuildExtensions")
-	fmt.Fprintf(toolchain, "        set(CMAKE_GENERATOR_TOOLSET %q CACHE INTERNAL \"CUDA toolset for Visual Studio generator.\")\n", "cuda="+cudaToolkitRoot)
-	fmt.Fprintf(toolchain, "        set(CMAKE_VS_PLATFORM_TOOLSET_CUDA %q CACHE INTERNAL \"CUDA toolset path for Visual Studio.\")\n", cudaToolkitRoot)
-	fmt.Fprintf(toolchain, "    endif()\n")
+	if runtime.GOOS == "windows" {
+		fmt.Fprintf(toolchain, "\n    # Set CUDA toolset for Visual Studio generator.\n")
+		fmt.Fprintf(toolchain, "    set(CMAKE_GENERATOR_TOOLSET %q CACHE INTERNAL \"CUDA toolset for Visual Studio generator.\")\n", "cuda="+cudaToolkitRoot)
+		fmt.Fprintf(toolchain, "    set(CMAKE_VS_PLATFORM_TOOLSET_CUDA %q CACHE INTERNAL \"CUDA toolset path for Visual Studio.\")\n", cudaToolkitRoot)
+	}
 	fmt.Fprintf(toolchain, "endif()\n")
 
 	fmt.Fprintf(toolchain, "set(CMAKE_CUDA_FLAGS_INIT %q CACHE STRING \"CUDA compiler flags.\" FORCE)\n",
