@@ -149,11 +149,12 @@ func (c cmake) configureOptions() ([]string, error) {
 	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.
 	// For DevDep or Native (host tools), don't include rootfs to avoid finding target arch binaries.
 	tmpDepDir := filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder)
-	findRootPaths := []string{filepath.ToSlash(tmpDepDir)}
+	rootPaths := []string{filepath.ToSlash(tmpDepDir)}
 	if rootfs != nil && !c.BuildConfig.DevDep && !c.BuildConfig.Native {
-		findRootPaths = append(findRootPaths, rootfs.GetFullPath())
+		rootPaths = append(rootPaths, rootfs.GetFullPath())
 	}
-	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(findRootPaths, ";"))
+	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(rootPaths, ";"))
+	options = append(options, "-DTMP_DEP_DIR="+tmpDepDir)
 
 	// Enable verbose makefile.
 	if c.Ctx.Verbose() {
