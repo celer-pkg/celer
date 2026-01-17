@@ -40,5 +40,5 @@ jobs:
     - name: Build Celer
       run: go build -v ./...
 
-    - name: Test(Other_Tests)
+    - name: Test
       run: go test -v ./cmds/ -run "TestInstallCmd|TestInstall_BuildType|TestInstall_FromPackage|TestInstall_With_Force|TestInstall_Generate_CMake|TestInstall_BinaryCache" -timeout 1h

@@ -32,5 +32,5 @@ jobs:
       - name: Build Celer
         run: go build -v ./...
 
-      - name: Test(x86_64_MSVC_Nobuild)
+      - name: Test
         run: go test -tags=test_msvc -v ./cmds/ -run "TestInstall_x86_64_MSVC_Nobuild" -timeout 1h

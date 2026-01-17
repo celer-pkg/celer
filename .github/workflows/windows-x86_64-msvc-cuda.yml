@@ -1,7 +1,7 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: windows-x86_64-msvc-meson
+name: windows-x86_64-msvc-cuda
 
 on:
   push:
@@ -32,5 +32,5 @@ jobs:
       - name: Build Celer
         run: go build -v ./...
 
-      - name: Test(x86_64_MSVC_Meson)
+      - name: Test
         run: go test -tags=test_msvc -v ./cmds/ -run "TestInstall_x86_64_MSVC_CUDA" -timeout 1h

@@ -40,5 +40,5 @@ jobs:
     - name: Build Celer
       run: go build -v ./...
 
-    - name: Test(x86_64_GCC_B2)
+    - name: Test
       run: go test -tags=test_gcc -v ./cmds/ -run "TestInstall_x86_64_GCC_B2" -timeout 1h

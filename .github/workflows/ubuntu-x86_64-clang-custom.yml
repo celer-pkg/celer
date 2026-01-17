@@ -40,5 +40,5 @@ jobs:
     - name: Build Celer
       run: go build -v ./...
 
-    - name: Test(Clang_Custom)
+    - name: Test
       run: go test -tags=test_clang -v ./cmds/ -run "TestInstall_x86_64_Clang_Custom" -timeout 1h

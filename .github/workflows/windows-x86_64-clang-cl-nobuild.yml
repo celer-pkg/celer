@@ -32,5 +32,5 @@ jobs:
       - name: Build Celer
         run: go build -v ./...
 
-      - name: Test(x86_64_Clang_Nobuild)
+      - name: Test
         run: go test -tags=test_clang_cl -v ./cmds/ -run "TestInstall_x86_64_Clang_CL_Nobuild" -timeout 1h
