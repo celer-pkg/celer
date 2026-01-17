@@ -310,11 +310,9 @@ func (p Port) doInstallFromPackage(destDir string) error {
 			"visual_studio_integration@",
 		}
 		for _, pkgName := range cudaExtraPkgs {
-			if strings.HasPrefix(p.Name, strings.ToLower(pkgName)) || strings.HasPrefix(p.Name, "cuda_") {
-				if destDir == p.InstalledDir && fileio.PathExists(p.PackageDir) {
-					if err := os.RemoveAll(p.PackageDir); err != nil {
-						fmt.Printf("Warning: failed to delete CUDA package directory %s: %v\n", p.PackageDir, err)
-					}
+			if strings.Contains(p.Name, pkgName) || strings.Contains(p.Name, "cuda_") {
+				if err := os.RemoveAll(p.PackageDir); err != nil {
+					fmt.Printf("Warning: failed to delete CUDA package directory %s: %v\n", p.PackageDir, err)
 				}
 			}
 		}
