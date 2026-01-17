@@ -300,12 +300,22 @@ func (p Port) doInstallFromPackage(destDir string) error {
 		}
 	}
 
-	// Delete packages directory immediately after installation to free disk space.
+	// Delete CUDA packages directory immediately after installation to free disk space.
 	// This is especially important for large files like CUDA toolkits in CI environments.
 	if os.Getenv("GITHUB_ACTIONS") == "true" {
-		if destDir == p.InstalledDir && fileio.PathExists(p.PackageDir) {
-			if err := os.RemoveAll(p.PackageDir); err != nil {
-				fmt.Printf("Warning: failed to delete package directory %s: %v\n", p.PackageDir, err)
+		cudaExtraPkgs := []string{
+			"libcufft@", "libcurand@", "libcusolver@", "libcusparse@",
+			"libnpp@", "libnvjpeg@", "nsight_compute@", "nsight_vse@",
+			"nsight_systems@", "cuda_demo_suite@",
+			"visual_studio_integration@",
+		}
+		for _, pkgName := range cudaExtraPkgs {
+			if strings.HasPrefix(p.Name, strings.ToLower(pkgName)) || strings.HasPrefix(p.Name, "cuda_") {
+				if destDir == p.InstalledDir && fileio.PathExists(p.PackageDir) {
+					if err := os.RemoveAll(p.PackageDir); err != nil {
+						fmt.Printf("Warning: failed to delete CUDA package directory %s: %v\n", p.PackageDir, err)
+					}
+				}
 			}
 		}
 	}
