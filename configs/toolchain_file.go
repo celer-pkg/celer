@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 )
 
@@ -17,13 +18,14 @@ func (c *Celer) GenerateToolchainFile() error {
 
 	fmt.Fprintf(&toolchain, "\n# Workspace root dir.\n")
 	fmt.Fprintf(&toolchain, `get_filename_component(CELER_ROOT "${CMAKE_CURRENT_LIST_FILE}" PATH)`+"\n")
-	fmt.Fprintf(&toolchain, `set(ENV{PATH} "%s%s$ENV{PATH}")`+"\n", c.InstalledDevDir(true)+"/bin", string(os.PathListSeparator))
 
-	// Set CMAKE_PREFIX_PATH before setting CMAKE_SYSROOT to
-	// locate libraries of dependencies FIRST (before sysroot)
+	// Set CMAKE_PREFIX_PATH before setting CMAKE_SYSROOT to locate libraries of dependencies FIRST (before sysroot)
 	installedDir := c.InstalledDir(true)
 	fmt.Fprintf(&toolchain, "\n# Dependency search paths.\n")
 	fmt.Fprintf(&toolchain, "list(APPEND CMAKE_PREFIX_PATH %q)\n", c.InstalledDir(true))
+
+	// Set PATH: add dev bin first.
+	fmt.Fprintf(&toolchain, `set(ENV{PATH} "%s%s$ENV{PATH}")`+"\n", c.InstalledDevDir(true)+"/bin", string(os.PathListSeparator))
 
 	// CUDA compiler configuration - MUST be set before toolchain to ensure CMake picks it up during compiler detection.
 	c.writeCUDAConfig(&toolchain, installedDir)
@@ -51,7 +53,7 @@ func (c *Celer) GenerateToolchainFile() error {
 	}
 	fmt.Fprintf(&toolchain, "\n# Package search root paths.\n")
 	fmt.Fprintf(&toolchain, "if(DEFINED CMAKE_FIND_ROOT_PATH)\n")
-	fmt.Fprintf(&toolchain, "    set(CMAKE_FIND_ROOT_PATH \"${CMAKE_FIND_ROOT_PATH}\")\n")
+	fmt.Fprintf(&toolchain, `    set(CMAKE_FIND_ROOT_PATH "${CMAKE_FIND_ROOT_PATH}")`+"\n")
 	fmt.Fprintf(&toolchain, "else()\n")
 	fmt.Fprintf(&toolchain, "    set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";"))
 	fmt.Fprintf(&toolchain, "endif()\n")
@@ -113,19 +115,19 @@ func (c *Celer) GenerateToolchainFile() error {
 		fmt.Fprintf(&toolchain, "add_compile_options(\n")
 		if optimize.Release != "" {
 			flags := strings.Join(strings.Fields(optimize.Release), ";")
-			fmt.Fprintf(&toolchain, "    \"$<$<CONFIG:Release>:%s>\"\n", flags)
+			fmt.Fprintf(&toolchain, `    "$<$<CONFIG:Release>:%s>"`+"\n", flags)
 		}
 		if optimize.Debug != "" {
 			flags := strings.Join(strings.Fields(optimize.Debug), ";")
-			fmt.Fprintf(&toolchain, "    \"$<$<CONFIG:Debug>:%s>\"\n", flags)
+			fmt.Fprintf(&toolchain, `    "$<$<CONFIG:Debug>:%s>"`+"\n", flags)
 		}
 		if optimize.RelWithDebInfo != "" {
 			flags := strings.Join(strings.Fields(optimize.RelWithDebInfo), ";")
-			fmt.Fprintf(&toolchain, "    \"$<$<CONFIG:RelWithDebInfo>:%s>\"\n", flags)
+			fmt.Fprintf(&toolchain, `    "$<$<CONFIG:RelWithDebInfo>:%s>"`+"\n", flags)
 		}
 		if optimize.MinSizeRel != "" {
 			flags := strings.Join(strings.Fields(optimize.MinSizeRel), ";")
-			fmt.Fprintf(&toolchain, "    \"$<$<CONFIG:MinSizeRel>:%s>\"\n", flags)
+			fmt.Fprintf(&toolchain, `    "$<$<CONFIG:MinSizeRel>:%s>"`+"\n", flags)
 		}
 		if len(c.project.Flags) > 0 {
 			for _, item := range c.project.Flags {
@@ -223,31 +225,53 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 
 // writeCUDAConfig detects CUDA dependencies and writes CUDA compiler configuration to toolchain file.
 func (c *Celer) writeCUDAConfig(toolchain *strings.Builder, installedDir string) {
-	// Check if nvcc exists in dev directory (use false to get actual filesystem path)
-	devDirActual := c.InstalledDevDir(false)
-	nvccPath := filepath.Join(devDirActual, "bin", expr.If(runtime.GOOS == "windows", "nvcc.exe", "nvcc"))
-	if !fileio.PathExists(nvccPath) {
-		return
+	nvccName := expr.If(runtime.GOOS == "windows", "nvcc.exe", "nvcc")
+
+	// Check if CUDA is required from project configuration.
+	containsCUDA := slices.ContainsFunc(c.project.Ports, func(port string) bool {
+		return strings.HasPrefix(strings.ToLower(port), "cuda")
+	})
+
+	// If not in project config, check if CUDA files exist (backward compatibility).
+	if !containsCUDA {
+		installedDirActual := c.InstalledDir(false)
+		nvccPath := filepath.Join(installedDirActual, "bin", nvccName)
+		cudaHeaderPath := filepath.Join(installedDirActual, "include", "cuda_runtime.h")
+
+		if !fileio.PathExists(nvccPath) || !fileio.PathExists(cudaHeaderPath) {
+			return
+		}
 	}
 
-	// Check if CUDA headers exist in installed directory (installedDir is already CMake path format)
-	// Convert to actual filesystem path for checking
-	installedDirActual := c.InstalledDir(false)
-	cudaHeaderPath := filepath.Join(installedDirActual, "include", "cuda_runtime.h")
-	if !fileio.PathExists(cudaHeaderPath) {
-		return
-	}
-
-	// CUDA is available, write configuration
-	fmt.Fprintf(toolchain, "\n# CUDA compiler configuration (auto-detected).\n")
-
-	// Set CUDA toolkit root directory variables (installedDir already includes ${CELER_ROOT})
+	// CUDA is available or will be installed, write configuration.
 	cudaToolkitRoot := filepath.ToSlash(installedDir)
-	fmt.Fprintf(toolchain, "set(CUDA_TOOLKIT_ROOT_DIR %q CACHE INTERNAL \"defined by celer globally.\")\n", cudaToolkitRoot)
-	fmt.Fprintf(toolchain, "set(CUDAToolkit_ROOT %q CACHE INTERNAL \"defined by celer globally.\")\n", cudaToolkitRoot)
+	installedDirCMake := c.InstalledDir(true)
+	nvccCMakePath := filepath.ToSlash(filepath.Join(installedDirCMake, "bin", nvccName))
 
-	// Explicitly set CUDA compiler path to dev directory's nvcc
-	devDirCMake := c.InstalledDevDir(true)
-	nvccCMakePath := filepath.ToSlash(filepath.Join(devDirCMake, "bin", expr.If(runtime.GOOS == "windows", "nvcc.exe", "nvcc")))
-	fmt.Fprintf(toolchain, "set(CMAKE_CUDA_COMPILER %q CACHE FILEPATH \"CUDA compiler\")\n", nvccCMakePath)
+	fmt.Fprintf(toolchain, "\nif(DEFINED TMP_DEP_DIR)\n")
+	fmt.Fprintf(toolchain, "    # CUDA compiler configuration.\n")
+	fmt.Fprintf(toolchain, `    set(CUDA_TOOLKIT_ROOT_DIR "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
+	fmt.Fprintf(toolchain, `    set(CUDAToolkit_ROOT "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
+	fmt.Fprintf(toolchain, `    set(CMAKE_CUDA_COMPILER "${TMP_DEP_DIR}/bin/%s" CACHE INTERNAL "CUDA compiler" FORCE)`+"\n", nvccName)
+
+	if runtime.GOOS == "windows" {
+		fmt.Fprintf(toolchain, "\n    # Set CUDA toolset for Visual Studio generator (VS integration is in TMP_DEP_DIR).\n")
+		fmt.Fprintf(toolchain, `    set(CMAKE_GENERATOR_TOOLSET "cuda=${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset for Visual Studio generator.")`+"\n")
+		fmt.Fprintf(toolchain, `    set(CMAKE_VS_PLATFORM_TOOLSET_CUDA "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset path for Visual Studio.")`+"\n")
+	}
+	fmt.Fprintf(toolchain, "else()\n")
+	fmt.Fprintf(toolchain, "    # CUDA compiler configuration.\n")
+	fmt.Fprintf(toolchain, "    set(CUDA_TOOLKIT_ROOT_DIR %q CACHE INTERNAL \"CUDA Toolkit root directory.\")\n", cudaToolkitRoot)
+	fmt.Fprintf(toolchain, "    set(CUDAToolkit_ROOT %q CACHE INTERNAL \"CUDA Toolkit root directory.\")\n", cudaToolkitRoot)
+	fmt.Fprintf(toolchain, "    set(CMAKE_CUDA_COMPILER %q CACHE INTERNAL \"CUDA compiler\" FORCE)\n", nvccCMakePath)
+
+	if runtime.GOOS == "windows" {
+		fmt.Fprintf(toolchain, "\n    # Set CUDA toolset for Visual Studio generator.\n")
+		fmt.Fprintf(toolchain, "    set(CMAKE_GENERATOR_TOOLSET %q CACHE INTERNAL \"CUDA toolset for Visual Studio generator.\")\n", "cuda="+cudaToolkitRoot)
+		fmt.Fprintf(toolchain, "    set(CMAKE_VS_PLATFORM_TOOLSET_CUDA %q CACHE INTERNAL \"CUDA toolset path for Visual Studio.\")\n", cudaToolkitRoot)
+	}
+	fmt.Fprintf(toolchain, "endif()\n")
+
+	fmt.Fprintf(toolchain, "set(CMAKE_CUDA_FLAGS_INIT %q CACHE STRING \"CUDA compiler flags.\" FORCE)\n",
+		"-Wno-deprecated-gpu-targets --forward-unknown-opts --forward-slash-prefix-opts")
 }

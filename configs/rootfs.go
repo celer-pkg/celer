@@ -91,8 +91,8 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 	fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", rootfsPath)
 
 	// Append --sysroot to compiler flags.
-	fmt.Fprintf(&buffer, "string(APPEND CMAKE_C_FLAGS_INIT \" --sysroot=${CMAKE_SYSROOT}\")\n")
-	fmt.Fprintf(&buffer, "string(APPEND CMAKE_CXX_FLAGS_INIT \" --sysroot=${CMAKE_SYSROOT}\")\n")
+	fmt.Fprintf(&buffer, `string(APPEND CMAKE_C_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")`+"\n")
+	fmt.Fprintf(&buffer, `string(APPEND CMAKE_CXX_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")`+"\n")
 
 	// Include directories section,
 	// Note: for default include dirs like `/usr/include`, we must don't need to add them here.
@@ -104,8 +104,8 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 			}
 
 			incPath := filepath.ToSlash(filepath.Join("${CMAKE_SYSROOT}", incDir))
-			fmt.Fprintf(&buffer, "string(APPEND CMAKE_C_FLAGS_INIT \" -isystem %s\")\n", incPath)
-			fmt.Fprintf(&buffer, "string(APPEND CMAKE_CXX_FLAGS_INIT \" -isystem %s\")\n", incPath)
+			fmt.Fprintf(&buffer, `string(APPEND CMAKE_C_FLAGS_INIT " -isystem %s")`+"\n", incPath)
+			fmt.Fprintf(&buffer, `string(APPEND CMAKE_CXX_FLAGS_INIT " -isystem %s")`+"\n", incPath)
 		}
 	}
 
@@ -115,9 +115,9 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 		for _, libDir := range r.LibDirs {
 			libPath := filepath.Join("${CMAKE_SYSROOT}", libDir)
 			libPath = filepath.ToSlash(libPath)
-			fmt.Fprintf(&buffer, "string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT \" -Wl,-rpath-link=%s\")\n", libPath)
-			fmt.Fprintf(&buffer, "string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT \" -Wl,-rpath-link=%s\")\n", libPath)
-			fmt.Fprintf(&buffer, "string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT \" -Wl,-rpath-link=%s\")\n", libPath)
+			fmt.Fprintf(&buffer, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -Wl,-rpath-link=%s")`+"\n", libPath)
+			fmt.Fprintf(&buffer, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " -Wl,-rpath-link=%s")`+"\n", libPath)
+			fmt.Fprintf(&buffer, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -Wl,-rpath-link=%s")`+"\n", libPath)
 		}
 	}
 

@@ -40,5 +40,5 @@ jobs:
     - name: Build Celer
       run: go build -v ./...
 
-    - name: Test(AArch64_GCC_Makefiles)
+    - name: Test
       run: go test -tags=test_aarch64_gcc -v ./cmds/ -run "TestInstall_AArch64_GCC_Makefiles" -timeout 1h
