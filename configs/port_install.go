@@ -536,31 +536,6 @@ func (p Port) installDependencies(options InstallOptions) error {
 		}
 	}
 
-	// Delete CUDA packages directory and build cache immediately after installation to free disk space.
-	// This is especially important for large files like CUDA toolkits in CI environments.
-	if os.Getenv("GITHUB_ACTIONS") == "true" {
-		cudaExtraPkgs := []string{
-			"libcufft@", "libcurand@", "libcusolver@", "libcusparse@",
-			"libnpp@", "libnvjpeg@", "nsight_compute@", "nsight_vse@",
-			"nsight_systems@", "cuda_demo_suite@",
-			"visual_studio_integration@",
-		}
-		for _, pkgName := range cudaExtraPkgs {
-			if strings.Contains(p.Name, pkgName) || strings.Contains(p.Name, "cuda_") {
-				// Delete package directory.
-				if err := os.RemoveAll(p.PackageDir); err != nil {
-					fmt.Printf("Warning: failed to delete CUDA package directory %s: %v\n", p.PackageDir, err)
-				}
-				// Delete build cache in buildtrees.
-				if p.MatchedConfig != nil && p.MatchedConfig.PortConfig.RepoDir != "" {
-					if err := os.RemoveAll(p.MatchedConfig.PortConfig.RepoDir); err != nil {
-						fmt.Printf("Warning: failed to delete CUDA build cache %s: %v\n", p.MatchedConfig.PortConfig.RepoDir, err)
-					}
-				}
-			}
-		}
-	}
-
 	return nil
 }
 
