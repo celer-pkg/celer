@@ -98,7 +98,8 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 - [Binary Cache](./article_binary_cache.md) - Accelerate integration by caching build artifact of every library
 - [Support CCache](./article_ccache.md) - Speeds up recompilation by caching previous compilations
 - [Detect version conflict and circular dependencies](./article_detect_conflict_circular.md) - Auto detect version conflict and circular dependencies before building any libraries
-- [Export snapshot](./cmd_deploy_export.md) - Export a reproducible workspace snapshot after deployed successfully.
+- [CUDA auto detect](./article_cuda_support.md) - Seamless CUDA toolkit integration for GPU-accelerated projects
+- [Export snapshot](./cmd_deploy_export.md) - Export a reproducible workspace snapshot after deployed successfully
 
 ## 📋 Commands
 

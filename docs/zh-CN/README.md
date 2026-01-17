@@ -97,6 +97,7 @@ Celer 解决了传统 C/C++ 包管理器难以应对的核心痛点：
 - [缓存构建产物](./article_binary_cache.md) - 通过智能缓存每个库的编译产物来加速项目集成
 - [支持CCache](./article_ccache.md) - 通过缓存编译结果来加速重新编译
 - [库版本冲突和环形依赖检测](./article_detect_conflict_circular.md) - 在编译前提前发现导致环形依赖和冲突的错误配置
+- [CUDA环境自动识别](./article_cuda_support.md) - 为 GPU 加速项目提供无缝的 CUDA 工具包集成
 - [导出快照](./cmd_deploy_export.md) - 当部署项目成功后允许导出当前的workspace为一个可以回溯编译的快照
 
 ## 📋 命令列表
