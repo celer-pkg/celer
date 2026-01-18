@@ -560,15 +560,15 @@ func (p Port) prepareTmpDeps() error {
 			return err
 		}
 
-		// Copy package files to tmp/deps.
-		if err := port.doInstallFromPackage(port.tmpDepsDir); err != nil {
+		// Dev dependencies should be copied to the parent port's tmpDepsDir, not their own.
+		if err := port.doInstallFromPackage(p.tmpDepsDir); err != nil {
 			return err
 		}
 
 		// Fixup pkg config files.
 		// Use sysroot-relative path for pkg-config prefix so PKG_CONFIG_SYSROOT_DIR works correctly.
 		var pkgConfigPrefix = filepath.Join(string(os.PathSeparator), "tmp", "deps", port.ctx.Platform().GetHostName()+"-dev")
-		if err := fileio.FixupPkgConfig(port.tmpDepsDir, pkgConfigPrefix); err != nil {
+		if err := fileio.FixupPkgConfig(p.tmpDepsDir, pkgConfigPrefix); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config.\n %w", err)
 		}
 
