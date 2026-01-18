@@ -154,7 +154,7 @@ func (c cmake) configureOptions() ([]string, error) {
 		rootPaths = append(rootPaths, rootfs.GetFullPath())
 	}
 	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(rootPaths, ";"))
-	options = append(options, "-DTMP_DEP_DIR="+tmpDepDir)
+	options = append(options, "-DTMP_DEP_DIR="+filepath.ToSlash(tmpDepDir))
 
 	// Enable verbose makefile.
 	if c.Ctx.Verbose() {
@@ -164,6 +164,18 @@ func (c cmake) configureOptions() ([]string, error) {
 	// Replace placeholders.
 	for index, value := range options {
 		options[index] = c.expandCommandsVariables(value)
+	}
+
+	// Convert Windows paths to forward slashes in CMake options to avoid escape sequence issues.
+	// This is especially important for paths passed via -D options like -DVAR=path or -DVAR="path".
+	for index, value := range options {
+		if strings.HasPrefix(value, "-D") {
+			parts := strings.SplitN(value, "=", 2)
+			if len(parts) == 2 {
+				parts[1] = filepath.ToSlash(parts[1])
+				options[index] = strings.Join(parts, "=")
+			}
+		}
 	}
 
 	return options, nil
