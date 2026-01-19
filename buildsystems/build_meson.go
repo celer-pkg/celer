@@ -287,12 +287,12 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		// Set CMAKE_PREFIX_PATH for CMake-based dependency detection,
 		// This prevents CMake from finding host system libraries.
 		cmakePrefixPaths := []string{
-			filepath.ToSlash(filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder)),
+			fmt.Sprintf("'%s'", filepath.ToSlash(filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder))),
 		}
 		for _, libDir := range rootfs.GetLibDirs() {
-			cmakePrefixPaths = append(cmakePrefixPaths, "    "+filepath.ToSlash(filepath.Join(sysrootDir, libDir)))
+			cmakePrefixPaths = append(cmakePrefixPaths, fmt.Sprintf("'%s'", filepath.ToSlash(filepath.Join(sysrootDir, libDir))))
 		}
-		fmt.Fprintf(&buffers, "cmake_prefix_path = ['%s']\n", strings.Join(cmakePrefixPaths, ",\n"))
+		fmt.Fprintf(&buffers, "cmake_prefix_path = [%s]\n", strings.Join(cmakePrefixPaths, ", "))
 
 		// Add --sysroot to compiler and linker args.
 		sysrootArg := fmt.Sprintf("'--sysroot=%s'", sysrootDir)
