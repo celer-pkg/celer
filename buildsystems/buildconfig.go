@@ -723,22 +723,22 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 
 // expandOptionsVariables Replace placeholders with real paths and values.
 func (b *BuildConfig) expandOptionsVariables() {
-	for index, argument := range b.Options {
-		// Remove cross compile args when build in dev mode.
-		crossArgs := []string{
-			"${HOST}",
-			"${SYSTEM_NAME}",
-			"${SYSTEM_PROCESSOR}",
-			"${SYSROOT}",
-			"${CROSSTOOL_PREFIX}",
-		}
+	// Remove cross compile args when build in dev mode.
+	crossArgs := []string{
+		"${HOST}",
+		"${SYSTEM_NAME}",
+		"${SYSTEM_PROCESSOR}",
+		"${SYSROOT}",
+		"${CROSSTOOL_PREFIX}",
+	}
+	b.Options = slices.DeleteFunc(b.Options, func(argument string) bool {
 		for _, item := range crossArgs {
 			if strings.Contains(argument, item) {
-				b.Options = slices.Delete(b.Options, index, index+1)
-				break
+				return true
 			}
 		}
-	}
+		return false
+	})
 
 	// Expand placeholders.
 	for index, argument := range b.Options {
