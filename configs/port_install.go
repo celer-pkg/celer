@@ -567,7 +567,7 @@ func (p Port) prepareTmpDeps() error {
 
 		// Fixup pkg config files.
 		// Use sysroot-relative path for pkg-config prefix so PKG_CONFIG_SYSROOT_DIR works correctly.
-		var pkgConfigPrefix = filepath.Join(string(os.PathSeparator), "tmp", "deps", port.ctx.Platform().GetHostName()+"-dev")
+		var pkgConfigPrefix = filepath.Join(dirs.TmpDepsDir, port.ctx.Platform().GetHostName()+"-dev")
 		if err := fileio.FixupPkgConfig(port.tmpDepsDir, pkgConfigPrefix); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config.\n %w", err)
 		}
@@ -608,7 +608,7 @@ func (p Port) prepareTmpDeps() error {
 
 		// Fixup pkg config files.
 		pkgConfigPrefix := expr.If(port.DevDep || port.Native,
-			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.ctx.Platform().GetHostName()+"-dev"),
+			filepath.Join(dirs.TmpDepsDir, port.ctx.Platform().GetHostName()+"-dev"),
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.MatchedConfig.PortConfig.LibraryFolder),
 		)
 		if err := fileio.FixupPkgConfig(port.tmpDepsDir, pkgConfigPrefix); err != nil {

@@ -203,7 +203,10 @@ func (b BuildConfig) setupPkgConfig() {
 		b.envBackup.setenv("PKG_CONFIG_LIBDIR", strings.Join(configLibDirs, pathDivider))
 	}
 	b.envBackup.setenv("PKG_CONFIG_PATH", strings.Join(configPaths, pathDivider))
-	b.envBackup.setenv("PKG_CONFIG_SYSROOT_DIR", sysrootDir)
+
+	// For dev dependencies, .pc files use absolute paths, so we should not set PKG_CONFIG_SYSROOT_DIR.
+	// PKG_CONFIG_SYSROOT_DIR is only needed for cross-compilation when .pc files use relative paths.
+	b.envBackup.setenv("PKG_CONFIG_SYSROOT_DIR", expr.If(b.DevDep, "", sysrootDir))
 }
 
 func (b *BuildConfig) setLanguageStandard() {
