@@ -57,7 +57,7 @@ func (b *BuildConfig) setupEnvs() {
 
 		key := strings.TrimSpace(env[:index])
 		currentValue := strings.TrimSpace(env[index+1:])
-		currentValue = b.expandCommandsVariables(currentValue)
+		currentValue = b.expandVariables(currentValue)
 
 		switch key {
 		case "CPATH", "LIBRARY_PATH", "PATH":
@@ -286,7 +286,7 @@ func (b BuildConfig) rollbackEnvs() {
 func (b *BuildConfig) appendIncludeDir(includeDir string) {
 	// Windows: MSVC/Clang-cl ------------------------------ Linux: GCC/Clang
 	// INCLUDE=xxx\include;%INCLUDE%  ---------------------- -I "xxx\include"
-	// CL=/external:anglebrackets /external:W0 %CL% -------- -isystem "xxx\include"
+	// CL=/external:anglebrackets /external:W0 %CL% -------- -I "xxx\include"
 
 	// Toolchain may throw error if include dir not exists.
 	if !fileio.PathExists(includeDir) {
@@ -300,7 +300,7 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
 
 		// Append include dir if not exists.
-		includeDir = "-isystem " + includeDir
+		includeDir = "-I " + includeDir
 		var newAppended = false
 		if !slices.Contains(cflags, includeDir) {
 			cflags = append(cflags, includeDir)

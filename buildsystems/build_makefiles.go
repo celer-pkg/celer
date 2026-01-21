@@ -70,7 +70,7 @@ func (m *makefiles) preConfigure() error {
 		}
 
 		title := fmt.Sprintf("[pre configure %s]", m.PortConfig.nameVersionDesc())
-		command = m.expandCommandsVariables(command)
+		command = m.expandVariables(command)
 		executor := cmd.NewExecutor(title, command)
 		executor.SetWorkDir(m.PortConfig.RepoDir)
 		executor.MSYS2Env(runtime.GOOS == "windows")
@@ -169,7 +169,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = m.expandCommandsVariables(value)
+		options[index] = m.expandVariables(value)
 	}
 
 	return options, nil

@@ -77,10 +77,11 @@ func (c *cmake) preConfigure() error {
 }
 
 func (c cmake) configureOptions() ([]string, error) {
-	toolchain := c.Ctx.Platform().GetToolchain()
-	rootfs := c.Ctx.Platform().GetRootFS()
-
-	var options = slices.Clone(c.Options)
+	var (
+		toolchain = c.Ctx.Platform().GetToolchain()
+		rootfs    = c.Ctx.Platform().GetRootFS()
+		options   = slices.Clone(c.Options)
+	)
 
 	// When use clang-cl with visual studio, we must to set toolset by "-T".
 	if runtime.GOOS == "windows" && strings.HasPrefix(c.CMakeGenerator, "Visual Studio") {
@@ -94,6 +95,8 @@ func (c cmake) configureOptions() ([]string, error) {
 
 	if !c.BuildConfig.DevDep {
 		options = append(options, fmt.Sprintf("-DCMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir))
+	} else {
+		options = append(options, "-DCMAKE_INSTALL_RPATH=$ORIGIN/../lib")
 	}
 
 	// Set CMAKE_INSTALL_PREFIX.
@@ -163,17 +166,19 @@ func (c cmake) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = c.expandCommandsVariables(value)
+		options[index] = c.expandVariables(value)
 	}
 
 	// Convert Windows paths to forward slashes in CMake options to avoid escape sequence issues.
 	// This is especially important for paths passed via -D options like -DVAR=path or -DVAR="path".
-	for index, value := range options {
-		if strings.HasPrefix(value, "-D") {
-			parts := strings.SplitN(value, "=", 2)
-			if len(parts) == 2 {
-				parts[1] = filepath.ToSlash(parts[1])
-				options[index] = strings.Join(parts, "=")
+	if runtime.GOOS == "windows" {
+		for index, value := range options {
+			if strings.HasPrefix(value, "-D") {
+				parts := strings.SplitN(value, "=", 2)
+				if len(parts) == 2 {
+					parts[1] = filepath.ToSlash(parts[1])
+					options[index] = strings.Join(parts, "=")
+				}
 			}
 		}
 	}

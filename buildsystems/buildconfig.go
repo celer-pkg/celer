@@ -746,12 +746,11 @@ func (b *BuildConfig) expandOptionsVariables() {
 	}
 }
 
-// expandCommandsVariables expands placeholder variables in the given string and returns the result.
+// expandVariables expands placeholder variables in the given string and returns the result.
 // Placeholders like ${CC}, ${CXX}, ${SYSROOT}, etc. are replaced with actual values.
-func (b BuildConfig) expandCommandsVariables(content string) string {
+func (b BuildConfig) expandVariables(content string) string {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
-
 	content = b.Variables.Expand(content)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
@@ -823,7 +822,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
 	var appendIncludeDir = func(includeDir string) {
 		includeDir = fileio.ToCygpath(includeDir)
-		includeFlag := "-isystem " + includeDir
+		includeFlag := "-I " + includeDir
 		cflags = append(cflags, includeFlag)
 		cxxflags = append(cxxflags, includeFlag)
 	}

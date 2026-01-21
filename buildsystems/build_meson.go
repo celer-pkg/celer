@@ -120,7 +120,7 @@ func (m meson) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = m.expandCommandsVariables(value)
+		options[index] = m.expandVariables(value)
 	}
 
 	return options, nil
@@ -241,6 +241,8 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	fmt.Fprintf(&buffers, "endian = 'little'\n")
 
 	fmt.Fprintf(&buffers, "\n[binaries]\n")
+
+	// For host machine and target compilation.
 	pkgconfPath := filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
 	if m.PortConfig.LibName != "pkgconf" {
 		fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath))
@@ -300,35 +302,6 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	// Set sysroot path for cross-compilation.
 	if rootfs != nil {
 		sysrootDir = rootfs.GetFullPath()
-
-		// Set CMAKE_PREFIX_PATH for CMake-based dependency detection,
-		// This prevents CMake from finding host system libraries.
-		cmakePrefixPaths := []string{
-			fmt.Sprintf("'%s'", filepath.ToSlash(filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder))),
-		}
-		for _, libDir := range rootfs.GetLibDirs() {
-			cmakePrefixPaths = append(cmakePrefixPaths, fmt.Sprintf("'%s'", filepath.ToSlash(filepath.Join(sysrootDir, libDir))))
-		}
-		fmt.Fprintf(&buffers, "cmake_prefix_path = [%s]\n", strings.Join(cmakePrefixPaths, ", "))
-
-		// Add --sysroot to compiler and linker args.
-		sysrootArg := fmt.Sprintf("'--sysroot=%s'", sysrootDir)
-		includeArgs = append(includeArgs, sysrootArg)
-		linkArgs = append(linkArgs, sysrootArg)
-
-		// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
-		if toolchain.GetName() == "clang" {
-			if len(includeArgs) == 0 {
-				includeArgs = append(includeArgs, "'--gcc-toolchain=/usr'")
-			} else {
-				includeArgs = append(includeArgs, "    '--gcc-toolchain=/usr'")
-			}
-			if len(linkArgs) == 0 {
-				linkArgs = append(linkArgs, "'--gcc-toolchain=/usr'")
-			} else {
-				linkArgs = append(linkArgs, "    '--gcc-toolchain=/usr'")
-			}
-		}
 	}
 
 	// This allows the bin to locate the libraries in the relative lib dir.
@@ -388,14 +361,37 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		}
 	}
 
-	// Use [built-in options] section for Meson 0.56+ (recommended way)
-	cppArgs := slices.Clone(includeArgs)
-	fmt.Fprintf(&buffers, "\n[built-in options]\n")
-	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(includeArgs, ",\n"))
-	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(cppArgs, ",\n"))
-	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ",\n"))
-	fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(linkArgs, ",\n"))
+	// Parse CFLAGS and CXXFLAGS from envs
+	var cflags, cxxflags []string
+	for _, env := range m.Envs {
+		if after, ok := strings.CutPrefix(env, "CFLAGS="); ok {
+			flagStr := after
+			flagStr = m.expandVariables(flagStr)
+			if flagStr != "" {
+				cflags = append(cflags, fmt.Sprintf("'%s'", flagStr))
+			}
+		}
+		if after, ok := strings.CutPrefix(env, "CXXFLAGS="); ok {
+			flagStr := after
+			flagStr = m.expandVariables(flagStr)
+			if flagStr != "" {
+				cxxflags = append(cxxflags, fmt.Sprintf("'%s'", flagStr))
+			}
+		}
+	}
 
+	// Append CFLAGS to c_args, CXXFLAGS to cpp_args.
+	// CFLAGS/CXXFLAGS should come FIRST to have higher priority in compiler include search order
+	cflags = append(cflags, includeArgs...)
+	cxxflags = append(cxxflags, includeArgs...)
+
+	// Use [built-in options] section for Meson 0.56+ (recommended way).
+	fmt.Fprintf(&buffers, "\n[built-in options]\n")
+	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(cflags, ", "))
+	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(cxxflags, ", "))
+	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ", "))
+
+	// Don't set cpp_link_args separately - they're often the same as c_link_args anyway.
 	crossFilePath := filepath.Join(m.PortConfig.BuildDir, "cross_file.toml")
 	if err := os.WriteFile(crossFilePath, buffers.Bytes(), os.ModePerm); err != nil {
 		return "", err
@@ -407,9 +403,6 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 func (m meson) generateNativeFile() (string, error) {
 	var buffers bytes.Buffer
 
-	// For build machine (native dependencies), use pkgconf from dev_dependencies.
-	pkgconfPath := filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
-
 	// dev_dependencies' .pc files use absolute paths (not sysroot-relative).
 	tmpDevDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.HostName+"-dev")
 	devPkgConfigPaths := []string{
@@ -418,23 +411,32 @@ func (m meson) generateNativeFile() (string, error) {
 	}
 
 	fmt.Fprintf(&buffers, "[binaries]\n")
-	if m.PortConfig.LibName != "pkgconf" {
-		fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath))
-		fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath))
+
+	// Create a wrapper script for pkg-config that includes dev dependencies in PKG_CONFIG_PATH
+	// This wrapper ensures that pkg-config can find build-time dependencies
+	wrapperPath := filepath.Join(m.PortConfig.BuildDir, "pkg-config.sh")
+	wrapperContent := fmt.Sprintf(`#!/bin/bash
+# pkg-config wrapper that includes dev dependencies' pkg-config paths
+# This wrapper is used by meson to find build-time dependencies
+# We need to clear PKG_CONFIG_SYSROOT_DIR to avoid path mangling for build tools
+export PKG_CONFIG_PATH="%s:$PKG_CONFIG_PATH"
+unset PKG_CONFIG_SYSROOT_DIR
+exec %s "$@"
+`,
+		strings.Join(devPkgConfigPaths, ":"),
+		filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf"),
+	)
+
+	if err := os.WriteFile(wrapperPath, []byte(wrapperContent), 0755); err != nil {
+		return "", fmt.Errorf("failed to create pkg-config wrapper: %w", err)
 	}
+
+	// Use the wrapper script as the pkg-config binary
+	fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(wrapperPath))
+	fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(wrapperPath))
 
 	fmt.Fprintf(&buffers, "\n[properties]\n")
-
-	// Set pkg_config_path in properties so Meson can find dev_dependencies' .pc files.
-	// Since dev_dependencies' .pc files use absolute paths, we only need to tell Meson
-	// where to find the .pc files.
-	var pkgConfigPathStrs []string
-	for _, path := range devPkgConfigPaths {
-		pkgConfigPathStrs = append(pkgConfigPathStrs, fmt.Sprintf("'%s'", filepath.ToSlash(path)))
-	}
-	if len(pkgConfigPathStrs) > 0 {
-		fmt.Fprintf(&buffers, "pkg_config_path = [%s]\n", strings.Join(pkgConfigPathStrs, ", "))
-	}
+	buffers.WriteString("cross_file = 'false'\n")
 
 	// Add dev dependencies' include directory to native file's built-in options.
 	// This is needed for build-time tools (e.g., wayland-scanner) that need to find headers from dev dependencies.
@@ -498,9 +500,9 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 	switch toolchain.GetName() {
 	case "gcc", "clang":
 		if len(*includeArgs) == 0 {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("'-isystem %s'", includeDir))
+			*includeArgs = append(*includeArgs, fmt.Sprintf("'-I %s'", includeDir))
 		} else {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("    '-isystem %s'", includeDir))
+			*includeArgs = append(*includeArgs, fmt.Sprintf("    '-I %s'", includeDir))
 		}
 
 	case "msvc", "clang-cl":

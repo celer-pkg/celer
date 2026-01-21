@@ -83,7 +83,7 @@ func (c custom) Build(options []string) error {
 		c.setOptimizeFlags()
 
 		scripts := strings.Join(c.CustomBuild, " && ")
-		scripts = c.expandCommandsVariables(scripts)
+		scripts = c.expandVariables(scripts)
 		title := fmt.Sprintf("[build %s]", c.PortConfig.nameVersionDesc())
 		executor := cmd.NewExecutor(title, scripts)
 		executor.SetLogPath(c.getLogPath("build"))
@@ -110,7 +110,7 @@ func (c custom) Install(options []string) error {
 		c.setOptimizeFlags()
 
 		scripts := strings.Join(c.CustomInstall, " && ")
-		scripts = c.expandCommandsVariables(scripts)
+		scripts = c.expandVariables(scripts)
 		title := fmt.Sprintf("[install %s]", c.PortConfig.nameVersionDesc())
 		executor := cmd.NewExecutor(title, scripts)
 		executor.SetLogPath(c.getLogPath("install"))
