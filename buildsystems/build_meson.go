@@ -420,10 +420,11 @@ func (m meson) generateNativeFile() (string, error) {
 # This wrapper is used by meson to find build-time dependencies
 # We need to clear PKG_CONFIG_SYSROOT_DIR to avoid path mangling for build tools
 export PKG_CONFIG_PATH="%s:$PKG_CONFIG_PATH"
-unset PKG_CONFIG_SYSROOT_DIR
+export PKG_CONFIG_SYSROOT_DIR="%s"
 exec %s "$@"
 `,
 		strings.Join(devPkgConfigPaths, ":"),
+		dirs.WorkspaceDir,
 		filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf"),
 	)
 
