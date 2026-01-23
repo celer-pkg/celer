@@ -120,7 +120,7 @@ func (m meson) configureOptions() ([]string, error) {
 
 	// Replace placeholders.
 	for index, value := range options {
-		options[index] = m.expandCommandsVariables(value)
+		options[index] = m.expandVariables(value)
 	}
 
 	return options, nil
@@ -148,19 +148,36 @@ func (m meson) Configure(options []string) error {
 	}
 
 	// Assemble command.
-	var targetToolchain context.Toolchain
-	if m.BuildConfig.DevDep {
-		targetToolchain = nativeToolchain{msvc: toolchain.GetMSVC()}
-	} else {
-		targetToolchain = toolchain
-	}
-	crossFile, err := m.generateCrossFile(targetToolchain, rootfs, m.Ctx.CCacheEnabled())
-	if err != nil {
-		return fmt.Errorf("generate cross_file.toml for meson: %v", err)
-	}
-
+	var command string
 	joinedArgs := strings.Join(options, " ")
-	command := fmt.Sprintf("meson setup %s %s --cross-file %s", m.PortConfig.BuildDir, joinedArgs, crossFile)
+
+	if m.DevDep || m.Native {
+		// For dev dependencies: native compilation (build_machine == host_machine).
+		// Use native_file.toml instead of cross_file.toml.
+		nativeFile, err := m.generateNativeFile()
+		if err != nil {
+			return fmt.Errorf("generate native_file.toml for meson: %w", err)
+		}
+		command = fmt.Sprintf("meson setup %s %s --native-file %s",
+			m.PortConfig.BuildDir, joinedArgs, nativeFile)
+	} else {
+		// For regular dependencies: cross compilation (build_machine != host_machine).
+		// Use cross_file.toml for host machine, and native_file.toml for build-time tools.
+		crossFile, err := m.generateCrossFile(toolchain, rootfs, m.Ctx.CCacheEnabled())
+		if err != nil {
+			return fmt.Errorf("generate cross_file.toml for meson: %v", err)
+		}
+
+		// Generate native file for build machine dependencies (e.g., wayland-scanner).
+		// This is needed because meson may not properly use pkg_config_path from cross file.
+		nativeFile, err := m.generateNativeFile()
+		if err != nil {
+			return fmt.Errorf("generate native_file.toml for meson: %w", err)
+		}
+
+		command = fmt.Sprintf("meson setup %s %s --cross-file %s --native-file %s",
+			m.PortConfig.BuildDir, joinedArgs, crossFile, nativeFile)
+	}
 
 	// Execute configure.
 	logPath := m.getLogPath("configure")
@@ -224,11 +241,14 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	fmt.Fprintf(&buffers, "endian = 'little'\n")
 
 	fmt.Fprintf(&buffers, "\n[binaries]\n")
-	pkgconfPath := filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
 
+	// For host machine and target compilation.
+	pkgconfPath := filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
 	if m.PortConfig.LibName != "pkgconf" {
 		fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath))
 		fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath))
+		fmt.Fprintf(&buffers, "host_pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath))
+		fmt.Fprintf(&buffers, "host_pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath))
 	}
 
 	buffers.WriteString("cmake = 'cmake'\n")
@@ -241,7 +261,6 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	fmt.Fprintf(&buffers, "python = '%s'\n", pythonPath)
 
 	if ccacheEnabled {
-		// Meson requires array format for commands with arguments
 		fmt.Fprintf(&buffers, "c = ['ccache', '%s']\n", toolchain.GetCC())
 		fmt.Fprintf(&buffers, "cpp = ['ccache', '%s']\n", toolchain.GetCXX())
 	} else {
@@ -281,7 +300,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	)
 
 	// Set sysroot path for cross-compilation.
-	if !m.DevDep && rootfs != nil {
+	if rootfs != nil {
 		sysrootDir = rootfs.GetFullPath()
 
 		// Set CMAKE_PREFIX_PATH for CMake-based dependency detection,
@@ -333,9 +352,8 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	m.appendIncludeArgs(&includeArgs, filepath.Join(depDir, "include"))
 	m.appendLinkArgs(&linkArgs, filepath.Join(depDir, "lib"))
 
-	if !m.DevDep && rootfs != nil {
-		// In meson, `sys_root` will be joined as the suffix with
-		// the prefix in .pc files to locate libraries.
+	if rootfs != nil {
+		// In meson, `sys_root` will be joined with the prefix in .pc files to locate libraries.
 		fmt.Fprintf(&buffers, "sys_root = '%s'\n", sysrootDir)
 
 		for _, item := range rootfs.GetIncludeDirs() {
@@ -372,19 +390,136 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		}
 	}
 
-	// Use [built-in options] section for Meson 0.56+ (recommended way)
-	fmt.Fprintf(&buffers, "\n[built-in options]\n")
-	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(includeArgs, ",\n"))
-	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(includeArgs, ",\n"))
-	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ",\n"))
-	fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(linkArgs, ",\n"))
+	// Parse CFLAGS and CXXFLAGS from envs
+	var cflags, cxxflags []string
+	for _, env := range m.Envs {
+		if after, ok := strings.CutPrefix(env, "CFLAGS="); ok {
+			flagStr := after
+			flagStr = m.expandVariables(flagStr)
+			if flagStr != "" {
+				cflags = append(cflags, fmt.Sprintf("'%s'", flagStr))
+			}
+		}
+		if after, ok := strings.CutPrefix(env, "CXXFLAGS="); ok {
+			flagStr := after
+			flagStr = m.expandVariables(flagStr)
+			if flagStr != "" {
+				cxxflags = append(cxxflags, fmt.Sprintf("'%s'", flagStr))
+			}
+		}
+	}
 
+	// Append CFLAGS to c_args, CXXFLAGS to cpp_args.
+	// CFLAGS/CXXFLAGS should come FIRST to have higher priority in compiler include search order
+	cflags = append(cflags, includeArgs...)
+	cxxflags = append(cxxflags, includeArgs...)
+
+	// Use [built-in options] section for Meson 0.56+ (recommended way).
+	fmt.Fprintf(&buffers, "\n[built-in options]\n")
+	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(cflags, ", "))
+	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(cxxflags, ", "))
+	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ", "))
+	fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(linkArgs, ", "))
 	crossFilePath := filepath.Join(m.PortConfig.BuildDir, "cross_file.toml")
 	if err := os.WriteFile(crossFilePath, buffers.Bytes(), os.ModePerm); err != nil {
 		return "", err
 	}
 
 	return crossFilePath, nil
+}
+
+func (m meson) generateNativeFile() (string, error) {
+	var buffers bytes.Buffer
+
+	// dev_dependencies' .pc files use absolute paths (not sysroot-relative).
+	tmpDevDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.HostName+"-dev")
+	devPkgConfigPaths := []string{
+		filepath.Join(tmpDevDir, "lib", "pkgconfig"),
+		filepath.Join(tmpDevDir, "share", "pkgconfig"),
+	}
+
+	fmt.Fprintf(&buffers, "[binaries]\n")
+
+	// Create a wrapper script for pkg-config that includes dev dependencies in PKG_CONFIG_PATH
+	// This wrapper ensures that pkg-config can find build-time dependencies
+	wrapperPath := filepath.Join(m.PortConfig.BuildDir, "pkg-config.sh")
+	wrapperContent := fmt.Sprintf(`#!/bin/bash
+# pkg-config wrapper that includes dev dependencies' pkg-config paths
+# This wrapper is used by meson to find build-time dependencies
+# We need to clear PKG_CONFIG_SYSROOT_DIR to avoid path mangling for build tools
+export PKG_CONFIG_PATH="%s:$PKG_CONFIG_PATH"
+export PKG_CONFIG_SYSROOT_DIR="%s"
+exec %s "$@"
+`,
+		strings.Join(devPkgConfigPaths, ":"),
+		dirs.WorkspaceDir,
+		filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf"),
+	)
+
+	if err := os.WriteFile(wrapperPath, []byte(wrapperContent), 0755); err != nil {
+		return "", fmt.Errorf("failed to create pkg-config wrapper: %w", err)
+	}
+
+	// Use the wrapper script as the pkg-config binary
+	fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(wrapperPath))
+	fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(wrapperPath))
+
+	fmt.Fprintf(&buffers, "\n[properties]\n")
+	buffers.WriteString("cross_file = 'false'\n")
+
+	// Add dev dependencies' include directory to native file's built-in options.
+	// This is needed for build-time tools (e.g., wayland-scanner) that need to find headers from dev dependencies.
+	// Meson should use pkg-config for dependencies, but we explicitly add the include path for build-time tools.
+	devIncludeDir := filepath.Join(tmpDevDir, "include")
+	var nativeCArgs []string
+	var nativeCppArgs []string
+	var nativeCLinkArgs []string
+	var nativeCppLinkArgs []string
+
+	if fileio.PathExists(devIncludeDir) {
+		m.appendIncludeArgs(&nativeCArgs, devIncludeDir)
+		m.appendIncludeArgs(&nativeCppArgs, devIncludeDir)
+	}
+
+	// Add rpath to allow the bin to locate the libraries in the relative lib dir.
+	// This ensures compiled binaries can run directly without configuring LD_LIBRARY_PATH.
+	// For native build, we typically use gcc or clang on Linux.
+	switch runtime.GOOS {
+	case "linux":
+		if len(nativeCLinkArgs) == 0 {
+			nativeCLinkArgs = append(nativeCLinkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+			nativeCppLinkArgs = append(nativeCppLinkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+		} else {
+			nativeCLinkArgs = append(nativeCLinkArgs, "    '-Wl,-rpath=$ORIGIN/../lib'")
+			nativeCppLinkArgs = append(nativeCppLinkArgs, "    '-Wl,-rpath=$ORIGIN/../lib'")
+		}
+	case "darwin":
+		// TODO: it may supported in the future for darwin.
+	}
+
+	// Write [built-in options] section if we have any options.
+	if len(nativeCArgs) > 0 || len(nativeCppArgs) > 0 || len(nativeCLinkArgs) > 0 || len(nativeCppLinkArgs) > 0 {
+		fmt.Fprintf(&buffers, "\n[built-in options]\n")
+		if len(nativeCArgs) > 0 {
+			fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(nativeCArgs, ",\n"))
+		}
+		if len(nativeCppArgs) > 0 {
+			fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(nativeCppArgs, ",\n"))
+		}
+		if len(nativeCLinkArgs) > 0 {
+			fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(nativeCLinkArgs, ",\n"))
+		}
+		if len(nativeCppLinkArgs) > 0 {
+			fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(nativeCppLinkArgs, ",\n"))
+		}
+	}
+
+	nativeFilePath := filepath.Join(m.PortConfig.BuildDir, "native_file.toml")
+	if err := os.WriteFile(nativeFilePath, buffers.Bytes(), os.ModePerm); err != nil {
+		return "", err
+	}
+
+	return nativeFilePath, nil
 }
 
 func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
@@ -394,9 +529,9 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 	switch toolchain.GetName() {
 	case "gcc", "clang":
 		if len(*includeArgs) == 0 {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("'-isystem %s'", includeDir))
+			*includeArgs = append(*includeArgs, fmt.Sprintf("'-I %s'", includeDir))
 		} else {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("    '-isystem %s'", includeDir))
+			*includeArgs = append(*includeArgs, fmt.Sprintf("    '-I %s'", includeDir))
 		}
 
 	case "msvc", "clang-cl":
@@ -414,10 +549,11 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 func (m meson) appendLinkArgs(linkArgs *[]string, linkDir string) {
 	toolchain := m.Ctx.Platform().GetToolchain()
 	linkDir = filepath.ToSlash(linkDir)
+	toolchainName := toolchain.GetName()
 
 	switch runtime.GOOS {
 	case "linux":
-		if toolchain.GetName() == "gcc" || toolchain.GetName() == "clang" {
+		if toolchainName == "gcc" || toolchainName == "clang" {
 			if len(*linkArgs) == 0 {
 				*linkArgs = append(*linkArgs, fmt.Sprintf("'-L %s'", linkDir))
 				*linkArgs = append(*linkArgs, fmt.Sprintf(`'-Wl,-rpath-link=%s'`, linkDir))
@@ -428,7 +564,7 @@ func (m meson) appendLinkArgs(linkArgs *[]string, linkDir string) {
 		}
 
 	case "windows":
-		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
+		if toolchainName == "msvc" || toolchainName == "clang-cl" {
 			if len(*linkArgs) == 0 {
 				*linkArgs = append(*linkArgs, fmt.Sprintf("'/LIBPATH:\"%s\"'", linkDir))
 			} else {

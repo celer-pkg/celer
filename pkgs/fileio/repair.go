@@ -193,7 +193,7 @@ func (r Repair) needToDownload(url, archive string) (needToDownload bool, err er
 	} else {
 		// Skip downloading in offline mode.
 		if r.ctx.Offline() {
-			return false, fmt.Errorf("you're in offline mode")
+			return false, fmt.Errorf("downloading has been ignored since you are currently in offline mode.")
 		}
 
 		return true, nil

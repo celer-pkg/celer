@@ -57,7 +57,7 @@ func (b *BuildConfig) setupEnvs() {
 
 		key := strings.TrimSpace(env[:index])
 		currentValue := strings.TrimSpace(env[index+1:])
-		currentValue = b.expandCommandsVariables(currentValue)
+		currentValue = b.expandVariables(currentValue)
 
 		switch key {
 		case "CPATH", "LIBRARY_PATH", "PATH":
@@ -203,7 +203,10 @@ func (b BuildConfig) setupPkgConfig() {
 		b.envBackup.setenv("PKG_CONFIG_LIBDIR", strings.Join(configLibDirs, pathDivider))
 	}
 	b.envBackup.setenv("PKG_CONFIG_PATH", strings.Join(configPaths, pathDivider))
-	b.envBackup.setenv("PKG_CONFIG_SYSROOT_DIR", sysrootDir)
+
+	// For dev dependencies, .pc files use absolute paths, so we should not set PKG_CONFIG_SYSROOT_DIR.
+	// PKG_CONFIG_SYSROOT_DIR is only needed for cross-compilation when .pc files use relative paths.
+	b.envBackup.setenv("PKG_CONFIG_SYSROOT_DIR", expr.If(b.DevDep, "", sysrootDir))
 }
 
 func (b *BuildConfig) setLanguageStandard() {
@@ -283,7 +286,7 @@ func (b BuildConfig) rollbackEnvs() {
 func (b *BuildConfig) appendIncludeDir(includeDir string) {
 	// Windows: MSVC/Clang-cl ------------------------------ Linux: GCC/Clang
 	// INCLUDE=xxx\include;%INCLUDE%  ---------------------- -I "xxx\include"
-	// CL=/external:anglebrackets /external:W0 %CL% -------- -isystem "xxx\include"
+	// CL=/external:anglebrackets /external:W0 %CL% -------- -I "xxx\include"
 
 	// Toolchain may throw error if include dir not exists.
 	if !fileio.PathExists(includeDir) {
@@ -297,7 +300,7 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
 
 		// Append include dir if not exists.
-		includeDir = "-isystem " + includeDir
+		includeDir = "-I " + includeDir
 		var newAppended = false
 		if !slices.Contains(cflags, includeDir) {
 			cflags = append(cflags, includeDir)
