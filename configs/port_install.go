@@ -496,12 +496,18 @@ func (p Port) installDependencies(options InstallOptions) error {
 			return err
 		}
 
-		// Install it if not installed or forcing with recursive.
+		// Then install the dependency itself if needed.
 		installed, err := port.Installed()
 		if err != nil {
 			return err
 		}
 		if !installed || (options.Force && options.Recursive) {
+			// Always ensure sub-dependencies are installed first, even if the dependency itself is already installed.
+			// This ensures transitive dependencies are always available before installing the dependency.
+			if err := port.installDependencies(options); err != nil {
+				return err
+			}
+
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
@@ -524,12 +530,18 @@ func (p Port) installDependencies(options InstallOptions) error {
 			return err
 		}
 
-		// Install it if not installed or forcing with recursive.
+		// Then install the dependency itself if needed.
 		installed, err := port.Installed()
 		if err != nil {
 			return err
 		}
 		if !installed || (options.Force && options.Recursive) {
+			// Always ensure sub-dependencies are installed first.
+			// This ensures transitive dependencies are always available before installing the dependency.
+			if err := port.installDependencies(options); err != nil {
+				return err
+			}
+
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
@@ -608,7 +620,7 @@ func (p Port) prepareTmpDeps() error {
 
 		// Fixup pkg config files.
 		pkgConfigPrefix := expr.If(port.DevDep || port.Native,
-			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.ctx.Platform().GetHostName()+"-dev"),
+			port.tmpDepsDir,
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.MatchedConfig.PortConfig.LibraryFolder),
 		)
 		if err := fileio.FixupPkgConfig(port.tmpDepsDir, pkgConfigPrefix); err != nil {

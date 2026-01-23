@@ -419,8 +419,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(cflags, ", "))
 	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(cxxflags, ", "))
 	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ", "))
-
-	// Don't set cpp_link_args separately - they're often the same as c_link_args anyway.
+	fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(linkArgs, ", "))
 	crossFilePath := filepath.Join(m.PortConfig.BuildDir, "cross_file.toml")
 	if err := os.WriteFile(crossFilePath, buffers.Bytes(), os.ModePerm); err != nil {
 		return "", err
