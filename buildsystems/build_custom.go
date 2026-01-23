@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"slices"
 	"strings"
 )
 
@@ -23,8 +24,12 @@ type custom struct {
 }
 
 func (c custom) CheckTools() []string {
-	c.BuildTools = append(c.BuildTools, "git", "cmake")
-	return c.BuildConfig.BuildTools
+	// Start with build_tools from port.toml
+	tools := slices.Clone(c.BuildConfig.BuildTools)
+
+	// Add default tools
+	tools = append(tools, "git", "cmake")
+	return tools
 }
 
 func (c custom) Name() string {

@@ -33,14 +33,18 @@ func (makefiles) Name() string {
 }
 
 func (m *makefiles) CheckTools() []string {
+	// Start with build_tools from port.toml
+	tools := slices.Clone(m.BuildConfig.BuildTools)
+
+	// Add default tools
 	if runtime.GOOS == "windows" {
 		configureWithPerl := m.shouldConfigureWithPerl()
 		tool := expr.If(configureWithPerl, "strawberry-perl", "msys2")
-		m.BuildTools = append(m.BuildTools, tool)
+		tools = append(tools, tool)
 	}
 
-	m.BuildTools = append(m.BuildTools, "git", "cmake")
-	return m.BuildConfig.BuildTools
+	tools = append(tools, "git", "cmake")
+	return tools
 }
 
 func (m *makefiles) preConfigure() error {

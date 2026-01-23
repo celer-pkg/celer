@@ -34,8 +34,12 @@ func (b b2) Name() string {
 }
 
 func (b b2) CheckTools() []string {
-	b.BuildConfig.BuildTools = append(b.BuildConfig.BuildTools, "git", "cmake")
-	return b.BuildConfig.BuildTools
+	// Start with build_tools from port.toml
+	tools := slices.Clone(b.BuildConfig.BuildTools)
+
+	// Add default tools
+	tools = append(tools, "git", "cmake")
+	return tools
 }
 
 func (b *b2) preConfigure() error {

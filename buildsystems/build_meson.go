@@ -34,19 +34,23 @@ func (meson) Name() string {
 }
 
 func (m meson) CheckTools() []string {
-	m.BuildTools = append(m.BuildTools, "git", "ninja", "cmake")
+	// Start with build_tools from port.toml
+	tools := slices.Clone(m.BuildConfig.BuildTools)
+	
+	// Add default tools
+	tools = append(tools, "git", "ninja", "cmake")
 
 	switch runtime.GOOS {
 	case "windows":
-		m.BuildTools = append(m.BuildTools,
+		tools = append(tools,
 			"python3",
 			"python3:meson",
 		)
 	case "linux":
-		m.BuildTools = append(m.BuildTools, "python3:meson")
+		tools = append(tools, "python3:meson")
 	}
 
-	return m.BuildConfig.BuildTools
+	return tools
 }
 
 func (m *meson) preConfigure() error {

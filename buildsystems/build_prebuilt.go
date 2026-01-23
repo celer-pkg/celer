@@ -5,6 +5,7 @@ import (
 	"celer/pkgs/fileio"
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 func NewPrebuilt(config *BuildConfig, optimize *context.Optimize) *prebuilt {
@@ -28,8 +29,12 @@ func (p *prebuilt) Name() string {
 }
 
 func (p prebuilt) CheckTools() []string {
-	p.BuildTools = append(p.BuildTools, "git", "cmake")
-	return p.BuildConfig.BuildTools
+	// Start with build_tools from port.toml
+	tools := slices.Clone(p.BuildConfig.BuildTools)
+	
+	// Add default tools
+	tools = append(tools, "git", "cmake")
+	return tools
 }
 
 func (p *prebuilt) configured() bool {
