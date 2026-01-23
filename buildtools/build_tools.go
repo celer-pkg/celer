@@ -112,7 +112,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	// Check if we need to install python3 packages.
 	needPython3Packages := slices.ContainsFunc(uniqueTools, func(tool string) bool {
-		return strings.HasPrefix(tool, "python3:")
+		return strings.HasPrefix(tool, "python3")
 	})
 
 	// Install python3 packages.

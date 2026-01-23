@@ -1,6 +1,7 @@
 package buildsystems
 
 import (
+	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/color"
@@ -158,6 +159,12 @@ func (c cmake) configureOptions() ([]string, error) {
 	}
 	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(rootPaths, ";"))
 	options = append(options, "-DTMP_DEP_DIR="+filepath.ToSlash(tmpDepDir))
+
+	// Explicitly set Python3_EXECUTABLE to use host system's Python instead of target arch Python.
+	if buildtools.Python3 != nil && buildtools.Python3.Path != "" {
+		pythonPath := filepath.ToSlash(buildtools.Python3.Path)
+		options = append(options, "-DPython3_EXECUTABLE="+pythonPath)
+	}
 
 	// Enable verbose makefile.
 	if c.Ctx.Verbose() {

@@ -96,18 +96,3 @@ func (p python3) checkIfInstalled(target string) (bool, error) {
 
 	return false, nil
 }
-
-// func (p python3) createSymlink(rootDir string) error {
-// 	src := filepath.Join(rootDir, "python.exe")
-// 	dst := filepath.Join(rootDir, "python3.exe")
-
-// 	if !fileio.PathExists(dst) {
-// 		if err := os.Link(src, dst); err != nil {
-// 			return fmt.Errorf("create symlink: %s", err)
-// 		}
-
-// 		fmt.Println("-- symlink python3 is created.")
-// 	}
-
-// 	return nil
-// }
