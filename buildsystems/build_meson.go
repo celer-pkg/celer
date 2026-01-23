@@ -302,6 +302,35 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	// Set sysroot path for cross-compilation.
 	if rootfs != nil {
 		sysrootDir = rootfs.GetFullPath()
+
+		// Set CMAKE_PREFIX_PATH for CMake-based dependency detection,
+		// This prevents CMake from finding host system libraries.
+		cmakePrefixPaths := []string{
+			filepath.ToSlash(filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder)),
+		}
+		for _, libDir := range rootfs.GetLibDirs() {
+			cmakePrefixPaths = append(cmakePrefixPaths, "    "+filepath.ToSlash(filepath.Join(sysrootDir, libDir)))
+		}
+		fmt.Fprintf(&buffers, "cmake_prefix_path = ['%s']\n", strings.Join(cmakePrefixPaths, ",\n"))
+
+		// Add --sysroot to compiler and linker args.
+		sysrootArg := fmt.Sprintf("'--sysroot=%s'", sysrootDir)
+		includeArgs = append(includeArgs, sysrootArg)
+		linkArgs = append(linkArgs, sysrootArg)
+
+		// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
+		if toolchain.GetName() == "clang" {
+			if len(includeArgs) == 0 {
+				includeArgs = append(includeArgs, "'--gcc-toolchain=/usr'")
+			} else {
+				includeArgs = append(includeArgs, "    '--gcc-toolchain=/usr'")
+			}
+			if len(linkArgs) == 0 {
+				linkArgs = append(linkArgs, "'--gcc-toolchain=/usr'")
+			} else {
+				linkArgs = append(linkArgs, "    '--gcc-toolchain=/usr'")
+			}
+		}
 	}
 
 	// This allows the bin to locate the libraries in the relative lib dir.
