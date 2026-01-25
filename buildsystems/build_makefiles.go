@@ -110,7 +110,6 @@ func (m makefiles) configureOptions() ([]string, error) {
 		if m.shouldAddHost(options) {
 			toolchain := m.Ctx.Platform().GetToolchain()
 			options = append(options, fmt.Sprintf("--host=%s", toolchain.GetHost()))
-			options = append(options, fmt.Sprintf("--build=%s", toolchain.GetSystemProcessor()))
 		}
 	}
 
