@@ -3,6 +3,7 @@
 package envs
 
 import (
+	"celer/pkgs/dirs"
 	"celer/pkgs/env"
 	"os"
 	"path/filepath"
@@ -67,6 +68,7 @@ func CleanEnv() {
 	// Use PATH instead of Path.
 	os.Unsetenv("Path")
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
+	os.Setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 }
 
 // setEnvIfNotEmpty sets an environment variable only if the provided value is non-empty.

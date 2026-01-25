@@ -2,7 +2,9 @@ package buildtools
 
 import (
 	"celer/pkgs/cmd"
+	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
+	"celer/pkgs/fileio"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -52,23 +54,39 @@ func pipInstall(libraries *[]string) error {
 
 	// Install extra tools if not exist.
 	for _, library := range *libraries {
-		library = strings.TrimPrefix(library, "python3:")
-
 		// Check if the tool is already installed.
-		installed, err := Python3.checkIfInstalled(library)
+		libraryName := strings.TrimPrefix(library, "python3:")
+		installed, err := Python3.checkIfInstalled(libraryName)
 		if err != nil {
-			return fmt.Errorf("check if %s is installed: %s", library, err)
+			return fmt.Errorf("check if %s is installed: %s", libraryName, err)
 		}
 		if installed {
 			continue
 		}
 
 		// Use Python3.Path instead of "python3" command to ensure it works on Windows.
-		title := "[python3 install tool]"
-		command := fmt.Sprintf("%s -m pip install %s", Python3.Path, library)
+		title := fmt.Sprintf("[python3 install tool] %s", libraryName)
+		command := fmt.Sprintf("%s -m pip install --user %s", Python3.Path, libraryName)
 		executor := cmd.NewExecutor(title, command)
 		if err := executor.Execute(); err != nil {
-			return err
+			return fmt.Errorf("failed to install %s: %w", libraryName, err)
+		}
+
+		// Verify the installation.
+		binPath := filepath.Join(dirs.PythonUserBase, "bin", libraryName)
+		if fileio.PathExists(binPath) {
+			checkCmd := fmt.Sprintf("%s --version >/dev/null 2>&1", binPath)
+			checkExecutor := cmd.NewExecutor("", checkCmd)
+			if checkExecutor.Execute() == nil {
+				continue
+			}
+		}
+
+		// Try to import as a module.
+		verifyCmd := fmt.Sprintf("%s -c \"import %s\" 2>&1", Python3.Path, libraryName)
+		verifyExecutor := cmd.NewExecutor("", verifyCmd)
+		if verifyErr := verifyExecutor.Execute(); verifyErr != nil {
+			return fmt.Errorf("failed to verify %s after installation (neither command-line tool nor importable module): %w", libraryName, verifyErr)
 		}
 	}
 
@@ -83,11 +101,15 @@ type python3 struct {
 func (p python3) checkIfInstalled(target string) (bool, error) {
 	// Redirect output to null device.
 	nullDevice := expr.If(runtime.GOOS == "windows", "nul", "/dev/null")
-	command := fmt.Sprintf("pip show %s >%s 2>&1 && echo yes || echo no", target, nullDevice)
+
+	// PYTHONUSERBASE is already set in envs.CleanEnv(), so pip will check workspace directory.
+	command := fmt.Sprintf("%s -m pip show %s >%s 2>&1 && echo yes || echo no", p.Path, target, nullDevice)
 	executor := cmd.NewExecutor("", command)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
-		return false, err
+		if strings.TrimSpace(output) == "" {
+			return false, err
+		}
 	}
 
 	if strings.TrimSpace(output) == "yes" {

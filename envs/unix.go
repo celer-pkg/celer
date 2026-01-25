@@ -3,6 +3,7 @@
 package envs
 
 import (
+	"celer/pkgs/dirs"
 	"celer/pkgs/env"
 	"os"
 )
@@ -29,4 +30,5 @@ func CleanEnv() {
 	paths = append(paths, "/usr/sbin")
 	paths = append(paths, home+"/.local/bin")
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
+	os.Setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 }
