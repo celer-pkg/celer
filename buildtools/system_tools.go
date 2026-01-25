@@ -7,22 +7,50 @@ import (
 	"strings"
 )
 
-// CheckSystemTools checks if the system tools are installed.
-func CheckSystemTools(tools []string) error {
+// checkSystemTools checks if the system tools are installed.
+func checkSystemTools(packageNames []string) error {
+	osType, err := getOSType()
+	if err != nil {
+		return err
+	}
+
 	var missing []string
-	for _, tool := range tools {
-		tool = strings.TrimSpace(tool)
-		if tool == "" {
+	for _, packageName := range packageNames {
+		packageName = strings.TrimSpace(packageName)
+		if packageName == "" {
 			continue
 		}
 
-		installed, err := isLibraryInstalled(tool)
+		var (
+			installed bool
+			err       error
+		)
+
+		// Check installed based on OS type.
+		switch osType {
+		case "debian", "ubuntu":
+			installed, err = checkDebianLibraryInstalled(packageName)
+		case "centos", "fedora", "rhel":
+			installed, err = checkRedHatLibraryInstalled(packageName)
+		default:
+			return fmt.Errorf("unsupported package manager prefix in package name: %s", packageName)
+		}
+
+		// Check error from isLibraryInstalled.
 		if err != nil {
 			return err
 		}
-
 		if !installed {
-			missing = append(missing, tool)
+			switch osType {
+			case "debian", "ubuntu":
+				packageName = strings.TrimPrefix(packageName, "apt:")
+			case "centos", "fedora", "rhel":
+				packageName = strings.TrimPrefix(packageName, "yum:")
+			default:
+				return fmt.Errorf("unsupported OS type: %s", osType)
+			}
+
+			missing = append(missing, packageName)
 		}
 	}
 
@@ -39,30 +67,19 @@ func CheckSystemTools(tools []string) error {
 		joined := strings.Join(missing, " ")
 		switch runtime.GOOS {
 		case "linux":
-			return fmt.Errorf("%s.\n please install it with `sudo apt install %s`", summary, joined)
+			switch osType {
+			case "debian", "ubuntu":
+				return fmt.Errorf("%s.\n please install it with `sudo apt install %s`", summary, joined)
+			case "centos", "fedora", "rhel":
+				return fmt.Errorf("%s.\n please install it with `sudo yum install %s`", summary, joined)
+			}
+
 		case "darwin":
 			return fmt.Errorf("%s.\n please install it with `brew install %s`", joined, joined)
 		}
 	}
 
 	return nil
-}
-
-// isLibraryInstalled checks if a library is installed on the system.
-func isLibraryInstalled(libraryName string) (bool, error) {
-	osType, err := getOSType()
-	if err != nil {
-		return false, err
-	}
-
-	switch osType {
-	case "debian", "ubuntu":
-		return checkDebianLibrary(libraryName)
-	case "centos", "fedora", "rhel":
-		return checkRedHatLibrary(libraryName)
-	default:
-		return false, fmt.Errorf("unsupported OS type: %s", osType)
-	}
 }
 
 func getOSType() (string, error) {
@@ -84,9 +101,10 @@ func getOSType() (string, error) {
 	return "", fmt.Errorf("can not determine OS type")
 }
 
-func checkDebianLibrary(libraryName string) (bool, error) {
+func checkDebianLibraryInstalled(packageName string) (bool, error) {
 	// Use dpkg -l to check if the library is installed.
-	executor := cmd.NewExecutor("", "dpkg", "-l", libraryName)
+	packageName = strings.TrimPrefix(packageName, "apt:")
+	executor := cmd.NewExecutor("", "dpkg", "-l", packageName)
 	out, err := executor.ExecuteOutput()
 	if err != nil {
 		// If not installed, dpkg -l will return exit status 1.
@@ -96,7 +114,7 @@ func checkDebianLibrary(libraryName string) (bool, error) {
 	// Check if the library is installed.
 	lines := strings.SplitSeq(string(out), "\n")
 	for line := range lines {
-		if strings.HasPrefix(line, "ii") && strings.Contains(line, libraryName) {
+		if strings.HasPrefix(line, "ii") && strings.Contains(line, packageName) {
 			return true, nil
 		}
 	}
@@ -104,8 +122,9 @@ func checkDebianLibrary(libraryName string) (bool, error) {
 	return false, nil
 }
 
-func checkRedHatLibrary(libraryName string) (bool, error) {
-	// Use rpm -q to check if the library is installed
+func checkRedHatLibraryInstalled(libraryName string) (bool, error) {
+	// Use rpm -q to check if the library is installed.
+	libraryName = strings.TrimPrefix(libraryName, "yum:")
 	executor := cmd.NewExecutor("", "rpm", "-q", libraryName)
 	out, err := executor.ExecuteOutput()
 	if err != nil {

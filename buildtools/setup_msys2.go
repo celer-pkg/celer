@@ -23,20 +23,8 @@ type msys2 struct {
 	rootDir           string
 }
 
-// SetupMSYS2 checks and installs the required MSYS2 packages.
-func SetupMSYS2(rootDir string, packages *[]string) error {
-	// Remove none msys2:xxx from list.
-	*packages = slices.DeleteFunc(*packages, func(element string) bool {
-		return !strings.HasPrefix(element, "msys2:")
-	})
-
-	defer func() {
-		// Remove msys2 related after setted up.
-		*packages = slices.DeleteFunc(*packages, func(tool string) bool {
-			return strings.HasPrefix(tool, "msys2:")
-		})
-	}()
-
+// setupMSYS2 checks and installs the required MSYS2 packages.
+func setupMSYS2(rootDir string, packages *[]string) error {
 	// Read toml file.
 	bytes, err := static.ReadFile("static/msys2_builtin_packages.toml")
 	if err != nil {
@@ -51,12 +39,18 @@ func SetupMSYS2(rootDir string, packages *[]string) error {
 		return err
 	}
 
-	// Merge tools for installation.
-	msys2.BuiltinPackages = append(msys2.BuiltinPackages, *packages...)
+	// Collect additional msys2 packages requested by buildsystems via "msys2:<pkg>".
+	// Note: builtin packages from msys2_builtin_packages.toml are always installed.
+	var extraPackages []string
+	for _, item := range *packages {
+		if !strings.HasPrefix(item, "msys2:") {
+			continue
+		}
+		extraPackages = append(extraPackages, strings.TrimPrefix(item, "msys2:"))
+	}
 
 	// Check and install packages.
-	for _, item := range msys2.BuiltinPackages {
-		item = strings.TrimPrefix(item, "msys2:")
+	for _, item := range append(msys2.BuiltinPackages, extraPackages...) {
 		installed, err := msys2.checkIfInstalled(item)
 		if err != nil {
 			return fmt.Errorf("check if %s is installed: %s", item, err)
@@ -73,6 +67,11 @@ func SetupMSYS2(rootDir string, packages *[]string) error {
 	if err := msys2.removeConflictFiles(); err != nil {
 		return fmt.Errorf("remove link.exe: %s", err)
 	}
+
+	// Remove msys2:xxx from list.
+	*packages = slices.DeleteFunc(*packages, func(element string) bool {
+		return strings.HasPrefix(element, "msys2:")
+	})
 
 	return nil
 }
