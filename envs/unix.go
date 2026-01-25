@@ -35,4 +35,5 @@ func CleanEnv() {
 }
 
 // In linux, python user scripts are always in ${PYTHONUSERBASE}/bin.
-func AppendPythonUserScriptsDir() {}
+// It has been added to PATH in CleanEnv, so here do nothing.
+func AppendPythonBinDir(_ string) {}
