@@ -33,3 +33,6 @@ func CleanEnv() {
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
 	os.Setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 }
+
+// In linux, python user scripts are always in ${PYTHONUSERBASE}/bin.
+func AppendPythonUserScriptsDir() {}

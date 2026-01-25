@@ -1,7 +1,9 @@
 package buildtools
 
 import (
+	"celer/envs"
 	"celer/pkgs/cmd"
+	"celer/pkgs/dirs"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -60,6 +62,9 @@ func pipInstall(libraries *[]string) error {
 		if err := executor.Execute(); err != nil {
 			return fmt.Errorf("failed to install %s: %w", libraryName, err)
 		}
+
+		// Make sure the python3 executable can be found in PATH.
+		envs.AppendPythonBinDir(dirs.PythonUserBase)
 	}
 
 	return nil
