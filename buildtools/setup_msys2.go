@@ -39,16 +39,18 @@ func setupMSYS2(rootDir string, packages *[]string) error {
 		return err
 	}
 
-	// Merge tools for installation.
-	msys2.BuiltinPackages = append(msys2.BuiltinPackages, *packages...)
-
-	// Check and install packages.
-	for _, item := range msys2.BuiltinPackages {
+	// Collect additional msys2 packages requested by buildsystems via "msys2:<pkg>".
+	// Note: builtin packages from msys2_builtin_packages.toml are always installed.
+	var extraPackages []string
+	for _, item := range *packages {
 		if !strings.HasPrefix(item, "msys2:") {
 			continue
 		}
+		extraPackages = append(extraPackages, strings.TrimPrefix(item, "msys2:"))
+	}
 
-		item = strings.TrimPrefix(item, "msys2:")
+	// Check and install packages.
+	for _, item := range append(msys2.BuiltinPackages, extraPackages...) {
 		installed, err := msys2.checkIfInstalled(item)
 		if err != nil {
 			return fmt.Errorf("check if %s is installed: %s", item, err)
