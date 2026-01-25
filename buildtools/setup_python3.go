@@ -1,8 +1,9 @@
 package buildtools
 
 import (
+	"celer/envs"
 	"celer/pkgs/cmd"
-	"celer/pkgs/expr"
+	"celer/pkgs/dirs"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -50,26 +51,20 @@ func pipInstall(libraries *[]string) error {
 		})
 	}()
 
-	// Install extra tools if not exist.
+	// Install extra tools. pip will skip if already installed.
 	for _, library := range *libraries {
-		library = strings.TrimPrefix(library, "python3:")
-
-		// Check if the tool is already installed.
-		installed, err := Python3.checkIfInstalled(library)
-		if err != nil {
-			return fmt.Errorf("check if %s is installed: %s", library, err)
-		}
-		if installed {
-			continue
-		}
+		libraryName := strings.TrimPrefix(library, "python3:")
 
 		// Use Python3.Path instead of "python3" command to ensure it works on Windows.
-		title := "[python3 install tool]"
-		command := fmt.Sprintf("%s -m pip install %s", Python3.Path, library)
+		title := fmt.Sprintf("[python3 install tool] %s", libraryName)
+		command := fmt.Sprintf("%s -m pip install --user %s", Python3.Path, libraryName)
 		executor := cmd.NewExecutor(title, command)
 		if err := executor.Execute(); err != nil {
-			return err
+			return fmt.Errorf("failed to install %s: %w", libraryName, err)
 		}
+
+		// Make sure the python3 executable can be found in PATH.
+		envs.AppendPythonBinDir(dirs.PythonUserBase)
 	}
 
 	return nil
@@ -78,21 +73,4 @@ func pipInstall(libraries *[]string) error {
 type python3 struct {
 	Path    string
 	rootDir string
-}
-
-func (p python3) checkIfInstalled(target string) (bool, error) {
-	// Redirect output to null device.
-	nullDevice := expr.If(runtime.GOOS == "windows", "nul", "/dev/null")
-	command := fmt.Sprintf("pip show %s >%s 2>&1 && echo yes || echo no", target, nullDevice)
-	executor := cmd.NewExecutor("", command)
-	output, err := executor.ExecuteOutput()
-	if err != nil {
-		return false, err
-	}
-
-	if strings.TrimSpace(output) == "yes" {
-		return true, nil
-	}
-
-	return false, nil
 }

@@ -40,18 +40,22 @@ func (c cmake) Name() string {
 }
 
 func (c cmake) CheckTools() []string {
-	c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "git", "cmake")
+	// Start with build_tools from port.toml
+	tools := slices.Clone(c.BuildConfig.BuildTools)
+
+	// Add default tools
+	tools = append(tools, "git", "cmake")
 	if c.CMakeGenerator == "Ninja" {
-		c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "ninja")
+		tools = append(tools, "ninja")
 	}
 
 	// In windows, the default toolchain is Visual Studio,
 	// so vswhere is required to find installed Visual Studio.
 	if runtime.GOOS == "windows" && c.CMakeGenerator == "" {
-		c.BuildConfig.BuildTools = append(c.BuildConfig.BuildTools, "vswhere")
+		tools = append(tools, "vswhere")
 	}
 
-	return c.BuildConfig.BuildTools
+	return tools
 }
 
 func (c *cmake) preConfigure() error {

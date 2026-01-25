@@ -111,17 +111,30 @@ func CheckTools(ctx context.Context, tools ...string) error {
 	})
 
 	// Check if we need to install python3 packages.
-	needPython3Packages := slices.ContainsFunc(uniqueTools, func(tool string) bool {
+	python3PackagesRequired := slices.ContainsFunc(uniqueTools, func(tool string) bool {
 		return strings.HasPrefix(tool, "python3")
 	})
 
 	// Install python3 packages.
-	if needPython3Packages {
+	if python3PackagesRequired {
 		if python3Tool != nil {
 			setupPython3(python3Tool.rootDir)
 		} else if runtime.GOOS == "linux" {
 			setupPython3("/usr/bin")
 		}
+
+		// Debug: print tools that will be installed.
+		var pythonTools []string
+		for _, tool := range uniqueTools {
+			if strings.HasPrefix(tool, "python3:") {
+				pythonTools = append(pythonTools, tool)
+			}
+		}
+		if len(pythonTools) > 0 {
+			color.Printf(color.Hint, "[CheckTools] Installing Python packages: %v\n", pythonTools)
+		}
+
+		// Install python3 packages.
 		if err := pipInstall(&uniqueTools); err != nil {
 			return err
 		}

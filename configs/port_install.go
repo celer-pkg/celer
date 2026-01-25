@@ -45,12 +45,17 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 			BuildCache: true,
 		}
 		if err := p.Remove(remoteOptions); err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to remove installed package.\n %w", err)
 		}
 
-		// Clean source.
+		// Clean source repo.
 		if err := p.MatchedConfig.Clean(); err != nil {
-			return "", err
+			return "", fmt.Errorf("failed to clean repo before install.\n %w", err)
+		}
+
+		// Remove installed python3 packages if any.
+		if err := os.RemoveAll(dirs.PythonUserBase); err != nil {
+			return "", fmt.Errorf("failed to remove python3 packages. \n %w", err)
 		}
 	}
 

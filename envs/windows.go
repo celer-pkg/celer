@@ -3,9 +3,12 @@
 package envs
 
 import (
+	"celer/pkgs/dirs"
 	"celer/pkgs/env"
+	"celer/pkgs/fileio"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // CleanEnv clear all environments that not required and reset PATH.
@@ -61,17 +64,38 @@ func CleanEnv() {
 	paths = append(paths, `C:\Windows\System32\WindowsPowerShell\v1.0`)
 	paths = append(paths, `C:\ProgramData\chocolatey\bin`)
 
-	// Add python launcher path so that we can call py from cmd.
-	paths = append(paths, filepath.Join(os.Getenv("USERPROFILE"), `AppData\Local\Programs\Python\Launcher`))
-
 	// Use PATH instead of Path.
 	os.Unsetenv("Path")
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
+	os.Setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 }
 
 // setEnvIfNotEmpty sets an environment variable only if the provided value is non-empty.
 func setEnvIfNotEmpty(key, value string) {
 	if value != "" {
 		os.Setenv(key, value)
+	}
+}
+
+// AppendPythonBinDir appends the Python user "Scripts" directory to PATH if it exists.
+func AppendPythonBinDir(userBaseDir string) {
+	// Search for Python<version>-<arch> directories
+	entries, err := os.ReadDir(userBaseDir)
+	if err != nil {
+		return
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		// Check if directory name starts with "Python" (e.g., Python314-32)
+		if strings.HasPrefix(entry.Name(), "Python") {
+			binDir := filepath.Join(userBaseDir, entry.Name(), "Scripts")
+			if fileio.PathExists(binDir) {
+				os.Setenv("PATH", env.JoinPaths("PATH", binDir))
+			}
+		}
 	}
 }

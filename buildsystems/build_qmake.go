@@ -26,8 +26,12 @@ func (qmake) Name() string {
 }
 
 func (q *qmake) CheckTools() []string {
-	q.BuildTools = append(q.BuildTools, "git", "cmake")
-	return q.BuildConfig.BuildTools
+	// Start with build_tools from port.toml
+	tools := slices.Clone(q.BuildConfig.BuildTools)
+	
+	// Add default tools
+	tools = append(tools, "git", "cmake")
+	return tools
 }
 
 func (q qmake) preConfigure() error {

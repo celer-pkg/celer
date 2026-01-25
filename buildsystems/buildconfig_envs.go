@@ -130,6 +130,27 @@ func (b *BuildConfig) setupEnvs() {
 
 	// Expose dev/bin to PATH.
 	b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
+
+	// Ensure PYTHONPATH for python.
+	b.envBackup.setenv("PYTHONUSERBASE", dirs.PythonUserBase)
+
+	// Find the actual site-packages directory and set PYTHONPATH's value with it.
+	// (Python installs to python3/lib/python3.X/site-packages).
+	libDir := filepath.Join(dirs.PythonUserBase, "lib")
+	if fileio.PathExists(libDir) {
+		entries, err := os.ReadDir(libDir)
+		if err == nil {
+			for _, entry := range entries {
+				if entry.IsDir() && strings.HasPrefix(entry.Name(), "python") {
+					sitePackages := filepath.Join(libDir, entry.Name(), "site-packages")
+					if fileio.PathExists(sitePackages) {
+						b.envBackup.setenv("PYTHONPATH", sitePackages)
+						break
+					}
+				}
+			}
+		}
+	}
 }
 
 func (b BuildConfig) setupPkgConfig() {
