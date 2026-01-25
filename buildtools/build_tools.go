@@ -77,9 +77,11 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 		if strings.HasPrefix(tool, "msys2:") && !slices.Contains(uniqueTools, "msys2") {
 			uniqueTools = append(uniqueTools, "msys2")
+			continue
 		}
 		if strings.HasPrefix(tool, "python3:") && !slices.Contains(uniqueTools, "python3") {
 			uniqueTools = append(uniqueTools, "python3")
+			continue
 		}
 	}
 
@@ -88,7 +90,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		python3Tool *BuildTool
 	)
 
-	// Validate tools in loop.
+	// Find tool instances of python3 and msys2.
 	for _, tool := range uniqueTools {
 		if tool := buildTools.findTool(ctx, tool); tool != nil {
 			if err := tool.validate(); err != nil {
@@ -117,39 +119,21 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	// Install python3 packages.
 	if python3PackagesRequired {
-		if python3Tool != nil {
-			setupPython3(python3Tool.rootDir)
-		} else if runtime.GOOS == "linux" {
-			setupPython3("/usr/bin")
-		}
-
-		// Debug: print tools that will be installed.
-		var pythonTools []string
-		for _, tool := range uniqueTools {
-			if strings.HasPrefix(tool, "python3:") {
-				pythonTools = append(pythonTools, tool)
-			}
-		}
-		if len(pythonTools) > 0 {
-			color.Printf(color.Hint, "[CheckTools] Installing Python packages: %v\n", pythonTools)
-		}
-
-		// Install python3 packages.
-		if err := pipInstall(&uniqueTools); err != nil {
+		if err := pip3Install(python3Tool, &uniqueTools); err != nil {
 			return err
 		}
 	}
 
 	// Setup msys2 for windows.
 	if msys2Tool != nil && runtime.GOOS == "windows" {
-		if err := SetupMSYS2(msys2Tool.rootDir, &uniqueTools); err != nil {
+		if err := setupMSYS2(msys2Tool.rootDir, &uniqueTools); err != nil {
 			return err
 		}
 	}
 
 	// Check if package installed for linux.
-	if runtime.GOOS == "linux" {
-		if err := CheckSystemTools(uniqueTools); err != nil {
+	if runtime.GOOS == "linux" && len(uniqueTools) > 0 {
+		if err := checkSystemTools(uniqueTools); err != nil {
 			return err
 		}
 	}

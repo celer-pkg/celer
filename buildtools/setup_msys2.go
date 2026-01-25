@@ -23,20 +23,8 @@ type msys2 struct {
 	rootDir           string
 }
 
-// SetupMSYS2 checks and installs the required MSYS2 packages.
-func SetupMSYS2(rootDir string, packages *[]string) error {
-	// Remove none msys2:xxx from list.
-	*packages = slices.DeleteFunc(*packages, func(element string) bool {
-		return !strings.HasPrefix(element, "msys2:")
-	})
-
-	defer func() {
-		// Remove msys2 related after setted up.
-		*packages = slices.DeleteFunc(*packages, func(tool string) bool {
-			return strings.HasPrefix(tool, "msys2:")
-		})
-	}()
-
+// setupMSYS2 checks and installs the required MSYS2 packages.
+func setupMSYS2(rootDir string, packages *[]string) error {
 	// Read toml file.
 	bytes, err := static.ReadFile("static/msys2_builtin_packages.toml")
 	if err != nil {
@@ -56,6 +44,10 @@ func SetupMSYS2(rootDir string, packages *[]string) error {
 
 	// Check and install packages.
 	for _, item := range msys2.BuiltinPackages {
+		if !strings.HasPrefix(item, "msys2:") {
+			continue
+		}
+
 		item = strings.TrimPrefix(item, "msys2:")
 		installed, err := msys2.checkIfInstalled(item)
 		if err != nil {
@@ -73,6 +65,11 @@ func SetupMSYS2(rootDir string, packages *[]string) error {
 	if err := msys2.removeConflictFiles(); err != nil {
 		return fmt.Errorf("remove link.exe: %s", err)
 	}
+
+	// Remove msys2:xxx from list.
+	*packages = slices.DeleteFunc(*packages, func(element string) bool {
+		return strings.HasPrefix(element, "msys2:")
+	})
 
 	return nil
 }

@@ -37,25 +37,23 @@ func setupPython3(rootDir string) {
 	}
 }
 
-// pipInstall checks if the python3 is installed.
-func pipInstall(libraries *[]string) error {
-	// Remove none python3:xxx from list.
-	*libraries = slices.DeleteFunc(*libraries, func(element string) bool {
-		return !strings.HasPrefix(element, "python3:")
-	})
-
-	defer func() {
-		// Remove python3 related after setted up.
-		*libraries = slices.DeleteFunc(*libraries, func(tool string) bool {
-			return strings.HasPrefix(tool, "python3:")
-		})
-	}()
+// pip3Install checks if the python3 is installed.
+func pip3Install(python3Tool *BuildTool, libraries *[]string) error {
+	// Setup python3 if not set.
+	if python3Tool != nil {
+		setupPython3(python3Tool.rootDir)
+	} else if runtime.GOOS == "linux" {
+		setupPython3("/usr/bin")
+	}
 
 	// Install extra tools. pip will skip if already installed.
 	for _, library := range *libraries {
-		libraryName := strings.TrimPrefix(library, "python3:")
+		if !strings.HasPrefix(library, "python3:") {
+			continue
+		}
 
 		// Use Python3.Path instead of "python3" command to ensure it works on Windows.
+		libraryName := strings.TrimPrefix(library, "python3:")
 		title := fmt.Sprintf("[python3 install tool] %s", libraryName)
 		command := fmt.Sprintf("%s -m pip install --user %s", Python3.Path, libraryName)
 		executor := cmd.NewExecutor(title, command)
@@ -66,6 +64,11 @@ func pipInstall(libraries *[]string) error {
 		// Make sure the python3 executable can be found in PATH.
 		envs.AppendPythonBinDir(dirs.PythonUserBase)
 	}
+
+	// Remove python3:xxx from list.
+	*libraries = slices.DeleteFunc(*libraries, func(element string) bool {
+		return strings.HasPrefix(element, "python3")
+	})
 
 	return nil
 }
