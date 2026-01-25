@@ -6,6 +6,7 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
 	"os"
+	"path/filepath"
 )
 
 // CleanEnv clear all environments and reset PATH.
@@ -28,7 +29,7 @@ func CleanEnv() {
 	paths = append(paths, "/usr/local/bin")
 	paths = append(paths, "/usr/bin")
 	paths = append(paths, "/usr/sbin")
-	paths = append(paths, home+"/.local/bin")
+	paths = append(paths, filepath.Join(dirs.PythonUserBase, "bin"))
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
 	os.Setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 }
