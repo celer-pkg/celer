@@ -329,7 +329,7 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 		}
 	} else {
 		// Clone conf repo.
-		if err := git.CloneRepo("[clone conf repo]", url, branch, false, 0, confDir); err != nil {
+		if err := git.CloneRepo("[clone conf repo]", url, branch, 0, confDir); err != nil {
 			return fmt.Errorf("clone conf repo: %w", err)
 		}
 
@@ -790,7 +790,7 @@ func (c *Celer) clonePorts() error {
 			return err
 		}
 
-		if err := git.CloneRepo("[clone ports]", portsRepoUrl, "", false, 0, portsDir); err != nil {
+		if err := git.CloneRepo("[clone ports]", portsRepoUrl, "", 0, portsDir); err != nil {
 			return err
 		}
 	}

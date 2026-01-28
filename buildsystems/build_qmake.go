@@ -28,7 +28,7 @@ func (qmake) Name() string {
 func (q *qmake) CheckTools() []string {
 	// Start with build_tools from port.toml
 	tools := slices.Clone(q.BuildConfig.BuildTools)
-	
+
 	// Add default tools
 	tools = append(tools, "git", "cmake")
 	return tools
@@ -59,9 +59,14 @@ func (q qmake) configureOptions() ([]string, error) {
 	// Remove common cross compile args for native build.
 	if q.PortConfig.Native || q.BuildConfig.DevDep {
 		options = slices.DeleteFunc(options, func(element string) bool {
-			return strings.Contains(element, "-sysroot=")
+			return strings.Contains(element, "-sysroot")
 		})
+	} else if q.Ctx.Platform().GetRootFS() != nil {
+		options = append(options, "-sysroot "+q.Ctx.Platform().GetRootFS().GetFullPath())
 	}
+
+	// Set installation directory.
+	options = append(options, "-extprefix "+q.PortConfig.PackageDir)
 
 	// Set build library type.
 	libraryType := q.libraryType("-shared", "-static")
