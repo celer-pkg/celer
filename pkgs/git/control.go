@@ -13,20 +13,17 @@ import (
 )
 
 // CloneRepo clone git repo.
-func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, depth int, repoDir string) error {
+func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error {
 	cloneRepo := func(repoRef, repoUrl, repoDir string, depth int) string {
 		var buffer bytes.Buffer
 		buffer.WriteString("git clone")
 		if repoRef != "" {
 			buffer.WriteString(" --branch " + repoRef)
 		}
-		if !ignoreSubmodule {
-			buffer.WriteString(" --recursive")
-		}
 		if depth > 0 {
-			buffer.WriteString(fmt.Sprintf(" --depth %d", depth))
+			fmt.Fprintf(&buffer, " --depth %d", depth)
 		}
-		buffer.WriteString(fmt.Sprintf(" %s %s", repoUrl, repoDir))
+		fmt.Fprintf(&buffer, " %s %s", repoUrl, repoDir)
 		return buffer.String()
 	}
 
@@ -70,16 +67,21 @@ func CloneRepo(title, repoUrl, repoRef string, ignoreSubmodule bool, depth int, 
 		return fmt.Errorf("failed to reset --hard.\n %w", err)
 	}
 
-	// Update submodules.
-	if !ignoreSubmodule && pathExists(filepath.Join(repoDir, ".gitmodules")) {
-		command = "git submodule update --init --recursive"
-		executor = cmd.NewExecutor(title+" (clone submodule)", command)
-		executor.SetWorkDir(repoDir)
-		if err := executor.Execute(); err != nil {
-			return fmt.Errorf("failed to update submodules.\n %w", err)
-		}
+	return nil
+}
+
+// UpdateSubmodules update git submodules.
+func UpdateSubmodules(title, repoDir string) error {
+	if !fileio.PathExists(filepath.Join(repoDir, ".gitmodules")) {
+		return nil
 	}
 
+	command := "git submodule update --init --recursive"
+	executor := cmd.NewExecutor(title, command)
+	executor.SetWorkDir(repoDir)
+	if err := executor.Execute(); err != nil {
+		return fmt.Errorf("failed to update submodules.\n %w", err)
+	}
 	return nil
 }
 

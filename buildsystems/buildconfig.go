@@ -65,6 +65,7 @@ type buildSystem interface {
 	// Clone & patch source code
 	Clone(repoUrl, repoRef, archive string, depth int) error
 	Patch() error
+	UpdateSubmodules() error
 
 	// Configure
 	configureOptions() ([]string, error)
@@ -359,9 +360,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		}
 
 		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
-		if err := git.CloneRepo(title, repoUrl, repoRef,
-			b.PortConfig.IgnoreSubmodule, depth,
-			b.PortConfig.RepoDir); err != nil {
+		if err := git.CloneRepo(title, repoUrl, repoRef, depth, b.PortConfig.RepoDir); err != nil {
 			return err
 		}
 	} else if repoUrl != "_" {
@@ -506,6 +505,16 @@ func (b BuildConfig) Patch() error {
 	return nil
 }
 
+func (b BuildConfig) UpdateSubmodules() error {
+	if b.PortConfig.IgnoreSubmodule ||
+		!fileio.PathExists(filepath.Join(b.PortConfig.RepoDir, ".gitmodules")) {
+		return nil
+	}
+
+	title := fmt.Sprintf("[update submodules for %s]", b.PortConfig.nameVersionDesc())
+	return git.UpdateSubmodules(title, b.PortConfig.RepoDir)
+}
+
 // Can be override by different buildsystems.
 func (b BuildConfig) configureOptions() ([]string, error) {
 	return slices.Clone(b.Options), nil
@@ -568,6 +577,11 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	// Apply patches.
 	if err := b.buildSystem.Patch(); err != nil {
 		return fmt.Errorf("patch %s: %w", b.PortConfig.nameVersionDesc(), err)
+	}
+
+	// Update submodules.
+	if err := b.buildSystem.UpdateSubmodules(); err != nil {
+		return fmt.Errorf("update submodules %s: %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
 	// Configure related steps.
