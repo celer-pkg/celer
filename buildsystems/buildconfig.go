@@ -843,7 +843,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	var appendLibDir = func(libdir string) {
 		libdir = fileio.ToCygpath(libdir)
 		lFlag := "-L" + libdir
-		rFlag := "-Wl,-rpath-link=" + libdir
+		rFlag := "-Wl,-rpath-link," + libdir
 
 		// Add -L/rpath-link flag.
 		if !slices.Contains(ldflags, lFlag) {
@@ -860,7 +860,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	)
 
 	// sysroot and tmp dir.
-	if b.DevDep {
+	if b.DevDep || b.Native {
 		// Append CFLAGS/CXXFLAGS/LDFLAGS
 		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))

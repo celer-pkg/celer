@@ -403,7 +403,7 @@ func (b *BuildConfig) appendLibDir(libDir string) {
 		linkFlag := "-L" + libDir
 
 		// -Wl,-rpath-link, used to specify the directory that libraries looking for indirectly.
-		rpathlinkFlag := "-Wl,-rpath-link=" + libDir
+		rpathlinkFlag := "-Wl,-rpath-link," + libDir
 
 		// Check if this is a dependency lib dir (tmpDeps/lib) - if so, prepend it.
 		tmpDepsPrefix := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
