@@ -643,7 +643,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 
 	// Fixup pkg config files.
 	var prefix = expr.If(rootfs == nil || b.DevDep,
-		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.HostName+"-dev"),
+		filepath.Join(dirs.WorkspaceDir, "installed", b.PortConfig.HostName+"-dev"),
 		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.LibraryFolder),
 	)
 	if err := fileio.FixupPkgConfig(b.PortConfig.PackageDir, prefix); err != nil {
