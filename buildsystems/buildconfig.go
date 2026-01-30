@@ -642,7 +642,10 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	}
 
 	// Fixup pkg config files.
-	var prefix = expr.If(rootfs == nil || b.DevDep,
+	// 1. Use absolute path for dev dependencies since native_file wrapper unsets PKG_CONFIG_SYSROOT_DIR
+	// and this can also make sure system pc file can work right.
+	// 2. Use relative path for dependencies, this make installed pc files portable with workspace.
+	var prefix = expr.If(rootfs == nil || b.DevDep || b.Native,
 		filepath.Join(dirs.WorkspaceDir, "installed", b.PortConfig.HostName+"-dev"),
 		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.LibraryFolder),
 	)
