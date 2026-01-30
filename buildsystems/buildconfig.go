@@ -537,7 +537,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	}
 
 	if err := buildtools.CheckTools(b.Ctx, tools...); err != nil {
-		return fmt.Errorf("failed to check tools for %s.\n %w", b.PortConfig.nameVersionDesc(), err)
+		return err
 	}
 
 	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.

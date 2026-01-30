@@ -107,10 +107,17 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		}
 	}
 
-	// Keep tools that not managed by buildTools.
+	// Remove tools that are already managed by buildTools.
 	uniqueTools = slices.DeleteFunc(uniqueTools, func(element string) bool {
 		return buildTools.contains(element)
 	})
+
+	// Check if package installed for linux.
+	if runtime.GOOS == "linux" && len(uniqueTools) > 0 {
+		if err := checkSystemTools(uniqueTools); err != nil {
+			return err
+		}
+	}
 
 	// Check if we need to install python3 packages.
 	python3PackagesRequired := slices.ContainsFunc(uniqueTools, func(tool string) bool {
@@ -127,13 +134,6 @@ func CheckTools(ctx context.Context, tools ...string) error {
 	// Setup msys2 for windows.
 	if msys2Tool != nil && runtime.GOOS == "windows" {
 		if err := setupMSYS2(msys2Tool.rootDir, &uniqueTools); err != nil {
-			return err
-		}
-	}
-
-	// Check if package installed for linux.
-	if runtime.GOOS == "linux" && len(uniqueTools) > 0 {
-		if err := checkSystemTools(uniqueTools); err != nil {
 			return err
 		}
 	}

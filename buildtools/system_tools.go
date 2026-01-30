@@ -4,6 +4,7 @@ import (
 	"celer/pkgs/cmd"
 	"fmt"
 	"runtime"
+	"slices"
 	"strings"
 )
 
@@ -14,10 +15,19 @@ func checkSystemTools(packageNames []string) error {
 		return err
 	}
 
-	var missing []string
+	// Check if python3-pip is installed when python3 packages are needed.
+	if slices.ContainsFunc(packageNames, func(item string) bool {
+		return strings.HasPrefix(item, "python3:")
+	}) {
+		packageNames = append(packageNames, "apt:python3-pip")
+	}
+
+	var missedTools []string
 	for _, packageName := range packageNames {
 		packageName = strings.TrimSpace(packageName)
-		if packageName == "" {
+		if packageName == "" ||
+			strings.HasPrefix(packageName, "python3:") ||
+			strings.HasPrefix(packageName, "msys2:") {
 			continue
 		}
 
@@ -35,11 +45,10 @@ func checkSystemTools(packageNames []string) error {
 		default:
 			return fmt.Errorf("unsupported package manager prefix in package name: %s", packageName)
 		}
-
-		// Check error from isLibraryInstalled.
 		if err != nil {
 			return err
 		}
+
 		if !installed {
 			switch osType {
 			case "debian", "ubuntu":
@@ -50,32 +59,32 @@ func checkSystemTools(packageNames []string) error {
 				return fmt.Errorf("unsupported OS type: %s", osType)
 			}
 
-			missing = append(missing, packageName)
+			missedTools = append(missedTools, packageName)
 		}
 	}
 
-	if len(missing) > 0 {
+	if len(missedTools) > 0 {
 		var summary string
-		if len(missing) == 1 {
-			summary = fmt.Sprintf("`%s` is not installed", missing[0])
-		} else if len(missing) == 2 {
-			summary = fmt.Sprintf("`%s` and `%s` are not installed", missing[0], missing[1])
+		if len(missedTools) == 1 {
+			summary = fmt.Sprintf("'%s' is not installed", missedTools[0])
+		} else if len(missedTools) == 2 {
+			summary = fmt.Sprintf("'%s' and '%s' are not installed", missedTools[0], missedTools[1])
 		} else {
-			summary = "`" + strings.Join(missing[:len(missing)-1], "`, `") + " and `" + missing[len(missing)-1] + "` are not installed"
+			summary = "'" + strings.Join(missedTools[:len(missedTools)-1], "', '") + " and '" + missedTools[len(missedTools)-1] + "' are not installed"
 		}
 
-		joined := strings.Join(missing, " ")
+		joined := strings.Join(missedTools, " ")
 		switch runtime.GOOS {
 		case "linux":
 			switch osType {
 			case "debian", "ubuntu":
-				return fmt.Errorf("%s.\n please install it with `sudo apt install %s`", summary, joined)
+				return fmt.Errorf("%s.\n please install it with 'sudo apt install %s'", summary, joined)
 			case "centos", "fedora", "rhel":
-				return fmt.Errorf("%s.\n please install it with `sudo yum install %s`", summary, joined)
+				return fmt.Errorf("%s.\n please install it with 'sudo yum install %s'", summary, joined)
 			}
 
 		case "darwin":
-			return fmt.Errorf("%s.\n please install it with `brew install %s`", joined, joined)
+			return fmt.Errorf("%s.\n please install it with 'brew install %s'", summary, joined)
 		}
 	}
 

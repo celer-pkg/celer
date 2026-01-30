@@ -86,13 +86,13 @@ EXAMPLES:
 
 func (i *installCmd) runInstall(nameVersion string) error {
 	if err := i.celer.Init(); err != nil {
-		return configs.PrintError(err, "Failed to initialize celer.")
+		return configs.PrintError(err, "failed to initialize celer.")
 	}
 
 	// Validate and clean input.
 	cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
 	if err != nil {
-		return configs.PrintError(err, "Invalid package specification.")
+		return configs.PrintError(err, "invalid package specification.")
 	}
 
 	return i.install(cleanedNameVersion)
@@ -142,7 +142,7 @@ func (i *installCmd) install(nameVersion string) error {
 	i.celer.Global.Verbose = i.verbose
 
 	if err := i.celer.Setup(); err != nil {
-		return configs.PrintError(err, "Failed to setup celer.")
+		return configs.PrintError(err, "failed to setup celer.")
 	}
 
 	// Parse name and version (already validated)
@@ -153,7 +153,7 @@ func (i *installCmd) install(nameVersion string) error {
 	portInPorts := dirs.GetPortPath(name, version)
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		err := fmt.Errorf("port %s is not yet available in the ports collection.\n ⭐⭐⭐ Welcome to contribute to the ports. ⭐⭐⭐", nameVersion)
-		return configs.PrintError(err, "Failed to install %s.", nameVersion)
+		return configs.PrintError(err, "failed to install %s.", nameVersion)
 	}
 
 	// Install the port.
