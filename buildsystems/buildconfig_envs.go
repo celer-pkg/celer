@@ -49,14 +49,14 @@ func (b *BuildConfig) setupEnvs() {
 	for _, env := range b.Envs {
 		env = strings.TrimSpace(env)
 
-		index := strings.Index(env, "=")
-		if index == -1 {
+		before, after, ok := strings.Cut(env, "=")
+		if !ok {
 			color.Printf(color.Warning, "invalid environment variable `%s` and is ignored.", env)
 			continue
 		}
 
-		key := strings.TrimSpace(env[:index])
-		currentValue := strings.TrimSpace(env[index+1:])
+		key := strings.TrimSpace(before)
+		currentValue := strings.TrimSpace(after)
 		currentValue = b.expandVariables(currentValue)
 
 		switch key {
@@ -88,8 +88,8 @@ func (b *BuildConfig) setupEnvs() {
 	}
 
 	if b.buildSystem.Name() != "cmake" {
-		toolchain := b.Ctx.Platform().GetToolchain()
 		// This allows the bin to locate the libraries in the relative lib dir.
+		toolchain := b.Ctx.Platform().GetToolchain()
 		if strings.ToLower(toolchain.GetSystemName()) == "linux" &&
 			b.buildSystem.Name() == "makefiles" {
 			b.envBackup.setenv("LDFLAGS", env.JoinSpace("-Wl,-rpath=\\$$ORIGIN/../lib", os.Getenv("LDFLAGS")))
@@ -198,10 +198,10 @@ func (b BuildConfig) setupPkgConfig() {
 
 			pathDivider = ":"
 
-			// Tmpdeps dir is a symlink in rootfs.
-			tmpDepsDir := filepath.Join(sysrootDir, "tmp", "deps", b.PortConfig.LibraryFolder)
+			// Use actual tmpDepsDir path (not sysroot symlink) for pkgconfig to ensure correct library paths
+			tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
 
-			// Append pkgconfig with tmp/deps directory.
+			// Prepend pkgconfig with actual tmp/deps directory (not sysroot symlink) to prioritize it.
 			configPaths = append([]string{
 				filepath.Join(tmpDepsDir, "lib", "pkgconfig"),
 				filepath.Join(tmpDepsDir, "share", "pkgconfig"),
@@ -288,10 +288,15 @@ func (b *BuildConfig) setEnvFlags() {
 		}
 
 		// Update LDFLAGS
+		// Add dependency lib dir first (so it takes higher priority than sysroot lib dirs).
 		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
+
+		// Add sysroot lib dirs.
 		for _, item := range rootfs.GetLibDirs() {
 			libDir := filepath.Join(sysrootDir, item)
-			b.appendLibDir(libDir)
+			if fileio.PathExists(libDir) {
+				b.appendLibDir(libDir)
+			}
 		}
 	} else {
 		// Update CFLAGS/CXXFLAGS/LDFLAGS
@@ -320,15 +325,28 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 		cflags := strings.Fields(os.Getenv("CFLAGS"))
 		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
 
+		// Check if this is a dependency include dir (tmpDeps/include) - if so, prepend it.
+		tmpDepsPrefix := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+		isDepsIncludeDir := strings.Contains(includeDir, tmpDepsPrefix)
+
 		// Append include dir if not exists.
-		includeDir = "-I " + includeDir
+		// Prepend dependency include dir flags to prioritize them.
+		includeFlag := "-I " + includeDir
 		var newAppended = false
-		if !slices.Contains(cflags, includeDir) {
-			cflags = append(cflags, includeDir)
+		if !slices.Contains(cflags, includeFlag) {
+			if isDepsIncludeDir {
+				cflags = append([]string{includeFlag}, cflags...)
+			} else {
+				cflags = append(cflags, includeFlag)
+			}
 			newAppended = true
 		}
-		if !slices.Contains(cxxflags, includeDir) {
-			cxxflags = append(cxxflags, includeDir)
+		if !slices.Contains(cxxflags, includeFlag) {
+			if isDepsIncludeDir {
+				cxxflags = append([]string{includeFlag}, cxxflags...)
+			} else {
+				cxxflags = append(cxxflags, includeFlag)
+			}
 			newAppended = true
 		}
 
@@ -385,15 +403,28 @@ func (b *BuildConfig) appendLibDir(libDir string) {
 		linkFlag := "-L" + libDir
 
 		// -Wl,-rpath-link, used to specify the directory that libraries looking for indirectly.
-		rpathlinkFlag := "-Wl,-rpath-link=" + libDir
+		rpathlinkFlag := "-Wl,-rpath-link," + libDir
 
+		// Check if this is a dependency lib dir (tmpDeps/lib) - if so, prepend it.
+		tmpDepsPrefix := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+		isDepsLibDir := strings.Contains(libDir, tmpDepsPrefix)
+
+		// Prepend dependency lib dir flags to prioritize them.
 		var newAppended = false
 		if !slices.Contains(parts, linkFlag) {
-			parts = append(parts, linkFlag)
+			if isDepsLibDir {
+				parts = append([]string{linkFlag}, parts...)
+			} else {
+				parts = append(parts, linkFlag)
+			}
 			newAppended = true
 		}
 		if !slices.Contains(parts, rpathlinkFlag) {
-			parts = append(parts, rpathlinkFlag)
+			if isDepsLibDir {
+				parts = append([]string{rpathlinkFlag}, parts...)
+			} else {
+				parts = append(parts, rpathlinkFlag)
+			}
 			newAppended = true
 		}
 

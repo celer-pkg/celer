@@ -65,6 +65,7 @@ type buildSystem interface {
 	// Clone & patch source code
 	Clone(repoUrl, repoRef, archive string, depth int) error
 	Patch() error
+	UpdateSubmodules() error
 
 	// Configure
 	configureOptions() ([]string, error)
@@ -359,9 +360,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		}
 
 		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
-		if err := git.CloneRepo(title, repoUrl, repoRef,
-			b.PortConfig.IgnoreSubmodule, depth,
-			b.PortConfig.RepoDir); err != nil {
+		if err := git.CloneRepo(title, repoUrl, repoRef, depth, b.PortConfig.RepoDir); err != nil {
 			return err
 		}
 	} else if repoUrl != "_" {
@@ -506,6 +505,16 @@ func (b BuildConfig) Patch() error {
 	return nil
 }
 
+func (b BuildConfig) UpdateSubmodules() error {
+	if b.PortConfig.IgnoreSubmodule ||
+		!fileio.PathExists(filepath.Join(b.PortConfig.RepoDir, ".gitmodules")) {
+		return nil
+	}
+
+	title := fmt.Sprintf("[update submodules for %s]", b.PortConfig.nameVersionDesc())
+	return git.UpdateSubmodules(title, b.PortConfig.RepoDir)
+}
+
 // Can be override by different buildsystems.
 func (b BuildConfig) configureOptions() ([]string, error) {
 	return slices.Clone(b.Options), nil
@@ -568,6 +577,11 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	// Apply patches.
 	if err := b.buildSystem.Patch(); err != nil {
 		return fmt.Errorf("patch %s: %w", b.PortConfig.nameVersionDesc(), err)
+	}
+
+	// Update submodules.
+	if err := b.buildSystem.UpdateSubmodules(); err != nil {
+		return fmt.Errorf("update submodules %s: %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
 	// Configure related steps.
@@ -724,21 +738,23 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 // expandOptionsVariables Replace placeholders with real paths and values.
 func (b *BuildConfig) expandOptionsVariables() {
 	// Remove cross compile args when build in dev mode.
-	crossArgs := []string{
-		"${HOST}",
-		"${SYSTEM_NAME}",
-		"${SYSTEM_PROCESSOR}",
-		"${SYSROOT}",
-		"${CROSSTOOL_PREFIX}",
-	}
-	b.Options = slices.DeleteFunc(b.Options, func(argument string) bool {
-		for _, item := range crossArgs {
-			if strings.Contains(argument, item) {
-				return true
-			}
+	if b.DevDep {
+		crossArgs := []string{
+			"${HOST}",
+			"${SYSTEM_NAME}",
+			"${SYSTEM_PROCESSOR}",
+			"${SYSROOT}",
+			"${CROSSTOOL_PREFIX}",
 		}
-		return false
-	})
+		b.Options = slices.DeleteFunc(b.Options, func(argument string) bool {
+			for _, item := range crossArgs {
+				if strings.Contains(argument, item) {
+					return true
+				}
+			}
+			return false
+		})
+	}
 
 	// Expand placeholders.
 	for index, argument := range b.Options {
@@ -829,7 +845,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	var appendLibDir = func(libdir string) {
 		libdir = fileio.ToCygpath(libdir)
 		lFlag := "-L" + libdir
-		rFlag := "-Wl,-rpath-link=" + libdir
+		rFlag := "-Wl,-rpath-link," + libdir
 
 		// Add -L/rpath-link flag.
 		if !slices.Contains(ldflags, lFlag) {
@@ -846,7 +862,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	)
 
 	// sysroot and tmp dir.
-	if b.DevDep {
+	if b.DevDep || b.Native {
 		// Append CFLAGS/CXXFLAGS/LDFLAGS
 		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))

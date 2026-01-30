@@ -115,9 +115,9 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 		for _, libDir := range r.LibDirs {
 			libPath := filepath.Join("${CMAKE_SYSROOT}", libDir)
 			libPath = filepath.ToSlash(libPath)
-			fmt.Fprintf(&buffer, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -Wl,-rpath-link=%s")`+"\n", libPath)
-			fmt.Fprintf(&buffer, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " -Wl,-rpath-link=%s")`+"\n", libPath)
-			fmt.Fprintf(&buffer, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -Wl,-rpath-link=%s")`+"\n", libPath)
+			fmt.Fprintf(&buffer, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -Wl,-rpath-link,%s")`+"\n", libPath)
+			fmt.Fprintf(&buffer, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " -Wl,-rpath-link,%s")`+"\n", libPath)
+			fmt.Fprintf(&buffer, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -Wl,-rpath-link,%s")`+"\n", libPath)
 		}
 	}
 

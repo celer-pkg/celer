@@ -36,7 +36,7 @@ func (meson) Name() string {
 func (m meson) CheckTools() []string {
 	// Start with build_tools from port.toml
 	tools := slices.Clone(m.BuildConfig.BuildTools)
-	
+
 	// Add default tools
 	tools = append(tools, "git", "ninja", "cmake")
 
@@ -560,10 +560,10 @@ func (m meson) appendLinkArgs(linkArgs *[]string, linkDir string) {
 		if toolchainName == "gcc" || toolchainName == "clang" {
 			if len(*linkArgs) == 0 {
 				*linkArgs = append(*linkArgs, fmt.Sprintf("'-L %s'", linkDir))
-				*linkArgs = append(*linkArgs, fmt.Sprintf(`'-Wl,-rpath-link=%s'`, linkDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, linkDir))
 			} else {
 				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-L %s'", linkDir))
-				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-Wl,-rpath-link=%s'", linkDir))
+				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-Wl,-rpath-link,%s'", linkDir))
 			}
 		}
 

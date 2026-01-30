@@ -174,22 +174,29 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 		// Target directory.
 		var targetDir string
 		if c.RootFS() != nil {
+			// tmp/deps is a symlink in rootfs.
+			sysrootDir = "${CMAKE_SYSROOT}"
+			targetDir = filepath.Join(sysrootDir, "tmp", "deps", libraryFolder)
+
+			// Prepend pkgconfig with tmp/deps directory to prioritize it.
+			configPaths = []string{
+				filepath.Join(targetDir, "lib", "pkgconfig"),
+				filepath.Join(targetDir, "share", "pkgconfig"),
+			}
+
+			// Add rootfs pkgconfig paths to both PKG_CONFIG_LIBDIR and PKG_CONFIG_PATH.
 			for _, configPath := range c.RootFS().GetPkgConfigPath() {
 				configLibDirs = append(configLibDirs, filepath.Join("${CMAKE_SYSROOT}", configPath))
 			}
-
-			// tmpdeps is a symlink in rootfs.
-			sysrootDir = "${CMAKE_SYSROOT}"
-			targetDir = filepath.Join(sysrootDir, "tmp", "deps", libraryFolder)
 		} else {
 			sysrootDir = "${CELER_ROOT}/installed"
 			targetDir = sysrootDir
-		}
 
-		// Append pkgconfig with tmp/deps directory.
-		configPaths = []string{
-			filepath.Join(targetDir, "lib", "pkgconfig"),
-			filepath.Join(targetDir, "share", "pkgconfig"),
+			// Append pkgconfig with tmp/deps directory.
+			configPaths = []string{
+				filepath.Join(targetDir, "lib", "pkgconfig"),
+				filepath.Join(targetDir, "share", "pkgconfig"),
+			}
 		}
 	}
 
