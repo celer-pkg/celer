@@ -241,7 +241,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 }
 
 func (c *Celer) Setup() error {
-	return c.platform.setup()
+	return c.platform.setup(c.CCacheEnabled())
 }
 
 func (c *Celer) Deploy(force bool) error {

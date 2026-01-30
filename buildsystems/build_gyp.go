@@ -31,7 +31,7 @@ func (g gyp) Name() string {
 func (g gyp) CheckTools() []string {
 	// Start with build_tools from port.toml
 	tools := slices.Clone(g.BuildConfig.BuildTools)
-	
+
 	// Add default tools
 	tools = append(tools, "git", "cmake", "python3:gyp-next", "ninja")
 	return tools

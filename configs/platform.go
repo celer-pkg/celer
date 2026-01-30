@@ -136,7 +136,7 @@ func (p *Platform) Write(platformPath string) error {
 }
 
 // setup rootfs and toolchain
-func (p *Platform) setup() error {
+func (p *Platform) setup(ccacheEnabled bool) error {
 	// Repair rootfs if not empty.
 	if p.RootFS != nil {
 		if err := p.RootFS.CheckAndRepair(); err != nil {
@@ -148,9 +148,10 @@ func (p *Platform) setup() error {
 		return fmt.Errorf("failed to check and repair toolchain.\n %w", err)
 	}
 
-	// Repaire ccache.
-	if err := buildtools.CheckTools(p.ctx, "ccache"); err != nil {
-		return fmt.Errorf("failed to check and repair ccache.\n %w", err)
+	if ccacheEnabled {
+		if err := buildtools.CheckTools(p.ctx, "ccache"); err != nil {
+			return fmt.Errorf("failed to check and repair ccache.\n %w", err)
+		}
 	}
 
 	// Generate toolchain file.
