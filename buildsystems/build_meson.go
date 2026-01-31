@@ -446,16 +446,30 @@ func (m meson) generateNativeFile() (string, error) {
 
 	// Create a wrapper script for pkg-config that includes dev dependencies in PKG_CONFIG_PATH
 	// This wrapper ensures that pkg-config can find build-time dependencies
+	// For native build, we need to search system paths for system libraries like glib-2.0
 	wrapperPath := filepath.Join(m.PortConfig.BuildDir, "pkg-config.sh")
+
+	// Get system pkg-config search paths (default paths for x86_64-linux)
+	systemPkgConfigPath := strings.Join([]string{
+		"/usr/lib/x86_64-linux-gnu/pkgconfig",
+		"/usr/lib/pkgconfig",
+		"/usr/share/pkgconfig",
+	}, ":")
+
+	// Prepend dev dependencies paths before system paths so dev dependencies are found first
+	// This ensures that celer-installed tools (like wayland-scanner) take priority over system versions
+	allPaths := append(devPkgConfigPaths, systemPkgConfigPath)
+
 	wrapperContent := fmt.Sprintf(`#!/bin/bash
 # pkg-config wrapper that includes dev dependencies' pkg-config paths
 # This wrapper is used by meson to find build-time dependencies
-# We need to clear PKG_CONFIG_SYSROOT_DIR to avoid path mangling for build tools
-export PKG_CONFIG_PATH="%s:$PKG_CONFIG_PATH"
+# For native build, we need to search system paths for system libraries like glib-2.0
+export PKG_CONFIG_PATH="%s"
 unset PKG_CONFIG_SYSROOT_DIR
+unset PKG_CONFIG_LIBDIR
 exec %s "$@"
 `,
-		strings.Join(devPkgConfigPaths, ":"),
+		strings.Join(allPaths, ":"),
 		filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf"),
 	)
 
