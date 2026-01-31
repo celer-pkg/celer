@@ -456,8 +456,9 @@ func (m meson) generateNativeFile() (string, error) {
 		"/usr/share/pkgconfig",
 	}, ":")
 
-	// Prepend system paths before dev dependencies paths so system libraries are found first
-	allPaths := append([]string{systemPkgConfigPath}, devPkgConfigPaths...)
+	// Prepend dev dependencies paths before system paths so dev dependencies are found first
+	// This ensures that celer-installed tools (like wayland-scanner) take priority over system versions
+	allPaths := append(devPkgConfigPaths, systemPkgConfigPath)
 
 	wrapperContent := fmt.Sprintf(`#!/bin/bash
 # pkg-config wrapper that includes dev dependencies' pkg-config paths
