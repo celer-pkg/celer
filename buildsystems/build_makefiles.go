@@ -107,9 +107,13 @@ func (m makefiles) configureOptions() ([]string, error) {
 				strings.HasPrefix(element, "--enable-cross-compile")
 		})
 	} else {
-		if m.shouldAddHost(options) {
+		if m.needHostAndBuild(options) {
 			toolchain := m.Ctx.Platform().GetToolchain()
 			options = append(options, fmt.Sprintf("--host=%s", toolchain.GetHost()))
+			// Get the build machine triplet (the machine running the compiler).
+			// This is needed for packages like flex，cpython that build tools during compilation.
+			buildTriplet := m.getBuildTriplet()
+			options = append(options, fmt.Sprintf("--build=%s", buildTriplet))
 		}
 	}
 
@@ -178,7 +182,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	return options, nil
 }
 
-func (m makefiles) shouldAddHost(options []string) bool {
+func (m makefiles) needHostAndBuild(options []string) bool {
 	if m.shouldConfigureWithPerl() {
 		return false
 	}
@@ -434,4 +438,46 @@ func (m makefiles) shouldConfigureWithPerl() bool {
 	}
 
 	return false
+}
+
+// getBuildTriplet returns the build machine triplet (e.g., "x86_64-linux-gnu").
+// This is the machine where the compiler is running, not the target machine.
+func (m makefiles) getBuildTriplet() string {
+	// Get the processor architecture.
+	var processor string
+	switch runtime.GOARCH {
+	case "amd64":
+		processor = "x86_64"
+	case "arm64":
+		processor = "aarch64"
+	case "386":
+		processor = "i686"
+	case "arm":
+		processor = "arm"
+	default:
+		processor = runtime.GOARCH
+	}
+
+	// Get the OS.
+	var os string
+	switch runtime.GOOS {
+	case "linux":
+		os = "linux"
+	case "windows":
+		os = "windows"
+	case "darwin":
+		os = "apple"
+	default:
+		os = runtime.GOOS
+	}
+
+	// Return triplet format.
+	switch runtime.GOOS {
+	case "linux":
+		return fmt.Sprintf("%s-%s-gnu", processor, os)
+	case "darwin":
+		return fmt.Sprintf("%s-%s-darwin", processor, os)
+	default:
+		return fmt.Sprintf("%s-%s", processor, os)
+	}
 }
