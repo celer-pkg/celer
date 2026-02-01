@@ -97,7 +97,9 @@ func doFixupPkgConfig(pkgPath, prefix string) error {
 				buffer.WriteString(line + "\n")
 			}
 
-		case strings.HasPrefix(line, "pkgdatadir="):
+		case strings.HasPrefix(line, "pkgdatadir="),
+			strings.HasPrefix(line, "xcbincludedir="),
+			strings.HasPrefix(line, "pythondir="):
 			line = strings.ReplaceAll(line, "${pc_sysrootdir}", "")
 			line = strings.ReplaceAll(line, "${pc_sys_root_dir}", "")
 			buffer.WriteString(line + "\n")
