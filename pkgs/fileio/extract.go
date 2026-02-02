@@ -42,11 +42,7 @@ func Extract(archiveFile, destDir string) error {
 		cmd = exec.Command(tarPath, "-zxf", archiveFile, "-C", destDir)
 
 	case strings.HasSuffix(archiveFile, ".tar.xz"):
-		if runtime.GOOS == "windows" && os.Getenv("GITHUB_ACTIONS") == "true" {
-			cmd = exec.Command("arc", "unarchive", archiveFile, destDir)
-		} else {
-			cmd = exec.Command(tarPath, "-xf", archiveFile, "-C", destDir)
-		}
+		cmd = exec.Command(tarPath, "-xf", archiveFile, "-C", destDir)
 
 	case strings.HasSuffix(archiveFile, ".tar.bz2"):
 		cmd = exec.Command(tarPath, "-xjf", archiveFile, "-C", destDir)
