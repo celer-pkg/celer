@@ -47,7 +47,7 @@ func Extract(archiveFile, destDir string) error {
 			if err != nil {
 				return fmt.Errorf("7z utility not found, please install 7z for Windows")
 			}
-			cmd = exec.Command(sevenZipPath, "x", archiveFile, "-o", destDir)
+			cmd = exec.Command(sevenZipPath, "x", archiveFile, "-o"+destDir)
 		} else {
 			cmd = exec.Command(tarPath, "-Jxf", archiveFile, "-C", destDir)
 		}
