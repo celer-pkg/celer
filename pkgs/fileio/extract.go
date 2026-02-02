@@ -43,9 +43,25 @@ func Extract(archiveFile, destDir string) error {
 
 	case strings.HasSuffix(archiveFile, ".tar.xz"):
 		if runtime.GOOS == "windows" && os.Getenv("GITHUB_ACTIONS") == "true" {
-			cmd = exec.Command("arc", "unarchive", archiveFile, destDir)
+			sevenZipPath, err := exec.LookPath("7z")
+			if err != nil {
+				return fmt.Errorf("7z utility not found, please install 7z for Windows")
+			}
+
+			// Step 1: Extract tar.xz to get .tar file
+			cmd = exec.Command(sevenZipPath, "x", archiveFile, "-o"+destDir)
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stdout
+			cmd.Env = os.Environ()
+			if err := cmd.Run(); err != nil {
+				return fmt.Errorf("extract xz: %w", err)
+			}
+
+			// Step 2: Extract the .tar file
+			tarFile := filepath.Join(destDir, strings.TrimSuffix(filepath.Base(archiveFile), ".xz"))
+			cmd = exec.Command(sevenZipPath, "x", tarFile, "-o"+destDir)
 		} else {
-			cmd = exec.Command(tarPath, "-xf", archiveFile, "-C", destDir)
+			cmd = exec.Command(tarPath, "-Jxf", archiveFile, "-C", destDir)
 		}
 
 	case strings.HasSuffix(archiveFile, ".tar.bz2"):
