@@ -42,19 +42,12 @@ func Extract(archiveFile, destDir string) error {
 		cmd = exec.Command(tarPath, "-zxf", archiveFile, "-C", destDir)
 
 	case strings.HasSuffix(archiveFile, ".tar.xz"):
-		// On Windows, tar.exe needs xz utility to handle .tar.xz files
-		if runtime.GOOS == "windows" {
-			if _, err := exec.LookPath("xz"); err != nil {
-				// If xz not found, try to find 7z as fallback.
-				sevenZipPath, err := exec.LookPath("7z")
-				if err != nil {
-					return fmt.Errorf("xz utility not found, please install xz or 7z for Windows")
-				}
-				cmd = exec.Command(sevenZipPath, "x", archiveFile, "-o"+destDir)
-			} else {
-				// Use tar with explicit xz support.
-				cmd = exec.Command(tarPath, "-xJf", archiveFile, "-C", destDir)
+		if runtime.GOOS == "windows" && os.Getenv("GITHUB_ACTIONS") == "true" {
+			sevenZipPath, err := exec.LookPath("7z")
+			if err != nil {
+				return fmt.Errorf("7z utility not found, please install 7z for Windows")
 			}
+			cmd = exec.Command(sevenZipPath, "x", archiveFile, "-o", destDir)
 		} else {
 			cmd = exec.Command(tarPath, "-Jxf", archiveFile, "-C", destDir)
 		}
