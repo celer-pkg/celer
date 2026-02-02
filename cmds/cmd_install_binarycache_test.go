@@ -34,7 +34,7 @@ func TestInstall_BinaryCache_Success(t *testing.T) {
 
 	var (
 		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.50", "x86_64-windows-msvc-community-14.50")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
 	)
@@ -113,7 +113,7 @@ func TestInstall_BinaryCache_With_Deps_Success(t *testing.T) {
 
 	var (
 		nameVersion     = "glog@0.6.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.50", "x86_64-windows-msvc-community-14.50")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
 	)
@@ -203,7 +203,7 @@ func TestInstall_BinaryCache_Prebuilt_Success(t *testing.T) {
 
 	var (
 		nameVersion     = "prebuilt-x264@stable"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.50", "x86_64-windows-msvc-community-14.50")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
 	)
@@ -285,7 +285,7 @@ func TestInstall_BinaryCache_DirNotDefined_Failed(t *testing.T) {
 
 	var (
 		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.50", "x86_64-windows-msvc-community-14.50")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
 	)
@@ -329,7 +329,7 @@ func TestInstall_BinaryCache_TokenNotDefined_Failed(t *testing.T) {
 
 	var (
 		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.50", "x86_64-windows-msvc-community-14.50")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
 	)
@@ -374,7 +374,7 @@ func TestInstall_BinaryCache_TokenNotSpecified_Failed(t *testing.T) {
 
 	var (
 		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.50", "x86_64-windows-msvc-community-14.50")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
 	)
@@ -419,7 +419,7 @@ func TestInstall_BinaryCache_TokenNotMatch_Failed(t *testing.T) {
 
 	var (
 		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.50", "x86_64-windows-msvc-community-14.50")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
 	)
@@ -464,7 +464,7 @@ func TestInstall_BinaryCache_With_Commit_Success(t *testing.T) {
 
 	var (
 		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.50", "x86_64-windows-msvc-community-14.50")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
 	)
@@ -531,7 +531,7 @@ func TestInstall_BinaryCache_With_Commit_Failed(t *testing.T) {
 
 	var (
 		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.50", "x86_64-windows-msvc-community-14.50")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
 	)

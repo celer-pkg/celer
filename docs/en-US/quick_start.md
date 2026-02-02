@@ -69,7 +69,7 @@ conf
 ├── platforms/                        # Platform configurations
 │   ├── aarch64-linux-gnu-gcc-9.2.toml
 │   ├── x86_64-linux-ubuntu-22.04-gcc-11.5.0.toml
-│   └── x86_64-windows-msvc-community-14.44.toml
+│   └── x86_64-windows-msvc-community-14.50.toml
 └── projects                          # Project configurations
     ├── project_test_01               # Project 01 dependencies
     │   ├── boost                     # Override public build options

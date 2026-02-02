@@ -88,16 +88,16 @@ celer install ffmpeg@5.1.6 -s -t token_xxx
     ├── celer
     │   ├── hash
     │   │   ├── nasm@2.16.03@x86_64-windows-dev.hash
-    │   │   └── x264@stable@x86_64-windows-msvc-community-14.44@project_test_02@release.hash
+    │   │   └── x264@stable@x86_64-windows-msvc-community-14.50@project_test_02@release.hash
     │   └── info
     │       ├── nasm@2.16.03@x86_64-windows-dev.trace
-    │       └── x264@stable@x86_64-windows-msvc-community-14.44@project_test_02@release.trace
+    │       └── x264@stable@x86_64-windows-msvc-community-14.50@project_test_02@release.trace
     ├── x86_64-windows-dev
     │   ├── LICENSE
     │   └── bin
     │       ├── nasm.exe
     │       └── ndisasm.exe
-    └── x86_64-windows-msvc-community-14.44@project_test_02@release
+    └── x86_64-windows-msvc-community-14.50@project_test_02@release
         ├── bin
         │   ├── libx264-164.dll
         │   └── x264.exe
@@ -132,7 +132,7 @@ Many third-party libraries require additional build tools during compilation (e.
 
 On Linux systems, Celer also compiles and installs autoconf, automake, m4, libtool, and gettext from source into this directory.
 
-#### 4️⃣ `installed/x86_64-windows-msvc-community-14.44@project_test_02@release/`
+#### 4️⃣ `installed/x86_64-windows-msvc-community-14.50@project_test_02@release/`
 
 Storage directory for all third-party library build artifacts. In `toolchain_file.cmake`, `CMAKE_PREFIX_PATH` will be set to this directory so that CMake can find third-party libraries here.
 

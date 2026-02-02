@@ -69,7 +69,7 @@ conf
 ├── platforms/                       # 平台配置
 │   ├── aarch64-linux-gnu-gcc-9.2.toml
 │   ├── x86_64-linux-ubuntu-22.04-gcc-11.5.0.toml
-│   └── x86_64-windows-msvc-community-14.44.toml
+│   └── x86_64-windows-msvc-community-14.50.toml
 └── projects/                        # 项目配置
     ├── project_test_01/             # 项目 01 的依赖
     │   ├── boost/                   # 覆盖公共构建选项

@@ -33,7 +33,7 @@ func TestInstall_x86_64_GCC_CUDA(t *testing.T) {
 
 	var (
 		nameVersion     = "cuda_toolkit@12.9.1"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.50", "x86_64-windows-msvc-community-14.50")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
 	)
