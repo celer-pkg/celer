@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	visualStudio_17_2026 = "Visual Studio 17 2026"
 	visualStudio_17_2022 = "Visual Studio 17 2022"
 	visualStudio_16_2019 = "Visual Studio 16 2019"
 	visualStudio_15_2017 = "Visual Studio 15 2017 Win64"
@@ -220,7 +221,7 @@ func (c cmake) configured() bool {
 			fileio.PathExists(cmakeCache) &&
 			fileio.PathExists(makefile)
 
-	case visualStudio_17_2022, visualStudio_16_2019, visualStudio_15_2017, visualStudio_14_2015:
+	case visualStudio_17_2026, visualStudio_17_2022, visualStudio_16_2019, visualStudio_15_2017, visualStudio_14_2015:
 		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
 		slnFile := filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".sln")
 		vcxprojFile := filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".vcxproj")
@@ -403,10 +404,12 @@ func detectMSVCGenerator() (string, error) {
 
 	// return msvc name.
 	switch {
-	case strings.Contains(msvcDir, "2019"):
-		return visualStudio_16_2019, nil
+	case strings.Contains(msvcDir, "2026"):
+		return visualStudio_17_2026, nil
 	case strings.Contains(msvcDir, "2022"):
 		return visualStudio_17_2022, nil
+	case strings.Contains(msvcDir, "2019"):
+		return visualStudio_16_2019, nil
 	case strings.Contains(msvcDir, "2017"):
 		return visualStudio_15_2017, nil
 	case strings.Contains(msvcDir, "2015"):

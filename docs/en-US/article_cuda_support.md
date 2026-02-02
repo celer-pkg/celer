@@ -149,7 +149,7 @@ This enables seamless integration with Visual Studio projects, allowing you to:
 To use CUDA with Visual Studio:
 
 ```bash
-cmake -G "Visual Studio 17 2022" -A x64 \
+cmake -G "Visual Studio 17 2026" -A x64 \
     -DCMAKE_TOOLCHAIN_FILE=C:/path/to/toolchain_file.cmake ..
 cmake --build . --config Release
 ```

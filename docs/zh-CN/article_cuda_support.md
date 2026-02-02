@@ -149,7 +149,7 @@ Celer 自动使用以下标志设置 `CMAKE_CUDA_FLAGS_INIT`：
 要使用 Visual Studio 的 CUDA：
 
 ```bash
-cmake -G "Visual Studio 17 2022" -A x64 \
+cmake -G "Visual Studio 17 2026" -A x64 \
     -DCMAKE_TOOLCHAIN_FILE=C:/path/to/toolchain_file.cmake ..
 cmake --build . --config Release
 ```

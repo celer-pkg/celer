@@ -14,7 +14,7 @@ Platform configuration defines how Celer compiles C/C++ libraries for specific t
 Building C/C++ projects requires the correct compiler and system libraries. Platform configuration enables Celer to:
 - ✅ Build for different operating systems (Linux, Windows, macOS)
 - ✅ Support cross-compilation (e.g., build ARM binaries on x86)
-- ✅ Use specific compiler versions (GCC 9.5, Clang 14, MSVC 2022)
+- ✅ Use specific compiler versions (GCC 9.5, Clang 14, MSVC 2026)
 - ✅ Manage multi-platform build environments
 
 **Platform File Location:** All platform configuration files are stored in the `conf/platforms` directory.
@@ -184,7 +184,7 @@ Embedded systems (like MCUs or bare-metal environments) require special configur
 
 ### Windows Platform Configurations
 
-#### MSVC 2022 Configuration
+#### MSVC 2026 Configuration
 
 Windows uses MSVC to compile C/C++ projects. MSVC configuration differs from Linux GCC:
 - ✅ Compiler filenames are fixed (`cl.exe`, `link.exe`)
@@ -195,9 +195,9 @@ Windows uses MSVC to compile C/C++ projects. MSVC configuration differs from Lin
 
 ```toml
 [toolchain]
-url = "file:///C:/Program Files/Microsoft Visual Studio/2022/Community"
+url = "file:///C:/Program Files/Microsoft Visual Studio/2026/Community"
 name = "msvc"
-version = "14.44.35207"
+version = "14.50.35717"
 system_name = "Windows"
 system_processor = "x86_64"
 ```

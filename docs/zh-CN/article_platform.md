@@ -14,7 +14,7 @@
 构建 C/C++ 项目需要正确的编译器和系统库。平台配置让 Celer 能够：
 - ✅ 为不同操作系统（Linux、Windows、macOS）构建
 - ✅ 支持交叉编译（如在 x86 上构建 ARM 二进制文件）
-- ✅ 使用特定编译器版本（GCC 9.5、Clang 14、MSVC 2022）
+- ✅ 使用特定编译器版本（GCC 9.5、Clang 14、MSVC 2026）
 - ✅ 管理多平台构建环境
 
 **平台文件位置：** 所有平台配置文件存放在 `conf/platforms` 目录中。
@@ -184,7 +184,7 @@
 
 ### Windows 平台配置
 
-#### MSVC 2022 配置
+#### MSVC 2026 配置
 
 Windows 使用 MSVC 编译 C/C++ 项目。MSVC 的配置与 Linux GCC 不同：
 - ✅ 编译器文件名是固定的（`cl.exe`、`link.exe`）
@@ -195,9 +195,9 @@ Windows 使用 MSVC 编译 C/C++ 项目。MSVC 的配置与 Linux GCC 不同：
 
 ```toml
 [toolchain]
-url = "file:///C:/Program Files/Microsoft Visual Studio/2022/Community"
+url = "file:///C:/Program Files/Microsoft Visual Studio/2026/Community"
 name = "msvc"
-version = "14.44.35207"
+version = "14.50.35717"
 system_name = "Windows"
 system_processor = "x86_64"
 ```
