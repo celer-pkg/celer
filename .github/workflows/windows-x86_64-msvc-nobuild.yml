@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install tar
-        run: choco install archiver -y
+        run: choco install archiver xz -y
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
