@@ -9,5 +9,5 @@ builtin_packages = [
   "m4",
   "pkgconf",
   "intltool",
-  "gettext-devel"
+  "gettext"
 ]

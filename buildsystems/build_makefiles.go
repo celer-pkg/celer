@@ -95,7 +95,8 @@ func (m makefiles) configureOptions() ([]string, error) {
 	}
 
 	// Remove common cross compile args for native build.
-	if m.PortConfig.Native || m.BuildConfig.DevDep {
+	toolchain := m.Ctx.Platform().GetToolchain()
+	if m.PortConfig.Native || m.BuildConfig.DevDep || toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.HasPrefix(element, "--host=") ||
 				strings.HasPrefix(element, "--sysroot=") ||
@@ -108,7 +109,6 @@ func (m makefiles) configureOptions() ([]string, error) {
 		})
 	} else {
 		if m.needHostAndBuild(options) {
-			toolchain := m.Ctx.Platform().GetToolchain()
 			options = append(options, fmt.Sprintf("--host=%s", toolchain.GetHost()))
 			// Get the build machine triplet (the machine running the compiler).
 			// This is needed for packages like flex，cpython that build tools during compilation.
