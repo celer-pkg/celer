@@ -58,7 +58,7 @@ func Extract(archiveFile, destDir string) error {
 			}
 
 			// Step 2: Extract the .tar file
-			tarFile := strings.TrimSuffix(archiveFile, ".xz")
+			tarFile := filepath.Join(destDir, strings.TrimSuffix(filepath.Base(archiveFile), ".xz"))
 			cmd = exec.Command(sevenZipPath, "x", tarFile, "-o"+destDir)
 		} else {
 			cmd = exec.Command(tarPath, "-Jxf", archiveFile, "-C", destDir)
