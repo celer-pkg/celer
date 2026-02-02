@@ -99,7 +99,7 @@ func (m msys2) checkIfInstalled(target string) (bool, error) {
 
 	// Update msys2 packages if no package installed yet.
 	if !fileio.PathExists(filepath.Join(m.rootDir, msys2Packages)) {
-		executor := cmd.NewExecutor("[pacman -Sy]", "pacman --noconfirm -Sy")
+		executor := cmd.NewExecutor("[pacman -Syu]", "pacman --noconfirm -Syu")
 		executor.MSYS2Env(true)
 		if err := executor.Execute(); err != nil {
 			return false, fmt.Errorf("update msys2: %s", err)
