@@ -88,16 +88,16 @@ celer install ffmpeg@5.1.6 -s -t token_xxx
     ├── celer
     │   ├── hash
     │   │   ├── nasm@2.16.03@x86_64-windows-dev.hash
-    │   │   └── x264@stable@x86_64-windows-msvc-community-14.44@project_test_02@release.hash
+    │   │   └── x264@stable@x86_64-windows-msvc-community-14@project_test_02@release.hash
     │   └── info
     │       ├── nasm@2.16.03@x86_64-windows-dev.trace
-    │       └── x264@stable@x86_64-windows-msvc-community-14.44@project_test_02@release.trace
+    │       └── x264@stable@x86_64-windows-msvc-community-14@project_test_02@release.trace
     ├── x86_64-windows-dev
     │   ├── LICENSE
     │   └── bin
     │       ├── nasm.exe
     │       └── ndisasm.exe
-    └── x86_64-windows-msvc-community-14.44@project_test_02@release
+    └── x86_64-windows-msvc-community-14@project_test_02@release
         ├── bin
         │   ├── libx264-164.dll
         │   └── x264.exe
@@ -132,7 +132,7 @@ celer install ffmpeg@5.1.6 -s -t token_xxx
 
 在 Linux 系统下，Celer 还会从源码编译安装 autoconf、automake、m4、libtool 和 gettext 等工具至此目录。
 
-#### 4️⃣ `installed/x86_64-windows-msvc-community-14.44@project_test_02@release/`
+#### 4️⃣ `installed/x86_64-windows-msvc-community-14@project_test_02@release/`
 
 所有第三方库的编译产物存储目录。在 `toolchain_file.cmake` 中，`CMAKE_PREFIX_PATH` 会被设置为该目录，以便 CMake 能够在该目录下查找第三方库。
 
