@@ -19,7 +19,7 @@ func TestInstall_x86_64_MSVC_Makefiles(t *testing.T) {
 	})
 
 	t.Run("fixed_msvc", func(t *testing.T) {
-		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 		buildWithAMD64MSVC(t, platform, "x264@stable", false)
 	})
 }
@@ -30,7 +30,7 @@ func TestInstall_x86_64_MSVC_CMake(t *testing.T) {
 	})
 
 	t.Run("fixed_msvc", func(t *testing.T) {
-		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 		buildWithAMD64MSVC(t, platform, "gflags@2.2.2", false)
 	})
 }
@@ -41,7 +41,7 @@ func TestInstall_x86_64_MSVC_B2(t *testing.T) {
 	})
 
 	t.Run("fixed_msvc", func(t *testing.T) {
-		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 		buildWithAMD64MSVC(t, platform, "boost@1.87.0", false)
 	})
 }
@@ -52,18 +52,18 @@ func TestInstall_x86_64_MSVC_Meson(t *testing.T) {
 	})
 
 	t.Run("fixed_msvc", func(t *testing.T) {
-		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 		buildWithAMD64MSVC(t, platform, "pkgconf@2.4.3", false)
 	})
 }
 
 func TestInstall_x86_64_MSVC_Prebuilt(t *testing.T) {
-	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 	buildWithAMD64MSVC(t, platform, "prebuilt-x264@stable", false)
 }
 
 func TestInstall_x86_64_MSVC_Nobuild(t *testing.T) {
-	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14.44", "x86_64-windows-msvc-community-14.44")
+	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 	buildWithAMD64MSVC(t, platform, "gnulib@master", true)
 }
 

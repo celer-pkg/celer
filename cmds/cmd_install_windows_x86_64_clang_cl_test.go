@@ -14,28 +14,28 @@ import (
 )
 
 func TestInstall_x86_64_Clang_CL_CMake(t *testing.T) {
-	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
+	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
 	buildWithAMD64Clang(t, platform, "gflags@2.2.2", false)
 }
 
 // TODO: it works in local but fails in test.
 // func TestInstall_B2_x86_64_Clang(t *testing.T) {
-// 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
+// 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
 // 	buildWithAMD64Clang(t, platform, "boost@1.87.0", false)
 // }
 
 func TestInstall_x86_64_Clang_CL_Meson(t *testing.T) {
-	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
+	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
 	buildWithAMD64Clang(t, platform, "pkgconf@2.4.3", false)
 }
 
 func TestInstall_x86_64_Clang_CL_Prebuilt(t *testing.T) {
-	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
+	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
 	buildWithAMD64Clang(t, platform, "prebuilt-x264@stable", false)
 }
 
 func TestInstall_x86_64_Clang_CL_Nobuild(t *testing.T) {
-	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14.44", "x86_64-windows-clang-cl-community-14.44")
+	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
 	buildWithAMD64Clang(t, platform, "gnulib@master", true)
 }
 
