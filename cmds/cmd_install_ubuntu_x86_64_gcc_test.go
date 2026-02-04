@@ -23,6 +23,16 @@ func TestInstall_x86_64_GCC_Makefiles(t *testing.T) {
 	})
 }
 
+func TestInstall_x86_64_MSVC_Makefiles_with_perl(t *testing.T) {
+	t.Run("local_gcc", func(t *testing.T) {
+		buildWithAMD64GCC(t, "", "openssl@1.1.1w", false)
+	})
+
+	t.Run("portable_gcc", func(t *testing.T) {
+		buildWithAMD64GCC(t, ubuntu_x86_64_gcc_11_5_0, "openssl@1.1.1w", false)
+	})
+}
+
 func TestInstall_x86_64_GCC_CMake(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
 		buildWithAMD64GCC(t, "", "glog@0.6.0", false)

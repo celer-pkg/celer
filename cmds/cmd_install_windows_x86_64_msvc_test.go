@@ -24,6 +24,17 @@ func TestInstall_x86_64_MSVC_Makefiles(t *testing.T) {
 	})
 }
 
+func TestInstall_x86_64_MSVC_Makefiles_with_perl(t *testing.T) {
+	t.Run("detect_msvc", func(t *testing.T) {
+		buildWithAMD64MSVC(t, "", "openssl@1.1.1w", false)
+	})
+
+	t.Run("fixed_msvc", func(t *testing.T) {
+		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
+		buildWithAMD64MSVC(t, platform, "openssl@1.1.1w", false)
+	})
+}
+
 func TestInstall_x86_64_MSVC_CMake(t *testing.T) {
 	t.Run("detect_msvc", func(t *testing.T) {
 		buildWithAMD64MSVC(t, "", "gflags@2.2.2", false)
