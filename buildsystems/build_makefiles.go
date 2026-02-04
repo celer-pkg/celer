@@ -350,10 +350,17 @@ func (m makefiles) Build(options []string) error {
 
 	// Assemble command.
 	var command string
-	if runtime.GOOS == "windows" {
-		command = expr.If(configureWithPerl, "nmake", fmt.Sprintf("make -j %d", m.PortConfig.Jobs))
+	if runtime.GOOS == "windows" && configureWithPerl {
+		command = "nmake"
 	} else {
 		command = fmt.Sprintf("make -j %d", m.PortConfig.Jobs)
+	}
+
+	// For Perl-configured projects (like OpenSSL), wrap nmake with vcvarsall.bat
+	if runtime.GOOS == "windows" && configureWithPerl {
+		toolchain := m.Ctx.Platform().GetToolchain()
+		vcVars := toolchain.GetMSVC().VCVars
+		command = fmt.Sprintf(`call "%s" x64 > nul && %s`, vcVars, command)
 	}
 
 	// Execute build.
@@ -361,7 +368,7 @@ func (m makefiles) Build(options []string) error {
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(m.getLogPath("build"))
 
-	// Use msys2 and msvc envs only when in windows and not using perl.
+	// Use msys2 and msvc envs for Windows builds (only for autoconf projects).
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
 		executor.SetMsvcEnvs(m.msvcEnvs)
@@ -392,12 +399,19 @@ func (m makefiles) Install(options []string) error {
 		command = fmt.Sprintf("make install -C %s prefix=%s", m.PortConfig.SrcDir, m.PortConfig.PackageDir)
 	}
 
+	// For Perl-configured projects (like OpenSSL), wrap nmake with vcvarsall.bat
+	if runtime.GOOS == "windows" && configureWithPerl && m.configureRequired() {
+		toolchain := m.Ctx.Platform().GetToolchain()
+		vcVars := toolchain.GetMSVC().VCVars
+		command = fmt.Sprintf(`call "%s" x64 > nul && %s`, vcVars, command)
+	}
+
 	// Execute install.
 	title := fmt.Sprintf("[install %s]", m.PortConfig.nameVersionDesc())
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(m.getLogPath("install"))
 
-	// Use msys2 and msvc envs only when in windows and not using perl.
+	// Use msys2 and msvc envs for Windows builds (only for autoconf projects).
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
 		executor.SetMsvcEnvs(m.msvcEnvs)
