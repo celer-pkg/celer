@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 )
 
 // Install install a port and tell me where it was installed from.
@@ -296,8 +297,25 @@ func (p Port) doInstallFromPackage(destDir string) error {
 			dest = p.metaFile
 		}
 
-		if err := os.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
-			return err
+		// Retry mkdir to handle concurrent access in windows.
+		destDir := filepath.Dir(dest)
+		maxRetries := 5
+		for i := range maxRetries {
+			if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
+				if os.IsExist(err) {
+					info, statErr := os.Stat(destDir)
+					if statErr == nil && info.IsDir() {
+						break
+					}
+				}
+				// Retry after brief pause to allow other processes to finish.
+				if i < maxRetries-1 {
+					time.Sleep(10 * time.Millisecond)
+					continue
+				}
+				return err
+			}
+			break
 		}
 
 		if err := fileio.CopyFile(src, dest); err != nil {
