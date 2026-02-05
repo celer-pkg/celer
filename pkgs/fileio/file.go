@@ -422,3 +422,37 @@ func CleanDir(dir string) error {
 
 	return nil
 }
+
+// MkdirAll create directory with retry to handle Windows file system delays.
+func MkdirAll(path string, perm os.FileMode) error {
+	// Already exists.
+	if PathExists(path) {
+		return nil
+	}
+
+	// Initial attempt
+	err := os.MkdirAll(path, perm)
+	if err == nil {
+		return nil
+	}
+	if os.IsExist(err) {
+		if info, statErr := os.Stat(path); statErr == nil && info.IsDir() {
+			return nil
+		}
+	}
+
+	// Retry mkdir several times.
+	for range 4 {
+		time.Sleep(10 * time.Millisecond)
+		err = os.MkdirAll(path, perm)
+		if err == nil {
+			return nil
+		}
+		if os.IsExist(err) {
+			if info, statErr := os.Stat(path); statErr == nil && info.IsDir() {
+				return nil
+			}
+		}
+	}
+	return err
+}

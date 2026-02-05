@@ -68,7 +68,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		}
 		color.Printf(color.Hint, "✔ rm -rf %s\n", dirs.TmpDepsDir)
 
-		if err := os.MkdirAll(dirs.TmpDepsDir, os.ModePerm); err != nil {
+		if err := fileio.MkdirAll(dirs.TmpDepsDir, os.ModePerm); err != nil {
 			return "", err
 		}
 		color.Printf(color.Hint, "✔ mkdir -p %s\n", dirs.TmpDepsDir)
@@ -241,7 +241,7 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 			return err
 		}
 		metaFile := filepath.Join(p.PackageDir, p.meta2hash(metaData)) + ".meta"
-		if err := os.MkdirAll(filepath.Dir(metaFile), os.ModePerm); err != nil {
+		if err := fileio.MkdirAll(filepath.Dir(metaFile), os.ModePerm); err != nil {
 			installFailed = true
 			return err
 		}
@@ -296,12 +296,13 @@ func (p Port) doInstallFromPackage(destDir string) error {
 			dest = p.metaFile
 		}
 
-		if err := os.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
+		// Ensure dest dir exists.
+		if err := fileio.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
 			return err
 		}
 
 		if err := fileio.CopyFile(src, dest); err != nil {
-			return err
+			return fmt.Errorf("failed to copy file.\n%w", err)
 		}
 	}
 
@@ -362,7 +363,7 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 			}
 		}()
 
-		if err := os.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
+		if err := fileio.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
 			return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
 		}
 
@@ -650,7 +651,7 @@ func (p Port) prepareTmpDeps() error {
 
 func (p Port) writeTraceFile(installedFrom string) error {
 	// Write installed files trace into its installation trace list.
-	if err := os.MkdirAll(filepath.Dir(p.traceFile), os.ModePerm); err != nil {
+	if err := fileio.MkdirAll(filepath.Dir(p.traceFile), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create trace dir.\n %w", err)
 	}
 	packageFiles, err := p.PackageFiles(p.PackageDir, p.ctx.Platform().GetName(), p.ctx.Project().GetName())

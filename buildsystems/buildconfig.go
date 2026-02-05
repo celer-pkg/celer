@@ -548,9 +548,6 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 
 	// nobuild config do not have crosstool.
 	if toolchain != nil {
-		b.setupEnvs()
-		defer b.rollbackEnvs()
-
 		// Create a symlink in the sysroot that points to the installed directory,
 		// then the pc file would be found by other libraries.
 		if rootfs != nil {
@@ -572,6 +569,27 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 				return err
 			}
 		}
+
+		// For native/dev builds (Native=true), create symlink from tmpDepsDir/<HostName>-dev to installedDir/<HostName>-dev
+		// This ensures dev dependencies can be found via PATH
+		if b.Native || b.DevDep {
+			devTmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
+			devInstalledDir := filepath.Join(dirs.InstalledDir, b.PortConfig.HostName+"-dev")
+
+			// Create parent directory if not exists
+			if err := os.MkdirAll(filepath.Dir(devTmpDepsDir), os.ModePerm); err != nil {
+				return fmt.Errorf("failed to create tmp deps parent dir: %w", err)
+			}
+
+			// Create symlink
+			if err := b.checkSymlink(devInstalledDir, devTmpDepsDir); err != nil {
+				return fmt.Errorf("failed to create dev symlink: %w", err)
+			}
+		}
+
+		// Now setup environments after symlinks are in place.
+		b.setupEnvs()
+		defer b.rollbackEnvs()
 	}
 
 	// Apply patches.
@@ -722,7 +740,7 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 
 		// If symlink is broken or points to the wrong target, remove it and recreate.
 		if realTarget != src {
-			if err := os.Remove(dest); err != nil {
+			if err := os.RemoveAll(dest); err != nil {
 				return fmt.Errorf("remove broken symlink: %v", err)
 			}
 			return createSymlink(src, dest)
@@ -732,7 +750,7 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 	}
 
 	// Remove if it's not a symlink.
-	if err = os.Remove(dest); err != nil {
+	if err = os.RemoveAll(dest); err != nil {
 		return fmt.Errorf("remove non-symlink: %v", err)
 	}
 	return createSymlink(src, dest)
