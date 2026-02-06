@@ -168,18 +168,10 @@ func (m makefiles) configureOptions() ([]string, error) {
 	}
 
 	// In msys2 or linux, the package path should be fixed to `/c/path1/path2`.
-	// DevDep/Native packages (e.g. autoconf, automake) are merged into tmp/deps; their scripts
-	// embed the install path. If we use safe prefix (replace @ with +), the embedded path would
-	// not match the real PackageDir (which uses @), so they would fail when run from tmp/deps.
-	// So for DevDep/Native, use PackageDir as-is.
-	prefix := m.PortConfig.PackageDir
-	if !m.PortConfig.DevDep && !m.PortConfig.Native {
-		prefix = m.toSafePrefix(m.PortConfig.PackageDir)
-	}
 	if runtime.GOOS == "windows" && configureWithPerl {
-		options = append(options, fmt.Sprintf("--prefix=%s", prefix))
+		options = append(options, fmt.Sprintf("--prefix=%s", m.PortConfig.PackageDir))
 	} else {
-		options = append(options, fmt.Sprintf("--prefix=%s", fileio.ToCygpath(prefix)))
+		options = append(options, fmt.Sprintf("--prefix=%s", fileio.ToCygpath(m.PortConfig.PackageDir)))
 	}
 
 	// Replace placeholders.
@@ -404,11 +396,7 @@ func (m makefiles) Install(options []string) error {
 	if m.configureRequired() {
 		command = fmt.Sprintf("%s install", makeCommand)
 	} else {
-		prefix := m.PortConfig.PackageDir
-		if !m.PortConfig.DevDep && !m.PortConfig.Native {
-			prefix = m.toSafePrefix(m.PortConfig.PackageDir)
-		}
-		command = fmt.Sprintf("make install -C %s prefix=%s", m.PortConfig.SrcDir, prefix)
+		command = fmt.Sprintf("make install -C %s prefix=%s", m.PortConfig.SrcDir, m.PortConfig.PackageDir)
 	}
 
 	// For Perl-configured projects (like OpenSSL), wrap nmake with vcvarsall.bat
@@ -437,22 +425,6 @@ func (m makefiles) Install(options []string) error {
 
 	if err := executor.Execute(); err != nil {
 		return err
-	}
-
-	// When we used a safe prefix (no '@'), move installed content to the real PackageDir.
-	// Skip for DevDep/Native: we used PackageDir as prefix, so no rename needed.
-	safePrefix := m.toSafePrefix(m.PortConfig.PackageDir)
-	if !m.PortConfig.DevDep && !m.PortConfig.Native && safePrefix != m.PortConfig.PackageDir {
-		if err := os.MkdirAll(filepath.Dir(m.PortConfig.PackageDir), os.ModePerm); err != nil {
-			return fmt.Errorf("prepare package dir: %w", err)
-		}
-		if fileio.PathExists(m.PortConfig.PackageDir) {
-			_ = os.RemoveAll(m.PortConfig.PackageDir)
-		}
-
-		if err := fileio.RenameDir(safePrefix, m.PortConfig.PackageDir); err != nil {
-			return fmt.Errorf("move from safe prefix to package dir: %w", err)
-		}
 	}
 
 	return nil
@@ -522,16 +494,4 @@ func (m makefiles) getBuildTriplet() string {
 	default:
 		return fmt.Sprintf("%s-%s", processor, os)
 	}
-}
-
-// toSafePrefix when PackageDir contains '@', this make treats @var@ as substitution,
-// so we configure/install to a path with '@' replaced by '+',
-// finally move back to PackageDir.
-func (m makefiles) toSafePrefix(prefix string) string {
-	if strings.Contains(prefix, "@") {
-		safePrefix := strings.ReplaceAll(prefix, "@", "+")
-		return safePrefix
-	}
-
-	return prefix
 }

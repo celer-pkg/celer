@@ -45,6 +45,7 @@ type Package struct {
 	SrcDir          string   `toml:"src_dir,omitempty"`
 	SupportedHosts  []string `toml:"supported_hosts,omitempty"`
 	IgnoreSubmodule bool     `toml:"ignore_submodule,omitempty"`
+	Native          bool     `toml:"native,omitempty"`
 }
 
 type Port struct {
@@ -105,6 +106,9 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	if err := toml.Unmarshal(bytes, p); err != nil {
 		return fmt.Errorf("failed to unmarshal %s.\n %w", portPath, err)
 	}
+
+	// Propagate native flag from package to port.
+	p.Native = p.Native || p.Package.Native
 
 	// Convert build type to lowercase for all build configs.
 	for i := range p.BuildConfigs {
