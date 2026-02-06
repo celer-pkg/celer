@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -37,15 +36,14 @@ type RemoveOptions struct {
 }
 
 type Package struct {
-	Url             string   `toml:"url"`
-	Ref             string   `toml:"ref"`
-	Commit          string   `toml:"commit,omitempty"`
-	Depth           int      `toml:"depth,omitempty"`
-	Archive         string   `toml:"archive,omitempty"`
-	SrcDir          string   `toml:"src_dir,omitempty"`
-	SupportedHosts  []string `toml:"supported_hosts,omitempty"`
-	IgnoreSubmodule bool     `toml:"ignore_submodule,omitempty"`
-	Native          bool     `toml:"native,omitempty"`
+	Url             string `toml:"url"`
+	Ref             string `toml:"ref"`
+	Commit          string `toml:"commit,omitempty"`
+	Depth           int    `toml:"depth,omitempty"`
+	Archive         string `toml:"archive,omitempty"`
+	SrcDir          string `toml:"src_dir,omitempty"`
+	IgnoreSubmodule bool   `toml:"ignore_submodule,omitempty"`
+	BuildTool       bool   `toml:"build_tool,omitempty"`
 }
 
 type Port struct {
@@ -107,8 +105,8 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 		return fmt.Errorf("failed to unmarshal %s.\n %w", portPath, err)
 	}
 
-	// Propagate native flag from package to port.
-	p.Native = p.Native || p.Package.Native
+	// Propagate build_tool flag from package to port.
+	p.Native = p.Native || p.Package.BuildTool
 
 	// Convert build type to lowercase for all build configs.
 	for i := range p.BuildConfigs {
@@ -281,11 +279,12 @@ func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]stri
 }
 
 func (p Port) IsHostSupported() bool {
-	if len(p.Package.SupportedHosts) == 0 {
+	// Only build_tool ports (like m4, automake, libtool, autoconf) are restricted to Linux/Darwin.
+	if !p.Package.BuildTool {
 		return true
 	}
 
-	return slices.Contains(p.Package.SupportedHosts, runtime.GOOS)
+	return runtime.GOOS == "linux" || runtime.GOOS == "darwin"
 }
 
 func (p Port) validate() error {
