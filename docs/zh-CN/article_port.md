@@ -74,6 +74,7 @@ options = [
 | ref | ✅ | 标签名、分支名、提交 ID 或压缩包版本号 | `v0.6.0`、`3.4.0` |
 | archive | ❌ | 下载压缩包时重命名文件名 | `glog-0.6.0.tar.gz` |
 | src_dir | ❌ | 指定 configure/CMakeLists.txt 所在目录 | `icu4c/source` |
+| build_tool | ❌ | 是否为“构建期工具”端口（如 m4、automake、libtool、autoconf）。设为 `true` 时始终本机编译、安装路径不含平台/项目等 `@` 段，且仅在 Linux/Darwin 上构建（无需再写 supported_hosts） | `true` |
 | build_configs | ✅ | 构建配置数组，描述不同平台的构建方式 | 见下方示例 |
 | dev_dependencies | ❌ | 构建期所需工具（如 autoconf、nasm） | `autoconf@2.72` |
 
