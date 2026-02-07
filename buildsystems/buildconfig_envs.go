@@ -128,6 +128,12 @@ func (b *BuildConfig) setupEnvs() {
 		b.envBackup.setenv("ACLOCAL_PATH", joined)
 	}
 
+	// Expose dev/bin and python venv bin to PATH.
+	venvBin := filepath.Join(dirs.PythonUserBase, "bin")
+	if fileio.PathExists(venvBin) {
+		b.envBackup.setenv("PATH", env.JoinPaths("PATH", venvBin))
+	}
+
 	// Expose dev/bin to PATH.
 	b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
 
