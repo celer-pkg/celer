@@ -859,7 +859,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
 	var appendIncludeDir = func(includeDir string) {
 		includeDir = fileio.ToCygpath(includeDir)
-		includeFlag := "-I " + includeDir
+		includeFlag := "-I" + includeDir
 		cflags = append(cflags, includeFlag)
 		cxxflags = append(cxxflags, includeFlag)
 	}

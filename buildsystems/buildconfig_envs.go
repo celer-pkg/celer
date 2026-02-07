@@ -331,7 +331,7 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 
 		// Append include dir if not exists.
 		// Prepend dependency include dir flags to prioritize them.
-		includeFlag := "-I " + includeDir
+		includeFlag := "-I" + includeDir
 		var newAppended = false
 		if !slices.Contains(cflags, includeFlag) {
 			if isDepsIncludeDir {
