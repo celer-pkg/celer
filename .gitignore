@@ -4,6 +4,7 @@
 /conf
 /cmds/ports
 /cmds/conf
+/.venv
 **/packages
 **/tmp
 **/buildtrees

@@ -47,7 +47,7 @@ func Init(workspaceDir string) {
 	DownloadedToolsDir = filepath.Join(WorkspaceDir, "downloads", "tools")
 	InstalledDir = filepath.Join(WorkspaceDir, "installed")
 	BuildtreesDir = filepath.Join(WorkspaceDir, "buildtrees")
-	PythonUserBase = filepath.Join(InstalledDir, "python3")
+	PythonUserBase = filepath.Join(WorkspaceDir, ".venv")
 	TmpDir = filepath.Join(WorkspaceDir, "tmp")
 	TmpFilesDir = filepath.Join(WorkspaceDir, "tmp", "files")
 	TmpDepsDir = filepath.Join(WorkspaceDir, "tmp", "deps")
