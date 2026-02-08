@@ -1,7 +1,6 @@
 package buildsystems
 
 import (
-	"celer/buildtools"
 	"celer/context"
 	"celer/generator"
 	"celer/pkgs/cmd"
@@ -13,7 +12,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 )
@@ -287,37 +285,6 @@ func (b BuildConfig) Validate() error {
 	return nil
 }
 
-func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string) libraryType {
-	var (
-		enableShared, disableShared string
-		enableStatic, disableStatic string
-	)
-	splitBuildOption := func(buildOption string) (string, string) {
-		parts := strings.Split(buildOption, "|")
-		if len(parts) == 2 {
-			return parts[0], parts[1]
-		}
-		return parts[0], ""
-	}
-
-	enableShared, disableShared = splitBuildOption(b.BuildShared)
-	enableStatic, disableStatic = splitBuildOption(b.BuildStatic)
-
-	if enableShared == "" {
-		enableShared = defaultEnableShared
-	}
-	if enableStatic == "" {
-		enableStatic = defaultEnableStatic
-	}
-
-	return libraryType{
-		enableShared:  enableShared,
-		enableStatic:  enableStatic,
-		disableShared: disableShared,
-		disableStatic: disableStatic,
-	}
-}
-
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// In default, clone or download into repo dir.
 	var cmakeConfigPath string
@@ -531,15 +498,6 @@ func (b BuildConfig) installOptions() ([]string, error) {
 }
 
 func (b BuildConfig) Install(url, ref, archive string) error {
-	tools := b.buildSystem.CheckTools()
-	if runtime.GOOS == "windows" && len(b.Patches) > 0 {
-		tools = append(tools, "msys2")
-	}
-
-	if err := buildtools.CheckTools(b.Ctx, tools...); err != nil {
-		return err
-	}
-
 	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
 	b.expandOptionsVariables()
 
@@ -597,7 +555,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		return fmt.Errorf("patch %s: %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
-	// Update submodules.
+	// Update submodules if exist and not ignored that configured in port.toml.
 	if err := b.buildSystem.UpdateSubmodules(); err != nil {
 		return fmt.Errorf("update submodules %s: %w", b.PortConfig.nameVersionDesc(), err)
 	}
@@ -705,6 +663,41 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 	// Merges the platform-specific fields into the BuildConfig struct.
 	b.mergeConfig()
 	return nil
+}
+
+func (b *BuildConfig) CheckTools() []string {
+	return b.buildSystem.CheckTools()
+}
+
+func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string) libraryType {
+	var (
+		enableShared, disableShared string
+		enableStatic, disableStatic string
+	)
+	splitBuildOption := func(buildOption string) (string, string) {
+		parts := strings.Split(buildOption, "|")
+		if len(parts) == 2 {
+			return parts[0], parts[1]
+		}
+		return parts[0], ""
+	}
+
+	enableShared, disableShared = splitBuildOption(b.BuildShared)
+	enableStatic, disableStatic = splitBuildOption(b.BuildStatic)
+
+	if enableShared == "" {
+		enableShared = defaultEnableShared
+	}
+	if enableStatic == "" {
+		enableStatic = defaultEnableStatic
+	}
+
+	return libraryType{
+		enableShared:  enableShared,
+		enableStatic:  enableStatic,
+		disableShared: disableShared,
+		disableStatic: disableStatic,
+	}
 }
 
 // checkSymlink create a symlink in the sysroot.

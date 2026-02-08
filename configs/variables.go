@@ -4,7 +4,10 @@ import (
 	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"fmt"
+	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -32,6 +35,11 @@ func (v *Variables) Inflat(ctx context.Context) *Variables {
 
 	if buildtools.Python3 != nil {
 		v.pairs["PYTHON3_PATH"] = buildtools.Python3.Path
+	}
+
+	if buildtools.LLVMPath != "" {
+		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
+		v.pairs["LLVM_CONFIG"] = filepath.Join(buildtools.LLVMPath, "bin", llvmConfig)
 	}
 
 	return v
