@@ -143,7 +143,8 @@ func (b *BuildConfig) setupEnvs() {
 
 	// Expose LLVM_CONFIG for ports that rely on llvm-config.
 	if buildtools.LLVMPath != "" {
-		b.envBackup.setenv("LLVM_CONFIG", filepath.Join(buildtools.LLVMPath, "bin", "llvm-config"))
+		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
+		b.envBackup.setenv("LLVM_CONFIG", filepath.Join(buildtools.LLVMPath, "bin", llvmConfig))
 	}
 
 	// Find the actual site-packages directory and set PYTHONPATH's value with it.
