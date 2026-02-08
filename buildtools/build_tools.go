@@ -20,6 +20,8 @@ import (
 var (
 	//go:embed static/*
 	static embed.FS
+
+	LLVMPath string
 )
 
 // CheckTools checks if tools exist and repair them if necessary.
@@ -92,17 +94,20 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	// Find tool instances of python3 and msys2.
 	for _, tool := range uniqueTools {
-		if tool := buildTools.findTool(ctx, tool); tool != nil {
-			if err := tool.validate(); err != nil {
+		if found := buildTools.findTool(ctx, tool); found != nil {
+			if err := found.validate(); err != nil {
 				return err
 			}
 
-			switch tool.Name {
+			switch found.Name {
 			case "python3":
-				python3Tool = tool
+				python3Tool = found
 
 			case "msys2":
-				msys2Tool = tool
+				msys2Tool = found
+
+			case "llvm":
+				LLVMPath = found.rootDir
 			}
 		}
 	}

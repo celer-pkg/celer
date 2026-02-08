@@ -1,6 +1,7 @@
 package buildsystems
 
 import (
+	"celer/buildtools"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
@@ -128,11 +129,23 @@ func (b *BuildConfig) setupEnvs() {
 		b.envBackup.setenv("ACLOCAL_PATH", joined)
 	}
 
+	// Expose dev/bin and python venv bin to PATH.
+	venvBin := filepath.Join(dirs.PythonUserBase, "bin")
+	if fileio.PathExists(venvBin) {
+		b.envBackup.setenv("PATH", env.JoinPaths("PATH", venvBin))
+	}
+
 	// Expose dev/bin to PATH.
 	b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
 
 	// Ensure PYTHONPATH for python.
 	b.envBackup.setenv("PYTHONUSERBASE", dirs.PythonUserBase)
+
+	// Expose LLVM_CONFIG for ports that rely on llvm-config.
+	if buildtools.LLVMPath != "" {
+		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
+		b.envBackup.setenv("LLVM_CONFIG", filepath.Join(buildtools.LLVMPath, "bin", llvmConfig))
+	}
 
 	// Find the actual site-packages directory and set PYTHONPATH's value with it.
 	// (Python installs to python3/lib/python3.X/site-packages).

@@ -261,8 +261,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	if buildtools.Python3 == nil || buildtools.Python3.Path == "" {
 		return "", fmt.Errorf("python3 should be set up in advance.")
 	}
-	pythonPath := filepath.ToSlash(buildtools.Python3.Path)
-	fmt.Fprintf(&buffers, "python = '%s'\n", pythonPath)
+	fmt.Fprintf(&buffers, "python = '%s'\n", filepath.ToSlash(buildtools.Python3.Path))
 
 	if ccacheEnabled {
 		fmt.Fprintf(&buffers, "c = ['ccache', '%s']\n", toolchain.GetCC())
@@ -313,9 +312,9 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 			filepath.ToSlash(filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder)),
 		}
 		for _, libDir := range rootfs.GetLibDirs() {
-			cmakePrefixPaths = append(cmakePrefixPaths, "    "+filepath.ToSlash(filepath.Join(sysrootDir, libDir)))
+			cmakePrefixPaths = append(cmakePrefixPaths, filepath.ToSlash(filepath.Join(sysrootDir, libDir)))
 		}
-		fmt.Fprintf(&buffers, "cmake_prefix_path = ['%s']\n", strings.Join(cmakePrefixPaths, ",\n"))
+		fmt.Fprintf(&buffers, "cmake_prefix_path = ['%s']\n", strings.Join(cmakePrefixPaths, ",\n  "))
 
 		// Add --sysroot to compiler and linker args.
 		sysrootArg := fmt.Sprintf("'--sysroot=%s'", sysrootDir)
@@ -324,16 +323,8 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 
 		// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
 		if toolchain.GetName() == "clang" {
-			if len(includeArgs) == 0 {
-				includeArgs = append(includeArgs, "'--gcc-toolchain=/usr'")
-			} else {
-				includeArgs = append(includeArgs, "    '--gcc-toolchain=/usr'")
-			}
-			if len(linkArgs) == 0 {
-				linkArgs = append(linkArgs, "'--gcc-toolchain=/usr'")
-			} else {
-				linkArgs = append(linkArgs, "    '--gcc-toolchain=/usr'")
-			}
+			includeArgs = append(includeArgs, "'--gcc-toolchain=/usr'")
+			linkArgs = append(linkArgs, "'--gcc-toolchain=/usr'")
 		}
 	}
 
@@ -341,11 +332,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	switch runtime.GOOS {
 	case "linux":
 		if toolchain.GetName() == "gcc" || toolchain.GetName() == "clang" {
-			if len(linkArgs) == 0 {
-				linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
-			} else {
-				linkArgs = append(linkArgs, "    '-Wl,-rpath=$ORIGIN/../lib'")
-			}
+			linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
 		}
 	case "darwin":
 		// TODO: it may supported in the future for darwin.
@@ -420,10 +407,10 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 
 	// Use [built-in options] section for Meson 0.56+ (recommended way).
 	fmt.Fprintf(&buffers, "\n[built-in options]\n")
-	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(cflags, ", "))
-	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(cxxflags, ", "))
-	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ", "))
-	fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(linkArgs, ", "))
+	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(cflags, ",\n  "))
+	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(cxxflags, ",\n  "))
+	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ",\n  "))
+	fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(linkArgs, ",\n  "))
 	crossFilePath := filepath.Join(m.PortConfig.BuildDir, "cross_file.toml")
 	if err := os.WriteFile(crossFilePath, buffers.Bytes(), os.ModePerm); err != nil {
 		return "", err
@@ -481,6 +468,11 @@ exec %s "$@"
 	fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(wrapperPath))
 	fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(wrapperPath))
 
+	// Same venv python as cross file for build-time tools (e.g. mako).
+	if buildtools.Python3 != nil && buildtools.Python3.Path != "" {
+		fmt.Fprintf(&buffers, "python = '%s'\n", filepath.ToSlash(buildtools.Python3.Path))
+	}
+
 	fmt.Fprintf(&buffers, "\n[properties]\n")
 	buffers.WriteString("cross_file = 'false'\n")
 
@@ -503,13 +495,8 @@ exec %s "$@"
 	// For native build, we typically use gcc or clang on Linux.
 	switch runtime.GOOS {
 	case "linux":
-		if len(nativeCLinkArgs) == 0 {
-			nativeCLinkArgs = append(nativeCLinkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
-			nativeCppLinkArgs = append(nativeCppLinkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
-		} else {
-			nativeCLinkArgs = append(nativeCLinkArgs, "    '-Wl,-rpath=$ORIGIN/../lib'")
-			nativeCppLinkArgs = append(nativeCppLinkArgs, "    '-Wl,-rpath=$ORIGIN/../lib'")
-		}
+		nativeCLinkArgs = append(nativeCLinkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+		nativeCLinkArgs = append(nativeCLinkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
 	case "darwin":
 		// TODO: it may supported in the future for darwin.
 	}
@@ -518,16 +505,16 @@ exec %s "$@"
 	if len(nativeCArgs) > 0 || len(nativeCppArgs) > 0 || len(nativeCLinkArgs) > 0 || len(nativeCppLinkArgs) > 0 {
 		fmt.Fprintf(&buffers, "\n[built-in options]\n")
 		if len(nativeCArgs) > 0 {
-			fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(nativeCArgs, ",\n"))
+			fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(nativeCArgs, ",\n  "))
 		}
 		if len(nativeCppArgs) > 0 {
-			fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(nativeCppArgs, ",\n"))
+			fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(nativeCppArgs, ",\n  "))
 		}
 		if len(nativeCLinkArgs) > 0 {
-			fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(nativeCLinkArgs, ",\n"))
+			fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(nativeCLinkArgs, ",\n  "))
 		}
 		if len(nativeCppLinkArgs) > 0 {
-			fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(nativeCppLinkArgs, ",\n"))
+			fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(nativeCppLinkArgs, ",\n  "))
 		}
 	}
 
@@ -545,18 +532,10 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 
 	switch toolchain.GetName() {
 	case "gcc", "clang":
-		if len(*includeArgs) == 0 {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("'-I %s'", includeDir))
-		} else {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("    '-I %s'", includeDir))
-		}
+		*includeArgs = append(*includeArgs, fmt.Sprintf("'-I%s'", includeDir))
 
 	case "msvc", "clang-cl":
-		if len(*includeArgs) == 0 {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("'/I %q'", includeDir))
-		} else {
-			*includeArgs = append(*includeArgs, fmt.Sprintf("    '/I %q'", includeDir))
-		}
+		*includeArgs = append(*includeArgs, fmt.Sprintf("'/I %q'", includeDir))
 
 	default:
 		panic(fmt.Sprintf("unexpected cross tool: %s", toolchain.GetName()))
@@ -571,22 +550,13 @@ func (m meson) appendLinkArgs(linkArgs *[]string, linkDir string) {
 	switch runtime.GOOS {
 	case "linux":
 		if toolchainName == "gcc" || toolchainName == "clang" {
-			if len(*linkArgs) == 0 {
-				*linkArgs = append(*linkArgs, fmt.Sprintf("'-L %s'", linkDir))
-				*linkArgs = append(*linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, linkDir))
-			} else {
-				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-L %s'", linkDir))
-				*linkArgs = append(*linkArgs, fmt.Sprintf("    '-Wl,-rpath-link,%s'", linkDir))
-			}
+			*linkArgs = append(*linkArgs, fmt.Sprintf("'-L%s'", linkDir))
+			*linkArgs = append(*linkArgs, fmt.Sprintf(`'-Wl,-rpath-link,%s'`, linkDir))
 		}
 
 	case "windows":
 		if toolchainName == "msvc" || toolchainName == "clang-cl" {
-			if len(*linkArgs) == 0 {
-				*linkArgs = append(*linkArgs, fmt.Sprintf("'/LIBPATH:\"%s\"'", linkDir))
-			} else {
-				*linkArgs = append(*linkArgs, fmt.Sprintf("    '/LIBPATH:\"%s\"'", linkDir))
-			}
+			*linkArgs = append(*linkArgs, fmt.Sprintf("'/LIBPATH:\"%s\"'", linkDir))
 		}
 
 	case "darwin":
