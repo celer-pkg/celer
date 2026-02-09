@@ -25,7 +25,7 @@ Celer 使用**基于哈希的缓存**来存储和检索构建制品：
 
 ### 步骤1：配置缓存位置
 
-在 `celer.toml` 中添加 `[binary_cache]` 部分以启用缓存检索：
+在 `celer.toml` 中添加 `[package_cache]` 部分以启用缓存检索：
 
 ```toml
 [global]
@@ -34,7 +34,7 @@ platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0.5"
 project = "project_01"
 jobs = 32
 
-[binary_cache]
+[package_cache]
 dir = "/home/test/celer_cache"  # 本地或网络挂载目录
 ```
 
@@ -56,7 +56,7 @@ platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0.5"
 project = "project_01"
 jobs = 32
 
-[binary_cache]
+[package_cache]
 dir = "/home/test/celer_cache"
 ```
 
@@ -92,7 +92,7 @@ options = ["-DEIGEN_TEST_NO_OPENGL=1", "-DBUILD_TESTING=OFF"]
 
 **工作原理：**
 1. Celer 使用 `commit` 哈希和构建配置计算缓存键
-2. 在 `binary_cache` 中搜索匹配的制品
+2. 在 `package_cache` 中搜索匹配的制品
 3. 如果找到，提取并使用，**无需克隆仓库**
 4. 如果未找到，则回退到从源码构建（如果可访问）
 
@@ -184,7 +184,7 @@ Celer 为每个构建配置生成一个**唯一哈希**。此哈希充当缓存�
 
 **设置：**
 ```toml
-[binary_cache]
+[package_cache]
 dir = "/mnt/shared/celer_cache"  # 网络驱动器
 token = "team_build_token"
 ```
@@ -213,7 +213,7 @@ celer_cache/
 分发带有预构建依赖的 SDK：
 1. 使用 `--store-cache` 和`--cache-token=xxxyyyzzz`构建所有依赖
 2. 将缓存文件夹与 SDK 一起打包
-3. 合作伙伴将 `binary_cache.dir` 配置到打包的缓存
+3. 合作伙伴将 `package_cache.dir` 配置到打包的缓存
 4. 他们无需编译依赖即可立即构建
 
 ---
@@ -242,7 +242,7 @@ celer_cache/
 ### 缓存未被使用？
 
 **检查这些：**
-1. ✓ `celer.toml` 中是否配置了 `binary_cache.dir`？
+1. ✓ `celer.toml` 中是否配置了 `package_cache.dir`？
 2. ✓ 目录是否存在并具有读取权限？
 3. ✓ 是否使用完全相同的平台和项目设置？
 4. ✓ 构建选项或依赖是否发生变化？

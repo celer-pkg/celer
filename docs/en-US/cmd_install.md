@@ -77,7 +77,7 @@ celer install ffmpeg@5.1.6 --store-cache --cache-token token_xxx
 celer install ffmpeg@5.1.6 -s -t token_xxx
 ```
 
-> A text file named `token` must be stored in the `binary_cache` root directory to record the verification token. Only when the token verification passes can build artifact caches be uploaded.
+> A text file named `token` must be stored in the `package_cache` root directory to record the verification token. Only when the token verification passes can build artifact caches be uploaded.
 
 ---
 
@@ -120,7 +120,7 @@ celer install ffmpeg@5.1.6 -s -t token_xxx
 
 #### 1️⃣ `installed/celer/hash/`
 
-Stores the hash key for each library. When `binary_cache` is configured in `celer.toml`, this hash will be stored as a key-value pair alongside the build artifacts. If a subsequent compilation finds a matching hash in the cache, it will directly reuse the corresponding build artifacts to avoid redundant recompilation.
+Stores the hash key for each library. When `package_cache` is configured in `celer.toml`, this hash will be stored as a key-value pair alongside the build artifacts. If a subsequent compilation finds a matching hash in the cache, it will directly reuse the corresponding build artifacts to avoid redundant recompilation.
 
 #### 2️⃣ `installed/celer/info/`
 
@@ -150,7 +150,7 @@ The directory name includes:
 - [Deploy Command](./cmd_deploy.md) - Deploy entire project
 - [Remove Command](./cmd_remove.md) - Remove installed libraries
 - [Port Configuration](./article_port.md) - Configure third-party libraries
-- [Binary Cache](./article_cache_artifacts.md) - Configure build cache
+- [Package Cache](./article_cache_artifacts.md) - Configure build cache
 
 ---
 

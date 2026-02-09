@@ -41,8 +41,8 @@ func TestCeler_Init_ExistingConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	dirs.Init(tmpDir)
 
-	binaryCacheDir := filepath.Join(tmpDir, "binary_cache_dir")
-	if err := os.MkdirAll(binaryCacheDir, os.ModePerm); err != nil {
+	packageCacheDir := filepath.Join(tmpDir, "package_cache_dir")
+	if err := os.MkdirAll(packageCacheDir, os.ModePerm); err != nil {
 		t.Fatalf("MkdirAll() error = %v", err)
 	}
 
@@ -103,7 +103,7 @@ func TestCeler_Init_InvalidCacheDir(t *testing.T) {
 	celerPath := filepath.Join(tmpDir, "celer.toml")
 
 	// Create config with invalid cache dir.
-	configWithInvalidCache := `[binary_cache]
+	configWithInvalidCache := `[package_cache]
 dir = ""
 `
 	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {

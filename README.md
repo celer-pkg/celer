@@ -20,7 +20,7 @@ Celer is the C/C++ accelerator that solves real-world dependency management chal
 
 - 🎯 **Zero Project Intrusion** - Just one `toolchain_file.cmake`, no code changes needed
 - 🚀 **True Cross-Compilation** - Platform-aware dependency management with pre-configured toolchains
-- 📦 **Smart Caching** - Hash-based binary artifact caching saves hours of build time
+- 📦 **Package Caching** - Hash-based package artifact caching saves hours of build time
 - 🔧 **Multi-Build System** - Native support for CMake, Make, Meson, B2, QMake, GYP
 - 🏢 **Enterprise Ready** - Project-level configurations prevent dependency version conflicts
 - 🔗 **Non-Intrusive Design** - Portable `toolchain_file.cmake` works standalone after generation
@@ -28,7 +28,7 @@ Celer is the C/C++ accelerator that solves real-world dependency management chal
 ## 🚀 Quick Start
 
 ```bash
-# 1. Install Celer (or download pre-built binary from releases)
+# 1. Install Celer (or download pre-built package from releases)
 git clone https://github.com/celer-pkg/celer.git
 cd celer && go build
 
@@ -64,7 +64,7 @@ Celer generates a platform-specific `toolchain_file.cmake` that bridges your pro
 | **📁 Project-Level Dependency Management** | Each project maintains its own dependency versions, environment variables, macros, and CMake variables - preventing global conflicts. |
 | **🛠️ Multi-Build System Support** | Native support for **CMake**, **Makefiles**, **Meson**, **B2**, **QMake**, **GYP** - no need to write complex scripts. |
 | **📦 Auto CMake Config Generation** | Prebuilt libraries automatically get CMake config files generated, ensuring seamless integration. |
-| **⚡ Intelligent Binary Caching** | Hash-based artifact caching via local network shares eliminates redundant builds. Supports pre-built binary distribution for private libraries. |
+| **⚡ Intelligent Package Caching** | Hash-based artifact caching via local network shares eliminates redundant builds. Supports pre-built package distribution for private libraries. |
 | **💻 Developer Mode** | Generate `toolchain_file.cmake` once with `celer deploy`, then use any IDE for development. |
 | **🔄 CI/CD Integration** | Configure projects in `conf/projects` for seamless continuous integration pipelines. |
 | 📸 **Workspace Snapshot** | A reproducible workspace snapshot makes it easy to fix bugs and add features. |
@@ -94,7 +94,7 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 
 **Advanced Features:**
 - [Generate CMake Configs](./docs/en-US/article_generate_cmake_config.md) - Auto-generate configs for prebuilt libraries
-- [Binary Cache](./docs/en-US/article_binary_cache.md) - Accelerate integration by caching build artifact of every library
+- [Package Cache](./docs/en-US/article_package_cache.md) - Accelerate integration by caching build artifact of every library
 - [Support CCache](./docs/en-US/article_ccache.md) - Speeds up recompilation by caching previous compilations
 - [Detect version conflict and circular dependencies](./docs/en-US/article_detect_conflict_circular.md) - Auto detect version conflict and circular dependencies before building any libraries
 - [CUDA auto detect](./docs/en-US/article_cuda_support.md) - Seamless CUDA toolkit integration for GPU-accelerated projects

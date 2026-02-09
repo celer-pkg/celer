@@ -91,10 +91,10 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 
 	// 2. Try to install from cache (only when not storing cache and not forcing).
 	if !options.StoreCache && !options.Force {
-		if installed, err := p.InstallFromBinaryCache(options); err != nil {
+		if installed, err := p.InstallFromPackageCache(options); err != nil {
 			return "", err
 		} else if installed {
-			return "binary cache", nil
+			return "package cache", nil
 		}
 	}
 
@@ -136,10 +136,10 @@ func (p Port) Clone() error {
 	return nil
 }
 
-func (p Port) doInstallFromBinaryCache(options InstallOptions) (bool, error) {
+func (p Port) doInstallFromPackageCache(options InstallOptions) (bool, error) {
 	// No cache dir configured, skip it.
-	binaryCache := p.ctx.BinaryCache()
-	if binaryCache == nil {
+	packageCache := p.ctx.PackageCache()
+	if packageCache == nil {
 		return false, nil
 	}
 
@@ -169,7 +169,7 @@ func (p Port) doInstallFromBinaryCache(options InstallOptions) (bool, error) {
 	}
 
 	// Read cache file and extract them to package dir.
-	if ok, err := binaryCache.Read(p.NameVersion(), buildhash+".tar.gz", p.MatchedConfig.PortConfig.PackageDir); err != nil {
+	if ok, err := packageCache.Read(p.NameVersion(), buildhash+".tar.gz", p.MatchedConfig.PortConfig.PackageDir); err != nil {
 		return false, fmt.Errorf("read cache with buildhash: %s", err)
 	} else if ok {
 		return true, nil
@@ -193,24 +193,24 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 	// Note: only store cache for non-devdep and non-native builds.
 	var writeCacheAfterInstall bool
 	if options.StoreCache && !p.MatchedConfig.DevDep && !p.MatchedConfig.Native {
-		binaryCache := p.ctx.BinaryCache()
-		if binaryCache == nil {
-			return errors.ErrBinaryCacheDirNotConfigured
+		packageCache := p.ctx.PackageCache()
+		if packageCache == nil {
+			return errors.ErrPackageCacheDirNotConfigured
 		}
-		if binaryCache.GetDir() == "" {
-			return errors.ErrBinaryCacheDirNotConfigured
+		if packageCache.GetDir() == "" {
+			return errors.ErrPackageCacheDirNotConfigured
 		}
 
-		if !fileio.PathExists(filepath.Join(binaryCache.GetDir(), ".token")) {
-			return errors.ErrBinaryCacheTokenNotConfigured
+		if !fileio.PathExists(filepath.Join(packageCache.GetDir(), ".token")) {
+			return errors.ErrPackageCacheTokenNotConfigured
 		}
 
 		if options.CacheToken == "" {
-			return errors.ErrBinaryCacheTokenNotSpecified
+			return errors.ErrPackageCacheTokenNotSpecified
 		}
 
-		if !encrypt.CheckToken(binaryCache.GetDir(), options.CacheToken) {
-			return errors.ErrBinaryCacheTokenNotMatch
+		if !encrypt.CheckToken(packageCache.GetDir(), options.CacheToken) {
+			return errors.ErrPackageCacheTokenNotMatch
 		}
 
 		writeCacheAfterInstall = true
@@ -248,14 +248,14 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 
 		// Store cache after installation.
 		if writeCacheAfterInstall {
-			if p.ctx.BinaryCache() == nil {
-				return errors.ErrBinaryCacheDirNotConfigured
+			if p.ctx.PackageCache() == nil {
+				return errors.ErrPackageCacheDirNotConfigured
 			}
-			binaryCache := p.ctx.BinaryCache()
-			if binaryCache.GetDir() == "" {
-				return errors.ErrBinaryCacheDirNotConfigured
+			packageCache := p.ctx.PackageCache()
+			if packageCache.GetDir() == "" {
+				return errors.ErrPackageCacheDirNotConfigured
 			}
-			if err := binaryCache.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
+			if err := packageCache.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 				return err
 			}
 		}
@@ -400,10 +400,10 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	return true, nil
 }
 
-func (p Port) InstallFromBinaryCache(options InstallOptions) (bool, error) {
-	installed, err := p.doInstallFromBinaryCache(options)
+func (p Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
+	installed, err := p.doInstallFromPackageCache(options)
 	if err != nil {
-		return false, fmt.Errorf("failed to install from binary cache.\n %w", err)
+		return false, fmt.Errorf("failed to install from package cache.\n %w", err)
 	}
 
 	if installed {
@@ -416,15 +416,15 @@ func (p Port) InstallFromBinaryCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		binaryCache := p.ctx.BinaryCache()
-		if binaryCache == nil {
-			return false, errors.ErrBinaryCacheDirNotConfigured
+		packageCache := p.ctx.PackageCache()
+		if packageCache == nil {
+			return false, errors.ErrPackageCacheDirNotConfigured
 		}
-		if binaryCache.GetDir() == "" {
-			return false, errors.ErrBinaryCacheDirNotConfigured
+		if packageCache.GetDir() == "" {
+			return false, errors.ErrPackageCacheDirNotConfigured
 		}
-		fromDir := binaryCache.GetDir()
-		return true, p.writeTraceFile(fmt.Sprintf("binary cache, dir: %q", fromDir))
+		fromDir := packageCache.GetDir()
+		return true, p.writeTraceFile(fmt.Sprintf("package cache, dir: %q", fromDir))
 	} else if p.Package.Commit != "" {
 		return false, errors.ErrCacheNotFoundWithCommit
 	}

@@ -5,20 +5,20 @@ import (
 )
 
 var (
-	ErrNoMatchedConfigFound        = errors.New("no matched config found")
-	ErrInvalidBuildType            = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
-	ErrBinaryCacheDirNotConfigured = errors.New("binary cache dir is not configured in celer.toml")
-	ErrBinaryCacheInvalid          = errors.New("binary cache dir is invalid")
-	ErrBinaryCacheDirNotExist      = errors.New("binary cache dir not exist")
-	ErrBinaryCacheTokenExists      = errors.New("binary cache token already exist, if you want to change it, please remove it first manually")
+	ErrNoMatchedConfigFound         = errors.New("no matched config found")
+	ErrInvalidBuildType             = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
+	ErrPackageCacheDirNotConfigured = errors.New("package cache dir is not configured in celer.toml")
+	ErrPackageCacheInvalid          = errors.New("package cache dir is invalid")
+	ErrPackageCacheDirNotExist      = errors.New("package cache dir not exist")
+	ErrPackageCacheTokenExists      = errors.New("package cache token already exist, if you want to change it, please remove it first manually")
 
-	ErrBinaryCacheTokenInvalid       = errors.New("binary cache dir is invalid")
-	ErrBinaryCacheTokenNotConfigured = errors.New("binary cache token is not configured in celer.toml")
-	ErrBinaryCacheTokenNotSpecified  = errors.New("binary cache token is not specified with `--cache-token`")
-	ErrBinaryCacheTokenNotMatch      = errors.New(
-		"binary cache tokens doesn't matched, please check `--binary-cache-token` and `token` in binary cache dir",
+	ErrPackageCacheTokenInvalid       = errors.New("package cache dir is invalid")
+	ErrPackageCacheTokenNotConfigured = errors.New("package cache token is not configured in celer.toml")
+	ErrPackageCacheTokenNotSpecified  = errors.New("package cache token is not specified with `--cache-token`")
+	ErrPackageCacheTokenNotMatch      = errors.New(
+		"package cache tokens doesn't matched, please check `--package-cache-token` and `token` in package cache dir",
 	)
-	ErrCacheNotFoundWithCommit = errors.New("binary cache not found with commit")
+	ErrCacheNotFoundWithCommit = errors.New("package cache not found with commit")
 )
 
 // Is same as errors.Is

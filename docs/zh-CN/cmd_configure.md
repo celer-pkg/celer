@@ -19,8 +19,8 @@ celer configure [flags]
 | --verbose                 | 布尔    | 启用详细日志模式                       |
 | --proxy-host              | 字符串  | 配置代理地址                           |
 | --proxy-port              | 整数    | 配置代理端口                           |
-| --binary-cache-dir        | 字符串  | 配置二进制缓存目录                     |
-| --binary-cache-token      | 字符串 | 配置二进制缓存令牌                     |
+| --package-cache-dir        | 字符串  | 配置二进制缓存目录                     |
+| --package-cache-token      | 字符串 | 配置二进制缓存令牌                     |
 | --ccache-enabled          | 布尔    | 配置 ccache 是否启用                |
 | --ccache-dir              | 字符串  | 配置 ccache 工作目录                   |
 | --ccache-maxsize          | 字符串  | 设置 ccache 最大空间（如 "10G"）        |
@@ -94,10 +94,10 @@ celer configure --proxy-host 127.0.0.1 --proxy-port 7890
 ### 配置二进制缓存目录和令牌
 
 ```shell
-celer configure --binary-cache-dir /home/xxx/cache --binary-cache-token token_12345
+celer configure --package-cache-dir /home/xxx/cache --package-cache-token token_12345
 ```
 
->你可以同时配置 --binary-cache-dir 和 --binary-cache-token，也可以分别配置。
+>你可以同时配置 --package-cache-dir 和 --package-cache-token，也可以分别配置。
 
 ---
 

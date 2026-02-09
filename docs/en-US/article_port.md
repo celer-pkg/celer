@@ -151,7 +151,7 @@ When **library_type** is set to **shared**, Celer will try to read the value in 
 - build_type's candidate values：**release**, **debug**, **relwithdebinfo**, **minsizerel**；
 - If not specified, the build_type defined in celer.toml will be used (defaults to **release**)
 
->**Note:** build_type also affects binary cache key calculation. Different build_type values will generate different cache entries.
+>**Note:** build_type also affects package cache key calculation. Different build_type values will generate different cache entries.
 
 ### 1.2.9 envs
 

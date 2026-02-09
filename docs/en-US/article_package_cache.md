@@ -25,7 +25,7 @@ Celer uses **hash-based caching** to store and retrieve build artifacts:
 
 ### Step 1: Configure Cache Location
 
-Add the `[binary_cache]` section to your `celer.toml` to enable cache retrieval:
+Add the `[package_cache]` section to your `celer.toml` to enable cache retrieval:
 
 ```toml
 [global]
@@ -34,7 +34,7 @@ platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0.5"
 project = "project_01"
 jobs = 32
 
-[binary_cache]
+[package_cache]
 dir = "/home/test/celer_cache"  # Local or network-mounted directory
 ```
 
@@ -56,7 +56,7 @@ platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0.5"
 project = "project_01"
 jobs = 32
 
-[binary_cache]
+[package_cache]
 dir = "/home/test/celer_cache"
 ```
 
@@ -92,7 +92,7 @@ options = ["-DEIGEN_TEST_NO_OPENGL=1", "-DBUILD_TESTING=OFF"]
 
 **How it works:**
 1. Celer calculates the cache key using the `commit` hash and build config
-2. Searches for matching artifact in `binary_cache`
+2. Searches for matching artifact in `package_cache`
 3. If found, extracts and uses it **without cloning the repository**
 4. If not found, falls back to building from source (if accessible)
 
@@ -184,7 +184,7 @@ When the hash changes:
 
 **Setup:**
 ```toml
-[binary_cache]
+[package_cache]
 dir = "/mnt/shared/celer_cache"  # Network drive
 token = "team_build_token"
 ```
@@ -213,7 +213,7 @@ Each platform maintains separate cached artifacts, preventing conflicts.
 Distribute SDK with pre-built dependencies:
 1. Build all dependencies with `--store-cache` and `--cache-token=xxxyyyzzz`
 2. Package the cache folder with your SDK
-3. Partners configure `binary_cache.dir` to the packaged cache
+3. Partners configure `package_cache.dir` to the packaged cache
 4. They get instant builds without compiling dependencies
 
 ---
@@ -242,7 +242,7 @@ Distribute SDK with pre-built dependencies:
 ### Cache not being used?
 
 **Check these:**
-1. ✓ Is `binary_cache.dir` configured in `celer.toml`?
+1. ✓ Is `package_cache.dir` configured in `celer.toml`?
 2. ✓ Does the directory exist and have read permissions?
 3. ✓ Are you using the exact same platform and project settings?
 4. ✓ Did any build options or dependencies change?

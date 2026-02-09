@@ -41,7 +41,7 @@ FEATURES:
   • Install packages with dependency resolution
   • Support for development dependencies
   • Force reinstallation with dependency handling
-  • Binary cache integration
+  • Package cache integration
   • Parallel build support
   • Circular dependency detection
   • Version conflict checking
@@ -50,8 +50,8 @@ FLAGS:
   -d, --dev         Install as development dependency
   -f, --force       Force reinstallation (uninstall first if exists)
   -r, --recursive   With --force, recursively reinstall dependencies
-  -s, --store-cache Store build artifacts in binary cache after installation
-  -t, --cache-token Authentication token for binary cache operations
+  -s, --store-cache Store build artifacts in package cache after installation
+  -t, --cache-token Authentication token for package cache operations
   -j, --jobs        Number of parallel build jobs (default: system cores)
   -v, --verbose     Enable verbose output for debugging
 

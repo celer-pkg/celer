@@ -42,8 +42,8 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"jobs", ""},
 		{"offline", ""},
 		{"verbose", ""},
-		{"binary-cache-dir", ""},
-		{"binary-cache-token", ""},
+		{"package-cache-dir", ""},
+		{"package-cache-token", ""},
 		{"proxy-host", ""},
 		{"proxy-port", ""},
 		{"ccache-enabled", ""},
@@ -105,14 +105,14 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--verbose"},
 		},
 		{
-			name:       "complete_binary_cache_dir_flag",
-			toComplete: "--binary-cache-d",
-			expected:   []string{"--binary-cache-dir"},
+			name:       "complete_package_cache_dir_flag",
+			toComplete: "--package-cache-d",
+			expected:   []string{"--package-cache-dir"},
 		},
 		{
-			name:       "complete_binary_cache_token_flag",
-			toComplete: "--binary-cache-t",
-			expected:   []string{"--binary-cache-token"},
+			name:       "complete_package_cache_token_flag",
+			toComplete: "--package-cache-t",
+			expected:   []string{"--package-cache-token"},
 		},
 		{
 			name:       "complete_proxy_host_flag",
@@ -570,7 +570,7 @@ func TestConfigure_Verbose_OFF(t *testing.T) {
 	}
 }
 
-func TestConfigure_BinaryCacheDir(t *testing.T) {
+func TestConfigure_PackageCacheDir(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -590,12 +590,12 @@ func TestConfigure_BinaryCacheDir(t *testing.T) {
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-	check(celer.SetBinaryCacheDir(dirs.TestCacheDir))
-	check(celer.SetBinaryCacheToken("token_123456"))
+	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
+	check(celer.SetPackageCacheToken("token_123456"))
 
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
-	if celer2.BinaryCache().GetDir() != dirs.TestCacheDir {
+	if celer2.PackageCache().GetDir() != dirs.TestCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
 	}
 
@@ -604,7 +604,7 @@ func TestConfigure_BinaryCacheDir(t *testing.T) {
 	}
 }
 
-func TestConfigure_BinaryCacheDir_DirNotExist(t *testing.T) {
+func TestConfigure_PackageCacheDir_DirNotExist(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -622,8 +622,8 @@ func TestConfigure_BinaryCacheDir_DirNotExist(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetBinaryCacheDir(dirs.TestCacheDir); !errors.Is(err, errors.ErrBinaryCacheDirNotExist) {
-		t.Fatal("expected error for binary cache dir not exist")
+	if err := celer.SetPackageCacheDir(dirs.TestCacheDir); !errors.Is(err, errors.ErrPackageCacheDirNotExist) {
+		t.Fatal("expected error for package cache dir not exist")
 	}
 }
 

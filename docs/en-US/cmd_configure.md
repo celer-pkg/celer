@@ -19,8 +19,8 @@ celer configure [flags]
 | --verbose                 | boolean | Enable verbose logging mode            |
 | --proxy-host              | string  | Configure proxy host                   |
 | --proxy-port              | integer | Configure proxy port                   |
-| --binary-cache-dir        | string  | Configure binary cache directory       |
-| --binary-cache-token      | string  | Configure binary cache token           |
+| --package-cache-dir       | string  | Configure package cache directory      |
+| --package-cache-token     | string  | Configure package cache token          |
 | --ccache-enabled          | boolean | Configure ccache enabled               |
 | --ccache-dir              | string  | Configure ccache working directory     |
 | --ccache-maxsize          | string  | configure ccache maxsize               |
@@ -90,15 +90,15 @@ celer configure --proxy-host 127.0.0.1 --proxy-port 7890
 
 ---
 
-## 🗄️ Binary Cache Configuration
+## 🗄️ Package Cache Configuration
 
-### Configure Binary Cache Directory and Token
+### Configure Package Cache Directory and Token
 
 ```shell
-celer configure --binary-cache-dir /home/xxx/cache --binary-cache-token token_12345
+celer configure --package-cache-dir /home/xxx/cache --package-cache-token token_12345
 ```
 
-> You can configure --binary-cache-dir and --binary-cache-token together or separately.
+> You can configure --package-cache-dir and --package-cache-token together or separately.
 
 ---
 

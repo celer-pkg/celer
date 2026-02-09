@@ -10,24 +10,24 @@ import (
 	"strings"
 )
 
-type BinaryCache struct {
+type PackageCache struct {
 	Dir string `toml:"dir"`
 
 	// Internal field.
 	ctx context.Context
 }
 
-func (b BinaryCache) Validate() error {
+func (b PackageCache) Validate() error {
 	if b.Dir == "" {
-		return fmt.Errorf("binary cache dir is empty")
+		return fmt.Errorf("package cache dir is empty")
 	}
 	if !fileio.PathExists(b.Dir) {
-		return fmt.Errorf("binary cache dir does not exist: %s", b.Dir)
+		return fmt.Errorf("package cache dir does not exist: %s", b.Dir)
 	}
 	return nil
 }
 
-func (b BinaryCache) Read(nameVersion, hash, destDir string) (bool, error) {
+func (b PackageCache) Read(nameVersion, hash, destDir string) (bool, error) {
 	platformName := b.ctx.Platform().GetName()
 	projectName := b.ctx.Project().GetName()
 	buildType := b.ctx.BuildType()
@@ -47,7 +47,7 @@ func (b BinaryCache) Read(nameVersion, hash, destDir string) (bool, error) {
 	return true, nil
 }
 
-func (b BinaryCache) Write(packageDir, meta string) error {
+func (b PackageCache) Write(packageDir, meta string) error {
 	if !fileio.PathExists(packageDir) {
 		return fmt.Errorf("package dir does not exist: %s", packageDir)
 	}
@@ -105,7 +105,7 @@ func (b BinaryCache) Write(packageDir, meta string) error {
 }
 
 // Remove removes the cache for the specified platform, project, build type and name version.
-func (b BinaryCache) Remove(nameVersion string) error {
+func (b PackageCache) Remove(nameVersion string) error {
 	platformName := b.ctx.Platform().GetName()
 	projectName := b.ctx.Project().GetName()
 	buildType := b.ctx.BuildType()
@@ -120,7 +120,7 @@ func (b BinaryCache) Remove(nameVersion string) error {
 }
 
 // Exist check both archive file and build desc file exist.
-func (b BinaryCache) Exist(nameVersion, hash string) bool {
+func (b PackageCache) Exist(nameVersion, hash string) bool {
 	platformName := b.ctx.Platform().GetName()
 	projectName := b.ctx.Project().GetName()
 	buildType := b.ctx.BuildType()
@@ -129,6 +129,6 @@ func (b BinaryCache) Exist(nameVersion, hash string) bool {
 	return fileio.PathExists(archivePath) && fileio.PathExists(metaFilePath)
 }
 
-func (b BinaryCache) GetDir() string {
+func (b PackageCache) GetDir() string {
 	return b.Dir
 }

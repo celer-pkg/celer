@@ -41,4 +41,4 @@ jobs:
       run: go build -v ./...
 
     - name: Test
-      run: go test -v ./cmds/ -run "TestInstallCmd|TestInstall_BuildType|TestInstall_FromPackage|TestInstall_With_Force|TestInstall_Generate_CMake|TestInstall_BinaryCache" -timeout 1h
+      run: go test -v ./cmds/ -run "TestInstallCmd|TestInstall_BuildType|TestInstall_FromPackage|TestInstall_With_Force|TestInstall_Generate_CMake|TestInstall_PackageCache" -timeout 1h

@@ -162,7 +162,7 @@ options = [
 - build_type 的候选值：**release**, **debug**, **relwithdebinfo**, **minsizerel**；
 - 如果未指定，则使用 celer.toml 中定义的 build_type（默认为 **release**）
 
->**注意：** build_type 也会影响 binary cache 的键值计算，不同的 build_type 会生成不同的缓存。
+>**注意：** build_type 也会影响 package cache 的键值计算，不同的 build_type 会生成不同的缓存。
 
 ### 1.2.9 envs
 &emsp;&emsp;可选配置，默认值为空，用于定义一些环境变量，例如 **CXXFLAGS=-fPIC**，或者甚至编译一些库需要设置指定的环境变量，例如：**libxext** 库在交叉编译到 aarch64 平台时需要设置环境变量：**"xorg_cv_malloc0_returns_null=yes"**，目的是屏蔽编译器检查错误报告；  

@@ -20,9 +20,9 @@ type configureCmd struct {
 	offline   bool
 	verbose   bool
 
-	// Binary cache options.
-	binaryCacheDir string
-	cacheToken     string
+	// Package cache options.
+	packageCacheDir   string
+	packageCacheToken string
 
 	proxy  configs.Proxy
 	ccache configs.CCache
@@ -55,9 +55,9 @@ Available Configuration Options:
     --offline         Enable/disable offline mode (true/false)
     --verbose         Enable/disable verbose output (true/false)
     
-  Binary Cache Configuration:
-    --binary-cache-dir    Set the binary cache directory path
-    --binary-cache-token  Set the binary cache authentication token
+  Package Cache Configuration:
+    --package-cache-dir    Set the package cache directory path
+    --package-cache-token  Set the package cache authentication token
     
   Proxy Configuration:
     --proxy-host      Set the proxy server hostname
@@ -76,7 +76,7 @@ Examples:
   celer configure --jobs 8                        # Use 8 parallel build jobs
   celer configure --offline true                  # Enable offline mode
   celer configure --verbose false                 # Disable verbose output
-  celer configure --binary-cache-dir /tmp/cache   # Set binary cache directory
+  celer configure --package-cache-dir /tmp/cache  # Set package cache directory
   celer configure --proxy-host proxy.example.com  # Set proxy host
   celer configure --proxy-port 8080               # Set proxy port
   celer configure --ccache-maxsize 5G             # Set ccache max size to 5GB`,
@@ -133,16 +133,16 @@ Examples:
 				}
 				configs.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 
-			case flags.Changed("binary-cache-dir"):
-				if err := c.celer.SetBinaryCacheDir(c.binaryCacheDir); err != nil {
-					return configs.PrintError(err, "failed to set binary cache dir: %s.", c.binaryCacheDir)
+			case flags.Changed("package-cache-dir"):
+				if err := c.celer.SetPackageCacheDir(c.packageCacheDir); err != nil {
+					return configs.PrintError(err, "failed to set package cache dir: %s.", c.packageCacheDir)
 				}
-				configs.PrintSuccess("current cache dir: %s.", expr.If(c.binaryCacheDir != "", c.binaryCacheDir, "empty"))
-			case flags.Changed("binary-cache-token"):
-				if err := c.celer.SetBinaryCacheToken(c.cacheToken); err != nil {
-					return configs.PrintError(err, "failed to set binary cache token: %s.", c.cacheToken)
+				configs.PrintSuccess("current cache dir: %s.", expr.If(c.packageCacheDir != "", c.packageCacheDir, "empty"))
+			case flags.Changed("package-cache-token"):
+				if err := c.celer.SetPackageCacheToken(c.packageCacheToken); err != nil {
+					return configs.PrintError(err, "failed to set package cache token: %s.", c.packageCacheToken)
 				}
-				configs.PrintSuccess("current cache token: %s.", expr.If(c.cacheToken != "", c.cacheToken, "empty"))
+				configs.PrintSuccess("current cache token: %s.", expr.If(c.packageCacheToken != "", c.packageCacheToken, "empty"))
 
 			case flags.Changed("proxy-host"):
 				if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
@@ -201,9 +201,9 @@ Examples:
 	flags.BoolVar(&c.offline, "offline", false, "configure offline mode.")
 	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
 
-	// Binary cache flags.
-	flags.StringVar(&c.binaryCacheDir, "binary-cache-dir", "", "configure binary cache dir.")
-	flags.StringVar(&c.cacheToken, "binary-cache-token", "", "configure binary cache token.")
+	// Package cache flags.
+	flags.StringVar(&c.packageCacheDir, "package-cache-dir", "", "configure package cache dir.")
+	flags.StringVar(&c.packageCacheToken, "package-cache-token", "", "configure package cache token.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -281,8 +281,8 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--jobs",
 		"--offline",
 		"--verbose",
-		"--binary-cache-dir",
-		"--binary-cache-token",
+		"--package-cache-dir",
+		"--package-cache-token",
 		"--proxy-host",
 		"--proxy-port",
 		"--ccache-enabled",

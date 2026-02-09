@@ -64,10 +64,10 @@ type Proxy struct {
 }
 
 type configData struct {
-	Global      global       `toml:"global"`
-	Proxy       *Proxy       `toml:"proxy,omitempty"`
-	BinaryCache *BinaryCache `toml:"binary_cache,omitempty"`
-	CCache      *CCache      `toml:"ccache,omitempty"`
+	Global       global        `toml:"global"`
+	Proxy        *Proxy        `toml:"proxy,omitempty"`
+	PackageCache *PackageCache `toml:"package_cache,omitempty"`
+	CCache       *CCache       `toml:"ccache,omitempty"`
 }
 
 // Init initializes celer with existing platform.
@@ -141,10 +141,10 @@ func (c *Celer) InitWithPlatform(platform string) error {
 			}
 		}
 
-		// Validate binary cache.
-		if c.configData.BinaryCache != nil {
-			c.configData.BinaryCache.ctx = c
-			if err := c.configData.BinaryCache.Validate(); err != nil {
+		// Validate package cache.
+		if c.configData.PackageCache != nil {
+			c.configData.PackageCache.ctx = c
+			if err := c.configData.PackageCache.Validate(); err != nil {
 				return err
 			}
 		}
@@ -445,20 +445,20 @@ func (c *Celer) SetVerbose(vebose bool) error {
 	return nil
 }
 
-func (c *Celer) SetBinaryCacheDir(dir string) error {
+func (c *Celer) SetPackageCacheDir(dir string) error {
 	// Check dir empty and exist.
 	if strings.TrimSpace(dir) == "" {
-		return errors.ErrBinaryCacheInvalid
+		return errors.ErrPackageCacheInvalid
 	}
 	if !fileio.PathExists(dir) {
-		return errors.ErrBinaryCacheDirNotExist
+		return errors.ErrPackageCacheDirNotExist
 	}
 
-	// Set binary cache dir.
+	// Set package cache dir.
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
-	c.configData.BinaryCache = &BinaryCache{
+	c.configData.PackageCache = &PackageCache{
 		Dir: dir,
 		ctx: c,
 	}
@@ -469,27 +469,27 @@ func (c *Celer) SetBinaryCacheDir(dir string) error {
 	return nil
 }
 
-func (c *Celer) SetBinaryCacheToken(token string) error {
+func (c *Celer) SetPackageCacheToken(token string) error {
 	if strings.TrimSpace(token) == "" {
-		return errors.ErrBinaryCacheTokenInvalid
+		return errors.ErrPackageCacheTokenInvalid
 	}
 
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
-	// Binary cache dir must be configured already.
-	if c.configData.BinaryCache == nil {
-		return errors.ErrBinaryCacheDirNotConfigured
+	// Package cache dir must be configured already.
+	if c.configData.PackageCache == nil {
+		return errors.ErrPackageCacheDirNotConfigured
 	}
-	dir := c.configData.BinaryCache.Dir
+	dir := c.configData.PackageCache.Dir
 	if !fileio.PathExists(dir) {
-		return errors.ErrBinaryCacheDirNotExist
+		return errors.ErrPackageCacheDirNotExist
 	}
 
 	tokenFile := filepath.Join(dir, ".token")
 	if fileio.PathExists(tokenFile) {
-		return errors.ErrBinaryCacheTokenExists
+		return errors.ErrPackageCacheTokenExists
 	}
 
 	// Write token to file with encrypted text.
@@ -842,14 +842,14 @@ func (c *Celer) Offline() bool {
 	return c.Global.Offline
 }
 
-func (c *Celer) BinaryCache() context.BinaryCache {
+func (c *Celer) PackageCache() context.PackageCache {
 	// Must return exactly nil if cache dir is none.
 	// otherwise, the result of CacheDir() will not be nil.
-	if c.configData.BinaryCache == nil {
+	if c.configData.PackageCache == nil {
 		return nil
 	}
 
-	return c.configData.BinaryCache
+	return c.configData.PackageCache
 }
 
 func (c *Celer) Verbose() bool {

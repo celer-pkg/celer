@@ -1,4 +1,4 @@
-package binarycache
+package packagecache
 
 import (
 	"bytes"
