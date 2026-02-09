@@ -20,7 +20,7 @@ type CCache struct {
 }
 
 // Setup setup ccache.
-func (c *CCache) Setup() error {
+func (c CCache) Setup() error {
 	if c.Enabled {
 		os.Unsetenv("CCACHE_DISABLE")
 	} else {
