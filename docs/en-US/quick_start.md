@@ -186,7 +186,7 @@ After configuration, the `celer.toml` file will be updated as follows:
   offline = false
   verbose = false
 
-[binary_cache]
+[package_cache]
   dir = "/home/phil/celer_cache"
 ```
 
@@ -201,7 +201,7 @@ After configuration, the `celer.toml` file will be updated as follows:
 | `build_type` | Build type, default is `release`, can also be set to `debug` |
 | `offline` | Offline mode. When enabled, Celer will not try to update repositories or download resources |
 | `verbose` | Verbose mode. When enabled, Celer will show more detailed logs during building |
-| `binary_cache` | Binary cache configuration. Celer supports caching build artifacts to avoid redundant compilation. [Can be configured as a local directory or a shared folder in the LAN](./article_binary_cache.md) |
+| `package_cache` | Package cache configuration. Celer supports caching build artifacts to avoid redundant compilation. [Can be configured as a local directory or a shared folder in the LAN](./article_package_cache.md) |
 
 ---
 
@@ -263,7 +263,7 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="/path/to/workspace/toolchain_file.cmake"
 
 - [Advanced Platform Configuration](./article_platform.md)
 - [Advanced Port Configuration](./article_port.md)
-- [Binary Cache Configuration](./article_binary_cache.md)
+- [Package Cache Configuration](./article_package_cache.md)
 - [Command Reference](./cmd_install.md)
 
 ---

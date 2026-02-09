@@ -1,8 +1,8 @@
 package configs
 
 import (
-	"celer/binarycache"
 	"celer/buildsystems"
+	"celer/packagecache"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -30,7 +30,7 @@ func (p Port) meta2hash(metaData string) string {
 }
 
 func (p Port) buildMeta(commit string) (string, error) {
-	cachePort := binarycache.Port{
+	cachePort := packagecache.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    p.ctx.Platform().GetName(),
 		Project:     p.ctx.Project().GetName(),
@@ -135,8 +135,8 @@ func (p Port) GetBuildConfig(nameVersion string, devDep bool) (*buildsystems.Bui
 	return port.MatchedConfig, nil
 }
 
+// CheckHostSupported Host supported means that the port can be built natively.
 func (p Port) CheckHostSupported(nameVersion string) bool {
-	// Host supported means the port is can be built natively.
 	var port = Port{DevDep: true}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return false

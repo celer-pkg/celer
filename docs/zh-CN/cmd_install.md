@@ -77,7 +77,7 @@ celer install ffmpeg@5.1.6 --store-cache --cache-token token_xxx
 celer install ffmpeg@5.1.6 -s -t token_xxx
 ```
 
-> 在 `binary_cache` 根目录下需要存储名为 `token` 的文本文件，记录用于校验的令牌。只有令牌校验通过才允许上传构建产物缓存。
+> 在 `package_cache` 根目录下需要存储名为 `token` 的文本文件，记录用于校验的令牌。只有令牌校验通过才允许上传构建产物缓存。
 
 ---
 
@@ -120,7 +120,7 @@ celer install ffmpeg@5.1.6 -s -t token_xxx
 
 #### 1️⃣ `installed/celer/hash/`
 
-存储每个库的哈希键值。当 `celer.toml` 中配置了 `binary_cache` 时，该哈希值将与构建产物一起以键值对形式存储。如果后续编译时在缓存中发现匹配的哈希值，将直接复用对应的构建产物，以避免不必要的重复编译。
+存储每个库的哈希键值。当 `celer.toml` 中配置了 `package_cache` 时，该哈希值将与构建产物一起以键值对形式存储。如果后续编译时在缓存中发现匹配的哈希值，将直接复用对应的构建产物，以避免不必要的重复编译。
 
 #### 2️⃣ `installed/celer/info/`
 

@@ -4,7 +4,7 @@
 
 ## 🎯 What is CCache?
 
-CCache (Compiler Cache) is a compiler cache that speeds up recompilation by caching previous compilations and detecting when the same compilation is being done again. Unlike [binary cache](article_binary_cache.md) which caches entire built libraries, CCache works at the **object file level** during compilation.
+CCache (Compiler Cache) is a compiler cache that speeds up recompilation by caching previous compilations and detecting when the same compilation is being done again. Unlike [package cache](article_package_cache.md) which caches entire built libraries, CCache works at the **object file level** during compilation.
 
 **Key Benefits:**
 - ⚡ **Faster incremental builds** - Reuse cached object files instead of recompiling
@@ -12,9 +12,9 @@ CCache (Compiler Cache) is a compiler cache that speeds up recompilation by cach
 - 🌐 **Remote storage** - Share compilation cache across teams via HTTP
 - 💾 **Space efficient** - Configurable cache size with automatic cleanup
 
-## 💡 CCache vs Binary Cache
+## 💡 CCache vs Package Cache
 
-| Feature | CCache | Binary Cache |
+| Feature | CCache | Package Cache |
 |---------|--------|--------------|
 | **Granularity** | Individual object files (`.o`) | Complete built libraries |
 | **Use Case** | Incremental builds, small changes | Full dependency rebuilds |
@@ -24,7 +24,7 @@ CCache (Compiler Cache) is a compiler cache that speeds up recompilation by cach
 
 **When to use both:**
 - **CCache**: Speeds up daily development when making small changes
-- **Binary Cache**: Eliminates full dependency rebuilds when switching branches or setting up new environments
+- **Package Cache**: Eliminates full dependency rebuilds when switching branches or setting up new environments
 
 ## 🚀 Quick Start
 

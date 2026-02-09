@@ -11,7 +11,7 @@ type Context interface {
 	Verbose() bool
 	InstalledDir(cmakePath bool) string
 	InstalledDevDir(cmakePath bool) string
-	BinaryCache() BinaryCache
+	PackageCache() PackageCache
 	ProxyHostPort() (host string, port int)
 	Optimize(buildsystem, toolchain string) *Optimize
 	CCacheEnabled() bool
@@ -19,7 +19,7 @@ type Context interface {
 	Vairables() map[string]string
 }
 
-type BinaryCache interface {
+type PackageCache interface {
 	GetDir() string
 	Read(nameVersion, hash, destDir string) (bool, error)
 	Write(packageDir, meta string) error

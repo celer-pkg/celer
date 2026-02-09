@@ -92,7 +92,7 @@ celer remove ffmpeg@5.1.6 -r -p -c
 
 ### Purge Removal (--purge)
 - Based on basic removal, delete package files in `packages/` directory
-- Package files are typically used for binary cache distribution
+- Package files are typically used for package cache distribution
 
 ### Clean Build Cache (--build-cache)
 - Based on basic removal, delete build cache in `buildtrees/` directory
