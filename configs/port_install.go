@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"celer/buildtools"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/encrypt"
@@ -51,11 +52,6 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		// Clean source repo.
 		if err := p.MatchedConfig.Clean(); err != nil {
 			return "", fmt.Errorf("failed to clean repo before install.\n %w", err)
-		}
-
-		// Remove installed python3 packages if any.
-		if err := os.RemoveAll(dirs.PythonUserBase); err != nil {
-			return "", fmt.Errorf("failed to remove python3 packages. \n %w", err)
 		}
 	}
 
@@ -316,7 +312,7 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	}
 
 	// Install dependencies/dev_dependencies.
-	if err := p.installDependencies(options); err != nil {
+	if err := p.installAllDeps(options); err != nil {
 		return false, err
 	}
 
@@ -412,7 +408,7 @@ func (p Port) InstallFromBinaryCache(options InstallOptions) (bool, error) {
 
 	if installed {
 		// Install dependencies/dev_dependencies also.
-		if err := p.installDependencies(options); err != nil {
+		if err := p.installAllDeps(options); err != nil {
 			return false, err
 		}
 
@@ -437,7 +433,44 @@ func (p Port) InstallFromBinaryCache(options InstallOptions) (bool, error) {
 }
 
 func (p Port) InstallFromSource(options InstallOptions) error {
-	// Clone or download all required source.
+	// Clone or download source of all ports.
+	if err := p.cloneAllRepos(); err != nil {
+		return err
+	}
+
+	// Check tools for all ports.
+	if err := p.checkAllTools(); err != nil {
+		return err
+	}
+
+	// Install all dependencies for current port.
+	if err := p.installAllDeps(options); err != nil {
+		return err
+	}
+
+	// Prepare dependencies.
+	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
+		color.Printf(color.Title, "\n[prepare deps for %s]:\n", p.NameVersion())
+		preparedTmpDeps = []string{}
+		if err := p.prepareTmpDeps(); err != nil {
+			return err
+		}
+	}
+
+	// Firstly, install to package dir.
+	if err := p.doInstallFromSource(options); err != nil {
+		return err
+	}
+
+	// Secondly, copy to installed dir.
+	if err := p.doInstallFromPackage(p.InstalledDir); err != nil {
+		return err
+	}
+
+	return p.writeTraceFile("source")
+}
+
+func (p Port) cloneAllRepos() error {
 	buildConfig := p.MatchedConfig
 	for _, nameVersion := range buildConfig.DevDependencies {
 		port := Port{DevDep: true}
@@ -461,30 +494,34 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
-	if err := p.installDependencies(options); err != nil {
-		return err
-	}
-
-	// Prepare dependencies.
-	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
-		color.Printf(color.Title, "\n[prepare dependencies for %s]:\n", p.NameVersion())
-		preparedTmpDeps = []string{}
-		if err := p.prepareTmpDeps(); err != nil {
-			return err
-		}
-	}
-
-	if err := p.doInstallFromSource(options); err != nil {
-		return err
-	}
-	if err := p.doInstallFromPackage(p.InstalledDir); err != nil {
-		return err
-	}
-
-	return p.writeTraceFile("source")
+	return nil
 }
 
-func (p Port) installDependencies(options InstallOptions) error {
+func (p Port) checkAllTools() error {
+	var allTools []string
+
+	buildConfig := p.MatchedConfig
+	for _, nameVersion := range buildConfig.DevDependencies {
+		port := Port{DevDep: true}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+
+		allTools = append(allTools, port.MatchedConfig.CheckTools()...)
+	}
+	for _, nameVersion := range buildConfig.Dependencies {
+		port := Port{DevDep: false, Native: p.DevDep || p.Native}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+		allTools = append(allTools, port.MatchedConfig.CheckTools()...)
+	}
+
+	allTools = append(allTools, p.MatchedConfig.CheckTools()...)
+	return buildtools.CheckTools(p.ctx, allTools...)
+}
+
+func (p Port) installAllDeps(options InstallOptions) error {
 	// Check and repair dev_dependencies.
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
@@ -510,7 +547,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 		if !installed || (options.Force && options.Recursive) {
 			// Always ensure sub-dependencies are installed first, even if the dependency itself is already installed.
 			// This ensures transitive dependencies are always available before installing the dependency.
-			if err := port.installDependencies(options); err != nil {
+			if err := port.installAllDeps(options); err != nil {
 				return err
 			}
 
@@ -544,7 +581,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 		if !installed || (options.Force && options.Recursive) {
 			// Always ensure sub-dependencies are installed first.
 			// This ensures transitive dependencies are always available before installing the dependency.
-			if err := port.installDependencies(options); err != nil {
+			if err := port.installAllDeps(options); err != nil {
 				return err
 			}
 

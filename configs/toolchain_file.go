@@ -244,7 +244,6 @@ func (c *Celer) writeCUDAConfig(toolchain *strings.Builder, installedDir string)
 		installedDirActual := c.InstalledDir(false)
 		nvccPath := filepath.Join(installedDirActual, "bin", nvccName)
 		cudaHeaderPath := filepath.Join(installedDirActual, "include", "cuda_runtime.h")
-
 		if !fileio.PathExists(nvccPath) || !fileio.PathExists(cudaHeaderPath) {
 			return
 		}
