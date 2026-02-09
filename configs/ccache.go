@@ -1,12 +1,11 @@
 package configs
 
 import (
-	"celer/context"
 	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -18,27 +17,19 @@ type CCache struct {
 	Dir           string `toml:"dir"`                      // ENV: CCACHE_DIR
 	RemoteStorage string `toml:"remote_storage,omitempty"` // ENV: CCACHE_REMOTE_STORAGE
 	RemoteOnly    bool   `toml:"remote_only,omitempty"`    // ENV: CCACHE_REMOTE_ONLY
-
-	ctx context.Context `toml:"-"`
 }
 
-func (c *CCache) Validate() error {
+// Setup setup ccache.
+func (c *CCache) Setup() error {
 	if c.Enabled {
 		os.Unsetenv("CCACHE_DISABLE")
 	} else {
 		os.Setenv("CCACHE_DISABLE", "1")
 	}
 
-	if c.Dir == "" {
-		c.Dir = filepath.Join(os.Getenv("HOME"), ".ccache")
-	} else if !fileio.PathExists(c.Dir) {
-		return fmt.Errorf("ccache dir does not exist: %s", c.Dir)
-	}
-
-	if c.MaxSize == "" {
-		c.MaxSize = "5G"
-	} else if !strings.HasSuffix(c.MaxSize, "M") && !strings.HasSuffix(c.MaxSize, "G") {
-		return fmt.Errorf("ccache maxsize must end with `M` or `G`: %s", c.MaxSize)
+	// Create ccache dir if not exist.
+	if err := os.MkdirAll(c.Dir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to mkdir ccache dir.\n %w", err)
 	}
 
 	os.Setenv("CCACHE_DIR", c.Dir)
@@ -57,6 +48,19 @@ func (c *CCache) Validate() error {
 	// Default to workspace dir as base dir.
 	os.Setenv("CCACHE_BASEDIR", dirs.WorkspaceDir)
 	return nil
+}
+
+func (c *CCache) init() {
+	c.Enabled = true
+	c.MaxSize = ccacheDefaultMaxSize
+	c.MaxSize = "5G"
+
+	switch runtime.GOOS {
+	case "windows":
+		c.Dir = filepath.Join(os.Getenv("USERPROFILE"), "ccache")
+	default:
+		c.Dir = filepath.Join(os.Getenv("HOME"), ".cache", "ccache")
+	}
 }
 
 func (c CCache) Generate(toolchain *strings.Builder) error {

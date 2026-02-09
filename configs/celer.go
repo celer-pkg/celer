@@ -149,10 +149,9 @@ func (c *Celer) InitWithPlatform(platform string) error {
 			}
 		}
 
-		// Validate ccache.
+		// Setup ccache.
 		if c.configData.CCache != nil {
-			c.configData.CCache.ctx = c
-			if err := c.configData.CCache.Validate(); err != nil {
+			if err := c.configData.CCache.Setup(); err != nil {
 				return err
 			}
 		}
@@ -560,20 +559,10 @@ func (c *Celer) SetCCacheEnabled(enabled bool) error {
 	}
 
 	if c.configData.CCache == nil {
-		c.configData.CCache = &CCache{
-			Enabled: enabled,
-			MaxSize: ccacheDefaultMaxSize,
-		}
-
-		switch runtime.GOOS {
-		case "windows":
-			c.configData.CCache.Dir = filepath.Join(os.Getenv("USERPROFILE"), ".ccache")
-		default:
-			c.configData.CCache.Dir = filepath.Join(os.Getenv("HOME"), ".cache", ".ccache")
-		}
-	} else {
-		c.configData.CCache.Enabled = enabled
+		c.configData.CCache = &CCache{}
+		c.configData.CCache.init()
 	}
+	c.configData.CCache.Enabled = enabled
 
 	if err := c.save(); err != nil {
 		return err
@@ -583,22 +572,19 @@ func (c *Celer) SetCCacheEnabled(enabled bool) error {
 }
 
 func (c *Celer) SetCCacheDir(dir string) error {
-	if err := c.readOrCreate(); err != nil {
-		return err
-	}
-
 	if !fileio.PathExists(dir) {
 		return fmt.Errorf("ccache dir does not exist: %s", dir)
 	}
 
-	if c.configData.CCache == nil {
-		c.configData.CCache = &CCache{
-			MaxSize: ccacheDefaultMaxSize,
-			Dir:     dir,
-		}
-	} else {
-		c.configData.CCache.Dir = dir
+	if err := c.readOrCreate(); err != nil {
+		return err
 	}
+
+	if c.configData.CCache == nil {
+		c.configData.CCache = &CCache{}
+		c.configData.CCache.init()
+	}
+	c.configData.CCache.Dir = dir
 
 	if err := c.save(); err != nil {
 		return err
@@ -617,12 +603,10 @@ func (c *Celer) SetCCacheMaxSize(maxSize string) error {
 	}
 
 	if c.configData.CCache == nil {
-		c.configData.CCache = &CCache{
-			MaxSize: maxSize,
-		}
-	} else {
-		c.configData.CCache.MaxSize = maxSize
+		c.configData.CCache = &CCache{}
+		c.configData.CCache.init()
 	}
+	c.configData.CCache.MaxSize = maxSize
 
 	if err := c.save(); err != nil {
 		return err
@@ -648,13 +632,10 @@ func (c *Celer) SetCCacheRemoteStorage(remoteStorage string) error {
 	}
 
 	if c.configData.CCache == nil {
-		c.configData.CCache = &CCache{
-			MaxSize:       ccacheDefaultMaxSize,
-			RemoteStorage: remoteStorage,
-		}
-	} else {
-		c.configData.CCache.RemoteStorage = remoteStorage
+		c.configData.CCache = &CCache{}
+		c.configData.CCache.init()
 	}
+	c.configData.CCache.RemoteStorage = remoteStorage
 
 	if err := c.save(); err != nil {
 		return err
@@ -669,13 +650,10 @@ func (c *Celer) SetCCacheRemoteOnly(remoteOnly bool) error {
 	}
 
 	if c.configData.CCache == nil {
-		c.configData.CCache = &CCache{
-			MaxSize:    ccacheDefaultMaxSize,
-			RemoteOnly: remoteOnly,
-		}
-	} else {
-		c.configData.CCache.RemoteOnly = remoteOnly
+		c.configData.CCache = &CCache{}
+		c.configData.CCache.init()
 	}
+	c.configData.CCache.RemoteOnly = remoteOnly
 
 	if err := c.save(); err != nil {
 		return err
