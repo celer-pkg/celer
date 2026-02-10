@@ -40,7 +40,7 @@ func (p Port) buildMeta(commit string) (string, error) {
 		Callbacks:   p,
 	}
 
-	return cachePort.BuildMeta(commit)
+	return cachePort.BuildMeta(Version, commit)
 }
 
 func (c Port) GenPlatformTomlString() (string, error) {

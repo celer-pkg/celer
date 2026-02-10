@@ -40,11 +40,14 @@ type Port struct {
 	Callbacks   Callbacks
 }
 
-func (p Port) BuildMeta(commit string) (string, error) {
+func (p Port) BuildMeta(celerVersion, commit string) (string, error) {
 	var buffer bytes.Buffer
 
-	// Write platform content for root port only.
+	// Write celer version and platform content for root port only.
 	if p.PortType == portTypePort {
+		buffer.WriteString("# -------- celer version --------\n")
+		buffer.WriteString(fmt.Sprintf("%s\n\n", celerVersion))
+
 		p.writeDivider(&buffer, p.Parents, p.NameVersion, "platform")
 		platform, err := p.Callbacks.GenPlatformTomlString()
 		if err != nil {
@@ -123,7 +126,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 			Callbacks:   p.Callbacks,
 		}
 
-		content, err := port.BuildMeta("")
+		content, err := port.BuildMeta(celerVersion, "")
 		if err != nil {
 			return "", fmt.Errorf("fill content of dev_dependency %s: %s", nameVersion, err)
 		}
@@ -149,7 +152,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 			Callbacks:   p.Callbacks,
 		}
 
-		content, err := port.BuildMeta("")
+		content, err := port.BuildMeta(celerVersion, "")
 		if err != nil {
 			return "", fmt.Errorf("fill content of dependency %s: %s", nameVersion, err)
 		}
