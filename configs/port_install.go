@@ -349,20 +349,11 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	if localMeta != newMeta {
 		color.Printf(color.Warning, "\n================ The outdated package of %s will be removed now. ================\n", p.NameVersion())
 
-		// Backup installed meta file to tmp dir.
-		metaFileBackup = filepath.Join(dirs.TmpDir, filepath.Base(p.metaFile)+".old")
-
-		// Ensure cleanup of backup if anything fails before it's moved.
-		defer func() {
-			if metaFileBackup != "" {
-				os.Remove(metaFileBackup)
-			}
-		}()
-
+		// Backup meta file to outdated dir.
+		metaFileBackup = filepath.Join(dirs.InstalledDir, "celer", "meta", "outdated", filepath.Base(p.metaFile))
 		if err := fileio.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
 			return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
 		}
-
 		if err := fileio.CopyFile(p.metaFile, metaFileBackup); err != nil {
 			return false, fmt.Errorf("failed to backup meta file.\n %w", err)
 		}
@@ -383,14 +374,6 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 
 	if err := p.doInstallFromPackage(p.InstalledDir); err != nil {
 		return false, fmt.Errorf("failed to install from package.\n %w", err)
-	}
-
-	// Restore meta file for debuging.
-	if metaFileBackup != "" {
-		if err := os.Rename(metaFileBackup, p.metaFile+".old"); err != nil {
-			return false, fmt.Errorf("failed to restore meta file.\n %w", err)
-		}
-		metaFileBackup = "" // Reset it indicates no need to clear it.
 	}
 
 	if err := p.writeTraceFile("package"); err != nil {
