@@ -8,6 +8,7 @@ type Platform interface {
 	GetHostName() string
 	GetToolchain() Toolchain
 	GetRootFS() RootFS
+	GetArchiveChecksums() (toolchainChecksum, rootfsChecksum string, err error)
 	Setup() error
 }
 

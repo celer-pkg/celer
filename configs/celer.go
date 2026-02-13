@@ -43,9 +43,9 @@ type Celer struct {
 	configData
 
 	// Internal fields.
-	platform  Platform
-	project   Project
-	variables ExpressVars
+	platform    Platform
+	project     Project
+	expressVars ExpressVars
 }
 
 type global struct {
@@ -861,5 +861,5 @@ func (c *Celer) CCacheEnabled() bool {
 }
 
 func (c *Celer) Vairables() map[string]string {
-	return c.variables.vars
+	return c.expressVars.vars
 }

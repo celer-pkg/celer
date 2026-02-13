@@ -23,6 +23,7 @@ const (
 type Callbacks interface {
 	GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	GenPlatformTomlString() (string, error)
+	GenPlatformChecksums() (toolchainChecksum, rootfsChecksum string, err error)
 	Commit(nameVersion string, devDep bool) (string, error)
 	GetBuildConfig(nameVersion string, devDep bool) (*buildsystems.BuildConfig, error)
 	CheckHostSupported(nameVersion string) bool
@@ -54,6 +55,19 @@ func (p Port) BuildMeta(celerVersion, commit string) (string, error) {
 			return "", err
 		}
 		fmt.Fprintf(&buffer, "%s\n", platform)
+
+		toolchainChecksum, rootfsChecksum, err := p.Callbacks.GenPlatformChecksums()
+		if err != nil {
+			return "", fmt.Errorf("failed to get platform archive checksums.\n %w", err)
+		}
+
+		buffer.WriteString(newDivider(nil, "toolchain_checksum"))
+		fmt.Fprintf(&buffer, "%s\n\n", toolchainChecksum)
+
+		if rootfsChecksum != "" {
+			buffer.WriteString(newDivider(nil, "rootfs_checksum"))
+			fmt.Fprintf(&buffer, "%s\n\n", rootfsChecksum)
+		}
 	}
 
 	// Write port content.
