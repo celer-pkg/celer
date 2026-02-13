@@ -458,11 +458,11 @@ func MkdirAll(path string, perm os.FileMode) error {
 	return err
 }
 
-// Convert to relative path based on current workspace.
+// Convert try to convert absolute path to relative path based on current workspace.
 func ToRelPath(absPath string) string {
 	relativePath, err := filepath.Rel(dirs.WorkspaceDir, absPath)
 	if err != nil {
-		panic(fmt.Sprintf("failed to get relative path of %s: %s", absPath, err))
+		return filepath.ToSlash(absPath)
 	}
 	return filepath.ToSlash(filepath.Join("${WORKSPACE_ROOT}", relativePath))
 }
