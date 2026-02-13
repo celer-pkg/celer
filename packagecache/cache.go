@@ -61,8 +61,10 @@ func (p Port) BuildMeta(celerVersion, commit string) (string, error) {
 			return "", fmt.Errorf("failed to get platform archive checksums.\n %w", err)
 		}
 
-		buffer.WriteString(newDivider(nil, "toolchain_checksum"))
-		fmt.Fprintf(&buffer, "%s\n\n", toolchainChecksum)
+		if toolchainChecksum != "" {
+			buffer.WriteString(newDivider(nil, "toolchain_checksum"))
+			fmt.Fprintf(&buffer, "%s\n\n", toolchainChecksum)
+		}
 
 		if rootfsChecksum != "" {
 			buffer.WriteString(newDivider(nil, "rootfs_checksum"))
