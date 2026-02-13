@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -136,7 +135,7 @@ func (p *Platform) Write(platformPath string) error {
 }
 
 // setup rootfs and toolchain
-func (p *Platform) setup(ccacheEnabled bool) error {
+func (p *Platform) setup() error {
 	// Repair rootfs if not empty.
 	if p.RootFS != nil {
 		if err := p.RootFS.CheckAndRepair(); err != nil {
@@ -146,12 +145,6 @@ func (p *Platform) setup(ccacheEnabled bool) error {
 
 	if err := p.Toolchain.CheckAndRepair(false); err != nil {
 		return fmt.Errorf("failed to check and repair toolchain.\n %w", err)
-	}
-
-	if ccacheEnabled {
-		if err := buildtools.CheckTools(p.ctx, "ccache"); err != nil {
-			return fmt.Errorf("failed to check and repair ccache.\n %w", err)
-		}
 	}
 
 	// Generate toolchain file.

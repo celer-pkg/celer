@@ -233,14 +233,11 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		return err
 	}
 
-	// Placeholder variables.
-	c.variables.Inflat(c)
-
 	return nil
 }
 
 func (c *Celer) Setup() error {
-	return c.platform.setup(c.CCacheEnabled())
+	return c.platform.setup()
 }
 
 func (c *Celer) Deploy(force bool) error {

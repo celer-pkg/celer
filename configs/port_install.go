@@ -500,6 +500,10 @@ func (p Port) checkAllTools() error {
 		allTools = append(allTools, port.MatchedConfig.CheckTools()...)
 	}
 
+	if p.ctx.CCacheEnabled() {
+		allTools = append(allTools, "ccache")
+	}
+
 	allTools = append(allTools, p.MatchedConfig.CheckTools()...)
 	return buildtools.CheckTools(p.ctx, allTools...)
 }
