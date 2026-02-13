@@ -259,7 +259,6 @@ func TestUpdateCmd_UpdatePortsRepo(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Create update command.
 	updateCmd := updateCmd{
@@ -340,7 +339,6 @@ func TestUpdateCmd_UpdatePortRepo_SrcNotExist(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	// Test with a port that doesn't have src directory.
 	nameVersion := "zlib@123.456.789"
@@ -387,7 +385,6 @@ func TestUpdateCmd_UpdatePortRepo_NonGitRepo(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	// Test with a non-git port (if available)
 	t.Run("update port without git repo", func(t *testing.T) {
@@ -444,7 +441,6 @@ func TestUpdateCmd_UpdatePortRepo_CircularDependency(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	// Test circular dependency detection.
 	t.Run("circular dependency prevention", func(t *testing.T) {
@@ -493,7 +489,6 @@ func TestUpdateCmd_UpdatePortRepo_WithGitRepo(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 	check(buildtools.CheckTools(celer, "git"))
 
 	// Install a simple git-based port.
@@ -556,7 +551,6 @@ func TestUpdateCmd_UpdatePorts_BacktickRemoval(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	// Test that backticks are removed from port names
 	updateCmd := updateCmd{celer: celer}
@@ -623,7 +617,6 @@ func TestUpdateCmd_DoUpdate_PortsRepo(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Create update command
 	updateCmd := updateCmd{

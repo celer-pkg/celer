@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -20,8 +19,9 @@ type Platform struct {
 	RootFS     *RootFS     `toml:"rootfs"`
 
 	// Internal fields.
-	Name string          `toml:"-"`
-	ctx  context.Context `toml:"-"`
+	Name      string          `toml:"-"`
+	ctx       context.Context `toml:"-"`
+	setupDone bool            `toml:"-"`
 }
 
 func (p *Platform) Init(platformName string) error {
@@ -136,7 +136,12 @@ func (p *Platform) Write(platformPath string) error {
 }
 
 // setup rootfs and toolchain
-func (p *Platform) setup(ccacheEnabled bool) error {
+func (p *Platform) Setup() error {
+	// Check if setup is done.
+	if p.setupDone {
+		return nil
+	}
+
 	// Repair rootfs if not empty.
 	if p.RootFS != nil {
 		if err := p.RootFS.CheckAndRepair(); err != nil {
@@ -144,14 +149,9 @@ func (p *Platform) setup(ccacheEnabled bool) error {
 		}
 	}
 
+	// Repair toolchain.
 	if err := p.Toolchain.CheckAndRepair(false); err != nil {
 		return fmt.Errorf("failed to check and repair toolchain.\n %w", err)
-	}
-
-	if ccacheEnabled {
-		if err := buildtools.CheckTools(p.ctx, "ccache"); err != nil {
-			return fmt.Errorf("failed to check and repair ccache.\n %w", err)
-		}
 	}
 
 	// Generate toolchain file.
@@ -159,5 +159,6 @@ func (p *Platform) setup(ccacheEnabled bool) error {
 		return fmt.Errorf("failed to generate toolchain file.\n %w", err)
 	}
 
+	p.setupDone = true
 	return nil
 }

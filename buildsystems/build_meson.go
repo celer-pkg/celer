@@ -304,7 +304,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 
 	// Set sysroot path for cross-compilation.
 	if rootfs != nil {
-		sysrootDir = rootfs.GetFullPath()
+		sysrootDir = rootfs.GetAbsPath()
 
 		// Set CMAKE_PREFIX_PATH for CMake-based dependency detection,
 		// This prevents CMake from finding host system libraries.

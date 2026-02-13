@@ -24,7 +24,6 @@ func TestDepCheck_CheckConflict_Conflict(t *testing.T) {
 
 	celer := configs.NewCeler()
 	checkError(celer.Init())
-	checkError(celer.Setup())
 
 	var project configs.Project
 	checkError(project.Init(celer, "project_001"))
@@ -62,7 +61,6 @@ func TestDepCheck_CheckConflict_Normal(t *testing.T) {
 
 	celer := configs.NewCeler()
 	checkError(celer.Init())
-	checkError(celer.Setup())
 
 	var project configs.Project
 	checkError(project.Init(celer, "project_002"))

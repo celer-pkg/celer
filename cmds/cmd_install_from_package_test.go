@@ -42,7 +42,6 @@ func TestInstall_FromPackage(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	t.Run("install success", func(t *testing.T) {
 		var port configs.Port

@@ -202,7 +202,7 @@ func (b BuildConfig) setupPkgConfig() {
 	case "linux":
 		// Pkg config paths and sysroot dir.
 		if rootfs != nil {
-			sysrootDir = rootfs.GetFullPath()
+			sysrootDir = rootfs.GetAbsPath()
 
 			// PKG_CONFIG related.
 			for _, configPath := range rootfs.GetPkgConfigPath() {
@@ -290,7 +290,7 @@ func (b *BuildConfig) setEnvFlags() {
 	// sysroot and tmp dir.
 	if rootfs != nil {
 		// Set sysroot.
-		sysrootDir := rootfs.GetFullPath()
+		sysrootDir := rootfs.GetAbsPath()
 		b.envBackup.setenv("SYSROOT", sysrootDir)
 
 		// Update CFLAGS/CXXFLAGS

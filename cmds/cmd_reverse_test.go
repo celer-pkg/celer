@@ -141,7 +141,6 @@ func TestReverseCmd_Without_Dev(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	cmdReverse := reverseCmd{celer: celer}
 	dependencies, err := cmdReverse.query("eigen@3.4.0")
@@ -197,7 +196,6 @@ func TestReverseCmd_With_Dev(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Search as default mode.
 	cmdReverse := reverseCmd{celer: celer}

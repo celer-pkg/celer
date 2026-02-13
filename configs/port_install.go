@@ -426,6 +426,11 @@ func (p Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
+	// Setup platform.
+	if err := p.ctx.Platform().Setup(); err != nil {
+		return err
+	}
+
 	// Install all dependencies for current port.
 	if err := p.installAllDeps(options); err != nil {
 		return err
@@ -498,6 +503,10 @@ func (p Port) checkAllTools() error {
 			return err
 		}
 		allTools = append(allTools, port.MatchedConfig.CheckTools()...)
+	}
+
+	if p.ctx.CCacheEnabled() {
+		allTools = append(allTools, "ccache")
 	}
 
 	allTools = append(allTools, p.MatchedConfig.CheckTools()...)

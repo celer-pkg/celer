@@ -253,14 +253,14 @@ type BuildConfig struct {
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
 	// Internal fields
-	Ctx         context.Context   `toml:"-"`
-	DevDep      bool              `toml:"-"`
-	Native      bool              `toml:"-"`
-	PortConfig  PortConfig        `toml:"-"`
-	Optimize    *context.Optimize `toml:"-"`
-	Variables   Variables         `toml:"-"`
-	buildSystem buildSystem
-	envBackup   envsBackup
+	Ctx              context.Context   `toml:"-"`
+	DevDep           bool              `toml:"-"`
+	Native           bool              `toml:"-"`
+	PortConfig       PortConfig        `toml:"-"`
+	Optimize         *context.Optimize `toml:"-"`
+	ContextVariables ExpressVars       `toml:"-"`
+	buildSystem      buildSystem
+	envBackup        envsBackup
 }
 
 func (b BuildConfig) Validate() error {
@@ -510,7 +510,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 		// then the pc file would be found by other libraries.
 		if rootfs != nil {
 			// This symblink is used to find library via toolchain_file.cmake
-			sysrootDir := rootfs.GetFullPath()
+			sysrootDir := rootfs.GetAbsPath()
 			if err := b.checkSymlink(dirs.InstalledDir, filepath.Join(sysrootDir, "installed")); err != nil {
 				return err
 			}
@@ -772,7 +772,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 
 	// Expand placeholders.
 	for index, argument := range b.Options {
-		b.Options[index] = b.Variables.Expand(argument)
+		b.Options[index] = b.ContextVariables.Replace(argument)
 	}
 }
 
@@ -781,7 +781,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 func (b BuildConfig) expandVariables(content string) string {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
-	content = b.Variables.Expand(content)
+	content = b.ContextVariables.Replace(content)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
 	// For Clang with sysroot, add --gcc-toolchain to find GCC runtime files.
@@ -882,7 +882,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
 	} else if rootfs != nil {
 		// Update CFLAGS/CXXFLAGS
-		sysrootDir := rootfs.GetFullPath()
+		sysrootDir := rootfs.GetAbsPath()
 		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		for _, dir := range rootfs.GetIncludeDirs() {
 			appendIncludeDir(filepath.Join(sysrootDir, dir))

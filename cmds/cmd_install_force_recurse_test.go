@@ -45,7 +45,6 @@ func TestInstall_With_Force(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 
 	var (
 		options       configs.InstallOptions
@@ -116,7 +115,6 @@ func TestInstall_With_Force_Recursive(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var (

@@ -483,7 +483,6 @@ func installForTestRemove(t *testing.T, nameVersion string, option configs.Remov
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	var (
 		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())

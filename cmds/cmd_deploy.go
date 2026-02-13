@@ -37,10 +37,6 @@ for reproducible builds using the --export flag.`,
 			color.Printf(color.Title, "🛠️  project : %s\n", d.celer.Global.Project)
 			color.Println(color.Title, "=======================================================================")
 
-			if err := d.celer.Setup(); err != nil {
-				return configs.PrintError(err, "failed to setup celer.")
-			}
-
 			// Check circular dependency and version conflict.
 			if err := d.checkProject(); err != nil {
 				return configs.PrintError(err, "failed to check circular dependency and version conflict.")

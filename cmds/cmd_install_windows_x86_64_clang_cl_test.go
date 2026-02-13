@@ -63,7 +63,6 @@ func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild boo
 	} else {
 		platform = celer.Platform().GetHostName()
 	}
-	check(celer.Setup())
 
 	var (
 		port    configs.Port

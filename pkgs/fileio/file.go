@@ -1,6 +1,7 @@
 package fileio
 
 import (
+	"celer/pkgs/dirs"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -455,4 +456,13 @@ func MkdirAll(path string, perm os.FileMode) error {
 		}
 	}
 	return err
+}
+
+// Convert try to convert absolute path to relative path based on current workspace.
+func ToRelPath(absPath string) string {
+	relativePath, err := filepath.Rel(dirs.WorkspaceDir, absPath)
+	if err != nil {
+		return filepath.ToSlash(absPath)
+	}
+	return filepath.ToSlash(filepath.Join("${WORKSPACE_ROOT}", relativePath))
 }

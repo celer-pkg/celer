@@ -45,7 +45,7 @@ type Celer struct {
 	// Internal fields.
 	platform  Platform
 	project   Project
-	variables Variables
+	variables ExpressVars
 }
 
 type global struct {
@@ -233,14 +233,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		return err
 	}
 
-	// Placeholder variables.
-	c.variables.Inflat(c)
-
 	return nil
-}
-
-func (c *Celer) Setup() error {
-	return c.platform.setup(c.CCacheEnabled())
 }
 
 func (c *Celer) Deploy(force bool) error {
@@ -834,20 +827,12 @@ func (c *Celer) Verbose() bool {
 	return c.configData.Global.Verbose
 }
 
-func (c *Celer) InstalledDir(cmakePath bool) string {
-	if cmakePath {
-		return "${CELER_ROOT}/installed/" + c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
-	} else {
-		return filepath.Join(dirs.WorkspaceDir, "installed", c.Global.Platform+"@"+c.Global.Project+"@"+c.Global.BuildType)
-	}
+func (c *Celer) InstalledDir() string {
+	return filepath.Join(dirs.WorkspaceDir, "installed", c.Global.Platform+"@"+c.Global.Project+"@"+c.Global.BuildType)
 }
 
-func (c *Celer) InstalledDevDir(cmakePath bool) string {
-	if cmakePath {
-		return "${CELER_ROOT}/installed/" + c.Platform().GetHostName() + "-dev"
-	} else {
-		return filepath.Join(dirs.WorkspaceDir, "installed", c.Platform().GetHostName()+"-dev")
-	}
+func (c *Celer) InstalledDevDir() string {
+	return filepath.Join(dirs.WorkspaceDir, "installed", c.Platform().GetHostName()+"-dev")
 }
 
 func (c *Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
@@ -876,5 +861,5 @@ func (c *Celer) CCacheEnabled() bool {
 }
 
 func (c *Celer) Vairables() map[string]string {
-	return c.variables.pairs
+	return c.variables.vars
 }

@@ -51,7 +51,7 @@ func (m *makefiles) preConfigure() error {
 	toolchain := m.Ctx.Platform().GetToolchain()
 
 	// `clang` inside visual studio cannot be used to compile makefiles project.
-	if runtime.GOOS == "windows" && strings.Contains(toolchain.GetFullPath(), "Microsoft Visual Studio") {
+	if runtime.GOOS == "windows" && strings.Contains(toolchain.GetAbsPath(), "Microsoft Visual Studio") {
 		if toolchain.GetName() != "msvc" {
 			return fmt.Errorf("visual studio's clang-cl or clang cannot be used to compile makefiles project, only msvc is supported")
 		}

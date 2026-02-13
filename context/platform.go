@@ -8,12 +8,13 @@ type Platform interface {
 	GetHostName() string
 	GetToolchain() Toolchain
 	GetRootFS() RootFS
+	Setup() error
 }
 
 type Toolchain interface {
 	GetName() string
 	GetPath() string
-	GetFullPath() string
+	GetAbsPath() string
 	GetVersion() string
 	GetHost() string
 	GetSystemName() string
@@ -47,7 +48,7 @@ type RootFS interface {
 	GetPkgConfigPath() []string
 	GetIncludeDirs() []string
 	GetLibDirs() []string
-	GetFullPath() string
+	GetAbsPath() string
 }
 
 type Optimize struct {

@@ -102,7 +102,6 @@ func buildWithAMD64MSVC(t *testing.T, platform, nameVersion string, nobuild bool
 		platform = celer.Platform().GetHostName()
 	}
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	var (
 		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())

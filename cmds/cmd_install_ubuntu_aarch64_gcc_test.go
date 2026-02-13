@@ -105,7 +105,6 @@ func buildWithAArch64GCC(t *testing.T, platform, nameVersion string, nobuild boo
 		platform = celer.Platform().GetHostName()
 	}
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	var (
 		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())

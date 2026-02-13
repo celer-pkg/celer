@@ -90,8 +90,8 @@ func (t *Toolchain) Validate() error {
 
 		firstSection := strings.Split(filepath.ToSlash(t.Path), "/")[0]
 		t.rootDir = filepath.Join(dirs.DownloadedToolsDir, firstSection)
-		t.fullpath = filepath.Join(dirs.DownloadedToolsDir, t.Path)
-		os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
+		t.abspath = filepath.Join(dirs.DownloadedToolsDir, t.Path)
+		os.Setenv("PATH", env.JoinPaths("PATH", t.abspath))
 
 	case strings.HasPrefix(t.Url, "file:///"):
 		localPath := strings.TrimPrefix(t.Url, "file:///")
@@ -101,8 +101,8 @@ func (t *Toolchain) Validate() error {
 		}
 
 		if state.IsDir() {
-			t.fullpath = localPath
-			os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
+			t.abspath = localPath
+			os.Setenv("PATH", env.JoinPaths("PATH", t.abspath))
 		} else {
 			// Even local must be a archive file and path should not be empty.
 			if t.Path == "" {
@@ -116,8 +116,8 @@ func (t *Toolchain) Validate() error {
 
 			firstSection := strings.Split(filepath.ToSlash(t.Path), "/")[0]
 			t.rootDir = filepath.Join(dirs.DownloadedToolsDir, firstSection)
-			t.fullpath = filepath.Join(dirs.DownloadedToolsDir, t.Path)
-			os.Setenv("PATH", env.JoinPaths("PATH", t.fullpath))
+			t.abspath = filepath.Join(dirs.DownloadedToolsDir, t.Path)
+			os.Setenv("PATH", env.JoinPaths("PATH", t.abspath))
 		}
 
 	default:

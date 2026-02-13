@@ -9,8 +9,8 @@ type Context interface {
 	Jobs() int
 	Offline() bool
 	Verbose() bool
-	InstalledDir(cmakePath bool) string
-	InstalledDevDir(cmakePath bool) string
+	InstalledDir() string
+	InstalledDevDir() string
 	PackageCache() PackageCache
 	ProxyHostPort() (host string, port int)
 	Optimize(buildsystem, toolchain string) *Optimize
