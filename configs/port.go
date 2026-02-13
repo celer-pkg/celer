@@ -236,7 +236,7 @@ func (p *Port) findMatchedConfig(buildType string) *buildsystems.BuildConfig {
 			}
 
 			// Placeholder variables.
-			p.BuildConfigs[index].Variables.Inflat(p.ctx.Vairables(), p.BuildConfigs[index])
+			p.BuildConfigs[index].ContextVariables.Init(p.ctx.Vairables(), p.BuildConfigs[index])
 			return &p.BuildConfigs[index]
 		}
 	}
