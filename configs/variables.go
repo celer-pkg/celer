@@ -16,7 +16,8 @@ type Variables struct {
 	pairs map[string]string
 }
 
-func (v *Variables) Inflat(ctx context.Context) *Variables {
+// Initialize initializes Variables with values from the context.
+func (v *Variables) Initialize(ctx context.Context) *Variables {
 	v.pairs = make(map[string]string)
 
 	toolchain := ctx.Platform().GetToolchain()
@@ -48,6 +49,7 @@ func (v *Variables) Inflat(ctx context.Context) *Variables {
 	return v
 }
 
+// Expand replace express with values.
 func (v Variables) Expand(content string) string {
 	for key, value := range v.pairs {
 		content = strings.ReplaceAll(content, fmt.Sprintf("${%s}", key), value)
