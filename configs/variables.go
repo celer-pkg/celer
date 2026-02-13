@@ -5,6 +5,7 @@ import (
 	"celer/context"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
+	"celer/pkgs/fileio"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -26,20 +27,22 @@ func (v *Variables) Inflat(ctx context.Context) *Variables {
 	v.pairs["SYSTEM_PROCESSOR"] = toolchain.GetSystemProcessor()
 	v.pairs["CROSSTOOL_PREFIX"] = toolchain.GetCrosstoolPrefix()
 	if sysroot != nil {
-		v.pairs["SYSROOT"] = sysroot.GetFullPath()
+		v.pairs["SYSROOT"] = sysroot.GetAbsPath()
 	}
 
 	v.pairs["BUILDTREES_DIR"] = dirs.BuildtreesDir
-	v.pairs["INSTALLED_DIR"] = ctx.InstalledDir(true)
-	v.pairs["INSTALLED_DEV_DIR"] = ctx.InstalledDevDir(true)
+	v.pairs["INSTALLED_DIR"] = fileio.ToRelPath(ctx.InstalledDir())
+	v.pairs["INSTALLED_DEV_DIR"] = fileio.ToRelPath(ctx.InstalledDevDir())
 
 	if buildtools.Python3 != nil {
-		v.pairs["PYTHON3_PATH"] = buildtools.Python3.Path
+		v.pairs["PYTHON3_PATH"] = fileio.ToRelPath(buildtools.Python3.Path)
 	}
 
 	if buildtools.LLVMPath != "" {
 		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
-		v.pairs["LLVM_CONFIG"] = filepath.Join(buildtools.LLVMPath, "bin", llvmConfig)
+		llvmRoot := fileio.ToRelPath(buildtools.LLVMPath)
+		llvmConfigPath := filepath.Join(llvmRoot, "bin", llvmConfig)
+		v.pairs["LLVM_CONFIG"] = filepath.ToSlash(llvmConfigPath)
 	}
 
 	return v

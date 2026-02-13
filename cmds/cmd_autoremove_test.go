@@ -49,7 +49,6 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	autoremoveCmd := autoremoveCmd{celer: celer}
 
@@ -148,7 +147,6 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	autoremoveCmd := autoremoveCmd{celer: celer}
 

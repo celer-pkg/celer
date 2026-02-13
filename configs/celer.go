@@ -236,10 +236,6 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	return nil
 }
 
-func (c *Celer) Setup() error {
-	return c.platform.setup()
-}
-
 func (c *Celer) Deploy(force bool) error {
 	if err := c.project.deploy(force); err != nil {
 		return err
@@ -831,20 +827,12 @@ func (c *Celer) Verbose() bool {
 	return c.configData.Global.Verbose
 }
 
-func (c *Celer) InstalledDir(cmakePath bool) string {
-	if cmakePath {
-		return "${CELER_ROOT}/installed/" + c.Global.Platform + "@" + c.Global.Project + "@" + c.Global.BuildType
-	} else {
-		return filepath.Join(dirs.WorkspaceDir, "installed", c.Global.Platform+"@"+c.Global.Project+"@"+c.Global.BuildType)
-	}
+func (c *Celer) InstalledDir() string {
+	return filepath.Join(dirs.WorkspaceDir, "installed", c.Global.Platform+"@"+c.Global.Project+"@"+c.Global.BuildType)
 }
 
-func (c *Celer) InstalledDevDir(cmakePath bool) string {
-	if cmakePath {
-		return "${CELER_ROOT}/installed/" + c.Platform().GetHostName() + "-dev"
-	} else {
-		return filepath.Join(dirs.WorkspaceDir, "installed", c.Platform().GetHostName()+"-dev")
-	}
+func (c *Celer) InstalledDevDir() string {
+	return filepath.Join(dirs.WorkspaceDir, "installed", c.Platform().GetHostName()+"-dev")
 }
 
 func (c *Celer) Optimize(buildsystem, toolchain string) *context.Optimize {

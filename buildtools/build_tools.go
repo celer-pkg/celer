@@ -154,10 +154,9 @@ type BuildTool struct {
 	Paths   []string `toml:"paths"`
 
 	// Internal fields.
-	rootDir    string
-	fullpaths  []string
-	cmakepaths []string
-	ctx        context.Context
+	rootDir  string
+	abspaths []string
+	ctx      context.Context
 }
 
 func (b *BuildTool) validate() error {
@@ -184,23 +183,18 @@ func (b *BuildTool) validate() error {
 		folderName := strings.Split(b.Paths[0], "/")[0]
 		b.rootDir = filepath.Join(dirs.DownloadedToolsDir, folderName)
 		for _, path := range b.Paths {
-			b.fullpaths = append(b.fullpaths, filepath.Join(dirs.DownloadedToolsDir, path))
-			b.cmakepaths = append(b.cmakepaths, "${CELER_ROOT}/downloads/tools/"+filepath.ToSlash(path))
+			b.abspaths = append(b.abspaths, filepath.Join(dirs.DownloadedToolsDir, path))
 		}
 	} else {
 		// Single-file tool, place in subdirectory downloads/tools/{name}-{version}/
 		toolDir := fmt.Sprintf("%s-%s", b.Name, b.Version)
 		b.rootDir = filepath.Join(dirs.DownloadedToolsDir, toolDir)
-		if !slices.Contains(b.fullpaths, b.rootDir) {
-			b.fullpaths = append(b.fullpaths, b.rootDir)
-		}
-		cmakePath := fmt.Sprintf("${CELER_ROOT}/downloads/tools/%s", toolDir)
-		if !slices.Contains(b.cmakepaths, cmakePath) {
-			b.cmakepaths = append(b.cmakepaths, cmakePath)
+		if !slices.Contains(b.abspaths, b.rootDir) {
+			b.abspaths = append(b.abspaths, b.rootDir)
 		}
 	}
 
-	os.Setenv("PATH", env.JoinPaths("PATH", b.fullpaths...))
+	os.Setenv("PATH", env.JoinPaths("PATH", b.abspaths...))
 
 	// Check and fix tool.
 	if err := b.checkAndFix(); err != nil {

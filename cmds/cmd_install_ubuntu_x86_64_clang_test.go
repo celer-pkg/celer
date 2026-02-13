@@ -60,7 +60,6 @@ func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild boo
 	check(celer.InitWithPlatform(platform))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	var (
 		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())

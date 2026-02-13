@@ -60,7 +60,6 @@ func TestSearchCmd_Search_ExactMatch(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Test exact match search.
 	searchCmd := searchCmd{celer: celer}
@@ -98,7 +97,6 @@ func TestSearchCmd_Search_PrefixMatch(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Test prefix match search.
 	searchCmd := searchCmd{celer: celer}
@@ -132,7 +130,6 @@ func TestSearchCmd_Search_SuffixMatch(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -168,7 +165,6 @@ func TestSearchCmd_Search_ContainsMatch(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -204,7 +200,6 @@ func TestSearchCmd_Search_NoMatch(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -271,7 +266,6 @@ func TestSearchCmd_Search_ProjectSpecificPorts(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject("project_test_01"))
-	check(celer.Setup())
 
 	// Create a test project-specific port.
 	projectPortDir := filepath.Join(dirs.ConfProjectsDir, "project_test_01", "testlib", "1.0.0")
@@ -319,7 +313,6 @@ func TestSearchCmd_Search_InvalidWildcard(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -353,7 +346,6 @@ func TestSearchCmd_Completion(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	searchCmd := searchCmd{celer: celer}
 	cmd := searchCmd.Command(celer)
@@ -454,7 +446,6 @@ func TestSearchCmd_DoSearch_Integration(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}
@@ -484,7 +475,6 @@ func TestSearchCmd_Search_DuplicateResults(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject("project_test_01"))
-	check(celer.Setup())
 
 	// Create a port that exists in both global and project-specific locations.
 	globalPortDir := dirs.GetPortDir("duplib", "1.0.0")
@@ -572,7 +562,6 @@ func TestSearchCmd_Search_SpecialCharacters(t *testing.T) {
 	check(celer.Init())
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
-	check(celer.Setup())
 
 	// Create search command.
 	searchCmd := searchCmd{celer: celer}

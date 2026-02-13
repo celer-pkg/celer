@@ -8,7 +8,6 @@ import (
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -22,8 +21,8 @@ type RootFS struct {
 	LibDirs       []string `toml:"lib_dirs"`
 
 	// Internal fields.
-	fullpath string
-	ctx      context.Context
+	ctx     context.Context
+	abspath string
 }
 
 func (r *RootFS) Validate() error {
@@ -37,7 +36,7 @@ func (r *RootFS) Validate() error {
 		return fmt.Errorf("rootfs.path is empty")
 	}
 
-	r.fullpath = filepath.Join(dirs.DownloadedToolsDir, r.Path)
+	r.abspath = filepath.Join(dirs.DownloadedToolsDir, r.Path)
 
 	return nil
 }
@@ -65,8 +64,8 @@ func (r *RootFS) CheckAndRepair() error {
 	return nil
 }
 
-func (r RootFS) GetFullPath() string {
-	return r.fullpath
+func (r RootFS) GetAbsPath() string {
+	return r.abspath
 }
 
 func (r RootFS) GetPkgConfigPath() []string {
@@ -82,13 +81,11 @@ func (r RootFS) GetLibDirs() []string {
 }
 
 func (r RootFS) Generate(toolchain *strings.Builder) error {
-	rootfsPath := "${CELER_ROOT}/" + strings.TrimPrefix(r.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
-
 	var buffer bytes.Buffer
 
 	// SYSROOT section.
 	fmt.Fprintf(&buffer, "\n# SYSROOT for cross-compile.\n")
-	fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", rootfsPath)
+	fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", fileio.ToRelPath(r.abspath))
 
 	// Append --sysroot to compiler flags.
 	fmt.Fprintf(&buffer, `string(APPEND CMAKE_C_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")`+"\n")

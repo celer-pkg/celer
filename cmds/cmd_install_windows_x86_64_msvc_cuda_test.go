@@ -42,7 +42,6 @@ func TestInstall_x86_64_MSVC_CUDA(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	var port configs.Port
 	var options configs.InstallOptions

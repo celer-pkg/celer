@@ -141,10 +141,6 @@ func (i *installCmd) install(nameVersion string) error {
 	}
 	i.celer.Global.Verbose = i.verbose
 
-	if err := i.celer.Setup(); err != nil {
-		return configs.PrintError(err, "failed to setup celer.")
-	}
-
 	// Parse name and version (already validated)
 	parts := strings.Split(nameVersion, "@")
 	name, version := parts[0], parts[1]

@@ -40,7 +40,6 @@ func TestInstall_Generate_CMake_Config_Single(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 
 	var port configs.Port
 	var options configs.InstallOptions
@@ -105,7 +104,6 @@ func TestInstall_Generate_CMake_Config_Interface(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
@@ -167,7 +165,6 @@ func TestInstall_Generate_CMake_Config_Components(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port
@@ -229,7 +226,6 @@ func TestInstall_Generate_CMake_Interface_Head_Only(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Setup())
 	check(buildtools.CheckTools(celer, "git", "cmake"))
 
 	var port configs.Port

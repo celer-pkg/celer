@@ -57,12 +57,13 @@ func (q qmake) configureOptions() ([]string, error) {
 	var options = slices.Clone(q.Options)
 
 	// Remove common cross compile args for native build.
+	rootfs := q.Ctx.Platform().GetRootFS()
 	if q.PortConfig.Native || q.BuildConfig.DevDep {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.Contains(element, "-sysroot")
 		})
-	} else if q.Ctx.Platform().GetRootFS() != nil {
-		options = append(options, "-sysroot "+q.Ctx.Platform().GetRootFS().GetFullPath())
+	} else if rootfs != nil {
+		options = append(options, "-sysroot "+rootfs.GetAbsPath())
 	}
 
 	// Set installation directory.

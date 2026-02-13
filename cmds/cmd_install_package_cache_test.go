@@ -45,7 +45,6 @@ func TestInstall_PackageCache_Success(t *testing.T) {
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
 	check(celer.SetPackageCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 
 	var port configs.Port
 	var installOptions = configs.InstallOptions{
@@ -124,7 +123,6 @@ func TestInstall_PackageCache_With_Deps_Success(t *testing.T) {
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
 	check(celer.SetPackageCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 
 	var glogPort configs.Port
 	var options = configs.InstallOptions{
@@ -214,7 +212,6 @@ func TestInstall_PackageCache_Prebuilt_Success(t *testing.T) {
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
 	check(celer.SetPackageCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -293,9 +290,7 @@ func TestInstall_PackageCache_DirNotDefined_Failed(t *testing.T) {
 	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	// check(celer.SetPackageCacheDir(dirs.TestCacheDir))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -338,9 +333,7 @@ func TestInstall_PackageCache_TokenNotDefined_Failed(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	// check(celer.SetPackageCacheToken(""))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -385,7 +378,6 @@ func TestInstall_PackageCache_TokenNotSpecified_Failed(t *testing.T) {
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
 	check(celer.SetPackageCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -430,7 +422,6 @@ func TestInstall_PackageCache_TokenNotMatch_Failed(t *testing.T) {
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
 	check(celer.SetPackageCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -475,7 +466,6 @@ func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
 	check(celer.SetPackageCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 
 	var port configs.Port
 	var options = configs.InstallOptions{
@@ -542,7 +532,6 @@ func TestInstall_PackageCache_With_Commit_Failed(t *testing.T) {
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
 	check(celer.SetPackageCacheToken("token_123456"))
 	check(celer.SetPlatform(platform))
-	check(celer.Setup())
 
 	var port configs.Port
 	var options = configs.InstallOptions{

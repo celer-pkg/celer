@@ -2,7 +2,7 @@ package configs
 
 import (
 	"celer/context"
-	"celer/pkgs/dirs"
+	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -63,7 +63,7 @@ type Toolchain struct {
 	ctx         context.Context
 	displayName string
 	rootDir     string
-	fullpath    string
+	abspath     string
 }
 
 func (t Toolchain) generate(toolchain *strings.Builder) error {
@@ -78,19 +78,18 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
 	fmt.Fprintf(toolchain, "\n# Toolchain for cross-compile.\n")
-	cmakepath := strings.TrimPrefix(t.fullpath, dirs.WorkspaceDir+string(os.PathSeparator))
 
 	switch runtime.GOOS {
 	case "windows":
 		if t.Name == "msvc" || t.Name == "clang-cl" || t.Name == "clang" {
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(cmakepath))
+			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
 		}
 
 	case "linux":
 		if t.Path == "/usr/bin" {
 			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", "/usr/bin")
 		} else {
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", "${CELER_ROOT}/"+cmakepath)
+			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
 		}
 	}
 
@@ -315,12 +314,12 @@ func (t Toolchain) GetMSVC() *context.MSVC {
 	return &t.MSVC
 }
 
-func (t Toolchain) GetFullPath() string {
-	return t.fullpath
+func (t Toolchain) GetAbsPath() string {
+	return t.abspath
 }
 
 func (t Toolchain) GetCrosstoolPrefixPath() string {
-	return filepath.Join(t.fullpath, t.CrosstoolPrefix)
+	return filepath.Join(t.abspath, t.CrosstoolPrefix)
 }
 
 func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
@@ -335,7 +334,7 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 			os.Setenv("CXX", t.GetCXX())
 		} else {
 			if rootfs != nil {
-				sysrootDir := rootfs.GetFullPath()
+				sysrootDir := rootfs.GetAbsPath()
 				ccFlags := " --sysroot=" + sysrootDir
 				cxxFlags := ccFlags
 
@@ -359,7 +358,7 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 		}
 	} else {
 		if rootfs != nil {
-			sysrootDir := rootfs.GetFullPath()
+			sysrootDir := rootfs.GetAbsPath()
 			ccFlags := " --sysroot=" + sysrootDir
 			cxxFlags := ccFlags
 

@@ -46,14 +46,14 @@ func (p Port) BuildMeta(celerVersion, commit string) (string, error) {
 	// Write celer version and platform content for root port only.
 	if p.PortType == portTypePort {
 		buffer.WriteString("# -------- celer version --------\n")
-		buffer.WriteString(fmt.Sprintf("%s\n\n", celerVersion))
+		fmt.Fprintf(&buffer, "%s\n\n", celerVersion)
 
 		p.writeDivider(&buffer, p.Parents, p.NameVersion, "platform")
 		platform, err := p.Callbacks.GenPlatformTomlString()
 		if err != nil {
 			return "", err
 		}
-		buffer.WriteString(platform + "\n")
+		fmt.Fprintf(&buffer, "%s\n", platform)
 	}
 
 	// Write port content.

@@ -32,7 +32,7 @@ func (n nativeToolchain) GetSystemProcessor() string {
 	}
 }
 func (n nativeToolchain) GetPath() string            { return "" }
-func (n nativeToolchain) GetFullPath() string        { return "" }
+func (n nativeToolchain) GetAbsPath() string         { return "" }
 func (n nativeToolchain) GetVersion() string         { return "" }
 func (n nativeToolchain) GetHost() string            { return "" }
 func (n nativeToolchain) GetCrosstoolPrefix() string { return "" }

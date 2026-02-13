@@ -46,7 +46,7 @@ func (b *b2) preConfigure() error {
 	toolchain := b.Ctx.Platform().GetToolchain()
 
 	// `clang` inside visual studio cannot be used to compile b2 project.
-	if runtime.GOOS == "windows" && strings.Contains(toolchain.GetFullPath(), "Microsoft Visual Studio") {
+	if runtime.GOOS == "windows" && strings.Contains(toolchain.GetAbsPath(), "Microsoft Visual Studio") {
 		if toolchain.GetName() == "clang" {
 			return fmt.Errorf("visual studio's clang cannot be used to compile b2 project, msvc or clang-cl is required")
 		}
@@ -115,7 +115,7 @@ func (b b2) Configure(options []string) error {
 		defer file.Close()
 
 		// Override project-config.jam.
-		cxx := filepath.Join(toolchain.GetFullPath(), toolchain.GetCXX())
+		cxx := filepath.Join(toolchain.GetAbsPath(), toolchain.GetCXX())
 
 		// For cross-compilation, use version identifier to distinguish toolchain.
 		var toolchainVersion string
@@ -136,7 +136,7 @@ func (b b2) Configure(options []string) error {
 			if strings.Contains(line, "using gcc ;") {
 				// For Clang, use "using clang" instead of "using gcc".
 				if isClang {
-					toolchainRoot := filepath.Dir(toolchain.GetFullPath())
+					toolchainRoot := filepath.Dir(toolchain.GetAbsPath())
 
 					// Detect platform-specific subdirectory dynamically.
 					// LLVM distributes platform-specific files in subdirectories like:
@@ -254,7 +254,7 @@ func (b b2) buildOptions() ([]string, error) {
 	// Set compiler and linker flags for cross-compilation.
 	rootfs := b.Ctx.RootFS()
 	if !b.DevDep && rootfs != nil {
-		sysroot := rootfs.GetFullPath()
+		sysroot := rootfs.GetAbsPath()
 		// Only use sysroot for GCC, not for Clang.
 		// Clang uses its own runtime libraries from the LLVM package.
 		if sysroot != "" && !strings.Contains(toolchain.GetName(), "clang") {
