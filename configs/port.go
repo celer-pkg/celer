@@ -109,11 +109,11 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	p.Native = p.Native || p.Package.BuildTool
 
 	// Convert build type to lowercase for all build configs.
-	for i := range p.BuildConfigs {
-		p.BuildConfigs[i].BuildType = strings.ToLower(p.BuildConfigs[i].BuildType)
-		p.BuildConfigs[i].BuildType_Windows = strings.ToLower(p.BuildConfigs[i].BuildType_Windows)
-		p.BuildConfigs[i].BuildType_Linux = strings.ToLower(p.BuildConfigs[i].BuildType_Linux)
-		p.BuildConfigs[i].BuildType_Darwin = strings.ToLower(p.BuildConfigs[i].BuildType_Darwin)
+	for index := range p.BuildConfigs {
+		p.BuildConfigs[index].BuildType = strings.ToLower(p.BuildConfigs[index].BuildType)
+		p.BuildConfigs[index].BuildType_Windows = strings.ToLower(p.BuildConfigs[index].BuildType_Windows)
+		p.BuildConfigs[index].BuildType_Linux = strings.ToLower(p.BuildConfigs[index].BuildType_Linux)
+		p.BuildConfigs[index].BuildType_Darwin = strings.ToLower(p.BuildConfigs[index].BuildType_Darwin)
 	}
 
 	// Set matchedConfig as prebuilt config when no config found in toml.
@@ -236,7 +236,7 @@ func (p *Port) findMatchedConfig(buildType string) *buildsystems.BuildConfig {
 			}
 
 			// Placeholder variables.
-			p.BuildConfigs[index].ContextVariables.Init(p.ctx.Vairables(), p.BuildConfigs[index])
+			p.BuildConfigs[index].ExpressVars.Init(p.ctx.Vairables(), p.BuildConfigs[index])
 			return &p.BuildConfigs[index]
 		}
 	}

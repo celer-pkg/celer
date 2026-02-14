@@ -51,6 +51,10 @@ func (c Port) GenPlatformTomlString() (string, error) {
 	return string(bytes), nil
 }
 
+func (p Port) GenPlatformChecksums() (toolchainChecksum, rootfsChecksum string, err error) {
+	return p.ctx.Platform().GetArchiveChecksums()
+}
+
 func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error) {
 	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {

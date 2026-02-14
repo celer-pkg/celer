@@ -253,14 +253,14 @@ type BuildConfig struct {
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
 	// Internal fields
-	Ctx              context.Context   `toml:"-"`
-	DevDep           bool              `toml:"-"`
-	Native           bool              `toml:"-"`
-	PortConfig       PortConfig        `toml:"-"`
-	Optimize         *context.Optimize `toml:"-"`
-	ContextVariables ExpressVars       `toml:"-"`
-	buildSystem      buildSystem
-	envBackup        envsBackup
+	Ctx         context.Context   `toml:"-"`
+	DevDep      bool              `toml:"-"`
+	Native      bool              `toml:"-"`
+	PortConfig  PortConfig        `toml:"-"`
+	Optimize    *context.Optimize `toml:"-"`
+	ExpressVars ExpressVars       `toml:"-"`
+	buildSystem buildSystem
+	envBackup   envsBackup
 }
 
 func (b BuildConfig) Validate() error {
@@ -772,7 +772,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 
 	// Expand placeholders.
 	for index, argument := range b.Options {
-		b.Options[index] = b.ContextVariables.Replace(argument)
+		b.Options[index] = b.ExpressVars.Replace(argument)
 	}
 }
 
@@ -781,7 +781,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 func (b BuildConfig) expandVariables(content string) string {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
-	content = b.ContextVariables.Replace(content)
+	content = b.ExpressVars.Replace(content)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
 	// For Clang with sysroot, add --gcc-toolchain to find GCC runtime files.
