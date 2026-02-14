@@ -24,7 +24,7 @@ type Callbacks interface {
 	GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	GenPlatformTomlString() (string, error)
 	GenPlatformChecksums() (toolchainChecksum, rootfsChecksum string, err error)
-	GenBuildToolsVersions(buildSystem string) (string, error)
+	GenBuildToolsVersions(tools []string) (string, error)
 	Commit(nameVersion string, devDep bool) (string, error)
 	GetBuildConfig(nameVersion string, devDep bool) (*buildsystems.BuildConfig, error)
 	CheckHostSupported(nameVersion string) bool
@@ -50,13 +50,13 @@ func (p Port) BuildMeta(celerVersion, commit string) (string, error) {
 		buffer.WriteString("# -------- celer version --------\n")
 		fmt.Fprintf(&buffer, "%s\n\n", celerVersion)
 
-		buildToolsVersions, err := p.Callbacks.GenBuildToolsVersions(p.BuildConfig.BuildSystem)
+		versions, err := p.Callbacks.GenBuildToolsVersions(p.BuildConfig.CheckTools())
 		if err != nil {
 			return "", fmt.Errorf("failed to get build tools versions.\n %w", err)
 		}
-		if buildToolsVersions != "" {
+		if versions != "" {
 			p.writeDivider(&buffer, p.Parents, p.NameVersion, "build_tools_versions")
-			buffer.WriteString(buildToolsVersions + "\n\n")
+			buffer.WriteString(versions + "\n\n")
 		}
 
 		p.writeDivider(&buffer, p.Parents, p.NameVersion, "platform")
