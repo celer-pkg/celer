@@ -420,7 +420,7 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 		fromDir := packageCache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("package cache, dir: %q", fromDir))
 	} else if p.Package.Commit != "" {
-		return false, errors.ErrCacheNotFoundWithCommit
+		return false, fmt.Errorf("%w: %s", errors.ErrCacheNotFoundWithCommit, p.Package.Commit)
 	}
 
 	return false, nil

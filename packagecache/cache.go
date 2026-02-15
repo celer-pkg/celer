@@ -91,7 +91,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	// Write commit of port.
 	if commit != "" {
 		p.writeDivider(&buffer, p.Parents, p.NameVersion, "commit")
-		buffer.WriteString(commit + "\n")
+		buffer.WriteString(commit + "\n\n")
 	} else {
 		commit, err := p.Callbacks.GetCommitHash(p.NameVersion, p.DevDep)
 		if err != nil {
