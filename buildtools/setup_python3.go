@@ -75,8 +75,6 @@ func setupPython3(rootDir string) error {
 			pythonVenvDir, deleteCmd)
 	}
 
-	// Always ensure Python bin directory is in PATH.
-	envs.AppendPythonBinDir(dirs.PythonUserBase)
 	return nil
 }
 
@@ -122,6 +120,9 @@ func pip3Install(python3Tool *BuildTool, libraries *[]string) error {
 	*libraries = slices.DeleteFunc(*libraries, func(element string) bool {
 		return strings.HasPrefix(element, "python3")
 	})
+
+	// Always ensure Python bin directory is in PATH.
+	envs.AppendPythonBinDir(dirs.PythonUserBase)
 
 	return nil
 }
