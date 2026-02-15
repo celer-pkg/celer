@@ -26,10 +26,7 @@ func (d *downloader) SetArchive(archive string) *downloader {
 }
 
 func (d downloader) Start(httpClient *http.Client) (downloaded string, err error) {
-	return d.startWithRetry(httpClient, 3)
-}
-
-func (d downloader) startWithRetry(httpClient *http.Client, maxRetries int) (downloaded string, err error) {
+	const maxRetries = 3
 	var lastErr error
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		downloaded, err = d.startOnce(httpClient)
