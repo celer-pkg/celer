@@ -6,9 +6,9 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
 	"celer/pkgs/fileio"
+	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // CleanEnv clear all environments that not required and reset PATH.
@@ -79,23 +79,22 @@ func setEnvIfNotEmpty(key, value string) {
 
 // AppendPythonBinDir appends the Python user "Scripts" directory to PATH if it exists.
 func AppendPythonBinDir(userBaseDir string) {
-	// Search for Python<version>-<arch> directories
-	entries, err := os.ReadDir(userBaseDir)
-	if err != nil {
+	// Check if the Scripts directory exists directly (Windows python case)
+	scriptsDir := filepath.Join(userBaseDir, "Scripts")
+	if fileio.PathExists(scriptsDir) {
+		os.Setenv("PATH", env.JoinPaths("PATH", scriptsDir))
 		return
 	}
 
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-
-		// Check if directory name starts with "Python" (e.g., Python314-32)
-		if strings.HasPrefix(entry.Name(), "Python") {
-			binDir := filepath.Join(userBaseDir, entry.Name(), "Scripts")
-			if fileio.PathExists(binDir) {
-				os.Setenv("PATH", env.JoinPaths("PATH", binDir))
-			}
+	// Otherwise, search for Python<version>-<arch> directories (System Python case)
+	matches, err := filepath.Glob(filepath.Join(userBaseDir, "Python*", "Scripts"))
+	if err != nil {
+		panic(fmt.Sprintf("failed to glob %s: %s", userBaseDir, err))
+	}
+	for _, scriptDir := range matches {
+		if fileio.PathExists(scriptDir) {
+			os.Setenv("PATH", env.JoinPaths("PATH", scriptDir))
+			break
 		}
 	}
 }

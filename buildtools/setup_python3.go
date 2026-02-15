@@ -4,6 +4,7 @@ import (
 	"celer/envs"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"path/filepath"
@@ -21,42 +22,57 @@ func setupPython3(rootDir string) error {
 
 	// Init python3 for windows/linux.
 	switch runtime.GOOS {
+	case "linux":
+		Python3 = &python3{
+			Path:    filepath.Join(rootDir, "python3"),
+			rootDir: rootDir,
+		}
 	case "windows":
 		Python3 = &python3{
 			Path:    filepath.Join(rootDir, "python.exe"),
 			rootDir: rootDir,
 		}
-
-	case "linux":
-		// Use PYTHONUSEBASE as python venv dir.
-		pythonVenvDir := dirs.PythonUserBase
-
-		// Ensure virtual environment exists.
-		if !fileio.PathExists(pythonVenvDir) {
-			title := "[create python venv]"
-			command := fmt.Sprintf("%s/python3 -m venv %s", rootDir, pythonVenvDir)
-			executor := cmd.NewExecutor(title, command)
-			if err := executor.Execute(); err != nil {
-				return fmt.Errorf("failed to create python venv.\n %w", err)
-			}
-		}
-
-		// Use virtual environment python
-		venvPythonPath := filepath.Join(pythonVenvDir, "bin", "python3")
-		venvPipPath := filepath.Join(pythonVenvDir, "bin", "pip")
-		if fileio.PathExists(venvPythonPath) && fileio.PathExists(venvPipPath) {
-			Python3 = &python3{
-				Path:    venvPythonPath,
-				rootDir: filepath.Join(pythonVenvDir, "bin"),
-			}
-		} else {
-			return fmt.Errorf("python virtual environment is incomplete at %s\n"+
-				"Please delete the directory and try again: rm -rf %s\n",
-				pythonVenvDir, pythonVenvDir)
-		}
-
 	default:
 		return fmt.Errorf("unsupported os: %s", runtime.GOOS)
+	}
+
+	// Use PYTHONUSEBASE as python venv dir.
+	pythonVenvDir := dirs.PythonUserBase
+
+	// Ensure virtual environment exists.
+	if !fileio.PathExists(pythonVenvDir) {
+		command := fmt.Sprintf("%s -m venv %s", Python3.Path, pythonVenvDir)
+		executor := cmd.NewExecutor("[create python venv]", command)
+		if err := executor.Execute(); err != nil {
+			return fmt.Errorf("failed to create python venv.\n %w", err)
+		}
+	}
+
+	// Use virtual environment python with platform-specific paths.
+	var venvPythonPath, venvPipPath, venvBinDir string
+	if runtime.GOOS == "windows" {
+		venvPythonPath = filepath.Join(pythonVenvDir, "Scripts", "python.exe")
+		venvPipPath = filepath.Join(pythonVenvDir, "Scripts", "pip.exe")
+		venvBinDir = filepath.Join(pythonVenvDir, "Scripts")
+	} else {
+		venvPythonPath = filepath.Join(pythonVenvDir, "bin", "python3")
+		venvPipPath = filepath.Join(pythonVenvDir, "bin", "pip")
+		venvBinDir = filepath.Join(pythonVenvDir, "bin")
+	}
+
+	if fileio.PathExists(venvPythonPath) && fileio.PathExists(venvPipPath) {
+		Python3.Path = venvPythonPath
+		Python3.rootDir = venvBinDir
+	} else {
+		var deleteCmd string
+		if runtime.GOOS == "windows" {
+			deleteCmd = fmt.Sprintf("rmdir /s /q %s", pythonVenvDir)
+		} else {
+			deleteCmd = fmt.Sprintf("rm -rf %s", pythonVenvDir)
+		}
+		return fmt.Errorf("python virtual environment is incomplete at %s\n "+
+			"Please delete the directory and try again: %s\n",
+			pythonVenvDir, deleteCmd)
 	}
 
 	return nil
@@ -98,9 +114,6 @@ func pip3Install(python3Tool *BuildTool, libraries *[]string) error {
 		if err := executor.Execute(); err != nil {
 			return fmt.Errorf("failed to install %s: %w", libraryName, err)
 		}
-
-		// Make sure the python3 executable can be found in PATH.
-		envs.AppendPythonBinDir(filepath.Join(dirs.PythonUserBase, "bin"))
 	}
 
 	// Remove python3:xxx from list.
@@ -108,27 +121,41 @@ func pip3Install(python3Tool *BuildTool, libraries *[]string) error {
 		return strings.HasPrefix(element, "python3")
 	})
 
+	// Always ensure Python bin directory is in PATH.
+	envs.AppendPythonBinDir(dirs.PythonUserBase)
+
 	return nil
 }
 
 // isPythonPackageInstalled checks if a Python package is already installed.
 // This avoids frequent PyPI requests that could lead to IP blocking.
 func isPythonPackageInstalled(packageName string) bool {
-	// Check in the virtual environment at workspace/.venv
-	libDir := filepath.Join(dirs.PythonUserBase, "lib")
+	libDir := filepath.Join(dirs.PythonUserBase, expr.If(runtime.GOOS == "windows", "Lib", "lib"))
 	if !fileio.PathExists(libDir) {
 		return false
 	}
 
-	// Check for package directory: lib/python*/site-packages/{packageName}
-	packageDirPattern := filepath.Join(libDir, "python*", "site-packages", packageName)
+	var packageDirPattern, distInfoPattern string
+	switch runtime.GOOS {
+	case "windows":
+		// Windows: Lib/site-packages/{packageName} and Lib/site-packages/{packageName}-*.dist-info
+		packageDirPattern = filepath.Join(libDir, "site-packages", packageName)
+		distInfoPattern = filepath.Join(libDir, "site-packages", packageName+"-*.dist-info")
+
+	case "linux":
+		// Linux: lib/python*/site-packages/{packageName} and lib/python*/site-packages/{packageName}-*.dist-info
+		packageDirPattern = filepath.Join(libDir, "python*", "site-packages", packageName)
+		distInfoPattern = filepath.Join(libDir, "python*", "site-packages", packageName+"-*.dist-info")
+
+	default:
+		panic("unsupported os: " + runtime.GOOS)
+	}
+
 	matches, err := filepath.Glob(packageDirPattern)
 	if err == nil && len(matches) > 0 {
 		return true
 	}
 
-	// Check for .dist-info directory: lib/python*/site-packages/{packageName}-*.dist-info
-	distInfoPattern := filepath.Join(libDir, "python*", "site-packages", packageName+"-*.dist-info")
 	matches, err = filepath.Glob(distInfoPattern)
 	if err == nil && len(matches) > 0 {
 		return true

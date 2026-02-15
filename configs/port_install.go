@@ -38,6 +38,13 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		return "", nil
 	}
 
+	// Check all tools at the beginning (only for top-level port)
+	if p.Parent == "" {
+		if err := p.checkAllTools(); err != nil {
+			return "", err
+		}
+	}
+
 	if options.Force {
 		// Remove installed port with its build cache, logs.
 		remoteOptions := RemoveOptions{
@@ -305,7 +312,7 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	return nil
 }
 
-func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
+func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	// No package no install.
 	if !fileio.PathExists(p.MatchedConfig.PortConfig.PackageDir) {
 		return false, nil
@@ -383,9 +390,13 @@ func (p Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	return true, nil
 }
 
-func (p Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
+func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 	installed, err := p.doInstallFromPackageCache(options)
 	if err != nil {
+		// Repo not exist is not error.
+		if errors.Is(err, errors.ErrRepoNotExit) {
+			return false, nil
+		}
 		return false, fmt.Errorf("failed to install from package cache.\n %w", err)
 	}
 
@@ -409,13 +420,13 @@ func (p Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 		fromDir := packageCache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("package cache, dir: %q", fromDir))
 	} else if p.Package.Commit != "" {
-		return false, errors.ErrCacheNotFoundWithCommit
+		return false, fmt.Errorf("%w: %s", errors.ErrCacheNotFoundWithCommit, p.Package.Commit)
 	}
 
 	return false, nil
 }
 
-func (p Port) InstallFromSource(options InstallOptions) error {
+func (p *Port) InstallFromSource(options InstallOptions) error {
 	// Clone or download source of all ports.
 	if err := p.cloneAllRepos(); err != nil {
 		return err
@@ -485,7 +496,7 @@ func (p Port) cloneAllRepos() error {
 	return nil
 }
 
-func (p Port) checkAllTools() error {
+func (p *Port) checkAllTools() error {
 	var allTools []string
 
 	buildConfig := p.MatchedConfig
@@ -510,7 +521,13 @@ func (p Port) checkAllTools() error {
 	}
 
 	allTools = append(allTools, p.MatchedConfig.CheckTools()...)
-	return buildtools.CheckTools(p.ctx, allTools...)
+
+	// Validate tools exist and ensure tool paths are in PATH.
+	if err := buildtools.CheckTools(p.ctx, allTools...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p Port) installAllDeps(options InstallOptions) error {

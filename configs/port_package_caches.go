@@ -4,6 +4,7 @@ import (
 	"celer/buildsystems"
 	"celer/packagecache"
 	"celer/pkgs/dirs"
+	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
@@ -30,7 +31,7 @@ func (p Port) meta2hash(metaData string) string {
 }
 
 func (p Port) buildMeta(commit string) (string, error) {
-	cachePort := packagecache.Port{
+	port := packagecache.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    p.ctx.Platform().GetName(),
 		Project:     p.ctx.Project().GetName(),
@@ -40,7 +41,7 @@ func (p Port) buildMeta(commit string) (string, error) {
 		Callbacks:   p,
 	}
 
-	return cachePort.BuildMeta(Version, commit)
+	return port.BuildMeta(commit)
 }
 
 func (c Port) GenPlatformTomlString() (string, error) {
@@ -76,22 +77,15 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	return string(bytes), nil
 }
 
-func (p Port) Commit(nameVersion string, devDep bool) (string, error) {
+func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return "", err
 	}
 
-	// Clone or download repo if not exist.
+	// Check if repo cloned or downloaded.
 	if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
-		if err := port.MatchedConfig.Clone(
-			port.Package.Url,
-			port.Package.Ref,
-			port.Package.Archive,
-			port.Package.Depth); err != nil {
-			message := expr.If(strings.HasSuffix(port.Package.Url, ".git"), "clone", "download")
-			return "", fmt.Errorf("%s %s: %w", message, port.NameVersion(), err)
-		}
+		return "", errors.ErrRepoNotExit
 	}
 
 	// No commit hash for virtual project.

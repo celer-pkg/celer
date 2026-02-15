@@ -135,6 +135,11 @@ func (i *installCmd) install(nameVersion string) error {
 	color.Printf(color.Title, "🛠️  platform: %s\n", i.celer.Global.Platform)
 	color.Println(color.Title, "=======================================================================")
 
+	// Check git first as it's needed for cloning and reading commit hashes
+	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
+		return configs.PrintError(err, "failed to check build tool: git")
+	}
+
 	// Overwrite global config.
 	if i.jobs != i.celer.Global.Jobs {
 		i.celer.Global.Jobs = i.jobs
@@ -168,10 +173,6 @@ func (i *installCmd) install(nameVersion string) error {
 	// Check version conflict.
 	if err := depcheck.CheckConflict(i.celer, port); err != nil {
 		return configs.PrintError(err, "failed to check version conflict.")
-	}
-
-	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
-		return configs.PrintError(err, "failed to check build tool: git.")
 	}
 
 	// Do install.
