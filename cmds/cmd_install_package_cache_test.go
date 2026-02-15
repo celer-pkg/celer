@@ -150,7 +150,7 @@ func TestInstall_PackageCache_With_Deps_Success(t *testing.T) {
 		BuildCache: true,
 	}
 	check(glogPort.Remove(removeOptions))
-	check(os.RemoveAll(glogPort.MatchedConfig.PortConfig.RepoDir))
+	check(glogPort.MatchedConfig.Clean())
 
 	// Install from package should fail.
 	installed, err := glogPort.InstallFromPackage(options)
@@ -486,7 +486,7 @@ func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))
-	check(os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir))
+	check(port.MatchedConfig.Clean())
 
 	// Install from cache with commit.
 	port.Package.Commit = commit
@@ -548,7 +548,7 @@ func TestInstall_PackageCache_With_Commit_Failed(t *testing.T) {
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))
-	check(os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir))
+	check(port.MatchedConfig.Clean())
 
 	// Install from cache with not matched commit.
 	port.Package.Commit = "not_matched_commit_xxxxxx"
