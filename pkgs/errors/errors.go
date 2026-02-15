@@ -6,6 +6,7 @@ import (
 
 var (
 	ErrNoMatchedConfigFound         = errors.New("no matched config found")
+	ErrRepoNotExit                  = errors.New("repo not exist")
 	ErrInvalidBuildType             = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
 	ErrPackageCacheDirNotConfigured = errors.New("package cache dir is not configured in celer.toml")
 	ErrPackageCacheInvalid          = errors.New("package cache dir is invalid")

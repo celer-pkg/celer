@@ -24,7 +24,7 @@ var (
 	LLVMPath string
 )
 
-// CheckTools checks if tools exist and repair them if necessary.
+// CheckTools checks if tools exist and repair them if necessary, finaly make sure tool paths are in PATH
 func CheckTools(ctx context.Context, tools ...string) error {
 	// Filter duplicated tools.
 	var uniqueTools []string
@@ -213,7 +213,7 @@ func (b *BuildTool) checkAndFix() error {
 	if len(b.Paths) > 0 {
 		// Archive with paths: extract to subdirectory.
 		folderName = strings.Split(b.Paths[0], "/")[0]
-		location = filepath.Join(dirs.DownloadedToolsDir, b.Name)
+		location = filepath.Join(dirs.DownloadedToolsDir, folderName)
 		// Use archive name as download file name if specified.
 		archiveName = filepath.Base(b.Url)
 		if b.Archive != "" {
@@ -227,6 +227,9 @@ func (b *BuildTool) checkAndFix() error {
 		archiveName = "" // Empty means use original URL filename for download
 	}
 
+	// Check if tool already exists before repair.
+	toolExists := fileio.PathExists(location)
+
 	// Check and repair resource.
 	// For single-file tools, use Archive as the archive name for target file naming
 	if len(b.Paths) == 0 && b.Archive != "" {
@@ -237,9 +240,12 @@ func (b *BuildTool) checkAndFix() error {
 		return err
 	}
 
-	// Print download & extract info.
-	color.Printf(color.List, "\n[✔] -- tool: %s\n", fileio.FileBaseName(b.Url))
-	color.Printf(color.Hint, "Location: %s\n", location)
+	// Only print if tool was just downloaded (didn't exist before).
+	if !toolExists {
+		// Print download & extract info.
+		color.Printf(color.List, "\n[✔] -- tool: %s\n", fileio.FileBaseName(b.Url))
+		color.Printf(color.Hint, "Location: %s\n", location)
+	}
 
 	return nil
 }

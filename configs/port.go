@@ -163,6 +163,10 @@ func (p Port) Installed() (bool, error) {
 		}
 		newMeta, err := p.buildMeta(p.Package.Commit)
 		if err != nil {
+			// Repo not exist is not error.
+			if errors.Is(err, errors.ErrRepoNotExit) {
+				return false, nil
+			}
 			return false, err
 		}
 

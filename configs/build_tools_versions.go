@@ -1,7 +1,10 @@
 package configs
 
 import (
+	"celer/buildtools"
 	"celer/pkgs/cmd"
+	"celer/pkgs/errors"
+	"celer/pkgs/fileio"
 	"fmt"
 	"strings"
 )
@@ -16,7 +19,19 @@ var toolVersionArgs = map[string][]string{
 }
 
 func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
+	// Check if repo cloned or downloaded.
+	if !fileio.PathExists(p.MatchedConfig.PortConfig.RepoDir) {
+		return "", errors.ErrRepoNotExit
+	}
+
+	// Ensure tools are validated and their paths are set in PATH,
+	if err := buildtools.CheckTools(p.ctx, tools...); err != nil {
+		return "", fmt.Errorf("failed to check tools: %w", err)
+	}
+
 	var buffer strings.Builder
+	fmt.Fprintf(&buffer, "celer: %s", Version)
+
 	for _, tool := range tools {
 		args, ok := toolVersionArgs[tool]
 		if !ok {
@@ -24,6 +39,12 @@ func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
 		}
 
 		cmdName, _, _ := strings.Cut(tool, ":")
+
+		// For python3:xxx tools, use the Python executable from virtual environment.
+		if cmdName == "python3" && buildtools.Python3 != nil {
+			cmdName = buildtools.Python3.Path
+		}
+
 		executor := cmd.NewExecutor("", cmdName, args...)
 		out, err := executor.ExecuteOutput()
 		if err != nil {
