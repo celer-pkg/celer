@@ -71,7 +71,7 @@ func TestInstall_PackageCache_Success(t *testing.T) {
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))
-	check(os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir))
+	check(port.MatchedConfig.Clean())
 
 	// Install from package should fail.
 	installed, err := port.InstallFromPackage(installOptions)

@@ -393,6 +393,10 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 	installed, err := p.doInstallFromPackageCache(options)
 	if err != nil {
+		// Repo not exist is not error.
+		if errors.Is(err, errors.ErrRepoNotExit) {
+			return false, nil
+		}
 		return false, fmt.Errorf("failed to install from package cache.\n %w", err)
 	}
 
