@@ -181,14 +181,14 @@ func (b *BuildTool) validate() error {
 	if len(b.Paths) > 0 {
 		// Archive with paths specified: extract to subdirectory
 		folderName := strings.Split(b.Paths[0], "/")[0]
-		b.rootDir = filepath.Join(dirs.DownloadedToolsDir, folderName)
+		b.rootDir = filepath.Join(b.ctx.Downloads(), "tools", folderName)
 		for _, path := range b.Paths {
-			b.abspaths = append(b.abspaths, filepath.Join(dirs.DownloadedToolsDir, path))
+			b.abspaths = append(b.abspaths, filepath.Join(b.ctx.Downloads(), "tools", path))
 		}
 	} else {
 		// Single-file tool, place in subdirectory downloads/tools/{name}-{version}/
 		toolDir := fmt.Sprintf("%s-%s", b.Name, b.Version)
-		b.rootDir = filepath.Join(dirs.DownloadedToolsDir, toolDir)
+		b.rootDir = filepath.Join(b.ctx.Downloads(), "tools", toolDir)
 		if !slices.Contains(b.abspaths, b.rootDir) {
 			b.abspaths = append(b.abspaths, b.rootDir)
 		}
@@ -206,14 +206,17 @@ func (b *BuildTool) validate() error {
 
 func (b *BuildTool) checkAndFix() error {
 	// Determine folder name and location based on tool type
-	var folderName string
-	var archiveName string
-	var location string
+	var (
+		folderName  string
+		archiveName string
+		location    string
+	)
 
+	toolsDir := filepath.Join(b.ctx.Downloads(), "tools")
 	if len(b.Paths) > 0 {
 		// Archive with paths: extract to subdirectory.
 		folderName = strings.Split(b.Paths[0], "/")[0]
-		location = filepath.Join(dirs.DownloadedToolsDir, folderName)
+		location = filepath.Join(toolsDir, folderName)
 		// Use archive name as download file name if specified.
 		archiveName = filepath.Base(b.Url)
 		if b.Archive != "" {
@@ -222,7 +225,7 @@ func (b *BuildTool) checkAndFix() error {
 	} else {
 		// Single-file tool: place in subdirectory downloads/tools/{name}-{version}/
 		folderName = fmt.Sprintf("%s-%s", b.Name, b.Version)
-		location = filepath.Join(dirs.DownloadedToolsDir, folderName)
+		location = filepath.Join(toolsDir, folderName)
 		// For single-file tools: download with original filename, but pass Archive for symlink creation
 		archiveName = "" // Empty means use original URL filename for download
 	}
@@ -235,7 +238,7 @@ func (b *BuildTool) checkAndFix() error {
 	if len(b.Paths) == 0 && b.Archive != "" {
 		archiveName = b.Archive
 	}
-	repair := fileio.NewRepair(b.Url, archiveName, folderName, dirs.DownloadedToolsDir)
+	repair := fileio.NewRepair(b.Url, b.ctx.Downloads(), archiveName, folderName, toolsDir)
 	if err := repair.CheckAndRepair(b.ctx); err != nil {
 		return err
 	}

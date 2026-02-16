@@ -10,21 +10,19 @@ import (
 )
 
 var (
-	WorkspaceDir       string // "."
-	ConfDir            string // "conf"
-	ConfPlatformsDir   string // "conf/platforms"
-	ConfProjectsDir    string // "conf/projects"
-	PortsDir           string // "ports"
-	PackagesDir        string // "packages"
-	DownloadedDir      string // "downloads"
-	DownloadedToolsDir string // "downloaded/tools"
-	InstalledDir       string // "installed"
-	BuildtreesDir      string // "buildtrees"
-	PythonUserBase     string // "PYTHONUSERBASE"
-	TmpDir             string // "tmp"
-	TmpFilesDir        string // "tmp/files"
-	TmpDepsDir         string // "tmp/deps"
-	TestCacheDir       string // "cachedir"
+	WorkspaceDir     string // "."
+	ConfDir          string // "conf"
+	ConfPlatformsDir string // "conf/platforms"
+	ConfProjectsDir  string // "conf/projects"
+	PortsDir         string // "ports"
+	PackagesDir      string // "packages"
+	InstalledDir     string // "installed"
+	BuildtreesDir    string // "buildtrees"
+	PythonUserBase   string // "PYTHONUSERBASE"
+	TmpDir           string // "tmp"
+	TmpFilesDir      string // "tmp/files"
+	TmpDepsDir       string // "tmp/deps"
+	TestCacheDir     string // "cachedir"
 )
 
 func init() {
@@ -35,7 +33,7 @@ func init() {
 	Init(currentDir)
 }
 
-// Init init with specified workspace dir.
+// Init initialize with specified workspace dir.
 func Init(workspaceDir string) {
 	WorkspaceDir = workspaceDir
 	ConfDir = filepath.Join(WorkspaceDir, "conf")
@@ -43,8 +41,6 @@ func Init(workspaceDir string) {
 	ConfProjectsDir = filepath.Join(WorkspaceDir, "conf", "projects")
 	PortsDir = filepath.Join(WorkspaceDir, "ports")
 	PackagesDir = filepath.Join(WorkspaceDir, "packages")
-	DownloadedDir = filepath.Join(WorkspaceDir, "downloads")
-	DownloadedToolsDir = filepath.Join(WorkspaceDir, "downloads", "tools")
 	InstalledDir = filepath.Join(WorkspaceDir, "installed")
 	BuildtreesDir = filepath.Join(WorkspaceDir, "buildtrees")
 	PythonUserBase = filepath.Join(WorkspaceDir, ".venv")

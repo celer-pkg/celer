@@ -1,7 +1,6 @@
 package configs
 
 import (
-	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -57,7 +56,7 @@ func (p *Platform) getToolchainPath() string {
 	// Remote archive: downloaded to downloads/
 	if strings.HasPrefix(t.Url, "http") || strings.HasPrefix(t.Url, "ftp") {
 		archiveName := expr.If(t.Archive != "", t.Archive, filepath.Base(t.Url))
-		return filepath.Join(dirs.DownloadedDir, archiveName)
+		return filepath.Join(p.ctx.Downloads(), archiveName)
 	}
 
 	// Local file:/// with archive file.
@@ -102,7 +101,7 @@ func (p *Platform) getRootfsPath() string {
 	// Remote archive: downloaded to downloads/
 	if strings.HasPrefix(rootfs.Url, "http") || strings.HasPrefix(rootfs.Url, "ftp") {
 		archiveName := expr.If(rootfs.Archive != "", rootfs.Archive, filepath.Base(rootfs.Url))
-		return filepath.Join(dirs.DownloadedDir, archiveName)
+		return filepath.Join(p.ctx.Downloads(), archiveName)
 	}
 
 	// Local file:/// with archive file.

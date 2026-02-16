@@ -3,7 +3,6 @@ package configs
 import (
 	"celer/buildsystems"
 	"celer/packagecache"
-	"celer/pkgs/dirs"
 	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -107,7 +106,7 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 			filePath = after
 		} else {
 			archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-			filePath = filepath.Join(dirs.DownloadedDir, archive)
+			filePath = filepath.Join(p.ctx.Downloads(), archive)
 		}
 
 		// Check if archive file exists.

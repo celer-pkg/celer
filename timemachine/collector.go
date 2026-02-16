@@ -3,7 +3,6 @@ package timemachine
 import (
 	"celer/configs"
 	"celer/context"
-	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
@@ -74,7 +73,7 @@ func (c *Collector) GetPortCommit(port *configs.Port) (string, error) {
 	// For archive downloads (zip/tar), use the sha-256 as commit.
 	if !strings.HasSuffix(port.Package.Url, ".git") {
 		archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-		filePath := filepath.Join(dirs.DownloadedDir, archive)
+		filePath := filepath.Join(c.ctx.Downloads(), archive)
 		commit, err := fileio.CalculateChecksum(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of port's archive %s: %w", port.NameVersion(), err)

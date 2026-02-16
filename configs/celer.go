@@ -53,6 +53,7 @@ type global struct {
 	Platform  string `toml:"platform"`
 	Project   string `toml:"project"`
 	BuildType string `toml:"build_type"`
+	Downloads string `toml:"downloads"`
 	Jobs      int    `toml:"jobs"`
 	Verbose   bool   `toml:"verbose"`
 	Offline   bool   `toml:"offline"`
@@ -89,6 +90,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		// Default global values.
 		c.configData.Global = global{
 			BuildType: "release",
+			Downloads: filepath.Join(dirs.WorkspaceDir, "downloads"),
 			Jobs:      runtime.NumCPU() - 1,
 			Offline:   false,
 			Verbose:   false,
@@ -124,6 +126,11 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		// Use lower case build type in celer as default.
 		c.Global.BuildType = strings.ToLower(c.Global.BuildType)
 
+		// Set default downloads if missing.
+		if c.Global.Downloads == "" {
+			c.Global.Downloads = filepath.Join(dirs.WorkspaceDir, "downloads")
+		}
+
 		// Set platform and init platform if specified.
 		if platform != "" {
 			c.configData.Global.Platform = platform
@@ -154,6 +161,11 @@ func (c *Celer) InitWithPlatform(platform string) error {
 			if err := c.configData.CCache.Setup(); err != nil {
 				return err
 			}
+		}
+
+		// Save updated.
+		if err := c.save(); err != nil {
+			return err
 		}
 	}
 
@@ -350,6 +362,23 @@ func (c *Celer) SetBuildType(buildtype string) error {
 	}
 
 	c.configData.Global.BuildType = buildtype
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Celer) SetDownloads(downloads string) error {
+	if !fileio.PathExists(downloads) {
+		return fmt.Errorf("downloads dir to configure is not exist for %s", downloads)
+	}
+
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	c.configData.Global.Downloads = downloads
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -794,6 +823,10 @@ func (c *Celer) Project() context.Project {
 // BuildType returns lower case build type.
 func (c *Celer) BuildType() string {
 	return c.configData.Global.BuildType
+}
+
+func (c *Celer) Downloads() string {
+	return c.configData.Global.Downloads
 }
 
 func (c *Celer) RootFS() context.RootFS {
