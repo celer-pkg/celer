@@ -16,34 +16,47 @@ import (
 )
 
 type downloader struct {
-	Url        string
-	Archive    string
-	MaxRetries int
+	url        string
+	downloads  string
+	archive    string
+	maxRetries int
+}
+
+func NewDownloader(url, downloads string) *downloader {
+	return &downloader{
+		url:        url,
+		downloads:  downloads,
+		maxRetries: 3,
+	}
+}
+
+func (d *downloader) WithArchive(archive string) {
+	d.archive = archive
+}
+
+func (d *downloader) WithMaxRetries(maxRetries int) {
+	d.maxRetries = maxRetries
 }
 
 func (d downloader) Start(httpClient *http.Client) (downloaded string, err error) {
-	// Set default maxRetries.
-	if d.MaxRetries == 0 {
-		d.MaxRetries = 3
-	}
-
 	var lastErr error
-	for attempt := 1; attempt <= d.MaxRetries; attempt++ {
+	for attempt := 1; attempt <= d.maxRetries; attempt++ {
 		downloaded, err = d.startOnce(httpClient)
 		if err == nil {
 			return downloaded, nil
 		}
+
 		lastErr = err
-		color.Printf(color.Warning, "-- Download failed (attempt %d/%d): %v\n", attempt, d.MaxRetries, err)
-		if attempt < d.MaxRetries {
+		color.Printf(color.Warning, "-- Download failed (attempt %d/%d): %v\n", attempt, d.maxRetries, err)
+		if attempt < d.maxRetries {
 			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
 		}
 	}
-	return "", fmt.Errorf("download failed after %d attempts: %w", d.MaxRetries, lastErr)
+	return "", fmt.Errorf("download failed after %d attempts: %w", d.maxRetries, lastErr)
 }
 
 func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err error) {
-	req, err := http.NewRequest("GET", d.Url, nil)
+	req, err := http.NewRequest("GET", d.url, nil)
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)
 	}
@@ -66,7 +79,7 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	}
 
 	// Get file name.
-	fileName, err := getFileName(d.Url)
+	fileName, err := getFileName(d.url)
 	if err != nil {
 		return "", err
 	}
@@ -96,7 +109,7 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	}
 
 	// Move temp file to downloaded directory.
-	downloaded = filepath.Join(dirs.DownloadedDir, fileName)
+	downloaded = filepath.Join(d.downloads, fileName)
 	if err := os.MkdirAll(filepath.Dir(downloaded), os.ModePerm); err != nil {
 		return "", err
 	}
@@ -105,8 +118,8 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	}
 
 	// Rename downloaded file if specified and not same as downloaded file.
-	if d.Archive != "" && d.Archive != fileName {
-		renamedFile := filepath.Join(dirs.DownloadedDir, d.Archive)
+	if d.archive != "" && d.archive != fileName {
+		renamedFile := filepath.Join(d.downloads, d.archive)
 		if err := os.Rename(downloaded, renamedFile); err != nil {
 			return "", err
 		}

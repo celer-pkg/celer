@@ -333,7 +333,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	} else if repoUrl != "_" {
 		// Check and repair resource.
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
-		repair := fileio.NewRepair(repoUrl, archive, ".", b.PortConfig.RepoDir)
+		repair := fileio.NewRepair(repoUrl, b.Ctx.Downloads(), archive, ".", b.PortConfig.RepoDir)
 		if err := repair.CheckAndRepair(b.Ctx); err != nil {
 			return err
 		}

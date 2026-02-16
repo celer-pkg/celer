@@ -19,14 +19,11 @@ func TestDownloadRetrySuccess(t *testing.T) {
 	defer server.Close()
 
 	// Create downloader.
-	download := downloader{
-		Url:        server.URL + "/test.txt",
-		Archive:    "test.txt",
-		MaxRetries: 3,
-	}
+	downloader := NewDownloader(server.URL+"/test.txt", "downloads")
+	downloader.WithArchive("text.txt")
 
 	client := &http.Client{}
-	downloaded, err := download.Start(client)
+	downloaded, err := downloader.Start(client)
 
 	if err != nil {
 		t.Fatalf("Expected success, got error: %v", err)
@@ -54,14 +51,12 @@ func TestDownloadRetryFailureCount(t *testing.T) {
 
 	// Create downloader.
 	maxRetries := 3
-	download := downloader{
-		Url:        server.URL + "/test.txt",
-		Archive:    "test.txt",
-		MaxRetries: maxRetries,
-	}
+	downloader := NewDownloader(server.URL+"/test.txt", "downloads")
+	downloader.WithArchive("text.txt")
+	downloader.WithMaxRetries(maxRetries)
 
 	client := &http.Client{}
-	_, err := download.Start(client)
+	_, err := downloader.Start(client)
 
 	if err == nil {
 		t.Fatal("Expected error after retries, got success")
@@ -94,14 +89,11 @@ func TestDownloadRetrySuccessAfterFailures(t *testing.T) {
 	defer server.Close()
 
 	// Create downloader.
-	download := downloader{
-		Url:        server.URL + "/test.txt",
-		Archive:    "test.txt",
-		MaxRetries: 3,
-	}
+	downloader := NewDownloader(server.URL+"/test.txt", "downloads")
+	downloader.WithArchive("text.txt")
 
 	client := &http.Client{}
-	downloaded, err := download.Start(client)
+	downloaded, err := downloader.Start(client)
 
 	if err != nil {
 		t.Fatalf("Expected success after retry, got error: %v", err)
@@ -133,14 +125,12 @@ func TestDownloadRetry404NotFound(t *testing.T) {
 
 	// Create downloader.
 	maxRetries := 3
-	d := downloader{
-		Url:        server.URL + "/missing.txt",
-		Archive:    "missing.txt",
-		MaxRetries: maxRetries,
-	}
+	downloader := NewDownloader(server.URL+"/missing.txt", "downloads")
+	downloader.WithArchive("missing.txt")
+	downloader.WithMaxRetries(maxRetries)
 
 	client := &http.Client{}
-	_, err := d.Start(client)
+	_, err := downloader.Start(client)
 	if err == nil {
 		t.Fatal("Expected error for 404, got success")
 	}

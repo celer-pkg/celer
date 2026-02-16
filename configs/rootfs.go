@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"celer/context"
 	"celer/pkgs/color"
-	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -36,7 +35,7 @@ func (r *RootFS) Validate() error {
 		return fmt.Errorf("rootfs.path is empty")
 	}
 
-	r.abspath = filepath.Join(dirs.DownloadedToolsDir, r.Path)
+	r.abspath = filepath.Join(r.ctx.Downloads(), "tools", r.Path)
 
 	return nil
 }
@@ -51,13 +50,14 @@ func (r *RootFS) CheckAndRepair() error {
 
 	// Check and repair resource.
 	archiveName := expr.If(r.Archive != "", r.Archive, filepath.Base(r.Url))
-	repair := fileio.NewRepair(r.Url, archiveName, folderName, dirs.DownloadedToolsDir)
+	toolsDir := filepath.Join(r.ctx.Downloads(), "tools")
+	repair := fileio.NewRepair(r.Url, r.ctx.Downloads(), archiveName, folderName, toolsDir)
 	if err := repair.CheckAndRepair(r.ctx); err != nil {
 		return err
 	}
 
 	// Print download & extract info.
-	location := filepath.Join(dirs.DownloadedToolsDir, folderName)
+	location := filepath.Join(toolsDir, folderName)
 	color.Printf(color.List, "\n[✔] -- rootfs: %s\n", fileio.FileBaseName(r.Url))
 	color.Printf(color.Hint, "Location: %s\n", location)
 

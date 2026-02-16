@@ -3,9 +3,10 @@ package context
 type Context interface {
 	Version() string
 	Platform() Platform
+	RootFS() RootFS
 	Project() Project
 	BuildType() string
-	RootFS() RootFS
+	Downloads() string
 	Jobs() int
 	Offline() bool
 	Verbose() bool

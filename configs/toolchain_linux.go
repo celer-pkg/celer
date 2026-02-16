@@ -7,7 +7,6 @@ import (
 	"celer/buildtools"
 	"celer/context"
 	"celer/pkgs/color"
-	"celer/pkgs/dirs"
 	"celer/pkgs/env"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -81,6 +80,8 @@ func (t *Toolchain) Validate() error {
 		return fmt.Errorf("toolchain.cxx is empty")
 	}
 
+	toolsDir := filepath.Join(t.ctx.Downloads(), "tools")
+
 	switch {
 	// Web resource file would be extracted to specified path, so path can not be empty.
 	case strings.HasPrefix(t.Url, "http"), strings.HasPrefix(t.Url, "ftp"):
@@ -89,8 +90,8 @@ func (t *Toolchain) Validate() error {
 		}
 
 		firstSection := strings.Split(filepath.ToSlash(t.Path), "/")[0]
-		t.rootDir = filepath.Join(dirs.DownloadedToolsDir, firstSection)
-		t.abspath = filepath.Join(dirs.DownloadedToolsDir, t.Path)
+		t.rootDir = filepath.Join(toolsDir, firstSection)
+		t.abspath = filepath.Join(toolsDir, t.Path)
 		os.Setenv("PATH", env.JoinPaths("PATH", t.abspath))
 
 	case strings.HasPrefix(t.Url, "file:///"):
@@ -115,8 +116,8 @@ func (t *Toolchain) Validate() error {
 			}
 
 			firstSection := strings.Split(filepath.ToSlash(t.Path), "/")[0]
-			t.rootDir = filepath.Join(dirs.DownloadedToolsDir, firstSection)
-			t.abspath = filepath.Join(dirs.DownloadedToolsDir, t.Path)
+			t.rootDir = filepath.Join(toolsDir, firstSection)
+			t.abspath = filepath.Join(toolsDir, t.Path)
 			os.Setenv("PATH", env.JoinPaths("PATH", t.abspath))
 		}
 
@@ -137,7 +138,8 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 
 	// Check and repair resource.
 	archiveName := expr.If(t.Archive != "", t.Archive, filepath.Base(t.Url))
-	repair := fileio.NewRepair(t.Url, archiveName, folderName, dirs.DownloadedToolsDir)
+	toolsDir := filepath.Join(t.ctx.Downloads(), "tools")
+	repair := fileio.NewRepair(t.Url, t.ctx.Downloads(), archiveName, folderName, toolsDir)
 	if err := repair.CheckAndRepair(t.ctx); err != nil {
 		return err
 	}
