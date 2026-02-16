@@ -16,34 +16,34 @@ import (
 )
 
 type downloader struct {
-	url     string
-	archive string
-}
-
-func (d *downloader) SetArchive(archive string) *downloader {
-	d.archive = archive
-	return d
+	Url        string
+	Archive    string
+	MaxRetries int
 }
 
 func (d downloader) Start(httpClient *http.Client) (downloaded string, err error) {
-	const maxRetries = 3
+	// Set default maxRetries.
+	if d.MaxRetries == 0 {
+		d.MaxRetries = 3
+	}
+
 	var lastErr error
-	for attempt := 1; attempt <= maxRetries; attempt++ {
+	for attempt := 1; attempt <= d.MaxRetries; attempt++ {
 		downloaded, err = d.startOnce(httpClient)
 		if err == nil {
 			return downloaded, nil
 		}
 		lastErr = err
-		color.Printf(color.Warning, "-- Download failed (attempt %d/%d): %v\n", attempt, maxRetries, err)
-		if attempt < maxRetries {
+		color.Printf(color.Warning, "-- Download failed (attempt %d/%d): %v\n", attempt, d.MaxRetries, err)
+		if attempt < d.MaxRetries {
 			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
 		}
 	}
-	return "", fmt.Errorf("download failed after %d attempts.\n %w", maxRetries, lastErr)
+	return "", fmt.Errorf("download failed after %d attempts.\n %w", d.MaxRetries, lastErr)
 }
 
 func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err error) {
-	req, err := http.NewRequest("GET", d.url, nil)
+	req, err := http.NewRequest("GET", d.Url, nil)
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)
 	}
@@ -66,7 +66,7 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	}
 
 	// Get file name.
-	fileName, err := getFileName(d.url)
+	fileName, err := getFileName(d.Url)
 	if err != nil {
 		return "", err
 	}
@@ -105,8 +105,8 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	}
 
 	// Rename downloaded file if specified and not same as downloaded file.
-	if d.archive != "" && d.archive != fileName {
-		renamedFile := filepath.Join(dirs.DownloadedDir, d.archive)
+	if d.Archive != "" && d.Archive != fileName {
+		renamedFile := filepath.Join(dirs.DownloadedDir, d.Archive)
 		if err := os.Rename(downloaded, renamedFile); err != nil {
 			return "", err
 		}

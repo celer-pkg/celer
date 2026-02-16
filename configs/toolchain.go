@@ -323,7 +323,11 @@ func (t Toolchain) GetCrosstoolPrefixPath() string {
 }
 
 func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
-	os.Setenv("CROSSTOOL_PREFIX", t.GetCrosstoolPrefix())
+	// crosstool prefix maybe empty for msvc in windows.
+	crosstoolPrefix := t.GetCrosstoolPrefix()
+	if crosstoolPrefix != "" {
+		os.Setenv("CROSSTOOL_PREFIX", crosstoolPrefix)
+	}
 	os.Setenv("HOST", t.GetHost())
 
 	if t.ctx.CCacheEnabled() {

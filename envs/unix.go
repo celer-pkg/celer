@@ -21,8 +21,12 @@ func CleanEnv() {
 
 	os.Setenv("SHELL", shell)
 	os.Setenv("HOME", home)
-	os.Setenv("CELER_PORTS_REPO", portsRepo)
-	os.Setenv("GITHUB_ACTIONS", githubActions)
+	if portsRepo != "" {
+		os.Setenv("CELER_PORTS_REPO", portsRepo)
+	}
+	if githubActions != "" {
+		os.Setenv("GITHUB_ACTIONS", githubActions)
+	}
 
 	// Reset PATH.
 	var paths []string
