@@ -1,6 +1,7 @@
 package fileio
 
 import (
+	"celer/pkgs/color"
 	"crypto/tls"
 	"fmt"
 	"net/http"
@@ -44,13 +45,23 @@ func CheckAccessible(url string) error {
 
 // FileSize returns the size of the file at the given URL.
 func FileSize(httpClient *http.Client, downloadUrl string) (int64, error) {
-	resp, err := httpClient.Head(downloadUrl)
-	if err != nil {
-		return 0, err
+	const maxRetries = 3
+	var lastErr error
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		resp, err := httpClient.Head(downloadUrl)
+		if err == nil {
+			resp.Body.Close()
+			return resp.ContentLength, nil
+		}
+
+		lastErr = err
+		color.Printf(color.Warning, "-- Get filesize failed (attempt %d/%d): %v\n", attempt, maxRetries, err)
+		if attempt < maxRetries {
+			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
+		}
 	}
 
-	defer resp.Body.Close()
-	return resp.ContentLength, nil
+	return 0, lastErr
 }
 
 func httpClient(host string, port int) *http.Client {
