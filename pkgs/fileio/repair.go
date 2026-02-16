@@ -104,7 +104,7 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 			} else {
 				// Extract archive file.
 				if err := Extract(downloaded, destDir); err != nil {
-					return fmt.Errorf("failed to extract %s.\n %w", downloaded, err)
+					return fmt.Errorf("failed to extract %s: %w", downloaded, err)
 				}
 
 				// Check if has nested folder (handling case where there's a nested folder).
@@ -177,11 +177,11 @@ func (r Repair) needToDownload(url, archive string) (needToDownload bool, err er
 		// Need to download if remote file size and local file size not match.
 		fileSize, err := FileSize(r.httpClient, url)
 		if err != nil {
-			return false, fmt.Errorf("get remote file size: %w", err)
+			return false, fmt.Errorf("can not get remote file size: %w", err)
 		}
 		info, err := os.Stat(destFilePath)
 		if err != nil {
-			return false, fmt.Errorf("%s: get local file size: %w", archive, err)
+			return false, fmt.Errorf("can not get local file size for %s: %w", archive, err)
 		}
 
 		// Not all remote files have size, so we need to check if file size is greater than 0.

@@ -29,7 +29,7 @@ func (c CCache) Setup() error {
 
 	// Create ccache dir if not exist.
 	if err := os.MkdirAll(c.Dir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to mkdir ccache dir.\n %w", err)
+		return fmt.Errorf("failed to mkdir ccache dir: %w", err)
 	}
 
 	os.Setenv("CCACHE_DIR", c.Dir)

@@ -453,7 +453,7 @@ func (b BuildConfig) Patch() error {
 				destFile := filepath.Join(b.PortConfig.SrcDir, entity.Name())
 				if !fileio.PathExists(destFile) {
 					if err := fileio.CopyFile(srcFile, destFile); err != nil {
-						return fmt.Errorf("failed to patch files.\n %w", err)
+						return fmt.Errorf("failed to patch files: %w", err)
 					}
 				}
 			}
@@ -462,11 +462,11 @@ func (b BuildConfig) Patch() error {
 	}
 	portDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
 	if err := overrideFiles(portDir); err != nil {
-		return fmt.Errorf("failed to override files from port dir.\n %w", err)
+		return fmt.Errorf("failed to override files from port dir: %w", err)
 	}
 	projectPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
 	if err := overrideFiles(projectPortDir); err != nil {
-		return fmt.Errorf("failed to override files from project port dir.\n %w", err)
+		return fmt.Errorf("failed to override files from project port dir: %w", err)
 	}
 
 	return nil
@@ -563,7 +563,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	// Configure related steps.
 	if !b.buildSystem.configured() {
 		if err := b.buildSystem.preConfigure(); err != nil {
-			return fmt.Errorf("failed to pre configure %s.\n %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("failed to pre configure %s: %w", b.PortConfig.nameVersionDesc(), err)
 		}
 		configureOptions, err := b.buildSystem.configureOptions()
 		if err != nil {

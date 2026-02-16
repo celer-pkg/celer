@@ -53,12 +53,12 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 			BuildCache: true,
 		}
 		if err := p.Remove(remoteOptions); err != nil {
-			return "", fmt.Errorf("failed to remove installed package.\n %w", err)
+			return "", fmt.Errorf("failed to remove installed package: %w", err)
 		}
 
 		// Clean source repo.
 		if err := p.MatchedConfig.Clean(); err != nil {
-			return "", fmt.Errorf("failed to clean repo before install.\n %w", err)
+			return "", fmt.Errorf("failed to clean repo before install: %w", err)
 		}
 	}
 
@@ -172,7 +172,7 @@ func (p Port) doInstallFromPackageCache(options InstallOptions) (bool, error) {
 	// Calculate buildhash.
 	buildhash, err := p.buildhash(p.Package.Commit)
 	if err != nil {
-		return false, fmt.Errorf("failed to calculate buildhash.\n %w", err)
+		return false, fmt.Errorf("failed to calculate buildhash: %w", err)
 	}
 
 	// Read cache file and extract them to package dir.
@@ -327,7 +327,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	var metaFile string
 	entities, err := os.ReadDir(p.MatchedConfig.PortConfig.PackageDir)
 	if err != nil {
-		return false, fmt.Errorf("failed to read package dir.\n %w", err)
+		return false, fmt.Errorf("failed to read package dir: %w", err)
 	}
 	for _, entity := range entities {
 		if strings.HasSuffix(entity.Name(), ".meta") {
@@ -343,11 +343,11 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	// Install from package if meta matches.
 	metaBytes, err := os.ReadFile(metaFile)
 	if err != nil {
-		return false, fmt.Errorf("failed to read package meta of %s.\n %w", p.NameVersion(), err)
+		return false, fmt.Errorf("failed to read package meta of %s: %w", p.NameVersion(), err)
 	}
 	newMeta, err := p.buildMeta(p.Package.Commit)
 	if err != nil {
-		return false, fmt.Errorf("failed to calculate meta of %s.\n %w", p.NameVersion(), err)
+		return false, fmt.Errorf("failed to calculate meta of %s: %w", p.NameVersion(), err)
 	}
 
 	// Remove outdated package.
@@ -362,7 +362,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 			return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
 		}
 		if err := fileio.CopyFile(p.metaFile, metaFileBackup); err != nil {
-			return false, fmt.Errorf("failed to backup meta file.\n %w", err)
+			return false, fmt.Errorf("failed to backup meta file: %w", err)
 		}
 
 		// Remove outdated package and install from source again.
@@ -372,15 +372,15 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 			BuildCache: true,
 		}
 		if err := p.Remove(remoteOptions); err != nil {
-			return false, fmt.Errorf("failed to remove outdated package.\n %w", err)
+			return false, fmt.Errorf("failed to remove outdated package: %w", err)
 		}
 		if err := p.doInstallFromSource(options); err != nil {
-			return false, fmt.Errorf("failed to install from source.\n %w", err)
+			return false, fmt.Errorf("failed to install from source: %w", err)
 		}
 	}
 
 	if err := p.doInstallFromPackage(p.InstalledDir); err != nil {
-		return false, fmt.Errorf("failed to install from package.\n %w", err)
+		return false, fmt.Errorf("failed to install from package: %w", err)
 	}
 
 	if err := p.writeTraceFile("package"); err != nil {
@@ -397,7 +397,7 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 		if errors.Is(err, errors.ErrRepoNotExit) {
 			return false, nil
 		}
-		return false, fmt.Errorf("failed to install from package cache.\n %w", err)
+		return false, fmt.Errorf("failed to install from package cache: %w", err)
 	}
 
 	if installed {
@@ -634,7 +634,7 @@ func (p Port) prepareTmpDeps() error {
 		// and this can also make sure system pc file can work right.
 		var pkgConfigPrefix = filepath.Join(dirs.TmpDepsDir, port.ctx.Platform().GetHostName()+"-dev")
 		if err := fileio.FixupPkgConfig(port.tmpDepsDir, pkgConfigPrefix); err != nil {
-			return fmt.Errorf("failed to fixup pkg-config.\n %w", err)
+			return fmt.Errorf("failed to fixup pkg-config: %w", err)
 		}
 
 		// Provider tmp deps recursively.
@@ -679,7 +679,7 @@ func (p Port) prepareTmpDeps() error {
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.MatchedConfig.PortConfig.LibraryFolder),
 		)
 		if err := fileio.FixupPkgConfig(port.tmpDepsDir, pkgConfigPrefix); err != nil {
-			return fmt.Errorf("failed to fixup pkg-config.\n %w", err)
+			return fmt.Errorf("failed to fixup pkg-config: %w", err)
 		}
 
 		// Provider tmp deps recursively.
@@ -698,14 +698,14 @@ func (p Port) prepareTmpDeps() error {
 func (p Port) writeTraceFile(installedFrom string) error {
 	// Write installed files trace into its installation trace list.
 	if err := fileio.MkdirAll(filepath.Dir(p.traceFile), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create trace dir.\n %w", err)
+		return fmt.Errorf("failed to create trace dir: %w", err)
 	}
 	packageFiles, err := p.PackageFiles(p.PackageDir, p.ctx.Platform().GetName(), p.ctx.Project().GetName())
 	if err != nil {
-		return fmt.Errorf("failed to get package files.\n %w", err)
+		return fmt.Errorf("failed to get package files: %w", err)
 	}
 	if err := os.WriteFile(p.traceFile, []byte(strings.Join(packageFiles, "\n")), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to write trace file.\n %w", err)
+		return fmt.Errorf("failed to write trace file: %w", err)
 	}
 
 	// Print install trace.

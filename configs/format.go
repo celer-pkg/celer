@@ -26,22 +26,22 @@ func PrintSuccess(format string, args ...any) {
 }
 
 func SprintError(err error, format string, args ...any) string {
-	details := strings.ReplaceAll(err.Error(), "\n", "\n-->")
+	details := strings.ReplaceAll(err.Error(), ": ", "\n--> ")
 	return color.Sprintf(color.Error, "\n[✘] %s\n[☛] %s\n", fmt.Sprintf(format, args...), details)
 }
 
 func PrintError(err error, format string, args ...any) error {
-	details := strings.ReplaceAll(err.Error(), "\n", "\n-->")
+	details := strings.ReplaceAll(err.Error(), ": ", "\n--> ")
 	color.Fprintf(os.Stderr, color.Error, "\n[✘] %s\n[☛] %s\n", fmt.Sprintf(format, args...), details)
 	return ErrSilent
 }
 
 func PrintWarning(err error, format string, args ...any) string {
-	details := strings.ReplaceAll(err.Error(), "\n", "\n-->")
+	details := strings.ReplaceAll(err.Error(), ": ", "\n--> ")
 	return color.Sprintf(color.Warning, "\n[❕︎] %s\n[☛] %s\n", fmt.Sprintf(format, args...), details)
 }
 
 func SprintWarning(err error, format string, args ...any) string {
-	details := strings.ReplaceAll(err.Error(), "\n", "\n-->")
+	details := strings.ReplaceAll(err.Error(), ": ", "\n--> ")
 	return color.Sprintf(color.Warning, "\n[❕︎] %s\n[☛] %s\n", fmt.Sprintf(format, args...), details)
 }

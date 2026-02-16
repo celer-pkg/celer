@@ -77,7 +77,7 @@ func (c *Collector) GetPortCommit(port *configs.Port) (string, error) {
 		filePath := filepath.Join(dirs.DownloadedDir, archive)
 		commit, err := fileio.CalculateChecksum(filePath)
 		if err != nil {
-			return "", fmt.Errorf("failed to get checksum of port's archive %s.\n %w", port.NameVersion(), err)
+			return "", fmt.Errorf("failed to get checksum of port's archive %s: %w", port.NameVersion(), err)
 		}
 		return "sha-256:" + commit, nil
 	}

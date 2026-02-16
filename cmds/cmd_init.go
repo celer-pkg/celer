@@ -69,9 +69,9 @@ func (i *initCmd) doInit() error {
 	}
 
 	if i.branch != "" {
-		configs.PrintSuccess("Successfully initialized celer with repository: %s --branch %s", i.url, i.branch)
+		configs.PrintSuccess("Successfully initialized celer with repository -> %s --branch %s", i.url, i.branch)
 	} else {
-		configs.PrintSuccess("Successfully initialized celer with repository: %s", i.url)
+		configs.PrintSuccess("Successfully initialized celer with repository -> %s", i.url)
 	}
 
 	return nil

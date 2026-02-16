@@ -47,7 +47,7 @@ func (p Port) buildMeta(commit string) (string, error) {
 func (c Port) GenPlatformTomlString() (string, error) {
 	bytes, err := toml.Marshal(c.ctx.Platform())
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal platform %s.\n %w", c.ctx.Platform().GetName(), err)
+		return "", fmt.Errorf("failed to marshal platform %s: %w", c.ctx.Platform().GetName(), err)
 	}
 	return string(bytes), nil
 }
@@ -72,7 +72,7 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 
 	bytes, err := toml.Marshal(port)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal port %s.\n %w", nameVersion, err)
+		return "", fmt.Errorf("failed to marshal port %s: %w", nameVersion, err)
 	}
 	return string(bytes), nil
 }
@@ -97,7 +97,7 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 	if strings.HasSuffix(port.Package.Url, ".git") {
 		commit, err := git.ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
 		if err != nil {
-			return "", fmt.Errorf("failed to read git commit hash.\n %w", err)
+			return "", fmt.Errorf("failed to read git commit hash: %w", err)
 		}
 		return commit, nil
 	} else {
@@ -119,7 +119,7 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 		// Calculate checksum of archive file.
 		commit, err := fileio.CalculateChecksum(filePath)
 		if err != nil {
-			return "", fmt.Errorf("failed to get checksum of part's archive %s.\n %w", nameVersion, err)
+			return "", fmt.Errorf("failed to get checksum of part's archive %s: %w", nameVersion, err)
 		}
 		return "file:" + commit, nil
 	}

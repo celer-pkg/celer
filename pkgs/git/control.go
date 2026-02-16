@@ -36,7 +36,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	// ============ Clone specific branch ============
 	isBranch, err := CheckIfRemoteBranch(repoUrl, repoRef)
 	if err != nil {
-		return fmt.Errorf("failed to check if remote branch.\n %w", err)
+		return fmt.Errorf("failed to check if remote branch: %w", err)
 	}
 	if isBranch {
 		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
@@ -46,7 +46,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	// ============ Clone specific tag ============
 	isTag, err := CheckIfRemoteTag(repoUrl, repoRef)
 	if err != nil {
-		return fmt.Errorf("failed to check if remote tag: %s.\n %w", repoRef, err)
+		return fmt.Errorf("failed to check if remote tag: %s: %w", repoRef, err)
 	}
 	if isTag {
 		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
@@ -56,7 +56,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	// ============ Clone and checkout commit ============
 	command := fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
 	if err := cmd.NewExecutor(title, command).Execute(); err != nil {
-		return fmt.Errorf("faield to clone git repo.\n %w", err)
+		return fmt.Errorf("faield to clone git repo: %w", err)
 	}
 
 	// Checkout repo to commit.
@@ -64,7 +64,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	executor := cmd.NewExecutor(title+" (reset to commit)", command)
 	executor.SetWorkDir(repoDir)
 	if err := executor.Execute(); err != nil {
-		return fmt.Errorf("failed to reset --hard.\n %w", err)
+		return fmt.Errorf("failed to reset --hard: %w", err)
 	}
 
 	return nil
@@ -80,7 +80,7 @@ func UpdateSubmodules(title, repoDir string) error {
 	executor := cmd.NewExecutor(title, command)
 	executor.SetWorkDir(repoDir)
 	if err := executor.Execute(); err != nil {
-		return fmt.Errorf("failed to update submodules.\n %w", err)
+		return fmt.Errorf("failed to update submodules: %w", err)
 	}
 	return nil
 }
