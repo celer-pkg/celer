@@ -20,12 +20,13 @@ func TestDownloadRetrySuccess(t *testing.T) {
 
 	// Create downloader.
 	download := downloader{
-		url:     server.URL + "/test.txt",
-		archive: "test.txt",
+		Url:        server.URL + "/test.txt",
+		Archive:    "test.txt",
+		MaxRetries: 3,
 	}
 
 	client := &http.Client{}
-	downloaded, err := download.startWithRetry(client, 3)
+	downloaded, err := download.Start(client)
 
 	if err != nil {
 		t.Fatalf("Expected success, got error: %v", err)
@@ -52,14 +53,15 @@ func TestDownloadRetryFailureCount(t *testing.T) {
 	defer server.Close()
 
 	// Create downloader.
+	maxRetries := 3
 	download := downloader{
-		url:     server.URL + "/test.txt",
-		archive: "test.txt",
+		Url:        server.URL + "/test.txt",
+		Archive:    "test.txt",
+		MaxRetries: maxRetries,
 	}
 
 	client := &http.Client{}
-	maxRetries := 3
-	_, err := download.startWithRetry(client, maxRetries)
+	_, err := download.Start(client)
 
 	if err == nil {
 		t.Fatal("Expected error after retries, got success")
@@ -93,12 +95,13 @@ func TestDownloadRetrySuccessAfterFailures(t *testing.T) {
 
 	// Create downloader.
 	download := downloader{
-		url:     server.URL + "/test.txt",
-		archive: "test.txt",
+		Url:        server.URL + "/test.txt",
+		Archive:    "test.txt",
+		MaxRetries: 3,
 	}
 
 	client := &http.Client{}
-	downloaded, err := download.startWithRetry(client, 3)
+	downloaded, err := download.Start(client)
 
 	if err != nil {
 		t.Fatalf("Expected success after retry, got error: %v", err)
@@ -129,15 +132,15 @@ func TestDownloadRetry404NotFound(t *testing.T) {
 	defer server.Close()
 
 	// Create downloader.
+	maxRetries := 3
 	d := downloader{
-		url:     server.URL + "/missing.txt",
-		archive: "missing.txt",
+		Url:        server.URL + "/missing.txt",
+		Archive:    "missing.txt",
+		MaxRetries: maxRetries,
 	}
 
 	client := &http.Client{}
-	maxRetries := 3
-	_, err := d.startWithRetry(client, maxRetries)
-
+	_, err := d.Start(client)
 	if err == nil {
 		t.Fatal("Expected error for 404, got success")
 	}

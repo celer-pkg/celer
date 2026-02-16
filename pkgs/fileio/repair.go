@@ -13,8 +13,8 @@ import (
 
 func NewRepair(url, archive, folder, destDir string) *Repair {
 	downloader := downloader{
-		url:     url,
-		archive: archive,
+		Url:     url,
+		Archive: archive,
 	}
 
 	return &Repair{
@@ -37,14 +37,14 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 	r.httpClient = httpClient(r.ctx.ProxyHostPort())
 
 	switch {
-	case strings.HasPrefix(r.downloader.url, "http"), strings.HasPrefix(r.downloader.url, "ftp"):
+	case strings.HasPrefix(r.downloader.Url, "http"), strings.HasPrefix(r.downloader.Url, "ftp"):
 		// Use archive name if specified, otherwise use filename from URL
-		fileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(r.downloader.url))
+		fileName := expr.If(r.downloader.Archive != "", r.downloader.Archive, filepath.Base(r.downloader.Url))
 		downloaded := filepath.Join(dirs.DownloadedDir, fileName)
 		destDir := filepath.Join(r.destDir, r.folder)
 
 		// Check if need to download.
-		needToDownload, err := r.needToDownload(r.downloader.url, fileName)
+		needToDownload, err := r.needToDownload(r.downloader.Url, fileName)
 		if err != nil {
 			return err
 		}
@@ -53,7 +53,7 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 		if needToDownload {
 			actualDownloaded, err := r.downloader.Start(r.httpClient)
 			if err != nil {
-				return fmt.Errorf("failed to download %s: %w", r.downloader.url, err)
+				return fmt.Errorf("failed to download %s: %w", r.downloader.Url, err)
 			}
 			downloaded = actualDownloaded
 		}
@@ -66,7 +66,7 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 		if isSingleFile {
 			// For single files, check if the target file with the specified name exists,
 			// Use archive name if specified, otherwise use downloaded file name.
-			destFileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(downloaded))
+			destFileName := expr.If(r.downloader.Archive != "", r.downloader.Archive, filepath.Base(downloaded))
 			destFile := filepath.Join(destDir, destFileName)
 			needToRepair = needToDownload || !PathExists(destFile)
 		} else {
@@ -89,7 +89,7 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 
 				// Determine the destination file name:
 				// Use archive name if specified, otherwise use downloaded file name.
-				destFileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(downloaded))
+				destFileName := expr.If(r.downloader.Archive != "", r.downloader.Archive, filepath.Base(downloaded))
 				destFile := filepath.Join(destDir, destFileName)
 
 				// Copy file with the specified name.
@@ -114,11 +114,11 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 			}
 		}
 
-	case strings.HasPrefix(r.downloader.url, "file:///"):
-		localPath := strings.TrimPrefix(r.downloader.url, "file:///")
+	case strings.HasPrefix(r.downloader.Url, "file:///"):
+		localPath := strings.TrimPrefix(r.downloader.Url, "file:///")
 		state, err := os.Stat(localPath)
 		if err != nil {
-			return fmt.Errorf("%s is not accessable", r.downloader.url)
+			return fmt.Errorf("%s is not accessable", r.downloader.Url)
 		}
 
 		// If localPath is a directory, we assume it is valid.
@@ -126,7 +126,7 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 			return nil
 		}
 
-		simpleName := FileBaseName(r.downloader.url)
+		simpleName := FileBaseName(r.downloader.Url)
 		destDir := filepath.Join(r.destDir, simpleName)
 
 		// Skip if destDir exist.
@@ -145,7 +145,7 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 		}
 
 	default:
-		return fmt.Errorf("%s is not accessible", r.downloader.url)
+		return fmt.Errorf("%s is not accessible", r.downloader.Url)
 	}
 
 	return nil
