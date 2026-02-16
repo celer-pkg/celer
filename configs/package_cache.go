@@ -112,7 +112,7 @@ func (b PackageCache) Remove(nameVersion string) error {
 	pacakgeDir := filepath.Join(b.Dir, platformName, projectName, buildType, nameVersion)
 	if fileio.PathExists(pacakgeDir) {
 		if err := os.RemoveAll(pacakgeDir); err != nil {
-			return fmt.Errorf("failed toremove cache package %s.\n %w", pacakgeDir, err)
+			return fmt.Errorf("failed toremove cache package %s: %w", pacakgeDir, err)
 		}
 	}
 

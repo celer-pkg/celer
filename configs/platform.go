@@ -44,7 +44,7 @@ func (p *Platform) Init(platformName string) error {
 		return err
 	}
 	if err := toml.Unmarshal(bytes, p); err != nil {
-		return fmt.Errorf("failed to read %s.\n %w", platformPath, err)
+		return fmt.Errorf("failed to read %s: %w", platformPath, err)
 	}
 
 	if p.RootFS != nil {
@@ -145,18 +145,18 @@ func (p *Platform) Setup() error {
 	// Repair rootfs if not empty.
 	if p.RootFS != nil {
 		if err := p.RootFS.CheckAndRepair(); err != nil {
-			return fmt.Errorf("failed to check and repair rootfs.\n %w", err)
+			return fmt.Errorf("failed to check and repair rootfs: %w", err)
 		}
 	}
 
 	// Repair toolchain.
 	if err := p.Toolchain.CheckAndRepair(false); err != nil {
-		return fmt.Errorf("failed to check and repair toolchain.\n %w", err)
+		return fmt.Errorf("failed to check and repair toolchain: %w", err)
 	}
 
 	// Generate toolchain file.
 	if err := p.ctx.GenerateToolchainFile(); err != nil {
-		return fmt.Errorf("failed to generate toolchain file.\n %w", err)
+		return fmt.Errorf("failed to generate toolchain file: %w", err)
 	}
 
 	p.setupDone = true

@@ -23,13 +23,13 @@ type powershell struct {
 
 func (p powershell) Register() error {
 	if err := p.installBinary(); err != nil {
-		return fmt.Errorf("failed to install powershell binary.\n %w", err)
+		return fmt.Errorf("failed to install powershell binary: %w", err)
 	}
 	if err := p.installCompletion(); err != nil {
-		return fmt.Errorf("failed to install powershell completion.\n %w", err)
+		return fmt.Errorf("failed to install powershell completion: %w", err)
 	}
 	if err := p.registerRunCommand(); err != nil {
-		return fmt.Errorf("failed to add run command to powershell profile.\n %w", err)
+		return fmt.Errorf("failed to add run command to powershell profile: %w", err)
 	}
 
 	return nil
@@ -37,13 +37,13 @@ func (p powershell) Register() error {
 
 func (p powershell) Unregister() error {
 	if err := p.uninstallBinary(); err != nil {
-		return fmt.Errorf("failed to uninstall powershell binary.\n %w", err)
+		return fmt.Errorf("failed to uninstall powershell binary: %w", err)
 	}
 	if err := p.uninstallCompletion(); err != nil {
-		return fmt.Errorf("failed to uninstall powershell completion.\n %w", err)
+		return fmt.Errorf("failed to uninstall powershell completion: %w", err)
 	}
 	if err := p.unregisterRunCommand(); err != nil {
-		return fmt.Errorf("failed to remove run command from powershell profile.\n %w", err)
+		return fmt.Errorf("failed to remove run command from powershell profile: %w", err)
 	}
 
 	return nil
@@ -53,15 +53,15 @@ func (p powershell) installBinary() error {
 	// Copy into `~/AppData/Local/celer`
 	executable, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to get celer's path.\n %w", err)
+		return fmt.Errorf("failed to get celer's path: %w", err)
 	}
 
 	dest := filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "celer", "celer.exe")
 	if err := os.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create celer.exe destination dir.\n %w", err)
+		return fmt.Errorf("failed to create celer.exe destination dir: %w", err)
 	}
 	if err := fileio.CopyFile(executable, dest); err != nil {
-		return fmt.Errorf("failed to copy celer.exe to `%s`.\n %w", dest, err)
+		return fmt.Errorf("failed to copy celer.exe to `%s`: %w", dest, err)
 	}
 	fmt.Printf("[integrate] celer.exe -> %s\n", filepath.Dir(dest))
 
@@ -69,7 +69,7 @@ func (p powershell) installBinary() error {
 	pathEnv := os.Getenv("PATH")
 	if !strings.Contains(pathEnv, filepath.Dir(dest)) {
 		if err := p.executeCmd("setx", "PATH", "%PATH%;"+filepath.Dir(dest)); err != nil {
-			return fmt.Errorf("failed to add celer dir to PATH.\n %w", err)
+			return fmt.Errorf("failed to add celer dir to PATH: %w", err)
 		}
 	}
 
@@ -78,7 +78,7 @@ func (p powershell) installBinary() error {
 
 func (p powershell) installCompletion() error {
 	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return fmt.Errorf("failed to create clean tmp dir.\n %w", err)
+		return fmt.Errorf("failed to create clean tmp dir: %w", err)
 	}
 
 	// Use temporary file mode to ensure file operation safety.
@@ -89,13 +89,13 @@ func (p powershell) installCompletion() error {
 	if err := func() error {
 		file, err := os.Create(tmpFile)
 		if err != nil {
-			return fmt.Errorf("failed to create powershell completion file.\n %w", err)
+			return fmt.Errorf("failed to create powershell completion file: %w", err)
 		}
 		defer file.Close()
 
 		return p.rootCmd.GenPowerShellCompletion(file)
 	}(); err != nil {
-		return fmt.Errorf("failed to generate powershell completion file.\n %w", err)
+		return fmt.Errorf("failed to generate powershell completion file: %w", err)
 	}
 
 	// Wait for the file to be completely released (Windows system may need this).
@@ -108,11 +108,11 @@ func (p powershell) installCompletion() error {
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
 	celerRcFile := filepath.Join(modulesDir, "celer", "celer_completion.ps1")
 	if err := os.MkdirAll(filepath.Dir(celerRcFile), os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create PowerShell Modules dir.\n %w", err)
+		return fmt.Errorf("failed to create PowerShell Modules dir: %w", err)
 	}
 
 	if err := fileio.MoveFile(tmpFile, celerRcFile); err != nil {
-		return fmt.Errorf("failed to move PowerShell completion file.\n %w", err)
+		return fmt.Errorf("failed to move PowerShell completion file: %w", err)
 	}
 
 	return nil
@@ -141,7 +141,7 @@ func (p powershell) uninstallCompletion() error {
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
 	celerDir := filepath.Join(modulesDir, "celer")
 	if err := os.RemoveAll(celerDir); err != nil {
-		return fmt.Errorf("failed to unregister celer module.\n %w", err)
+		return fmt.Errorf("failed to unregister celer module: %w", err)
 	}
 
 	fmt.Println("[integrate] rm -rf ~/Documents/WindowsPowerShell/Modules")
@@ -153,14 +153,14 @@ func (p powershell) uninstallBinary() error {
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
 	celerDir := filepath.Join(modulesDir, "celer")
 	if err := os.RemoveAll(celerDir); err != nil {
-		return fmt.Errorf("failed to unregister celer module.\n %w", err)
+		return fmt.Errorf("failed to unregister celer module: %w", err)
 	}
 	fmt.Printf("[integrate] rm -rf %s\n", celerDir)
 
 	// Remove celer.exe
 	binDir := filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "celer")
 	if err := os.RemoveAll(binDir); err != nil {
-		return fmt.Errorf("failed to remove celer.exe.\n %w", err)
+		return fmt.Errorf("failed to remove celer.exe: %w", err)
 	}
 	fmt.Printf("[integrate] rm -rf %s\n", binDir)
 
@@ -182,14 +182,14 @@ func (p powershell) registerRunCommand() error {
 		// Add completion script to if not contains.
 		profile, err := os.OpenFile(profilePath, os.O_CREATE|os.O_RDWR, os.ModePerm)
 		if err != nil {
-			return fmt.Errorf("failed to open or create PowerShell profile.\n %w", err)
+			return fmt.Errorf("failed to open or create PowerShell profile: %w", err)
 		}
 		defer profile.Close()
 
 		// Read profile content.
 		content, err := os.ReadFile(profilePath)
 		if err != nil {
-			return fmt.Errorf("failed to read PowerShell profile.\n %w", err)
+			return fmt.Errorf("failed to read PowerShell profile: %w", err)
 		}
 
 		lines := strings.Split(string(content), "\n")
@@ -200,7 +200,7 @@ func (p powershell) registerRunCommand() error {
 		}
 	} else {
 		if err := os.WriteFile(profilePath, []byte(p.registerBinary), os.ModePerm); err != nil {
-			return fmt.Errorf("failed to write PowerShell profile.\n %w", err)
+			return fmt.Errorf("failed to write PowerShell profile: %w", err)
 		}
 	}
 

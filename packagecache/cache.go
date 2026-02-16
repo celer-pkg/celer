@@ -58,7 +58,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 		// Write content of platform archive's checksum.
 		toolchainChecksum, rootfsChecksum, err := p.Callbacks.GenPlatformChecksums()
 		if err != nil {
-			return "", fmt.Errorf("failed to get platform archive checksums.\n %w", err)
+			return "", fmt.Errorf("failed to get platform archive checksums: %w", err)
 		}
 		if toolchainChecksum != "" {
 			buffer.WriteString(newDivider(nil, "toolchain checksum"))
@@ -176,7 +176,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	// Write buildTools versions.
 	versions, err := p.Callbacks.GenBuildToolsVersions(p.BuildConfig.CheckTools())
 	if err != nil {
-		return "", fmt.Errorf("failed to get build tools versions.\n %w", err)
+		return "", fmt.Errorf("failed to get build tools versions: %w", err)
 	}
 	if versions != "" {
 		p.writeDivider(&buffer, p.Parents, p.NameVersion, "build tools versions")

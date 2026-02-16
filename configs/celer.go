@@ -97,7 +97,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
 		if err != nil {
-			return fmt.Errorf("failed to marshal conf.\n %w", err)
+			return fmt.Errorf("failed to marshal conf: %w", err)
 		}
 
 		// Set platform and init platform if specified.
@@ -115,10 +115,10 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
 		if err != nil {
-			return fmt.Errorf("failed to read conf.\n %w", err)
+			return fmt.Errorf("failed to read conf: %w", err)
 		}
 		if err := toml.Unmarshal(bytes, c); err != nil {
-			return fmt.Errorf("failed to unmarshal conf.\n %w", err)
+			return fmt.Errorf("failed to unmarshal conf: %w", err)
 		}
 
 		// Use lower case build type in celer as default.

@@ -63,7 +63,7 @@ func IsModified(repoDir string) (bool, error) {
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, fmt.Errorf("failed to check if repo is modified.\n %s", output)
+		return false, fmt.Errorf("failed to check if repo is modified: %s", output)
 	}
 
 	return strings.TrimSpace(string(output)) != "", nil
@@ -118,14 +118,14 @@ func InitRepo(repoDir, message string) error {
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git init repo.\n %s", output)
+		return fmt.Errorf("failed to git init repo: %s", output)
 	}
 
 	cmd = exec.Command("git", "add", "-A")
 	cmd.Dir = repoDir
 	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git add -A.\n %s", output)
+		return fmt.Errorf("failed to git add -A.: %s", output)
 	}
 
 	cmd = exec.Command("git", "commit", "-m", message)
@@ -138,7 +138,7 @@ func InitRepo(repoDir, message string) error {
 	)
 	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git commit repo.\n %s", output)
+		return fmt.Errorf("failed to git commit repo: %s", output)
 	}
 
 	return nil

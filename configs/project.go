@@ -51,7 +51,7 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 		return err
 	}
 	if err := toml.Unmarshal(bytes, p); err != nil {
-		return fmt.Errorf("failed to read %s.\n %w", projectPath, err)
+		return fmt.Errorf("failed to read %s: %w", projectPath, err)
 	}
 
 	// Default build_type.

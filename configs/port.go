@@ -99,10 +99,10 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	portPath := expr.If(!fileio.PathExists(portInPorts), portInProject, portInPorts)
 	bytes, err := os.ReadFile(portPath)
 	if err != nil {
-		return fmt.Errorf("failed to read %s.\n %w", portPath, err)
+		return fmt.Errorf("failed to read %s: %w", portPath, err)
 	}
 	if err := toml.Unmarshal(bytes, p); err != nil {
-		return fmt.Errorf("failed to unmarshal %s.\n %w", portPath, err)
+		return fmt.Errorf("failed to unmarshal %s: %w", portPath, err)
 	}
 
 	// Propagate build_tool flag from package to port.
@@ -127,12 +127,12 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 
 	// Init build config.
 	if err := p.initBuildConfig(nameVersion); err != nil {
-		return fmt.Errorf("failed to init build config.\n %w", err)
+		return fmt.Errorf("failed to init build config: %w", err)
 	}
 
 	// Validate port.
 	if err := p.validate(); err != nil {
-		return fmt.Errorf("failed to validate %s.\n %w", portPath, err)
+		return fmt.Errorf("failed to validate %s: %w", portPath, err)
 	}
 
 	return nil

@@ -29,12 +29,12 @@ func (p Port) Remove(options RemoveOptions) error {
 				Parent: p.NameVersion(),
 			}
 			if err := port.Init(p.ctx, nameVersion); err != nil {
-				return fmt.Errorf("failed to init dependency %s.\n %w", nameVersion, err)
+				return fmt.Errorf("failed to init dependency %s: %w", nameVersion, err)
 			}
 
 			// Remove dependency.
 			if err := port.Remove(options); err != nil {
-				return fmt.Errorf("failed to remove dependency %s.\n %w", nameVersion, err)
+				return fmt.Errorf("failed to remove dependency %s: %w", nameVersion, err)
 			}
 
 			return nil
@@ -43,12 +43,12 @@ func (p Port) Remove(options RemoveOptions) error {
 		if matchedConfig != nil {
 			for _, nameVersion := range matchedConfig.Dependencies {
 				if err := removeFunc(nameVersion, false, p.DevDep); err != nil {
-					return fmt.Errorf("failed to remove dependency %s.\n %w", nameVersion, err)
+					return fmt.Errorf("failed to remove dependency %s: %w", nameVersion, err)
 				}
 			}
 			for _, nameVersion := range matchedConfig.DevDependencies {
 				if err := removeFunc(nameVersion, true, true); err != nil {
-					return fmt.Errorf("failed to remove dev_dependency %s.\n %w", nameVersion, err)
+					return fmt.Errorf("failed to remove dev_dependency %s: %w", nameVersion, err)
 				}
 			}
 		}
@@ -56,13 +56,13 @@ func (p Port) Remove(options RemoveOptions) error {
 
 	// Do remove port itself.
 	if err := p.doRemovePort(); err != nil {
-		return fmt.Errorf("failed to remove port.\n %w", err)
+		return fmt.Errorf("failed to remove port: %w", err)
 	}
 
 	// Remove port's package files.
 	if options.Purge {
 		if err := p.removePackage(); err != nil {
-			return fmt.Errorf("failed to remove package.\n %w", err)
+			return fmt.Errorf("failed to remove package: %w", err)
 		}
 	}
 
@@ -228,7 +228,7 @@ func (p Port) RemoveLogs() error {
 
 	for _, match := range matches {
 		if err := os.Remove(match); err != nil {
-			return fmt.Errorf("failed to remove log %s.\n %w", match, err)
+			return fmt.Errorf("failed to remove log %s: %w", match, err)
 		}
 	}
 

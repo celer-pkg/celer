@@ -22,13 +22,13 @@ type zsh struct {
 
 func (z zsh) Register() error {
 	if err := z.installBinary(); err != nil {
-		return fmt.Errorf("failed to install zsh binary.\n %w", err)
+		return fmt.Errorf("failed to install zsh binary: %w", err)
 	}
 	if err := z.installCompletion(); err != nil {
-		return fmt.Errorf("failed to install zsh completion.\n %w", err)
+		return fmt.Errorf("failed to install zsh completion: %w", err)
 	}
 	if err := z.registerRunCommand(); err != nil {
-		return fmt.Errorf("failed to add run command to zshrc.\n %w", err)
+		return fmt.Errorf("failed to add run command to zshrc: %w", err)
 	}
 
 	return nil
@@ -36,13 +36,13 @@ func (z zsh) Register() error {
 
 func (z zsh) Unregister() error {
 	if err := z.uninstallBinary(); err != nil {
-		return fmt.Errorf("failed to uninstall zsh binary.\n %w", err)
+		return fmt.Errorf("failed to uninstall zsh binary: %w", err)
 	}
 	if err := z.uninstallCompletion(); err != nil {
-		return fmt.Errorf("failed to uninstall zsh completion.\n %w", err)
+		return fmt.Errorf("failed to uninstall zsh completion: %w", err)
 	}
 	if err := z.unregisterRunCommand(); err != nil {
-		return fmt.Errorf("failed to remove run command from zshrc.\n %w", err)
+		return fmt.Errorf("failed to remove run command from zshrc: %w", err)
 	}
 
 	return nil
@@ -51,12 +51,12 @@ func (z zsh) Unregister() error {
 func (z zsh) installBinary() error {
 	executable, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to get celer's path.\n %w", err)
+		return fmt.Errorf("failed to get celer's path: %w", err)
 	}
 
 	// Copy into `~/.local/bin`
 	if err := fileio.CopyFile(executable, filepath.Join(z.homeDir, ".local/bin/celer")); err != nil {
-		return fmt.Errorf("failed to copy celer to ~/.local/bin.\n %w", err)
+		return fmt.Errorf("failed to copy celer to ~/.local/bin: %w", err)
 	}
 	fmt.Println("[integrate] celer --> ~/.local/bin")
 
@@ -64,7 +64,7 @@ func (z zsh) installBinary() error {
 	zshrcPath := filepath.Join(z.homeDir, ".zshrc")
 	content, err := os.ReadFile(zshrcPath)
 	if err != nil {
-		return fmt.Errorf("failed to read ~/.zshrc.\n %w", err)
+		return fmt.Errorf("failed to read ~/.zshrc: %w", err)
 	}
 	if strings.Contains(string(content), z.registerBinary) {
 		return nil
@@ -85,19 +85,19 @@ func (z zsh) installBinary() error {
 
 func (z zsh) installCompletion() error {
 	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return fmt.Errorf("failed to create clean tmp dir.\n %w", err)
+		return fmt.Errorf("failed to create clean tmp dir: %w", err)
 	}
 
 	// Generate completion file.
 	filePath := filepath.Join(dirs.TmpFilesDir, "celer")
 	file, err := os.Create(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to create zsh completion file.\n %w", err)
+		return fmt.Errorf("failed to create zsh completion file: %w", err)
 	}
 	defer file.Close()
 
 	if err := z.rootCmd.GenZshCompletion(file); err != nil {
-		return fmt.Errorf("failed to generate zsh completion file.\n %w", err)
+		return fmt.Errorf("failed to generate zsh completion file: %w", err)
 	}
 
 	// Install completion file to `~/.local/share/zsh/site-functions/_celer`
@@ -121,11 +121,11 @@ func (z zsh) uninstallCompletion() error {
 	fmt.Println("[integrate] rm -f ~/.local/share/zsh/site-functions/_celer")
 	completionFile := filepath.Join(z.homeDir, ".local/share/zsh/site-functions/_celer")
 	if err := os.Remove(completionFile); err != nil {
-		return fmt.Errorf("failed to remove zsh completion file.\n %w", err)
+		return fmt.Errorf("failed to remove zsh completion file: %w", err)
 	}
 
 	if err := fileio.RemoveFolderRecursively(filepath.Dir(completionFile)); err != nil {
-		return fmt.Errorf("failed to remove empty parent folder of _zsh.\n %w", err)
+		return fmt.Errorf("failed to remove empty parent folder of _zsh: %w", err)
 	}
 
 	return nil
@@ -135,7 +135,7 @@ func (z zsh) uninstallBinary() error {
 	// Remove celer binary.
 	fmt.Println("[integrate] rm -f ~/.local/bin/celer")
 	if err := os.Remove(filepath.Join(z.homeDir, ".local/bin/celer")); err != nil {
-		return fmt.Errorf("failed to remove celer binary.\n %w", err)
+		return fmt.Errorf("failed to remove celer binary: %w", err)
 	}
 
 	return nil
@@ -150,7 +150,7 @@ func (z zsh) registerRunCommand() error {
 	// Check if already contains the fpath.
 	content, err := os.ReadFile(zshrcPath)
 	if err != nil {
-		return fmt.Errorf("failed to read ~/.zshrc.\n %w", err)
+		return fmt.Errorf("failed to read ~/.zshrc: %w", err)
 	}
 	if strings.Contains(string(content), z.registerFpath) {
 		return nil
