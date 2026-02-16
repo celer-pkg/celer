@@ -39,7 +39,7 @@ func (d downloader) Start(httpClient *http.Client) (downloaded string, err error
 			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
 		}
 	}
-	return "", fmt.Errorf("download failed after %d attempts: %w", maxRetries, lastErr)
+	return "", fmt.Errorf("download failed after %d attempts: %w", d.MaxRetries, lastErr)
 }
 
 func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err error) {
