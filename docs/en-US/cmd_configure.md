@@ -14,6 +14,7 @@ celer configure [flags]
 | --platform                | string  | Configure platform                     |
 | --project                 | string  | Configure project                      |
 | --build-type              | string  | Configure build type                   |
+| --downloads               | string  | Configure downloads                    |
 | --jobs                    | integer | Configure parallel build jobs          |
 | --offline                 | boolean | Enable offline mode                    |
 | --verbose                 | boolean | Enable verbose logging mode            |
@@ -53,7 +54,15 @@ celer configure --build-type Release
 > Available build types: Release, Debug, RelWithDebInfo, MinSizeRel  
 > The default build type is Release.
 
-### 4️⃣ Configure Parallel Jobs
+### 4️⃣ Configure Downloads
+
+```shell
+celer configure --downloads=$HOME/Downloads
+```
+
+> The default downloads is $workspace/downloads, you can share a downloads directory with multi project workspaces.
+
+### 5️⃣ Configure Parallel Jobs
 
 ```shell
 celer configure --jobs 8
@@ -61,7 +70,7 @@ celer configure --jobs 8
 
 > The number of parallel jobs must be greater than 0.
 
-### 5️⃣ Configure Offline Mode
+### 6️⃣ Configure Offline Mode
 
 ```shell
 celer configure --offline true|false
@@ -69,7 +78,7 @@ celer configure --offline true|false
 
 > The default offline mode is `false`.
 
-### 6️⃣ Configure Verbose Logging Mode
+### 7️⃣ Configure Verbose Logging Mode
 
 ```shell
 celer configure --verbose true|false

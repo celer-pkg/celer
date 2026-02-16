@@ -14,6 +14,7 @@ celer configure [flags]
 | --platform                | 字符串  | 配置平台                               |
 | --project                 | 字符串  | 配置项目                               |
 | --build-type              | 字符串  | 配置构建类型                           |
+| --downloads               | 字符串  | 配置资源下载路径                        |
 | --jobs                    | 整数    | 配置并行构建任务数                     |
 | --offline                 | 布尔    | 启用离线模式                           |
 | --verbose                 | 布尔    | 启用详细日志模式                       |
@@ -52,7 +53,15 @@ celer configure --build-type Release
 >候选的构建类型有: Release, Debug, RelWithDebInfo, MinSizeRel
 >默认的构建类型是Release。
 
-### 4️⃣ 配置并发任务数
+### 3️⃣ 配置资源下载路径
+
+```shell
+celer configure --downloads=$HOME/downloads
+```
+
+>默认的资源下载路径是$workspace/downloads, 但支持配置多个worksapce为一个downloads目录以节省磁盘空间。
+
+### 5️⃣ 配置并发任务数
 
 ```shell
 celer configure --jobs 8
@@ -60,7 +69,7 @@ celer configure --jobs 8
 
 >并发任务数必须大于0。
 
-### 5️⃣ 配置离线模式
+### 6️⃣ 配置离线模式
 
 ```shell
 celer configure --offline true|false
@@ -68,7 +77,7 @@ celer configure --offline true|false
 
 > 默认的离线模式是`false`。
 
-### 6️⃣ 配置详细日志模式
+### 7️⃣ 配置详细日志模式
 
 ```shell
 celer configure --verbose true|false

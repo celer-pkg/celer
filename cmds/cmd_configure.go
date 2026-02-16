@@ -16,6 +16,7 @@ type configureCmd struct {
 	platform  string
 	project   string
 	buildType string
+	downloads string
 	jobs      int
 	offline   bool
 	verbose   bool
@@ -49,6 +50,7 @@ Available Configuration Options:
     
   Build Configuration:
     --build-type      Set the build type (Release, Debug, RelWithDebInfo, MinSizeRel)
+	--downloads		  Set the download directory
     --jobs            Set the number of parallel build jobs
     
   Runtime Options:
@@ -70,9 +72,10 @@ Available Configuration Options:
 	--ccache-remote-storage Set remote storage address for ccache
 
 Examples:
-  celer configure --platform windows-x86_64        # Set target platform
+  celer configure --platform windows-x86_64       # Set target platform
   celer configure --project myproject             # Set current project
   celer configure --build-type Release            # Set build type to Release
+  celer configure --downloads /home/xxx/Downloads # Set download directory
   celer configure --jobs 8                        # Use 8 parallel build jobs
   celer configure --offline true                  # Enable offline mode
   celer configure --verbose false                 # Disable verbose output
@@ -114,6 +117,12 @@ Examples:
 					return configs.PrintError(err, "failed to set build type: %s.", c.buildType)
 				}
 				configs.PrintSuccess("current build type: %s.", c.buildType)
+
+			case flags.Changed("downloads"):
+				if err := c.celer.SetDownloads(c.downloads); err != nil {
+					return configs.PrintError(err, "failed to set downloads: %s.", c.downloads)
+				}
+				configs.PrintSuccess("current downloads: %s.", c.downloads)
 
 			case flags.Changed("jobs"):
 				if err := c.celer.SetJobs(c.jobs); err != nil {
@@ -197,6 +206,7 @@ Examples:
 	flags.StringVar(&c.platform, "platform", "", "configure platform.")
 	flags.StringVar(&c.project, "project", "", "configure project.")
 	flags.StringVar(&c.buildType, "build-type", "", "configure build type.")
+	flags.StringVar(&c.downloads, "downloads", "", "configure downloads.")
 	flags.IntVar(&c.jobs, "jobs", 0, "configure jobs.")
 	flags.BoolVar(&c.offline, "offline", false, "configure offline mode.")
 	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
@@ -241,7 +251,7 @@ Examples:
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
 
-	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "jobs", "offline", "verbose")
+	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "downloads", "jobs", "offline", "verbose")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
@@ -278,6 +288,7 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--platform",
 		"--project",
 		"--build-type",
+		"--downloads",
 		"--jobs",
 		"--offline",
 		"--verbose",
