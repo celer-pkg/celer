@@ -52,13 +52,13 @@ func (d downloader) Start(httpClient *http.Client) (downloaded string, err error
 			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
 		}
 	}
-	return "", fmt.Errorf("download failed after %d attempts: %w", d.maxRetries, lastErr)
+	return "", fmt.Errorf("download failed after %d attempts -> %w", d.maxRetries, lastErr)
 }
 
 func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err error) {
 	req, err := http.NewRequest("GET", d.url, nil)
 	if err != nil {
-		return "", fmt.Errorf("create request: %w", err)
+		return "", fmt.Errorf("create request -> %w", err)
 	}
 
 	// Simulate a browser-like User-Agent header.
@@ -86,7 +86,7 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 
 	// Create clean temp directory.
 	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return "", fmt.Errorf("cannot create clean tmp dir: %w", err)
+		return "", fmt.Errorf("cannot create clean tmp dir -> %w", err)
 	}
 
 	// Build download file path.

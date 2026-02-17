@@ -51,7 +51,7 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 		return err
 	}
 	if err := toml.Unmarshal(bytes, p); err != nil {
-		return fmt.Errorf("failed to read %s: %w", projectPath, err)
+		return fmt.Errorf("failed to read %s -> %w", projectPath, err)
 	}
 
 	// Default build_type.
@@ -136,10 +136,10 @@ func (p Project) deploy(force bool) error {
 	for _, nameVersion := range p.Ports {
 		var port Port
 		if err := port.Init(p.ctx, nameVersion); err != nil {
-			return fmt.Errorf("%s: %w", nameVersion, err)
+			return fmt.Errorf("failed to init %s -> %w", nameVersion, err)
 		}
 		if _, err := port.Install(options); err != nil {
-			return fmt.Errorf("%s: %w", nameVersion, err)
+			return fmt.Errorf("failed to install %s -> %w", nameVersion, err)
 		}
 	}
 	return nil

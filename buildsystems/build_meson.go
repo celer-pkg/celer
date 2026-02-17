@@ -160,7 +160,7 @@ func (m meson) Configure(options []string) error {
 		// Use native_file.toml instead of cross_file.toml.
 		nativeFile, err := m.generateNativeFile()
 		if err != nil {
-			return fmt.Errorf("generate native_file.toml for meson: %w", err)
+			return fmt.Errorf("generate native_file.toml for meson -> %w", err)
 		}
 		command = fmt.Sprintf("meson setup %s %s --native-file %s",
 			m.PortConfig.BuildDir, joinedArgs, nativeFile)
@@ -176,7 +176,7 @@ func (m meson) Configure(options []string) error {
 		// This is needed because meson may not properly use pkg_config_path from cross file.
 		nativeFile, err := m.generateNativeFile()
 		if err != nil {
-			return fmt.Errorf("generate native_file.toml for meson: %w", err)
+			return fmt.Errorf("generate native_file.toml for meson -> %w", err)
 		}
 
 		command = fmt.Sprintf("meson setup %s %s --cross-file %s --native-file %s",
@@ -461,7 +461,7 @@ exec %s "$@"
 	)
 
 	if err := os.WriteFile(wrapperPath, []byte(wrapperContent), 0755); err != nil {
-		return "", fmt.Errorf("failed to create pkg-config wrapper: %w", err)
+		return "", fmt.Errorf("failed to create pkg-config wrapper -> %w", err)
 	}
 
 	// Use the wrapper script as the pkg-config binary

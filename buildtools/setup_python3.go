@@ -44,7 +44,7 @@ func setupPython3(rootDir string) error {
 		command := fmt.Sprintf("%s -m venv %s", Python3.Path, pythonVenvDir)
 		executor := cmd.NewExecutor("[create python venv]", command)
 		if err := executor.Execute(); err != nil {
-			return fmt.Errorf("failed to create python venv: %w", err)
+			return fmt.Errorf("failed to create python venv -> %w", err)
 		}
 	}
 
@@ -90,7 +90,7 @@ func pip3Install(python3Tool *BuildTool, libraries *[]string) error {
 		return fmt.Errorf("unsupported os: %s", runtime.GOOS)
 	}
 	if err != nil {
-		return fmt.Errorf("failed to setup python3: %w", err)
+		return fmt.Errorf("failed to setup python3 -> %w", err)
 	}
 
 	// Install extra tools. Check if package is already installed in PYTHONUSERBASE to avoid frequent PyPI requests.
@@ -112,7 +112,7 @@ func pip3Install(python3Tool *BuildTool, libraries *[]string) error {
 		command := fmt.Sprintf("%s -m pip install --ignore-installed %s", Python3.Path, libraryName)
 		executor := cmd.NewExecutor(title, command)
 		if err := executor.Execute(); err != nil {
-			return fmt.Errorf("failed to install %s: %w", libraryName, err)
+			return fmt.Errorf("failed to install %s -> %w", libraryName, err)
 		}
 	}
 

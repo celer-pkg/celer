@@ -50,7 +50,7 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 		if needToDownload {
 			actualDownloaded, err := r.downloader.Start(r.httpClient)
 			if err != nil {
-				return fmt.Errorf("failed to download %s: %w", r.downloader.url, err)
+				return fmt.Errorf("failed to download %s -> %w", r.downloader.url, err)
 			}
 			downloaded = actualDownloaded
 		}
@@ -101,12 +101,12 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 			} else {
 				// Extract archive file.
 				if err := Extract(downloaded, destDir); err != nil {
-					return fmt.Errorf("failed to extract %s: %w", downloaded, err)
+					return fmt.Errorf("failed to extract %s -> %w", downloaded, err)
 				}
 
 				// Check if has nested folder (handling case where there's a nested folder).
 				if err := moveNestedFolderIfExist(destDir); err != nil {
-					return fmt.Errorf("%s: move nested folder: %w", destDir, err)
+					return fmt.Errorf("%s: move nested folder -> %w", destDir, err)
 				}
 			}
 		}
@@ -133,12 +133,12 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 
 		// Extract archive file.
 		if err := Extract(localPath, destDir); err != nil {
-			return fmt.Errorf("%s: extract: %w", localPath, err)
+			return fmt.Errorf("%s: extract -> %w", localPath, err)
 		}
 
 		// Check if has nested folder (handling case where there's an extra nested folder).
 		if err := moveNestedFolderIfExist(destDir); err != nil {
-			return fmt.Errorf("%s: move nested folder: %w", r.folder, err)
+			return fmt.Errorf("%s: move nested folder -> %w", r.folder, err)
 		}
 
 	default:
@@ -175,11 +175,11 @@ func (r Repair) needToDownload(url, archive string) (needToDownload bool, err er
 		// Need to download if remote file size and local file size not match.
 		fileSize, err := FileSize(r.httpClient, url)
 		if err != nil {
-			return false, fmt.Errorf("can not get remote file size: %w", err)
+			return false, fmt.Errorf("failed to get remote file size -> %w", err)
 		}
 		info, err := os.Stat(destFilePath)
 		if err != nil {
-			return false, fmt.Errorf("can not get local file size for %s: %w", archive, err)
+			return false, fmt.Errorf("failed to get local file size for %s -> %w", archive, err)
 		}
 
 		// Not all remote files have size, so we need to check if file size is greater than 0.

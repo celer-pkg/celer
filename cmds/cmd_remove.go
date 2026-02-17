@@ -64,17 +64,17 @@ Examples:
 func (r *removeCmd) execute(args []string) error {
 	// Initialize celer
 	if err := r.celer.Init(); err != nil {
-		return fmt.Errorf("failed to initialize celer: %w", err)
+		return fmt.Errorf("failed to initialize celer -> %w", err)
 	}
 
 	// Validate input arguments.
 	if err := r.validatePackageNames(args); err != nil {
-		return fmt.Errorf("invalid package names: %w", err)
+		return fmt.Errorf("invalid package names -> %w", err)
 	}
 
 	// Remove packages.
 	if err := r.removePackages(args); err != nil {
-		return fmt.Errorf("failed to remove packages: %w", err)
+		return fmt.Errorf("failed to remove packages -> %w", err)
 	}
 
 	// Print success message.
@@ -111,11 +111,11 @@ func (r *removeCmd) removePackages(nameVersions []string) error {
 		port.DevDep = r.dev
 
 		if err := port.Init(r.celer, nameVersion); err != nil {
-			return fmt.Errorf("failed to initialize package %s: %w", nameVersion, err)
+			return fmt.Errorf("failed to initialize package %s -> %w", nameVersion, err)
 		}
 
 		if err := port.Remove(removeOptions); err != nil {
-			return fmt.Errorf("failed to remove package %s: %w", nameVersion, err)
+			return fmt.Errorf("failed to remove package %s -> %w", nameVersion, err)
 		}
 	}
 

@@ -15,14 +15,14 @@ func (p *Platform) GetArchiveChecksums() (toolchainChecksum, rootfsChecksum stri
 	if p.Toolchain != nil {
 		toolchainChecksum, err = p.toolchainChecksum()
 		if err != nil {
-			return "", "", fmt.Errorf("failed to get toolchain checksum: %w", err)
+			return "", "", fmt.Errorf("failed to get toolchain checksum -> %w", err)
 		}
 	}
 
 	if p.RootFS != nil {
 		rootfsChecksum, err = p.rootfsChecksum()
 		if err != nil {
-			return "", "", fmt.Errorf("failed to get rootfs checksum: %w", err)
+			return "", "", fmt.Errorf("failed to get rootfs checksum -> %w", err)
 		}
 	}
 

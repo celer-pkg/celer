@@ -137,7 +137,7 @@ func (u *updateCmd) updatePortRepo(nameVersion string, visited map[string]bool) 
 	// Read port file.
 	var port configs.Port
 	if err := port.Init(u.celer, nameVersion); err != nil {
-		return fmt.Errorf("%s: %w", nameVersion, err)
+		return fmt.Errorf("failed to init %s -> %w", nameVersion, err)
 	}
 
 	// Update repos of port's dependencies.

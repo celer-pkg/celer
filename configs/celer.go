@@ -99,7 +99,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		// Create celer conf file with default values.
 		bytes, err := toml.Marshal(c)
 		if err != nil {
-			return fmt.Errorf("failed to marshal conf: %w", err)
+			return fmt.Errorf("failed to marshal conf -> %w", err)
 		}
 
 		// Set platform and init platform if specified.
@@ -117,10 +117,10 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		// Read celer conf.
 		bytes, err := os.ReadFile(configPath)
 		if err != nil {
-			return fmt.Errorf("failed to read conf: %w", err)
+			return fmt.Errorf("failed to read conf -> %w", err)
 		}
 		if err := toml.Unmarshal(bytes, c); err != nil {
-			return fmt.Errorf("failed to unmarshal conf: %w", err)
+			return fmt.Errorf("failed to unmarshal conf -> %w", err)
 		}
 
 		// Use lower case build type in celer as default.
@@ -175,7 +175,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	if c.configData.Global.Platform == "" {
 		var toolchain = Toolchain{ctx: c}
 		if err := toolchain.Detect(c.configData.Global.Platform); err != nil {
-			return fmt.Errorf("detect celer.toolchain: %w", err)
+			return fmt.Errorf("detect celer.toolchain -> %w", err)
 		}
 		c.platform.Toolchain = &toolchain
 		c.platform.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
@@ -196,7 +196,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	if runtime.GOOS == "windows" {
 		var windowsKit WindowsKit
 		if err := windowsKit.Detect(&c.platform.Toolchain.MSVC); err != nil {
-			return fmt.Errorf("failed to detect celer.windows_kit.\n: %w", err)
+			return fmt.Errorf("failed to detect celer.windows_kit.\n -> %w", err)
 		}
 		c.platform.WindowsKit = &windowsKit
 	}
@@ -329,12 +329,12 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 		}
 
 		if err := git.UpdateRepo("[update conf repo]", branch, confDir, force); err != nil {
-			return fmt.Errorf("update conf repo: %w", err)
+			return fmt.Errorf("update conf repo -> %w", err)
 		}
 	} else {
 		// Clone conf repo.
 		if err := git.CloneRepo("[clone conf repo]", url, branch, 0, confDir); err != nil {
-			return fmt.Errorf("clone conf repo: %w", err)
+			return fmt.Errorf("clone conf repo -> %w", err)
 		}
 
 		if err := c.readOrCreate(); err != nil {
@@ -516,10 +516,10 @@ func (c *Celer) SetPackageCacheToken(token string) error {
 	// Write token to file with encrypted text.
 	bytes, err := encrypt.Encode(token)
 	if err != nil {
-		return fmt.Errorf("encode cache token: %w", err)
+		return fmt.Errorf("encode cache token -> %w", err)
 	}
 	if err := os.WriteFile(tokenFile, bytes, os.ModePerm); err != nil {
-		return fmt.Errorf("write cache token: %w", err)
+		return fmt.Errorf("write cache token -> %w", err)
 	}
 
 	return nil
@@ -646,7 +646,7 @@ func (c *Celer) SetCCacheRemoteStorage(remoteStorage string) error {
 	if remoteStorage != "" {
 		parsedURL, err := url.Parse(remoteStorage)
 		if err != nil {
-			return fmt.Errorf("invalid remote storage URL: %w", err)
+			return fmt.Errorf("invalid remote storage URL -> %w", err)
 		}
 		if parsedURL.Scheme == "" || parsedURL.Host == "" {
 			return fmt.Errorf("remote storage URL must contain scheme and host (e.g., http://server:port/path)")
