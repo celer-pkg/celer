@@ -28,7 +28,7 @@ func (c custom) CheckTools() []string {
 	tools := slices.Clone(c.BuildConfig.BuildTools)
 
 	// Add default tools
-	tools = append(tools, "git", "cmake")
+	tools = append(tools, "cmake")
 	return tools
 }
 

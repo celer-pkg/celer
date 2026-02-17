@@ -268,8 +268,12 @@ func (b BuildConfig) Validate() error {
 	if b.BuildSystem == "" {
 		return fmt.Errorf("build_system is empty, it should be one of %s", strings.Join(buildSystems, ", "))
 	}
-	if !slices.Contains(buildSystems, b.BuildSystem) {
-		return fmt.Errorf("unsupported build system: %s, it should be one of %s", b.BuildSystem, strings.Join(buildSystems, ", "))
+
+	// Check unsupported buildsystem.
+	if !slices.ContainsFunc(buildSystems, func(item string) bool {
+		return strings.HasPrefix(b.BuildSystem, item)
+	}) {
+		return fmt.Errorf("unsupported build system for %s, it should be one of %s", b.BuildSystem, strings.Join(buildSystems, ", "))
 	}
 
 	// Validate c_standard.
@@ -637,27 +641,27 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 		return fmt.Errorf("build_system is empty")
 	}
 
-	switch b.BuildSystem {
-	case "cmake":
+	switch {
+	case strings.HasPrefix(b.BuildSystem, "cmake"):
 		b.buildSystem = NewCMake(b, optimize)
-	case "makefiles":
+	case strings.HasPrefix(b.BuildSystem, "makefiles"):
 		b.buildSystem = NewMakefiles(b, optimize)
-	case "meson":
+	case strings.HasPrefix(b.BuildSystem, "meson"):
 		b.buildSystem = NewMeson(b, optimize)
-	case "b2":
+	case strings.HasPrefix(b.BuildSystem, "b2"):
 		b.buildSystem = NewB2(b, optimize)
-	case "gyp":
+	case strings.HasPrefix(b.BuildSystem, "gyp"):
 		b.buildSystem = NewGyp(b, optimize)
-	case "qmake":
+	case strings.HasPrefix(b.BuildSystem, "qmake"):
 		b.buildSystem = NewQMake(b, optimize)
-	case "prebuilt":
+	case b.BuildSystem == "prebuilt":
 		b.buildSystem = NewPrebuilt(b, optimize)
-	case "nobuild":
+	case b.BuildSystem == "nobuild":
 		b.buildSystem = NewNoBuild(b, optimize)
-	case "custom":
+	case b.BuildSystem == "custom":
 		b.buildSystem = NewCustom(b, optimize)
 	default:
-		return fmt.Errorf("unsupported build system: %s", b.BuildSystem)
+		return fmt.Errorf("unsupported build system for %s", b.BuildSystem)
 	}
 
 	// Merges the platform-specific fields into the BuildConfig struct.

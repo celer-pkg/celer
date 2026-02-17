@@ -100,19 +100,21 @@ func pip3Install(python3Tool *BuildTool, libraries *[]string) error {
 			continue
 		}
 
-		// Use Python3.Path instead of "python3" command to ensure it works on Windows.
-		libraryName := strings.TrimPrefix(library, "python3:")
+		// Format python3 library name version.
+		nameVersion := strings.TrimPrefix(library, "python3:")
+		nameVersion = strings.ReplaceAll(nameVersion, "@", "==")
 
 		// Check if package is already installed in PYTHONUSERBASE to avoid frequent PyPI requests.
-		if isPythonPackageInstalled(libraryName) {
+		if isPythonPackageInstalled(nameVersion) {
 			continue
 		}
 
-		title := fmt.Sprintf("[python3 install tool] %s", libraryName)
-		command := fmt.Sprintf("%s -m pip install --ignore-installed %s", Python3.Path, libraryName)
+		// Install python3 library with path path.
+		title := fmt.Sprintf("[python3 install tool] %s", nameVersion)
+		command := fmt.Sprintf("%s -m pip install --ignore-installed %s", Python3.Path, nameVersion)
 		executor := cmd.NewExecutor(title, command)
 		if err := executor.Execute(); err != nil {
-			return fmt.Errorf("failed to install %s -> %w", libraryName, err)
+			return fmt.Errorf("failed to install %s -> %w", nameVersion, err)
 		}
 	}
 

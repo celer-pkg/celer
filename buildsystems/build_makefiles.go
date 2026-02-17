@@ -36,14 +36,14 @@ func (m *makefiles) CheckTools() []string {
 	// Start with build_tools from port.toml
 	tools := slices.Clone(m.BuildConfig.BuildTools)
 
-	// Add default tools
+	// Add build tools dynamically.
+	tools = append(tools, "cmake")
 	if runtime.GOOS == "windows" {
 		configureWithPerl := m.shouldConfigureWithPerl()
 		tool := expr.If(configureWithPerl, "strawberry-perl", "msys2")
 		tools = append(tools, tool)
 	}
 
-	tools = append(tools, "git", "cmake")
 	return tools
 }
 
