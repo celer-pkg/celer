@@ -20,13 +20,15 @@ func NewMeson(config *BuildConfig, optimize *context.Optimize) *meson {
 	return &meson{
 		BuildConfig: config,
 		Optimize:    optimize,
+		buildSystem: config.BuildSystem,
 	}
 }
 
 type meson struct {
 	*BuildConfig
 	*context.Optimize
-	msvcEnvs map[string]string
+	buildSystem string
+	msvcEnvs    map[string]string
 }
 
 func (meson) Name() string {
@@ -44,10 +46,10 @@ func (m meson) CheckTools() []string {
 	case "windows":
 		tools = append(tools,
 			"python3",
-			"python3:meson",
+			"python3:"+m.buildSystem,
 		)
 	case "linux":
-		tools = append(tools, "python3:meson")
+		tools = append(tools, "python3:"+m.buildSystem)
 	}
 
 	return tools

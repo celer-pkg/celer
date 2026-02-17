@@ -16,12 +16,14 @@ func NewGyp(config *BuildConfig, optimize *context.Optimize) *gyp {
 	return &gyp{
 		BuildConfig: config,
 		Optimize:    optimize,
+		buildSystem: config.BuildSystem,
 	}
 }
 
 type gyp struct {
 	*BuildConfig
 	*context.Optimize
+	buildSystem string
 }
 
 func (g gyp) Name() string {
@@ -33,7 +35,12 @@ func (g gyp) CheckTools() []string {
 	tools := slices.Clone(g.BuildConfig.BuildTools)
 
 	// Add default tools
-	tools = append(tools, "git", "cmake", "python3:gyp-next", "ninja")
+	parts := strings.Split(g.buildSystem, "@")
+	if len(parts) > 1 {
+		tools = append(tools, "git", "cmake", "ninja", "python3:gyp-next=="+parts[1])
+	} else {
+		tools = append(tools, "git", "cmake", "ninja", "python3:gyp-next")
+	}
 	return tools
 }
 

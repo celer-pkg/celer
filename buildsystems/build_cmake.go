@@ -27,12 +27,14 @@ func NewCMake(config *BuildConfig, optimize *context.Optimize) *cmake {
 	return &cmake{
 		BuildConfig: config,
 		Optimize:    optimize,
+		buildSystem: config.BuildSystem,
 	}
 }
 
 type cmake struct {
 	*BuildConfig
 	*context.Optimize
+	buildSystem string
 }
 
 func (c cmake) Name() string {
@@ -44,7 +46,7 @@ func (c cmake) CheckTools() []string {
 	tools := slices.Clone(c.BuildConfig.BuildTools)
 
 	// Add default tools
-	tools = append(tools, "git", "cmake")
+	tools = append(tools, "git", c.buildSystem)
 	if c.CMakeGenerator == "Ninja" {
 		tools = append(tools, "ninja")
 	}
