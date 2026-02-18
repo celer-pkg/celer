@@ -600,6 +600,9 @@ func (p Port) installAllDeps(options InstallOptions) error {
 			}
 		} else if p.installReport != nil {
 			p.installReport.add(&port, "already installed")
+			if err := port.collectInstalledDepsForReport(); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -637,6 +640,64 @@ func (p Port) installAllDeps(options InstallOptions) error {
 			}
 		} else if p.installReport != nil {
 			p.installReport.add(&port, "already installed")
+			if err := port.collectInstalledDepsForReport(); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// collectInstalledDepsForReport recursively collects dependency entries into install report
+// when a dependency is already installed and we skip real installation.
+func (p Port) collectInstalledDepsForReport() error {
+	if p.installReport == nil {
+		return nil
+	}
+
+	// Collect dev_dependencies.
+	for _, nameVersion := range p.MatchedConfig.DevDependencies {
+		// Same name/version as parent and both are in native toolchain chain, skip.
+		if (p.DevDep || p.Native) && p.NameVersion() == nameVersion {
+			continue
+		}
+
+		port := Port{
+			DevDep:        true,
+			Native:        true,
+			Parent:        p.NameVersion(),
+			installReport: p.installReport,
+		}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+
+		p.installReport.add(&port, "already installed")
+		if err := port.collectInstalledDepsForReport(); err != nil {
+			return err
+		}
+	}
+
+	// Collect dependencies.
+	for _, nameVersion := range p.MatchedConfig.Dependencies {
+		name := strings.Split(nameVersion, "@")[0]
+		if name == p.Name {
+			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), name)
+		}
+
+		port := Port{
+			DevDep:        p.DevDep,
+			Parent:        p.NameVersion(),
+			installReport: p.installReport,
+		}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+
+		p.installReport.add(&port, "already installed")
+		if err := port.collectInstalledDepsForReport(); err != nil {
+			return err
 		}
 	}
 

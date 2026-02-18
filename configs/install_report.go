@@ -31,11 +31,52 @@ type installReport struct {
 }
 
 const reportHTMLStyle = `<style>
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; margin: 24px; }
-table { border-collapse: collapse; width: 100%; }
-th, td { border: 1px solid #d0d7de; padding: 6px 10px; text-align: left; }
-th { background: #f6f8fa; }
-code { background: #f6f8fa; padding: 1px 4px; border-radius: 4px; }
+:root {
+  --bg: #f7f9fc;
+  --text: #1f2937;
+  --muted: #4b5563;
+  --card: #ffffff;
+  --line: #d9e1ec;
+  --head: #eef3fa;
+  --code-bg: #f3f6fb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 28px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  line-height: 1.55;
+}
+h1, h2 { margin: 0 0 12px; }
+h1 { font-size: 26px; }
+h2 { margin-top: 24px; font-size: 18px; }
+p { margin: 10px 0; color: var(--muted); }
+ul { margin-top: 6px; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 18px 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: var(--head);
+  font-weight: 600;
+}
+tr:nth-child(even) td { background: #fbfdff; }
+code {
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
 </style>`
 
 func newInstallReport(rootNameVersion string) *installReport {
@@ -73,12 +114,6 @@ func (i *installReport) add(port *Port, installedFrom string) {
 }
 
 func (i *installReport) renderMarkdown(p *Port) string {
-	toYesNo := func(value bool) string {
-		if value {
-			return "yes"
-		}
-		return "no"
-	}
 	normalize := func(value string) string {
 		if strings.TrimSpace(value) == "" {
 			return "-"
@@ -86,27 +121,67 @@ func (i *installReport) renderMarkdown(p *Port) string {
 		return value
 	}
 
+	dependencyType := func(entry installReportEntry) string {
+		if entry.DevDep && entry.Native {
+			return "native"
+		}
+		if entry.DevDep {
+			return "buildtime"
+		}
+		if entry.Native {
+			return "native"
+		}
+		return "runtime"
+	}
+
 	var lines []string
+	orderedEntries := i.orderedEntries()
+	devDepCount := 0
+	nativeCount := 0
+	alreadyInstalledCount := 0
+	for _, entry := range orderedEntries {
+		if entry.DevDep {
+			devDepCount++
+		}
+		if entry.Native {
+			nativeCount++
+		}
+		if entry.InstalledFrom == "already installed" {
+			alreadyInstalledCount++
+		}
+	}
+	freshInstallCount := len(orderedEntries) - alreadyInstalledCount
+
 	lines = append(lines, "# Install Report")
 	lines = append(lines, "")
-	lines = append(lines, "Summary:")
-	lines = append(lines, "--------")
-	lines = append(lines, fmt.Sprintf("Root: `%s`  ", i.rootNameVersion))
-	lines = append(lines, fmt.Sprintf("Platform: `%s`  ", p.ctx.Platform().GetName()))
-	lines = append(lines, fmt.Sprintf("Project: `%s`  ", p.ctx.Project().GetName()))
-	lines = append(lines, fmt.Sprintf("Build Type: `%s`  ", p.ctx.BuildType()))
-	lines = append(lines, fmt.Sprintf("Time: `%s`  ", time.Now().Local().Format("2006-01-02 15:04:05")))
+	lines = append(lines, fmt.Sprintf("Generated at `%s`.", time.Now().Local().Format("2006-01-02 15:04:05")))
 	lines = append(lines, "")
-	lines = append(lines, "| NameVersion | DevDep | Native | Parent | BuildSystem | InstalledFrom |")
-	lines = append(lines, "| --- | --- | --- | --- | --- | --- |")
+	lines = append(lines, "## Overview")
+	lines = append(lines, "")
+	lines = append(lines, fmt.Sprintf("- Total packages: `%d`", len(orderedEntries)))
+	lines = append(lines, fmt.Sprintf("- Fresh installs: `%d`", freshInstallCount))
+	lines = append(lines, fmt.Sprintf("- Already installed: `%d`", alreadyInstalledCount))
+	lines = append(lines, fmt.Sprintf("- Buildtime dependencies: `%d`", devDepCount))
+	lines = append(lines, fmt.Sprintf("- Native dependencies: `%d`", nativeCount))
+	lines = append(lines, "")
+	lines = append(lines, "## Build Environment")
+	lines = append(lines, "")
+	lines = append(lines, "| Name | Value |")
+	lines = append(lines, "| --- | --- |")
+	lines = append(lines, fmt.Sprintf("| Platform | `%s` |", normalize(p.ctx.Platform().GetName())))
+	lines = append(lines, fmt.Sprintf("| Project | `%s` |", normalize(p.ctx.Project().GetName())))
+	lines = append(lines, fmt.Sprintf("| Build Type | `%s` |", normalize(p.ctx.BuildType())))
+	lines = append(lines, "")
+	lines = append(lines, "## Dependencies List")
+	lines = append(lines, "")
+	lines = append(lines, "| Name Version | Parent | Dependency Type | Build System | Installed From |")
+	lines = append(lines, "| --- | --- | --- | --- | --- |")
 
-	orderedEntries := i.orderedEntries()
 	for _, entry := range orderedEntries {
-		lines = append(lines, fmt.Sprintf("| `%s` | %s | %s | `%s` | `%s` | %s |",
+		lines = append(lines, fmt.Sprintf("| `%s` | `%s` | %s | `%s` | %s |",
 			normalize(entry.NameVersion),
-			toYesNo(entry.DevDep),
-			toYesNo(entry.Native),
 			normalize(entry.Parent),
+			dependencyType(entry),
 			normalize(entry.BuildSystem),
 			normalize(entry.InstalledFrom),
 		))
