@@ -149,6 +149,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 type BuildTool struct {
 	Name    string   `toml:"name"`
 	Version string   `toml:"version"`
+	Default bool     `toml:"default"`
 	Url     string   `toml:"url"`
 	Archive string   `toml:"archive"`
 	Paths   []string `toml:"paths"`
@@ -257,19 +258,33 @@ type BuildTools struct {
 	BuildTools []BuildTool `toml:"build_tools"`
 }
 
+// findTool find matched tool with name and version.
 func (b BuildTools) findTool(ctx context.Context, name string) *BuildTool {
-	for index, tool := range b.BuildTools {
-		if tool.Name == name {
-			b.BuildTools[index].ctx = ctx
-			return &b.BuildTools[index]
+	// Read tool name and version.
+	toolName, toolVersion := b.parseNameVersion(name)
+
+	// Find matched tool.
+	index := slices.IndexFunc(b.BuildTools, func(tool BuildTool) bool {
+		if toolVersion != "" {
+			return tool.Name == toolName && tool.Version == toolVersion
+		} else {
+			return tool.Name == toolName && tool.Default
 		}
+	})
+
+	// Return matched tool.
+	if index >= 0 {
+		b.BuildTools[index].ctx = ctx
+		return &b.BuildTools[index]
 	}
+
 	return nil
 }
 
 func (b BuildTools) contains(name string) bool {
+	toolName, _ := b.parseNameVersion(name)
 	for _, tool := range b.BuildTools {
-		if tool.Name == name {
+		if tool.Name == toolName {
 			return true
 		}
 	}
@@ -277,13 +292,25 @@ func (b BuildTools) contains(name string) bool {
 }
 
 func (b BuildTools) merge(buildTools BuildTools) BuildTools {
-	for index, tool := range buildTools.BuildTools {
-		if !b.contains(tool.Name) {
+	for _, tool := range buildTools.BuildTools {
+		index := slices.IndexFunc(b.BuildTools, func(t BuildTool) bool {
+			return t.Name == tool.Name && t.Version == tool.Version
+		})
+		if index == -1 {
 			b.BuildTools = append(b.BuildTools, tool)
-		} else {
-			b.BuildTools[index] = tool
+			continue
 		}
+
+		b.BuildTools[index] = tool
 	}
 
 	return b
+}
+
+func (b BuildTools) parseNameVersion(buildtool string) (string, string) {
+	if name, version, ok := strings.Cut(buildtool, "@"); ok {
+		return name, version
+	}
+
+	return buildtool, ""
 }

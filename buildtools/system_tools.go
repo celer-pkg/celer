@@ -27,7 +27,8 @@ func checkSystemTools(packageNames []string) error {
 		packageName = strings.TrimSpace(packageName)
 		if packageName == "" ||
 			strings.HasPrefix(packageName, "python3:") ||
-			strings.HasPrefix(packageName, "msys2:") {
+			strings.HasPrefix(packageName, "msys2:") ||
+			strings.Contains(packageName, "@") {
 			continue
 		}
 

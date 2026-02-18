@@ -265,11 +265,19 @@ type BuildConfig struct {
 
 func (b BuildConfig) Validate() error {
 	// Validate buildsystem.
-	if b.BuildSystem == "" {
-		return fmt.Errorf("build_system is empty, it should be one of %s", strings.Join(buildSystems, ", "))
+	name, _, hasVersion, err := b.parseBuildSystem(b.BuildSystem)
+	if err != nil {
+		return err
 	}
-	if !slices.Contains(buildSystems, b.BuildSystem) {
-		return fmt.Errorf("unsupported build system: %s, it should be one of %s", b.BuildSystem, strings.Join(buildSystems, ", "))
+
+	// Check unsupported buildsystem.
+	if !slices.Contains(buildSystems, name) {
+		return fmt.Errorf("unsupported build system for %s, it should be one of %s", b.BuildSystem, strings.Join(buildSystems, ", "))
+	}
+
+	// Validate versioned build system.
+	if hasVersion && name != "cmake" && name != "meson" && name != "gyp" {
+		return fmt.Errorf("build_system %q does not support version suffix, only cmake, meson and gyp support versions", b.BuildSystem)
 	}
 
 	// Validate c_standard.
@@ -633,11 +641,12 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 }
 
 func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
-	if b.BuildSystem == "" {
-		return fmt.Errorf("build_system is empty")
+	name, _, _, err := b.parseBuildSystem(b.BuildSystem)
+	if err != nil {
+		return err
 	}
 
-	switch b.BuildSystem {
+	switch name {
 	case "cmake":
 		b.buildSystem = NewCMake(b, optimize)
 	case "makefiles":
@@ -657,7 +666,7 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 	case "custom":
 		b.buildSystem = NewCustom(b, optimize)
 	default:
-		return fmt.Errorf("unsupported build system: %s", b.BuildSystem)
+		return fmt.Errorf("unsupported build system for %s", b.BuildSystem)
 	}
 
 	// Merges the platform-specific fields into the BuildConfig struct.
@@ -747,6 +756,26 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 		return fmt.Errorf("remove non-symlink: %v", err)
 	}
 	return createSymlink(src, dest)
+}
+
+func (b BuildConfig) parseBuildSystem(value string) (name, version string, hasVersion bool, err error) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "", "", false, fmt.Errorf("build_system is empty, it should be one of %s", strings.Join(buildSystems, ", "))
+	}
+
+	if strings.Count(value, "@") > 1 {
+		return "", "", false, fmt.Errorf("invalid build_system format: %q", value)
+	}
+
+	name, version, hasVersion = strings.Cut(value, "@")
+	name = strings.TrimSpace(name)
+	version = strings.TrimSpace(version)
+	if hasVersion && version == "" {
+		return "", "", false, fmt.Errorf("invalid build_system format: %q", value)
+	}
+
+	return name, version, hasVersion, nil
 }
 
 // expandOptionsVariables Replace placeholders with real paths and values.
