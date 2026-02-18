@@ -261,15 +261,7 @@ type BuildTools struct {
 // findTool find matched tool with name and version.
 func (b BuildTools) findTool(ctx context.Context, name string) *BuildTool {
 	// Read tool name and version.
-	var toolName, toolVersion string
-	parts := strings.Split(name, "@")
-	if len(parts) > 1 {
-		toolName = parts[0]
-		toolVersion = parts[1]
-	} else {
-		toolName = name
-		toolVersion = ""
-	}
+	toolName, toolVersion := b.parseNameVersion(name)
 
 	// Find matched tool.
 	index := slices.IndexFunc(b.BuildTools, func(tool BuildTool) bool {
@@ -290,8 +282,9 @@ func (b BuildTools) findTool(ctx context.Context, name string) *BuildTool {
 }
 
 func (b BuildTools) contains(name string) bool {
+	toolName, _ := b.parseNameVersion(name)
 	for _, tool := range b.BuildTools {
-		if tool.Name == name {
+		if tool.Name == toolName {
 			return true
 		}
 	}
@@ -299,13 +292,25 @@ func (b BuildTools) contains(name string) bool {
 }
 
 func (b BuildTools) merge(buildTools BuildTools) BuildTools {
-	for index, tool := range buildTools.BuildTools {
-		if !b.contains(tool.Name) {
+	for _, tool := range buildTools.BuildTools {
+		index := slices.IndexFunc(b.BuildTools, func(t BuildTool) bool {
+			return t.Name == tool.Name && t.Version == tool.Version
+		})
+		if index == -1 {
 			b.BuildTools = append(b.BuildTools, tool)
-		} else {
-			b.BuildTools[index] = tool
+			continue
 		}
+
+		b.BuildTools[index] = tool
 	}
 
 	return b
+}
+
+func (b BuildTools) parseNameVersion(buildtool string) (string, string) {
+	if name, version, ok := strings.Cut(buildtool, "@"); ok {
+		return name, version
+	}
+
+	return buildtool, ""
 }

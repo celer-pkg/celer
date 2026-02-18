@@ -33,14 +33,14 @@ func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
 	fmt.Fprintf(&buffer, "celer: %s", Version)
 
 	for _, tool := range tools {
-		args, ok := toolVersionArgs[tool]
+		toolName, _, _ := strings.Cut(tool, "@")
+		args, ok := toolVersionArgs[toolName]
 		if !ok {
 			continue
 		}
 
-		cmdName, _, _ := strings.Cut(tool, ":")
-
 		// For python3:xxx tools, use the Python executable from virtual environment.
+		cmdName, _, _ := strings.Cut(toolName, ":")
 		if cmdName == "python3" && buildtools.Python3 != nil {
 			cmdName = buildtools.Python3.Path
 		}
