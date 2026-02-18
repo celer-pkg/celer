@@ -58,7 +58,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 		// Write content of platform archive's checksum.
 		toolchainChecksum, rootfsChecksum, err := p.Callbacks.GenPlatformChecksums()
 		if err != nil {
-			return "", fmt.Errorf("failed to get platform archive checksums: %w", err)
+			return "", fmt.Errorf("failed to get platform archive checksums -> %w", err)
 		}
 		if toolchainChecksum != "" {
 			buffer.WriteString(newDivider(nil, "toolchain checksum"))
@@ -83,7 +83,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	}
 	content, err := p.Callbacks.GenPortTomlString(p.NameVersion, p.DevDep)
 	if err != nil {
-		return "", fmt.Errorf("generate toml content of port %s: %w", p.NameVersion, err)
+		return "", fmt.Errorf("generate toml content of port %s -> %w", p.NameVersion, err)
 	}
 	p.writeDivider(&buffer, p.Parents, p.NameVersion, "port")
 	buffer.WriteString(content + "\n")
@@ -105,7 +105,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	for _, patch := range p.BuildConfig.Patches {
 		content, err := p.readPatch(p.NameVersion, patch)
 		if err != nil {
-			return "", fmt.Errorf("read patch %s: %w", patch, err)
+			return "", fmt.Errorf("read patch %s -> %w", patch, err)
 		}
 		p.writeDivider(&buffer, p.Parents, p.NameVersion, fmt.Sprintf("patch: %s", patch))
 		buffer.WriteString(content + "\n")
@@ -125,7 +125,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 
 		buildConfig, err := p.Callbacks.GetBuildConfig(nameVersion, true)
 		if err != nil {
-			return "", fmt.Errorf("get build config of dependency %s: %w", nameVersion, err)
+			return "", fmt.Errorf("get build config of dependency %s -> %w", nameVersion, err)
 		}
 
 		port := Port{
@@ -142,7 +142,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 
 		content, err := port.BuildMeta("")
 		if err != nil {
-			return "", fmt.Errorf("fill content of dev_dependency %s: %w", nameVersion, err)
+			return "", fmt.Errorf("fill content of dev_dependency %s -> %w", nameVersion, err)
 		}
 		buffer.WriteString(string(content))
 	}
@@ -151,7 +151,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	for _, nameVersion := range p.BuildConfig.Dependencies {
 		buildConfig, err := p.Callbacks.GetBuildConfig(nameVersion, false)
 		if err != nil {
-			return "", fmt.Errorf("get build config of dependency %s: %w", nameVersion, err)
+			return "", fmt.Errorf("get build config of dependency %s -> %w", nameVersion, err)
 		}
 
 		port := Port{
@@ -168,7 +168,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 
 		content, err := port.BuildMeta("")
 		if err != nil {
-			return "", fmt.Errorf("fill content of dependency %s: %w", nameVersion, err)
+			return "", fmt.Errorf("fill content of dependency %s -> %w", nameVersion, err)
 		}
 		buffer.WriteString(string(content))
 	}
@@ -176,7 +176,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	// Write buildTools versions.
 	versions, err := p.Callbacks.GenBuildToolsVersions(p.BuildConfig.CheckTools())
 	if err != nil {
-		return "", fmt.Errorf("failed to get build tools versions: %w", err)
+		return "", fmt.Errorf("failed to get build tools versions -> %w", err)
 	}
 	if versions != "" {
 		p.writeDivider(&buffer, p.Parents, p.NameVersion, "build tools versions")

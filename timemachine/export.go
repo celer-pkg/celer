@@ -42,10 +42,10 @@ func Export(celer *configs.Celer, exportDir string) error {
 func (e *Exporter) Export() error {
 	// Create export directory.
 	if err := os.RemoveAll(e.exportDir); err != nil {
-		return fmt.Errorf("failed to clear existing export directory: %w", err)
+		return fmt.Errorf("failed to clear existing export directory -> %w", err)
 	}
 	if err := os.MkdirAll(e.exportDir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create export directory: %w", err)
+		return fmt.Errorf("failed to create export directory -> %w", err)
 	}
 
 	title := fmt.Sprintf("\nExporting snapshot: %s", e.exportDir)
@@ -56,7 +56,7 @@ func (e *Exporter) Export() error {
 	color.Println(color.Hint, "✔ Collecting dependencies...")
 	usedPorts, err := e.collector.CollectUsedPorts(e.celer)
 	if err != nil {
-		return fmt.Errorf("failed to collect ports: %w", err)
+		return fmt.Errorf("failed to collect ports -> %w", err)
 	}
 	e.usedPorts = usedPorts
 	color.Printf(color.Hint, "  Found %d port(s)\n", len(e.usedPorts))
@@ -65,31 +65,31 @@ func (e *Exporter) Export() error {
 	color.Println(color.Hint, "✔ Exporting ports...")
 	portSnapshots, err := e.exportPorts()
 	if err != nil {
-		return fmt.Errorf("failed to export ports: %w", err)
+		return fmt.Errorf("failed to export ports -> %w", err)
 	}
 
 	// 3. Export conf directory.
 	color.Println(color.Hint, "✔ Exporting configuration...")
 	if err := e.exportConf(); err != nil {
-		return fmt.Errorf("failed to export conf: %w", err)
+		return fmt.Errorf("failed to export conf -> %w", err)
 	}
 
 	// 4. Export celer.toml.
 	color.Println(color.Hint, "✔ Exporting celer.toml...")
 	if err := e.exportCelerToml(); err != nil {
-		return fmt.Errorf("failed to export celer.toml: %w", err)
+		return fmt.Errorf("failed to export celer.toml -> %w", err)
 	}
 
 	// 5. Export toolchain_file.cmake (if exists).
 	color.Println(color.Hint, "✔ Exporting toolchain file...")
 	if err := e.exportToolchainFile(); err != nil {
-		return fmt.Errorf("failed to export toolchain_file.cmake: %w", err)
+		return fmt.Errorf("failed to export toolchain_file.cmake -> %w", err)
 	}
 
 	// 6. Export celer executable.
 	color.Println(color.Hint, "✔ Exporting celer executable...")
 	if err := e.exportCelerExecutable(); err != nil {
-		return fmt.Errorf("failed to export celer executable: %w", err)
+		return fmt.Errorf("failed to export celer executable -> %w", err)
 	}
 
 	// 7. Generate snapshot.
@@ -104,7 +104,7 @@ func (e *Exporter) Export() error {
 	}
 
 	if err := snapshot.Save(e.exportDir); err != nil {
-		return fmt.Errorf("failed to save snapshot: %w", err)
+		return fmt.Errorf("failed to save snapshot -> %w", err)
 	}
 
 	configs.PrintSuccess("Snapshot exported to: %s", e.exportDir)
@@ -124,7 +124,7 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 		// Get commit hash.
 		commit, err := e.collector.GetPortCommit(port)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get commit for %s: %w", nameVersion, err)
+			return nil, fmt.Errorf("failed to get commit for %s -> %w", nameVersion, err)
 		}
 
 		// Create port directory.
@@ -221,7 +221,7 @@ func (e *Exporter) exportToolchainFile() error {
 func (e *Exporter) exportCelerExecutable() error {
 	exePath, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("failed to get celer executable path: %w", err)
+		return fmt.Errorf("failed to get celer executable path -> %w", err)
 	}
 
 	dst := filepath.Join(e.exportDir, filepath.Base(exePath))

@@ -57,16 +57,16 @@ Examples:
 func (r *reverseCmd) doExecute(args []string) error {
 	// Validate package name format
 	if err := r.validatePackageName(args[0]); err != nil {
-		return fmt.Errorf("invalid package name: %w", err)
+		return fmt.Errorf("invalid package name -> %w", err)
 	}
 
 	if err := r.celer.Init(); err != nil {
-		return fmt.Errorf("failed to init celer: %w", err)
+		return fmt.Errorf("failed to init celer -> %w", err)
 	}
 
 	libraries, err := r.query(args[0])
 	if err != nil {
-		return fmt.Errorf("failed to query reverse dependencies: %w", err)
+		return fmt.Errorf("failed to query reverse dependencies -> %w", err)
 	}
 
 	r.displayResults(args[0], libraries)
@@ -102,12 +102,12 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 			// Check circular dependence.
 			depcheck := depcheck.NewDepCheck()
 			if err := depcheck.CheckCircular(r.celer, port); err != nil {
-				return fmt.Errorf("found circular dependence: %w", err)
+				return fmt.Errorf("found circular dependence -> %w", err)
 			}
 
 			// Check version conflict.
 			if err := depcheck.CheckConflict(r.celer, port); err != nil {
-				return fmt.Errorf("found version conflict: %w", err)
+				return fmt.Errorf("found version conflict -> %w", err)
 			}
 
 			// Check dependencies based on mode

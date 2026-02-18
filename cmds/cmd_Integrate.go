@@ -53,12 +53,12 @@ Examples:
 func (i *integrateCmd) execute() error {
 	// Validate environment.
 	if err := i.validateEnvironment(); err != nil {
-		return fmt.Errorf("environment validation failed: %w", err)
+		return fmt.Errorf("environment validation failed -> %w", err)
 	}
 
 	// Initialize completions.
 	if err := i.initializeCompletions(); err != nil {
-		return fmt.Errorf("failed to initialize completion handlers: %w", err)
+		return fmt.Errorf("failed to initialize completion handlers -> %w", err)
 	}
 
 	// Execute the requested operation.
@@ -84,7 +84,7 @@ func (i *integrateCmd) validateEnvironment() error {
 func (i *integrateCmd) initializeCompletions() error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return fmt.Errorf("failed to get user home directory: %w", err)
+		return fmt.Errorf("failed to get user home directory -> %w", err)
 	}
 
 	i.bashCompletion = completion.NewBashCompletion(homeDir, rootCmd)
@@ -98,7 +98,7 @@ func (i *integrateCmd) handleRegister() error {
 	shell := completion.CurrentShell()
 
 	if err := i.doRegister(); err != nil {
-		return fmt.Errorf("failed to register %s completion: %w", i.getShellName(shell), err)
+		return fmt.Errorf("failed to register %s completion -> %w", i.getShellName(shell), err)
 	}
 
 	configs.PrintSuccess("%s tab completion has been integrated successfully", i.getShellName(shell))
@@ -109,7 +109,7 @@ func (i *integrateCmd) handleUnregister() error {
 	shell := completion.CurrentShell()
 
 	if err := i.doUnregister(); err != nil {
-		return fmt.Errorf("failed to unregister %s completion: %w", i.getShellName(shell), err)
+		return fmt.Errorf("failed to unregister %s completion -> %w", i.getShellName(shell), err)
 	}
 
 	configs.PrintSuccess("%s tab completion has been removed successfully", i.getShellName(shell))

@@ -158,12 +158,12 @@ func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 	// Check circular dependence.
 	depcheck := depcheck.NewDepCheck()
 	if err := depcheck.CheckCircular(a.celer, port); err != nil {
-		return fmt.Errorf("found circular dependence when collecting dev package %s: %w", nameVersion, err)
+		return fmt.Errorf("found circular dependence when collecting dev package %s -> %w", nameVersion, err)
 	}
 
 	// Check version conflict.
 	if err := depcheck.CheckConflict(a.celer, port); err != nil {
-		return fmt.Errorf("found version conflict when collecting dev package %s: %w", nameVersion, err)
+		return fmt.Errorf("found version conflict when collecting dev package %s -> %w", nameVersion, err)
 	}
 
 	for _, devDepNameVersion := range port.MatchedConfig.DevDependencies {

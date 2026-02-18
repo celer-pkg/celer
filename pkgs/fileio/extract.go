@@ -29,7 +29,7 @@ func Extract(archiveFile, destDir string) error {
 	expr.PrintInline(fmt.Sprintf("\rExtracting: %s...", fileName))
 
 	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-		return fmt.Errorf("mkdir for extract: %w", err)
+		return fmt.Errorf("mkdir for extract -> %w", err)
 	}
 
 	// var command string
@@ -69,7 +69,7 @@ func Extract(archiveFile, destDir string) error {
 	cmd.Env = os.Environ()
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("extract archive: %w", err)
+		return fmt.Errorf("extract archive -> %w", err)
 	}
 
 	expr.PrintInline(fmt.Sprintf("\rExtracting: %s...\n", fileName))
@@ -106,7 +106,7 @@ func Targz(archivePath, srcDir string, includeFolder bool) error {
 	cmd.Env = os.Environ()
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("create tarball: %w", err)
+		return fmt.Errorf("create tarball -> %w", err)
 	}
 
 	return nil

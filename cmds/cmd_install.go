@@ -224,7 +224,7 @@ func (i *installCmd) buildSuggestions(suggestions *[]string, portDir string, toC
 		return nil
 	})
 	if err != nil {
-		configs.PrintError(err, "failed to read %s: %s", portDir, err)
+		configs.PrintError(err, "failed to read %s -> %s.\n", portDir, err)
 		return
 	}
 }

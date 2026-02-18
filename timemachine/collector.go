@@ -46,7 +46,7 @@ func (c *Collector) collectRecursive(nameVersion string) error {
 	// Load port.
 	var port configs.Port
 	if err := port.Init(c.ctx, nameVersion); err != nil {
-		return fmt.Errorf("failed to init port %s: %w", nameVersion, err)
+		return fmt.Errorf("failed to init port %s -> %w", nameVersion, err)
 	}
 	c.collected[nameVersion] = &port
 
@@ -76,7 +76,7 @@ func (c *Collector) GetPortCommit(port *configs.Port) (string, error) {
 		filePath := filepath.Join(c.ctx.Downloads(), archive)
 		commit, err := fileio.CalculateChecksum(filePath)
 		if err != nil {
-			return "", fmt.Errorf("failed to get checksum of port's archive %s: %w", port.NameVersion(), err)
+			return "", fmt.Errorf("failed to get checksum of port's archive %s -> %w", port.NameVersion(), err)
 		}
 		return "sha-256:" + commit, nil
 	}
@@ -89,7 +89,7 @@ func (c *Collector) GetPortCommit(port *configs.Port) (string, error) {
 	// For git repositories, read the actual commit from the cloned repo.
 	commit, err := git.ReadLocalCommit(port.Package.SrcDir)
 	if err != nil {
-		return "", fmt.Errorf("failed to read local commit for %s: %w", port.NameVersion(), err)
+		return "", fmt.Errorf("failed to read local commit for %s -> %w", port.NameVersion(), err)
 	}
 	if commit != "" {
 		return commit, nil

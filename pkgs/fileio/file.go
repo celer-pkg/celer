@@ -94,11 +94,11 @@ func RenameDir(srcDir, dstDir string) error {
 	// Check if dstDir is a child of srcDir to avoid conflicts.
 	srcDirAbs, err := filepath.Abs(srcDir)
 	if err != nil {
-		return fmt.Errorf("get absolute path for srcDir: %w", err)
+		return fmt.Errorf("get absolute path for srcDir -> %w", err)
 	}
 	dstDirAbs, err := filepath.Abs(dstDir)
 	if err != nil {
-		return fmt.Errorf("get absolute path for dstDir: %w", err)
+		return fmt.Errorf("get absolute path for dstDir -> %w", err)
 	}
 
 	// If dstDir is within srcDir, use a temp directory first.
@@ -208,7 +208,7 @@ func CopyFile(src, dest string) error {
 func RenameFile(src, dst string) error {
 	info, err := os.Lstat(src)
 	if err != nil {
-		return fmt.Errorf("stat source: %w", err)
+		return fmt.Errorf("stat source -> %w", err)
 	}
 
 	if info.Mode()&os.ModeSymlink != 0 {
@@ -223,17 +223,17 @@ func RenameFile(src, dst string) error {
 func handleSymlink(src, dst string) error {
 	target, err := os.Readlink(src)
 	if err != nil {
-		return fmt.Errorf("read symlink: %w", err)
+		return fmt.Errorf("read symlink -> %w", err)
 	}
 	if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
-		return fmt.Errorf("create directory for symlink: %w", err)
+		return fmt.Errorf("create directory for symlink -> %w", err)
 	}
 	return os.Symlink(target, dst)
 }
 
 func renameWithRetry(src, dst string, maxRetries int) error {
 	if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
-		return fmt.Errorf("create directory: %w", err)
+		return fmt.Errorf("create directory -> %w", err)
 	}
 
 	var lastErr error
@@ -335,17 +335,17 @@ func moveDirectoryToParent(nestedFolder, parentFolder string) error {
 
 	// Move folder that we want to a temporary path.
 	if err := os.Rename(nestedFolder, tmpPath); err != nil {
-		return fmt.Errorf("rename directory from %s to %s: %w", nestedFolder, nestedFolder+".old", err)
+		return fmt.Errorf("rename directory from %s to %s -> %w", nestedFolder, nestedFolder+".old", err)
 	}
 
 	// Remove the now empty nested folder.
 	if err := os.RemoveAll(destPath); err != nil {
-		return fmt.Errorf("remove empty nested folder %s: %w", nestedFolder, err)
+		return fmt.Errorf("remove empty nested folder %s -> %w", nestedFolder, err)
 	}
 
 	// Convert the temporary folder to the actual folder.
 	if err := os.Rename(tmpPath, destPath); err != nil {
-		return fmt.Errorf("move directory from %s to %s: %w", nestedFolder, destPath, err)
+		return fmt.Errorf("move directory from %s to %s -> %w", nestedFolder, destPath, err)
 	}
 
 	return nil
@@ -414,11 +414,11 @@ func CalculateChecksum(filePath string) (string, error) {
 
 func CleanDir(dir string) error {
 	if err := os.RemoveAll(dir); err != nil {
-		return fmt.Errorf("cannot remove dir: %w", err)
+		return fmt.Errorf("cannot remove dir -> %w", err)
 	}
 
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		return fmt.Errorf("cannot mkdir dir: %w", err)
+		return fmt.Errorf("cannot mkdir dir -> %w", err)
 	}
 
 	return nil

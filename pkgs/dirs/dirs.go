@@ -28,7 +28,7 @@ var (
 func init() {
 	currentDir, err := os.Getwd()
 	if err != nil {
-		panic(fmt.Errorf("cannot get current dir: %w", err))
+		panic(fmt.Errorf("cannot get current dir -> %w", err))
 	}
 	Init(currentDir)
 }
@@ -90,11 +90,11 @@ func ParentDir(path string, levels int) string {
 // CleanTmpFilesDir remove tmp dir and create new one.
 func CleanTmpFilesDir() error {
 	if err := os.RemoveAll(TmpFilesDir); err != nil {
-		return fmt.Errorf("cannot remove tmp dir: %w", err)
+		return fmt.Errorf("cannot remove tmp dir -> %w", err)
 	}
 
 	if err := os.MkdirAll(TmpFilesDir, os.ModePerm); err != nil {
-		return fmt.Errorf("cannot mkdir tmp dir: %w", err)
+		return fmt.Errorf("cannot mkdir tmp dir -> %w", err)
 	}
 
 	return nil
@@ -118,13 +118,13 @@ func cleanRepos(buildtreesDir string) error {
 	// Read sub dirs to git clean src folders.
 	entities, err := os.ReadDir(buildtreesDir)
 	if err != nil {
-		return fmt.Errorf("cannot read buildtrees dir: %w", err)
+		return fmt.Errorf("cannot read buildtrees dir -> %w", err)
 	}
 	for _, entity := range entities {
 		buildDir := filepath.Join(buildtreesDir, entity.Name())
 		entities, err := os.ReadDir(buildDir)
 		if err != nil {
-			return fmt.Errorf("cannot read build dir: %w", err)
+			return fmt.Errorf("cannot read build dir -> %w", err)
 		}
 
 		for _, entity := range entities {
@@ -134,7 +134,7 @@ func cleanRepos(buildtreesDir string) error {
 					continue
 				}
 				if err := os.Chdir(repoDir); err != nil {
-					return fmt.Errorf("cannot change dir to repo dir: %w", err)
+					return fmt.Errorf("cannot change dir to repo dir -> %w", err)
 				}
 
 				cmd := exec.Command("git", "clean", "-xfd")

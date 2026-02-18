@@ -307,7 +307,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	if fileio.PathExists(b.PortConfig.RepoDir) {
 		entities, err := os.ReadDir(b.PortConfig.RepoDir)
 		if err != nil {
-			return fmt.Errorf("failed to check if empty: %w", err)
+			return fmt.Errorf("failed to check if empty -> %w", err)
 		}
 		if len(entities) > 0 {
 			return nil
@@ -315,7 +315,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 		// Remove empty folder to let download or clone again.
 		if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
-			return fmt.Errorf("failed to remove empty src dir: %w", err)
+			return fmt.Errorf("failed to remove empty src dir -> %w", err)
 		}
 	}
 
@@ -453,7 +453,7 @@ func (b BuildConfig) Patch() error {
 				destFile := filepath.Join(b.PortConfig.SrcDir, entity.Name())
 				if !fileio.PathExists(destFile) {
 					if err := fileio.CopyFile(srcFile, destFile); err != nil {
-						return fmt.Errorf("failed to patch files: %w", err)
+						return fmt.Errorf("failed to patch files -> %w", err)
 					}
 				}
 			}
@@ -462,11 +462,11 @@ func (b BuildConfig) Patch() error {
 	}
 	portDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
 	if err := overrideFiles(portDir); err != nil {
-		return fmt.Errorf("failed to override files from port dir: %w", err)
+		return fmt.Errorf("failed to override files from port dir -> %w", err)
 	}
 	projectPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
 	if err := overrideFiles(projectPortDir); err != nil {
-		return fmt.Errorf("failed to override files from project port dir: %w", err)
+		return fmt.Errorf("failed to override files from project port dir -> %w", err)
 	}
 
 	return nil
@@ -536,12 +536,12 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 
 			// Create parent directory if not exists
 			if err := os.MkdirAll(filepath.Dir(devTmpDepsDir), os.ModePerm); err != nil {
-				return fmt.Errorf("failed to create tmp deps parent dir: %w", err)
+				return fmt.Errorf("failed to create tmp deps parent dir -> %w", err)
 			}
 
 			// Create symlink
 			if err := b.checkSymlink(devInstalledDir, devTmpDepsDir); err != nil {
-				return fmt.Errorf("failed to create dev symlink: %w", err)
+				return fmt.Errorf("failed to create dev symlink -> %w", err)
 			}
 		}
 
@@ -552,18 +552,18 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 
 	// Apply patches.
 	if err := b.buildSystem.Patch(); err != nil {
-		return fmt.Errorf("patch %s: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("patch %s -> %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
 	// Update submodules if exist and not ignored that configured in port.toml.
 	if err := b.buildSystem.UpdateSubmodules(); err != nil {
-		return fmt.Errorf("update submodules %s: %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("update submodules %s -> %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
 	// Configure related steps.
 	if !b.buildSystem.configured() {
 		if err := b.buildSystem.preConfigure(); err != nil {
-			return fmt.Errorf("failed to pre configure %s: %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("failed to pre configure %s -> %w", b.PortConfig.nameVersionDesc(), err)
 		}
 		configureOptions, err := b.buildSystem.configureOptions()
 		if err != nil {

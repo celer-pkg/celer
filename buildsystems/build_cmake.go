@@ -199,7 +199,7 @@ func (c cmake) configureOptions() ([]string, error) {
 
 func (c cmake) configured() bool {
 	if err := c.detectGenerator(); err != nil {
-		color.Printf(color.Error, "failed to detect generator: %s", err)
+		color.Printf(color.Error, "failed to detect generator -> %s", err)
 		return false
 	}
 

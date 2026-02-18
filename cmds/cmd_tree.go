@@ -68,12 +68,12 @@ Examples:
 func (t *treeCmd) tree(target string) error {
 	// Initialize celer.
 	if err := t.celer.Init(); err != nil {
-		return fmt.Errorf("failed to initialize celer: %w", err)
+		return fmt.Errorf("failed to initialize celer -> %w", err)
 	}
 
 	// Validate target.
 	if err := t.validateTarget(target); err != nil {
-		return fmt.Errorf("invalid target: %w", err)
+		return fmt.Errorf("invalid target -> %w", err)
 	}
 
 	depchecker := depcheck.NewDepCheck()
@@ -96,7 +96,7 @@ func (t *treeCmd) validateTarget(target string) error {
 func (t *treeCmd) showPortTree(target string, depchecker any) error {
 	var port configs.Port
 	if err := port.Init(t.celer, target); err != nil {
-		return fmt.Errorf("failed to initialize port %s: %w", target, err)
+		return fmt.Errorf("failed to initialize port %s -> %w", target, err)
 	}
 
 	// Check circular dependence and version conflicts.
@@ -108,11 +108,11 @@ func (t *treeCmd) showPortTree(target string, depchecker any) error {
 	checker := depchecker.(depChecker)
 
 	if err := checker.CheckCircular(t.celer, port); err != nil {
-		return fmt.Errorf("circular dependency detected: %w", err)
+		return fmt.Errorf("circular dependency detected -> %w", err)
 	}
 
 	if err := checker.CheckConflict(t.celer, port); err != nil {
-		return fmt.Errorf("version conflict detected: %w", err)
+		return fmt.Errorf("version conflict detected -> %w", err)
 	}
 
 	rootInfo := portInfo{
@@ -121,7 +121,7 @@ func (t *treeCmd) showPortTree(target string, depchecker any) error {
 		devDep:      false,
 	}
 	if err := t.collectPortInfos(&rootInfo, target); err != nil {
-		return fmt.Errorf("failed to collect port information: %w", err)
+		return fmt.Errorf("failed to collect port information -> %w", err)
 	}
 
 	color.Printf(color.Title, "display dependencies in tree view:\n")
@@ -134,7 +134,7 @@ func (t *treeCmd) showPortTree(target string, depchecker any) error {
 func (t *treeCmd) showProjectTree(target string, depchecker any) error {
 	var project configs.Project
 	if err := project.Init(t.celer, target); err != nil {
-		return fmt.Errorf("failed to initialize project %s: %w", target, err)
+		return fmt.Errorf("failed to initialize project %s -> %w", target, err)
 	}
 
 	rootInfo := portInfo{
@@ -156,17 +156,17 @@ func (t *treeCmd) showProjectTree(target string, depchecker any) error {
 	for _, nameVersion := range project.Ports {
 		var port configs.Port
 		if err := port.Init(t.celer, nameVersion); err != nil {
-			return fmt.Errorf("failed to initialize port %s: %w", nameVersion, err)
+			return fmt.Errorf("failed to initialize port %s -> %w", nameVersion, err)
 		}
 
 		if err := checker.CheckCircular(t.celer, port); err != nil {
-			return fmt.Errorf("circular dependency detected in %s: %w", nameVersion, err)
+			return fmt.Errorf("circular dependency detected in %s -> %w", nameVersion, err)
 		}
 
 		ports = append(ports, port)
 	}
 	if err := checker.CheckConflict(t.celer, ports...); err != nil {
-		return fmt.Errorf("version conflicts detected: %w", err)
+		return fmt.Errorf("version conflicts detected -> %w", err)
 	}
 
 	// Collect port info.
@@ -177,7 +177,7 @@ func (t *treeCmd) showProjectTree(target string, depchecker any) error {
 			devDep:      false,
 		}
 		if err := t.collectPortInfos(&portInfo, port); err != nil {
-			return fmt.Errorf("failed to collect port information for %s: %w", port, err)
+			return fmt.Errorf("failed to collect port information for %s -> %w", port, err)
 		}
 
 		rootInfo.depedencies = append(rootInfo.depedencies, &portInfo)
