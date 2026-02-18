@@ -60,10 +60,11 @@ type Port struct {
 	PackageDir    string                    `toml:"-"`
 	InstalledDir  string                    `toml:"-"`
 
-	ctx        context.Context
-	traceFile  string
-	metaFile   string
-	tmpDepsDir string
+	ctx           context.Context
+	traceFile     string
+	metaFile      string
+	tmpDepsDir    string
+	installReport *installReport
 }
 
 func (p Port) NameVersion() string {

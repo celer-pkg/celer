@@ -16,7 +16,34 @@ import (
 )
 
 // Install install a port and tell me where it was installed from.
-func (p *Port) Install(options InstallOptions) (string, error) {
+func (p *Port) Install(options InstallOptions) (installedFrom string, retErr error) {
+	// Initialize report collector at top-level install.
+	if p.Parent == "" && p.installReport == nil {
+		p.installReport = newInstallReport(p.NameVersion())
+	}
+	defer func() {
+		if retErr != nil || p.installReport == nil {
+			return
+		}
+
+		finalFrom := installedFrom
+		if finalFrom == "" {
+			finalFrom = "already installed"
+		}
+		p.installReport.add(p, finalFrom)
+
+		// Only top-level port writes report files.
+		if p.Parent == "" {
+			mdPath, htmlPath, err := p.installReport.write(p)
+			if err != nil {
+				color.Printf(color.Warning, "\n[!] failed to write install report for %s: %v\n", p.NameVersion(), err)
+				return
+			}
+			color.Printf(color.Hint, "Install report markdown: %s\n", mdPath)
+			color.Printf(color.Hint, "Install report html: %s\n", htmlPath)
+		}
+	}()
+
 	installedDir := expr.If(p.DevDep || p.Native,
 		filepath.Join(dirs.InstalledDir, p.ctx.Platform().GetHostName()+"-dev"),
 		filepath.Join(dirs.InstalledDir,
@@ -35,6 +62,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 			color.Printf(color.List, "\n[✔] -- package: %s\n", p.NameVersion())
 			color.Printf(color.Hint, "Location: %s\n", installedDir)
 		}
+		installedFrom = "already installed"
 		return "", nil
 	}
 
@@ -84,8 +112,10 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 			return "", err
 		}
 		if len(p.BuildConfigs) == 0 {
+			installedFrom = "nobuild"
 			return "nobuild", nil
 		}
+		installedFrom = "prebuilt"
 		return "prebuilt", nil
 	}
 
@@ -93,6 +123,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	if installed, err := p.InstallFromPackage(options); err != nil {
 		return "", err
 	} else if installed {
+		installedFrom = "package"
 		return "package", nil
 	}
 
@@ -101,6 +132,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 		if installed, err := p.InstallFromPackageCache(options); err != nil {
 			return "", err
 		} else if installed {
+			installedFrom = "package cache"
 			return "package cache", nil
 		}
 	}
@@ -109,6 +141,7 @@ func (p *Port) Install(options InstallOptions) (string, error) {
 	if err := p.InstallFromSource(options); err != nil {
 		return "", err
 	}
+	installedFrom = "source"
 	return "source", nil
 }
 
@@ -156,6 +189,7 @@ func (p Port) doInstallFromPackageCache(options InstallOptions) (bool, error) {
 		port.DevDep = false
 		port.Native = p.DevDep || p.Native
 		port.Parent = p.NameVersion()
+		port.installReport = p.installReport
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return false, err
 		}
@@ -540,9 +574,10 @@ func (p Port) installAllDeps(options InstallOptions) error {
 
 		// Init port.
 		var port = Port{
-			DevDep: true,
-			Native: true,
-			Parent: p.NameVersion(),
+			DevDep:        true,
+			Native:        true,
+			Parent:        p.NameVersion(),
+			installReport: p.installReport,
 		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
@@ -563,6 +598,8 @@ func (p Port) installAllDeps(options InstallOptions) error {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
+		} else if p.installReport != nil {
+			p.installReport.add(&port, "already installed")
 		}
 	}
 
@@ -575,8 +612,9 @@ func (p Port) installAllDeps(options InstallOptions) error {
 
 		// Init port.
 		var port = Port{
-			DevDep: p.DevDep,
-			Parent: p.NameVersion(),
+			DevDep:        p.DevDep,
+			Parent:        p.NameVersion(),
+			installReport: p.installReport,
 		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
@@ -597,6 +635,8 @@ func (p Port) installAllDeps(options InstallOptions) error {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
+		} else if p.installReport != nil {
+			p.installReport.add(&port, "already installed")
 		}
 	}
 
