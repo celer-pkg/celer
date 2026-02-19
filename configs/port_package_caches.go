@@ -9,6 +9,7 @@ import (
 	"celer/pkgs/git"
 	"crypto/sha256"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -109,10 +110,15 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 			filePath = filepath.Join(p.ctx.Downloads(), archive)
 		}
 
-		// Check if archive file exists.
+		// Auto-download source archive if missing, then continue checksum.
 		if !fileio.PathExists(filePath) {
-			return "", fmt.Errorf("archive file does not exist: %s \n "+
-				"please remove %s under buildtrees and try again", nameVersion, nameVersion)
+			if err := os.RemoveAll(port.MatchedConfig.PortConfig.RepoDir); err != nil {
+				return "", err
+			}
+			archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
+			if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, archive, port.Package.Depth); err != nil {
+				return "", fmt.Errorf("archive file is missing and auto-download failed for %s -> %w", nameVersion, err)
+			}
 		}
 
 		// Calculate checksum of archive file.
