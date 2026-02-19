@@ -209,13 +209,13 @@ func (c *cleanCmd) cleanAll() error {
 
 func (c *cleanCmd) doClean(port configs.Port) error {
 	// Ignore already cleaned ports.
-	if slices.Contains(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.Native, " [dev]", "")) {
+	if slices.Contains(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.HostDep, " [dev]", "")) {
 		return nil
 	}
 
 	// Remove build cache for dev build or platform build.
 	matchedConfig := port.MatchedConfig
-	if port.DevDep || port.Native {
+	if port.DevDep || port.HostDep {
 		devBuildDir := filepath.Join(filepath.Dir(matchedConfig.PortConfig.BuildDir), matchedConfig.PortConfig.HostName+"-dev")
 		if err := os.RemoveAll(devBuildDir); err != nil {
 			return err
@@ -235,7 +235,7 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 	if c.recursive {
 		for _, nameVersion := range matchedConfig.Dependencies {
 			var depPort configs.Port
-			depPort.Native = port.DevDep || port.Native
+			depPort.HostDep = port.DevDep || port.HostDep
 			if err := depPort.Init(c.celer, nameVersion); err != nil {
 				return err
 			}
@@ -247,13 +247,13 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 
 		for _, nameVersion := range matchedConfig.DevDependencies {
 			// Same name, version as parent and they are booth build with native toolchain, so skip.
-			if (port.DevDep || port.Native) && port.NameVersion() == nameVersion {
+			if (port.DevDep || port.HostDep) && port.NameVersion() == nameVersion {
 				continue
 			}
 
 			var devDepPort configs.Port
 			devDepPort.DevDep = true
-			devDepPort.Native = port.DevDep || port.Native
+			devDepPort.HostDep = port.DevDep || port.HostDep
 			if err := devDepPort.Init(c.celer, nameVersion); err != nil {
 				return err
 			}
@@ -264,8 +264,8 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 		}
 	}
 
-	c.cleaned = append(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.Native, " [dev]", ""))
-	color.Printf(color.Hint, "✔ %-25s%s\n", port.NameVersion(), expr.If(port.DevDep || port.Native, " -- [dev]", ""))
+	c.cleaned = append(c.cleaned, port.NameVersion()+expr.If(port.DevDep || port.HostDep, " [dev]", ""))
+	color.Printf(color.Hint, "✔ %-25s%s\n", port.NameVersion(), expr.If(port.DevDep || port.HostDep, " -- [dev]", ""))
 
 	return nil
 }

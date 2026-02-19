@@ -17,9 +17,9 @@ func (p Port) Remove(options RemoveOptions) error {
 
 	// Try to remove dependencies firstly.
 	if options.Recursive {
-		removeFunc := func(nameVersion string, devDep, native bool) error {
+		removeFunc := func(nameVersion string, devDep, hostDev bool) error {
 			// Same name, version as parent and they are booth build with native toolchain, so skip.
-			if (devDep || native) && nameVersion == p.NameVersion() {
+			if (devDep || hostDev) && nameVersion == p.NameVersion() {
 				return nil
 			}
 
@@ -220,7 +220,7 @@ func (p Port) removeFiles(path string) error {
 
 func (p Port) RemoveLogs() error {
 	platformProject := fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
-	logPathPrefix := filepath.Join(p.NameVersion(), expr.If(p.DevDep || p.Native, p.ctx.Platform().GetHostName()+"-dev", platformProject))
+	logPathPrefix := filepath.Join(p.NameVersion(), expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName()+"-dev", platformProject))
 	matches, err := filepath.Glob(filepath.Join(dirs.BuildtreesDir, logPathPrefix+"-*.log"))
 	if err != nil {
 		return fmt.Errorf("glob syntax error -> %w", err)

@@ -39,7 +39,7 @@ type PortConfig struct {
 	LibDirs         []string        // libs not in standard lib path.
 	Jobs            int             // number of jobs to run in parallel
 	DevDep          bool            // whether dev dependency
-	Native          bool            // whether native build
+	HostDev         bool            // whether native build
 	Ctx             context.Context `toml:"-"`
 }
 
@@ -255,7 +255,7 @@ type BuildConfig struct {
 	// Internal fields
 	Ctx         context.Context   `toml:"-"`
 	DevDep      bool              `toml:"-"`
-	Native      bool              `toml:"-"`
+	HostDev     bool              `toml:"-"`
 	PortConfig  PortConfig        `toml:"-"`
 	Optimize    *context.Optimize `toml:"-"`
 	ExpressVars ExpressVars       `toml:"-"`
@@ -536,9 +536,9 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 			}
 		}
 
-		// For native/dev builds (Native=true), create symlink from tmpDepsDir/<HostName>-dev to installedDir/<HostName>-dev
+		// For host dev and dev dep cases, create symlink from tmpDepsDir/<HostName>-dev to installedDir/<HostName>-dev
 		// This ensures dev dependencies can be found via PATH
-		if b.Native || b.DevDep {
+		if b.HostDev || b.DevDep {
 			devTmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
 			devInstalledDir := filepath.Join(dirs.InstalledDir, b.PortConfig.HostName+"-dev")
 
@@ -629,7 +629,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	// 1. Use absolute path for dev dependencies since native_file wrapper unsets PKG_CONFIG_SYSROOT_DIR
 	// and this can also make sure system pc file can work right.
 	// 2. Use relative path for dependencies, this make installed pc files portable with workspace.
-	var prefix = expr.If(rootfs == nil || b.DevDep || b.Native,
+	var prefix = expr.If(rootfs == nil || b.DevDep || b.HostDev,
 		filepath.Join(dirs.WorkspaceDir, "installed", b.PortConfig.HostName+"-dev"),
 		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.LibraryFolder),
 	)
@@ -905,7 +905,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	)
 
 	// sysroot and tmp dir.
-	if b.DevDep || b.Native {
+	if b.DevDep || b.HostDev {
 		// Append CFLAGS/CXXFLAGS/LDFLAGS
 		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))

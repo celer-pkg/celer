@@ -35,7 +35,7 @@ func (p Port) buildMeta(commit string) (string, error) {
 		Platform:    p.ctx.Platform().GetName(),
 		Project:     p.ctx.Project().GetName(),
 		DevDep:      p.DevDep,
-		Native:      p.Native || p.DevDep,
+		HostDev:     p.HostDep,
 		BuildConfig: *p.MatchedConfig,
 		Callbacks:   p,
 	}

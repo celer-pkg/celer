@@ -17,17 +17,43 @@ import (
 )
 
 type installReportEntry struct {
-	NameVersion   string
+	Port          string
 	Parent        string
 	BuildSystem   string
 	InstalledFrom string
 	DevDep        bool
-	Native        bool
+	HostDev       bool
 }
 
 type installReport struct {
-	rootNameVersion string
-	entries         map[string]installReportEntry
+	rootPort string
+	entries  map[string]installReportEntry
+}
+
+func (i installReport) dependencyTypeOf(entry installReportEntry) string {
+	switch {
+	case entry.DevDep && entry.HostDev:
+		return "buildtime - host"
+	case entry.DevDep:
+		return "buildtime"
+	case entry.HostDev:
+		return "buildtime - host"
+	default:
+		return "runtime"
+	}
+}
+
+func (i installReport) dependencyTypeRank(depType string) int {
+	switch depType {
+	case "runtime":
+		return 0
+	case "buildtime":
+		return 1
+	case "buildtime - host":
+		return 2
+	default:
+		return 99
+	}
 }
 
 const reportHTMLStyle = `<style>
@@ -81,8 +107,8 @@ code {
 
 func newInstallReport(rootNameVersion string) *installReport {
 	return &installReport{
-		rootNameVersion: rootNameVersion,
-		entries:         make(map[string]installReportEntry),
+		rootPort: rootNameVersion,
+		entries:  make(map[string]installReportEntry),
 	}
 }
 
@@ -91,14 +117,14 @@ func (i *installReport) add(port *Port, installedFrom string) {
 		return
 	}
 
-	key := port.NameVersion() + "|" + fmt.Sprintf("%t|%t", port.DevDep, port.Native)
+	key := port.NameVersion() + "|" + fmt.Sprintf("%t|%t", port.DevDep, port.HostDep)
 	entry := installReportEntry{
-		NameVersion:   port.NameVersion(),
+		Port:          port.NameVersion(),
 		Parent:        port.Parent,
 		BuildSystem:   port.MatchedConfig.BuildSystem,
 		InstalledFrom: installedFrom,
 		DevDep:        port.DevDep,
-		Native:        port.Native,
+		HostDev:       port.HostDep,
 	}
 
 	old, ok := i.entries[key]
@@ -121,31 +147,21 @@ func (i *installReport) renderMarkdown(p *Port) string {
 		return value
 	}
 
-	dependencyType := func(entry installReportEntry) string {
-		if entry.DevDep && entry.Native {
-			return "native"
-		}
-		if entry.DevDep {
-			return "buildtime"
-		}
-		if entry.Native {
-			return "native"
-		}
-		return "runtime"
-	}
+	var (
+		lines                 []string
+		buildtimeCount        int
+		runtimeCount          int
+		alreadyInstalledCount int
+	)
 
-	var lines []string
 	orderedEntries := i.orderedEntries()
-	devDepCount := 0
-	nativeCount := 0
-	alreadyInstalledCount := 0
 	for _, entry := range orderedEntries {
-		if entry.DevDep {
-			devDepCount++
+		if entry.DevDep || entry.HostDev {
+			buildtimeCount++
+		} else {
+			runtimeCount++
 		}
-		if entry.Native {
-			nativeCount++
-		}
+
 		if entry.InstalledFrom == "already installed" {
 			alreadyInstalledCount++
 		}
@@ -159,10 +175,10 @@ func (i *installReport) renderMarkdown(p *Port) string {
 	lines = append(lines, "## Overview")
 	lines = append(lines, "")
 	lines = append(lines, fmt.Sprintf("- Total packages: `%d`", len(orderedEntries)))
-	lines = append(lines, fmt.Sprintf("- Fresh installs: `%d`", freshInstallCount))
+	lines = append(lines, fmt.Sprintf("- Fresh installed: `%d`", freshInstallCount))
 	lines = append(lines, fmt.Sprintf("- Already installed: `%d`", alreadyInstalledCount))
-	lines = append(lines, fmt.Sprintf("- Buildtime dependencies: `%d`", devDepCount))
-	lines = append(lines, fmt.Sprintf("- Native dependencies: `%d`", nativeCount))
+	lines = append(lines, fmt.Sprintf("- Buildtime dependencies: `%d`", buildtimeCount))
+	lines = append(lines, fmt.Sprintf("- Runtime dependencies: `%d`", runtimeCount))
 	lines = append(lines, "")
 	lines = append(lines, "## Build Environment")
 	lines = append(lines, "")
@@ -179,9 +195,9 @@ func (i *installReport) renderMarkdown(p *Port) string {
 
 	for _, entry := range orderedEntries {
 		lines = append(lines, fmt.Sprintf("| `%s` | `%s` | %s | `%s` | %s |",
-			normalize(entry.NameVersion),
+			normalize(entry.Port),
 			normalize(entry.Parent),
-			dependencyType(entry),
+			i.dependencyTypeOf(entry),
 			normalize(entry.BuildSystem),
 			normalize(entry.InstalledFrom),
 		))
@@ -191,96 +207,88 @@ func (i *installReport) renderMarkdown(p *Port) string {
 }
 
 func (i *installReport) orderedEntries() []installReportEntry {
-	keys := make([]string, 0, len(i.entries))
-	for key := range i.entries {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-
-	entryByKey := make(map[string]installReportEntry, len(keys))
-	childrenByParent := make(map[string][]string)
-	rootKeys := make([]string, 0, 2)
-	for _, key := range keys {
-		entry := i.entries[key]
-		entryByKey[key] = entry
-		childrenByParent[entry.Parent] = append(childrenByParent[entry.Parent], key)
-		if entry.NameVersion == i.rootNameVersion && strings.TrimSpace(entry.Parent) == "" {
-			rootKeys = append(rootKeys, key)
-		}
-	}
-	for parent := range childrenByParent {
-		sort.Strings(childrenByParent[parent])
-	}
-	sort.Strings(rootKeys)
-
-	visited := make(map[string]bool, len(keys))
-	var ordered []installReportEntry
-	var walk func(key string)
-	walk = func(key string) {
-		if visited[key] {
-			return
-		}
-		visited[key] = true
-
-		entry, ok := entryByKey[key]
-		if !ok {
-			return
-		}
+	// Convert map to slice for deterministic ordering in report output.
+	ordered := make([]installReportEntry, 0, len(i.entries))
+	for _, entry := range i.entries {
 		ordered = append(ordered, entry)
+	}
 
-		for _, childKey := range childrenByParent[entry.NameVersion] {
-			walk(childKey)
+	// Multi-key sort (high priority -> low priority):
+	// 1) dependency type group: runtime, buildtime, native
+	// 2) parent package
+	// 3) package itself
+	// 4) build system
+	// 5) install source
+	sort.SliceStable(ordered, func(first, second int) bool {
+		left := ordered[first]
+		right := ordered[second]
+
+		// Keep type groups together and in configured rank order.
+		leftRank := i.dependencyTypeRank(i.dependencyTypeOf(left))
+		rightRank := i.dependencyTypeRank(i.dependencyTypeOf(right))
+		if leftRank != rightRank {
+			return leftRank < rightRank
 		}
-	}
 
-	// Root port first.
-	for _, key := range rootKeys {
-		walk(key)
-	}
+		// Normalize empty parent to "-" so root entries can be compared consistently.
+		leftParent := left.Parent
+		rightParent := right.Parent
+		if strings.TrimSpace(leftParent) == "" {
+			leftParent = "-"
+		}
+		if strings.TrimSpace(rightParent) == "" {
+			rightParent = "-"
+		}
+		if leftParent != rightParent {
+			return leftParent < rightParent
+		}
 
-	// Then append any leftover entries deterministically.
-	for _, key := range keys {
-		walk(key)
-	}
+		// Then order by package identity and remaining metadata for stable output.
+		if left.Port != right.Port {
+			return left.Port < right.Port
+		}
+
+		if left.BuildSystem != right.BuildSystem {
+			return left.BuildSystem < right.BuildSystem
+		}
+		return left.InstalledFrom < right.InstalledFrom
+	})
 
 	return ordered
 }
 
-func (i *installReport) write(p *Port) (string, string, error) {
+func (i *installReport) write(p *Port) (string, error) {
 	if i == nil || p == nil {
-		return "", "", nil
+		return "", nil
 	}
 
 	reportDir := filepath.Join(dirs.InstalledDir, "celer", "report")
 	if err := fileio.MkdirAll(reportDir, os.ModePerm); err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	timestamp := time.Now().Format("20060102-150405")
-	fileBase := fmt.Sprintf("%s@%s@%s@%s-%s",
-		strings.ReplaceAll(i.rootNameVersion, "@", "_"),
+	fileBase := fmt.Sprintf("%s@%s@%s@%s",
+		strings.ReplaceAll(i.rootPort, "@", "_"),
 		p.ctx.Platform().GetName(),
 		p.ctx.Project().GetName(),
 		p.ctx.BuildType(),
-		timestamp,
 	)
 
 	mdPath := filepath.Join(reportDir, fileBase+".md")
 	htmlPath := filepath.Join(reportDir, fileBase+".html")
 
+	// Generate markdown report.
 	markdown := i.renderMarkdown(p)
 	if err := os.WriteFile(mdPath, []byte(markdown), os.ModePerm); err != nil {
-		return "", "", err
+		return "", err
 	}
+	defer os.Remove(mdPath)
 
+	// Convert to html report.
 	var htmlBuf bytes.Buffer
-	md := goldmark.New(
-		goldmark.WithExtensions(
-			extension.Table,
-		),
-	)
+	md := goldmark.New(goldmark.WithExtensions(extension.Table))
 	if err := md.Convert([]byte(markdown), &htmlBuf); err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	page := fmt.Sprintf("<!doctype html><html><head><meta charset=\"utf-8\"><title>%s</title>%s</head><body>%s</body></html>",
@@ -289,8 +297,8 @@ func (i *installReport) write(p *Port) (string, string, error) {
 		htmlBuf.String(),
 	)
 	if err := os.WriteFile(htmlPath, []byte(page), os.ModePerm); err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	return mdPath, htmlPath, nil
+	return htmlPath, nil
 }

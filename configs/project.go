@@ -133,11 +133,17 @@ func (p Project) deploy(force bool) error {
 		Force:     force,
 		Recursive: true,
 	}
+
+	// Collect a single deploy-wide report that includes all project ports.
+	deployReport := newInstallReport(p.GetName())
+
 	for _, nameVersion := range p.Ports {
 		var port Port
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return fmt.Errorf("failed to init %s -> %w", nameVersion, err)
 		}
+
+		port.installReport = deployReport
 		if _, err := port.Install(options); err != nil {
 			return fmt.Errorf("failed to install %s -> %w", nameVersion, err)
 		}

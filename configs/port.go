@@ -55,7 +55,7 @@ type Port struct {
 	Version       string                    `toml:"-"`
 	Parent        string                    `toml:"-"`
 	DevDep        bool                      `toml:"-"` // Whether the port is a dev_dependences.
-	Native        bool                      `toml:"-"` // Whether the port's parent is a member of dev_dependences.
+	HostDep       bool                      `toml:"-"` // Whether the port is a dependencies of a dev_dependencies.
 	MatchedConfig *buildsystems.BuildConfig `toml:"-"`
 	PackageDir    string                    `toml:"-"`
 	InstalledDir  string                    `toml:"-"`
@@ -107,7 +107,7 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	}
 
 	// Propagate build_tool flag from package to port.
-	p.Native = p.Native || p.Package.BuildTool
+	p.HostDep = p.HostDep || p.Package.BuildTool
 
 	// Convert build type to lowercase for all build configs.
 	for index := range p.BuildConfigs {
@@ -269,7 +269,7 @@ func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]stri
 			return err
 		}
 
-		if p.DevDep || p.Native {
+		if p.DevDep || p.HostDep {
 			files = append(files, filepath.Join(p.ctx.Platform().GetHostName()+"-dev", relativePath))
 		} else {
 			platformProject := fmt.Sprintf("%s@%s@%s", platformName, projectName, p.ctx.BuildType())
@@ -327,7 +327,7 @@ func (p Port) checkPatternMatch(pattern string) bool {
 	// For dev mode, we change platformName to x86_64-windows-dev, x86_64-macos-dev, x86_64-linux-dev,
 	// then we can match the most like pattern.
 	platformName := p.ctx.Platform().GetName()
-	if p.DevDep || p.Native {
+	if p.DevDep || p.HostDep {
 		platformName = p.ctx.Platform().GetHostName() + "-dev"
 	} else if platformName == "" { // If empty, set as host system name.
 		platformName = "*" + runtime.GOOS + "*"
