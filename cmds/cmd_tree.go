@@ -249,7 +249,7 @@ func (t *treeCmd) printTree(info *portInfo) {
 
 	// Print statistics.
 	color.Printf(color.Line, "---------------------------------------------\n")
-	color.Printf(color.Summary, "summary: dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
+	color.Printf(color.Summary, "dependencies: %d  dev_dependencies: %d\n", depCount, devDepCount)
 }
 
 func (t *treeCmd) countDependencies(info *portInfo) (int, int) {

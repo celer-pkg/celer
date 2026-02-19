@@ -98,7 +98,7 @@ func (a *autoremoveCmd) autoremove() error {
 		// Do remove dev_package.
 		var port configs.Port
 		port.DevDep = true
-		port.Native = true
+		port.HostDep = true
 		if err := port.Init(a.celer, nameVersion); err != nil {
 			return err
 		}

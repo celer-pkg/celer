@@ -58,7 +58,7 @@ func (q qmake) configureOptions() ([]string, error) {
 
 	// Remove common cross compile args for native build.
 	rootfs := q.Ctx.Platform().GetRootFS()
-	if q.PortConfig.Native || q.BuildConfig.DevDep {
+	if q.PortConfig.HostDev || q.BuildConfig.DevDep {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.Contains(element, "-sysroot")
 		})

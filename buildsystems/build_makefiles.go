@@ -96,7 +96,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 
 	// Remove common cross compile args for native build.
 	toolchain := m.Ctx.Platform().GetToolchain()
-	if m.PortConfig.Native || m.BuildConfig.DevDep || toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
+	if m.PortConfig.HostDev || m.BuildConfig.DevDep || toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.HasPrefix(element, "--host=") ||
 				strings.HasPrefix(element, "--sysroot=") ||

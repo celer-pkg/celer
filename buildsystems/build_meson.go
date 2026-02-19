@@ -158,7 +158,7 @@ func (m meson) Configure(options []string) error {
 	var command string
 	joinedArgs := strings.Join(options, " ")
 
-	if m.DevDep || m.Native {
+	if m.DevDep || m.HostDev {
 		// For dev dependencies: native compilation (build_machine == host_machine).
 		// Use native_file.toml instead of cross_file.toml.
 		nativeFile, err := m.generateNativeFile()
