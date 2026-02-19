@@ -5,9 +5,9 @@ import (
 	"celer/configs"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
+	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
-	"errors"
 	"os"
 	"path/filepath"
 	"slices"
@@ -170,12 +170,14 @@ func (c *cleanCmd) cleanAll() error {
 		return nil
 	}
 
+	var cleaned bool
 	entities, err := os.ReadDir(dirs.BuildtreesDir)
 	if err != nil {
 		return err
 	}
 
 	for _, entity := range entities {
+		cleaned = false
 		nameVersion := entity.Name()
 		buildDir := filepath.Join(dirs.BuildtreesDir, entity.Name())
 		entities, err := os.ReadDir(buildDir)
@@ -183,8 +185,9 @@ func (c *cleanCmd) cleanAll() error {
 			return err
 		}
 
-		// Remove all except src.
+	leaveLoop: // Remove all except src.
 		for _, entity := range entities {
+			// Remove build dir and log files.
 			if entity.Name() != "src" {
 				if err := os.RemoveAll(filepath.Join(buildDir, entity.Name())); err != nil {
 					return err
@@ -194,14 +197,21 @@ func (c *cleanCmd) cleanAll() error {
 			// Clean repo.
 			var port configs.Port
 			if err := port.Init(c.celer, nameVersion); err != nil {
+				if errors.Is(err, errors.ErrPortNotFound) {
+					color.Printf(color.Warning, "[clean %s]: cannot find it in ports, clean is skipped.\n", port.NameVersion())
+					break leaveLoop
+				}
 				return err
 			}
 			if err := port.MatchedConfig.Clean(); err != nil {
 				return err
 			}
+			cleaned = true
 		}
 
-		color.Printf(color.Hint, "✔ %s\n", entity.Name())
+		if cleaned {
+			color.Printf(color.Hint, "✔ %s\n", entity.Name())
+		}
 	}
 
 	return nil
