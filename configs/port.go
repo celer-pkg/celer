@@ -90,9 +90,9 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	portInPorts := dirs.GetPortPath(parts[0], parts[1])
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		if p.Parent != "" {
-			return fmt.Errorf("%s specified in %s is not defined", nameVersion, p.Parent)
+			return fmt.Errorf("%w for %s in %s", errors.ErrPortNotFound, nameVersion, p.Parent)
 		} else {
-			return fmt.Errorf("port %s is not defined", nameVersion)
+			return fmt.Errorf("%w for %s", errors.ErrPortNotFound, nameVersion)
 		}
 	}
 

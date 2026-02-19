@@ -5,6 +5,7 @@ import (
 )
 
 var (
+	ErrPortNotFound                 = errors.New("port is not found")
 	ErrNoMatchedConfigFound         = errors.New("no matched config found")
 	ErrRepoNotExit                  = errors.New("repo not exist")
 	ErrInvalidBuildType             = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
