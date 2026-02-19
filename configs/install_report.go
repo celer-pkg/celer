@@ -133,8 +133,8 @@ func (i *installReport) add(port *Port, installedFrom string) {
 		return
 	}
 
-	// Prefer richer information over "already installed" records.
-	if old.InstalledFrom == "already installed" && entry.InstalledFrom != "already installed" {
+	// Prefer richer information over "preinstalled" records.
+	if old.InstalledFrom == "preinstalled" && entry.InstalledFrom != "preinstalled" {
 		i.entries[key] = entry
 	}
 }
@@ -146,13 +146,20 @@ func (i *installReport) renderMarkdown(p *Port) string {
 		}
 		return value
 	}
+	percent := func(part, total int) string {
+		if total <= 0 {
+			return "0.0%"
+		}
+		return fmt.Sprintf("%.1f%%", float64(part)*100.0/float64(total))
+	}
 
 	var (
-		lines                 []string
-		buildtimeCount        int
-		runtimeCount          int
-		alreadyInstalledCount int
+		lines             []string
+		buildtimeCount    int
+		runtimeCount      int
+		preinstalledCount int
 	)
+	installedFromCount := make(map[string]int)
 
 	orderedEntries := i.orderedEntries()
 	for _, entry := range orderedEntries {
@@ -162,25 +169,56 @@ func (i *installReport) renderMarkdown(p *Port) string {
 			runtimeCount++
 		}
 
-		if entry.InstalledFrom == "already installed" {
-			alreadyInstalledCount++
+		if entry.InstalledFrom == "preinstalled" {
+			preinstalledCount++
 		}
+
+		installedFrom := normalize(entry.InstalledFrom)
+		installedFromCount[installedFrom]++
 	}
-	freshInstallCount := len(orderedEntries) - alreadyInstalledCount
+	freshInstallCount := len(orderedEntries) - preinstalledCount
 
 	lines = append(lines, "# Install Report")
 	lines = append(lines, "")
-	lines = append(lines, fmt.Sprintf("Generated at `%s`.", time.Now().Local().Format("2006-01-02 15:04:05")))
+	lines = append(lines, fmt.Sprintf("Generated at `%s`", time.Now().Local().Format("2006-01-02 15:04:05")))
 	lines = append(lines, "")
 	lines = append(lines, "## Overview")
 	lines = append(lines, "")
 	lines = append(lines, fmt.Sprintf("- Total packages: `%d`", len(orderedEntries)))
 	lines = append(lines, fmt.Sprintf("- Fresh installed: `%d`", freshInstallCount))
-	lines = append(lines, fmt.Sprintf("- Already installed: `%d`", alreadyInstalledCount))
+	lines = append(lines, fmt.Sprintf("- Preinstalled: `%d`", preinstalledCount))
 	lines = append(lines, fmt.Sprintf("- Buildtime dependencies: `%d`", buildtimeCount))
 	lines = append(lines, fmt.Sprintf("- Runtime dependencies: `%d`", runtimeCount))
 	lines = append(lines, "")
-	lines = append(lines, "## Build Environment")
+	lines = append(lines, "### Installed From Distribution")
+	lines = append(lines, "")
+	lines = append(lines, "| Installed From | Count | Percentage |")
+	lines = append(lines, "| --- | --- | --- |")
+
+	type installedFromStat struct {
+		name  string
+		count int
+	}
+	stats := make([]installedFromStat, 0, len(installedFromCount))
+	for name, count := range installedFromCount {
+		stats = append(stats, installedFromStat{name: name, count: count})
+	}
+	sort.SliceStable(stats, func(a, b int) bool {
+		if stats[a].count != stats[b].count {
+			return stats[a].count > stats[b].count
+		}
+		return stats[a].name < stats[b].name
+	})
+	for _, stat := range stats {
+		lines = append(lines, fmt.Sprintf("| %s | `%d` | `%s` |",
+			stat.name,
+			stat.count,
+			percent(stat.count, len(orderedEntries)),
+		))
+	}
+
+	lines = append(lines, "")
+	lines = append(lines, "## Workspace Configuration")
 	lines = append(lines, "")
 	lines = append(lines, "| Name | Value |")
 	lines = append(lines, "| --- | --- |")

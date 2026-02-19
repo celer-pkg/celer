@@ -28,7 +28,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 
 		finalFrom := installedFrom
 		if finalFrom == "" {
-			finalFrom = "already installed"
+			finalFrom = "preinstalled"
 		}
 		p.installReport.add(p, finalFrom)
 
@@ -55,13 +55,13 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		return "", err
 	}
 
-	// If already installed and not with "--force/-f", report and return.
+	// If preinstalled and not with "--force/-f", report and return.
 	if installed && !options.Force {
 		if p.IsHostSupported() {
 			color.Printf(color.List, "\n[✔] -- package: %s\n", p.NameVersion())
 			color.Printf(color.Hint, "Location: %s\n", installedDir)
 		}
-		installedFrom = "already installed"
+		installedFrom = "preinstalled"
 		return "", nil
 	}
 
@@ -588,7 +588,7 @@ func (p Port) installAllDeps(options InstallOptions) error {
 			return err
 		}
 		if !installed || (options.Force && options.Recursive) {
-			// Always ensure sub-dependencies are installed first, even if the dependency itself is already installed.
+			// Always ensure sub-dependencies are installed first, even if the dependency itself is preinstalled.
 			// This ensures transitive dependencies are always available before installing the dependency.
 			if err := port.installAllDeps(options); err != nil {
 				return err
@@ -598,7 +598,7 @@ func (p Port) installAllDeps(options InstallOptions) error {
 				return err
 			}
 		} else if p.installReport != nil {
-			p.installReport.add(&port, "already installed")
+			p.installReport.add(&port, "preinstalled")
 			if err := port.collectInstalledDepsForReport(); err != nil {
 				return err
 			}
@@ -638,7 +638,7 @@ func (p Port) installAllDeps(options InstallOptions) error {
 				return err
 			}
 		} else if p.installReport != nil {
-			p.installReport.add(&port, "already installed")
+			p.installReport.add(&port, "preinstalled")
 			if err := port.collectInstalledDepsForReport(); err != nil {
 				return err
 			}
@@ -649,7 +649,7 @@ func (p Port) installAllDeps(options InstallOptions) error {
 }
 
 // collectInstalledDepsForReport recursively collects dependency entries into install report
-// when a dependency is already installed and we skip real installation.
+// when a dependency is preinstalled and we skip real installation.
 func (p Port) collectInstalledDepsForReport() error {
 	if p.installReport == nil {
 		return nil
@@ -672,7 +672,7 @@ func (p Port) collectInstalledDepsForReport() error {
 			return err
 		}
 
-		p.installReport.add(&port, "already installed")
+		p.installReport.add(&port, "preinstalled")
 		if err := port.collectInstalledDepsForReport(); err != nil {
 			return err
 		}
@@ -694,7 +694,7 @@ func (p Port) collectInstalledDepsForReport() error {
 			return err
 		}
 
-		p.installReport.add(&port, "already installed")
+		p.installReport.add(&port, "preinstalled")
 		if err := port.collectInstalledDepsForReport(); err != nil {
 			return err
 		}
