@@ -3,6 +3,7 @@ package buildsystems
 import (
 	"reflect"
 	"runtime"
+	"slices"
 	"strings"
 )
 
@@ -78,20 +79,9 @@ func getPlatformSuffix(target string) string {
 }
 
 func (b BuildConfig) buildTarget() string {
-	switch {
-	case b.Pattern == "" || b.Pattern == "*":
+	systemName := strings.ToLower(b.Ctx.Platform().GetToolchain().GetSystemName())
+	if !slices.Contains([]string{"windows", "linux", "darwin"}, systemName) {
 		return runtime.GOOS
-
-	case strings.Contains(b.Pattern, "windows"):
-		return "windows"
-
-	case strings.Contains(b.Pattern, "linux"):
-		return "linux"
-
-	case strings.Contains(b.Pattern, "darwin"):
-		return "darwin"
-
-	default:
-		panic("unknown pattern: " + b.Pattern)
 	}
+	return systemName
 }

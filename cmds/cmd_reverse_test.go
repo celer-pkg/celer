@@ -139,7 +139,7 @@ func TestReverseCmd_Without_Dev(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 
 	cmdReverse := reverseCmd{celer: celer}
@@ -194,7 +194,7 @@ func TestReverseCmd_With_Dev(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 
 	// Search as default mode.

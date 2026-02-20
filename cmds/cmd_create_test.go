@@ -216,7 +216,7 @@ func TestCreateCmd(t *testing.T) {
 	// Init celer.
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 
 	// ============= Create platform ============= //
 	t.Run("CreatePlatformSuccess", func(t *testing.T) {

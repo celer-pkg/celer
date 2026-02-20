@@ -128,14 +128,14 @@ func TestInitCmd_Command(t *testing.T) {
 	}{
 		{
 			name:        "valid_git_repo",
-			url:         "https://github.com/celer-pkg/test-conf.git",
+			url:         test_conf_repo_url,
 			branch:      "",
 			expectError: false,
 			description: "Should succeed with valid git repository",
 		},
 		{
 			name:        "valid_git_repo_with_branch",
-			url:         "https://github.com/celer-pkg/test-conf.git",
+			url:         test_conf_repo_url,
 			branch:      "master", // Use master branch which likely exists
 			expectError: false,
 			description: "Should succeed with valid git repository and specific branch",

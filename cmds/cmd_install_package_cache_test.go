@@ -39,7 +39,7 @@ func TestInstall_PackageCache_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
@@ -117,7 +117,7 @@ func TestInstall_PackageCache_With_Deps_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
@@ -206,7 +206,7 @@ func TestInstall_PackageCache_Prebuilt_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
@@ -287,7 +287,7 @@ func TestInstall_PackageCache_DirNotDefined_Failed(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
@@ -329,7 +329,7 @@ func TestInstall_PackageCache_TokenNotDefined_Failed(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
@@ -372,7 +372,7 @@ func TestInstall_PackageCache_TokenNotSpecified_Failed(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
@@ -416,7 +416,7 @@ func TestInstall_PackageCache_TokenNotMatch_Failed(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
@@ -460,7 +460,7 @@ func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
@@ -526,7 +526,7 @@ func TestInstall_PackageCache_With_Commit_Failed(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))

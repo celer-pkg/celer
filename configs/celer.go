@@ -8,7 +8,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/encrypt"
 	"celer/pkgs/errors"
-	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
 	"fmt"
@@ -21,7 +20,10 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-const defaultPortsRepo = "https://github.com/celer-pkg/ports.git"
+const (
+	defaultPortsRepoUrl   = "https://github.com/celer-pkg/ports.git"
+	defaultPortRepoBranch = "feature/use_system_name_and_processor_instead_of_pattern"
+)
 
 var Version = "v0.0.0" // It would be set by build script.
 
@@ -178,7 +180,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 			return fmt.Errorf("detect celer.toolchain -> %w", err)
 		}
 		c.platform.Toolchain = &toolchain
-		c.platform.Toolchain.SystemName = expr.UpperFirst(runtime.GOOS)
+		c.platform.Toolchain.SystemName = runtime.GOOS
 
 		switch runtime.GOARCH {
 		case "amd64":
@@ -749,7 +751,7 @@ func (c *Celer) portsRepoUrl() string {
 		return portsRepo
 	}
 
-	return defaultPortsRepo
+	return defaultPortsRepoUrl
 }
 
 func (c *Celer) clonePorts() error {
@@ -790,7 +792,7 @@ func (c *Celer) clonePorts() error {
 			return err
 		}
 
-		if err := git.CloneRepo("[clone ports]", portsRepoUrl, "", 0, portsDir); err != nil {
+		if err := git.CloneRepo("[clone ports]", portsRepoUrl, defaultPortRepoBranch, 0, portsDir); err != nil {
 			return err
 		}
 	}

@@ -43,7 +43,7 @@ func (t *Toolchain) Validate() error {
 	if strings.TrimSpace(t.SystemName) == "" {
 		return fmt.Errorf("toolchain.system_name is empty")
 	}
-	t.SystemName = expr.UpperFirst(t.SystemName)
+	t.SystemName = strings.ToLower(t.SystemName)
 
 	// Validate toolchain.system_processor.
 	if strings.TrimSpace(t.SystemProcessor) == "" {

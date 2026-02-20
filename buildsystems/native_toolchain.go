@@ -20,7 +20,7 @@ func (n nativeToolchain) GetName() string {
 	}
 }
 
-func (n nativeToolchain) GetSystemName() string { return expr.UpperFirst(runtime.GOOS) }
+func (n nativeToolchain) GetSystemName() string { return runtime.GOOS }
 func (n nativeToolchain) GetSystemProcessor() string {
 	switch runtime.GOARCH {
 	case "amd64":
