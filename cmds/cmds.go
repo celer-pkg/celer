@@ -9,7 +9,7 @@ import (
 
 const (
 	test_conf_repo_url    = "https://github.com/celer-pkg/test-conf.git"
-	test_conf_repo_branch = "feature/use_system_name_and_processor_instead_of_pattern"
+	test_conf_repo_branch = ""
 )
 
 // Interface for command.
