@@ -22,7 +22,7 @@ import (
 
 const (
 	defaultPortsRepoUrl   = "https://github.com/celer-pkg/ports.git"
-	defaultPortRepoBranch = "feature/use_system_name_and_processor_instead_of_pattern"
+	defaultPortRepoBranch = ""
 )
 
 var Version = "v0.0.0" // It would be set by build script.
