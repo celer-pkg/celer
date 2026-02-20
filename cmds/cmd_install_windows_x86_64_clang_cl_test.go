@@ -55,7 +55,7 @@ func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild boo
 	const project = "project_test_install"
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	if platform != "" {

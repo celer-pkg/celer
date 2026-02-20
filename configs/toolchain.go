@@ -2,6 +2,7 @@ package configs
 
 import (
 	"celer/context"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
@@ -74,7 +75,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	}
 
 	fmt.Fprintf(toolchain, "\n# Target information for cross-compile.\n")
-	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_NAME", t.SystemName)
+	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_NAME", expr.UpperFirst(t.SystemName))
 	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
 	fmt.Fprintf(toolchain, "\n# Toolchain for cross-compile.\n")

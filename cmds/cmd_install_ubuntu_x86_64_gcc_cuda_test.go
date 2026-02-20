@@ -38,7 +38,7 @@ func TestInstall_x86_64_GCC_CUDA(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))

@@ -41,7 +41,7 @@ func TestInstall_With_Force(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))
@@ -111,7 +111,7 @@ func TestInstall_With_Force_Recursive(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPlatform(platform))

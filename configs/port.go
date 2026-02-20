@@ -118,7 +118,11 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	}
 
 	// Set matchedConfig as prebuilt config when no config found in toml.
-	p.MatchedConfig = p.findMatchedConfig(p.ctx.BuildType())
+	matchedConfig, err := p.findMatchedConfig(p.ctx.BuildType())
+	if err != nil {
+		return err
+	}
+	p.MatchedConfig = matchedConfig
 	if p.MatchedConfig == nil {
 		return fmt.Errorf("%w for %s", errors.ErrNoMatchedConfigFound, p.NameVersion())
 	}
@@ -188,7 +192,8 @@ func (p Port) Write(portPath string) error {
 	p.Package.SrcDir = ""
 	p.BuildConfigs = []buildsystems.BuildConfig{}
 	p.BuildConfigs = append(p.BuildConfigs, buildsystems.BuildConfig{
-		Pattern:         "",
+		SystemName:      "",
+		SystemProcessor: "",
 		BuildSystem:     "",
 		BuildTools:      []string{},
 		LibraryType:     "",
@@ -226,27 +231,44 @@ func (p Port) Write(portPath string) error {
 	return os.WriteFile(portPath, bytes, os.ModePerm)
 }
 
-func (p *Port) findMatchedConfig(buildType string) *buildsystems.BuildConfig {
+func (p *Port) findMatchedConfig(buildType string) (*buildsystems.BuildConfig, error) {
+	matchedIndexes := make([]int, 0, len(p.BuildConfigs))
+
 	for index, config := range p.BuildConfigs {
-		if p.checkPatternMatch(config.Pattern) {
-			// If build type is not specified in port.toml,
-			// then set it to the build type defined in celer.toml.
-			if p.BuildConfigs[index].BuildType == "" {
-				p.BuildConfigs[index].BuildType = buildType
-			}
-
-			// If LibraryType is empty, set it to `shared`.
-			if strings.TrimSpace(config.LibraryType) == "" {
-				p.BuildConfigs[index].LibraryType = "shared"
-			}
-
-			// Placeholder variables.
-			p.BuildConfigs[index].ExpressVars.Init(p.ctx.Vairables(), p.BuildConfigs[index])
-			return &p.BuildConfigs[index]
+		if p.matchBuildConfig(config) {
+			matchedIndexes = append(matchedIndexes, index)
 		}
 	}
 
-	return nil
+	if len(matchedIndexes) == 0 {
+		return nil, nil
+	}
+	if len(matchedIndexes) > 1 {
+		return nil, fmt.Errorf(
+			"port %s has %d build_configs matching current platform (%s/%s), please keep only one",
+			p.NameVersion(),
+			len(matchedIndexes),
+			p.currentSystemName(),
+			p.currentSystemProcessor(),
+		)
+	}
+
+	index := matchedIndexes[0]
+	config := p.BuildConfigs[index]
+
+	// If build type is not specified in port.toml, then set it to the build type defined in celer.toml.
+	if p.BuildConfigs[index].BuildType == "" {
+		p.BuildConfigs[index].BuildType = buildType
+	}
+
+	// If LibraryType is empty, set it to `shared`.
+	if strings.TrimSpace(config.LibraryType) == "" {
+		p.BuildConfigs[index].LibraryType = "shared"
+	}
+
+	// Placeholder variables.
+	p.BuildConfigs[index].ExpressVars.Init(p.ctx.Vairables(), p.BuildConfigs[index])
+	return &p.BuildConfigs[index], nil
 }
 
 func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]string, error) {
@@ -306,10 +328,6 @@ func (p Port) validate() error {
 	}
 
 	for _, config := range p.BuildConfigs {
-		if !p.checkPatternMatch(config.Pattern) {
-			continue
-		}
-
 		if err := config.Validate(); err != nil {
 			return err
 		}
@@ -318,32 +336,38 @@ func (p Port) validate() error {
 	return nil
 }
 
-func (p Port) checkPatternMatch(pattern string) bool {
-	pattern = strings.TrimSpace(pattern)
-	if pattern == "" || pattern == "*" {
+func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
+	systemName := strings.ToLower(strings.TrimSpace(config.SystemName))
+	systemProcessor := strings.ToLower(strings.TrimSpace(config.SystemProcessor))
+
+	currentName := strings.ToLower(p.currentSystemName())
+	currentProcessor := strings.ToLower(p.currentSystemProcessor())
+
+	// No system constraints means this config is global (all platforms).
+	if systemName == "" && systemProcessor == "" {
 		return true
 	}
-
-	// For dev mode, we change platformName to x86_64-windows-dev, x86_64-macos-dev, x86_64-linux-dev,
-	// then we can match the most like pattern.
-	platformName := p.ctx.Platform().GetName()
-	if p.DevDep || p.HostDep {
-		platformName = p.ctx.Platform().GetHostName() + "-dev"
-	} else if platformName == "" { // If empty, set as host system name.
-		platformName = "*" + runtime.GOOS + "*"
+	if systemName != "" && systemName != currentName {
+		return false
 	}
-
-	if pattern[0] == '*' && pattern[len(pattern)-1] == '*' {
-		return strings.Contains(platformName, pattern[1:len(pattern)-1])
+	if systemProcessor != "" && systemProcessor != currentProcessor {
+		return false
 	}
+	return true
+}
 
-	if pattern[0] == '*' {
-		return strings.HasSuffix(platformName, pattern[1:])
+func (p Port) currentSystemName() string {
+	toolchain := p.ctx.Platform().GetToolchain()
+	if toolchain != nil && strings.TrimSpace(toolchain.GetSystemName()) != "" {
+		return toolchain.GetSystemName()
 	}
+	return runtime.GOOS
+}
 
-	if pattern[len(pattern)-1] == '*' {
-		return strings.HasPrefix(platformName, pattern[:len(pattern)-1])
+func (p Port) currentSystemProcessor() string {
+	toolchain := p.ctx.Platform().GetToolchain()
+	if toolchain != nil && strings.TrimSpace(toolchain.GetSystemProcessor()) != "" {
+		return toolchain.GetSystemProcessor()
 	}
-
-	return platformName == pattern
+	return runtime.GOARCH
 }

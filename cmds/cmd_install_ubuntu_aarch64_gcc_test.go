@@ -97,7 +97,7 @@ func buildWithAArch64GCC(t *testing.T, platform, nameVersion string, nobuild boo
 	const project = "project_test_install"
 	celer := configs.NewCeler()
 	check(celer.Init())
-	check(celer.CloneConf("https://github.com/celer-pkg/test-conf.git", "", true))
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	if platform != "" {
 		check(celer.SetPlatform(platform))

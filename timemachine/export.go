@@ -117,8 +117,17 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 		return nil, err
 	}
 
-	var snapshots []PortSnapshot
-	platformName := e.celer.Platform().GetName()
+	var (
+		snapshots       []PortSnapshot
+		systemName      string
+		systemProcessor string
+	)
+
+	toolchain := e.celer.Platform().GetToolchain()
+	if toolchain != nil {
+		systemName = toolchain.GetSystemName()
+		systemProcessor = toolchain.GetSystemProcessor()
+	}
 
 	for nameVersion, port := range e.usedPorts {
 		// Get commit hash.
@@ -142,7 +151,8 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 			return nil, fmt.Errorf("no matched build config for port %s", nameVersion)
 		}
 		matchedConfig := *port.MatchedConfig
-		matchedConfig.Pattern = platformName
+		matchedConfig.SystemName = systemName
+		matchedConfig.SystemProcessor = systemProcessor
 		exportedPort.BuildConfigs = []buildsystems.BuildConfig{matchedConfig}
 
 		// Write port.toml.
