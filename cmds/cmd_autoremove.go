@@ -25,7 +25,21 @@ func (a *autoremoveCmd) Command(celer *configs.Celer) *cobra.Command {
 	a.celer = celer
 	command := &cobra.Command{
 		Use:   "autoremove",
-		Short: "Remove libraires that not belongs to current project.",
+		Short: "Remove libraries that do not belong to current project.",
+		Long: `Remove libraries that do not belong to current project.
+
+This command scans installed runtime and buildtime packages, compares them
+against the dependency graph required by the current project, and removes
+packages that are no longer needed.
+
+Use --purge to also remove cached package archives, and --build-cache to
+remove build cache together with removed packages.
+
+Examples:
+  celer autoremove                      	# Remove unused installed packages
+  celer autoremove --purge              	# Also remove package archives
+  celer autoremove --build-cache        	# Also remove build cache
+  celer autoremove --purge --build-cache	# Remove packages, archives, and build cache`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := a.celer.Init(); err != nil {
 				return configs.PrintError(err, "failed to init celer.")
