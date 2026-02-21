@@ -45,7 +45,7 @@ celer autoremove -p
 ```shell
 celer autoremove --purge --build-cache
 # or
-celer autoremove -pc
+celer autoremove -p -c
 ```
 
 ## 📖 Use Cases

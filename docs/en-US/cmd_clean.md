@@ -18,11 +18,11 @@ celer clean [flags] [package/project...]
 
 ## ⚙️ Command Options
 
-| Option         | Short | Description                                 |
-| -------------- | ----- | ------------------------------------------- |
-| --all          | -a    | Clean build cache for all packages/projects  |
-| --dev          | -d    | Clean cache for dev mode packages/projects   |
-| --recursive    | -r    | Recursively clean cache for package/project and its dependencies |
+| Option         | Short | Description                                      |
+| -------------- | ----- | ------------------------------------------------ |
+| --all          | -a    | clean all packages                               |
+| --dev          | -d    | clean package/project for dev mode.              |
+| --recursive    | -r    | clean package/project along with its depedencies |
 
 ## 💡 Usage Examples
 
@@ -67,4 +67,5 @@ celer clean -a
 
 > **Note:**
 > 1. For git clone libraries, this command will clean the source directory.
-> 2. For URL download libraries, this command will re-extract the archive to replace the source directory.
+> 2. For URL download libraries, Celer initializes a local git repo for sources; `clean` resets/cleans that repo instead of re-extracting on every clean.
+> 3. For project targets (without `@`), current behavior cleans both normal and dev build cache for each project port.
