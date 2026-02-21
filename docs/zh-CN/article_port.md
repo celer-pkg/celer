@@ -25,7 +25,8 @@ src_dir = "xxx"         # 可选字段
 supported_hosts = []    # 可选字段
 
 [[build_configs]]
-pattern = "*linux*"     # 可选字段，默认空
+system_name = "linux"   # 可选选择器
+system_processor = "x86_64" # 可选选择器
 build_system = "cmake"  # 必填字段，可选值：cmake、makefiles、b2、meson 等
 cmake_generator = []    # 可选字段
 build_tools = []        # 可选字段
@@ -80,22 +81,21 @@ options = [
 
 ## 🛠️ 构建配置详解
 
-&emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **pattern** 自动找到匹配的 **build_config** 来组装编译命令。  
+&emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **system_name/system_processor** 自动找到匹配的 **build_config** 来组装编译命令。  
 &emsp;&emsp;第三方库的编译配置通常在不同系统上会有差异。这些差异通常涉及平台特定的编译标志或甚至 entirely distinct build steps。一些库甚至需要特殊的预处理或后处理才能在 Windows 上正确编译。
 
-### 1.2.1 pattern
+### 1.2.1 system_name, system_processor
 
-&emsp;&emsp;**pattern** 用于匹配 **conf** 目录下的 **platform** 文件。其匹配规则与以下表格类似：
+&emsp;&emsp;用于匹配 platform toolchain 中的选择器（`toolchain.system_name`、`toolchain.system_processor`）。匹配规则如下：
 
-| 模式 | 描述 |
+| 选择器 | 描述 |
 | --- | --- |
-| * | 空字符串，也为默认值，意味着编译配置不区分系统平台。切换到任何平台都可以使用相同的 buildconfig 来编译 |
-| *linux* | 匹配所有 linux 系统 |
-| *windows* | 匹配所有 windows 系统 |
-| x86_64‑linux* | 匹配所有 cpu 架构为 x86_64，系统为 linux 的平台 |
-| aarch64‑linux* | 匹配所有 cpu 架构为 aarch64，系统为 linux 的平台 |
-| x86_64‑windows* | 匹配所有 cpu 架构为 x86_64，系统为 windows 的平台 |
-| aarch64‑windows* | 匹配所有 cpu 架构为 aarch64，系统为 windows 的平台 |
+| `system_name` 和 `system_processor` 都不设置 | 匹配所有平台（无选择器约束） |
+| `system_name = "linux"` | 匹配所有 Linux 平台 |
+| `system_name = "windows"` | 匹配所有 Windows 平台 |
+| `system_name = "linux"` + `system_processor = "x86_64"` | 匹配 x86_64 Linux 平台 |
+| `system_name = "linux"` + `system_processor = "aarch64"` | 匹配 aarch64 Linux 平台 |
+| `system_name = "windows"` + `system_processor = "x86_64"` | 匹配 x86_64 Windows 平台 |
 
 ### 1.2.2 build_system
 
@@ -199,7 +199,7 @@ options = [
 ```
 # =============== build for windows ============ #
 [[build_configs]]
-pattern = "*windows*"
+system_name = "windows"
 build_system = "makefiles"
 dev_dependencies = ["autoconf@2.72"]
 pre_install = [
