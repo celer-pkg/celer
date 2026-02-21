@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"celer/buildtools"
 	"celer/configs"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -120,12 +122,12 @@ func TestCleanCmd_Completion(t *testing.T) {
 	dirs.RemoveAllForTest()
 
 	// Setup test environment.
-	os.MkdirAll(dirs.BuildtreesDir, 0755)
-	os.MkdirAll(dirs.ConfProjectsDir, 0755)
+	os.MkdirAll(dirs.BuildtreesDir, os.ModePerm)
+	os.MkdirAll(dirs.ConfProjectsDir, os.ModePerm)
 
 	// Create test buildtrees.
-	os.MkdirAll(filepath.Join(dirs.BuildtreesDir, "x264@stable"), 0755)
-	os.MkdirAll(filepath.Join(dirs.BuildtreesDir, "ffmpeg@3.4.13"), 0755)
+	os.MkdirAll(filepath.Join(dirs.BuildtreesDir, "x264@stable"), os.ModePerm)
+	os.MkdirAll(filepath.Join(dirs.BuildtreesDir, "ffmpeg@3.4.13"), os.ModePerm)
 
 	// Create test projects.
 	os.WriteFile(filepath.Join(dirs.ConfProjectsDir, "project1.toml"), []byte{}, 0644)
@@ -198,6 +200,173 @@ func TestCleanCmd_Completion(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestCleanCmd_Completion_FilterAndShortFlags(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Setup test environment.
+	if err := os.MkdirAll(dirs.BuildtreesDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(dirs.ConfProjectsDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	// Buildtree entries.
+	if err := os.MkdirAll(filepath.Join(dirs.BuildtreesDir, "zlib@1.3.1"), os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dirs.BuildtreesDir, "not-a-dir"), []byte("x"), os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	// Project entries.
+	if err := os.WriteFile(filepath.Join(dirs.ConfProjectsDir, "proj1.toml"), []byte{}, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dirs.ConfProjectsDir, "README.md"), []byte{}, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(dirs.ConfProjectsDir, "nested"), os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	clean := cleanCmd{}
+	cmd := clean.Command(configs.NewCeler())
+
+	t.Run("short recursive flag", func(t *testing.T) {
+		suggestions, _ := clean.completion(cmd, nil, "-r")
+		found := slices.Contains(suggestions, "-r")
+		if !found {
+			t.Fatalf("expected -r in suggestions: %v", suggestions)
+		}
+	})
+
+	t.Run("short all flag", func(t *testing.T) {
+		suggestions, _ := clean.completion(cmd, nil, "-a")
+		found := slices.Contains(suggestions, "-a")
+		if !found {
+			t.Fatalf("expected -a in suggestions: %v", suggestions)
+		}
+	})
+
+	t.Run("ignore non toml project files", func(t *testing.T) {
+		suggestions, _ := clean.completion(cmd, nil, "R")
+		for _, suggestion := range suggestions {
+			if suggestion == "README" {
+				t.Fatalf("README should not be suggested: %v", suggestions)
+			}
+		}
+	})
+}
+
+func TestCleanCmd_CleanAll_BuildtreesNotExist(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	clean := cleanCmd{celer: &configs.Celer{}}
+	if err := clean.cleanAll(); err != nil {
+		t.Fatalf("cleanAll should return nil when buildtrees does not exist: %v", err)
+	}
+}
+
+func TestCleanCmd_CleanAll_NonDirEntryReturnsError(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	if err := os.MkdirAll(dirs.BuildtreesDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	nonDir := filepath.Join(dirs.BuildtreesDir, "some-file.txt")
+	if err := os.WriteFile(nonDir, []byte("data"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	clean := cleanCmd{celer: &configs.Celer{}}
+	if err := clean.cleanAll(); err == nil {
+		t.Fatal("cleanAll should return error for non-directory entry in buildtrees")
+	}
+}
+
+func TestCleanCmd_CleanAll_PortNotFound_RemovesNonSrcAndKeepsSrc(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	portDir := filepath.Join(dirs.BuildtreesDir, "unknown@0.0.1")
+	srcDir := filepath.Join(portDir, "src")
+	buildDir := filepath.Join(portDir, "a-build-dir")
+
+	if err := os.MkdirAll(srcDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(buildDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	clean := cleanCmd{celer: &configs.Celer{}}
+	if err := clean.cleanAll(); err != nil {
+		t.Fatalf("cleanAll should continue when port is not found: %v", err)
+	}
+
+	if !fileio.PathExists(srcDir) {
+		t.Fatalf("src dir should be kept: %s", srcDir)
+	}
+	if fileio.PathExists(buildDir) {
+		t.Fatalf("non-src build dir should be removed: %s", buildDir)
+	}
+}
+
+func TestCleanCmd_Execute_ValidateTargetsError(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Avoid ports cloning in celer.Init by making ports dir non-empty.
+	if err := os.MkdirAll(filepath.Join(dirs.PortsDir, "dummy"), os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	clean := cleanCmd{
+		celer: configs.NewCeler(),
+		all:   false,
+	}
+
+	if err := clean.celer.Init(); err != nil {
+		t.Fatalf("init celer: %v", err)
+	}
+
+	if err := buildtools.CheckTools(clean.celer, "git"); err != nil {
+		t.Fatalf("failed to check git: %v", err)
+	}
+
+	err := clean.execute([]string{})
+	if err == nil {
+		t.Fatal("expected validation error for empty targets")
+	}
+	if err != configs.ErrSilent {
+		t.Fatalf("expected ErrSilent, got: %#v", err)
+	}
+}
+
+func TestCleanCmd_Execute_AllWithoutTargets(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Avoid ports cloning in celer.Init by making ports dir non-empty.
+	if err := os.MkdirAll(filepath.Join(dirs.PortsDir, "dummy"), os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	clean := cleanCmd{
+		celer: configs.NewCeler(),
+		all:   true,
+	}
+
+	if err := clean.execute([]string{}); err != nil {
+		t.Fatalf("execute should succeed when --all is set with empty targets: %v", err)
 	}
 }
 

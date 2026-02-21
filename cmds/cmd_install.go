@@ -89,6 +89,12 @@ func (i *installCmd) runInstall(nameVersion string) error {
 		return configs.PrintError(err, "failed to initialize celer.")
 	}
 
+	// Check git first as it's needed for cloning and reading commit hashes,
+	// and must check tool after celer initialized, since "downloads" will be assign value after init.
+	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
+		return configs.PrintError(err, "failed to check build tool: git")
+	}
+
 	// Validate and clean input.
 	cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
 	if err != nil {
@@ -134,11 +140,6 @@ func (i *installCmd) install(nameVersion string) error {
 	color.Printf(color.Title, "🚀 start to install %s\n", nameVersion)
 	color.Printf(color.Title, "🛠️  platform: %s\n", i.celer.Global.Platform)
 	color.Println(color.Title, "=======================================================================")
-
-	// Check git first as it's needed for cloning and reading commit hashes
-	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
-		return configs.PrintError(err, "failed to check build tool: git")
-	}
 
 	// Overwrite global config.
 	if i.jobs != i.celer.Global.Jobs {

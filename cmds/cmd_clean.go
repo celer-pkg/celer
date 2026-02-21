@@ -60,12 +60,13 @@ Examples:
 }
 
 func (c *cleanCmd) execute(args []string) error {
-	if err := buildtools.CheckTools(c.celer, "git"); err != nil {
-		return err
-	}
-
 	if err := c.celer.Init(); err != nil {
 		return configs.PrintError(err, "failed to init celer.")
+	}
+
+	// Must check tool after celer initialized, since "downloads" will be assign value after init.
+	if err := buildtools.CheckTools(c.celer, "git"); err != nil {
+		return err
 	}
 
 	if c.all {
@@ -94,11 +95,6 @@ func (c *cleanCmd) validateTargets(targets []string) error {
 }
 
 func (c *cleanCmd) clean(targets ...string) error {
-	// git is required when clean port.
-	if err := buildtools.CheckTools(c.celer, "git"); err != nil {
-		return err
-	}
-
 	var summaries []string
 	for _, target := range targets {
 		if strings.Contains(target, "@") {
@@ -198,7 +194,7 @@ func (c *cleanCmd) cleanAll() error {
 			var port configs.Port
 			if err := port.Init(c.celer, nameVersion); err != nil {
 				if errors.Is(err, errors.ErrPortNotFound) {
-					color.Printf(color.Warning, "[clean %s]: cannot find it in ports, clean is skipped.\n", port.NameVersion())
+					color.Printf(color.Warning, "\n[clean %s]: cannot find it in ports, clean is skipped.\n", port.NameVersion())
 					break leaveLoop
 				}
 				return err

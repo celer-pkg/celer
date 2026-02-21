@@ -90,6 +90,9 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	if !fileio.PathExists(repoDir) {
 		return nil
 	}
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return fmt.Errorf("refuse to run git commands in non-repo dir: %s", repoDir)
+	}
 
 	// Check if repo is modified.
 	modified, err := IsModified(repoDir)
@@ -222,17 +225,19 @@ func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 
 // Clean clean git repo.
 func Clean(title, repoDir string) error {
-	if fileio.PathExists(filepath.Join(repoDir, ".git")) {
-		var commands []string
-		commands = append(commands, "git reset --hard")
-		commands = append(commands, "git clean -xfd")
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return fmt.Errorf("refuse to run git commands in non-repo dir: %s", repoDir)
+	}
 
-		commandLine := strings.Join(commands, " && ")
-		executor := cmd.NewExecutor(title, commandLine)
-		executor.SetWorkDir(repoDir)
-		if err := executor.Execute(); err != nil {
-			return err
-		}
+	var commands []string
+	commands = append(commands, "git reset --hard")
+	commands = append(commands, "git clean -xfd")
+
+	commandLine := strings.Join(commands, " && ")
+	executor := cmd.NewExecutor(title, commandLine)
+	executor.SetWorkDir(repoDir)
+	if err := executor.Execute(); err != nil {
+		return err
 	}
 
 	return nil
