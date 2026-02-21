@@ -242,6 +242,9 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		color.Printf(color.Warning, "\n================ WARNING: You're in offline mode currently! ================\n")
 	}
 
+	// Init express var.
+	c.expressVars.Init(c)
+
 	// Clone ports repo if empty.
 	if err := c.clonePorts(); err != nil {
 		return err
