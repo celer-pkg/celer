@@ -384,18 +384,21 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	}
 
 	// Remove outdated package.
-	var metaFileBackup string
 	localMeta := string(metaBytes)
 	if localMeta != newMeta {
 		color.Printf(color.Warning, "\n================ The outdated package of %s will be removed now. ================\n", p.NameVersion())
 
-		// Backup meta file to outdated dir.
-		metaFileBackup = filepath.Join(dirs.InstalledDir, "celer", "meta", "outdated", filepath.Base(p.metaFile))
-		if err := fileio.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
-			return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
-		}
-		if err := fileio.CopyFile(p.metaFile, metaFileBackup); err != nil {
-			return false, fmt.Errorf("failed to backup meta file -> %w", err)
+		// Backup current installed meta file if it exists.
+		if fileio.PathExists(p.metaFile) {
+			metaFileBackup := filepath.Join(dirs.InstalledDir, "celer", "meta", "outdated", filepath.Base(p.metaFile))
+			if err := fileio.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
+				return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
+			}
+			if err := fileio.CopyFile(p.metaFile, metaFileBackup); err != nil {
+				return false, fmt.Errorf("failed to backup meta file -> %w", err)
+			}
+		} else {
+			color.Printf(color.Warning, "[!] installed meta file not found, skip backup: %s\n", p.metaFile)
 		}
 
 		// Remove outdated package and install from source again.

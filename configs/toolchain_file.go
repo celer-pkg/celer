@@ -67,7 +67,6 @@ func (c *Celer) GenerateToolchainFile() error {
 	}
 
 	// Define global cmake vars, env vars, micro vars and compile flags.
-	c.expressVars.Init(c)
 	for index, item := range c.project.Vars {
 		if index == 0 {
 			fmt.Fprintf(&toolchain, "\n# Global cmake vars.\n")
