@@ -46,4 +46,5 @@ celer remove ffmpeg@5.1.6 --recursive --purge --build-cache
 ## 参数校验规则
 
 - 空包名会被拒绝。
+- 参数前后空白会在校验前被自动去除。
 - 不符合 `^[a-zA-Z0-9_-]+@[a-zA-Z0-9._-]+$` 的输入会被拒绝。
