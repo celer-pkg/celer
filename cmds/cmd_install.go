@@ -16,22 +16,24 @@ import (
 )
 
 type installCmd struct {
-	celer      *configs.Celer
-	dev        bool
-	force      bool
-	recursive  bool
-	storeCache bool
-	cacheToken string
-	jobs       int
-	verbose    bool
+	celer          *configs.Celer
+	dev            bool
+	force          bool
+	recursive      bool
+	storeCache     bool
+	cacheToken     string
+	jobs           int
+	verbose        bool
+	jobsChanged    bool
+	verboseChanged bool
 }
 
 func (i *installCmd) Command(celer *configs.Celer) *cobra.Command {
 	i.celer = celer
 	command := &cobra.Command{
 		Use:   "install",
-		Short: "Install a package.",
-		Long: `Install a package.
+		Short: "Install package(s).",
+		Long: `Install package(s).
 
 This command installs packages from available ports, either from the global
 ports repository or from project-specific ports. The package name must be
@@ -57,13 +59,16 @@ FLAGS:
 
 EXAMPLES:
   celer install opencv@4.8.0
+  celer install opencv@4.8.0 eigen@3.4.0
   celer install --dev gtest@1.12.1
   celer install --force --recursive boost@1.82.0
-  celer install --store-cache --cache-token abc123 eigen@3.4.0
-  celer install --jobs 8 --verbose opencv@4.8.0`,
-		Args: cobra.ExactArgs(1),
+  celer install --store-cache --cache-token=abc123 eigen@3.4.0
+  celer install --jobs=8 --verbose opencv@4.8.0`,
+		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return i.runInstall(args[0])
+			i.jobsChanged = cmd.Flags().Changed("jobs")
+			i.verboseChanged = cmd.Flags().Changed("verbose")
+			return i.runInstall(args)
 		},
 		ValidArgsFunction: i.completion,
 	}
@@ -84,7 +89,17 @@ EXAMPLES:
 	return command
 }
 
-func (i *installCmd) runInstall(nameVersion string) error {
+func (i *installCmd) runInstall(nameVersions []string) error {
+	// Validate and clean input before initialization so input errors are reported first.
+	cleanedNameVersions := make([]string, 0, len(nameVersions))
+	for _, nameVersion := range nameVersions {
+		cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
+		if err != nil {
+			return configs.PrintError(err, "invalid package specification: %s.", nameVersion)
+		}
+		cleanedNameVersions = append(cleanedNameVersions, cleanedNameVersion)
+	}
+
 	if err := i.celer.Init(); err != nil {
 		return configs.PrintError(err, "failed to initialize celer.")
 	}
@@ -95,13 +110,18 @@ func (i *installCmd) runInstall(nameVersion string) error {
 		return configs.PrintError(err, "failed to check build tool: git")
 	}
 
-	// Validate and clean input.
-	cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
-	if err != nil {
-		return configs.PrintError(err, "invalid package specification.")
+	if err := i.overrideFlags(); err != nil {
+		return configs.PrintError(err, "invalid install options.")
 	}
 
-	return i.install(cleanedNameVersion)
+	// Install port one by one.
+	for _, nameVersion := range cleanedNameVersions {
+		if err := i.install(nameVersion); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // validateAndCleanInput validates and cleans the package name@version input.
@@ -140,12 +160,6 @@ func (i *installCmd) install(nameVersion string) error {
 	color.Printf(color.Title, "🚀 start to install %s\n", nameVersion)
 	color.Printf(color.Title, "🛠️  platform: %s\n", i.celer.Global.Platform)
 	color.Println(color.Title, "=======================================================================")
-
-	// Overwrite global config.
-	if i.jobs != i.celer.Global.Jobs {
-		i.celer.Global.Jobs = i.jobs
-	}
-	i.celer.Global.Verbose = i.verbose
 
 	// Parse name and version (already validated)
 	parts := strings.Split(nameVersion, "@")
@@ -202,6 +216,21 @@ func (i *installCmd) install(nameVersion string) error {
 	return nil
 }
 
+func (i *installCmd) overrideFlags() error {
+	if i.jobsChanged {
+		if i.jobs <= 0 {
+			return fmt.Errorf("--jobs must be greater than 0")
+		}
+		i.celer.Global.Jobs = i.jobs
+	}
+
+	if i.verboseChanged {
+		i.celer.Global.Verbose = i.verbose
+	}
+
+	return nil
+}
+
 func (i *installCmd) buildSuggestions(suggestions *[]string, portDir string, toComplete string) {
 	err := filepath.WalkDir(portDir, func(path string, entity fs.DirEntry, err error) error {
 		if err != nil {
@@ -246,6 +275,7 @@ func (i *installCmd) completion(cmd *cobra.Command, args []string, toComplete st
 		"--force", "-f",
 		"--recursive", "-r",
 		"--store-cache", "-s",
+		"--cache-token", "-t",
 		"--jobs", "-j",
 		"--verbose", "-v",
 	}

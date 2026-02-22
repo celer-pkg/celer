@@ -1,20 +1,21 @@
 # Install 命令
 
-`install` 命令用于在当前工作空间上下文中安装一个端口（`name@version`）。
+`install` 命令用于在当前工作空间上下文中安装一个或多个包（`name@version`）。
 
 ## 命令语法
 
 ```shell
-celer install <name@version> [flags]
+celer install <name@version> [<name@version> ...] [flags]
 ```
 
 ## 重要行为
 
-- 必须且只能提供一个包参数。
-- 包参数必须为 `name@version` 格式。
+- 至少提供一个包参数，可一次提供多个。
+- 每个包参数都必须为 `name@version` 格式。
+- 多包安装按输入顺序执行，任一包失败后命令立即停止。
 - 安装前会检查循环依赖和版本冲突。
 - 会同时在全局 `ports/` 和项目私有端口目录中查找端口。
-- `--jobs` 与 `--verbose` 会覆盖本次安装运行行为。
+- `--jobs` 与 `--verbose` 会覆盖本次命令的运行行为（对本次所有包生效）。
 
 ## 命令选项
 
@@ -34,6 +35,9 @@ celer install <name@version> [flags]
 # 标准安装
 celer install ffmpeg@5.1.6
 
+# 一次安装多个包
+celer install ffmpeg@5.1.6 pkgconf@2.4.3
+
 # 安装为开发依赖
 celer install pkgconf@2.4.3 --dev
 
@@ -49,9 +53,9 @@ celer install ffmpeg@5.1.6 --store-cache --cache-token=token_xxx
 
 ## 参数校验规则
 
-- 输入不能为空。
-- 必须能按 `@` 拆分为且仅为两段。
-- 名称和版本都不能为空。
+- 包列表不能为空。
+- 每个包都必须能按 `@` 拆分为且仅为两段。
+- 每个包的名称和版本都不能为空。
 
 ## 说明
 
