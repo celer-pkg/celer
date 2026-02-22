@@ -99,13 +99,11 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 				return err
 			}
 
-			// Check circular dependence.
+			// Check circular dependence and version conflict.
 			depcheck := depcheck.NewDepCheck()
 			if err := depcheck.CheckCircular(r.celer, port); err != nil {
 				return fmt.Errorf("found circular dependence -> %w", err)
 			}
-
-			// Check version conflict.
 			if err := depcheck.CheckConflict(r.celer, port); err != nil {
 				return fmt.Errorf("found version conflict -> %w", err)
 			}

@@ -4,7 +4,10 @@ import (
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/color"
+	"celer/pkgs/dirs"
 	"celer/timemachine"
+	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -25,7 +28,7 @@ func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
 
 After successful deployment, you can optionally export a snapshot
 for reproducible builds using the --export flag.`,
-		Args: cobra.NoArgs,
+		Args: d.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := d.celer.Init(); err != nil {
 				return configs.PrintError(err, "failed to init celer.")
@@ -71,6 +74,53 @@ for reproducible builds using the --export flag.`,
 	return command
 }
 
+func (d *deployCmd) validateArgs(cmd *cobra.Command, args []string) error {
+	if err := cobra.NoArgs(cmd, args); err != nil {
+		return err
+	}
+
+	if !cmd.Flags().Changed("export") {
+		return nil
+	}
+
+	exportPath, err := cmd.Flags().GetString("export")
+	if err != nil {
+		return err
+	}
+
+	exportPath = strings.TrimSpace(exportPath)
+	if exportPath == "" {
+		return fmt.Errorf("--export requires a non-empty path")
+	}
+
+	if filepath.IsAbs(exportPath) {
+		return fmt.Errorf("--export must be a relative path inside workspace")
+	}
+
+	cleanedPath := filepath.Clean(exportPath)
+	if cleanedPath == "." || cleanedPath == ".." || strings.HasPrefix(cleanedPath, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("--export path must stay inside workspace")
+	}
+
+	cleanedPath = filepath.ToSlash(cleanedPath)
+	root := strings.SplitN(cleanedPath, "/", 2)[0]
+	protectedRoots := map[string]bool{
+		"conf":       true,
+		"ports":      true,
+		"buildtrees": true,
+		"packages":   true,
+		"installed":  true,
+		"tmp":        true,
+		".git":       true,
+	}
+	if protectedRoots[root] {
+		return fmt.Errorf("--export path cannot target protected workspace directory: %s", root)
+	}
+
+	d.exportPath = filepath.Join(dirs.WorkspaceDir, filepath.FromSlash(cleanedPath))
+	return nil
+}
+
 func (d *deployCmd) checkProject() error {
 	depcheck := depcheck.NewDepCheck()
 
@@ -99,7 +149,7 @@ func (d *deployCmd) checkProject() error {
 
 func (d *deployCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	for _, flag := range []string{"--export", "--force"} {
+	for _, flag := range []string{"--export", "--force", "-f"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}
