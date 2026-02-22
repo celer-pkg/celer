@@ -30,6 +30,7 @@ Examples:
   celer init --url https://github.com/example/conf       	# Initialize with conf repo
   celer init -u https://github.com/example/conf -b main  	# With specific branch
   celer init --url https://github.com/example/conf --force	# Force re-initialize`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return i.doInit()
 		},

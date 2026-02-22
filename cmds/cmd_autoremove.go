@@ -40,6 +40,7 @@ Examples:
   celer autoremove --purge              	# Also remove package archives
   celer autoremove --build-cache        	# Also remove build cache
   celer autoremove --purge --build-cache	# Remove packages, archives, and build cache`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := a.celer.Init(); err != nil {
 				return configs.PrintError(err, "failed to init celer.")

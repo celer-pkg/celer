@@ -11,6 +11,8 @@ celer update [flags] [name@version...]
 ## 重要行为
 
 - `--conf-repo` 和 `--ports-repo` 互斥。
+- 使用 `--conf-repo` 或 `--ports-repo` 时，不允许再提供端口位置参数（`name@version...`）。
+- `--recursive` 仅适用于端口更新模式，不能与 `--conf-repo`/`--ports-repo` 组合。
 - 如果不指定这两个仓库 flag，则必须提供至少一个端口参数。
 - 端口源码更新要求 `buildtrees/<name@version>/src` 已存在。
 - 端口源码更新仅支持 git 端口（`url` 以 `.git` 结尾）。
@@ -47,4 +49,4 @@ celer update --conf-repo --force
 ## 说明
 
 - 运行环境需要可用的 git。
-- 在 PowerShell 输入中，命令会自动清理包名中的反引号转义字符。
+- 在 PowerShell 命令参数中，命令会自动清理包名中的反引号转义字符。

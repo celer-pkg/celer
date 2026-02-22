@@ -105,7 +105,7 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 | Command                                         | Description|
 | ----------------------------------------------- | -----------|
 | [autoremove](./docs/en-US/cmd_autoremove.md)    | Clean installed directory, remove project not required libraries.|
-| [clean](./docs/en-US/cmd_clean.md)              | Remove build cache and clean project repo.|
+| [clean](./docs/en-US/cmd_clean.md)              | Remove build cache for targets, or clean all with `--all`.|
 | [configure](./docs/en-US/cmd_configure.md)      | Configure global settings for current workspace.|
 | [create](./docs/en-US/cmd_create.md)            | Create a platform, project or port. |
 | [deploy](./docs/en-US/cmd_deploy.md)            | Deploy with selected platform and project.|
@@ -116,7 +116,7 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 | [reverse](./docs/en-US/cmd_reverse.md)          | Reverse query dependencies on the specified library. |
 | [search](./docs/en-US/cmd_search.md)            | Search available ports from ports repository.|
 | [tree](./docs/en-US/cmd_tree.md)                | Show the dependencies of a port or a project.|
-| [update](./docs/en-US/cmd_update.md)            | Update conf repo, ports config repo or project repo.|
+| [update](./docs/en-US/cmd_update.md)            | Repo mode takes no ports; port mode requires at least one `name@version`.|
 | [version](./docs/en-US/cmd_version.md)          | Show version info of celer.|
 
 ## 🤝 Contributing

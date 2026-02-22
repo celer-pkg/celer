@@ -41,6 +41,7 @@ Examples:
   celer update entt@3.16.0 fakeit@2.5.0         # Update multiple ports
   celer update --recursive ffmpeg@3.4.13        # Update port and all its dependencies
   celer update --force boost@1.82.0             # Force update (overwrites local changes)`,
+		Args: u.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return u.doUpdate(args)
 		},
@@ -59,6 +60,39 @@ Examples:
 	command.SilenceErrors = true
 	command.SilenceUsage = true
 	return command
+}
+
+func (u *updateCmd) validateArgs(cmd *cobra.Command, args []string) error {
+	confRepo, err := cmd.Flags().GetBool("conf-repo")
+	if err != nil {
+		return err
+	}
+
+	portsRepo, err := cmd.Flags().GetBool("ports-repo")
+	if err != nil {
+		return err
+	}
+
+	recursive, err := cmd.Flags().GetBool("recursive")
+	if err != nil {
+		return err
+	}
+
+	if confRepo || portsRepo {
+		if len(args) > 0 {
+			return fmt.Errorf("positional arguments are not allowed with --conf-repo or --ports-repo")
+		}
+		if recursive {
+			return fmt.Errorf("--recursive is only valid when updating specific ports")
+		}
+		return nil
+	}
+
+	if len(args) == 0 {
+		return fmt.Errorf("requires at least one port argument when neither --conf-repo nor --ports-repo is set")
+	}
+
+	return nil
 }
 
 func (u *updateCmd) doUpdate(args []string) error {

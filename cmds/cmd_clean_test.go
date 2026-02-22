@@ -67,6 +67,62 @@ func TestCleanCmd_CommandStructure(t *testing.T) {
 	}
 }
 
+func TestCleanCmd_ArgsValidation(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	tests := []struct {
+		name        string
+		all         bool
+		args        []string
+		expectError bool
+	}{
+		{
+			name:        "no_targets_without_all_should_fail",
+			all:         false,
+			args:        []string{},
+			expectError: true,
+		},
+		{
+			name:        "targets_without_all_should_succeed",
+			all:         false,
+			args:        []string{"x264@stable"},
+			expectError: false,
+		},
+		{
+			name:        "all_without_targets_should_succeed",
+			all:         true,
+			args:        []string{},
+			expectError: false,
+		},
+		{
+			name:        "all_with_targets_should_fail",
+			all:         true,
+			args:        []string{"x264@stable"},
+			expectError: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			clean := cleanCmd{}
+			cmd := clean.Command(configs.NewCeler())
+
+			if err := cmd.Flags().Set("all", expr.If(test.all, "true", "false")); err != nil {
+				t.Fatalf("failed to set --all flag: %v", err)
+			}
+
+			err := cmd.Args(cmd, test.args)
+			if test.expectError && err == nil {
+				t.Fatal("expected args validation error")
+			}
+			if !test.expectError && err != nil {
+				t.Fatalf("expected args validation success, got: %v", err)
+			}
+		})
+	}
+}
+
 func TestCleanCmd_ValidateTargets(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
