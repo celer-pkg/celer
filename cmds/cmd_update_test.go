@@ -68,6 +68,93 @@ func TestUpdateCmd_CommandStructure(t *testing.T) {
 	}
 }
 
+func TestUpdateCmd_ArgsValidation(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	tests := []struct {
+		name        string
+		confRepo    bool
+		portsRepo   bool
+		recursive   bool
+		args        []string
+		expectError bool
+	}{
+		{
+			name:        "conf_repo_without_args_should_succeed",
+			confRepo:    true,
+			args:        []string{},
+			expectError: false,
+		},
+		{
+			name:        "conf_repo_with_args_should_fail",
+			confRepo:    true,
+			args:        []string{"zlib@1.3.1"},
+			expectError: true,
+		},
+		{
+			name:        "ports_repo_without_args_should_succeed",
+			portsRepo:   true,
+			args:        []string{},
+			expectError: false,
+		},
+		{
+			name:        "ports_repo_with_args_should_fail",
+			portsRepo:   true,
+			args:        []string{"zlib@1.3.1"},
+			expectError: true,
+		},
+		{
+			name:        "recursive_with_conf_repo_should_fail",
+			confRepo:    true,
+			recursive:   true,
+			args:        []string{},
+			expectError: true,
+		},
+		{
+			name:        "no_repo_flags_without_args_should_fail",
+			args:        []string{},
+			expectError: true,
+		},
+		{
+			name:        "no_repo_flags_with_args_should_succeed",
+			args:        []string{"zlib@1.3.1"},
+			expectError: false,
+		},
+		{
+			name:        "recursive_with_port_args_should_succeed",
+			recursive:   true,
+			args:        []string{"ffmpeg@3.4.13"},
+			expectError: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			update := updateCmd{}
+			cmd := update.Command(configs.NewCeler())
+
+			if err := cmd.Flags().Set("conf-repo", expr.If(test.confRepo, "true", "false")); err != nil {
+				t.Fatalf("failed to set --conf-repo: %v", err)
+			}
+			if err := cmd.Flags().Set("ports-repo", expr.If(test.portsRepo, "true", "false")); err != nil {
+				t.Fatalf("failed to set --ports-repo: %v", err)
+			}
+			if err := cmd.Flags().Set("recursive", expr.If(test.recursive, "true", "false")); err != nil {
+				t.Fatalf("failed to set --recursive: %v", err)
+			}
+
+			err := cmd.Args(cmd, test.args)
+			if test.expectError && err == nil {
+				t.Fatal("expected args validation error")
+			}
+			if !test.expectError && err != nil {
+				t.Fatalf("expected args validation success, got: %v", err)
+			}
+		})
+	}
+}
+
 func TestUpdateCmd_Completion(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()

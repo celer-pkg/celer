@@ -25,6 +25,7 @@ func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
 
 After successful deployment, you can optionally export a snapshot
 for reproducible builds using the --export flag.`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := d.celer.Init(); err != nil {
 				return configs.PrintError(err, "failed to init celer.")

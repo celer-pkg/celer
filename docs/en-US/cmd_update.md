@@ -11,6 +11,8 @@ celer update [flags] [name@version...]
 ## Important Behavior
 
 - `--conf-repo` and `--ports-repo` are mutually exclusive.
+- When `--conf-repo` or `--ports-repo` is set, positional port arguments (`name@version...`) are not allowed.
+- `--recursive` is only valid for port update mode and cannot be combined with `--conf-repo`/`--ports-repo`.
 - If neither repo flag is set, you must provide at least one port.
 - Port source update requires existing `buildtrees/<name@version>/src`.
 - Port source update works only for git-based ports (`url` ending with `.git`).
@@ -47,4 +49,4 @@ celer update --conf-repo --force
 ## Notes
 
 - Git must be available in environment.
-- For PowerShell completion input, escaped backticks in package names are cleaned automatically.
+- For PowerShell command arguments, escaped backticks in package names are cleaned automatically.

@@ -134,6 +134,8 @@ func TestCreateCmd_Validation(t *testing.T) {
 			{"whitespace only", "   ", true},
 			{"platform with spaces", "windows x86_64", true},
 			{"valid complex name", "x86_64-linux-gnu-gcc", false},
+			{"platform path traversal", "../windows-x86_64-msvc", true},
+			{"platform with slash", "windows/x86_64", true},
 		}
 
 		for _, test := range tests {
@@ -159,6 +161,8 @@ func TestCreateCmd_Validation(t *testing.T) {
 			{"whitespace only", "   ", true},
 			{"project with spaces", "my project", false}, // Project names can have spaces
 			{"valid with numbers", "project123", false},
+			{"project path traversal", "../my-project", true},
+			{"project with slash", "my/project", true},
 		}
 
 		for _, test := range tests {
@@ -186,6 +190,9 @@ func TestCreateCmd_Validation(t *testing.T) {
 			{"empty version", "opencv@", true},
 			{"multiple separators", "opencv@4.8@0", true},
 			{"valid complex version", "opencv@4.8.0-beta1", false},
+			{"port with slash", "opencv/test@4.8.0", true},
+			{"version with slash", "opencv@4/8/0", true},
+			{"port path traversal", "../opencv@4.8.0", true},
 		}
 
 		for _, test := range tests {
@@ -197,6 +204,33 @@ func TestCreateCmd_Validation(t *testing.T) {
 					t.Errorf("Expected no error for input '%s' but got: %v", test.input, err)
 				}
 			})
+		}
+	})
+}
+
+func TestCreateCmd_CommandExecutionValidation(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	t.Run("empty project value should fail", func(t *testing.T) {
+		celer := configs.NewCeler()
+		create := createCmd{}
+		cmd := create.Command(celer)
+		cmd.SetArgs([]string{"--project="})
+
+		if err := cmd.Execute(); err == nil {
+			t.Fatal("expected error when --project is set with empty value")
+		}
+	})
+
+	t.Run("positional args should fail", func(t *testing.T) {
+		celer := configs.NewCeler()
+		create := createCmd{}
+		cmd := create.Command(celer)
+		cmd.SetArgs([]string{"unexpected-arg", "--project=test_project"})
+
+		if err := cmd.Execute(); err == nil {
+			t.Fatal("expected error when positional args are provided")
 		}
 	})
 }

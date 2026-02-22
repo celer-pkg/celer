@@ -8,6 +8,7 @@ import (
 	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -42,6 +43,7 @@ Examples:
   celer clean automake@1.18 --recursive              	# Clean with dependencies
   celer clean --all                                 	# Clean all packages
   celer clean x264@stable ffmpeg@3.4.13 --recursive   	# Clean multiple packages`,
+		Args: c.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.execute(args)
 		},
@@ -57,6 +59,26 @@ Examples:
 	command.SilenceErrors = true
 	command.SilenceUsage = true
 	return command
+}
+
+func (c *cleanCmd) validateArgs(cmd *cobra.Command, args []string) error {
+	all, err := cmd.Flags().GetBool("all")
+	if err != nil {
+		return err
+	}
+
+	if all {
+		if len(args) > 0 {
+			return fmt.Errorf("--all does not accept positional arguments")
+		}
+		return nil
+	}
+
+	if len(args) == 0 {
+		return fmt.Errorf("requires at least one package or project argument (or use --all)")
+	}
+
+	return nil
 }
 
 func (c *cleanCmd) execute(args []string) error {

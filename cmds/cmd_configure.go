@@ -103,6 +103,7 @@ Examples:
   celer configure --proxy-host=proxy.example.com  # Set proxy host
   celer configure --proxy-port=8080               # Set proxy port
   celer configure --ccache-maxsize=5G             # Set ccache max size to 5GB`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := c.celer.Init(); err != nil {
 				return configs.PrintError(err, "failed to init celer.")
