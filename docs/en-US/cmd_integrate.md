@@ -10,8 +10,8 @@ celer integrate [flags]
 
 ## Important Behavior
 
-- Celer detects the current shell automatically.
-- Supported shells: `bash`, `zsh`, and `PowerShell`.
+- On Linux, Celer detects the current shell automatically (`bash` or `zsh`).
+- On Windows, Celer always configures `PowerShell` completion.
 - `--remove` switches behavior from register to unregister.
 - Unsupported shell environments fail with a clear error.
 
@@ -24,14 +24,14 @@ celer integrate [flags]
 ## Common Examples
 
 ```shell
-# Register completion for current shell
+# Register completion (Linux: current shell, Windows: PowerShell)
 celer integrate
 
-# Unregister completion for current shell
+# Unregister completion (Linux: current shell, Windows: PowerShell)
 celer integrate --remove
 ```
 
 ## Notes
 
-- Run in each shell environment separately if you use multiple shells.
+- On Linux, run in each shell environment separately if you use multiple shells.
 - You may need to reopen the terminal to see completion changes.

@@ -123,14 +123,13 @@ func TestIntegrateCmd_Integration(t *testing.T) {
 	integrate := &integrateCmd{}
 
 	// Test environment validation.
-	err := integrate.validateEnvironment()
-	if err != nil {
+	shell := integrate.detectShell()
+	if err := integrate.validateEnvironment(shell); err != nil {
 		t.Fatalf("Environment validation failed: %v", err)
 	}
 
 	// Test completion initialization (might fail without proper setup).
-	err = integrate.initializeCompletions()
-	if err != nil {
+	if err := integrate.initializeCompletions(); err != nil {
 		// This is acceptable in test environments.
 		t.Logf("Completion initialization failed (expected in test env): %v", err)
 		return
@@ -139,5 +138,29 @@ func TestIntegrateCmd_Integration(t *testing.T) {
 	// Verify all completions are set.
 	if integrate.bashCompletion == nil || integrate.zshCompletion == nil || integrate.psCompletion == nil {
 		t.Error("Not all completion handlers were initialized")
+	}
+}
+
+func TestIntegrateCmd_DetectShell_PanicSafe(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	oldCurrentShellFn := currentShellFn
+	t.Cleanup(func() {
+		currentShellFn = oldCurrentShellFn
+	})
+
+	currentShellFn = func() completion.ShellType {
+		panic("unexpected panic")
+	}
+
+	integrate := &integrateCmd{}
+	shell := integrate.detectShell()
+	if shell != completion.NotSupported {
+		t.Fatalf("expected NotSupported when shell detection panics, got: %v", shell)
+	}
+
+	if err := integrate.validateEnvironment(shell); err == nil {
+		t.Fatal("validateEnvironment should return error for NotSupported shell")
 	}
 }
