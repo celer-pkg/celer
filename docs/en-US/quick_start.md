@@ -125,7 +125,7 @@ celer init --url=https://github.com/celer-pkg/test-conf.git
 **If you're in China, it's recommended to configure a proxy to access GitHub and other resources:**
 
 ```shell
-celer configure --proxy-host 127.0.0.1 --proxy-port 7890
+celer configure --proxy-host=127.0.0.1 --proxy-port=7890
 ```
 
 ### 📄 Generated Configuration File

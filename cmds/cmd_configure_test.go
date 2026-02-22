@@ -178,6 +178,65 @@ func TestConfigureCmd_Completion(t *testing.T) {
 	}
 }
 
+func TestConfigureCmd_NoFlagShouldFail(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	configCmd := configureCmd{}
+	celer := configs.NewCeler()
+	cmd := configCmd.Command(celer)
+	cmd.SetArgs([]string{})
+
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("expected error when no configuration flag is provided")
+	}
+}
+
+func TestConfigureCmd_PackageCacheGroupShouldSucceed(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	if err := os.MkdirAll(dirs.TestCacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	configCmd := configureCmd{}
+	celer := configs.NewCeler()
+	cmd := configCmd.Command(celer)
+	cmd.SetArgs([]string{"--package-cache-dir", dirs.TestCacheDir, "--package-cache-token", "token_123456"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("expected success when package-cache group flags are provided, got: %v", err)
+	}
+
+	celer2 := configs.NewCeler()
+	if err := celer2.Init(); err != nil {
+		t.Fatal(err)
+	}
+
+	if celer2.PackageCache().GetDir() != dirs.TestCacheDir {
+		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
+	}
+
+	if !encrypt.CheckToken(dirs.TestCacheDir, "token_123456") {
+		t.Fatalf("cache token should be `token_123456`")
+	}
+}
+
+func TestConfigureCmd_CrossGroupFlagsShouldFail(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	configCmd := configureCmd{}
+	celer := configs.NewCeler()
+	cmd := configCmd.Command(celer)
+	cmd.SetArgs([]string{"--proxy-host=127.0.0.1", "--ccache-enabled=true"})
+
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("expected error when flags from different groups are provided")
+	}
+}
+
 func TestConfigure_Platform(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()

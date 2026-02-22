@@ -1,68 +1,48 @@
+# Autoremove Command
 
-# 🧹 autoremove Command
+The `autoremove` command removes libraries that are not required by the current project dependencies.
 
-> Automatically clean up libraries do not belongs to current project and keep your development environment tidy and efficient.
-
-## ✨ Overview
-
-The `autoremove` command removes installed dependencies that are no longer required by the current project. It helps you:
-
-- Clean up unused dependencies and free up disk space
-- Ensure your project only contains necessary libraries
-- Optionally delete package files and build cache
-
-## 📝 Command Syntax
+## Command Syntax
 
 ```shell
 celer autoremove [flags]
 ```
 
-## ⚙️ Command Options
+## Important Behavior
 
-| Option         | Short | Description                                     |
-| -------------- | ----- | ----------------------------------------------- |
-| --purge        | -p    | autoremove packages along with its package file |
-| --build-cache  | -c    | autoremove packages along with build cache      |
+- The command compares currently required packages vs installed/cached packages.
+- Keep the libraries specified in the current project toml configuration and their sub-dependencies.
+- Keep build-time library dependencies and their sub-dependencies.
+- Unused runtime and dev packages are removed.
+- It works against the current workspace context (`platform`, `project`, `build_type` in `celer.toml`).
 
-## 💡 Usage Examples
+## Command Options
 
-**1. Remove unused libraries**
+| Option        | Short | Type    | Description                                           |
+|---------------|-------|---------|-------------------------------------------------------|
+| --purge       | -p    | boolean | Also remove cached package files/directories          |
+| --build-cache | -c    | boolean | Also remove build cache of removed packages           |
+
+## Common Examples
 
 ```shell
+# Remove unused installed packages
 celer autoremove
-```
 
-**2. Remove unused libraries and their package files**
-
-```shell
+# Also remove cached package files
 celer autoremove --purge
-# or
-celer autoremove -p
-```
 
-**3. Remove unused libraries, package files, and build cache**
+# Also remove build cache
+celer autoremove --build-cache
 
-```shell
+# Remove installed packages, cache files, and build cache
 celer autoremove --purge --build-cache
-# or
-celer autoremove -p -c
 ```
 
-## 📖 Use Cases
+## Detection Scope
 
-- Quickly clean up unused libraries after dependency changes
-- Keep CI/CD environments clean
-- Save disk space and avoid redundant files
+- Installed traces: `installed/celer/trace/*@<platform>@<project>@<build_type>.trace`
+- Cached package folders: `packages/*@<platform>@<project>@<build_type>`
 
-## 🔎 Detection Scope
-
-`autoremove` detects candidates from both:
-- installed traces under `installed/celer/trace`
-- cached package directories under `packages/`
-
-This means running `celer autoremove --purge` later can still remove stale package files
-even if a previous run removed installed traces first.
-
----
-
-For more help, see the [Command Reference](./cmds.md) or [Report Issues](https://github.com/celer-pkg/celer/issues).
+Because cached package folders are part of detection, running `celer autoremove --purge`
+later can still remove stale package files even if an earlier run already removed trace data.

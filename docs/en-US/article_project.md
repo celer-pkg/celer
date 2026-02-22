@@ -322,7 +322,7 @@ Use the `celer create` command to create a new project based on project configur
 
 ```bash
 # Use specified project configuration
-celer create --project x86_64-linux-ubuntu-22.04-gcc-11.5.0
+celer create --project=x86_64-linux-ubuntu-22.04-gcc-11.5.0
 ```
 
 ### Switch Project Configuration
@@ -330,7 +330,7 @@ celer create --project x86_64-linux-ubuntu-22.04-gcc-11.5.0
 Use the `celer configure` command to switch projects:
 
 ```bash
-celer configure --project project_001
+celer configure --project=project_001
 ```
 
 Or modify the project configuration in `celer.toml`:
