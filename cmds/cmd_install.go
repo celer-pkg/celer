@@ -165,13 +165,11 @@ func (i *installCmd) install(nameVersion string) error {
 		return configs.PrintError(err, "failed to init %s.", nameVersion)
 	}
 
-	// Check circular dependence.
+	// Check circular dependence and version conclict.
 	depcheck := depcheck.NewDepCheck()
 	if err := depcheck.CheckCircular(i.celer, port); err != nil {
 		return configs.PrintError(err, "failed to check circular dependence.")
 	}
-
-	// Check version conflict.
 	if err := depcheck.CheckConflict(i.celer, port); err != nil {
 		return configs.PrintError(err, "failed to check version conflict.")
 	}

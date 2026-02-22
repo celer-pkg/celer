@@ -10,8 +10,8 @@ celer integrate [flags]
 
 ## 重要行为
 
-- 会自动识别当前 shell 环境。
-- 支持 `bash`、`zsh`、`PowerShell`。
+- 在 Linux 上会自动识别当前 shell（`bash` 或 `zsh`）。
+- 在 Windows 上固定配置 `PowerShell` 补全。
 - `--remove` 会将行为从“注册补全”切换为“移除补全”。
 - 不支持的 shell 环境会直接报错。
 
@@ -24,14 +24,14 @@ celer integrate [flags]
 ## 常用示例
 
 ```shell
-# 为当前 shell 注册补全
+# 注册补全（Linux: 当前 shell，Windows: PowerShell）
 celer integrate
 
-# 为当前 shell 移除补全
+# 移除补全（Linux: 当前 shell，Windows: PowerShell）
 celer integrate --remove
 ```
 
 ## 说明
 
-- 如果你同时使用多个 shell，需要分别执行一次。
+- 在 Linux 上如果你同时使用多个 shell，需要分别执行一次。
 - 某些环境下可能需要重开终端后补全才生效。
