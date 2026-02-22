@@ -1,76 +1,42 @@
+# Create 命令
 
-# 🚀 创建命令（create）
+`create` 命令用于创建平台、项目或端口的模板配置。
 
-> 用于快速创建新的平台、项目或端口配置
-
-&emsp;&emsp;`create` 命令用于一键生成平台、项目或第三方库端口的配置文件。
-
-
-## 📝 命令语法
+## 命令语法
 
 ```shell
-celer create [选项]
+celer create [flags]
 ```
 
+## 重要行为
 
-## ⚙️ 命令选项
+- 必须且只能提供 `--platform`、`--project`、`--port` 其中一个。
+- 这三个 flag 互斥，不能同时使用。
+- `--port` 必须使用 `name@version` 格式。
 
-| 选项         | 说明                 |
-|--------------|---------------------|
-| --platform   | 创建新平台配置       |
-| --project    | 创建新项目配置       |
-| --port       | 创建新端口配置       |
+## 命令选项
 
-## 💡 使用示例
+| 选项       | 类型   | 说明             |
+|------------|--------|------------------|
+| --platform | 字符串 | 创建平台配置     |
+| --project  | 字符串 | 创建项目配置     |
+| --port     | 字符串 | 创建端口配置     |
 
-
-### 1️⃣ 创建新平台
+## 常用示例
 
 ```shell
-celer create --platform x86_64-linux-xxxx
+# 创建平台
+celer create --platform=x86_64-linux-custom
+
+# 创建项目
+celer create --project=my_project
+
+# 创建端口
+celer create --port=opencv@4.11.0
 ```
 
+## 参数校验规则
 
-> 推荐平台名称格式：`[arch]-[os]-xxxx`
-> 生成文件位置：`conf/platforms/`
-> 请根据实际环境编辑生成的配置文件
-
-
-更多平台配置说明，请参见 [平台介绍](./article_platform.md)
-
-
-### 2️⃣ 创建新项目
-
-```shell
-celer create --project xxxx
-```
-
-
-> 生成文件位置：`conf/projects/`
-> 请根据实际项目编辑生成的配置文件
-
-
-更多项目配置说明，请参见 [项目介绍](./article_project.md)
-
-
-### 3️⃣ 创建新端口
-
-```shell
-celer create --port xxxx
-```
-
-
-> 生成文件位置示例：`workspace/ports/glog/0.6.0/port.toml`
-> 请根据目标库编辑生成的配置文件
-
-
-更多端口配置说明，请参见 [端口介绍](./article_port.md)
-
----
-
-## 📚 相关文档
-
-- [快速开始](./quick_start.md)
-- [平台介绍](./article_platform.md)
-- [项目介绍](./article_project.md)
-- [端口介绍](./article_port.md)
+- `--platform`：不能为空，且不能包含空格。
+- `--project`：不能为空。
+- `--port`：必须是 `name@version` 且名称与版本都不能为空。

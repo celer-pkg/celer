@@ -1,71 +1,55 @@
+# Clean 命令
 
-# 🧹 clean 命令
+`clean` 命令用于清理包或项目的构建缓存，并清理对应源码仓库状态。
 
-> 一键清理项目或包的构建缓存，释放空间，解决编译异常。
-
-## ✨ 功能简介
-
-`clean` 命令用于移除指定包或项目的构建缓存文件，常用于：
-- 释放磁盘空间
-- 解决因缓存导致的编译问题
-- 保持开发环境干净
-
-## 📝 命令语法
+## 命令语法
 
 ```shell
-celer clean [flags] [package/project...]
+celer clean [flags] [target...]
 ```
 
-## ⚙️ 命令选项
+## 重要行为
 
-| 选项         | 简写 | 说明                                 |
-| ------------ | ---- | ---------------------------------- |
-| --all        | -a   | 清理 `buildtrees` 下所有条目        |
-| --dev        | -d   | 清理开发模式缓存 |
-| --recursive  | -r   | 递归清理包/项目及其依赖的构建缓存      |
+- 包含 `@` 的目标会按包处理（例如 `ffmpeg@5.1.6`）。
+- 不含 `@` 的目标会按项目名处理（来自 `conf/projects`）。
+- 未指定 `--all` 时，必须提供至少一个目标。
+- `--all` 可不带目标，直接清理 `buildtrees` 下所有构建条目。
+- 对项目目标，Celer 会同时清理该项目端口的普通缓存和 dev 缓存。
+- `--dev` 主要影响包目标（清理 host-dev 构建缓存）。
+- `--recursive` 会递归清理依赖和开发依赖。
 
-## 💡 使用示例
+## 命令选项
 
-**1. 清理指定项目的所有依赖项的构建缓存**
+| 选项        | 简写 | 类型 | 说明                                   |
+|-------------|------|------|----------------------------------------|
+| --all       | -a   | 布尔 | 清理 `buildtrees` 下所有包构建条目      |
+| --dev       | -d   | 布尔 | 按 dev/host-dev 模式清理包目标          |
+| --recursive | -r   | 布尔 | 递归清理目标及其依赖                    |
+
+## 常用示例
+
 ```shell
-celer clean project_xxx
-```
+# 清理单个包
+celer clean x264@stable
 
-**2. 清理多个包的构建缓存**
-```shell
-celer clean ffmpeg@5.1.6 opencv@4.11.0
-```
+# 清理单个项目
+celer clean project_test_02
 
-**3. 清理开发模式下的包构建缓存**
-```shell
-celer clean --dev pkgconf@2.4.3
-# 或
-celer clean -d pkgconf@2.4.3
-```
+# 以 dev 模式清理包
+celer clean --dev automake@1.18
 
-**4. 递归清理包及其依赖项的构建缓存**
-```shell
+# 递归清理包及其依赖
 celer clean --recursive ffmpeg@5.1.6
-# 或
-celer clean -r ffmpeg@5.1.6
-```
 
-**5. 清理所有构建缓存**
-```shell
+# 一次清理多个目标
+celer clean x264@stable ffmpeg@5.1.6
+
+# 清理所有构建条目
 celer clean --all
-# 或
-celer clean -a
 ```
 
-## 📖 场景说明
+## 说明
 
-- 项目或包升级后，清理旧缓存避免冲突
-- CI/CD 环境定期清理，保证构建一致性
-- 本地开发磁盘空间不足时快速释放
-
----
-
-> **注意：**
-> 1. 对于 git clone 的库，命令会清除源码目录。
-> 2. 对于 URL 下载的库，Celer 会在源码目录初始化本地 git 仓库；`clean` 通过 git reset/clean 复位源码，而不是每次重新解压。
-> 3. 对于项目目标（不含 `@`），当前行为会同时清理该项目下每个端口的普通缓存和 dev 缓存。
+- `clean` 会删除构建目录和相关日志。
+- `clean` 会对匹配端口执行源码清理。
+- 使用 `--all` 时，会先删除每个 `buildtrees/<nameVersion>/` 下非 `src` 子目录。

@@ -1,51 +1,50 @@
-# 📦 Deploy with Export
+# Deploy Export (`deploy --export`)
 
-## Overview
+`deploy --export` runs normal deployment, then exports a reproducible workspace snapshot.
 
-The `deploy --export` command combines deployment and workspace snapshot export in one step. After successfully building and installing all project dependencies, it exports a reproducible workspace snapshot.
+## Command Syntax
 
-## Usage
-
-```bash
-celer deploy --export=<export-directory>
+```shell
+celer deploy --export=<export_dir>
 ```
 
-## What Gets Exported?
+## Important Behavior
 
-1. **ports/**: All port configuration files used by the project
-2. **conf/**: Configuration directory (platforms, projects)
-3. **celer.toml**: Workspace configuration
-4. **toolchain_file.cmake**: CMake toolchain file
-5. **snapshot.json**: Dependency snapshot with actual git commits
-6. **celer**: The celer executable file currently using
+- Export starts only after deployment succeeds.
+- Existing export directory is removed and recreated.
+- Snapshot contains fixed dependency commits or archive hash for reproducibility.
 
-## Key Features
+## Exported Content
 
-### Actual Git Commits
-Unlike standalone `celer export`, the deploy command exports **actual git commit hashes** from the cloned repositories in `buildtrees/`, not just the refs from port.toml.
+- `ports/`: used ports with matched build config and fixed commit ref
+- `conf/`: workspace conf directory (`.git` excluded)
+- `celer.toml`
+- `toolchain_file.cmake`
+- `snapshot.json`
+- current `celer` executable
 
-For each git-based dependency, the snapshot contains:
-- The exact commit hash from `git rev-parse HEAD`
-- Captured after successful build
-- Guarantees reproducibility
+## Commit Source Rules
 
-### Export Only After Success
-The export happens only if deployment succeeds. This ensures:
-- All dependencies are built successfully
-- Source code is properly cloned
-- Commit hashes are from verified builds
+- Git URL (`*.git`): read actual local commit from cloned source.
+- Private repo with fixed `package.commit`: use that fixed commit.
+- Archive URL (`.zip/.tar...`): use `sha-256:<checksum>` as commit.
 
-## Example
+## Common Examples
 
-```bash
-# Deploy project and export snapshot
-celer deploy --export=snapshots/2025-12-14
+```shell
+# Deploy and export snapshot
+celer deploy --export=snapshots/2026-02-21
 
-# Check the snapshot
-cat snapshots/2025-12-14/snapshot.json
+# Deploy with force and export
+celer deploy --force --export=snapshots/rebuild
 ```
 
-### Sample Snapshot Output
+## Notes
+
+- Export requires `toolchain_file.cmake` to exist (normally produced by successful deploy).
+- If deployment fails, export is not executed.
+
+## Sample Snapshot Output
 
 ```json
 {
@@ -63,39 +62,3 @@ cat snapshots/2025-12-14/snapshot.json
   ]
 }
 ```
-
-## Workflow
-
-1. **Build**: Deploy builds all dependencies from scratch
-2. **Clone**: Git repositories cloned to `buildtrees/{name}@{version}/src/`
-3. **Compile**: Each dependency compiled and installed
-4. **Snapshot**: If successful, export workspace to specified directory
-5. **Commit Capture**: Read actual commit from each git repository
-
-## Use Cases
-
-### CI/CD Reproducibility
-
-```bash
-# Build and snapshot in CI
-celer deploy --export=build-artifacts/snapshot
-
-# Archive and share
-tar -czf build-snapshot.tar.gz build-artifacts/snapshot
-```
-
-### Version Locking
-```bash
-# Lock current working versions
-celer deploy --export=snapshots/working-$(date +%Y%m%d)
-
-# Restore later if needed
-cd snapshots/working-20251214 && ./celer deploy
-```
-
-## Notes
-
-- Export directory is created if it doesn't exist
-- Existing export directory will be overwritten
-- Archive downloads (.zip, .tar.gz) use configured ref as commit
-- Only git repositories have actual commit hashes
