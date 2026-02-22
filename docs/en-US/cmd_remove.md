@@ -46,4 +46,5 @@ celer remove ffmpeg@5.1.6 --recursive --purge --build-cache
 ## Validation Rules
 
 - Empty package names are rejected.
+- Leading/trailing spaces in package arguments are trimmed before validation.
 - Names not matching `^[a-zA-Z0-9_-]+@[a-zA-Z0-9._-]+$` are rejected.

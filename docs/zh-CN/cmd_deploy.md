@@ -14,8 +14,8 @@ celer deploy [flags]
 - 部署使用当前工作空间上下文（`platform`、`project`、`build_type`）。
 - `--force` 会以强制模式执行项目部署（重装逻辑）。
 - `--export=<path>` 仅在部署成功后触发快照导出。
-- `--export` 必须是工作区内的非空相对路径。
-- `--export` 不能指向受保护的工作区根目录（`conf`、`ports`、`buildtrees`、`packages`、`installed`、`tmp`、`.git`）。
+- `--export` 支持相对路径和绝对路径。
+- `--export` 不能为空路径。
 
 ## 命令选项
 

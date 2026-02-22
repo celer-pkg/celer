@@ -4,7 +4,6 @@ import (
 	"celer/configs"
 	"celer/depcheck"
 	"celer/pkgs/color"
-	"celer/pkgs/dirs"
 	"celer/timemachine"
 	"fmt"
 	"path/filepath"
@@ -93,31 +92,7 @@ func (d *deployCmd) validateArgs(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("--export requires a non-empty path")
 	}
 
-	if filepath.IsAbs(exportPath) {
-		return fmt.Errorf("--export must be a relative path inside workspace")
-	}
-
-	cleanedPath := filepath.Clean(exportPath)
-	if cleanedPath == "." || cleanedPath == ".." || strings.HasPrefix(cleanedPath, ".."+string(filepath.Separator)) {
-		return fmt.Errorf("--export path must stay inside workspace")
-	}
-
-	cleanedPath = filepath.ToSlash(cleanedPath)
-	root := strings.SplitN(cleanedPath, "/", 2)[0]
-	protectedRoots := map[string]bool{
-		"conf":       true,
-		"ports":      true,
-		"buildtrees": true,
-		"packages":   true,
-		"installed":  true,
-		"tmp":        true,
-		".git":       true,
-	}
-	if protectedRoots[root] {
-		return fmt.Errorf("--export path cannot target protected workspace directory: %s", root)
-	}
-
-	d.exportPath = filepath.Join(dirs.WorkspaceDir, filepath.FromSlash(cleanedPath))
+	d.exportPath = filepath.Clean(exportPath)
 	return nil
 }
 

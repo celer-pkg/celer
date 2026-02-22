@@ -14,8 +14,8 @@ celer deploy [flags]
 - Deployment uses the current workspace context (`platform`, `project`, `build_type`).
 - `--force` passes force mode to project deployment (reinstall behavior).
 - `--export=<path>` triggers snapshot export only after deployment succeeds.
-- `--export` must be a non-empty relative path inside workspace.
-- `--export` cannot target protected workspace roots (`conf`, `ports`, `buildtrees`, `packages`, `installed`, `tmp`, `.git`).
+- `--export` accepts both relative and absolute paths.
+- `--export` must be a non-empty path.
 
 ## Command Options
 
