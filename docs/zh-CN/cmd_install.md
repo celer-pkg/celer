@@ -15,6 +15,8 @@ celer install <name@version> [<name@version> ...] [flags]
 - 多包安装按输入顺序执行，任一包失败后命令立即停止。
 - 安装前会检查循环依赖和版本冲突。
 - 会同时在全局 `ports/` 和项目私有端口目录中查找端口。
+- 源码构建成功后会默认尝试写入 package-cache。
+  仅当 `package_cache.writable=true` 时会写入；若未配置缓存目录、缓存只读或源码在构建前已有人为改动，会跳过写入，不影响安装成功。
 - `--jobs` 与 `--verbose` 会覆盖本次命令的运行行为（对本次所有包生效）。
 
 ## 命令选项
@@ -24,8 +26,6 @@ celer install <name@version> [<name@version> ...] [flags]
 | --dev         | -d   | 布尔   | 作为开发依赖安装                      |
 | --force       | -f   | 布尔   | 强制重装（如已安装则先移除）          |
 | --recursive   | -r   | 布尔   | 结合重装语义，递归处理依赖            |
-| --store-cache | -s   | 布尔   | 安装后将构建产物写入缓存              |
-| --cache-token | -t   | 字符串 | 缓存令牌（通常与 `--store-cache` 配合）|
 | --jobs        | -j   | 整数   | 并行构建任务数                        |
 | --verbose     | -v   | 布尔   | 输出详细日志                          |
 
@@ -47,8 +47,8 @@ celer install ffmpeg@5.1.6 --force --recursive
 # 指定并行数
 celer install ffmpeg@5.1.6 --jobs=8
 
-# 安装并写入构建缓存
-celer install ffmpeg@5.1.6 --store-cache --cache-token=token_xxx
+# 默认 best-effort 尝试写入构建缓存
+celer install ffmpeg@5.1.6
 ```
 
 ## 参数校验规则

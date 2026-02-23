@@ -4,10 +4,10 @@ import (
 	"celer/buildtools"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
-	"celer/pkgs/encrypt"
 	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -62,7 +62,8 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 			color.Printf(color.Hint, "Location: %s\n", installedDir)
 		}
 		installedFrom = "preinstalled"
-		return "", nil
+		retErr = nil
+		return
 	}
 
 	// Check all tools at the beginning (only for top-level port)
@@ -74,12 +75,12 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 
 	if options.Force {
 		// Remove installed port with its build cache, logs.
-		remoteOptions := RemoveOptions{
+		options := RemoveOptions{
 			Purge:      true,
 			Recursive:  options.Recursive,
 			BuildCache: true,
 		}
-		if err := p.Remove(remoteOptions); err != nil {
+		if err := p.Remove(options); err != nil {
 			return "", fmt.Errorf("failed to remove installed package -> %w", err)
 		}
 
@@ -112,10 +113,13 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		}
 		if len(p.BuildConfigs) == 0 {
 			installedFrom = "nobuild"
-			return "nobuild", nil
+			retErr = nil
+			return
 		}
+
 		installedFrom = "prebuilt"
-		return "prebuilt", nil
+		retErr = nil
+		return
 	}
 
 	// 1. Try to install from package.
@@ -123,16 +127,18 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		return "", err
 	} else if installed {
 		installedFrom = "package"
-		return "package", nil
+		retErr = nil
+		return
 	}
 
 	// 2. Try to install from cache (only when not storing cache and not forcing).
-	if !options.StoreCache && !options.Force {
+	if !options.Force {
 		if installed, err := p.InstallFromPackageCache(options); err != nil {
 			return "", err
 		} else if installed {
 			installedFrom = "package cache"
-			return "package cache", nil
+			retErr = nil
+			return
 		}
 	}
 
@@ -140,8 +146,10 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 	if err := p.InstallFromSource(options); err != nil {
 		return "", err
 	}
+
 	installedFrom = "source"
-	return "source", nil
+	retErr = nil
+	return
 }
 
 func (p Port) Clone() error {
@@ -197,6 +205,7 @@ func (p Port) doInstallFromPackageCache(options InstallOptions) (bool, error) {
 		}
 	}
 
+	// Init port with name version.
 	var port Port
 	if err := port.Init(p.ctx, p.NameVersion()); err != nil {
 		return false, err
@@ -218,7 +227,7 @@ func (p Port) doInstallFromPackageCache(options InstallOptions) (bool, error) {
 	return false, nil
 }
 
-func (p Port) doInstallFromSource(options InstallOptions) error {
+func (p Port) doInstallFromSource() error {
 	var installFailed bool
 	defer func() {
 		// Remove package dir if install failed.
@@ -230,32 +239,28 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 	}()
 
 	// Validate cache dir before building to avoid wasting build time.
-	// Note: only store cache for non-devdep and non-native builds.
-	var writeCacheAfterInstall bool
-	if options.StoreCache && !p.MatchedConfig.DevDep && !p.MatchedConfig.HostDev {
-		packageCache := p.ctx.PackageCache()
-		if packageCache == nil {
-			return errors.ErrPackageCacheDirNotConfigured
+	// Note: only store cache for non-devdep and non-host builds.
+	var (
+		writeCacheAfterInstall        bool
+		skipStoreCacheForLocalChanges bool
+		packageCache                  = p.ctx.PackageCache()
+	)
+	if !p.MatchedConfig.DevDep && !p.MatchedConfig.HostDev {
+		// Only write cache from a clean source tree before applying patches.
+		// This keeps patch-applied dirty repos eligible, but skips developer-modified repos.
+		modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
+		if err != nil {
+			return err
 		}
-		if packageCache.GetDir() == "" {
-			return errors.ErrPackageCacheDirNotConfigured
+		if modified {
+			skipStoreCacheForLocalChanges = true
 		}
-
-		if !fileio.PathExists(filepath.Join(packageCache.GetDir(), ".token")) {
-			return errors.ErrPackageCacheTokenNotConfigured
+		if packageCache != nil && packageCache.GetDir() != "" && packageCache.IsWritable() {
+			writeCacheAfterInstall = true
 		}
-
-		if options.CacheToken == "" {
-			return errors.ErrPackageCacheTokenNotSpecified
-		}
-
-		if !encrypt.CheckToken(packageCache.GetDir(), options.CacheToken) {
-			return errors.ErrPackageCacheTokenNotMatch
-		}
-
-		writeCacheAfterInstall = true
 	}
 
+	// Call matched buildsystem to configure, build and install.
 	if err := p.MatchedConfig.Install(p.Package.Url, p.Package.Ref, p.Package.Archive); err != nil {
 		installFailed = true
 		return err
@@ -288,15 +293,26 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 
 		// Store cache after installation.
 		if writeCacheAfterInstall {
-			if p.ctx.PackageCache() == nil {
-				return errors.ErrPackageCacheDirNotConfigured
+			if skipStoreCacheForLocalChanges {
+				color.Printf(color.Warning, "\n[!] skip storing package cache for %s: source repo has local modifications before build.\n", p.NameVersion())
+				return nil
 			}
+
 			packageCache := p.ctx.PackageCache()
+			if packageCache == nil {
+				return errors.ErrPackageCacheDirConfigured
+			}
 			if packageCache.GetDir() == "" {
-				return errors.ErrPackageCacheDirNotConfigured
+				return errors.ErrPackageCacheDirConfigured
 			}
 			if err := packageCache.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 				return err
+			}
+		} else {
+			if packageCache == nil || packageCache.GetDir() == "" {
+				color.Printf(color.Warning, "\n[!] skip storing package cache for %s: package cache dir is not configured.\n", p.NameVersion())
+			} else if !packageCache.IsWritable() {
+				color.Printf(color.Warning, "\n[!] skip storing package cache for %s: package cache is configured as readonly.\n", p.NameVersion())
 			}
 		}
 	}
@@ -306,7 +322,7 @@ func (p Port) doInstallFromSource(options InstallOptions) error {
 
 func (p Port) doInstallFromPackage(destDir string) error {
 	// Check and repair current port.
-	packageFiles, err := p.PackageFiles(
+	files, err := p.PackageFiles(
 		p.PackageDir,
 		p.ctx.Platform().GetName(),
 		p.ctx.Project().GetName(),
@@ -316,12 +332,12 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	}
 
 	// Copy files from package to installed dir.
-	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
-	for _, file := range packageFiles {
+	libraryFolder := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
+	for _, file := range files {
 		if p.DevDep || p.HostDep {
 			file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
 		} else {
-			file = strings.TrimPrefix(file, filepath.Join(platformProject, string(os.PathSeparator)))
+			file = strings.TrimPrefix(file, filepath.Join(libraryFolder, string(os.PathSeparator)))
 		}
 
 		src := filepath.Join(p.PackageDir, file)
@@ -351,8 +367,8 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 		return false, nil
 	}
 
-	// Install dependencies/dev_dependencies.
-	if err := p.installAllDeps(options); err != nil {
+	// Install dependencies.
+	if err := p.installDependencies(options); err != nil {
 		return false, err
 	}
 
@@ -410,7 +426,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 		if err := p.Remove(remoteOptions); err != nil {
 			return false, fmt.Errorf("failed to remove outdated package -> %w", err)
 		}
-		if err := p.doInstallFromSource(options); err != nil {
+		if err := p.doInstallFromSource(); err != nil {
 			return false, fmt.Errorf("failed to install from source -> %w", err)
 		}
 	}
@@ -437,8 +453,8 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 	}
 
 	if installed {
-		// Install dependencies/dev_dependencies also.
-		if err := p.installAllDeps(options); err != nil {
+		// Install dependencies also.
+		if err := p.installDependencies(options); err != nil {
 			return false, err
 		}
 
@@ -448,10 +464,10 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 
 		packageCache := p.ctx.PackageCache()
 		if packageCache == nil {
-			return false, errors.ErrPackageCacheDirNotConfigured
+			return false, errors.ErrPackageCacheDirConfigured
 		}
 		if packageCache.GetDir() == "" {
-			return false, errors.ErrPackageCacheDirNotConfigured
+			return false, errors.ErrPackageCacheDirConfigured
 		}
 		fromDir := packageCache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("package cache, dir: %q", fromDir))
@@ -463,7 +479,7 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 }
 
 func (p *Port) InstallFromSource(options InstallOptions) error {
-	// Clone or download source of all ports.
+	// Clone or download source of all repos.
 	if err := p.cloneAllRepos(); err != nil {
 		return err
 	}
@@ -479,7 +495,7 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 	}
 
 	// Install all dependencies for current port.
-	if err := p.installAllDeps(options); err != nil {
+	if err := p.installAllDependencies(options); err != nil {
 		return err
 	}
 
@@ -493,7 +509,7 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 	}
 
 	// Firstly, install to package dir.
-	if err := p.doInstallFromSource(options); err != nil {
+	if err := p.doInstallFromSource(); err != nil {
 		return err
 	}
 
@@ -566,8 +582,60 @@ func (p *Port) checkAllTools() error {
 	return nil
 }
 
-func (p Port) installAllDeps(options InstallOptions) error {
-	// Check and repair dev_dependencies.
+func (p Port) installAllDependencies(options InstallOptions) error {
+	if err := p.installDevDependencies(options); err != nil {
+		return err
+	}
+	if err := p.installDependencies(options); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p Port) installDependencies(options InstallOptions) error {
+	for _, nameVersion := range p.MatchedConfig.Dependencies {
+		name := strings.Split(nameVersion, "@")[0]
+		if name == p.Name {
+			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), name)
+		}
+
+		// Init port.
+		var port = Port{
+			DevDep:        p.DevDep,
+			Parent:        p.NameVersion(),
+			installReport: p.installReport,
+		}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return err
+		}
+
+		// Then install the dependency itself if needed.
+		installed, err := port.Installed()
+		if err != nil {
+			return err
+		}
+		if !installed || (options.Force && options.Recursive) {
+			// Always ensure sub-dependencies are installed first.
+			// This ensures transitive dependencies are always available before installing the dependency.
+			if err := port.installAllDependencies(options); err != nil {
+				return err
+			}
+
+			if _, err := port.Install(options); err != nil {
+				return err
+			}
+		} else if p.installReport != nil {
+			p.installReport.add(&port, "preinstalled")
+			if err := port.collectInstalledDepsForReport(); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (p Port) installDevDependencies(options InstallOptions) error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
 		if (p.DevDep || p.HostDep) && p.NameVersion() == nameVersion {
@@ -593,47 +661,7 @@ func (p Port) installAllDeps(options InstallOptions) error {
 		if !installed || (options.Force && options.Recursive) {
 			// Always ensure sub-dependencies are installed first, even if the dependency itself is preinstalled.
 			// This ensures transitive dependencies are always available before installing the dependency.
-			if err := port.installAllDeps(options); err != nil {
-				return err
-			}
-
-			if _, err := port.Install(options); err != nil {
-				return err
-			}
-		} else if p.installReport != nil {
-			p.installReport.add(&port, "preinstalled")
-			if err := port.collectInstalledDepsForReport(); err != nil {
-				return err
-			}
-		}
-	}
-
-	// Check and repair dependencies.
-	for _, nameVersion := range p.MatchedConfig.Dependencies {
-		name := strings.Split(nameVersion, "@")[0]
-		if name == p.Name {
-			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), name)
-		}
-
-		// Init port.
-		var port = Port{
-			DevDep:        p.DevDep,
-			Parent:        p.NameVersion(),
-			installReport: p.installReport,
-		}
-		if err := port.Init(p.ctx, nameVersion); err != nil {
-			return err
-		}
-
-		// Then install the dependency itself if needed.
-		installed, err := port.Installed()
-		if err != nil {
-			return err
-		}
-		if !installed || (options.Force && options.Recursive) {
-			// Always ensure sub-dependencies are installed first.
-			// This ensures transitive dependencies are always available before installing the dependency.
-			if err := port.installAllDeps(options); err != nil {
+			if err := port.installAllDependencies(options); err != nil {
 				return err
 			}
 

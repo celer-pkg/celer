@@ -22,6 +22,7 @@ type Context interface {
 
 type PackageCache interface {
 	GetDir() string
+	IsWritable() bool
 	Read(nameVersion, hash, destDir string) (bool, error)
 	Write(packageDir, meta string) error
 }

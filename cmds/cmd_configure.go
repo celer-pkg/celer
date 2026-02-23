@@ -23,30 +23,30 @@ type configureCmd struct {
 	verbose   bool
 
 	// Package cache options.
-	packageCacheDir   string
-	packageCacheToken string
+	packageCacheDir      string
+	packageCacheWritable bool
 
 	proxy  configs.Proxy
 	ccache configs.CCache
 }
 
 var flagGroup = map[string]string{
-	"platform":              "platform",
-	"project":               "project",
-	"build-type":            "build-type",
-	"downloads":             "downloads",
-	"jobs":                  "jobs",
-	"offline":               "offline",
-	"verbose":               "verbose",
-	"package-cache-dir":     "package-cache",
-	"package-cache-token":   "package-cache",
-	"proxy-host":            "proxy",
-	"proxy-port":            "proxy",
-	"ccache-enabled":        "ccache",
-	"ccache-dir":            "ccache",
-	"ccache-maxsize":        "ccache",
-	"ccache-remote-storage": "ccache",
-	"ccache-remote-only":    "ccache",
+	"platform":               "platform",
+	"project":                "project",
+	"build-type":             "build-type",
+	"downloads":              "downloads",
+	"jobs":                   "jobs",
+	"offline":                "offline",
+	"verbose":                "verbose",
+	"package-cache-dir":      "package-cache",
+	"package-cache-writable": "package-cache",
+	"proxy-host":             "proxy",
+	"proxy-port":             "proxy",
+	"ccache-enabled":         "ccache",
+	"ccache-dir":             "ccache",
+	"ccache-maxsize":         "ccache",
+	"ccache-remote-storage":  "ccache",
+	"ccache-remote-only":     "ccache",
 }
 
 func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -79,7 +79,8 @@ Available Configuration Options:
     
   Package Cache Configuration:
     --package-cache-dir    Set the package cache directory path
-    --package-cache-token  Set the package cache authentication token
+    --package-cache-writable
+                      Set whether package cache is writable (true/false)
     
   Proxy Configuration:
     --proxy-host      Set the proxy server hostname
@@ -100,6 +101,7 @@ Examples:
   celer configure --offline=true                  # Enable offline mode
   celer configure --verbose=false                 # Disable verbose output
   celer configure --package-cache-dir=/tmp/cache  # Set package cache directory
+  celer configure --package-cache-writable=true   # Enable package cache write
   celer configure --proxy-host=proxy.example.com  # Set proxy host
   celer configure --proxy-port=8080               # Set proxy port
   celer configure --ccache-maxsize=5G             # Set ccache max size to 5GB`,
@@ -196,11 +198,11 @@ Examples:
 				}
 				configs.PrintSuccess("current cache dir: %s.", expr.If(c.packageCacheDir != "", c.packageCacheDir, "empty"))
 			}
-			if flags.Changed("package-cache-token") {
-				if err := c.celer.SetPackageCacheToken(c.packageCacheToken); err != nil {
-					return configs.PrintError(err, "failed to set package cache token: %s.", c.maskSecret(c.packageCacheToken))
+			if flags.Changed("package-cache-writable") {
+				if err := c.celer.SetPackageCacheWritable(c.packageCacheWritable); err != nil {
+					return configs.PrintError(err, "failed to set package cache writable: %s.", expr.If(c.packageCacheWritable, "true", "false"))
 				}
-				configs.PrintSuccess("current cache token: %s.", c.maskSecret(c.packageCacheToken))
+				configs.PrintSuccess("current cache writable: %s.", expr.If(c.packageCacheWritable, "true", "false"))
 			}
 
 			if flags.Changed("proxy-host") {
@@ -269,7 +271,7 @@ Examples:
 
 	// Package cache flags.
 	flags.StringVar(&c.packageCacheDir, "package-cache-dir", "", "configure package cache dir.")
-	flags.StringVar(&c.packageCacheToken, "package-cache-token", "", "configure package cache token.")
+	flags.BoolVar(&c.packageCacheWritable, "package-cache-writable", false, "configure package cache writable.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -296,6 +298,9 @@ Examples:
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
 	command.RegisterFlagCompletionFunc("verbose", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
+	})
+	command.RegisterFlagCompletionFunc("package-cache-writable", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
 
@@ -347,7 +352,7 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--offline",
 		"--verbose",
 		"--package-cache-dir",
-		"--package-cache-token",
+		"--package-cache-writable",
 		"--proxy-host",
 		"--proxy-port",
 		"--ccache-enabled",
@@ -365,12 +370,4 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 	}
 
 	return suggestions, cobra.ShellCompDirectiveNoFileComp
-}
-
-func (c configureCmd) maskSecret(value string) string {
-	if value == "" {
-		return "empty"
-	}
-
-	return "******"
 }

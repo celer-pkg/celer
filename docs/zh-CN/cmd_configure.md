@@ -27,7 +27,7 @@ celer configure [flags]
 | --proxy-host              | 字符串  | 设置代理地址                           |
 | --proxy-port              | 整数    | 设置代理端口                           |
 | --package-cache-dir       | 字符串  | 设置二进制缓存目录                      |
-| --package-cache-token     | 字符串  | 设置二进制缓存令牌                      |
+| --package-cache-writable  | 布尔    | 设置二进制缓存是否可写                  |
 | --ccache-enabled          | 布尔    | 开启/关闭 ccache                       |
 | --ccache-dir              | 字符串  | 设置 ccache 工作目录                   |
 | --ccache-maxsize          | 字符串  | 设置 ccache 最大容量                   |
@@ -51,7 +51,7 @@ celer configure --offline=true
 celer configure --verbose=false
 
 # package cache 组（可同命令组合）
-celer configure --package-cache-dir=/home/xxx/cache --package-cache-token=token_12345
+celer configure --package-cache-dir=/home/xxx/cache --package-cache-writable=true
 
 # proxy 组（可同命令组合）
 celer configure --proxy-host=127.0.0.1 --proxy-port=7890
@@ -68,7 +68,7 @@ celer configure --ccache-enabled=true --ccache-maxsize=5G --ccache-remote-only=t
 - `--downloads`：目录必须已存在。
 - `--jobs`：必须大于 `0`。
 - `--package-cache-dir`：不能为空，且目录必须已存在。
-- `--package-cache-token`：不能为空，且必须先配置 `--package-cache-dir`。
+- `--package-cache-writable`：布尔值；使用前需先配置 `--package-cache-dir`（可同命令一起配置）。
 - `--proxy-host`：不能为空。
 - `--proxy-port`：必须大于 `0`。
 - `--ccache-dir`：目录必须已存在。

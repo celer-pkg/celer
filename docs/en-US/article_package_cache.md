@@ -19,7 +19,7 @@ Celer uses **hash-based caching** to store and retrieve build artifacts:
 1. **Calculate Hash**: Generate a unique hash from build environment, options, dependencies, and patches
 2. **Check Cache**: Search for matching artifacts in the configured cache directory
 3. **Use or Build**: If found, extract and use; if not, build from source
-4. **Store Result**: Optionally save the new build artifact for future use
+4. **Store Result**: Automatically save the new build artifact when conditions are met
 
 ## 🚀 Quick Start
 
@@ -36,6 +36,7 @@ jobs = 32
 
 [package_cache]
 dir = "/home/test/celer_cache"  # Local or network-mounted directory
+writable = false                # Read-only cache (default)
 ```
 
 **What happens now:**
@@ -45,9 +46,9 @@ dir = "/home/test/celer_cache"  # Local or network-mounted directory
 
 > 💡 **Tip**: Use a network-mounted folder (e.g., NFS, SMB) to share cache across your team
 
-### Step 2: Store Build Artifacts (Optional)
+### Step 2: Store Build Artifacts Automatically
 
-To save build artifacts to the cache, add `token` and use the `--store-cache` flag:
+After a successful source build, install automatically attempts to store artifacts into package cache:
 
 ```toml
 [global]
@@ -58,12 +59,13 @@ jobs = 32
 
 [package_cache]
 dir = "/home/test/celer_cache"
+writable = true
 ```
 
 **Usage:**
 ```bash
-# Build and store artifacts to cache
-celer install opencv --store-cache --cache-token=xxxyyyzzz
+# Build and automatically attempt to store artifacts to cache
+celer install opencv@4.5.1
 ```
 
 **What happens:**
@@ -72,6 +74,11 @@ celer install opencv --store-cache --cache-token=xxxyyyzzz
 3. Hash-based filename is generated
 4. Artifact is stored in the cache directory
 5. Metadata (`.meta` file) is created in package and install directories for tracking
+
+**Common cases where cache storing is skipped automatically:**
+- `package_cache.dir` is not configured
+- `package_cache.writable=false`
+- Source repository already has local user modifications before build
 
 ## 🔒 Private Library Distribution
 
@@ -186,7 +193,7 @@ When the hash changes:
 ```toml
 [package_cache]
 dir = "/mnt/shared/celer_cache"  # Network drive
-token = "team_build_token"
+writable = true
 ```
 
 **Workflow:**
@@ -211,7 +218,7 @@ Each platform maintains separate cached artifacts, preventing conflicts.
 ### Scenario 3: Private SDK Distribution
 
 Distribute SDK with pre-built dependencies:
-1. Build all dependencies with `--store-cache` and `--cache-token=xxxyyyzzz`
+1. Build all dependencies with cache directory configured, so artifacts are auto-stored
 2. Package the cache folder with your SDK
 3. Partners configure `package_cache.dir` to the packaged cache
 4. They get instant builds without compiling dependencies
@@ -223,7 +230,7 @@ Distribute SDK with pre-built dependencies:
 ### ✅ Do's
 
 - **Use network storage** for team caches (NFS, SMB, cloud storage)
-- **Set appropriate tokens** to control who can write to cache
+- **Set proper directory permissions** to control who can write to cache
 - **Monitor cache size** and clean old artifacts periodically
 - **Include cache in CI/CD** to speed up pipelines
 - **Document cache location** for team members
@@ -231,7 +238,7 @@ Distribute SDK with pre-built dependencies:
 ### ❌ Don'ts
 
 - **Don't put cache on slow storage** (will negate speed benefits)
-- **Don't share tokens publicly** (controls write access)
+- **Don't open write access to everyone** (avoid accidental cache overwrite)
 - **Don't manually edit** cached artifacts or metadata
 - **Don't delete cache** without checking with your team
 
@@ -250,10 +257,10 @@ Distribute SDK with pre-built dependencies:
 ### Can't store to cache?
 
 **Possible causes:**
-1. ✗ The specified cache write token is correct
-2. ✗ No write permissions to cache directory
+1. ✗ `package_cache.dir` is missing or points to a non-existing path
+2. ✗ `package_cache.writable=false` or no write permissions to cache directory
 3. ✗ Disk space full
-4. ✗ Forgot `--store-cache` flag
+4. ✗ Source repository already had local user modifications before build (auto-skip behavior)
 
 ### Cache taking too much space?
 

@@ -27,7 +27,7 @@ celer configure [flags]
 | --proxy-host              | string  | Set proxy host                         |
 | --proxy-port              | integer | Set proxy port                         |
 | --package-cache-dir       | string  | Set package cache directory            |
-| --package-cache-token     | string  | Set package cache token                |
+| --package-cache-writable  | boolean | Set whether package cache is writable  |
 | --ccache-enabled          | boolean | Enable/disable ccache                  |
 | --ccache-dir              | string  | Set ccache working directory           |
 | --ccache-maxsize          | string  | Set ccache max size                    |
@@ -51,7 +51,7 @@ celer configure --offline=true
 celer configure --verbose=false
 
 # Package cache group (can combine in one command)
-celer configure --package-cache-dir=/home/xxx/cache --package-cache-token=token_12345
+celer configure --package-cache-dir=/home/xxx/cache --package-cache-writable=true
 
 # Proxy group (can combine in one command)
 celer configure --proxy-host=127.0.0.1 --proxy-port=7890
@@ -68,7 +68,7 @@ celer configure --ccache-enabled=true --ccache-maxsize=5G --ccache-remote-only=t
 - `--downloads`: directory must already exist.
 - `--jobs`: must be greater than `0`.
 - `--package-cache-dir`: cannot be empty, and directory must already exist.
-- `--package-cache-token`: cannot be empty; package cache directory must be configured first.
+- `--package-cache-writable`: boolean; package cache dir must be configured first (or in the same command).
 - `--proxy-host`: cannot be empty.
 - `--proxy-port`: must be greater than `0`.
 - `--ccache-dir`: directory must already exist.

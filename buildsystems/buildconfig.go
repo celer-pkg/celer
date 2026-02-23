@@ -62,7 +62,7 @@ type buildSystem interface {
 
 	// Clone & patch source code
 	Clone(repoUrl, repoRef, archive string, depth int) error
-	Patch() error
+	ApplyPatches() error
 	UpdateSubmodules() error
 
 	// Configure
@@ -413,7 +413,7 @@ func (b BuildConfig) Clean() error {
 	return nil
 }
 
-func (b BuildConfig) Patch() error {
+func (b BuildConfig) ApplyPatches() error {
 	if len(b.Patches) > 0 {
 		// Apply all patches.
 		for _, patch := range b.Patches {
@@ -560,7 +560,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	}
 
 	// Apply patches.
-	if err := b.buildSystem.Patch(); err != nil {
+	if err := b.buildSystem.ApplyPatches(); err != nil {
 		return fmt.Errorf("patch %s -> %w", b.PortConfig.nameVersionDesc(), err)
 	}
 

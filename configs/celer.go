@@ -6,7 +6,6 @@ import (
 	"celer/envs"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
-	"celer/pkgs/encrypt"
 	"celer/pkgs/errors"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
@@ -484,10 +483,7 @@ func (c *Celer) SetPackageCacheDir(dir string) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
-	c.configData.PackageCache = &PackageCache{
-		Dir: dir,
-		ctx: c,
-	}
+	c.configData.PackageCache.Dir = dir
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -495,36 +491,19 @@ func (c *Celer) SetPackageCacheDir(dir string) error {
 	return nil
 }
 
-func (c *Celer) SetPackageCacheToken(token string) error {
-	if strings.TrimSpace(token) == "" {
-		return errors.ErrPackageCacheTokenInvalid
-	}
-
+func (c *Celer) SetPackageCacheWritable(writable bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
-	// Package cache dir must be configured already.
+	// If cache dir is not configured, writable is useless.
 	if c.configData.PackageCache == nil {
-		return errors.ErrPackageCacheDirNotConfigured
-	}
-	dir := c.configData.PackageCache.Dir
-	if !fileio.PathExists(dir) {
-		return errors.ErrPackageCacheDirNotExist
+		return errors.ErrPackageCacheDirConfigured
 	}
 
-	tokenFile := filepath.Join(dir, ".token")
-	if fileio.PathExists(tokenFile) {
-		return errors.ErrPackageCacheTokenExists
-	}
-
-	// Write token to file with encrypted text.
-	bytes, err := encrypt.Encode(token)
-	if err != nil {
-		return fmt.Errorf("encode cache token -> %w", err)
-	}
-	if err := os.WriteFile(tokenFile, bytes, os.ModePerm); err != nil {
-		return fmt.Errorf("write cache token -> %w", err)
+	c.configData.PackageCache.Writable = writable
+	if err := c.save(); err != nil {
+		return err
 	}
 
 	return nil

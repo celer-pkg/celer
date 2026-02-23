@@ -20,13 +20,8 @@ import (
 var preparedTmpDeps []string
 
 type InstallOptions struct {
-	// Reinstall options.
 	Force     bool
 	Recursive bool
-
-	// Cache options.
-	StoreCache bool
-	CacheToken string
 }
 
 type RemoveOptions struct {

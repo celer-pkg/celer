@@ -11,7 +11,8 @@ import (
 )
 
 type PackageCache struct {
-	Dir string `toml:"dir"`
+	Dir      string `toml:"dir"`
+	Writable bool   `toml:"writable"`
 
 	// Internal field.
 	ctx context.Context
@@ -131,4 +132,8 @@ func (b PackageCache) Exist(nameVersion, hash string) bool {
 
 func (b PackageCache) GetDir() string {
 	return b.Dir
+}
+
+func (b PackageCache) IsWritable() bool {
+	return b.Writable
 }

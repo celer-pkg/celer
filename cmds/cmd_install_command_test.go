@@ -59,8 +59,6 @@ func TestInstallCmd_CommandStructure(t *testing.T) {
 			{"dev", "d"},
 			{"force", "f"},
 			{"recursive", "r"},
-			{"store-cache", "s"},
-			{"cache-token", "t"},
 			{"jobs", "j"},
 			{"verbose", "v"},
 		}
@@ -237,16 +235,6 @@ func TestInstallCmd_Completion(t *testing.T) {
 			name:           "flag completion - jobs",
 			toComplete:     "--jobs",
 			expectContains: []string{"--jobs"},
-		},
-		{
-			name:           "flag completion - cache-token",
-			toComplete:     "--cache-token",
-			expectContains: []string{"--cache-token"},
-		},
-		{
-			name:           "flag completion - short cache-token",
-			toComplete:     "-t",
-			expectContains: []string{"-t"},
 		},
 		{
 			name:           "no completion for unknown",

@@ -43,14 +43,11 @@ func TestInstall_PackageCache_Success(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
+	check(celer.SetPackageCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var installOptions = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var installOptions = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(installOptions))
 
@@ -121,14 +118,11 @@ func TestInstall_PackageCache_With_Deps_Success(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
+	check(celer.SetPackageCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var glogPort configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var options = configs.InstallOptions{}
 	check(glogPort.Init(celer, nameVersion))
 	check(glogPort.InstallFromSource(options))
 
@@ -210,14 +204,11 @@ func TestInstall_PackageCache_Prebuilt_Success(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
+	check(celer.SetPackageCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
@@ -261,7 +252,7 @@ func TestInstall_PackageCache_Prebuilt_Success(t *testing.T) {
 	check(port.Remove(removeOptions))
 }
 
-func TestInstall_PackageCache_DirNotDefined_Failed(t *testing.T) {
+func TestInstall_PackageCache_DirNotDefined_ShouldSkipStoreCache(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -293,145 +284,9 @@ func TestInstall_PackageCache_DirNotDefined_Failed(t *testing.T) {
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrPackageCacheDirNotConfigured {
-		t.Fatal("should return ErrCacheDirNotConfigured")
-	}
-}
-
-func TestInstall_PackageCache_TokenNotDefined_Failed(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-
-	var (
-		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
-	)
-
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPlatform(platform))
-
-	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
-	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrPackageCacheTokenNotConfigured {
-		t.Fatal("should return ErrCacheTokenNotConfigured")
-	}
-}
-
-func TestInstall_PackageCache_TokenNotSpecified_Failed(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-
-	var (
-		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
-	)
-
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
-	check(celer.SetPlatform(platform))
-
-	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "", // Token not specified
-	}
-	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrPackageCacheTokenNotSpecified {
-		t.Fatal("should return ErrCacheTokenNotSpecified")
-	}
-}
-
-func TestInstall_PackageCache_TokenNotMatch_Failed(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-
-	var (
-		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
-	)
-
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
-	check(celer.SetPlatform(platform))
-
-	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_654321", // Token not match.
-	}
-	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrPackageCacheTokenNotMatch {
-		t.Fatal("should return ErrCacheTokenNotMatch")
-	}
+	check(port.InstallFromSource(options))
 }
 
 func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
@@ -464,14 +319,11 @@ func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
+	check(celer.SetPackageCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
@@ -530,14 +382,11 @@ func TestInstall_PackageCache_With_Commit_Failed(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
+	check(celer.SetPackageCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
