@@ -260,13 +260,15 @@ func (p Port) doInstallFromSource() error {
 			skipStoreCacheReason = "\n[!] skip storing package cache for %s: source repo has local modifications before build.\n"
 		}
 
-		// Only up to date repo can store package cache.
-		upToDate, err := git.CheckIfUpToDate(p.MatchedConfig.PortConfig.RepoDir)
-		if err != nil {
-			return err
-		}
-		if !upToDate {
-			skipStoreCacheReason = "\n[!] skip storing package cache for %s: source repo is not up to date.\n"
+		// Only up to date repo can store package cache for git repo.
+		if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
+			upToDate, err := git.CheckIfUpToDate(p.MatchedConfig.PortConfig.RepoDir)
+			if err != nil {
+				return err
+			}
+			if !upToDate {
+				skipStoreCacheReason = "\n[!] skip storing package cache for %s: source repo is not up to date.\n"
+			}
 		}
 	}
 
