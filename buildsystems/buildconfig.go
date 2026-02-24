@@ -62,7 +62,7 @@ type buildSystem interface {
 
 	// Clone & patch source code
 	Clone(repoUrl, repoRef, archive string, depth int) error
-	Patch() error
+	ApplyPatches() error
 	UpdateSubmodules() error
 
 	// Configure
@@ -297,6 +297,7 @@ func (b BuildConfig) Validate() error {
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// In default, clone or download into repo dir.
 	var cmakeConfigPath string
+	var initRepoForArchive bool
 
 	// Check cmake_config.toml in port dirs.
 	publicPortDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
@@ -361,13 +362,10 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			}
 		}
 
-		// Init downloaded source as git repo for tracking file change,
-		// and only for buildtrees source dir.
-		if strings.Contains(b.PortConfig.RepoDir, dirs.BuildtreesDir) {
-			if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
-				return err
-			}
-		}
+		// Archive sources under buildtrees are tracked as local git repos for
+		// local-change detection in install flow. Delay init until after any
+		// generated files (e.g. prebuilt CMakeLists) are created.
+		initRepoForArchive = strings.Contains(b.PortConfig.RepoDir, dirs.BuildtreesDir)
 	}
 
 	// Generate a CMakeLists.txt for prebuilt project.
@@ -378,6 +376,14 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			return err
 		}
 		if err := cmakeConfig.GenerateCMakeLists(b.PortConfig.RepoDir, b.PortConfig.LibName, b.PortConfig.LibVersion); err != nil {
+			return err
+		}
+	}
+
+	// Initialize archive source as local git repo after internal generated files
+	// are ready, so they won't be treated as user local modifications.
+	if initRepoForArchive {
+		if err := git.InitAsLocalRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
 			return err
 		}
 	}
@@ -413,7 +419,7 @@ func (b BuildConfig) Clean() error {
 	return nil
 }
 
-func (b BuildConfig) Patch() error {
+func (b BuildConfig) ApplyPatches() error {
 	if len(b.Patches) > 0 {
 		// Apply all patches.
 		for _, patch := range b.Patches {
@@ -560,7 +566,7 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 	}
 
 	// Apply patches.
-	if err := b.buildSystem.Patch(); err != nil {
+	if err := b.buildSystem.ApplyPatches(); err != nil {
 		return fmt.Errorf("patch %s -> %w", b.PortConfig.nameVersionDesc(), err)
 	}
 

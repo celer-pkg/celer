@@ -15,6 +15,10 @@ celer install <name@version> [<name@version> ...] [flags]
 - Multi-package install runs in argument order and stops on the first failed package.
 - Celer checks circular dependencies and version conflicts before install.
 - Celer searches ports in both global `ports/` and project-specific ports.
+- After successful source builds, Celer best-effort stores package cache by default.
+  Cache is written only when `package_cache.writable=true`; if cache is not configured,
+  cache is readonly, or source was already locally modified before build,
+  cache storing is skipped without failing install.
 - `--jobs` and `--verbose` override install runtime behavior for this command run (all packages in it).
 
 ## Command Options
@@ -24,8 +28,6 @@ celer install <name@version> [<name@version> ...] [flags]
 | --dev         | -d    | boolean | Install as dev dependency                                  |
 | --force       | -f    | boolean | Reinstall target (remove first if installed)              |
 | --recursive   | -r    | boolean | With force-style reinstall, include dependencies           |
-| --store-cache | -s    | boolean | Store build artifacts to package cache after installation  |
-| --cache-token | -t    | string  | Cache token (typically used with `--store-cache`)          |
 | --jobs        | -j    | integer | Parallel build jobs                                        |
 | --verbose     | -v    | boolean | Enable verbose output                                      |
 
@@ -47,8 +49,8 @@ celer install ffmpeg@5.1.6 --force --recursive
 # Install with custom parallelism
 celer install ffmpeg@5.1.6 --jobs=8
 
-# Install and store artifact cache
-celer install ffmpeg@5.1.6 --store-cache --cache-token=token_xxx
+# Default best-effort cache storing
+celer install ffmpeg@5.1.6
 ```
 
 ## Validation Rules

@@ -107,7 +107,7 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 
 	// Get default branch if repoRef is empty.
 	if repoRef == "" {
-		branch, err := DefaultBranch(repoDir)
+		branch, err := GetDefaultBranch(repoDir)
 		if err != nil {
 			return err
 		}

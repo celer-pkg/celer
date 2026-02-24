@@ -115,6 +115,8 @@ func (p powershell) installCompletion() error {
 		return fmt.Errorf("failed to move PowerShell completion file -> %w", err)
 	}
 
+	fmt.Printf("[integrate] completion -> %s\n", filepath.Dir(celerRcFile))
+
 	return nil
 }
 
@@ -246,10 +248,14 @@ func (p powershell) unregisterRunCommand() error {
 
 func (p powershell) executeCmd(name string, args ...string) error {
 	cmd := exec.Command(name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-	return cmd.Run()
+	if output, err := cmd.CombinedOutput(); err != nil {
+		if msg := strings.TrimSpace(string(output)); msg != "" {
+			return fmt.Errorf("%w: %s", err, msg)
+		}
+		return err
+	}
+
+	return nil
 }
 
 func NewPowerShellCompletion(homeDir string, rootCmd *cobra.Command) powershell {

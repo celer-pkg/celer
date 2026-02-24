@@ -2,7 +2,6 @@ package cmds
 
 import (
 	"celer/configs"
-	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -52,19 +51,15 @@ Examples:
 }
 
 func (i *initCmd) doInit() error {
-	// Initialize celer configuration
+	i.url = strings.TrimSpace(i.url)
+	i.branch = strings.TrimSpace(i.branch)
+
+	// Initialize celer configuration.
 	if err := i.celer.Init(); err != nil {
 		return configs.PrintError(err, "Failed to initialize celer.")
 	}
 
-	// Trim whitespace from URL
-	i.url = strings.TrimSpace(i.url)
-
 	// Setup configuration repository.
-	if err := i.validateURL(i.url); err != nil {
-		return configs.PrintError(err, "Invalid URL.")
-	}
-
 	if err := i.celer.CloneConf(i.url, i.branch, i.force); err != nil {
 		return configs.PrintError(err, "Failed to setup configuration repository.")
 	}
@@ -73,20 +68,6 @@ func (i *initCmd) doInit() error {
 		configs.PrintSuccess("Successfully initialized celer with repository: %s --branch %s", i.url, i.branch)
 	} else {
 		configs.PrintSuccess("Successfully initialized celer with repository: %s", i.url)
-	}
-
-	return nil
-}
-
-// validateURL performs basic validation on the provided URL.
-func (i *initCmd) validateURL(url string) error {
-	// Basic URL validation - check for common protocols
-	if !strings.HasPrefix(url, "http://") &&
-		!strings.HasPrefix(url, "https://") &&
-		!strings.HasPrefix(url, "git://") &&
-		!strings.HasPrefix(url, "ssh://") &&
-		!strings.Contains(url, "@") { // SSH format like git@github.com
-		return fmt.Errorf("URL must use http://, https://, git://, ssh:// protocol or SSH format")
 	}
 
 	return nil
