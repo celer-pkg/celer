@@ -80,10 +80,19 @@ func GetDefaultBranch(repoDir string) (string, error) {
 	return "", fmt.Errorf("default branch not found of %s", repoDir)
 }
 
-// CheckIfUpToDate check if repo is already latest.
+func gitRevParse(repoDir, ref string) (string, error) {
+	cmd := exec.Command("git", "-C", repoDir, "rev-parse", ref)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("git rev-parse %s -> %s", ref, output)
+	}
+	return strings.TrimSpace(string(output)), nil
+}
+
+// CheckIfUpToDate check if repo matches remote state for current branch or tag.
 func CheckIfUpToDate(repoDir string) (bool, error) {
-	// Read current branch.
-	currentBranch, err := GetCurrentBranch(repoDir)
+	// Get current commit hash.
+	currentCommit, err := GetCurrentCommit(repoDir)
 	if err != nil {
 		return false, err
 	}
@@ -95,34 +104,59 @@ func CheckIfUpToDate(repoDir string) (bool, error) {
 		return false, fmt.Errorf("git remote failed: %v", err)
 	}
 
-	// No remote configured - this is a local repo, consider it up-to-date.
+	// No remote - local repo is up to date.
 	if strings.TrimSpace(string(output)) == "" {
 		return true, nil
 	}
 
-	// Has remote - fetch latest data.
-	cmd = exec.Command("git", "-C", repoDir, "fetch")
-	if err = cmd.Run(); err != nil {
+	// Fetch remote updates.
+	cmd = exec.Command("git", "-C", repoDir, "fetch", "--tags", "origin")
+	if err := cmd.Run(); err != nil {
 		return false, fmt.Errorf("git fetch failed: %v", err)
 	}
 
-	// Check if remote branch exists
-	cmd = exec.Command("git", "-C", repoDir, "show-ref", "--verify", "--quiet", "refs/remotes/origin/"+currentBranch)
-	if err = cmd.Run(); err != nil {
-		// Remote branch doesn't exist, maybe it's a local repo or not pushed to remote.
+	// If current checkout is on a branch, compare with origin/<branch>.
+	branch, err := GetCurrentBranch(repoDir)
+	if err == nil && branch != "" && branch != "HEAD" {
+		if remoteCommit, err := gitRevParse(repoDir, "origin/"+branch); err == nil {
+			return currentCommit == remoteCommit, nil
+		}
+	}
+
+	// If current checkout is exactly at a tag, ensure this tag exists on origin.
+	tag, err := GetCurrentTag(repoDir)
+	if err == nil && tag != "" {
+		cmd = exec.Command("git", "-C", repoDir, "ls-remote", "--tags", "origin", "refs/tags/"+tag, "refs/tags/"+tag+"^{}")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			return false, fmt.Errorf("git ls-remote --tags %s -> %s", tag, output)
+		}
+		for line := range strings.SplitSeq(strings.TrimSpace(string(output)), "\n") {
+			if line == "" {
+				continue
+			}
+
+			hash := strings.Fields(line)[0]
+			if hash == currentCommit {
+				return true, nil
+			}
+		}
 		return false, nil
 	}
 
-	// Remote branch exists, check if local is behind.
-	cmd = exec.Command("git", "-C", repoDir, "rev-list", "--count", "HEAD..origin/"+currentBranch)
-	output, err = cmd.CombinedOutput()
-	if err != nil {
-		return false, fmt.Errorf("git rev-list failed: %v", err)
+	// Fallback to remote default branch head.
+	remoteCommit, err := gitRevParse(repoDir, "origin/HEAD")
+	if err == nil {
+		return currentCommit == remoteCommit, nil
+	}
+	if defaultBranch, err := GetDefaultBranch(repoDir); err == nil && defaultBranch != "" {
+		if remoteCommit, err := gitRevParse(repoDir, "origin/"+defaultBranch); err == nil {
+			return currentCommit == remoteCommit, nil
+		}
 	}
 
-	// Parse the number of commits behind.
-	behindCount := strings.TrimSpace(string(output))
-	return behindCount == "0", nil
+	// Cannot resolve a meaningful remote target.
+	return false, nil
 }
 
 // InitAsLocalRepo init folder as a local repo.

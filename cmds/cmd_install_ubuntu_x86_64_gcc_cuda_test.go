@@ -7,11 +7,9 @@ import (
 	"celer/configs"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
-	"celer/pkgs/expr"
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 )
 
@@ -32,10 +30,9 @@ func TestInstall_x86_64_GCC_CUDA(t *testing.T) {
 	check(celer.Init())
 
 	var (
-		nameVersion     = "cuda_toolkit@12.9.1"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
+		nameVersion = "cuda_toolkit@12.9.1"
+		platform    = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
+		project     = "project_test_install"
 	)
 
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
