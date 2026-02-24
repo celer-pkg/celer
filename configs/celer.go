@@ -487,6 +487,7 @@ func (c *Celer) SetPackageCacheDir(dir string) error {
 	if c.configData.PackageCache == nil {
 		c.configData.PackageCache = &PackageCache{
 			ctx:      c,
+			Dir:      dir,
 			Writable: false,
 		}
 	} else {
