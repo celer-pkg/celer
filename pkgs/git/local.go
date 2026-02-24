@@ -97,8 +97,8 @@ func GetDefaultBranch(repoDir string) (string, error) {
 	return "", fmt.Errorf("default branch not found of %s", repoDir)
 }
 
-// CheckIfRepoIsUpToDate check if repo is already latest.
-func CheckIfRepoIsUpToDate(repoDir string) (bool, error) {
+// CheckIfUpToDate check if repo is already latest.
+func CheckIfUpToDate(repoDir string) (bool, error) {
 	// Read current branch.
 	currentBranch, err := GetCurrentBranch(repoDir)
 	if err != nil {

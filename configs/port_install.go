@@ -241,11 +241,15 @@ func (p Port) doInstallFromSource() error {
 	// Validate cache dir before building to avoid wasting build time.
 	// Note: only store cache for non-devdep and non-host builds.
 	var (
-		writeCacheAfterInstall        bool
-		skipStoreCacheForLocalChanges bool
-		packageCache                  = p.ctx.PackageCache()
+		writeCacheAfterInstall bool
+		skipStoreCacheReason   string
+		packageCache           = p.ctx.PackageCache()
 	)
 	if !p.MatchedConfig.DevDep && !p.MatchedConfig.HostDev {
+		if packageCache != nil && packageCache.GetDir() != "" && packageCache.IsWritable() {
+			writeCacheAfterInstall = true
+		}
+
 		// Only write cache from a clean source tree before applying patches.
 		// This keeps patch-applied dirty repos eligible, but skips developer-modified repos.
 		modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
@@ -253,10 +257,16 @@ func (p Port) doInstallFromSource() error {
 			return err
 		}
 		if modified {
-			skipStoreCacheForLocalChanges = true
+			skipStoreCacheReason = "\n[!] skip storing package cache for %s: source repo has local modifications before build.\n"
 		}
-		if packageCache != nil && packageCache.GetDir() != "" && packageCache.IsWritable() {
-			writeCacheAfterInstall = true
+
+		// Only up to date repo can store package cache.
+		upToDate, err := git.CheckIfUpToDate(p.MatchedConfig.PortConfig.RepoDir)
+		if err != nil {
+			return err
+		}
+		if !upToDate {
+			skipStoreCacheReason = "\n[!] skip storing package cache for %s: source repo is not up to date.\n"
 		}
 	}
 
@@ -294,8 +304,8 @@ func (p Port) doInstallFromSource() error {
 
 		// Store package cache with meta file inside.
 		if writeCacheAfterInstall {
-			if skipStoreCacheForLocalChanges {
-				color.Printf(color.Warning, "\n[!] skip storing package cache for %s: source repo has local modifications before build.\n", p.NameVersion())
+			if skipStoreCacheReason != "" {
+				color.Printf(color.Warning, skipStoreCacheReason, p.NameVersion())
 				return nil
 			}
 
