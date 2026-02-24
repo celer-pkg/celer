@@ -95,7 +95,7 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 
 	// Get commit hash or archive checksum.
 	if strings.HasSuffix(port.Package.Url, ".git") {
-		commit, err := git.ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
+		commit, err := git.GetCurrentCommit(port.MatchedConfig.PortConfig.RepoDir)
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
 		}

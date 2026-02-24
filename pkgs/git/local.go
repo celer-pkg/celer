@@ -9,8 +9,7 @@ import (
 
 // GetRepoUrl get git repo origin URL.
 func GetRepoUrl(repoDir string) (string, error) {
-	cmd := exec.Command("git", "remote", "get-url", "origin")
-	cmd.Dir = repoDir
+	cmd := exec.Command("git", "-C", repoDir, "remote", "get-url", "origin")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("get repo url -> %s", output)
@@ -20,8 +19,7 @@ func GetRepoUrl(repoDir string) (string, error) {
 
 // GetCurrentBranch read current branch of repo.
 func GetCurrentBranch(repoDir string) (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-	cmd.Dir = repoDir
+	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "--abbrev-ref", "HEAD")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("get current branch -> %s", output)
@@ -31,8 +29,7 @@ func GetCurrentBranch(repoDir string) (string, error) {
 
 // GetCurrentTag read current tag of repo.
 func GetCurrentTag(repoDir string) (string, error) {
-	cmd := exec.Command("git", "describe", "--exact-match", "--tags", "HEAD")
-	cmd.Dir = repoDir
+	cmd := exec.Command("git", "-C", repoDir, "describe", "--exact-match", "--tags", "HEAD")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("get current tag -> %s", output)
@@ -40,21 +37,9 @@ func GetCurrentTag(repoDir string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-// GetCurrentCommit read commit hash of repo.
-func GetCurrentCommit(repoDir string) (string, error) {
-	cmd := exec.Command("git", "rev-parse", "HEAD")
-	cmd.Dir = repoDir
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("get current commit -> %s", output)
-	}
-	return strings.TrimSpace(string(output)), nil
-}
-
 // IsModified check if repo is modified.
 func IsModified(repoDir string) (bool, error) {
-	cmd := exec.Command("git", "status", "--porcelain")
-	cmd.Dir = repoDir
+	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return false, fmt.Errorf("check if repo is modified -> %s", output)
@@ -63,10 +48,9 @@ func IsModified(repoDir string) (bool, error) {
 	return strings.TrimSpace(string(output)) != "", nil
 }
 
-// ReadLocalCommit read git commit hash.
-func ReadLocalCommit(repoDir string) (string, error) {
-	cmd := exec.Command("git", "rev-parse", "HEAD")
-	cmd.Dir = repoDir
+// GetCurrentCommit read git commit hash.
+func GetCurrentCommit(repoDir string) (string, error) {
+	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("read git commit hash: %s", output)
@@ -77,8 +61,7 @@ func ReadLocalCommit(repoDir string) (string, error) {
 
 // GetDefaultBranch read git default branch.
 func GetDefaultBranch(repoDir string) (string, error) {
-	cmd := exec.Command("git", "remote", "show", "origin")
-	cmd.Dir = repoDir
+	cmd := exec.Command("git", "-C", repoDir, "remote", "show", "origin")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("read git default branch: %s", output)
@@ -105,41 +88,45 @@ func CheckIfUpToDate(repoDir string) (bool, error) {
 		return false, err
 	}
 
-	// Retrive remote latest data.
-	cmd := exec.Command("git", "fetch")
+	// Retrieve remote latest data.
+	cmd := exec.Command("git", "-C", repoDir, "fetch")
 	if err = cmd.Run(); err != nil {
 		return false, fmt.Errorf("git fetch failed: %v", err)
 	}
 
-	// Retrive difference data bewteen latest and local.
-	cmd = exec.Command("git", "log", "--oneline", "HEAD..origin/"+currentBranch)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return false, fmt.Errorf("git log failed: %v", err)
+	// Check if upstream branch exists
+	cmd = exec.Command("git", "-C", repoDir, "rev-parse", "--abbrev-ref", currentBranch+"@{u}")
+	if err = cmd.Run(); err != nil {
+		return false, fmt.Errorf("no upstream branch configured for %s", currentBranch)
 	}
 
-	// No diffence means is already update to date.
-	return len(output) == 0, nil
+	// Check for differences between local and remote
+	cmd = exec.Command("git", "-C", repoDir, "rev-list", "--count", "HEAD.."+currentBranch+"@{u}")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return false, fmt.Errorf("git rev-list failed: %v", err)
+	}
+
+	// Parse the number of commits behind
+	behindCount := strings.TrimSpace(string(output))
+	return behindCount == "0", nil
 }
 
 // InitAsLocalRepo init folder as a local repo.
 func InitAsLocalRepo(repoDir, message string) error {
-	cmd := exec.Command("git", "init")
-	cmd.Dir = repoDir
+	cmd := exec.Command("git", "-C", repoDir, "init")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to git init repo -> %s", output)
 	}
 
-	cmd = exec.Command("git", "add", "-A")
-	cmd.Dir = repoDir
+	cmd = exec.Command("git", "-C", repoDir, "add", "-A")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to git add -A -> %s", output)
 	}
 
-	cmd = exec.Command("git", "commit", "-m", message)
-	cmd.Dir = repoDir
+	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
 	cmd.Env = append(os.Environ(),
 		"GIT_AUTHOR_NAME=CI Robot",
 		"GIT_AUTHOR_EMAIL=ci@celer.com",
