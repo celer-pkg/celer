@@ -709,29 +709,6 @@ func TestConfigure_PackageCacheDir_DirNotExist(t *testing.T) {
 	}
 }
 
-func TestConfigure_PackageCacheWritable_NoCacheDir(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-
-	if err := celer.SetPackageCacheWritable(true); !errors.Is(err, errors.ErrPackageCacheDirConfigured) {
-		t.Fatal("expected error for package cache not configured")
-	}
-}
-
 func TestConfigure_Proxy(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()

@@ -506,11 +506,6 @@ func (c *Celer) SetPackageCacheWritable(writable bool) error {
 		return err
 	}
 
-	// If cache dir is not configured, writable is useless.
-	if c.configData.PackageCache == nil {
-		return errors.ErrPackageCacheDirConfigured
-	}
-
 	// Update package cache wriable.
 	if c.configData.PackageCache == nil {
 		c.configData.PackageCache = &PackageCache{

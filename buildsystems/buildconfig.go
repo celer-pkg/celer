@@ -383,7 +383,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// Initialize archive source as local git repo after internal generated files
 	// are ready, so they won't be treated as user local modifications.
 	if initRepoForArchive {
-		if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
+		if err := git.InitAsLocalRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
 			return err
 		}
 	}

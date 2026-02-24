@@ -2,6 +2,7 @@ package configs
 
 import (
 	"celer/buildtools"
+	"celer/context"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/errors"
@@ -183,10 +184,9 @@ func (p Port) Clone() error {
 	return nil
 }
 
-func (p Port) doInstallFromPackageCache(options InstallOptions) (bool, error) {
+func (p Port) doInstallFromPackageCache(options InstallOptions, cache context.PackageCache) (bool, error) {
 	// No cache dir configured, skip it.
-	packageCache := p.ctx.PackageCache()
-	if packageCache == nil {
+	if cache.GetDir() == "" {
 		return false, nil
 	}
 
@@ -218,7 +218,7 @@ func (p Port) doInstallFromPackageCache(options InstallOptions) (bool, error) {
 	}
 
 	// Read cache file and extract them to package dir.
-	if ok, err := packageCache.Read(p.NameVersion(), buildhash+".tar.gz", p.MatchedConfig.PortConfig.PackageDir); err != nil {
+	if ok, err := cache.Read(p.NameVersion(), buildhash+".tar.gz", p.MatchedConfig.PortConfig.PackageDir); err != nil {
 		return false, fmt.Errorf("read cache with buildhash: %s", err)
 	} else if ok {
 		return true, nil
@@ -276,6 +276,7 @@ func (p Port) doInstallFromSource() error {
 			return nil
 		}
 
+		// Write meta file with installed files and build environment.
 		metaData, err := p.buildMeta(p.Package.Commit)
 		if err != nil {
 			installFailed = true
@@ -291,28 +292,15 @@ func (p Port) doInstallFromSource() error {
 			return err
 		}
 
-		// Store cache after installation.
+		// Store package cache with meta file inside.
 		if writeCacheAfterInstall {
 			if skipStoreCacheForLocalChanges {
 				color.Printf(color.Warning, "\n[!] skip storing package cache for %s: source repo has local modifications before build.\n", p.NameVersion())
 				return nil
 			}
 
-			packageCache := p.ctx.PackageCache()
-			if packageCache == nil {
-				return errors.ErrPackageCacheDirConfigured
-			}
-			if packageCache.GetDir() == "" {
-				return errors.ErrPackageCacheDirConfigured
-			}
 			if err := packageCache.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
 				return err
-			}
-		} else {
-			if packageCache == nil || packageCache.GetDir() == "" {
-				color.Printf(color.Warning, "\n[!] skip storing package cache for %s: package cache dir is not configured.\n", p.NameVersion())
-			} else if !packageCache.IsWritable() {
-				color.Printf(color.Warning, "\n[!] skip storing package cache for %s: package cache is configured as readonly.\n", p.NameVersion())
 			}
 		}
 	}
@@ -443,7 +431,13 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 }
 
 func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
-	installed, err := p.doInstallFromPackageCache(options)
+	// Check if has package cache configure.
+	cache := p.ctx.PackageCache()
+	if cache == nil {
+		return false, nil
+	}
+
+	installed, err := p.doInstallFromPackageCache(options, cache)
 	if err != nil {
 		// Repo not exist is not error.
 		if errors.Is(err, errors.ErrRepoNotExit) {
@@ -462,14 +456,7 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		packageCache := p.ctx.PackageCache()
-		if packageCache == nil {
-			return false, errors.ErrPackageCacheDirConfigured
-		}
-		if packageCache.GetDir() == "" {
-			return false, errors.ErrPackageCacheDirConfigured
-		}
-		fromDir := packageCache.GetDir()
+		fromDir := cache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("package cache, dir: %q", fromDir))
 	} else if p.Package.Commit != "" {
 		return false, fmt.Errorf("%w: %s", errors.ErrCacheNotFoundWithCommit, p.Package.Commit)

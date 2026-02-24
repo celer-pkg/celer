@@ -1,7 +1,6 @@
 package git
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,49 +11,44 @@ import (
 func GetRepoUrl(repoDir string) (string, error) {
 	cmd := exec.Command("git", "remote", "get-url", "origin")
 	cmd.Dir = repoDir
-
-	var buffer bytes.Buffer
-	cmd.Stdout = &buffer
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("can not get origin URL: %v", err)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("get repo url -> %s", output)
 	}
-
-	return strings.TrimSpace(buffer.String()), nil
+	return strings.TrimSpace(string(output)), nil
 }
 
-// CheckIfLocalBranch check if repoRef is a branch.
-func CheckIfLocalBranch(repoDir, repoRef string) (bool, error) {
-	// Also can call `git symbolic-ref --short HEAD`
-	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+// GetCurrentBranch read current branch of repo.
+func GetCurrentBranch(repoDir string) (string, error) {
+	cmd := exec.Command("git", "symbolic-ref", "--short", "HEAD")
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, err
+		return "", fmt.Errorf("get current branch -> %s", output)
 	}
-	return strings.TrimSpace(string(output)) == repoRef, nil
+	return strings.TrimSpace(string(output)), nil
 }
 
-// CheckIfLocalTag check if repoRef is a tag.
-func CheckIfLocalTag(repoDir, repoRef string) (bool, error) {
+// GetCurrentTag read current tag of repo.
+func GetCurrentTag(repoDir string) (string, error) {
 	cmd := exec.Command("git", "describe", "--exact-match", "--tags", "HEAD")
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, err
+		return "", fmt.Errorf("get current tag -> %s", output)
 	}
-	return strings.TrimSpace(string(output)) == repoRef, nil
+	return strings.TrimSpace(string(output)), nil
 }
 
-// CheckIfLocalCommit check if repoRef is a commit.
-func CheckIfLocalCommit(repoDir, repoRef string) (bool, error) {
+// GetCurrentCommit read commit hash of repo.
+func GetCurrentCommit(repoDir string) (string, error) {
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, err
+		return "", fmt.Errorf("get current commit -> %s", output)
 	}
-	return strings.TrimSpace(string(output)) == repoRef, nil
+	return strings.TrimSpace(string(output)), nil
 }
 
 // IsModified check if repo is modified.
@@ -63,7 +57,7 @@ func IsModified(repoDir string) (bool, error) {
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, fmt.Errorf("failed to check if repo is modified -> %s", output)
+		return false, fmt.Errorf("check if repo is modified -> %s", output)
 	}
 
 	return strings.TrimSpace(string(output)) != "", nil
@@ -81,8 +75,8 @@ func ReadLocalCommit(repoDir string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-// DefaultBranch read git default branch.
-func DefaultBranch(repoDir string) (string, error) {
+// GetDefaultBranch read git default branch.
+func GetDefaultBranch(repoDir string) (string, error) {
 	cmd := exec.Command("git", "remote", "show", "origin")
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
@@ -100,20 +94,36 @@ func DefaultBranch(repoDir string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("default branch not found")
+	return "", fmt.Errorf("default branch not found of %s", repoDir)
 }
 
-func BranchOfLocal(repoDir string) (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-	cmd.Dir = repoDir
+// CheckIfRepoIsUpToDate check if repo is already latest.
+func CheckIfRepoIsUpToDate(repoDir string) (bool, error) {
+	// Read current branch.
+	currentBranch, err := GetCurrentBranch(repoDir)
+	if err != nil {
+		return false, err
+	}
+
+	// Retrive remote latest data.
+	cmd := exec.Command("git", "fetch")
+	if err = cmd.Run(); err != nil {
+		return false, fmt.Errorf("git fetch failed: %v", err)
+	}
+
+	// Retrive difference data bewteen latest and local.
+	cmd = exec.Command("git", "log", "--oneline", "HEAD..origin/"+currentBranch)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("get current branch name: %s", output)
+		return false, fmt.Errorf("git log failed: %v", err)
 	}
-	return strings.TrimSpace(string(output)), nil
+
+	// No diffence means is already update to date.
+	return len(output) == 0, nil
 }
 
-func InitRepo(repoDir, message string) error {
+// InitAsLocalRepo init folder as a local repo.
+func InitAsLocalRepo(repoDir, message string) error {
 	cmd := exec.Command("git", "init")
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
