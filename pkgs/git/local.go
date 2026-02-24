@@ -88,26 +88,39 @@ func CheckIfUpToDate(repoDir string) (bool, error) {
 		return false, err
 	}
 
-	// Retrieve remote latest data.
-	cmd := exec.Command("git", "-C", repoDir, "fetch")
+	// Check if there's any remote configured.
+	cmd := exec.Command("git", "-C", repoDir, "remote")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return false, fmt.Errorf("git remote failed: %v", err)
+	}
+
+	// No remote configured - this is a local repo, consider it up-to-date.
+	if strings.TrimSpace(string(output)) == "" {
+		return true, nil
+	}
+
+	// Has remote - fetch latest data.
+	cmd = exec.Command("git", "-C", repoDir, "fetch")
 	if err = cmd.Run(); err != nil {
 		return false, fmt.Errorf("git fetch failed: %v", err)
 	}
 
-	// Check if upstream branch exists
-	cmd = exec.Command("git", "-C", repoDir, "rev-parse", "--abbrev-ref", currentBranch+"@{u}")
+	// Check if remote branch exists
+	cmd = exec.Command("git", "-C", repoDir, "show-ref", "--verify", "--quiet", "refs/remotes/origin/"+currentBranch)
 	if err = cmd.Run(); err != nil {
-		return false, fmt.Errorf("no upstream branch configured for %s", currentBranch)
+		// Remote branch doesn't exist, maybe it's a local repo or not pushed to remote.
+		return false, nil
 	}
 
-	// Check for differences between local and remote
-	cmd = exec.Command("git", "-C", repoDir, "rev-list", "--count", "HEAD.."+currentBranch+"@{u}")
-	output, err := cmd.CombinedOutput()
+	// Remote branch exists, check if local is behind.
+	cmd = exec.Command("git", "-C", repoDir, "rev-list", "--count", "HEAD..origin/"+currentBranch)
+	output, err = cmd.CombinedOutput()
 	if err != nil {
 		return false, fmt.Errorf("git rev-list failed: %v", err)
 	}
 
-	// Parse the number of commits behind
+	// Parse the number of commits behind.
 	behindCount := strings.TrimSpace(string(output))
 	return behindCount == "0", nil
 }
