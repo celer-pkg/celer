@@ -20,7 +20,7 @@ func GetRepoUrl(repoDir string) (string, error) {
 
 // GetCurrentBranch read current branch of repo.
 func GetCurrentBranch(repoDir string) (string, error) {
-	cmd := exec.Command("git", "symbolic-ref", "--short", "HEAD")
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	cmd.Dir = repoDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
