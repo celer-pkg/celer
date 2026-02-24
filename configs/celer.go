@@ -479,11 +479,20 @@ func (c *Celer) SetPackageCacheDir(dir string) error {
 		return errors.ErrPackageCacheDirNotExist
 	}
 
-	// Set package cache dir.
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
-	c.configData.PackageCache.Dir = dir
+
+	// Update package cache dir.
+	if c.configData.PackageCache == nil {
+		c.configData.PackageCache = &PackageCache{
+			ctx:      c,
+			Writable: false,
+		}
+	} else {
+		c.configData.PackageCache.ctx = c
+		c.configData.PackageCache.Dir = dir
+	}
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -501,7 +510,17 @@ func (c *Celer) SetPackageCacheWritable(writable bool) error {
 		return errors.ErrPackageCacheDirConfigured
 	}
 
-	c.configData.PackageCache.Writable = writable
+	// Update package cache wriable.
+	if c.configData.PackageCache == nil {
+		c.configData.PackageCache = &PackageCache{
+			ctx:      c,
+			Writable: writable,
+		}
+	} else {
+		c.configData.PackageCache.ctx = c
+		c.configData.PackageCache.Writable = writable
+	}
+
 	if err := c.save(); err != nil {
 		return err
 	}
