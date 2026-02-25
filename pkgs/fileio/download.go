@@ -86,7 +86,7 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 
 	// Create clean temp directory.
 	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return "", fmt.Errorf("cannot create clean tmp dir -> %w", err)
+		return "", fmt.Errorf("cannot clean tmp files dir -> %w", err)
 	}
 
 	// Build download file path.

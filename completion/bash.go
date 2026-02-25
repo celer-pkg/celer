@@ -91,7 +91,7 @@ func (b bash) installBinary() error {
 
 func (b bash) installCompletion() error {
 	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return fmt.Errorf("failed to create clean tmp dir -> %w", err)
+		return fmt.Errorf("failed to clean tmp files dir -> %w", err)
 	}
 
 	// Generate completion file.

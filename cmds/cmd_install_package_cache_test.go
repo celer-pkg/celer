@@ -9,7 +9,9 @@ import (
 	"celer/pkgs/git"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -39,7 +41,14 @@ func TestInstall_PackageCache_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
+		msg := err.Error()
+		if strings.Contains(msg, "Could not resolve host") ||
+			strings.Contains(msg, "not accessible") {
+			t.Skipf("skip due to unavailable network: %v", err)
+		}
+		t.Fatal(err)
+	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
@@ -114,7 +123,14 @@ func TestInstall_PackageCache_With_Deps_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
+		msg := err.Error()
+		if strings.Contains(msg, "Could not resolve host") ||
+			strings.Contains(msg, "not accessible") {
+			t.Skipf("skip due to unavailable network: %v", err)
+		}
+		t.Fatal(err)
+	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
@@ -407,5 +423,77 @@ func TestInstall_PackageCache_With_Commit_Failed(t *testing.T) {
 	}
 	if installed {
 		t.Fatal("should not be installed from cache")
+	}
+}
+
+func TestInstall_Command_ReportContainsPackageCacheSource(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Must create cache dir before setting cache dir.
+	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+
+	var (
+		nameVersion     = "eigen@3.4.0"
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
+		project         = "project_test_install"
+	)
+
+	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
+		msg := err.Error()
+		if strings.Contains(msg, "Could not resolve host") ||
+			strings.Contains(msg, "not accessible") {
+			t.Skipf("skip due to unavailable network: %v", err)
+		}
+		t.Fatal(err)
+	}
+	check(celer.SetBuildType("Release"))
+	check(celer.SetProject(project))
+	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
+	check(celer.SetPackageCacheWritable(true))
+	check(celer.SetPlatform(platform))
+
+	// Prepare cache by installing from source once.
+	var port configs.Port
+	check(port.Init(celer, nameVersion))
+	check(port.InstallFromSource(configs.InstallOptions{}))
+
+	// Remove installed and source to force package-cache path.
+	removeOptions := configs.RemoveOptions{
+		Purge:      true,
+		Recursive:  true,
+		BuildCache: true,
+	}
+	check(port.Remove(removeOptions))
+	check(port.MatchedConfig.Clean())
+
+	// Run install command flow.
+	install := installCmd{celer: celer}
+	check(install.runInstall([]string{nameVersion}))
+
+	// Report should contain package cache source.
+	reportPath := filepath.Join(dirs.InstalledDir, "celer", "report",
+		fmt.Sprintf("eigen_3.4.0@%s@%s@%s.html", platform, project, celer.BuildType()))
+	if !fileio.PathExists(reportPath) {
+		t.Fatalf("install report not found: %s", reportPath)
+	}
+
+	report, err := os.ReadFile(reportPath)
+	check(err)
+	if !strings.Contains(string(report), "package cache") {
+		t.Fatalf("expected report to contain package cache source, report: %s", reportPath)
 	}
 }
