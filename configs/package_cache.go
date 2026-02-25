@@ -2,8 +2,10 @@ package configs
 
 import (
 	"celer/context"
+	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -32,16 +34,44 @@ func (b PackageCache) Read(nameVersion, hash, destDir string) (bool, error) {
 	platformName := b.ctx.Platform().GetName()
 	projectName := b.ctx.Project().GetName()
 	buildType := b.ctx.BuildType()
-	archivePath := filepath.Join(b.Dir, platformName, projectName, buildType, nameVersion, hash)
+	archiveDir := filepath.Join(b.Dir, platformName, projectName, buildType, nameVersion)
+	archivePath := filepath.Join(archiveDir, hash+".tar.gz")
 	if !fileio.PathExists(archivePath) {
 		return false, nil // not an error even not exist.
 	}
 
-	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
+	// The meta file hash should be the same as hash that calcuated dynamically.
+	metaPath := filepath.Join(archiveDir, "meta", hash+".meta")
+	metaBytes, err := os.ReadFile(metaPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, fmt.Errorf("cache archive exists but metadata is missing: %s", metaPath)
+		}
 		return false, err
 	}
+	metaHash := sha256.Sum256(metaBytes)
+	if fmt.Sprintf("%x", metaHash) != hash {
+		return false, fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
+	}
 
-	if err := fileio.Extract(archivePath, destDir); err != nil {
+	// Create tmp dir for extracting inside.
+	if err := dirs.CleanTmpFilesDir(); err != nil {
+		return false, fmt.Errorf("failed to clean tmp files dir -> %w", err)
+	}
+	tempDir, err := os.MkdirTemp(dirs.TmpFilesDir, ".pkgcache-extract-*")
+	if err != nil {
+		return false, err
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Extract to a tmp dir and move back to dest dir.
+	if err := fileio.Extract(archivePath, tempDir); err != nil {
+		return false, err
+	}
+	if err := os.RemoveAll(destDir); err != nil {
+		return false, err
+	}
+	if err := os.Rename(tempDir, destDir); err != nil {
 		return false, err
 	}
 
@@ -67,12 +97,22 @@ func (b PackageCache) Write(packageDir, meta string) error {
 		buildType    = strings.ToLower(parts[4])
 	)
 
+	// Extract tar.gz to a tmp dir.
 	archiveName := fmt.Sprintf("%s@%s.tar.gz", libName, libVersion)
-	archivePath := filepath.Join(os.TempDir(), archiveName)
-	if err := fileio.Targz(archivePath, packageDir, false); err != nil {
+	if err := dirs.CleanTmpFilesDir(); err != nil {
+		return fmt.Errorf("failed to clean tmp files dir -> %w", err)
+	}
+	tempArchive, err := os.CreateTemp(dirs.TmpFilesDir, archiveName+".*")
+	if err != nil {
 		return err
 	}
-	defer os.Remove(archivePath)
+	tempArchivePath := tempArchive.Name()
+	tempArchive.Close()
+	defer os.Remove(tempArchivePath)
+
+	if err := fileio.Targz(tempArchivePath, packageDir, false); err != nil {
+		return err
+	}
 
 	nameVersion := fmt.Sprintf("%s@%s", libName, libVersion)
 	destDir := filepath.Join(b.Dir, platformName, projectName, buildType, nameVersion)
@@ -92,13 +132,23 @@ func (b PackageCache) Write(packageDir, meta string) error {
 		return err
 	}
 
-	// Move the tarball to cache dir.
-	if err := fileio.CopyFile(archivePath, filepath.Join(destDir, hash+".tar.gz")); err != nil {
+	// Move tmp file to dest archive file.
+	archivePath := filepath.Join(destDir, hash+".tar.gz")
+	archiveTempPath := archivePath + ".tmp"
+	if err := fileio.CopyFile(tempArchivePath, archiveTempPath); err != nil {
+		return err
+	}
+	if err := os.Rename(archiveTempPath, archivePath); err != nil {
 		return err
 	}
 
-	// Write metadata to meta dir.
-	if err := os.WriteFile(filepath.Join(metaDir, hash+".meta"), []byte(meta), os.ModePerm); err != nil {
+	// Write meta file to meta dir.
+	metaPath := filepath.Join(metaDir, hash+".meta")
+	metaTempPath := metaPath + ".tmp"
+	if err := os.WriteFile(metaTempPath, []byte(meta), os.ModePerm); err != nil {
+		return err
+	}
+	if err := os.Rename(metaTempPath, metaPath); err != nil {
 		return err
 	}
 

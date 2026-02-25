@@ -87,18 +87,13 @@ func Targz(archivePath, srcDir string, includeFolder bool) error {
 	}
 
 	var cmd *exec.Cmd
-	var command string
 
 	if includeFolder {
-		command = fmt.Sprintf("%s -cvzf %s %s", tarPath, archivePath, srcDir)
+		parentDir := filepath.Dir(srcDir)
+		baseName := filepath.Base(srcDir)
+		cmd = exec.Command(tarPath, "-cvzf", archivePath, "-C", parentDir, baseName)
 	} else {
-		command = fmt.Sprintf("%s -cvzf %s -C %s .", tarPath, archivePath, srcDir)
-	}
-
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/c", command)
-	} else {
-		cmd = exec.Command("bash", "-c", command)
+		cmd = exec.Command(tarPath, "-cvzf", archivePath, "-C", srcDir, ".")
 	}
 
 	cmd.Stdout = os.Stdout

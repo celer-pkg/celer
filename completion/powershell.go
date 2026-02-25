@@ -78,7 +78,7 @@ func (p powershell) installBinary() error {
 
 func (p powershell) installCompletion() error {
 	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return fmt.Errorf("failed to create clean tmp dir -> %w", err)
+		return fmt.Errorf("failed to clean tmp files dir -> %w", err)
 	}
 
 	// Use temporary file mode to ensure file operation safety.

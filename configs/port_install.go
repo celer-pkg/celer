@@ -218,7 +218,7 @@ func (p Port) doInstallFromPackageCache(options InstallOptions, cache context.Pa
 	}
 
 	// Read cache file and extract them to package dir.
-	if ok, err := cache.Read(p.NameVersion(), buildhash+".tar.gz", p.MatchedConfig.PortConfig.PackageDir); err != nil {
+	if ok, err := cache.Read(p.NameVersion(), buildhash, p.MatchedConfig.PortConfig.PackageDir); err != nil {
 		return false, fmt.Errorf("read cache with buildhash: %s", err)
 	} else if ok {
 		return true, nil
