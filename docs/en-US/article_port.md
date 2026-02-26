@@ -206,26 +206,4 @@ options = [
 ]
 ```
 
->Celer provides some dynamic variables that can be used in the toml file, such as: **${BUILD_DIR}**, which will be replaced with the actual path during compilation. For more details, please refer to [Dynamic Variables](#3-dynamic-variables).
-
-### 1.2.15 options
-
-&emsp;&emsp;Optional, when compiling third-party libraries, there are often many options that need to be enabled or disabled. We can define them here, such as **-DBUILD_TESTING=OFF**;
-
-## 2. Dynamic Variables
-
-| Variable | Description | Source |
-| --- | --- | --- |
-| ${SYSTEM_NAME} | Value of **toolchain.system_name** | platform |
-| ${HOST} | Value of **toolchain.host** | platform |
-| ${SYSTEM_PROCESSOR} | Value of **toolchain.system_processor** | platform |
-| ${SYSROOT} | Value of **toolchain.sysroot** | platform |
-| ${CROSS_PREFIX} | Value of **toolchain.crosstool_prefix** | platform |
-| ${BUILD_DIR} | Path to current library's compile directory in buildtrees | buildtrees |
-| ${HOST_NAME} | Value of **toolchain.host_name** | platform |
-| ${PACKAGE_DIR} | Path to current library's package directory | port |
-| ${BUILDTREES_DIR} | Path to buildtrees root directory in workspace | buildtrees |
-| ${REPO_DIR} | Path to current library source code directory | port/buildtrees |
-| ${DEPS_DIR} | Path to **tmp/deps** directory | workspace |
-| ${DEPS_DEV_DIR} | Path to **tmp/deps/${HOST_NAME}-dev** directory | workspace |
-| ${PYTHON3_PATH} | Path to installed python3, auto detected | system |
+> Celer provides dynamic variables that can be used in TOML files, such as **${BUILD_DIR}**, which will be replaced with the actual path during compilation. For the complete list, see [Expression Variables](./article_expvars.md).

@@ -215,38 +215,8 @@ options = [
 ]
 ```
 
-> 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。更多详情请参考 [动态变量](#3-动态变量)。
+> 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。完整列表请参考 [动态变量](./article_expvars.md)。
 
 ### 1.2.15 options
 
 &emsp;&emsp;可选配置，默认值为空，当编译第三方库时，通常会有许多选项需要启用或禁用。我们可以在这里定义它们，例如 **-DBUILD_TESTING=OFF**；
-
-## 📦 动态变量
-
-| 变量 | 描述 | 来源 |
-|------|------|------|
-| ${SYSTEM_NAME} | 系统名称，如 `x86_64-linux` | platform |
-| ${HOST} | 主机名称，如 `x86_64-linux` | platform |
-| ${SYSTEM_PROCESSOR} | 系统处理器架构，如 `x86_64` | platform |
-| ${SYSROOT} | 系统根目录，如 `/usr/x86_64-linux` | platform |
-| ${CROSS_PREFIX} | 交叉编译前缀，如 `x86_64-linux-` | platform |
-| ${BUILD_DIR} | 当前库编译目录 | buildtrees |
-| ${HOST_NAME} | 主机名称，如 `x86_64-windows` | platform |
-| ${PACKAGE_DIR} | 当前库包目录 | port |
-| ${BUILDTREES_DIR} | 编译根目录 | buildtrees |
-| ${REPO_DIR} | 当前库源码目录 | port/buildtrees |
-| ${DEPS_DIR} | 依赖目录 | workspace |
-| ${DEPS_DEV_DIR} | 依赖开发目录 | workspace |
-| ${PYTHON3_PATH} | 本地 python3 路径，自动识别 | system |
-
----
-
-## 📚 相关文档
-
-- [快速开始指南](./quick_start.md) - Celer 入门
-- [项目配置](./cmd_create.md#2-创建一个新的项目) - 在 celer.toml 中选择端口
-- [构建配置](./article_buildconfig.md) - 配置构建选项和依赖
-
----
-
-**需要帮助？** [报告问题](https://github.com/celer-pkg/celer/issues) 或查看我们的[文档](../../README.md)
