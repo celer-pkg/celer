@@ -262,8 +262,23 @@ func (p *Port) findMatchedConfig(buildType string) (*buildsystems.BuildConfig, e
 	}
 
 	// Placeholder variables.
-	p.BuildConfigs[index].ExpressVars.Init(p.ctx.Vairables(), p.BuildConfigs[index])
+	p.appendExpressVars(p.BuildConfigs[index])
 	return &p.BuildConfigs[index], nil
+}
+
+func (p Port) appendExpressVars(config buildsystems.BuildConfig) {
+	vars := p.ctx.ExprVars()
+	vars.Put("REPO_DIR", config.PortConfig.RepoDir)
+	vars.Put("SRC_DIR", config.PortConfig.SrcDir)
+	vars.Put("BUILD_DIR", config.PortConfig.BuildDir)
+	vars.Put("PACKAGE_DIR", config.PortConfig.PackageDir)
+	vars.Put("DEPS_DEV_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
+
+	if config.DevDep {
+		vars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
+	} else {
+		vars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.LibraryFolder))
+	}
 }
 
 func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]string, error) {

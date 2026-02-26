@@ -259,7 +259,6 @@ type BuildConfig struct {
 	HostDev     bool              `toml:"-"`
 	PortConfig  PortConfig        `toml:"-"`
 	Optimize    *context.Optimize `toml:"-"`
-	ExpressVars ExpressVars       `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
 }
@@ -808,7 +807,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 
 	// Expand placeholders.
 	for index, argument := range b.Options {
-		b.Options[index] = b.ExpressVars.Replace(argument)
+		b.Options[index] = b.Ctx.ExprVars().Replace(argument)
 	}
 }
 
@@ -817,7 +816,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 func (b BuildConfig) expandVariables(content string) string {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
-	content = b.ExpressVars.Replace(content)
+	content = b.Ctx.ExprVars().Replace(content)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
 	// For Clang with sysroot, add --gcc-toolchain to find GCC runtime files.

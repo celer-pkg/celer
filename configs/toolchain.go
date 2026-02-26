@@ -2,6 +2,7 @@ package configs
 
 import (
 	"celer/context"
+	"celer/pkgs/env"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -10,6 +11,10 @@ import (
 	"runtime"
 	"strings"
 )
+
+var supportedToolchains = []string{
+	"gcc", "clang", "clang-cl", "qcc",
+}
 
 type Toolchain struct {
 	Url             string `toml:"url"`                       // Download url or local file url.
@@ -30,6 +35,10 @@ type Toolchain struct {
 	// Mandatory fields.
 	CC  string `toml:"cc"`  // C language compiler.
 	CXX string `toml:"cxx"` // C++ language compiler.
+
+	// Optional compiler target triplets for toolchains that require explicit target selection.
+	CCompilerTarget   string `toml:"c_compiler_target,omitempty"`
+	CXXCompilerTarget string `toml:"cxx_compiler_target,omitempty"`
 
 	// Core compiler tools (Essential).
 	CPP string `toml:"cpp,omitempty"` // C preprocessor.
@@ -59,12 +68,31 @@ type Toolchain struct {
 	// Additional compiler tools.
 	FC string `toml:"fc,omitempty"` // Compile Fortran code.
 
+	// Compiler like qnx, need to supply extra environments.
+	Envs []string `toml:"envs"`
+
 	// Internal fields.
 	MSVC        context.MSVC `toml:"-"`
 	ctx         context.Context
 	displayName string
 	rootDir     string
 	abspath     string
+}
+
+func (t Toolchain) setupEnvs() {
+	exrVars := t.ctx.ExprVars()
+	for _, item := range t.Envs {
+		parts := strings.Split(item, "=")
+		if len(parts) != 2 {
+			continue
+		}
+
+		key := parts[0]
+		value := parts[1]
+
+		value = exrVars.Replace(value)
+		os.Setenv(parts[0], env.JoinSpace(value, os.Getenv(key)))
+	}
 }
 
 func (t Toolchain) generate(toolchain *strings.Builder) error {
@@ -90,7 +118,11 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		if t.Path == "/usr/bin" {
 			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", "/usr/bin")
 		} else {
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
+			if strings.HasPrefix(t.Url, "file:///") {
+				fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", t.abspath)
+			} else {
+				fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
+			}
 		}
 	}
 
@@ -98,6 +130,14 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	writeIfNotEmpty("CMAKE_CXX_COMPILER", t.CXX)
 	writeIfNotEmpty("CMAKE_AR", t.AR)
 	writeIfNotEmpty("CMAKE_LINKER", t.LD)
+
+	// Configure compiler targets are usually required by embed platform, like qnx.
+	if t.CCompilerTarget != "" {
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_C_COMPILER_TARGET", t.CCompilerTarget)
+	}
+	if t.CXXCompilerTarget != "" {
+		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_CXX_COMPILER_TARGET", t.CXXCompilerTarget)
+	}
 
 	switch t.Name {
 	case "gcc", "clang":

@@ -76,7 +76,7 @@ func (c *Celer) GenerateToolchainFile() error {
 		if len(parts) == 1 {
 			fmt.Fprintf(&toolchain, `set(%s CACHE INTERNAL "defined by celer globally.")`+"\n", item)
 		} else if len(parts) == 2 {
-			parts[1] = c.expressVars.Replace(parts[1])
+			parts[1] = c.exprVars.Replace(parts[1])
 			fmt.Fprintf(&toolchain, `set(%s %s CACHE INTERNAL "defined by celer globally.")`+"\n", parts[0], parts[1])
 		} else {
 			return fmt.Errorf("invalid cmake var: %s", item)
@@ -98,7 +98,7 @@ func (c *Celer) GenerateToolchainFile() error {
 			fmt.Fprintf(&toolchain, "\n# Global envs.\n")
 		}
 
-		parts[1] = c.expressVars.Replace(parts[1])
+		parts[1] = c.exprVars.Replace(parts[1])
 		fmt.Fprintf(&toolchain, `set(ENV{%s} "%s")`+"\n", parts[0], parts[1])
 	}
 
@@ -107,7 +107,7 @@ func (c *Celer) GenerateToolchainFile() error {
 			fmt.Fprintf(&toolchain, "\n# Global macros.\n")
 		}
 
-		item = c.expressVars.Replace(item)
+		item = c.exprVars.Replace(item)
 		fmt.Fprintf(&toolchain, "add_compile_definitions(%s)\n", item)
 	}
 
@@ -116,7 +116,7 @@ func (c *Celer) GenerateToolchainFile() error {
 			fmt.Fprintf(&toolchain, "\n# Global flags.\n")
 		}
 
-		item = c.expressVars.Replace(item)
+		item = c.exprVars.Replace(item)
 		fmt.Fprintf(&toolchain, "add_compile_options(%s)\n", item)
 	}
 

@@ -41,7 +41,7 @@ Platform configuration files follow a unified naming format:
 | Architecture | CPU architecture | `x86_64`, `aarch64`, `arm` |
 | System | Operating system | `linux`, `windows`, `darwin` |
 | Distribution | System distribution (optional) | `ubuntu-22.04`, `centos-7` |
-| Compiler | Toolchain type | `gcc`, `clang`, `msvc` |
+| Compiler | Toolchain type | `gcc`, `clang`, `msvc`, `qcc` |
 | Version | Compiler version | `11.5.0`, `14.44` |
 
 > 💡 **Tip**: Consistent naming helps teams quickly identify and select the correct platform configuration.
@@ -93,8 +93,11 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `crosstool_prefix` | ✅ | Prefix for toolchain executables, used to locate compiler tools | `x86_64-linux-gnu-`<br>`arm-none-eabi-` |
 | `cc` | ✅ | C compiler executable name | `x86_64-linux-gnu-gcc`<br>`clang` |
 | `cxx` | ✅ | C++ compiler executable name | `x86_64-linux-gnu-g++`<br>`clang++` |
-| `name` | ✅ | Toolchain name (for identification) | `gcc`, `clang`, `msvc` |
+| `name` | ✅ | Toolchain name (for identification) | `gcc`, `clang`, `msvc`, `qcc` |
 | `version` | ✅ | Toolchain version number | `9.5`, `11.3`, `14.0.0` |
+| `c_compiler_target` | ❌ | C compiler target variant passed to CMake (`CMAKE_C_COMPILER_TARGET`) | `gcc_ntoaarch64le` |
+| `cxx_compiler_target` | ❌ | C++ compiler target variant passed to CMake (`CMAKE_CXX_COMPILER_TARGET`) | `gcc_ntoaarch64le_cxx` |
+| `envs` | ❌ | Extra environment variables for toolchains that require runtime env setup (for example QNX) | `["QNX_HOST=/opt/qnx800/host/linux/x86_64"]` |
 | `embedded_system` | ❌ | Whether this is for embedded systems (like MCU or bare-metal) | `true` (MCU/bare-metal)<br>`false` or omit (regular systems) |
 | `fc` | ❌ | Fortran compiler (if needed) | `x86_64-linux-gnu-gfortran` |
 | `ranlib` | ❌ | Library index generator | `x86_64-linux-gnu-ranlib` |
@@ -155,6 +158,41 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 ```
 
 ### Embedded System Platform Configurations
+
+### QNX Platform Configuration
+
+```toml
+[toolchain]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/qnx800.tar.xz"
+  path = "qnx800/host/linux/x86_64/usr/bin"
+  name = "qcc"
+  version = "12.2.0"
+  system_name = "qnx"
+  system_processor = "aarch64"
+  host = "aarch64-nto-qnx"
+  crosstool_prefix = "ntoaarch64-"
+  cc = "qcc"
+  cxx = "q++"
+  ld = "ntoaarch64-ld"
+  ranlib = "ntoaarch64-ranlib"
+  ar = "ntoaarch64-ar"
+  nm = "ntoaarch64-nm"
+  objdump = "ntoaarch64-objdump"
+  strip = "ntoaarch64-strip"
+  c_compiler_target = "gcc_ntoaarch64le"
+  cxx_compiler_target = "gcc_ntoaarch64le_cxx"
+  envs = [
+    "CFLAGS=-D_QNX_SOURCE",
+    "CXXFLAGS=-D_QNX_SOURCE",
+    "QNX_HOST=${TOOLCHAIN_DIR}/host/linux/x86_64",
+    "QNX_TARGET=${TOOLCHAIN_DIR}/target/qnx",
+    "QNX_CONFIGURATION=${TOOLCHAIN_DIR}/.qnx",
+    "QNX_CONFIGURATION_EXCLUSIVE=${TOOLCHAIN_DIR}/.qnx",
+    "MAKEFLAGS=${TOOLCHAIN_DIR}/target/qnx/usr/include",
+  ]
+```
+
+> ⚠️ **Important**: QNX needs to provide some additional environment variables, such as: the path to the license, as defined above.
 
 #### ARM Cortex-M MCU Configuration
 

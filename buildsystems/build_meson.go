@@ -334,7 +334,8 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	// This allows the bin to locate the libraries in the relative lib dir.
 	switch runtime.GOOS {
 	case "linux":
-		if toolchain.GetName() == "gcc" || toolchain.GetName() == "clang" {
+		toolchainName := toolchain.GetName()
+		if toolchainName == "gcc" || toolchainName == "clang" || toolchainName == "qcc" {
 			linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
 		}
 	case "darwin":

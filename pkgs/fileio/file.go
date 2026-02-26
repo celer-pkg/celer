@@ -466,3 +466,12 @@ func ToRelPath(absPath string) string {
 	}
 	return filepath.ToSlash(filepath.Join("${WORKSPACE_ROOT}", relativePath))
 }
+
+func IsSubPath(parent, child string) bool {
+	rel, err := filepath.Rel(parent, child)
+	if err != nil {
+		return false
+	}
+
+	return rel != "." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) && rel != ".."
+}

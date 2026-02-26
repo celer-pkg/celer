@@ -35,8 +35,9 @@ func (t *Toolchain) Validate() error {
 		return fmt.Errorf("toolchain.name is empty")
 	}
 	t.Name = strings.ToLower(t.Name)
-	if t.Name != "gcc" && t.Name != "clang" && t.Name != "clang-cl" {
-		return fmt.Errorf("toolchain.name should be 'gcc', 'clang' or 'clang-cl'")
+
+	if !slices.Contains(supportedToolchains, t.Name) {
+		return fmt.Errorf("toolchain.name should be %s", strings.Join(supportedToolchains, ", "))
 	}
 
 	// Validate toolchain.system_name.
@@ -102,7 +103,8 @@ func (t *Toolchain) Validate() error {
 		}
 
 		if state.IsDir() {
-			t.abspath = localPath
+			t.rootDir = localPath
+			t.abspath = filepath.Join(localPath, t.Path)
 			os.Setenv("PATH", env.JoinPaths("PATH", t.abspath))
 		} else {
 			// Even local must be a archive file and path should not be empty.
