@@ -25,7 +25,6 @@ func (t *Toolchain) Validate() error {
 
 	if t.Url == "file:////usr/bin" {
 		t.displayName = t.Name
-		t.rootDir = "/usr/bin"
 	} else {
 		t.displayName = fileio.FileBaseName(t.Url)
 	}
@@ -104,7 +103,11 @@ func (t *Toolchain) Validate() error {
 
 		if state.IsDir() {
 			t.rootDir = localPath
-			t.abspath = filepath.Join(localPath, t.Path)
+			if filepath.IsAbs(t.Path) {
+				t.abspath = t.Path
+			} else {
+				t.abspath = filepath.Join(localPath, t.Path)
+			}
 			os.Setenv("PATH", env.JoinPaths("PATH", t.abspath))
 		} else {
 			// Even local must be a archive file and path should not be empty.
