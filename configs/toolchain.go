@@ -90,7 +90,7 @@ func (t Toolchain) setupEnvs() {
 		key := parts[0]
 		value := parts[1]
 
-		value = exrVars.Replace(value)
+		value = exrVars.Expand(value)
 		os.Setenv(parts[0], env.JoinSpace(value, os.Getenv(key)))
 	}
 }

@@ -3,6 +3,7 @@ package context
 import (
 	"celer/pkgs/dirs"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -11,6 +12,12 @@ import (
 
 type ExprVars struct {
 	vars map[string]string
+}
+
+func (e ExprVars) Clone() ExprVars {
+	cloned := ExprVars{vars: make(map[string]string, len(e.vars))}
+	maps.Copy(cloned.vars, e.vars)
+	return cloned
 }
 
 // Init initialize Variables with values from the context.
@@ -22,15 +29,13 @@ func (e *ExprVars) Init(ctx Context) {
 	e.vars["INSTALLED_DEV_DIR"] = e.toRelPath(ctx.InstalledDevDir())
 }
 
-// Put Add new key value if not exist.
+// Put stores or updates an expression variable.
 func (e *ExprVars) Put(key, value string) {
-	if _, ok := e.vars[key]; !ok {
-		e.vars[key] = value
-	}
+	e.vars[key] = value
 }
 
-// Replace replace express with values.
-func (e ExprVars) Replace(content string) string {
+// Expand replace express with values.
+func (e ExprVars) Expand(content string) string {
 	for key, value := range e.vars {
 		content = strings.ReplaceAll(content, fmt.Sprintf("${%s}", key), value)
 		content = strings.ReplaceAll(content, fmt.Sprintf("$%s", key), value)

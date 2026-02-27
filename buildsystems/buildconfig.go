@@ -81,7 +81,7 @@ type buildSystem interface {
 	setupEnvs()
 	rollbackEnvs()
 
-	expandOptionsVariables()
+	expandOptions()
 	getLogPath(suffix string) string
 }
 
@@ -255,6 +255,7 @@ type BuildConfig struct {
 
 	// Internal fields
 	Ctx         context.Context   `toml:"-"`
+	ExprVars    context.ExprVars  `toml:"-"`
 	DevDep      bool              `toml:"-"`
 	HostDev     bool              `toml:"-"`
 	PortConfig  PortConfig        `toml:"-"`
@@ -513,7 +514,7 @@ func (b BuildConfig) installOptions() ([]string, error) {
 
 func (b BuildConfig) Install(url, ref, archive string) error {
 	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
-	b.expandOptionsVariables()
+	b.expandOptions()
 
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
@@ -784,8 +785,8 @@ func (b BuildConfig) parseBuildSystem(value string) (name, version string, hasVe
 	return name, version, hasVersion, nil
 }
 
-// expandOptionsVariables Replace placeholders with real paths and values.
-func (b *BuildConfig) expandOptionsVariables() {
+// expandOptions Replace placeholders with real paths and values.
+func (b *BuildConfig) expandOptions() {
 	// Remove cross compile args when build in dev mode.
 	if b.DevDep {
 		crossArgs := []string{
@@ -807,7 +808,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 
 	// Expand placeholders.
 	for index, argument := range b.Options {
-		b.Options[index] = b.Ctx.ExprVars().Replace(argument)
+		b.Options[index] = b.ExprVars.Expand(argument)
 	}
 }
 
@@ -816,7 +817,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 func (b BuildConfig) expandVariables(content string) string {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
-	content = b.Ctx.ExprVars().Replace(content)
+	content = b.ExprVars.Expand(content)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
 	// For Clang with sysroot, add --gcc-toolchain to find GCC runtime files.
