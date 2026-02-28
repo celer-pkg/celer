@@ -512,7 +512,11 @@ func (b BuildConfig) installOptions() ([]string, error) {
 	return nil, nil
 }
 
-func (b BuildConfig) Install(url, ref, archive string) error {
+func (b *BuildConfig) Install(url, ref, archive string) error {
+	// Setup envs.
+	b.setupEnvs()
+	defer b.rollbackEnvs()
+
 	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
 	b.expandOptions()
 
@@ -559,10 +563,6 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 				return fmt.Errorf("failed to create dev symlink -> %w", err)
 			}
 		}
-
-		// Now setup environments after symlinks are in place.
-		b.setupEnvs()
-		defer b.rollbackEnvs()
 	}
 
 	// Apply patches.
