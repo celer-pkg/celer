@@ -91,8 +91,8 @@ func (g gyp) Configure(options []string) error {
 				}
 			}
 		}
-		os.Setenv("CFLAGS", strings.Join(cflags, " "))
-		os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+		g.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
+		g.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 	}
 
 	return nil

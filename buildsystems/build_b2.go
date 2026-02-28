@@ -60,9 +60,9 @@ func (b *b2) preConfigure() error {
 				return err
 			}
 
-			os.Setenv("PATH", msvcEnvs["PATH"])
-			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
-			os.Setenv("LIB", msvcEnvs["LIB"])
+			b.envBackup.setenv("PATH", msvcEnvs["PATH"])
+			b.envBackup.setenv("INCLUDE", msvcEnvs["INCLUDE"])
+			b.envBackup.setenv("LIB", msvcEnvs["LIB"])
 		}
 	}
 

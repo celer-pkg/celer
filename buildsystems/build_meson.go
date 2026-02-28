@@ -71,9 +71,9 @@ func (m *meson) preConfigure() error {
 			msvcPaths := strings.Split(msvcEnvs["PATH"], string(os.PathListSeparator))
 			mergedPath := env.JoinPaths("PATH", msvcPaths...)
 
-			os.Setenv("PATH", mergedPath)
-			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
-			os.Setenv("LIB", msvcEnvs["LIB"])
+			m.envBackup.setenv("PATH", mergedPath)
+			m.envBackup.setenv("INCLUDE", msvcEnvs["INCLUDE"])
+			m.envBackup.setenv("LIB", msvcEnvs["LIB"])
 		}
 	}
 
