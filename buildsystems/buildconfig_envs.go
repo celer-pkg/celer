@@ -165,10 +165,22 @@ func (b *BuildConfig) setupEnvs() {
 		}
 	}
 
+	// Provider environment variables for QNX.
 	toolchain := b.Ctx.Platform().GetToolchain()
 	if toolchain.GetName() == "qcc" {
 		b.envBackup.setenv("CFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CFLAGS")))
 		b.envBackup.setenv("CXXFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CXXFLAGS")))
+
+		// QNX_HOST and QNX_TARGET is mandatory.
+		switch runtime.GOOS {
+		case "linux":
+			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetAbsPath(), "host/linux/x86_64"))
+		case "windows":
+			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetAbsPath(), "host/win64/x86_64/usr/bin"))
+		case "darwin":
+			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetAbsPath(), "host/darwin/x86_64/usr/bin"))
+		}
+		b.envBackup.setenv("QNX_TARGET", filepath.Join(toolchain.GetAbsPath(), "target/qnx"))
 	}
 }
 
