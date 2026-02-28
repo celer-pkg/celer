@@ -41,7 +41,7 @@
 | 架构 | CPU 架构 | `x86_64`, `aarch64`, `arm` |
 | 系统 | 操作系统 | `linux`, `windows`, `darwin` |
 | 发行版 | 系统发行版（可选） | `ubuntu-22.04`, `centos-7` |
-| 编译器 | 工具链类型 | `gcc`, `clang`, `msvc` |
+| 编译器 | 工具链类型 | `gcc`, `clang`, `msvc`, `qcc` |
 | 版本 | 编译器版本 | `11.5.0`, `14.44` |
 
 > 💡 **提示**：一致的命名有助于团队快速识别和选择正确的平台配置。
@@ -93,8 +93,11 @@
 | `crosstool_prefix` | ✅ | 工具链可执行文件的前缀，用于查找编译器工具 | `x86_64-linux-gnu-`<br>`arm-none-eabi-` |
 | `cc` | ✅ | C 编译器可执行文件名 | `x86_64-linux-gnu-gcc`<br>`clang` |
 | `cxx` | ✅ | C++ 编译器可执行文件名 | `x86_64-linux-gnu-g++`<br>`clang++` |
-| `name` | ✅ | 工具链名称（用于标识） | `gcc`, `clang`, `msvc` |
+| `name` | ✅ | 工具链名称（用于标识） | `gcc`, `clang`, `msvc`, `qcc` |
 | `version` | ✅ | 工具链版本号 | `9.5`, `11.3`, `14.0.0` |
+| `c_compiler_target` | ❌ | 传递给 CMake 的 C 编译器 target 变体（`CMAKE_C_COMPILER_TARGET`） | `gcc_ntoaarch64le` |
+| `cxx_compiler_target` | ❌ | 传递给 CMake 的 C++ 编译器 target 变体（`CMAKE_CXX_COMPILER_TARGET`） | `gcc_ntoaarch64le_cxx` |
+| `envs` | ❌ | 工具链额外环境变量（适用于需要运行时环境的工具链，例如 QNX） | `["QNX_HOST=/opt/qnx800/host/linux/x86_64"]` |
 | `embedded_system` | ❌ | 是否为嵌入式系统环境（如 MCU、裸机） | `true`（MCU/裸机）<br>`false` 或不设置（常规系统） |
 | `fc` | ❌ | Fortran 编译器（如果需要） | `x86_64-linux-gnu-gfortran` |
 | `ranlib` | ❌ | 库索引生成器 | `x86_64-linux-gnu-ranlib` |
@@ -155,6 +158,41 @@
 ```
 
 ### 嵌入式系统平台配置
+
+### QNX 平台配置
+
+```toml
+[toolchain]
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/qnx800.tar.xz"
+  path = "qnx800/host/linux/x86_64/usr/bin"
+  name = "qcc"
+  version = "12.2.0"
+  system_name = "qnx"
+  system_processor = "aarch64"
+  host = "aarch64-nto-qnx"
+  crosstool_prefix = "ntoaarch64-"
+  cc = "qcc"
+  cxx = "q++"
+  ld = "ntoaarch64-ld"
+  ranlib = "ntoaarch64-ranlib"
+  ar = "ntoaarch64-ar"
+  nm = "ntoaarch64-nm"
+  objdump = "ntoaarch64-objdump"
+  strip = "ntoaarch64-strip"
+  c_compiler_target = "gcc_ntoaarch64le"
+  cxx_compiler_target = "gcc_ntoaarch64le_cxx"
+  envs = [
+    "CFLAGS=-D_QNX_SOURCE",
+    "CXXFLAGS=-D_QNX_SOURCE",
+    "QNX_HOST=${TOOLCHAIN_DIR}/host/linux/x86_64",
+    "QNX_TARGET=${TOOLCHAIN_DIR}/target/qnx",
+    "QNX_CONFIGURATION=${TOOLCHAIN_DIR}/.qnx",
+    "QNX_CONFIGURATION_EXCLUSIVE=${TOOLCHAIN_DIR}/.qnx",
+    "MAKEFLAGS=${TOOLCHAIN_DIR}/target/qnx/usr/include",
+  ]
+```
+
+> ⚠️ **注意**： QNX需要提供一些额外的环境变量，比如：license所在路径，定义如上。
 
 #### ARM Cortex-M MCU 配置
 

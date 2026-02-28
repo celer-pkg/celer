@@ -15,8 +15,10 @@ func (n nativeToolchain) GetName() string {
 	switch runtime.GOOS {
 	case "windows":
 		return "msvc"
-	default:
+	case "linux":
 		return "gcc"
+	default:
+		panic("unsupported host system: " + runtime.GOOS)
 	}
 }
 

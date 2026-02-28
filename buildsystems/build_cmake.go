@@ -75,8 +75,8 @@ func (c *cmake) preConfigure() error {
 				return err
 			}
 
-			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
-			os.Setenv("LIB", msvcEnvs["LIB"])
+			c.envBackup.setenv("INCLUDE", msvcEnvs["INCLUDE"])
+			c.envBackup.setenv("LIB", msvcEnvs["LIB"])
 		}
 	}
 

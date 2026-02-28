@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"celer/context"
 	celerctx "celer/context"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
@@ -33,7 +34,7 @@ func (f fakeContext) ProxyHostPort() (host string, port int)                    
 func (f fakeContext) Optimize(buildsystem, toolchain string) *celerctx.Optimize { return nil }
 func (f fakeContext) CCacheEnabled() bool                                       { return false }
 func (f fakeContext) GenerateToolchainFile() error                              { return nil }
-func (f fakeContext) Vairables() map[string]string                              { return map[string]string{} }
+func (f fakeContext) ExprVars() *context.ExprVars                               { return nil }
 
 type fakePlatform struct {
 	name string

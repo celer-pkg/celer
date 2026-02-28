@@ -60,9 +60,9 @@ func (b *b2) preConfigure() error {
 				return err
 			}
 
-			os.Setenv("PATH", msvcEnvs["PATH"])
-			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
-			os.Setenv("LIB", msvcEnvs["LIB"])
+			b.envBackup.setenv("PATH", msvcEnvs["PATH"])
+			b.envBackup.setenv("INCLUDE", msvcEnvs["INCLUDE"])
+			b.envBackup.setenv("LIB", msvcEnvs["LIB"])
 		}
 	}
 
@@ -219,40 +219,34 @@ func (b b2) Configure(options []string) error {
 func (b b2) buildOptions() ([]string, error) {
 	var options = slices.Clone(b.Options)
 	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchainName := toolchain.GetName()
 
 	// Set build toolset.
-	switch runtime.GOOS {
-	case "windows":
-		switch toolchain.GetName() {
-		case "msvc":
-			options = append(options, "toolset=msvc-"+b.msvcVersion())
-		case "clang-cl":
-			options = append(options, "toolset=clang-win")
-		default:
-			return nil, fmt.Errorf("unsupported toolchain: %s for b2", toolchain.GetName())
-		}
-	case "linux":
-		// Determine the toolset name based on toolchain.
-		var toolsetName string
-		if strings.Contains(toolchain.GetName(), "clang") {
-			toolsetName = "clang"
-		} else {
-			toolsetName = "gcc"
-		}
-
-		// Set build toolset with version for cross-compilation.
-		rootfs := b.Ctx.RootFS()
-		if !b.DevDep && rootfs != nil {
-			options = append(options, "toolset="+toolsetName+"-"+toolchain.GetVersion())
-		} else {
-			options = append(options, "toolset="+toolsetName)
-		}
+	var toolsetName string
+	switch toolchainName {
+	case "msvc":
+		toolsetName = "msvc-" + b.msvcVersion()
+	case "clang-cl":
+		toolsetName = "clang-win"
+	case "gcc":
+		toolsetName = "gcc"
+	case "clang":
+		toolsetName = "clang"
+	case "qcc":
+		toolsetName = "qcc"
 	default:
-		return nil, fmt.Errorf("unsupported platform: %s", runtime.GOOS)
+		return nil, fmt.Errorf("unsupported toolchain: %s for b2", toolchain.GetName())
+	}
+
+	// Set build toolset with version for cross-compilation.
+	rootfs := b.Ctx.RootFS()
+	if !b.DevDep && rootfs != nil {
+		options = append(options, "toolset="+toolsetName+"-"+toolchain.GetVersion())
+	} else {
+		options = append(options, "toolset="+toolsetName)
 	}
 
 	// Set compiler and linker flags for cross-compilation.
-	rootfs := b.Ctx.RootFS()
 	if !b.DevDep && rootfs != nil {
 		sysroot := rootfs.GetAbsPath()
 		// Only use sysroot for GCC, not for Clang.

@@ -164,6 +164,12 @@ func (b *BuildConfig) setupEnvs() {
 			}
 		}
 	}
+
+	toolchain := b.Ctx.Platform().GetToolchain()
+	if toolchain.GetName() == "qcc" {
+		b.envBackup.setenv("CFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CFLAGS")))
+		b.envBackup.setenv("CXXFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CXXFLAGS")))
+	}
 }
 
 func (b BuildConfig) setupPkgConfig() {
@@ -334,7 +340,7 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 
 	toolchain := b.Ctx.Platform().GetToolchain()
 	switch toolchain.GetName() {
-	case "gcc", "clang":
+	case "gcc", "clang", "qcc":
 		cflags := strings.Fields(os.Getenv("CFLAGS"))
 		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
 
@@ -408,7 +414,7 @@ func (b *BuildConfig) appendLibDir(libDir string) {
 
 	toolchain := b.Ctx.Platform().GetToolchain()
 	switch toolchain.GetName() {
-	case "gcc", "clang":
+	case "gcc", "clang", "qcc":
 		ldflags := os.Getenv("LDFLAGS")
 		parts := strings.Fields(ldflags)
 

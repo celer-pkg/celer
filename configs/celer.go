@@ -7,6 +7,7 @@ import (
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/errors"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
 	"fmt"
@@ -44,9 +45,9 @@ type Celer struct {
 	configData
 
 	// Internal fields.
-	platform    Platform
-	project     Project
-	expressVars ExpressVars
+	platform Platform
+	project  Project
+	exprVars context.ExprVars
 }
 
 type global struct {
@@ -79,6 +80,7 @@ func (c *Celer) Init() error {
 
 // InitWithPlatform initializes celer with platform.
 func (c *Celer) InitWithPlatform(platform string) error {
+	c.exprVars.Init(c)
 	c.platform.ctx = c
 
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
@@ -241,8 +243,16 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		color.Printf(color.Warning, "\n================ WARNING: You're in offline mode currently! ================\n")
 	}
 
-	// Init express var.
-	c.expressVars.Init(c)
+	// Store global express vars if exist.
+	if buildtools.Python3 != nil {
+		c.exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python3.Path))
+	}
+	if buildtools.LLVMPath != "" {
+		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
+		llvmRoot := fileio.ToRelPath(buildtools.LLVMPath)
+		llvmConfigPath := filepath.Join(llvmRoot, "bin", llvmConfig)
+		c.exprVars.Put("LLVM_CONFIG", filepath.ToSlash(llvmConfigPath))
+	}
 
 	// Clone ports repo if empty.
 	if err := c.clonePorts(); err != nil {
@@ -892,6 +902,6 @@ func (c *Celer) CCacheEnabled() bool {
 	return c.configData.CCache != nil && c.configData.CCache.Enabled
 }
 
-func (c *Celer) Vairables() map[string]string {
-	return c.expressVars.vars
+func (c *Celer) ExprVars() *context.ExprVars {
+	return &c.exprVars
 }

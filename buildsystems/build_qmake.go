@@ -143,8 +143,8 @@ func (q qmake) Configure(options []string) error {
 				}
 			}
 		}
-		os.Setenv("CFLAGS", strings.Join(cflags, " "))
-		os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+		q.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
+		q.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 	}
 
 	// Create build dir if not exists.

@@ -60,6 +60,7 @@ type Port struct {
 	metaFile      string
 	tmpDepsDir    string
 	installReport *installReport
+	exprVars      context.ExprVars
 }
 
 func (p Port) NameVersion() string {
@@ -68,6 +69,7 @@ func (p Port) NameVersion() string {
 
 func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	p.ctx = ctx
+	p.exprVars = ctx.ExprVars().Clone()
 
 	// Validate name and version.
 	nameVersion = strings.ReplaceAll(nameVersion, "`", "")
@@ -262,8 +264,24 @@ func (p *Port) findMatchedConfig(buildType string) (*buildsystems.BuildConfig, e
 	}
 
 	// Placeholder variables.
-	p.BuildConfigs[index].ExpressVars.Init(p.ctx.Vairables(), p.BuildConfigs[index])
+	p.putExprVars(p.BuildConfigs[index])
+	p.BuildConfigs[index].ExprVars = p.exprVars
 	return &p.BuildConfigs[index], nil
+}
+
+func (p *Port) putExprVars(config buildsystems.BuildConfig) {
+	p.exprVars = p.ctx.ExprVars().Clone()
+	p.exprVars.Put("REPO_DIR", config.PortConfig.RepoDir)
+	p.exprVars.Put("SRC_DIR", config.PortConfig.SrcDir)
+	p.exprVars.Put("BUILD_DIR", config.PortConfig.BuildDir)
+	p.exprVars.Put("PACKAGE_DIR", config.PortConfig.PackageDir)
+	p.exprVars.Put("DEPS_DEV_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
+
+	if config.DevDep {
+		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
+	} else {
+		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.LibraryFolder))
+	}
 }
 
 func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]string, error) {

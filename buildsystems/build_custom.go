@@ -160,7 +160,7 @@ func (c custom) setOptimizeFlags() {
 				}
 			}
 		}
-		os.Setenv("CFLAGS", strings.Join(cflags, " "))
-		os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+		c.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
+		c.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 	}
 }
