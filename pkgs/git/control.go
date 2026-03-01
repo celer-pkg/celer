@@ -16,7 +16,9 @@ import (
 func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error {
 	retryExecutor := func(title, command string) error {
 		executor := cmd.NewExecutor(title, command)
-		executor.SetWorkDir(repoDir)
+		if fileio.PathExists(repoDir) {
+			executor.SetWorkDir(repoDir)
+		}
 		executor.SetMaxRetries(3)
 		return executor.Execute()
 	}
