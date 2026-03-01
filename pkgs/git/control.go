@@ -14,6 +14,15 @@ import (
 
 // CloneRepo clone git repo.
 func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error {
+	retryExecutor := func(title, command string) error {
+		executor := cmd.NewExecutor(title, command)
+		if fileio.PathExists(repoDir) {
+			executor.SetWorkDir(repoDir)
+		}
+		executor.SetMaxRetries(3)
+		return executor.Execute()
+	}
+
 	cloneRepo := func(repoRef, repoUrl, repoDir string, depth int) string {
 		var buffer bytes.Buffer
 		buffer.WriteString("git clone")
@@ -30,7 +39,10 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	// ============ Clone default branch ============
 	if repoRef == "" {
 		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
-		return cmd.NewExecutor(title, command).Execute()
+		if err := retryExecutor(title, command); err != nil {
+			return fmt.Errorf("faield to clone git repo -> %w", err)
+		}
+		return nil
 	}
 
 	// ============ Clone specific branch ============
@@ -40,7 +52,10 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	}
 	if isBranch {
 		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
-		return cmd.NewExecutor(title, command).Execute()
+		if err := retryExecutor(title, command); err != nil {
+			return fmt.Errorf("faield to clone git repo -> %w", err)
+		}
+		return nil
 	}
 
 	// ============ Clone specific tag ============
@@ -50,20 +65,21 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	}
 	if isTag {
 		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
-		return cmd.NewExecutor(title, command).Execute()
+		if err := retryExecutor(title, command); err != nil {
+			return fmt.Errorf("faield to clone git repo -> %w", err)
+		}
+		return nil
 	}
 
 	// ============ Clone and checkout commit ============
 	command := fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
-	if err := cmd.NewExecutor(title, command).Execute(); err != nil {
+	if err := retryExecutor(title, command); err != nil {
 		return fmt.Errorf("faield to clone git repo -> %w", err)
 	}
 
 	// Checkout repo to commit.
 	command = fmt.Sprintf("git reset --hard %s", repoRef)
-	executor := cmd.NewExecutor(title+" (reset to commit)", command)
-	executor.SetWorkDir(repoDir)
-	if err := executor.Execute(); err != nil {
+	if err := retryExecutor(title+" (reset to commit)", command); err != nil {
 		return fmt.Errorf("failed to reset --hard -> %w", err)
 	}
 
