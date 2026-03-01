@@ -97,6 +97,7 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 - [Generate CMake Configs](./article_generate_cmake_config.md) - Auto-generate configs for prebuilt libraries
 - [Package Cache](./article_package_cache.md) - Accelerate integration by caching build artifact of every library
 - [Support CCache](./article_ccache.md) - Speeds up recompilation by caching previous compilations
+- [Expression Variables](./article_expvars.md) - Full list of dynamic variables supported in TOML configs
 - [Detect version conflict and circular dependencies](./article_detect_conflict_circular.md) - Auto detect version conflict and circular dependencies before building any libraries
 - [CUDA auto detect](./article_cuda_support.md) - Seamless CUDA toolkit integration for GPU-accelerated projects
 - [Export snapshot](./cmd_deploy_export.md) - Export a reproducible workspace snapshot after deployed successfully
@@ -106,7 +107,7 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 | Command                               | Description |
 | ------------------------------------- | ------------|
 | [autoremove](./cmd_autoremove.md)     | Clean installed directory, remove project not required libraries.|
-| [clean](./cmd_clean.md)               | Remove build cache and clean project repo.|
+| [clean](./cmd_clean.md)               | Remove build cache for targets, or clean all with `--all`.|
 | [configure](./cmd_configure.md)       | Configure global settings for current workspace.|
 | [create](./cmd_create.md)             | Create a platform, project or port. |
 | [deploy](./cmd_deploy.md)             | Deploy with selected platform and project.|
@@ -117,7 +118,7 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 | [reverse](./cmd_reverse.md)           | Reverse query dependencies on the specified library. |
 | [search](./cmd_search.md)             | Search available ports from ports repository.|
 | [tree](./cmd_tree.md)                 | Show dependencies of a port or project.|
-| [update](./cmd_update.md)             | Update conf repo, ports config repo or project repo.|
+| [update](./cmd_update.md)             | Repo mode takes no ports; port mode requires at least one `name@version`.|
 | [version](./cmd_version.md)           | Show version info of celer.|
 
 ## 🤝 Contributing

@@ -104,6 +104,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 			}
 
 			p.BuildConfigs[index].Ctx = p.ctx
+			p.BuildConfigs[index].ExprVars = p.exprVars
 			p.BuildConfigs[index].PortConfig = portConfig
 			p.BuildConfigs[index].DevDep = p.DevDep
 			p.BuildConfigs[index].HostDev = p.HostDep || p.DevDep

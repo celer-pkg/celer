@@ -62,40 +62,49 @@ Examples:
 
 // execute performs the main logic for package removal.
 func (r *removeCmd) execute(args []string) error {
+	// Validate and normalize input arguments first.
+	nameVersions, err := r.validatePackageNames(args)
+	if err != nil {
+		return fmt.Errorf("invalid package names -> %w", err)
+	}
+
 	// Initialize celer
 	if err := r.celer.Init(); err != nil {
 		return fmt.Errorf("failed to initialize celer -> %w", err)
 	}
 
-	// Validate input arguments.
-	if err := r.validatePackageNames(args); err != nil {
-		return fmt.Errorf("invalid package names -> %w", err)
-	}
-
 	// Remove packages.
-	if err := r.removePackages(args); err != nil {
+	if err := r.removePackages(nameVersions); err != nil {
 		return fmt.Errorf("failed to remove packages -> %w", err)
 	}
 
 	// Print success message.
-	configs.PrintSuccess("Successfully removed %s", strings.Join(args, ", "))
+	configs.PrintSuccess("Successfully removed %s", strings.Join(nameVersions, ", "))
 	return nil
 }
 
-// validatePackageNames validates package name format.
-func (r *removeCmd) validatePackageNames(nameVersions []string) error {
+func (r *removeCmd) validatePackageNames(nameVersions []string) ([]string, error) {
 	regex := regexp.MustCompile(`^[a-zA-Z0-9_-]+@[a-zA-Z0-9._-]+$`)
+	normalized := make([]string, 0, len(nameVersions))
+
 	for _, nameVersion := range nameVersions {
-		if strings.TrimSpace(nameVersion) == "" {
-			return fmt.Errorf("empty package name")
+		// In Windows PowerShell completion context, "`" can be added before "@",
+		// keep behavior aligned with install/update commands.
+		nameVersion = strings.ReplaceAll(nameVersion, "`", "")
+		nameVersion = strings.TrimSpace(nameVersion)
+
+		if nameVersion == "" {
+			return nil, fmt.Errorf("empty package name")
 		}
 
 		if !regex.MatchString(nameVersion) {
-			return fmt.Errorf("invalid package name format: %s (expected format: name@version)", nameVersion)
+			return nil, fmt.Errorf("invalid package name format: %s (expected format: name@version)", nameVersion)
 		}
+
+		normalized = append(normalized, nameVersion)
 	}
 
-	return nil
+	return normalized, nil
 }
 
 // removePackages handles the actual package removal.
@@ -142,7 +151,18 @@ func (r *removeCmd) completion(cmd *cobra.Command, args []string, toComplete str
 		}
 	}
 
-	return suggestions, cobra.ShellCompDirectiveNoFileComp
+	// Keep completion list stable and deduplicated.
+	seen := make(map[string]bool, len(suggestions))
+	unique := make([]string, 0, len(suggestions))
+	for _, suggestion := range suggestions {
+		if seen[suggestion] {
+			continue
+		}
+		seen[suggestion] = true
+		unique = append(unique, suggestion)
+	}
+
+	return unique, cobra.ShellCompDirectiveNoFileComp
 }
 
 // getInstalledPackages returns list of installed packages matching the completion prefix.

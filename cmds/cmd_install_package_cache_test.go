@@ -9,7 +9,9 @@ import (
 	"celer/pkgs/git"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -39,18 +41,22 @@ func TestInstall_PackageCache_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
+		msg := err.Error()
+		if strings.Contains(msg, "Could not resolve host") ||
+			strings.Contains(msg, "not accessible") {
+			t.Skipf("skip due to unavailable network: %v", err)
+		}
+		t.Fatal(err)
+	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
+	check(celer.SetPackageCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var installOptions = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var installOptions = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(installOptions))
 
@@ -117,18 +123,22 @@ func TestInstall_PackageCache_With_Deps_Success(t *testing.T) {
 		project         = "project_test_install"
 	)
 
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
+		msg := err.Error()
+		if strings.Contains(msg, "Could not resolve host") ||
+			strings.Contains(msg, "not accessible") {
+			t.Skipf("skip due to unavailable network: %v", err)
+		}
+		t.Fatal(err)
+	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
+	check(celer.SetPackageCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var glogPort configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var options = configs.InstallOptions{}
 	check(glogPort.Init(celer, nameVersion))
 	check(glogPort.InstallFromSource(options))
 
@@ -210,14 +220,11 @@ func TestInstall_PackageCache_Prebuilt_Success(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
+	check(celer.SetPackageCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
@@ -261,7 +268,7 @@ func TestInstall_PackageCache_Prebuilt_Success(t *testing.T) {
 	check(port.Remove(removeOptions))
 }
 
-func TestInstall_PackageCache_DirNotDefined_Failed(t *testing.T) {
+func TestInstall_PackageCache_DirNotDefined_ShouldSkipStoreCache(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -293,145 +300,9 @@ func TestInstall_PackageCache_DirNotDefined_Failed(t *testing.T) {
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrPackageCacheDirNotConfigured {
-		t.Fatal("should return ErrCacheDirNotConfigured")
-	}
-}
-
-func TestInstall_PackageCache_TokenNotDefined_Failed(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-
-	var (
-		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
-	)
-
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPlatform(platform))
-
-	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
-	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrPackageCacheTokenNotConfigured {
-		t.Fatal("should return ErrCacheTokenNotConfigured")
-	}
-}
-
-func TestInstall_PackageCache_TokenNotSpecified_Failed(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-
-	var (
-		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
-	)
-
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
-	check(celer.SetPlatform(platform))
-
-	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "", // Token not specified
-	}
-	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrPackageCacheTokenNotSpecified {
-		t.Fatal("should return ErrCacheTokenNotSpecified")
-	}
-}
-
-func TestInstall_PackageCache_TokenNotMatch_Failed(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-
-	var (
-		nameVersion     = "eigen@3.4.0"
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_install"
-	)
-
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
-	check(celer.SetPlatform(platform))
-
-	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_654321", // Token not match.
-	}
-	check(port.Init(celer, nameVersion))
-	if err := port.InstallFromSource(options); err != errors.ErrPackageCacheTokenNotMatch {
-		t.Fatal("should return ErrCacheTokenNotMatch")
-	}
+	check(port.InstallFromSource(options))
 }
 
 func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
@@ -464,19 +335,16 @@ func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
+	check(celer.SetPackageCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
 	// Read commit.
-	commit, err := git.ReadLocalCommit(port.MatchedConfig.PortConfig.RepoDir)
+	commit, err := git.GetCurrentCommit(port.MatchedConfig.PortConfig.RepoDir)
 	check(err)
 
 	// Remove installed and src dir.
@@ -530,14 +398,11 @@ func TestInstall_PackageCache_With_Commit_Failed(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
 	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheToken("token_123456"))
+	check(celer.SetPackageCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
-	var options = configs.InstallOptions{
-		StoreCache: true,
-		CacheToken: "token_123456",
-	}
+	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
@@ -558,5 +423,77 @@ func TestInstall_PackageCache_With_Commit_Failed(t *testing.T) {
 	}
 	if installed {
 		t.Fatal("should not be installed from cache")
+	}
+}
+
+func TestInstall_Command_ReportContainsPackageCacheSource(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Must create cache dir before setting cache dir.
+	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+
+	var (
+		nameVersion     = "eigen@3.4.0"
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
+		project         = "project_test_install"
+	)
+
+	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
+		msg := err.Error()
+		if strings.Contains(msg, "Could not resolve host") ||
+			strings.Contains(msg, "not accessible") {
+			t.Skipf("skip due to unavailable network: %v", err)
+		}
+		t.Fatal(err)
+	}
+	check(celer.SetBuildType("Release"))
+	check(celer.SetProject(project))
+	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
+	check(celer.SetPackageCacheWritable(true))
+	check(celer.SetPlatform(platform))
+
+	// Prepare cache by installing from source once.
+	var port configs.Port
+	check(port.Init(celer, nameVersion))
+	check(port.InstallFromSource(configs.InstallOptions{}))
+
+	// Remove installed and source to force package-cache path.
+	removeOptions := configs.RemoveOptions{
+		Purge:      true,
+		Recursive:  true,
+		BuildCache: true,
+	}
+	check(port.Remove(removeOptions))
+	check(port.MatchedConfig.Clean())
+
+	// Run install command flow.
+	install := installCmd{celer: celer}
+	check(install.runInstall([]string{nameVersion}))
+
+	// Report should contain package cache source.
+	reportPath := filepath.Join(dirs.InstalledDir, "celer", "report",
+		fmt.Sprintf("eigen_3.4.0@%s@%s@%s.html", platform, project, celer.BuildType()))
+	if !fileio.PathExists(reportPath) {
+		t.Fatalf("install report not found: %s", reportPath)
+	}
+
+	report, err := os.ReadFile(reportPath)
+	check(err)
+	if !strings.Contains(string(report), "package cache") {
+		t.Fatalf("expected report to contain package cache source, report: %s", reportPath)
 	}
 }

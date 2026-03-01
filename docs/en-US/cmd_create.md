@@ -1,67 +1,42 @@
+# Create Command
 
-# 🚀 Create Command
+The `create` command create a new draft platform, project, or port configuration.
 
-> Quickly create new platform, project, or port configurations
-
-&emsp;&emsp;The `create` command generates configuration files for platforms, projects, or third-party library ports with a single command.
-
-
-## 📝 Command Syntax
+## Command Syntax
 
 ```shell
-celer create [options]
+celer create [flags]
 ```
 
-## ⚙️ Command Options
+## Important Behavior
 
-| Option       | Description                 |
-|--------------|-----------------------------|
-| --platform   | Create a new platform       |
-| --project    | Create a new project        |
-| --port       | Create a new port           |
+- You must provide exactly one of `--platform`, `--project`, or `--port`.
+- These three flags are mutually exclusive.
+- `--port` must use `name@version` format.
 
+## Command Options
 
-## 💡 Usage Examples
+| Option     | Type   | Description                      |
+|------------|--------|----------------------------------|
+| --platform | string | Create a platform configuration  |
+| --project  | string | Create a project configuration   |
+| --port     | string | Create a port configuration      |
 
-### 1️⃣ Create a New Platform
+## Common Examples
 
 ```shell
-celer create --platform x86_64-linux-xxxx
+# Create a platform
+celer create --platform=x86_64-linux-custom
+
+# Create a project
+celer create --project=my_project
+
+# Create a port
+celer create --port=opencv@4.11.0
 ```
 
-> Recommended platform name pattern: `[arch]-[os]-xxxx`  
-> Generated file location: `conf/platforms/`  
-> Please edit the generated configuration file according to your target environment
+## Validation Rules
 
-For more platform configuration details, see [Platform Introduction](./article_platform.md)
-
-### 2️⃣ Create a New Project
-
-```shell
-celer create --project xxxx
-```
-
-> Generated file location: `conf/projects/`  
-> Please edit the generated configuration file according to your target project
-
-For more project configuration details, see [Project Introduction](./article_project.md)
-
-### 3️⃣ Create a New Port
-
-```shell
-celer create --port xxxx
-```
-
-> Generated file location example: `workspace/ports/glog/0.6.0/port.toml`  
-> Please edit the generated configuration file according to your target library
-
-For more port configuration details, see [Port Introduction](./article_port.md)
-
----
-
-## 📚 Related Documentation
-
-- [Quick Start](./quick_start.md)
-- [Platform Introduction](./article_platform.md)
-- [Project Introduction](./article_project.md)
-- [Port Introduction](./article_port.md)
+- `--platform`: cannot be empty and cannot contain spaces.
+- `--project`: cannot be empty.
+- `--port`: must be `name@version` and both name/version must be non-empty.

@@ -252,7 +252,7 @@ func TestRemoveCmd_ValidatePackageNames(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := remove.validatePackageNames(test.packages)
+			_, err := remove.validatePackageNames(test.packages)
 			if test.expectError && err == nil {
 				t.Errorf("Expected error for %s, got nil", test.description)
 			}
@@ -260,6 +260,42 @@ func TestRemoveCmd_ValidatePackageNames(t *testing.T) {
 				t.Errorf("Expected no error for %s, got: %v", test.description, err)
 			}
 		})
+	}
+}
+
+func TestRemoveCmd_NormalizePackageNames_PowerShellEscaped(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	remove := &removeCmd{}
+	input := []string{"boost`@1.87.0", "  openssl@3.5.0  "}
+
+	normalized, err := remove.validatePackageNames(input)
+	if err != nil {
+		t.Fatalf("expected normalized package names, got error: %v", err)
+	}
+
+	expected := []string{"boost@1.87.0", "openssl@3.5.0"}
+	if !slices.Equal(normalized, expected) {
+		t.Fatalf("expected %v, got %v", expected, normalized)
+	}
+}
+
+func TestRemoveCmd_Execute_ValidationBeforeInit(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	remove := &removeCmd{
+		celer: nil, // Should not be touched for invalid input.
+	}
+
+	err := remove.execute([]string{"invalid-package"})
+	if err == nil {
+		t.Fatal("expected validation error")
+	}
+
+	if !strings.Contains(err.Error(), "invalid package names") {
+		t.Fatalf("expected validation-first error, got: %v", err)
 	}
 }
 
@@ -353,6 +389,52 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestRemoveCmd_Completion_DeduplicateInstalledPackages(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	remove := &removeCmd{}
+	cmd := &cobra.Command{}
+
+	originalInstalledDir := dirs.InstalledDir
+	defer func() { dirs.InstalledDir = originalInstalledDir }()
+
+	testDir := filepath.Join(os.TempDir(), "celer-test-remove-dedup")
+	defer os.RemoveAll(testDir)
+	dirs.InstalledDir = testDir
+
+	traceDir := filepath.Join(testDir, "celer", "trace")
+	if err := os.MkdirAll(traceDir, 0755); err != nil {
+		t.Fatalf("failed to create trace dir: %v", err)
+	}
+
+	// Same package with different trace suffixes should be deduplicated.
+	testFiles := []string{
+		"boost@1.87.0@x86_64-linux.trace",
+		"boost@1.87.0@aarch64-linux.trace",
+	}
+	for _, filename := range testFiles {
+		if err := os.WriteFile(filepath.Join(traceDir, filename), []byte("test"), 0644); err != nil {
+			t.Fatalf("failed to create trace file %s: %v", filename, err)
+		}
+	}
+
+	suggestions, directive := remove.completion(cmd, nil, "boost")
+	if directive != cobra.ShellCompDirectiveNoFileComp {
+		t.Fatalf("expected NoFileComp directive, got: %v", directive)
+	}
+
+	var count int
+	for _, suggestion := range suggestions {
+		if suggestion == "boost@1.87.0" {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Fatalf("expected deduplicated suggestion count 1, got %d (all: %v)", count, suggestions)
 	}
 }
 

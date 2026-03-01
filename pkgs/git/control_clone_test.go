@@ -27,11 +27,11 @@ func TestCloneRepo_Branch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := CheckIfLocalBranch("testdata", branch)
+	result, err := GetCurrentBranch("testdata")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !result {
+	if result != branch {
 		t.Fatalf("branch %s not found", branch)
 	}
 }
@@ -46,11 +46,11 @@ func TestCloneRepo_Tag(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := CheckIfLocalTag("testdata", tag)
+	result, err := GetCurrentTag("testdata")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !result {
+	if result != tag {
 		t.Fatalf("tag %s not found", tag)
 	}
 }
@@ -65,11 +65,11 @@ func TestCloneRepo_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := CheckIfLocalCommit("testdata", commit)
+	result, err := GetCurrentCommit("testdata")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !result {
+	if result != commit {
 		t.Fatalf("commit %s not found", commit)
 	}
 }

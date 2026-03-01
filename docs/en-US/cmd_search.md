@@ -1,108 +1,45 @@
-# 🔍 Search Command
+# Search Command
 
-&emsp;&emsp;The `search` command is used to search for available ports (third-party libraries) based on a specified name or pattern.
+The `search` command looks up available ports by exact or wildcard pattern.
 
 ## Command Syntax
 
 ```shell
-celer search [pattern]
+celer search <pattern>
 ```
 
-## 💡 Usage Examples
+## Important Behavior
 
-### 1️⃣ Exact Search
+- Exactly one pattern argument is required.
+- Search covers both global ports and current-project ports.
+- Matching supports exact, prefix, suffix, and contains patterns.
+
+## Supported Patterns
+
+| Pattern   | Meaning                         |
+|-----------|---------------------------------|
+| `name@v`  | Exact match                     |
+| `abc*`    | Prefix match                    |
+| `*abc`    | Suffix match                    |
+| `*abc*`   | Contains match                  |
+
+## Common Examples
 
 ```shell
+# Exact match
 celer search ffmpeg@5.1.6
-```
 
-Output:
-```
-search results that match pattern 'ffmpeg@5.1.6':
-------------------------------------------
-ffmpeg@5.1.6
-------------------------------------------
-total: 1 port(s)
-```
-
-> Search using the complete library name and version number for exact match.
-
-### 2️⃣ Prefix Search
-
-```shell
+# Prefix match
 celer search open*
-```
 
-Output:
-```
-search results that match pattern 'open*':
-------------------------------------------
-opencv@4.11.0
-opencv_contrib@4.11.0
-openssl@1.1.1w
-openssl@3.5.0
-------------------------------------------
-total: 4 port(s)
-```
-
-> Search for all ports starting with `open`.
-
-### 3️⃣ Suffix Search
-
-```shell
+# Suffix match
 celer search *ssl
-```
 
-Output:
-```
-search results that match pattern '*ssl':
-------------------------------------------
-openssl@1.1.1w
-openssl@3.5.0
-------------------------------------------
-total: 2 port(s)
-```
-
-> Search for all ports ending with `ssl`.
-
-### 4️⃣ Keyword Search
-
-```shell
+# Contains match
 celer search *mp4*
 ```
 
-> Search for all ports containing `mp4`.
+## Notes
 
----
-
-## 🎯 Search Pattern Syntax
-
-Celer supports the following wildcard patterns:
-
-| Pattern   | Description                        | Example                           |
-|-----------|------------------------------------|---------------------------------|
-| `xxx*`    | Match ports starting with xxx      | `ffmpeg*` → ffmpeg@5.1.6, ffmpeg@6.0 |
-| `*xxx`    | Match ports ending with xxx        | `*ssl` → openssl@3.5.0          |
-| `*xxx*`   | Match ports containing xxx         | `*cv*` → opencv@4.11.0          |
-| `xxx@y.y` | Exact match for specific version   | `ffmpeg@5.1.6`                  |
-
----
-
-## 📝 Notes
-
-1. **Case Sensitive**: Search patterns are case-sensitive
-2. **Wildcard Position**: `*` can appear at the beginning, end, or both
-3. **Exact Match**: Without wildcards, performs exact matching
-4. **Version Number**: Can search for specific versions or all versions of a library
-
----
-
-## 📚 Related Documentation
-
-- [Quick Start](./quick_start.md)
-- [Install Command](./cmd_install.md) - Install searched ports
-- [Port Configuration](./article_port.md) - Learn about port configuration
-
----
-
-**Need Help?** [Report an Issue](https://github.com/celer-pkg/celer/issues) or check our [Documentation](../../README.md)
+- Patterns outside the supported wildcard forms are ignored by matcher logic.
+- Matching is string-based on `name@version`.

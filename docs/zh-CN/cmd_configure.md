@@ -1,6 +1,6 @@
-# Clean command
+# Configure 命令
 
-&emsp;&emsp;Configure命令允许用户配置当前工作空间的全局设置。
+&emsp;&emsp;`configure` 命令用于修改当前工作空间的全局配置。
 
 ## 命令语法
 
@@ -8,118 +8,70 @@
 celer configure [flags]
 ```
 
-## ⚙️ 命令选项
-| 选项                      | 类型    | 说明                                   |
+## 重要行为
+
+- 单次命令只能修改一个配置组。
+- 混用不同组的 flag 会报错。
+- 只有同一组内的多个 flag 才能在一条命令里一起配置（例如 package cache、proxy、ccache）。
+
+## 命令选项
+| 选项                      | 类型    | 说明                                  |
 |---------------------------|---------|--------------------------------------|
-| --platform                | 字符串  | 配置平台                               |
-| --project                 | 字符串  | 配置项目                               |
-| --build-type              | 字符串  | 配置构建类型                           |
-| --downloads               | 字符串  | 配置资源下载路径                        |
-| --jobs                    | 整数    | 配置并行构建任务数                     |
-| --offline                 | 布尔    | 启用离线模式                           |
-| --verbose                 | 布尔    | 启用详细日志模式                       |
-| --proxy-host              | 字符串  | 配置代理地址                           |
-| --proxy-port              | 整数    | 配置代理端口                           |
-| --package-cache-dir        | 字符串  | 配置二进制缓存目录                     |
-| --package-cache-token      | 字符串 | 配置二进制缓存令牌                     |
-| --ccache-enabled          | 布尔    | 配置 ccache 是否启用                |
-| --ccache-dir              | 字符串  | 配置 ccache 工作目录                   |
-| --ccache-maxsize          | 字符串  | 设置 ccache 最大空间（如 "10G"）        |
-| --ccache-remote-storage   | 字符串  | 设置 ccache 缓存服务地址                |
-| --ccache-remote-only      | 布尔    | 设置 ccache 是否只启用服务器缓存        |
+| --platform                | 字符串  | 设置目标平台                           |
+| --project                 | 字符串  | 设置当前项目                           |
+| --build-type              | 字符串  | 设置构建类型                           |
+| --downloads               | 字符串  | 设置下载目录                           |
+| --jobs                    | 整数    | 设置并行构建任务数                     |
+| --offline                 | 布尔    | 开启/关闭离线模式                      |
+| --verbose                 | 布尔    | 开启/关闭详细日志模式                   |
+| --proxy-host              | 字符串  | 设置代理地址                           |
+| --proxy-port              | 整数    | 设置代理端口                           |
+| --package-cache-dir       | 字符串  | 设置二进制缓存目录                      |
+| --package-cache-writable  | 布尔    | 设置二进制缓存是否可写                  |
+| --ccache-enabled          | 布尔    | 开启/关闭 ccache                       |
+| --ccache-dir              | 字符串  | 设置 ccache 工作目录                   |
+| --ccache-maxsize          | 字符串  | 设置 ccache 最大容量                   |
+| --ccache-remote-storage   | 字符串  | 设置 ccache 远端存储 URL               |
+| --ccache-remote-only      | 布尔    | 开启/关闭仅远端缓存模式                 |
 
-### 1️⃣ 配置平台
-
-```shell
-celer configure --platform xxxx
-```
-
->配置可用的平台来自`conf/platforms`目录下的toml文件。
-
-### 2️⃣ 配置项目
+## 常用示例
 
 ```shell
-celer configure --project xxxx
+# 平台 / 项目
+celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
+celer configure --project=project_test_02
+
+# 构建配置
+celer configure --build-type=Release
+celer configure --downloads=/home/xxx/Downloads
+celer configure --jobs=8
+
+# 运行时开关
+celer configure --offline=true
+celer configure --verbose=false
+
+# package cache 组（可同命令组合）
+celer configure --package-cache-dir=/home/xxx/cache --package-cache-writable=true
+
+# proxy 组（可同命令组合）
+celer configure --proxy-host=127.0.0.1 --proxy-port=7890
+
+# ccache 组（可同命令组合）
+celer configure --ccache-enabled=true --ccache-maxsize=5G --ccache-remote-only=true
 ```
 
->配置可用的项目来自`conf/projects`目录下的toml文件。
+## 参数校验规则
 
-### 3️⃣ 配置构建类型
-
-```shell
-celer configure --build-type Release
-```
-
->候选的构建类型有: Release, Debug, RelWithDebInfo, MinSizeRel
->默认的构建类型是Release。
-
-### 3️⃣ 配置资源下载路径
-
-```shell
-celer configure --downloads=$HOME/downloads
-```
-
->默认的资源下载路径是$workspace/downloads, 但支持配置多个worksapce为一个downloads目录以节省磁盘空间。
-
-### 5️⃣ 配置并发任务数
-
-```shell
-celer configure --jobs 8
-```
-
->并发任务数必须大于0。
-
-### 6️⃣ 配置离线模式
-
-```shell
-celer configure --offline true|false
-```
-
-> 默认的离线模式是`false`。
-
-### 7️⃣ 配置详细日志模式
-
-```shell
-celer configure --verbose true|false
-```
-
-> 默认的详细日志模式是`false`。
-
----
-
-## 🌐 代理相关配置
-
-### 配置代理地址和端口
-
-```shell
-celer configure --proxy-host 127.0.0.1 --proxy-port 7890
-```
->在中国为了能访问github资源，你可能需要通过配置代理访问。
-
----
-
-## 🗄️ 二进制缓存相关配置
-
-### 配置二进制缓存目录和令牌
-
-```shell
-celer configure --package-cache-dir /home/xxx/cache --package-cache-token token_12345
-```
-
->你可以同时配置 --package-cache-dir 和 --package-cache-token，也可以分别配置。
-
----
-
-## 📦 ccache 相关配置
-
-### 启用 ccache 加速构建
-
-```shell
-celer configure --ccache-enabled true
-celer configure --ccache-dir /home/xxx/.ccache
-celer configure --ccache-maxsize 5G
-celer configure --ccache-remote-storage http://SERVER_IP:8080/ccache
-celer configure --ccache-remote-only true
-```
-
->启用编译器缓存以加速重复构建。
+- `--platform`：需对应 `conf/platforms` 下的 TOML 文件名。
+- `--project`：需对应 `conf/projects` 下的 TOML 文件名。
+- `--build-type`：支持 `Release`、`Debug`、`RelWithDebInfo`、`MinSizeRel`（保存时转为小写）。
+- `--downloads`：目录必须已存在。
+- `--jobs`：必须大于 `0`。
+- `--package-cache-dir`：不能为空，且目录必须已存在。
+- `--package-cache-writable`：布尔值；使用前需先配置 `--package-cache-dir`（可同命令一起配置）。
+- `--proxy-host`：不能为空。
+- `--proxy-port`：必须大于 `0`。
+- `--ccache-dir`：目录必须已存在。
+- `--ccache-maxsize`：必须以 `M` 或 `G` 结尾（例如 `512M`、`5G`）。
+- `--ccache-remote-storage`：允许为空（用于清空配置）；非空时必须是包含 scheme 和 host 的合法 URL，例如 `http://server:8080/ccache`。
+- `--ccache-remote-only`：布尔值（`true` 或 `false`）。

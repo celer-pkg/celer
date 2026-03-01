@@ -1,71 +1,38 @@
 # Reverse 命令
 
-`celer reverse` 命令提供反向依赖查找功能，允许您查找哪些包依赖于指定的库。
+`reverse` 命令用于查找“哪些端口依赖目标包”。
 
-## 用法
+## 命令语法
 
-```bash
-celer reverse [包名@版本] [标志]
+```shell
+celer reverse <name@version> [flags]
 ```
 
-## 描述
+## 重要行为
 
-reverse 命令搜索所有已安装的包，找出依赖于指定包的包。这对以下场景很有用：
+- 必须且只能提供一个包参数。
+- 包参数必须为 `name@version`。
+- 默认仅检查运行时依赖关系。
+- `--dev` 会把开发依赖也纳入反向查找。
 
-- 理解项目中包的使用情况
-- 在移除包之前进行影响分析
-- 从底层向上的依赖树分析
-- 找到特定库的所有使用者
+## 命令选项
 
-## 示例
+| 选项  | 简写 | 类型 | 说明             |
+|-------|------|------|------------------|
+| --dev | -d   | 布尔 | 包含开发依赖查找 |
 
-### 基本用法
+## 常用示例
 
-查找所有依赖于 Eigen 的包：
-```bash
+```shell
+# 查询运行时反向依赖
 celer reverse eigen@3.4.0
-```
 
-### 包含开发依赖
-
-查找所有依赖于 NASM 的包（包括开发依赖）：
-```bash
+# 查询时包含开发依赖
 celer reverse nasm@2.16.03 --dev
 ```
 
-## 标志
+## 参数校验规则
 
-- `-d, --dev`: 在反向查找中包含开发依赖
-- `-h, --help`: 显示 reverse 命令的帮助信息
-
-## 输出格式
-
-命令以以下格式显示结果：
-
-```
-[Reverse Dependencies]:
-  package1@version1
-  package2@version2
-  package3@version3
-
-total: 3 package(s)
-```
-
-如果没有找到反向依赖：
-```
-[Reverse Dependencies]:
-no reverse dependencies found.
-```
-
-## 使用场景
-
-1. **影响分析**：在移除包之前，检查哪些包依赖它
-2. **重构**：了解哪些包使用了特定库
-3. **安全评估**：查找受易受攻击依赖影响的所有包
-4. **架构分析**：了解项目中的依赖关系
-
-## 相关命令
-
-- [`celer tree`](./cmd_tree.md) - 显示包的正向依赖
-- [`celer search`](./cmd_search.md) - 搜索可用包
-- [`celer remove`](./cmd_remove.md) - 移除包（在影响分析后使用）
+- 空参数会被拒绝。
+- 缺少 `@` 会被拒绝。
+- 格式需匹配 `^[a-zA-Z0-9_-]+@[a-zA-Z0-9._-]+$`。

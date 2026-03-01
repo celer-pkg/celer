@@ -25,7 +25,8 @@ src_dir = "xxx"         # 可选字段
 supported_hosts = []    # 可选字段
 
 [[build_configs]]
-pattern = "*linux*"     # 可选字段，默认空
+system_name = "linux"   # 可选选择器
+system_processor = "x86_64" # 可选选择器
 build_system = "cmake"  # 必填字段，可选值：cmake、makefiles、b2、meson 等
 cmake_generator = []    # 可选字段
 build_tools = []        # 可选字段
@@ -80,22 +81,21 @@ options = [
 
 ## 🛠️ 构建配置详解
 
-&emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **pattern** 自动找到匹配的 **build_config** 来组装编译命令。  
+&emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **system_name/system_processor** 自动找到匹配的 **build_config** 来组装编译命令。  
 &emsp;&emsp;第三方库的编译配置通常在不同系统上会有差异。这些差异通常涉及平台特定的编译标志或甚至 entirely distinct build steps。一些库甚至需要特殊的预处理或后处理才能在 Windows 上正确编译。
 
-### 1.2.1 pattern
+### 1.2.1 system_name, system_processor
 
-&emsp;&emsp;**pattern** 用于匹配 **conf** 目录下的 **platform** 文件。其匹配规则与以下表格类似：
+&emsp;&emsp;用于匹配 platform toolchain 中的选择器（`toolchain.system_name`、`toolchain.system_processor`）。匹配规则如下：
 
-| 模式 | 描述 |
+| 选择器 | 描述 |
 | --- | --- |
-| * | 空字符串，也为默认值，意味着编译配置不区分系统平台。切换到任何平台都可以使用相同的 buildconfig 来编译 |
-| *linux* | 匹配所有 linux 系统 |
-| *windows* | 匹配所有 windows 系统 |
-| x86_64‑linux* | 匹配所有 cpu 架构为 x86_64，系统为 linux 的平台 |
-| aarch64‑linux* | 匹配所有 cpu 架构为 aarch64，系统为 linux 的平台 |
-| x86_64‑windows* | 匹配所有 cpu 架构为 x86_64，系统为 windows 的平台 |
-| aarch64‑windows* | 匹配所有 cpu 架构为 aarch64，系统为 windows 的平台 |
+| `system_name` 和 `system_processor` 都不设置 | 匹配所有平台（无选择器约束） |
+| `system_name = "linux"` | 匹配所有 Linux 平台 |
+| `system_name = "windows"` | 匹配所有 Windows 平台 |
+| `system_name = "linux"` + `system_processor = "x86_64"` | 匹配 x86_64 Linux 平台 |
+| `system_name = "linux"` + `system_processor = "aarch64"` | 匹配 aarch64 Linux 平台 |
+| `system_name = "windows"` + `system_processor = "x86_64"` | 匹配 x86_64 Windows 平台 |
 
 ### 1.2.2 build_system
 
@@ -199,7 +199,7 @@ options = [
 ```
 # =============== build for windows ============ #
 [[build_configs]]
-pattern = "*windows*"
+system_name = "windows"
 build_system = "makefiles"
 dev_dependencies = ["autoconf@2.72"]
 pre_install = [
@@ -215,38 +215,8 @@ options = [
 ]
 ```
 
-> 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。更多详情请参考 [动态变量](#3-动态变量)。
+> 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。完整列表请参考 [动态变量](./article_expvars.md)。
 
 ### 1.2.15 options
 
 &emsp;&emsp;可选配置，默认值为空，当编译第三方库时，通常会有许多选项需要启用或禁用。我们可以在这里定义它们，例如 **-DBUILD_TESTING=OFF**；
-
-## 📦 动态变量
-
-| 变量 | 描述 | 来源 |
-|------|------|------|
-| ${SYSTEM_NAME} | 系统名称，如 `x86_64-linux` | platform |
-| ${HOST} | 主机名称，如 `x86_64-linux` | platform |
-| ${SYSTEM_PROCESSOR} | 系统处理器架构，如 `x86_64` | platform |
-| ${SYSROOT} | 系统根目录，如 `/usr/x86_64-linux` | platform |
-| ${CROSS_PREFIX} | 交叉编译前缀，如 `x86_64-linux-` | platform |
-| ${BUILD_DIR} | 当前库编译目录 | buildtrees |
-| ${HOST_NAME} | 主机名称，如 `x86_64-windows` | platform |
-| ${PACKAGE_DIR} | 当前库包目录 | port |
-| ${BUILDTREES_DIR} | 编译根目录 | buildtrees |
-| ${REPO_DIR} | 当前库源码目录 | port/buildtrees |
-| ${DEPS_DIR} | 依赖目录 | workspace |
-| ${DEPS_DEV_DIR} | 依赖开发目录 | workspace |
-| ${PYTHON3_PATH} | 本地 python3 路径，自动识别 | system |
-
----
-
-## 📚 相关文档
-
-- [快速开始指南](./quick_start.md) - Celer 入门
-- [项目配置](./cmd_create.md#2-创建一个新的项目) - 在 celer.toml 中选择端口
-- [构建配置](./article_buildconfig.md) - 配置构建选项和依赖
-
----
-
-**需要帮助？** [报告问题](https://github.com/celer-pkg/celer/issues) 或查看我们的[文档](../../README.md)

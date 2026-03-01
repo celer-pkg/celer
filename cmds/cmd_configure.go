@@ -5,6 +5,7 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"fmt"
 	"os"
 	"strings"
 
@@ -22,11 +23,30 @@ type configureCmd struct {
 	verbose   bool
 
 	// Package cache options.
-	packageCacheDir   string
-	packageCacheToken string
+	packageCacheDir      string
+	packageCacheWritable bool
 
 	proxy  configs.Proxy
 	ccache configs.CCache
+}
+
+var flagGroup = map[string]string{
+	"platform":               "platform",
+	"project":                "project",
+	"build-type":             "build-type",
+	"downloads":              "downloads",
+	"jobs":                   "jobs",
+	"offline":                "offline",
+	"verbose":                "verbose",
+	"package-cache-dir":      "package-cache",
+	"package-cache-writable": "package-cache",
+	"proxy-host":             "proxy",
+	"proxy-port":             "proxy",
+	"ccache-enabled":         "ccache",
+	"ccache-dir":             "ccache",
+	"ccache-maxsize":         "ccache",
+	"ccache-remote-storage":  "ccache",
+	"ccache-remote-only":     "ccache",
 }
 
 func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -37,8 +57,8 @@ func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
 		Long: `Configure global settings for your workspace.
 
 This command allows you to modify various configuration settings that affect
-how celer works. You can only configure one setting at a time due to the
-mutually exclusive nature of the flags.
+how celer works. You can configure one setting or one related group of settings
+in a single command (do not mix flags from different groups).
 
 Available Configuration Options:
 
@@ -59,7 +79,8 @@ Available Configuration Options:
     
   Package Cache Configuration:
     --package-cache-dir    Set the package cache directory path
-    --package-cache-token  Set the package cache authentication token
+    --package-cache-writable
+                      Set whether package cache is writable (true/false)
     
   Proxy Configuration:
     --proxy-host      Set the proxy server hostname
@@ -72,17 +93,19 @@ Available Configuration Options:
 	--ccache-remote-storage Set remote storage address for ccache
 
 Examples:
-  celer configure --platform windows-x86_64       # Set target platform
-  celer configure --project myproject             # Set current project
-  celer configure --build-type Release            # Set build type to Release
-  celer configure --downloads /home/xxx/Downloads # Set download directory
-  celer configure --jobs 8                        # Use 8 parallel build jobs
-  celer configure --offline true                  # Enable offline mode
-  celer configure --verbose false                 # Disable verbose output
-  celer configure --package-cache-dir /tmp/cache  # Set package cache directory
-  celer configure --proxy-host proxy.example.com  # Set proxy host
-  celer configure --proxy-port 8080               # Set proxy port
-  celer configure --ccache-maxsize 5G             # Set ccache max size to 5GB`,
+  celer configure --platform=windows-x86_64       # Set target platform
+  celer configure --project=myproject             # Set current project
+  celer configure --build-type=Release            # Set build type to Release
+  celer configure --downloads=/home/xxx/Downloads # Set download directory
+  celer configure --jobs=8                        # Use 8 parallel build jobs
+  celer configure --offline=true                  # Enable offline mode
+  celer configure --verbose=false                 # Disable verbose output
+  celer configure --package-cache-dir=/tmp/cache  # Set package cache directory
+  celer configure --package-cache-writable=true   # Enable package cache write
+  celer configure --proxy-host=proxy.example.com  # Set proxy host
+  celer configure --proxy-port=8080               # Set proxy port
+  celer configure --ccache-maxsize=5G             # Set ccache max size to 5GB`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := c.celer.Init(); err != nil {
 				return configs.PrintError(err, "failed to init celer.")
@@ -90,14 +113,35 @@ Examples:
 
 			flags := cmd.Flags()
 
-			switch {
-			case flags.Changed("platform"):
+			changedCount := 0
+			activeGroups := map[string]bool{}
+			for name, group := range flagGroup {
+				if flags.Changed(name) {
+					changedCount++
+					activeGroups[group] = true
+				}
+			}
+
+			if changedCount == 0 {
+				return configs.PrintError(
+					fmt.Errorf("no configuration flag provided"),
+					"please specify exactly one configuration flag.",
+				)
+			}
+			if len(activeGroups) > 1 {
+				return configs.PrintError(
+					fmt.Errorf("flags from different groups were provided"),
+					"please configure only one setting or one related group at a time.",
+				)
+			}
+			if flags.Changed("platform") {
 				if err := c.celer.SetPlatform(c.platform); err != nil {
 					return configs.PrintError(err, "failed to set platform.")
 				}
 				configs.PrintSuccess("current platform: %s.", c.platform)
+			}
 
-			case flags.Changed("project"):
+			if flags.Changed("project") {
 				if err := c.celer.SetProject(c.project); err != nil {
 					return configs.PrintError(err, "failed to set project: %s.", c.project)
 				}
@@ -107,89 +151,103 @@ Examples:
 				targetPlatform := c.celer.Project().GetTargetPlatform()
 				if targetPlatform != "" && c.celer.Global.Platform == "" {
 					if err := c.celer.SetPlatform(targetPlatform); err != nil {
-						return configs.PrintError(err, "failed to set platform: %s.", c.celer.Global.Platform)
+						return configs.PrintError(err, "failed to set platform: %s.", targetPlatform)
 					}
 					configs.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Global.Platform)
 				}
+			}
 
-			case flags.Changed("build-type"):
+			if flags.Changed("build-type") {
 				if err := c.celer.SetBuildType(c.buildType); err != nil {
 					return configs.PrintError(err, "failed to set build type: %s.", c.buildType)
 				}
 				configs.PrintSuccess("current build type: %s.", c.buildType)
+			}
 
-			case flags.Changed("downloads"):
+			if flags.Changed("downloads") {
 				if err := c.celer.SetDownloads(c.downloads); err != nil {
 					return configs.PrintError(err, "failed to set downloads: %s.", c.downloads)
 				}
 				configs.PrintSuccess("current downloads: %s.", c.downloads)
+			}
 
-			case flags.Changed("jobs"):
+			if flags.Changed("jobs") {
 				if err := c.celer.SetJobs(c.jobs); err != nil {
 					return configs.PrintError(err, "failed to set job num: %d.", c.jobs)
 				}
 				configs.PrintSuccess("current job num: %d.", c.jobs)
+			}
 
-			case flags.Changed("offline"):
+			if flags.Changed("offline") {
 				if err := c.celer.SetOffline(c.offline); err != nil {
 					return configs.PrintError(err, "failed to set offline mode: %s.", expr.If(c.offline, "true", "false"))
 				}
 				configs.PrintSuccess("current offline mode: %s.", expr.If(c.offline, "true", "false"))
+			}
 
-			case flags.Changed("verbose"):
+			if flags.Changed("verbose") {
 				if err := c.celer.SetVerbose(c.verbose); err != nil {
 					return configs.PrintError(err, "failed to set verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 				}
 				configs.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
+			}
 
-			case flags.Changed("package-cache-dir"):
+			if flags.Changed("package-cache-dir") {
 				if err := c.celer.SetPackageCacheDir(c.packageCacheDir); err != nil {
 					return configs.PrintError(err, "failed to set package cache dir: %s.", c.packageCacheDir)
 				}
 				configs.PrintSuccess("current cache dir: %s.", expr.If(c.packageCacheDir != "", c.packageCacheDir, "empty"))
-			case flags.Changed("package-cache-token"):
-				if err := c.celer.SetPackageCacheToken(c.packageCacheToken); err != nil {
-					return configs.PrintError(err, "failed to set package cache token: %s.", c.packageCacheToken)
+			}
+			if flags.Changed("package-cache-writable") {
+				if err := c.celer.SetPackageCacheWritable(c.packageCacheWritable); err != nil {
+					return configs.PrintError(err, "failed to set package cache writable: %s.", expr.If(c.packageCacheWritable, "true", "false"))
 				}
-				configs.PrintSuccess("current cache token: %s.", expr.If(c.packageCacheToken != "", c.packageCacheToken, "empty"))
+				configs.PrintSuccess("current cache writable: %s.", expr.If(c.packageCacheWritable, "true", "false"))
+			}
 
-			case flags.Changed("proxy-host"):
+			if flags.Changed("proxy-host") {
 				if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
 					return configs.PrintError(err, "failed to set proxy host: %s.", c.proxy.Host)
 				}
 				configs.PrintSuccess("current proxy host: %s.", c.proxy.Host)
+			}
 
-			case flags.Changed("proxy-port"):
+			if flags.Changed("proxy-port") {
 				if err := c.celer.SetProxyPort(c.proxy.Port); err != nil {
 					return configs.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
 				}
 				configs.PrintSuccess("current proxy port: %d.", c.proxy.Port)
+			}
 
-			case flags.Changed("ccache-enabled"):
+			if flags.Changed("ccache-enabled") {
 				if err := c.celer.SetCCacheEnabled(c.ccache.Enabled); err != nil {
 					return configs.PrintError(err, "failed to update ccache enabled.")
 				}
 				configs.PrintSuccess("current ccache enabled: %s.", expr.If(c.ccache.Enabled, "true", "false"))
+			}
 
-			case flags.Changed("ccache-dir"):
+			if flags.Changed("ccache-dir") {
 				if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
 					return configs.PrintError(err, "failed to update ccache dir.")
 				}
 				configs.PrintSuccess("current ccache dir: %s.", c.ccache.Dir)
+			}
 
-			case flags.Changed("ccache-maxsize"):
+			if flags.Changed("ccache-maxsize") {
 				if err := c.celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
 					return configs.PrintError(err, "failed to update ccache.maxsize.")
 				}
 				configs.PrintSuccess("current ccache maxsize: %s.", c.ccache.MaxSize)
+			}
 
-			case flags.Changed("ccache-remote-storage"):
+			if flags.Changed("ccache-remote-storage") {
 				if err := c.celer.SetCCacheRemoteStorage(c.ccache.RemoteStorage); err != nil {
 					return configs.PrintError(err, "failed to update ccache.remote_storage.")
 				}
 				configs.PrintSuccess("current ccache remote storage: %s.", c.ccache.RemoteStorage)
+			}
 
-			case flags.Changed("ccache-remote-only"):
+			if flags.Changed("ccache-remote-only") {
 				if err := c.celer.SetCCacheRemoteOnly(c.ccache.RemoteOnly); err != nil {
 					return configs.PrintError(err, "failed to update ccache.remote_only.")
 				}
@@ -213,7 +271,7 @@ Examples:
 
 	// Package cache flags.
 	flags.StringVar(&c.packageCacheDir, "package-cache-dir", "", "configure package cache dir.")
-	flags.StringVar(&c.packageCacheToken, "package-cache-token", "", "configure package cache token.")
+	flags.BoolVar(&c.packageCacheWritable, "package-cache-writable", false, "configure package cache writable.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -242,6 +300,9 @@ Examples:
 	command.RegisterFlagCompletionFunc("verbose", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
+	command.RegisterFlagCompletionFunc("package-cache-writable", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
+	})
 
 	// CCache flag completions.
 	command.RegisterFlagCompletionFunc("ccache-enabled", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -250,8 +311,6 @@ Examples:
 	command.RegisterFlagCompletionFunc("ccache-remote-only", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
-
-	command.MarkFlagsMutuallyExclusive("platform", "project", "build-type", "downloads", "jobs", "offline", "verbose")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
@@ -293,7 +352,7 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--offline",
 		"--verbose",
 		"--package-cache-dir",
-		"--package-cache-token",
+		"--package-cache-writable",
 		"--proxy-host",
 		"--proxy-port",
 		"--ccache-enabled",

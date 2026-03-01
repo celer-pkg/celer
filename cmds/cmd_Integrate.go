@@ -19,18 +19,22 @@ type integrateCmd struct {
 	psCompletion   completion.Completion
 }
 
-func (i integrateCmd) Command(celer *configs.Celer) *cobra.Command {
+var currentShellFn = completion.CurrentShell
+
+func (i *integrateCmd) Command(celer *configs.Celer) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "integrate",
 		Short: "Integrate shell tab completion.",
 		Long: `Integrate shell tab completion for celer commands.
 
-This command will install or remove shell completion scripts for your current shell.
-Supported shells: bash, zsh, powershell (Windows).
+This command will install or remove shell completion scripts.
+On Linux, celer integrates completion for your current shell (bash or zsh).
+On Windows, celer integrates PowerShell completion.
 
 Examples:
   celer integrate          # Install tab completion
   celer integrate --remove # Remove tab completion`,
+		Args: cobra.NoArgs,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			if err := i.execute(); err != nil {
 				return configs.PrintError(err, "integration failed")
@@ -51,8 +55,10 @@ Examples:
 
 // execute performs the main logic for integration.
 func (i *integrateCmd) execute() error {
+	shell := i.detectShell()
+
 	// Validate environment.
-	if err := i.validateEnvironment(); err != nil {
+	if err := i.validateEnvironment(shell); err != nil {
 		return fmt.Errorf("environment validation failed -> %w", err)
 	}
 
@@ -63,15 +69,25 @@ func (i *integrateCmd) execute() error {
 
 	// Execute the requested operation.
 	if i.remove {
-		return i.handleUnregister()
+		return i.handleUnregister(shell)
 	}
-	return i.handleRegister()
+	return i.handleRegister(shell)
 }
 
-func (i *integrateCmd) validateEnvironment() error {
-	if completion.CurrentShell() == completion.NotSupported {
+func (i *integrateCmd) detectShell() (shell completion.ShellType) {
+	shell = completion.NotSupported
+	defer func() {
+		if recover() != nil {
+			shell = completion.NotSupported
+		}
+	}()
+	return currentShellFn()
+}
+
+func (i *integrateCmd) validateEnvironment(shell completion.ShellType) error {
+	if shell == completion.NotSupported {
 		if runtime.GOOS == "windows" {
-			return fmt.Errorf("unsupported shell environment, supported shells: powershell")
+			return fmt.Errorf("unsupported shell environment, on Windows only powershell is supported")
 		} else {
 			return fmt.Errorf("unsupported shell environment, supported shells: bash, zsh")
 		}
@@ -94,10 +110,8 @@ func (i *integrateCmd) initializeCompletions() error {
 	return nil
 }
 
-func (i *integrateCmd) handleRegister() error {
-	shell := completion.CurrentShell()
-
-	if err := i.doRegister(); err != nil {
+func (i *integrateCmd) handleRegister(shell completion.ShellType) error {
+	if err := i.doRegister(shell); err != nil {
 		return fmt.Errorf("failed to register %s completion -> %w", i.getShellName(shell), err)
 	}
 
@@ -105,10 +119,8 @@ func (i *integrateCmd) handleRegister() error {
 	return nil
 }
 
-func (i *integrateCmd) handleUnregister() error {
-	shell := completion.CurrentShell()
-
-	if err := i.doUnregister(); err != nil {
+func (i *integrateCmd) handleUnregister(shell completion.ShellType) error {
+	if err := i.doUnregister(shell); err != nil {
 		return fmt.Errorf("failed to unregister %s completion -> %w", i.getShellName(shell), err)
 	}
 
@@ -129,8 +141,7 @@ func (i *integrateCmd) getShellName(shell completion.ShellType) string {
 	}
 }
 
-func (i *integrateCmd) doUnregister() error {
-	shell := completion.CurrentShell()
+func (i *integrateCmd) doUnregister(shell completion.ShellType) error {
 	switch shell {
 	case completion.BashShell:
 		return i.bashCompletion.Unregister()
@@ -143,8 +154,7 @@ func (i *integrateCmd) doUnregister() error {
 	}
 }
 
-func (i *integrateCmd) doRegister() error {
-	shell := completion.CurrentShell()
+func (i *integrateCmd) doRegister(shell completion.ShellType) error {
 	switch shell {
 	case completion.BashShell:
 		return i.bashCompletion.Register()

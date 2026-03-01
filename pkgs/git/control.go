@@ -14,6 +14,15 @@ import (
 
 // CloneRepo clone git repo.
 func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error {
+	retryExecutor := func(title, command string) error {
+		executor := cmd.NewExecutor(title, command)
+		if fileio.PathExists(repoDir) {
+			executor.SetWorkDir(repoDir)
+		}
+		executor.SetMaxRetries(3)
+		return executor.Execute()
+	}
+
 	cloneRepo := func(repoRef, repoUrl, repoDir string, depth int) string {
 		var buffer bytes.Buffer
 		buffer.WriteString("git clone")
@@ -30,7 +39,10 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	// ============ Clone default branch ============
 	if repoRef == "" {
 		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
-		return cmd.NewExecutor(title, command).Execute()
+		if err := retryExecutor(title, command); err != nil {
+			return fmt.Errorf("faield to clone git repo -> %w", err)
+		}
+		return nil
 	}
 
 	// ============ Clone specific branch ============
@@ -40,7 +52,10 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	}
 	if isBranch {
 		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
-		return cmd.NewExecutor(title, command).Execute()
+		if err := retryExecutor(title, command); err != nil {
+			return fmt.Errorf("faield to clone git repo -> %w", err)
+		}
+		return nil
 	}
 
 	// ============ Clone specific tag ============
@@ -50,20 +65,21 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	}
 	if isTag {
 		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
-		return cmd.NewExecutor(title, command).Execute()
+		if err := retryExecutor(title, command); err != nil {
+			return fmt.Errorf("faield to clone git repo -> %w", err)
+		}
+		return nil
 	}
 
 	// ============ Clone and checkout commit ============
 	command := fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
-	if err := cmd.NewExecutor(title, command).Execute(); err != nil {
+	if err := retryExecutor(title, command); err != nil {
 		return fmt.Errorf("faield to clone git repo -> %w", err)
 	}
 
 	// Checkout repo to commit.
 	command = fmt.Sprintf("git reset --hard %s", repoRef)
-	executor := cmd.NewExecutor(title+" (reset to commit)", command)
-	executor.SetWorkDir(repoDir)
-	if err := executor.Execute(); err != nil {
+	if err := retryExecutor(title+" (reset to commit)", command); err != nil {
 		return fmt.Errorf("failed to reset --hard -> %w", err)
 	}
 
@@ -90,6 +106,9 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	if !fileio.PathExists(repoDir) {
 		return nil
 	}
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return fmt.Errorf("refuse to run git commands in non-repo dir: %s", repoDir)
+	}
 
 	// Check if repo is modified.
 	modified, err := IsModified(repoDir)
@@ -104,7 +123,7 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 
 	// Get default branch if repoRef is empty.
 	if repoRef == "" {
-		branch, err := DefaultBranch(repoDir)
+		branch, err := GetDefaultBranch(repoDir)
 		if err != nil {
 			return err
 		}
@@ -222,17 +241,19 @@ func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 
 // Clean clean git repo.
 func Clean(title, repoDir string) error {
-	if fileio.PathExists(filepath.Join(repoDir, ".git")) {
-		var commands []string
-		commands = append(commands, "git reset --hard")
-		commands = append(commands, "git clean -xfd")
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return fmt.Errorf("refuse to run git commands in non-repo dir: %s", repoDir)
+	}
 
-		commandLine := strings.Join(commands, " && ")
-		executor := cmd.NewExecutor(title, commandLine)
-		executor.SetWorkDir(repoDir)
-		if err := executor.Execute(); err != nil {
-			return err
-		}
+	var commands []string
+	commands = append(commands, "git reset --hard")
+	commands = append(commands, "git clean -xfd")
+
+	commandLine := strings.Join(commands, " && ")
+	executor := cmd.NewExecutor(title, commandLine)
+	executor.SetWorkDir(repoDir)
+	if err := executor.Execute(); err != nil {
+		return err
 	}
 
 	return nil

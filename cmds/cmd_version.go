@@ -18,6 +18,7 @@ func (v *versionCmd) Command(celer *configs.Celer) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Show version info of celer.",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			v.version()
 		},

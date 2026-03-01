@@ -1,70 +1,55 @@
+# Clean Command
 
-# 🧹 clean Command
+The `clean` command removes build cache and cleans source repositories for packages or projects.
 
-> One-click clean build cache for projects or packages, free up space, and fix build issues.
-
-## ✨ Overview
-
-The `clean` command removes build cache files for specified packages or projects. Common use cases:
-- Free up disk space
-- Resolve build issues caused by stale cache
-- Keep your development environment tidy
-
-## 📝 Command Syntax
+## Command Syntax
 
 ```shell
-celer clean [flags] [package/project...]
+celer clean [flags] [target...]
 ```
 
-## ⚙️ Command Options
+## Important Behavior
 
-| Option         | Short | Description                                 |
-| -------------- | ----- | ------------------------------------------- |
-| --all          | -a    | Clean build cache for all packages/projects  |
-| --dev          | -d    | Clean cache for dev mode packages/projects   |
-| --recursive    | -r    | Recursively clean cache for package/project and its dependencies |
+- A target containing `@` is treated as a package (for example `ffmpeg@5.1.6`).
+- A target without `@` is treated as a project name from `conf/projects`.
+- Without `--all`, at least one target is required.
+- `--all` works without targets and cleans all entries under `buildtrees`.
+- For project targets, Celer cleans both normal and dev build cache for each project port.
+- `--dev` mainly affects package targets (clean host-dev build cache).
+- `--recursive` cleans dependencies and dev-dependencies recursively.
 
-## 💡 Usage Examples
+## Command Options
 
-**1. Clean build cache for all dependencies of a project**
+| Option      | Short | Type    | Description                                            |
+|-------------|-------|---------|--------------------------------------------------------|
+| --all       | -a    | boolean | Clean all package build entries under `buildtrees`     |
+| --dev       | -d    | boolean | Clean package target in dev/host-dev mode              |
+| --recursive | -r    | boolean | Clean target and dependencies recursively              |
+
+## Common Examples
+
 ```shell
-celer clean project_xxx
-```
+# Clean one package
+celer clean x264@stable
 
-**2. Clean build cache for multiple packages**
-```shell
-celer clean ffmpeg@5.1.6 opencv@4.11.0
-```
+# Clean one project
+celer clean project_test_02
 
-**3. Clean cache for dev mode packages**
-```shell
-celer clean --dev pkgconf@2.4.3
-# or
-celer clean -d pkgconf@2.4.3
-```
+# Clean package in dev mode
+celer clean --dev automake@1.18
 
-**4. Recursively clean cache for a package and its dependencies**
-```shell
+# Recursively clean package and its dependencies
 celer clean --recursive ffmpeg@5.1.6
-# or
-celer clean -r ffmpeg@5.1.6
-```
 
-**5. Clean all build cache**
-```shell
+# Clean multiple targets
+celer clean x264@stable ffmpeg@5.1.6
+
+# Clean all build entries
 celer clean --all
-# or
-celer clean -a
 ```
 
-## 📖 Use Cases
+## Notes
 
-- Clean old cache after upgrading packages or projects
-- Keep CI/CD environments consistent and clean
-- Quickly free up disk space during local development
-
----
-
-> **Note:**
-> 1. For git clone libraries, this command will clean the source directory.
-> 2. For URL download libraries, this command will re-extract the archive to replace the source directory.
+- `clean` removes build directories and related logs.
+- `clean` also runs source cleanup for matched ports.
+- For `--all`, non-`src` subdirectories in each `buildtrees/<nameVersion>/` entry are removed first.

@@ -62,7 +62,7 @@ type buildSystem interface {
 
 	// Clone & patch source code
 	Clone(repoUrl, repoRef, archive string, depth int) error
-	Patch() error
+	ApplyPatches() error
 	UpdateSubmodules() error
 
 	// Configure
@@ -81,7 +81,7 @@ type buildSystem interface {
 	setupEnvs()
 	rollbackEnvs()
 
-	expandOptionsVariables()
+	expandOptions()
 	getLogPath(suffix string) string
 }
 
@@ -255,11 +255,11 @@ type BuildConfig struct {
 
 	// Internal fields
 	Ctx         context.Context   `toml:"-"`
+	ExprVars    context.ExprVars  `toml:"-"`
 	DevDep      bool              `toml:"-"`
 	HostDev     bool              `toml:"-"`
 	PortConfig  PortConfig        `toml:"-"`
 	Optimize    *context.Optimize `toml:"-"`
-	ExpressVars ExpressVars       `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
 }
@@ -297,6 +297,7 @@ func (b BuildConfig) Validate() error {
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// In default, clone or download into repo dir.
 	var cmakeConfigPath string
+	var initRepoForArchive bool
 
 	// Check cmake_config.toml in port dirs.
 	publicPortDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
@@ -361,13 +362,10 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			}
 		}
 
-		// Init downloaded source as git repo for tracking file change,
-		// and only for buildtrees source dir.
-		if strings.Contains(b.PortConfig.RepoDir, dirs.BuildtreesDir) {
-			if err := git.InitRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
-				return err
-			}
-		}
+		// Archive sources under buildtrees are tracked as local git repos for
+		// local-change detection in install flow. Delay init until after any
+		// generated files (e.g. prebuilt CMakeLists) are created.
+		initRepoForArchive = strings.Contains(b.PortConfig.RepoDir, dirs.BuildtreesDir)
 	}
 
 	// Generate a CMakeLists.txt for prebuilt project.
@@ -378,6 +376,14 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			return err
 		}
 		if err := cmakeConfig.GenerateCMakeLists(b.PortConfig.RepoDir, b.PortConfig.LibName, b.PortConfig.LibVersion); err != nil {
+			return err
+		}
+	}
+
+	// Initialize archive source as local git repo after internal generated files
+	// are ready, so they won't be treated as user local modifications.
+	if initRepoForArchive {
+		if err := git.InitAsLocalRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
 			return err
 		}
 	}
@@ -413,7 +419,7 @@ func (b BuildConfig) Clean() error {
 	return nil
 }
 
-func (b BuildConfig) Patch() error {
+func (b BuildConfig) ApplyPatches() error {
 	if len(b.Patches) > 0 {
 		// Apply all patches.
 		for _, patch := range b.Patches {
@@ -506,9 +512,13 @@ func (b BuildConfig) installOptions() ([]string, error) {
 	return nil, nil
 }
 
-func (b BuildConfig) Install(url, ref, archive string) error {
+func (b *BuildConfig) Install(url, ref, archive string) error {
+	// Setup envs.
+	b.setupEnvs()
+	defer b.rollbackEnvs()
+
 	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
-	b.expandOptionsVariables()
+	b.expandOptions()
 
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
@@ -553,14 +563,10 @@ func (b BuildConfig) Install(url, ref, archive string) error {
 				return fmt.Errorf("failed to create dev symlink -> %w", err)
 			}
 		}
-
-		// Now setup environments after symlinks are in place.
-		b.setupEnvs()
-		defer b.rollbackEnvs()
 	}
 
 	// Apply patches.
-	if err := b.buildSystem.Patch(); err != nil {
+	if err := b.buildSystem.ApplyPatches(); err != nil {
 		return fmt.Errorf("patch %s -> %w", b.PortConfig.nameVersionDesc(), err)
 	}
 
@@ -779,8 +785,8 @@ func (b BuildConfig) parseBuildSystem(value string) (name, version string, hasVe
 	return name, version, hasVersion, nil
 }
 
-// expandOptionsVariables Replace placeholders with real paths and values.
-func (b *BuildConfig) expandOptionsVariables() {
+// expandOptions Replace placeholders with real paths and values.
+func (b *BuildConfig) expandOptions() {
 	// Remove cross compile args when build in dev mode.
 	if b.DevDep {
 		crossArgs := []string{
@@ -802,7 +808,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 
 	// Expand placeholders.
 	for index, argument := range b.Options {
-		b.Options[index] = b.ExpressVars.Replace(argument)
+		b.Options[index] = b.ExprVars.Expand(argument)
 	}
 }
 
@@ -811,7 +817,7 @@ func (b *BuildConfig) expandOptionsVariables() {
 func (b BuildConfig) expandVariables(content string) string {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
-	content = b.ExpressVars.Replace(content)
+	content = b.ExprVars.Expand(content)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
 	// For Clang with sysroot, add --gcc-toolchain to find GCC runtime files.

@@ -219,4 +219,14 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 	if fileio.PathExists(buildDir) {
 		t.Fatal("sqlite3 build cache should be removed.")
 	}
+
+	// Run autoremove again with purge enabled.
+	// Even if trace/meta were removed in previous run, package dir should still be removable.
+	autoremoveCmd.purge = true
+	autoremoveCmd.buildCache = false
+	check(autoremoveCmd.autoremove())
+
+	if fileio.PathExists(packageDir) {
+		t.Fatal("sqlite3 package should be removed by second autoremove with purge.")
+	}
 }

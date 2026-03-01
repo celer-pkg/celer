@@ -239,115 +239,27 @@ func TestInitCmd_Initialize(t *testing.T) {
 func executeCommandForTest(celer *configs.Celer, url, branch string) error {
 	// Set up initCmd instance
 	initCmd := &initCmd{
-		celer:  celer,
 		url:    url,
 		branch: branch,
 	}
 
-	// Initialize celer
-	if err := celer.Init(); err != nil {
-		return err
-	}
-
-	// Trim whitespace from URL
+	// Clean and validate inputs first.
 	initCmd.url = strings.TrimSpace(initCmd.url)
+	initCmd.branch = strings.TrimSpace(initCmd.branch)
 
-	// Set conf repo if URL is provided
 	if initCmd.url == "" {
 		return fmt.Errorf("no url provided when init")
 	}
 
-	if err := initCmd.validateURL(initCmd.url); err != nil {
+	if err := celer.Init(); err != nil {
 		return err
 	}
+
 	if err := celer.CloneConf(initCmd.url, initCmd.branch, initCmd.force); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func TestInitCmd_URLValidation(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
-	tests := []struct {
-		name        string
-		url         string
-		expectError bool
-		description string
-	}{
-		{
-			name:        "valid_https_url",
-			url:         "https://github.com/example/repo.git",
-			expectError: false,
-			description: "Should accept valid HTTPS URL",
-		},
-		{
-			name:        "valid_http_url",
-			url:         "http://example.com/repo.git",
-			expectError: false,
-			description: "Should accept valid HTTP URL",
-		},
-		{
-			name:        "valid_git_url",
-			url:         "git://github.com/example/repo.git",
-			expectError: false,
-			description: "Should accept valid git:// URL",
-		},
-		{
-			name:        "valid_ssh_url",
-			url:         "ssh://git@github.com/example/repo.git",
-			expectError: false,
-			description: "Should accept valid SSH URL",
-		},
-		{
-			name:        "valid_ssh_format",
-			url:         "git@github.com:example/repo.git",
-			expectError: false,
-			description: "Should accept SSH format with @",
-		},
-		{
-			name:        "invalid_empty_url",
-			url:         "",
-			expectError: true,
-			description: "Should reject empty URL",
-		},
-		{
-			name:        "invalid_protocol",
-			url:         "ftp://example.com/repo.git",
-			expectError: true,
-			description: "Should reject unsupported protocol",
-		},
-		{
-			name:        "invalid_no_protocol",
-			url:         "example.com/repo.git",
-			expectError: true,
-			description: "Should reject URL without protocol",
-		},
-		{
-			name:        "url_with_whitespace",
-			url:         "  https://github.com/example/repo.git  ",
-			expectError: false,
-			description: "Should handle URL with whitespace (after trimming)",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			initCmd := &initCmd{}
-
-			// Trim whitespace like the actual implementation does.
-			url := strings.TrimSpace(test.url)
-
-			err := initCmd.validateURL(url)
-			if test.expectError && err == nil {
-				t.Errorf("Expected error for URL '%s' but got none", test.url)
-			} else if !test.expectError && err != nil {
-				t.Errorf("Expected no error for URL '%s' but got: %v", test.url, err)
-			}
-		})
-	}
 }
 
 func TestInitCmd_EdgeCases(t *testing.T) {

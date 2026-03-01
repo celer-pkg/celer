@@ -322,7 +322,7 @@ macros = [
 
 ```bash
 # 使用指定的项目配置
-celer create --project x86_64-linux-ubuntu-22.04-gcc-11.5.0
+celer create --project=x86_64-linux-ubuntu-22.04-gcc-11.5.0
 ```
 
 ### 切换项目配置
@@ -330,7 +330,7 @@ celer create --project x86_64-linux-ubuntu-22.04-gcc-11.5.0
 使用 `celer configure` 命令切换项目:
 
 ```bash
-celer configure --project project_001
+celer configure --project=project_001
 ```
 
 或在 `celer.toml` 中修改项目配置：

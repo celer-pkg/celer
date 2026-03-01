@@ -6,8 +6,8 @@ import (
 	"celer/envs"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
-	"celer/pkgs/encrypt"
 	"celer/pkgs/errors"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
 	"fmt"
@@ -45,9 +45,9 @@ type Celer struct {
 	configData
 
 	// Internal fields.
-	platform    Platform
-	project     Project
-	expressVars ExpressVars
+	platform Platform
+	project  Project
+	exprVars context.ExprVars
 }
 
 type global struct {
@@ -80,6 +80,7 @@ func (c *Celer) Init() error {
 
 // InitWithPlatform initializes celer with platform.
 func (c *Celer) InitWithPlatform(platform string) error {
+	c.exprVars.Init(c)
 	c.platform.ctx = c
 
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
@@ -240,6 +241,17 @@ func (c *Celer) InitWithPlatform(platform string) error {
 
 	if c.Global.Offline {
 		color.Printf(color.Warning, "\n================ WARNING: You're in offline mode currently! ================\n")
+	}
+
+	// Store global express vars if exist.
+	if buildtools.Python3 != nil {
+		c.exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python3.Path))
+	}
+	if buildtools.LLVMPath != "" {
+		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
+		llvmRoot := fileio.ToRelPath(buildtools.LLVMPath)
+		llvmConfigPath := filepath.Join(llvmRoot, "bin", llvmConfig)
+		c.exprVars.Put("LLVM_CONFIG", filepath.ToSlash(llvmConfigPath))
 	}
 
 	// Clone ports repo if empty.
@@ -477,13 +489,20 @@ func (c *Celer) SetPackageCacheDir(dir string) error {
 		return errors.ErrPackageCacheDirNotExist
 	}
 
-	// Set package cache dir.
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
-	c.configData.PackageCache = &PackageCache{
-		Dir: dir,
-		ctx: c,
+
+	// Update package cache dir.
+	if c.configData.PackageCache == nil {
+		c.configData.PackageCache = &PackageCache{
+			ctx:      c,
+			Dir:      dir,
+			Writable: false,
+		}
+	} else {
+		c.configData.PackageCache.ctx = c
+		c.configData.PackageCache.Dir = dir
 	}
 	if err := c.save(); err != nil {
 		return err
@@ -492,36 +511,24 @@ func (c *Celer) SetPackageCacheDir(dir string) error {
 	return nil
 }
 
-func (c *Celer) SetPackageCacheToken(token string) error {
-	if strings.TrimSpace(token) == "" {
-		return errors.ErrPackageCacheTokenInvalid
-	}
-
+func (c *Celer) SetPackageCacheWritable(writable bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
-	// Package cache dir must be configured already.
+	// Update package cache wriable.
 	if c.configData.PackageCache == nil {
-		return errors.ErrPackageCacheDirNotConfigured
-	}
-	dir := c.configData.PackageCache.Dir
-	if !fileio.PathExists(dir) {
-		return errors.ErrPackageCacheDirNotExist
-	}
-
-	tokenFile := filepath.Join(dir, ".token")
-	if fileio.PathExists(tokenFile) {
-		return errors.ErrPackageCacheTokenExists
+		c.configData.PackageCache = &PackageCache{
+			ctx:      c,
+			Writable: writable,
+		}
+	} else {
+		c.configData.PackageCache.ctx = c
+		c.configData.PackageCache.Writable = writable
 	}
 
-	// Write token to file with encrypted text.
-	bytes, err := encrypt.Encode(token)
-	if err != nil {
-		return fmt.Errorf("encode cache token -> %w", err)
-	}
-	if err := os.WriteFile(tokenFile, bytes, os.ModePerm); err != nil {
-		return fmt.Errorf("write cache token -> %w", err)
+	if err := c.save(); err != nil {
+		return err
 	}
 
 	return nil
@@ -895,6 +902,6 @@ func (c *Celer) CCacheEnabled() bool {
 	return c.configData.CCache != nil && c.configData.CCache.Enabled
 }
 
-func (c *Celer) Vairables() map[string]string {
-	return c.expressVars.vars
+func (c *Celer) ExprVars() *context.ExprVars {
+	return &c.exprVars
 }

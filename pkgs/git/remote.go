@@ -28,8 +28,8 @@ func CheckIfRemoteTag(repoUrl, repoRef string) (bool, error) {
 	return strings.TrimSpace(output) != "", nil
 }
 
-// ReadLocalCommit read git commit.
-func ReadRemoteCommit(repoUrl, repoRef string) (string, error) {
+// GetRemoteCommit read git commit.
+func GetRemoteCommit(repoUrl, repoRef string) (string, error) {
 	// Try to get latest commit of branch.
 	isBranch, err := CheckIfRemoteBranch(repoUrl, repoRef)
 	if err != nil {

@@ -5,21 +5,12 @@ import (
 )
 
 var (
-	ErrPortNotFound                 = errors.New("port is not found")
-	ErrNoMatchedConfigFound         = errors.New("no matched config found")
-	ErrRepoNotExit                  = errors.New("repo not exist")
-	ErrInvalidBuildType             = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
-	ErrPackageCacheDirNotConfigured = errors.New("package cache dir is not configured in celer.toml")
-	ErrPackageCacheInvalid          = errors.New("package cache dir is invalid")
-	ErrPackageCacheDirNotExist      = errors.New("package cache dir not exist")
-	ErrPackageCacheTokenExists      = errors.New("package cache token already exist, if you want to change it, please remove it first manually")
-
-	ErrPackageCacheTokenInvalid       = errors.New("package cache dir is invalid")
-	ErrPackageCacheTokenNotConfigured = errors.New("package cache token is not configured in celer.toml")
-	ErrPackageCacheTokenNotSpecified  = errors.New("package cache token is not specified with `--cache-token`")
-	ErrPackageCacheTokenNotMatch      = errors.New(
-		"package cache tokens doesn't matched, please check `--package-cache-token` and `token` in package cache dir",
-	)
+	ErrPortNotFound            = errors.New("port is not found")
+	ErrNoMatchedConfigFound    = errors.New("no matched config found")
+	ErrRepoNotExit             = errors.New("repo not exist")
+	ErrInvalidBuildType        = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
+	ErrPackageCacheInvalid     = errors.New("package cache is invalid")
+	ErrPackageCacheDirNotExist = errors.New("package cache dir not exist")
 	ErrCacheNotFoundWithCommit = errors.New("package cache not found with commit")
 )
 

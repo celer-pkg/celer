@@ -16,22 +16,22 @@ import (
 )
 
 type installCmd struct {
-	celer      *configs.Celer
-	dev        bool
-	force      bool
-	recursive  bool
-	storeCache bool
-	cacheToken string
-	jobs       int
-	verbose    bool
+	celer          *configs.Celer
+	dev            bool
+	force          bool
+	recursive      bool
+	jobs           int
+	verbose        bool
+	jobsChanged    bool
+	verboseChanged bool
 }
 
 func (i *installCmd) Command(celer *configs.Celer) *cobra.Command {
 	i.celer = celer
 	command := &cobra.Command{
 		Use:   "install",
-		Short: "Install a package.",
-		Long: `Install a package.
+		Short: "Install package(s).",
+		Long: `Install package(s).
 
 This command installs packages from available ports, either from the global
 ports repository or from project-specific ports. The package name must be
@@ -41,7 +41,7 @@ FEATURES:
   • Install packages with dependency resolution
   • Support for development dependencies
   • Force reinstallation with dependency handling
-  • Package cache integration
+  • Best-effort package cache storing by default
   • Parallel build support
   • Circular dependency detection
   • Version conflict checking
@@ -50,20 +50,20 @@ FLAGS:
   -d, --dev         Install as development dependency
   -f, --force       Force reinstallation (uninstall first if exists)
   -r, --recursive   With --force, recursively reinstall dependencies
-  -s, --store-cache Store build artifacts in package cache after installation
-  -t, --cache-token Authentication token for package cache operations
   -j, --jobs        Number of parallel build jobs (default: system cores)
   -v, --verbose     Enable verbose output for debugging
 
 EXAMPLES:
   celer install opencv@4.8.0
+  celer install opencv@4.8.0 eigen@3.4.0
   celer install --dev gtest@1.12.1
   celer install --force --recursive boost@1.82.0
-  celer install --store-cache --cache-token abc123 eigen@3.4.0
-  celer install --jobs 8 --verbose opencv@4.8.0`,
-		Args: cobra.ExactArgs(1),
+  celer install --jobs=8 --verbose opencv@4.8.0`,
+		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return i.runInstall(args[0])
+			i.jobsChanged = cmd.Flags().Changed("jobs")
+			i.verboseChanged = cmd.Flags().Changed("verbose")
+			return i.runInstall(args)
 		},
 		ValidArgsFunction: i.completion,
 	}
@@ -73,8 +73,6 @@ EXAMPLES:
 	flags.BoolVarP(&i.dev, "dev", "d", false, "install in dev mode.")
 	flags.BoolVarP(&i.force, "force", "f", false, "try to uninstall before installation.")
 	flags.BoolVarP(&i.recursive, "recursive", "r", false, "combine with --force, recursively reinstall dependencies.")
-	flags.BoolVarP(&i.storeCache, "store-cache", "s", false, "store artifact into cache after installation.")
-	flags.StringVarP(&i.cacheToken, "cache-token", "t", "", "combine with --store-cache, specify cache token.")
 	flags.IntVarP(&i.jobs, "jobs", "j", i.celer.Jobs(), "the number of jobs to run in parallel.")
 	flags.BoolVarP(&i.verbose, "verbose", "v", false, "verbose detail information.")
 
@@ -84,18 +82,39 @@ EXAMPLES:
 	return command
 }
 
-func (i *installCmd) runInstall(nameVersion string) error {
+func (i *installCmd) runInstall(nameVersions []string) error {
+	// Validate and clean input before initialization so input errors are reported first.
+	cleanedNameVersions := make([]string, 0, len(nameVersions))
+	for _, nameVersion := range nameVersions {
+		cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
+		if err != nil {
+			return configs.PrintError(err, "invalid package specification: %s.", nameVersion)
+		}
+		cleanedNameVersions = append(cleanedNameVersions, cleanedNameVersion)
+	}
+
 	if err := i.celer.Init(); err != nil {
 		return configs.PrintError(err, "failed to initialize celer.")
 	}
 
-	// Validate and clean input.
-	cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
-	if err != nil {
-		return configs.PrintError(err, "invalid package specification.")
+	// Check git first as it's needed for cloning and reading commit hashes,
+	// and must check tool after celer initialized, since "downloads" will be assign value after init.
+	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
+		return configs.PrintError(err, "failed to check build tool: git")
 	}
 
-	return i.install(cleanedNameVersion)
+	if err := i.overrideFlags(); err != nil {
+		return configs.PrintError(err, "invalid install options.")
+	}
+
+	// Install port one by one.
+	for _, nameVersion := range cleanedNameVersions {
+		if err := i.install(nameVersion); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // validateAndCleanInput validates and cleans the package name@version input.
@@ -135,17 +154,6 @@ func (i *installCmd) install(nameVersion string) error {
 	color.Printf(color.Title, "🛠️  platform: %s\n", i.celer.Global.Platform)
 	color.Println(color.Title, "=======================================================================")
 
-	// Check git first as it's needed for cloning and reading commit hashes
-	if err := buildtools.CheckTools(i.celer, "git"); err != nil {
-		return configs.PrintError(err, "failed to check build tool: git")
-	}
-
-	// Overwrite global config.
-	if i.jobs != i.celer.Global.Jobs {
-		i.celer.Global.Jobs = i.jobs
-	}
-	i.celer.Global.Verbose = i.verbose
-
 	// Parse name and version (already validated)
 	parts := strings.Split(nameVersion, "@")
 	name, version := parts[0], parts[1]
@@ -164,23 +172,19 @@ func (i *installCmd) install(nameVersion string) error {
 		return configs.PrintError(err, "failed to init %s.", nameVersion)
 	}
 
-	// Check circular dependence.
+	// Check circular dependence and version conclict.
 	depcheck := depcheck.NewDepCheck()
 	if err := depcheck.CheckCircular(i.celer, port); err != nil {
 		return configs.PrintError(err, "failed to check circular dependence.")
 	}
-
-	// Check version conflict.
 	if err := depcheck.CheckConflict(i.celer, port); err != nil {
 		return configs.PrintError(err, "failed to check version conflict.")
 	}
 
 	// Do install.
 	options := configs.InstallOptions{
-		Force:      i.force,
-		Recursive:  i.recursive,
-		StoreCache: i.storeCache,
-		CacheToken: i.cacheToken,
+		Force:     i.force,
+		Recursive: i.recursive,
 	}
 	fromWhere, err := port.Install(options)
 	if err != nil {
@@ -198,6 +202,21 @@ func (i *installCmd) install(nameVersion string) error {
 		} else {
 			configs.PrintSuccess("install %s successfully.", nameVersion)
 		}
+	}
+
+	return nil
+}
+
+func (i *installCmd) overrideFlags() error {
+	if i.jobsChanged {
+		if i.jobs <= 0 {
+			return fmt.Errorf("--jobs must be greater than 0")
+		}
+		i.celer.Global.Jobs = i.jobs
+	}
+
+	if i.verboseChanged {
+		i.celer.Global.Verbose = i.verbose
 	}
 
 	return nil
@@ -246,7 +265,6 @@ func (i *installCmd) completion(cmd *cobra.Command, args []string, toComplete st
 		"--dev", "-d",
 		"--force", "-f",
 		"--recursive", "-r",
-		"--store-cache", "-s",
 		"--jobs", "-j",
 		"--verbose", "-v",
 	}

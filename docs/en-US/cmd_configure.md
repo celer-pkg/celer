@@ -1,6 +1,6 @@
 # Configure Command
 
-&emsp;&emsp;The Configure command allows users to configure global settings for the current workspace.
+&emsp;&emsp;The `configure` command updates global settings for the current workspace.
 
 ## Command Syntax
 
@@ -8,119 +8,70 @@
 celer configure [flags]
 ```
 
-## ⚙️ Command Options
+## Important Behavior
+
+- In one command, you can configure only one setting group.
+- Mixing flags from different groups fails.
+- Multiple flags are allowed only inside the same related group (for example package cache, proxy, or ccache).
+
+## Command Options
 | Option                    | Type    | Description                            |
 |---------------------------|---------|----------------------------------------|
-| --platform                | string  | Configure platform                     |
-| --project                 | string  | Configure project                      |
-| --build-type              | string  | Configure build type                   |
-| --downloads               | string  | Configure downloads                    |
-| --jobs                    | integer | Configure parallel build jobs          |
-| --offline                 | boolean | Enable offline mode                    |
-| --verbose                 | boolean | Enable verbose logging mode            |
-| --proxy-host              | string  | Configure proxy host                   |
-| --proxy-port              | integer | Configure proxy port                   |
-| --package-cache-dir       | string  | Configure package cache directory      |
-| --package-cache-token     | string  | Configure package cache token          |
-| --ccache-enabled          | boolean | Configure ccache enabled               |
-| --ccache-dir              | string  | Configure ccache working directory     |
-| --ccache-maxsize          | string  | configure ccache maxsize               |
-| --ccache-remote-storage   | string  | configure ccache remote storage        |
-| --ccache-remote-only      | string  | configure ccache remote only           |
+| --platform                | string  | Set target platform                    |
+| --project                 | string  | Set current project                    |
+| --build-type              | string  | Set build type                         |
+| --downloads               | string  | Set downloads directory                |
+| --jobs                    | integer | Set parallel build jobs                |
+| --offline                 | boolean | Enable/disable offline mode            |
+| --verbose                 | boolean | Enable/disable verbose logging         |
+| --proxy-host              | string  | Set proxy host                         |
+| --proxy-port              | integer | Set proxy port                         |
+| --package-cache-dir       | string  | Set package cache directory            |
+| --package-cache-writable  | boolean | Set whether package cache is writable  |
+| --ccache-enabled          | boolean | Enable/disable ccache                  |
+| --ccache-dir              | string  | Set ccache working directory           |
+| --ccache-maxsize          | string  | Set ccache max size                    |
+| --ccache-remote-storage   | string  | Set ccache remote storage URL          |
+| --ccache-remote-only      | boolean | Enable/disable remote-only cache mode  |
 
-
-### 1️⃣ Configure Platform
-
-```shell
-celer configure --platform xxxx
-```
-
-> Available platforms come from toml files in the `conf/platforms` directory.
-
-### 2️⃣ Configure Project
+## Common Examples
 
 ```shell
-celer configure --project xxxx
+# Platform / project
+celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
+celer configure --project=project_test_02
+
+# Build settings
+celer configure --build-type=Release
+celer configure --downloads=/home/xxx/Downloads
+celer configure --jobs=8
+
+# Runtime switches
+celer configure --offline=true
+celer configure --verbose=false
+
+# Package cache group (can combine in one command)
+celer configure --package-cache-dir=/home/xxx/cache --package-cache-writable=true
+
+# Proxy group (can combine in one command)
+celer configure --proxy-host=127.0.0.1 --proxy-port=7890
+
+# ccache group (can combine in one command)
+celer configure --ccache-enabled=true --ccache-maxsize=5G --ccache-remote-only=true
 ```
 
-> Available projects come from toml files in the `conf/projects` directory.
+## Validation Rules
 
-### 3️⃣ Configure Build Type
-
-```shell
-celer configure --build-type Release
-```
-
-> Available build types: Release, Debug, RelWithDebInfo, MinSizeRel  
-> The default build type is Release.
-
-### 4️⃣ Configure Downloads
-
-```shell
-celer configure --downloads=$HOME/Downloads
-```
-
-> The default downloads is $workspace/downloads, you can share a downloads directory with multi project workspaces.
-
-### 5️⃣ Configure Parallel Jobs
-
-```shell
-celer configure --jobs 8
-```
-
-> The number of parallel jobs must be greater than 0.
-
-### 6️⃣ Configure Offline Mode
-
-```shell
-celer configure --offline true|false
-```
-
-> The default offline mode is `false`.
-
-### 7️⃣ Configure Verbose Logging Mode
-
-```shell
-celer configure --verbose true|false
-```
-
-> The default verbose logging mode is `false`.
-
----
-
-## 🌐 Proxy Configuration
-
-### Configure Proxy Host and Port
-
-```shell
-celer configure --proxy-host 127.0.0.1 --proxy-port 7890
-```
-> In China, you may need to configure a proxy to access GitHub resources.
-
----
-
-## 🗄️ Package Cache Configuration
-
-### Configure Package Cache Directory and Token
-
-```shell
-celer configure --package-cache-dir /home/xxx/cache --package-cache-token token_12345
-```
-
-> You can configure --package-cache-dir and --package-cache-token together or separately.
-
----
-
-## 📦 ccache Configuration
-
-### Enable ccache to Accelerate Builds
-
-```shell
-celer configure --ccache-enabled true
-celer configure --ccache-dir /home/xxx/.ccache
-celer configure --ccache-maxsize 5G
-celer configure --ccache-remote-storage http://SERVER_IP:8080/ccache
-celer configure --ccache-remote-only true
-```
-
-> Enable compiler caching to speed up repeated builds.
+- `--platform`: must match a TOML file name under `conf/platforms`.
+- `--project`: must match a TOML file name under `conf/projects`.
+- `--build-type`: supports `Release`, `Debug`, `RelWithDebInfo`, `MinSizeRel` (stored in lowercase).
+- `--downloads`: directory must already exist.
+- `--jobs`: must be greater than `0`.
+- `--package-cache-dir`: cannot be empty, and directory must already exist.
+- `--package-cache-writable`: boolean; package cache dir must be configured first (or in the same command).
+- `--proxy-host`: cannot be empty.
+- `--proxy-port`: must be greater than `0`.
+- `--ccache-dir`: directory must already exist.
+- `--ccache-maxsize`: must end with `M` or `G` (for example `512M`, `5G`).
+- `--ccache-remote-storage`: empty value is allowed (clear setting), otherwise must be a valid URL with scheme and host, such as `http://server:8080/ccache`.
+- `--ccache-remote-only`: boolean (`true` or `false`).

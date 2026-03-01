@@ -264,7 +264,7 @@ func (m makefiles) Configure(options []string) error {
 		}
 		// If nasm was found, set AS environment variable to use nasm instead of toolchain's AS.
 		if nasmPath != "" {
-			os.Setenv("AS", nasmPath)
+			m.envBackup.setenv("AS", nasmPath)
 		}
 	}
 
@@ -301,8 +301,8 @@ func (m makefiles) Configure(options []string) error {
 				}
 			}
 		}
-		os.Setenv("CFLAGS", strings.Join(cflags, " "))
-		os.Setenv("CXXFLAGS", strings.Join(cxxflags, " "))
+		m.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
+		m.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 	}
 
 	// Create build dir if not exists.

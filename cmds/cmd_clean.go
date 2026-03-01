@@ -8,6 +8,7 @@ import (
 	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -42,6 +43,7 @@ Examples:
   celer clean automake@1.18 --recursive              	# Clean with dependencies
   celer clean --all                                 	# Clean all packages
   celer clean x264@stable ffmpeg@3.4.13 --recursive   	# Clean multiple packages`,
+		Args: c.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.execute(args)
 		},
@@ -59,13 +61,34 @@ Examples:
 	return command
 }
 
-func (c *cleanCmd) execute(args []string) error {
-	if err := buildtools.CheckTools(c.celer, "git"); err != nil {
+func (c *cleanCmd) validateArgs(cmd *cobra.Command, args []string) error {
+	all, err := cmd.Flags().GetBool("all")
+	if err != nil {
 		return err
 	}
 
+	if all {
+		if len(args) > 0 {
+			return fmt.Errorf("--all does not accept positional arguments")
+		}
+		return nil
+	}
+
+	if len(args) == 0 {
+		return fmt.Errorf("requires at least one package or project argument (or use --all)")
+	}
+
+	return nil
+}
+
+func (c *cleanCmd) execute(args []string) error {
 	if err := c.celer.Init(); err != nil {
 		return configs.PrintError(err, "failed to init celer.")
+	}
+
+	// Must check tool after celer initialized, since "downloads" will be assign value after init.
+	if err := buildtools.CheckTools(c.celer, "git"); err != nil {
+		return err
 	}
 
 	if c.all {
@@ -94,11 +117,6 @@ func (c *cleanCmd) validateTargets(targets []string) error {
 }
 
 func (c *cleanCmd) clean(targets ...string) error {
-	// git is required when clean port.
-	if err := buildtools.CheckTools(c.celer, "git"); err != nil {
-		return err
-	}
-
 	var summaries []string
 	for _, target := range targets {
 		if strings.Contains(target, "@") {
@@ -198,7 +216,7 @@ func (c *cleanCmd) cleanAll() error {
 			var port configs.Port
 			if err := port.Init(c.celer, nameVersion); err != nil {
 				if errors.Is(err, errors.ErrPortNotFound) {
-					color.Printf(color.Warning, "[clean %s]: cannot find it in ports, clean is skipped.\n", port.NameVersion())
+					color.Printf(color.Warning, "\n[clean %s]: cannot find it in ports, clean is skipped.\n", port.NameVersion())
 					break leaveLoop
 				}
 				return err

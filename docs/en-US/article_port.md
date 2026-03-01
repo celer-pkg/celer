@@ -15,7 +15,8 @@ src_dir             = "xxx"                 # optional field
 supported_hosts     = [...]                 # optional field
 
 [[build_configs]]
-pattern             = "*linux*"             # optional field, default is empty.
+system_name         = "linux"               # optional selector
+system_processor    = "x86_64"              # optional selector
 build_system        = "cmake"               # mandatory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
 cmake_generator     = []                    # optional field, should be "Ninja", "Unix Makefiles", "Visual Studio xxx"
 build_tools         = [...]                 # optional field
@@ -70,21 +71,20 @@ The following are fields and their descriptions:
 
 ## 1.2 build_configs
 
-&emsp;&emsp;**build_configs** is an array to meet different compilation requirements on different platforms. Celer will automatically find the matching **build_config** according to **pattern** to assemble the compilation command. Build configuration often varies across systems, involving platform-specific flags or distinct build steps. Some libraries require special pre-processing or post-processing to compile correctly on Windows.
+&emsp;&emsp;**build_configs** is an array to meet different compilation requirements on different platforms. Celer will automatically find the matching **build_config** according to **system_name/system_processor** to assemble the compilation command. Build configuration often varies across systems, involving platform-specific flags or distinct build steps. Some libraries require special pre-processing or post-processing to compile correctly on Windows.
 
-### 1.2.1 pattern
+### 1.2.1 system_name, system_processor
 
-&emsp;&emsp;Used to match the **platform** file in the **conf** directory. Matching rules are as follows:
+&emsp;&emsp;Used to match selectors in platform toolchain (`toolchain.system_name`, `toolchain.system_processor`). Matching rules are as follows:
 
-| Pattern | Description |
+| Selector | Description |
 | --- | --- |
-| * | Empty, also the default value, which means that the compilation configuration does not distinguish between system platforms. Switching to any platform can use the same buildconfig to compile |
-| *linux* | Match all linux systems |
-| *windows* | Match all windows systems |
-| x86_64‑linux* | Match all cpu arch is x86_64, and system is linux |
-| aarch64‑linux* | Match all cpu arch is aarch64, and system is linux |
-| x86_64‑windows* | Match all cpu arch is x86_64, and system is windows; |
-| aarch64‑windows* | Match all cpu arch is aarch64, and system is windows; |
+| `system_name` unset and `system_processor` unset | Match all platforms (no selector constraints) |
+| `system_name = "linux"` | Match all Linux platforms |
+| `system_name = "windows"` | Match all Windows platforms |
+| `system_name = "linux"` + `system_processor = "x86_64"` | Match x86_64 Linux platforms |
+| `system_name = "linux"` + `system_processor = "aarch64"` | Match aarch64 Linux platforms |
+| `system_name = "windows"` + `system_processor = "x86_64"` | Match x86_64 Windows platforms |
 
 ### 1.2.2 build_system
 
@@ -190,7 +190,7 @@ When **library_type** is set to **shared**, Celer will try to read the value in 
 ```
 # =============== build for windows ============ #
 [[build_configs]]
-pattern = "*windows*"
+system_name = "windows"
 build_system = "makefiles"
 dev_dependencies = ["autoconf@2.72"]
 pre_install = [
@@ -206,26 +206,4 @@ options = [
 ]
 ```
 
->Celer provides some dynamic variables that can be used in the toml file, such as: **${BUILD_DIR}**, which will be replaced with the actual path during compilation. For more details, please refer to [Dynamic Variables](#3-dynamic-variables).
-
-### 1.2.15 options
-
-&emsp;&emsp;Optional, when compiling third-party libraries, there are often many options that need to be enabled or disabled. We can define them here, such as **-DBUILD_TESTING=OFF**;
-
-## 2. Dynamic Variables
-
-| Variable | Description | Source |
-| --- | --- | --- |
-| ${SYSTEM_NAME} | Value of **toolchain.system_name** | platform |
-| ${HOST} | Value of **toolchain.host** | platform |
-| ${SYSTEM_PROCESSOR} | Value of **toolchain.system_processor** | platform |
-| ${SYSROOT} | Value of **toolchain.sysroot** | platform |
-| ${CROSS_PREFIX} | Value of **toolchain.crosstool_prefix** | platform |
-| ${BUILD_DIR} | Path to current library's compile directory in buildtrees | buildtrees |
-| ${HOST_NAME} | Value of **toolchain.host_name** | platform |
-| ${PACKAGE_DIR} | Path to current library's package directory | port |
-| ${BUILDTREES_DIR} | Path to buildtrees root directory in workspace | buildtrees |
-| ${REPO_DIR} | Path to current library source code directory | port/buildtrees |
-| ${DEPS_DIR} | Path to **tmp/deps** directory | workspace |
-| ${DEPS_DEV_DIR} | Path to **tmp/deps/${HOST_NAME}-dev** directory | workspace |
-| ${PYTHON3_PATH} | Path to installed python3, auto detected | system |
+> Celer provides dynamic variables that can be used in TOML files, such as **${BUILD_DIR}**, which will be replaced with the actual path during compilation. For the complete list, see [Expression Variables](./article_expvars.md).

@@ -33,9 +33,21 @@ func TestInstallCmd_CommandStructure(t *testing.T) {
 			t.Error("Long description should not be empty")
 		}
 
-		// Check that it expects exactly one argument
+		// Check that argument validation exists.
 		if cmd.Args == nil {
-			t.Error("Args should be set to require package name@version")
+			t.Error("Args should be set")
+		}
+
+		if err := cmd.Args(cmd, []string{}); err == nil {
+			t.Error("Args should require at least one package")
+		}
+
+		if err := cmd.Args(cmd, []string{"opencv@4.8.0"}); err != nil {
+			t.Errorf("single package should be accepted, got: %v", err)
+		}
+
+		if err := cmd.Args(cmd, []string{"opencv@4.8.0", "eigen@3.4.0"}); err != nil {
+			t.Errorf("multiple packages should be accepted, got: %v", err)
 		}
 	})
 
@@ -47,8 +59,6 @@ func TestInstallCmd_CommandStructure(t *testing.T) {
 			{"dev", "d"},
 			{"force", "f"},
 			{"recursive", "r"},
-			{"store-cache", "s"},
-			{"cache-token", "t"},
 			{"jobs", "j"},
 			{"verbose", "v"},
 		}
@@ -384,5 +394,22 @@ func TestInstallCmd_ErrorHandling(t *testing.T) {
 				t.Errorf("Expected error containing '%s' for input '%s', got: %v", test.expectError, test.input, err)
 			}
 		})
+	}
+}
+
+func TestInstallCmd_RunInstall_MultiPackages_PreInitValidation(t *testing.T) {
+	installCmd := &installCmd{}
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("runInstall should not panic before input validation, got panic: %v", r)
+		}
+	}()
+
+	// The second package is invalid, so validation should fail before Init() is called.
+	// This confirms pre-init validation works in multi-package mode.
+	err := installCmd.runInstall([]string{"opencv@4.8.0", "invalid"})
+	if err != configs.ErrSilent {
+		t.Fatalf("expected ErrSilent for invalid package input, got: %v", err)
 	}
 }

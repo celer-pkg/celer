@@ -71,9 +71,9 @@ func (m *meson) preConfigure() error {
 			msvcPaths := strings.Split(msvcEnvs["PATH"], string(os.PathListSeparator))
 			mergedPath := env.JoinPaths("PATH", msvcPaths...)
 
-			os.Setenv("PATH", mergedPath)
-			os.Setenv("INCLUDE", msvcEnvs["INCLUDE"])
-			os.Setenv("LIB", msvcEnvs["LIB"])
+			m.envBackup.setenv("PATH", mergedPath)
+			m.envBackup.setenv("INCLUDE", msvcEnvs["INCLUDE"])
+			m.envBackup.setenv("LIB", msvcEnvs["LIB"])
 		}
 	}
 
@@ -334,7 +334,8 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	// This allows the bin to locate the libraries in the relative lib dir.
 	switch runtime.GOOS {
 	case "linux":
-		if toolchain.GetName() == "gcc" || toolchain.GetName() == "clang" {
+		toolchainName := toolchain.GetName()
+		if toolchainName == "gcc" || toolchainName == "clang" || toolchainName == "qcc" {
 			linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
 		}
 	case "darwin":

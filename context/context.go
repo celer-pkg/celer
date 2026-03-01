@@ -17,11 +17,12 @@ type Context interface {
 	Optimize(buildsystem, toolchain string) *Optimize
 	CCacheEnabled() bool
 	GenerateToolchainFile() error
-	Vairables() map[string]string
+	ExprVars() *ExprVars
 }
 
 type PackageCache interface {
 	GetDir() string
+	IsWritable() bool
 	Read(nameVersion, hash, destDir string) (bool, error)
 	Write(packageDir, meta string) error
 }
