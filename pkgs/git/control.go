@@ -42,6 +42,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 		if err := retryExecutor(title, command); err != nil {
 			return fmt.Errorf("faield to clone git repo -> %w", err)
 		}
+		return nil
 	}
 
 	// ============ Clone specific branch ============
@@ -54,6 +55,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 		if err := retryExecutor(title, command); err != nil {
 			return fmt.Errorf("faield to clone git repo -> %w", err)
 		}
+		return nil
 	}
 
 	// ============ Clone specific tag ============
@@ -66,6 +68,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 		if err := retryExecutor(title, command); err != nil {
 			return fmt.Errorf("faield to clone git repo -> %w", err)
 		}
+		return nil
 	}
 
 	// ============ Clone and checkout commit ============
