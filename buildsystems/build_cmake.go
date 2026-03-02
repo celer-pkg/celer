@@ -161,7 +161,7 @@ func (c cmake) configureOptions() ([]string, error) {
 	tmpDepDir := filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder)
 	rootPaths := []string{filepath.ToSlash(tmpDepDir)}
 	if rootfs != nil && !c.BuildConfig.DevDep && !c.BuildConfig.HostDev {
-		rootPaths = append(rootPaths, rootfs.GetAbsPath())
+		rootPaths = append(rootPaths, rootfs.GetAbsDir())
 	}
 	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(rootPaths, ";"))
 	options = append(options, "-DTMP_DEP_DIR="+filepath.ToSlash(tmpDepDir))

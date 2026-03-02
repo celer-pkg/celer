@@ -48,6 +48,31 @@ func IsModified(repoDir string) (bool, error) {
 	return strings.TrimSpace(string(output)) != "", nil
 }
 
+// CleanRepo clean local changes of a repo to HEAD.
+// Optional excludes keep files matching git clean exclude patterns.
+func CleanRepo(repoDir string, excludes ...string) error {
+	ignoreArgs := []string{"-C", repoDir, "clean", "-xfd"}
+	for _, pattern := range excludes {
+		ignoreArgs = append(ignoreArgs, "-e", pattern)
+	}
+
+	// git clean
+	cmd1 := exec.Command("git", ignoreArgs...)
+	output1, err := cmd1.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git clean failed: %s", output1)
+	}
+
+	// git reset
+	cmd2 := exec.Command("git", "-C", repoDir, "reset", "--hard")
+	output2, err := cmd2.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git reset --hard failed: %s", output2)
+	}
+
+	return nil
+}
+
 // GetCurrentCommit read git commit hash.
 func GetCurrentCommit(repoDir string) (string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")

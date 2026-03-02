@@ -14,8 +14,8 @@ type Platform interface {
 
 type Toolchain interface {
 	GetName() string
-	GetPath() string
-	GetAbsPath() string
+	GetAbsDir() string
+	GetRootDir() string
 	GetVersion() string
 	GetHost() string
 	GetSystemName() string
@@ -49,7 +49,7 @@ type RootFS interface {
 	GetPkgConfigPath() []string
 	GetIncludeDirs() []string
 	GetLibDirs() []string
-	GetAbsPath() string
+	GetAbsDir() string
 }
 
 type Optimize struct {

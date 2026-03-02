@@ -64,7 +64,7 @@ func (r *RootFS) CheckAndRepair() error {
 	return nil
 }
 
-func (r RootFS) GetAbsPath() string {
+func (r RootFS) GetAbsDir() string {
 	return r.abspath
 }
 
