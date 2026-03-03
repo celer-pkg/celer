@@ -6,7 +6,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/env"
 	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"embed"
 	"fmt"
 	"os"
@@ -23,8 +22,6 @@ var (
 	static embed.FS
 
 	LLVMPath string
-
-	toolIgnorePatterns = []string{"tmp/", "tmp/**"}
 )
 
 // CheckTools checks if tools exist and repair them if necessary, finaly make sure tool paths are in PATH
@@ -235,24 +232,6 @@ func (b *BuildTool) checkAndFix() error {
 		archiveName = "" // Empty means use original URL filename for download
 	}
 
-	// Check if tool already exists before repair.
-	toolExists := fileio.PathExists(location)
-	localRepoExists := fileio.PathExists(filepath.Join(location, ".git"))
-
-	// Restore tool files when local git tracking repo has modifications.
-	if localRepoExists {
-		modified, err := git.IsModified(location)
-		if err != nil {
-			return err
-		}
-		if modified {
-			// Keep runtime symlinks under tmp/ (host-specific absolute path workaround).
-			if err := git.CleanRepo(location, toolIgnorePatterns...); err != nil {
-				return err
-			}
-		}
-	}
-
 	// Check and repair resource.
 	// For single-file tools, use Archive as the archive name for target file naming
 	if len(b.Paths) == 0 && b.Archive != "" {
@@ -263,15 +242,8 @@ func (b *BuildTool) checkAndFix() error {
 		return err
 	}
 
-	// Track extracted/copied build tools with a local git repo for drift detection.
-	if fileio.PathExists(location) && !fileio.PathExists(filepath.Join(location, ".git")) {
-		if err := git.InitAsLocalRepo(location, "init for tracking file change"); err != nil {
-			return err
-		}
-	}
-
 	// Only print if tool was just downloaded (didn't exist before).
-	if !toolExists {
+	if !fileio.PathExists(location) {
 		// Print download & extract info.
 		color.Printf(color.List, "\n[✔] -- tool: %s\n", fileio.FileBaseName(b.Url))
 		color.Printf(color.Hint, "Location: %s\n", location)

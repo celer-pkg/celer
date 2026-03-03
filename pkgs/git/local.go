@@ -49,15 +49,9 @@ func IsModified(repoDir string) (bool, error) {
 }
 
 // CleanRepo clean local changes of a repo to HEAD.
-// Optional excludes keep files matching git clean exclude patterns.
-func CleanRepo(repoDir string, excludes ...string) error {
-	ignoreArgs := []string{"-C", repoDir, "clean", "-xfd"}
-	for _, pattern := range excludes {
-		ignoreArgs = append(ignoreArgs, "-e", pattern)
-	}
-
+func CleanRepo(repoDir string) error {
 	// git clean
-	cmd1 := exec.Command("git", ignoreArgs...)
+	cmd1 := exec.Command("git", "-C", repoDir, "clean", "-xfd")
 	output1, err := cmd1.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git clean failed: %s", output1)

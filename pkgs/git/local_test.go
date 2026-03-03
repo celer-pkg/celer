@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestResetHard(t *testing.T) {
+func TestCleanRepo(t *testing.T) {
 	repoDir := t.TempDir()
 	filePath := filepath.Join(repoDir, "tool.txt")
 
