@@ -189,13 +189,21 @@ func InitAsLocalRepo(repoDir, message string) error {
 	cmd := exec.Command("git", "-C", repoDir, "init")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git init repo -> %s", output)
+		if len(output) == 0 {
+			return fmt.Errorf("failed to git init repo -> %s", err)
+		} else {
+			return fmt.Errorf("failed to git init repo -> %s", output)
+		}
 	}
 
 	cmd = exec.Command("git", "-C", repoDir, "add", "-A")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git add -A -> %s", output)
+		if len(output) == 0 {
+			return fmt.Errorf("failed to git add -A -> %s", err)
+		} else {
+			return fmt.Errorf("failed to git add -A -> %s", output)
+		}
 	}
 
 	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
@@ -207,7 +215,11 @@ func InitAsLocalRepo(repoDir, message string) error {
 	)
 	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git commit repo -> %s", output)
+		if len(output) == 0 {
+			return fmt.Errorf("failed to git commit repo -> %s", err)
+		} else {
+			return fmt.Errorf("failed to git commit repo -> %s", output)
+		}
 	}
 
 	return nil

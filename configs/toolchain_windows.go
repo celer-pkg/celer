@@ -240,7 +240,7 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 
 // Detect detect local installed MSVC.
 func (t *Toolchain) Detect(toolchainName string) error {
-	if err := buildtools.CheckTools(t.ctx, "vswhere"); err != nil {
+	if err := buildtools.CheckTools(t.ctx, "git", "vswhere"); err != nil {
 		return fmt.Errorf("vswhere is not available -> %w", err)
 	}
 
