@@ -227,12 +227,10 @@ func (b *BuildTool) checkAndFix() error {
 		// Single-file tool: place in subdirectory downloads/tools/{name}-{version}/
 		folderName = fmt.Sprintf("%s-%s", b.Name, b.Version)
 		location = filepath.Join(toolsDir, folderName)
+
 		// For single-file tools: download with original filename, but pass Archive for symlink creation
 		archiveName = "" // Empty means use original URL filename for download
 	}
-
-	// Check if tool already exists before repair.
-	toolExists := fileio.PathExists(location)
 
 	// Check and repair resource.
 	// For single-file tools, use Archive as the archive name for target file naming
@@ -245,7 +243,7 @@ func (b *BuildTool) checkAndFix() error {
 	}
 
 	// Only print if tool was just downloaded (didn't exist before).
-	if !toolExists {
+	if !fileio.PathExists(location) {
 		// Print download & extract info.
 		color.Printf(color.List, "\n[✔] -- tool: %s\n", fileio.FileBaseName(b.Url))
 		color.Printf(color.Hint, "Location: %s\n", location)

@@ -48,6 +48,25 @@ func IsModified(repoDir string) (bool, error) {
 	return strings.TrimSpace(string(output)) != "", nil
 }
 
+// CleanRepo clean local changes of a repo to HEAD.
+func CleanRepo(repoDir string) error {
+	// git clean
+	cmd1 := exec.Command("git", "-C", repoDir, "clean", "-xfd")
+	output1, err := cmd1.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git clean failed: %s", output1)
+	}
+
+	// git reset
+	cmd2 := exec.Command("git", "-C", repoDir, "reset", "--hard")
+	output2, err := cmd2.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git reset --hard failed: %s", output2)
+	}
+
+	return nil
+}
+
 // GetCurrentCommit read git commit hash.
 func GetCurrentCommit(repoDir string) (string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
@@ -164,13 +183,21 @@ func InitAsLocalRepo(repoDir, message string) error {
 	cmd := exec.Command("git", "-C", repoDir, "init")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git init repo -> %s", output)
+		if len(output) == 0 {
+			return fmt.Errorf("failed to git init repo -> %s", err)
+		} else {
+			return fmt.Errorf("failed to git init repo -> %s", output)
+		}
 	}
 
 	cmd = exec.Command("git", "-C", repoDir, "add", "-A")
 	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git add -A -> %s", output)
+		if len(output) == 0 {
+			return fmt.Errorf("failed to git add -A -> %s", err)
+		} else {
+			return fmt.Errorf("failed to git add -A -> %s", output)
+		}
 	}
 
 	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
@@ -182,7 +209,11 @@ func InitAsLocalRepo(repoDir, message string) error {
 	)
 	output, err = cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to git commit repo -> %s", output)
+		if len(output) == 0 {
+			return fmt.Errorf("failed to git commit repo -> %s", err)
+		} else {
+			return fmt.Errorf("failed to git commit repo -> %s", output)
+		}
 	}
 
 	return nil

@@ -55,7 +55,7 @@ func (p *Platform) Init(platformName string) error {
 		}
 
 		// Store toolchain releated express vars.
-		exrVars.Put("SYSROOT_DIR", p.RootFS.GetAbsPath())
+		exrVars.Put("SYSROOT_DIR", p.RootFS.GetAbsDir())
 	}
 	if p.Toolchain != nil {
 		p.Toolchain.ctx = p.ctx

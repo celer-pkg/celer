@@ -529,7 +529,7 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 		// then the pc file would be found by other libraries.
 		if rootfs != nil {
 			// This symblink is used to find library via toolchain_file.cmake
-			sysrootDir := rootfs.GetAbsPath()
+			sysrootDir := rootfs.GetAbsDir()
 			if err := b.checkSymlink(dirs.InstalledDir, filepath.Join(sysrootDir, "installed")); err != nil {
 				return err
 			}
@@ -918,7 +918,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 		appendLibDir(filepath.Join(tmpDepsDir, "lib"))
 	} else if rootfs != nil {
 		// Update CFLAGS/CXXFLAGS
-		sysrootDir := rootfs.GetAbsPath()
+		sysrootDir := rootfs.GetAbsDir()
 		appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		for _, dir := range rootfs.GetIncludeDirs() {
 			appendIncludeDir(filepath.Join(sysrootDir, dir))

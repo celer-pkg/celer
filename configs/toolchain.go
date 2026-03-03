@@ -256,10 +256,6 @@ func (t Toolchain) GetVersion() string {
 	return t.Version
 }
 
-func (t Toolchain) GetPath() string {
-	return t.Path
-}
-
 func (t Toolchain) GetSystemName() string {
 	return t.SystemName
 }
@@ -355,8 +351,12 @@ func (t Toolchain) GetMSVC() *context.MSVC {
 	return &t.MSVC
 }
 
-func (t Toolchain) GetAbsPath() string {
+func (t Toolchain) GetAbsDir() string {
 	return t.abspath
+}
+
+func (t Toolchain) GetRootDir() string {
+	return t.rootDir
 }
 
 func (t Toolchain) GetCrosstoolPrefixPath() string {
@@ -379,7 +379,7 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 			os.Setenv("CXX", t.GetCXX())
 		} else {
 			if rootfs != nil {
-				sysrootDir := rootfs.GetAbsPath()
+				sysrootDir := rootfs.GetAbsDir()
 				ccFlags := " --sysroot=" + sysrootDir
 				cxxFlags := ccFlags
 
@@ -403,7 +403,7 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 		}
 	} else {
 		if rootfs != nil {
-			sysrootDir := rootfs.GetAbsPath()
+			sysrootDir := rootfs.GetAbsDir()
 			ccFlags := " --sysroot=" + sysrootDir
 			cxxFlags := ccFlags
 

@@ -63,7 +63,7 @@ func (q qmake) configureOptions() ([]string, error) {
 			return strings.Contains(element, "-sysroot")
 		})
 	} else if rootfs != nil {
-		options = append(options, "-sysroot "+rootfs.GetAbsPath())
+		options = append(options, "-sysroot "+rootfs.GetAbsDir())
 	}
 
 	// Set installation directory.

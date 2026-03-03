@@ -33,8 +33,8 @@ func (n nativeToolchain) GetSystemProcessor() string {
 		panic("unsupported arch: " + runtime.GOARCH)
 	}
 }
-func (n nativeToolchain) GetPath() string            { return "" }
-func (n nativeToolchain) GetAbsPath() string         { return "" }
+func (n nativeToolchain) GetRootDir() string         { return "" }
+func (n nativeToolchain) GetAbsDir() string          { return "" }
 func (n nativeToolchain) GetVersion() string         { return "" }
 func (n nativeToolchain) GetHost() string            { return "" }
 func (n nativeToolchain) GetCrosstoolPrefix() string { return "" }

@@ -174,13 +174,13 @@ func (b *BuildConfig) setupEnvs() {
 		// QNX_HOST and QNX_TARGET is mandatory.
 		switch runtime.GOOS {
 		case "linux":
-			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetAbsPath(), "host/linux/x86_64"))
+			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/linux/x86_64"))
 		case "windows":
-			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetAbsPath(), "host/win64/x86_64/usr/bin"))
+			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/win64/x86_64/usr/bin"))
 		case "darwin":
-			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetAbsPath(), "host/darwin/x86_64/usr/bin"))
+			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/darwin/x86_64/usr/bin"))
 		}
-		b.envBackup.setenv("QNX_TARGET", filepath.Join(toolchain.GetAbsPath(), "target/qnx"))
+		b.envBackup.setenv("QNX_TARGET", filepath.Join(toolchain.GetRootDir(), "target/qnx"))
 	}
 }
 
@@ -220,7 +220,7 @@ func (b BuildConfig) setupPkgConfig() {
 	case "linux":
 		// Pkg config paths and sysroot dir.
 		if rootfs != nil {
-			sysrootDir = rootfs.GetAbsPath()
+			sysrootDir = rootfs.GetAbsDir()
 
 			// PKG_CONFIG related.
 			for _, configPath := range rootfs.GetPkgConfigPath() {
@@ -308,7 +308,7 @@ func (b *BuildConfig) setEnvFlags() {
 	// sysroot and tmp dir.
 	if rootfs != nil {
 		// Set sysroot.
-		sysrootDir := rootfs.GetAbsPath()
+		sysrootDir := rootfs.GetAbsDir()
 		b.envBackup.setenv("SYSROOT", sysrootDir)
 
 		// Update CFLAGS/CXXFLAGS
