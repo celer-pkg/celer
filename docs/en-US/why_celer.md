@@ -1,146 +1,133 @@
 # Why Choose Celer?
 
-> *Solving the hard problems in C/C++ dependency management*
+> *Celer is a C/C++ package manager built for enterprise scenarios, focused on the most expensive, painful, and repeatedly error-prone parts of dependency management.*
 
-You may already be familiar with popular C/C++ package managers like **Conan**, **Vcpkg**, and **XMake**. These tools have made significant progress in package management and continue to grow rapidly. However, several critical challenges remain unsolved in real-world enterprise development:
+You may already be using **Conan**, **Vcpkg**, or **XMake**. They are powerful tools, but in enterprise projects, teams are usually slowed down not by "can we fetch the package," but by these recurring issues:
 
-## 🎯 The Problems Celer Solves
+## 🎯 The Pain Points Celer Targets
 
-### 1. 📦 Simplified Library Integration
+### 1. 📦 New Library Integration Is Slow Because the Process Is Heavy
 
-**The Problem:**  
-While using existing libraries is straightforward, adding new ones is complex. Developers must:
-- Learn proprietary scripting languages or APIs
-- Manually handle build workflows (configure/build/install)
-- Write complex recipe files for each library
+**What hurts:**
 
-**Celer's Solution:**  
-Just declare the build system type (CMake, Make, Meson, etc.) in a simple TOML config. Celer handles the rest automatically. Focus on compile options and dependencies—not build system internals.
+- Existing libraries are easy to consume, but introducing one without a ready-made recipe can suddenly stretch lead time
+- Developers are forced to learn tool-specific scripts, patch build details, and handle install paths
+- Every new library integration feels like rebuilding the process from scratch
 
-### 2. 🏢 Project-Level Dependency Isolation
+**Real cost:**
 
-**The Problem:**  
-Third-party libraries offer numerous optional features, and different projects often need:
-- Different configuration combinations (sometimes mutually exclusive)
-- Custom builds to avoid dependency bloat
-- Integration of private/internal libraries alongside public ones
+- Feature delivery gets blocked and schedules become less predictable
+- Integration quality depends heavily on a few experts, making team scaling harder
+- Configuration quality drifts, and long-term maintenance cost keeps rising
 
-The traditional approach might be to pre-compile required libraries for different projects into specific isolated directories, then independently compile and update them when library changes are needed - this is a typical way of managing build artifacts.
+**How Celer addresses it:**
 
-**Celer's Solution:**  
-Project-level dependency management with isolated configurations. Each project maintains its own:
-- Library versions and build options
-- Private library definitions in project-specific directories
-- No global conflicts, no cross-contamination
+Declare build system type (CMake/Make/Meson, etc.) and required options in TOML, and Celer standardizes the rest of the integration flow.  
+You focus on what the library needs, not on taming toolchain internals.
 
-### 3. 🔗 Platform Multi-Project Management
+### 2. 🏢 Cross-Project Contamination Causes Rework
 
-**The Problem:**  
-Platform projects with multiple sub-projects face:
-- Scattered dependency lists across sub-projects
-- Version drift and inconsistencies over time
-- High manual verification costs
-- Difficult synchronization when dependencies update
+**What hurts:**
 
-**Celer's Solution:**  
-Centralized dependency control through a single project TOML file:
+- Different projects need different, sometimes mutually exclusive options for the same library
+- In global/shared-directory setups, a change for one project can break another
+- Boundaries get blurry when mixing private and public libraries
 
-1. **Define once**: Declare all dependencies in one place
-2. **Auto-generate**: Celer creates a global `toolchain_file.cmake`
-3. **Inherit everywhere**: Sub-projects automatically get consistent dependencies
-4. **Update seamlessly**: Modify the root config, all sub-projects sync automatically
+**Real cost:**
 
-This maintains sub-project independence while ensuring dependency consistency across your entire platform.
+- More intermittent failures like "it built yesterday, now it doesn't"
+- Teams spend more time diffing environments than building product value
+- Upgrades become high-risk operations people avoid
 
-### 4. ⚡ Intelligent Hash-Based Caching
+**How Celer addresses it:**
 
-**The Problem:**  
-C/C++ builds are notoriously slow, especially initial builds with many dependencies. Traditional precompiled solutions:
-- Difficult to maintain across multiple platforms
-- Prone to errors with manual lib/include management
-- No automatic invalidation when dependencies change
-- Risk of using stale or incompatible binaries
+Isolate dependency versions, build options, and private library definitions per project.  
+Each project has its own reproducible dependency configuration, with no cross-project contamination.
 
-**Celer's Solution:**  
-Precision hash-based artifact caching:
+### 3. 🔗 Dependency Drift Across Sub-Projects Gets Harder to Control as the Platform Grows
 
-- **Smart Keys**: Hash generated from environment, compiler options, dependency chain, and more
-- **Auto-Invalidation**: Any change triggers a new hash—no stale builds
-- **Shared Caching**: Team-wide artifact sharing via network folders
-- **Zero Redundancy**: Identical configurations never rebuild
+**What hurts:**
 
-Result: Dramatically reduced build times while eliminating manual cache management risks.
+- Each sub-project manages dependencies independently, so configuration is scattered
+- Over time, version drift appears: one platform in name, different stacks in practice
+- Unified upgrades require repo-by-repo alignment and expensive manual checking
 
-### 5. 🔍 Automatic Conflict Detection
+**Real cost:**
 
-**The Problem:**  
-Deep dependency trees create version conflicts:
-- Hard to discover until runtime failures
-- Painful manual debugging and resolution
-- Diamond dependency problems
+- The same feature passes in sub-project A but fails in sub-project B, creating "reproduces only in this repo" churn during integration
+- Every dependency upgrade requires sub-project-by-sub-project regression, scaling test/build time linearly
+- Releases are often squeezed by last-minute patches or rollbacks when one sub-project lags on dependency versions
 
-**Celer's Solution:**  
-Automatic conflict detection at build time:
+**How Celer addresses it:**
 
-- **Manifest-based**: All dependencies tracked explicitly
-- **Version consistency checks**: Automatic validation across the dependency tree
-- **Clear reporting**: Conflicts reported immediately with actionable details
-- **Build-time safety**: Catch issues before they reach production
+Use one TOML file for centralized dependency definitions and auto-generate a unified `toolchain_file.cmake` inherited by all sub-projects.  
+Update once, sync globally, and reduce manual alignment work.
 
-### 6. 🤝 Seamless Cross-Company/Team Collaboration
+### 4. ⚡ Uncontrolled Build Caching Wastes Time on Rebuilds
 
-**The Problem:**  
-When collaborating with external partners:
-- Lead companies must distribute complete build environments
-- Partners shouldn't need manual installation or configuration
-- Toolchain setup should be portable and self-contained
-- Build environment consistency is critical
+**What hurts:**
 
-**Celer's Solution:**  
-Portable, self-contained `toolchain_file.cmake`:
+- Multi-platform dependencies are often maintained via manual prebuilds and shared folders
+- Small config changes can trigger full rebuilds, and it's hard to tell what is reusable
+- Storing artifacts in Git or archives bloats size, slows transfer, and stays coarse-grained
 
-- **Relative Paths**: All tools and dependencies located via relative paths
-- **Single File Integration**: Partners just set `CMAKE_TOOLCHAIN_FILE`
-- **No Installation Required**: Complete environment travels with the toolchain file
-- **Instant Productivity**: Clone, point to toolchain file, build—done
+**Real cost:**
 
----
+- CI/CD and local build times keep climbing
+- Storage and bandwidth costs increase passively
+- Teams lose predictability around "how long will this change take to build"
 
-## 📊 Quick Comparison
+**How Celer addresses it:**
 
-| Feature | Traditional Tools | Celer |
-|---------|------------------|-------|
-| **Adding Libraries** | Write complex recipes | Declare build system type |
-| **Project Isolation** | Global configs (conflicts) | Project-level isolation |
-| **Multi-Project Sync** | Manual per-project setup | Single TOML, auto-sync |
-| **Build Caching** | git or archive storage | Hash-based precision |
-| **Conflict Detection** | Runtime discovery | Build-time checks |
-| **Collaboration** | Manual env setup | Portable toolchain file |
+Generate hash keys from environment, compiler options, and dependency chains to reuse artifacts precisely.  
+Reuse when safe, invalidate when needed, and cut repeated builds plus manual cache cleanup.
 
----
+### 5. 🔍 Conflicts Are Found Too Late and Explode During Integration
 
-## 💼 Real-World Use Cases
+**What hurts:**
 
-### Embedded Systems Team
-*“We support unlimited chip platforms. Celer's platform configs let us switch targets instantly without polluting each other's dependencies.”*
+- Deep dependency conflicts (especially diamond dependencies) are hard to detect early
+- Problems often surface only during integration or runtime, with long debug paths
+- Manual dependency-tree inspection is slow and error-prone
 
-### Enterprise Platform Team
-*“Our platform engineering has multiple sub-projects. One project TOML ensures all sub-projects use the same library versions—no more version drift.”*
+**Real cost:**
 
-### Open Source Contributors
-*“Adding a new library to Celer took 1 minute. With other tools, learning their recipe language took hours.”*
+- Rollbacks and hotfixes become routine
+- Rework at critical milestones delays release dates
+- Teams become conservative about dependency upgrades
 
-### Cross-Company Partnership
-*“We ship our SDK with a toolchain file. Partners are productive in minutes, not days setting up environments.”*
+**How Celer addresses it:**
+
+Run dependency version consistency checks at build time and report actionable conflict details.  
+Move "pre-release failures" forward to "visible during build."
+
+### 6. 🤝 Cross-Company Collaboration Has a High Environment Handoff Cost
+
+**What hurts:**
+
+- External collaboration often requires shipping a full build environment
+- Partner machines are inconsistent, so onboarding takes longer
+- "Works on your side, fails on mine" loops keep recurring
+
+**Real cost:**
+
+- Longer integration cycles and higher communication overhead
+- Core engineers get pulled into remote firefighting
+- Delivery quality is affected by environment inconsistency
+
+**How Celer addresses it:**
+
+Ship dependency context through a portable `toolchain_file.cmake` (relative paths, self-contained layout).  
+Partners only set `CMAKE_TOOLCHAIN_FILE` to get a consistent build context quickly.
 
 ---
 
-## 🚀 Ready to Try?
+## 🚀 Who Celer Is For
 
 Celer is designed for teams that need:
-- ✅ Simplified cross-compilation configuration
+- ✅ Frequent integration of both third-party libraries and internally developed shared libraries
 - ✅ Enterprise-grade dependency management
 - ✅ Fast, reproducible builds
-- ✅ Simple library integration
+- ✅ A shift from experience-driven dependency handling to an engineering workflow
 
 [Get Started →](./quick_start.md) | [Back to README →](../../README.md)
