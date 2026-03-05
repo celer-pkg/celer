@@ -2,7 +2,6 @@ package packagecache
 
 import (
 	"bytes"
-	"celer/buildsystems"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -26,8 +25,15 @@ type Callbacks interface {
 	GenPlatformChecksums() (toolchainChecksum, rootfsChecksum string, err error)
 	GenBuildToolsVersions(tools []string) (string, error)
 	GetCommitHash(nameVersion string, devDep bool) (string, error)
-	GetBuildConfig(nameVersion string, devDep bool) (*buildsystems.BuildConfig, error)
+	GetBuildConfig(nameVersion string, devDep bool) (*BuildConfig, error)
 	CheckHostSupported(nameVersion string) bool
+}
+
+type BuildConfig struct {
+	Patches         []string
+	Dependencies    []string
+	DevDependencies []string
+	BuildTools      []string
 }
 
 type Port struct {
@@ -38,7 +44,7 @@ type Port struct {
 	DevDep      bool
 	HostDev     bool
 	Parents     []string
-	BuildConfig buildsystems.BuildConfig
+	BuildConfig BuildConfig
 	Callbacks   Callbacks
 }
 
@@ -174,7 +180,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	}
 
 	// Write buildTools versions.
-	versions, err := p.Callbacks.GenBuildToolsVersions(p.BuildConfig.CheckTools())
+	versions, err := p.Callbacks.GenBuildToolsVersions(p.BuildConfig.BuildTools)
 	if err != nil {
 		return "", fmt.Errorf("failed to get build tools versions -> %w", err)
 	}

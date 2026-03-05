@@ -2,7 +2,6 @@ package configs
 
 import (
 	"celer/context"
-	celerctx "celer/context"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"crypto/sha256"
@@ -13,38 +12,40 @@ import (
 )
 
 type fakeContext struct {
-	platform string
-	project  string
-	build    string
+	platform     string
+	project      string
+	build        string
+	offline      bool
+	packageCache context.PackageCache
 }
 
-func (f fakeContext) Version() string                                           { return "test" }
-func (f fakeContext) Platform() celerctx.Platform                               { return fakePlatform{name: f.platform} }
-func (f fakeContext) RootFS() celerctx.RootFS                                   { return nil }
-func (f fakeContext) Project() celerctx.Project                                 { return fakeProject{name: f.project} }
-func (f fakeContext) BuildType() string                                         { return f.build }
-func (f fakeContext) Downloads() string                                         { return "" }
-func (f fakeContext) Jobs() int                                                 { return 1 }
-func (f fakeContext) Offline() bool                                             { return false }
-func (f fakeContext) Verbose() bool                                             { return false }
-func (f fakeContext) InstalledDir() string                                      { return "" }
-func (f fakeContext) InstalledDevDir() string                                   { return "" }
-func (f fakeContext) PackageCache() celerctx.PackageCache                       { return nil }
-func (f fakeContext) ProxyHostPort() (host string, port int)                    { return "", 0 }
-func (f fakeContext) Optimize(buildsystem, toolchain string) *celerctx.Optimize { return nil }
-func (f fakeContext) CCacheEnabled() bool                                       { return false }
-func (f fakeContext) GenerateToolchainFile() error                              { return nil }
-func (f fakeContext) ExprVars() *context.ExprVars                               { return nil }
+func (f fakeContext) Version() string                                          { return "test" }
+func (f fakeContext) Platform() context.Platform                               { return fakePlatform{name: f.platform} }
+func (f fakeContext) RootFS() context.RootFS                                   { return nil }
+func (f fakeContext) Project() context.Project                                 { return fakeProject{name: f.project} }
+func (f fakeContext) BuildType() string                                        { return f.build }
+func (f fakeContext) Downloads() string                                        { return "" }
+func (f fakeContext) Jobs() int                                                { return 1 }
+func (f fakeContext) Offline() bool                                            { return f.offline }
+func (f fakeContext) Verbose() bool                                            { return false }
+func (f fakeContext) InstalledDir() string                                     { return "" }
+func (f fakeContext) InstalledDevDir() string                                  { return "" }
+func (f fakeContext) PackageCache() context.PackageCache                       { return f.packageCache }
+func (f fakeContext) ProxyHostPort() (host string, port int)                   { return "", 0 }
+func (f fakeContext) Optimize(buildsystem, toolchain string) *context.Optimize { return nil }
+func (f fakeContext) CCacheEnabled() bool                                      { return false }
+func (f fakeContext) GenerateToolchainFile() error                             { return nil }
+func (f fakeContext) ExprVars() *context.ExprVars                              { return nil }
 
 type fakePlatform struct {
 	name string
 }
 
-func (f fakePlatform) Init(platformName string) error   { return nil }
-func (f fakePlatform) GetName() string                  { return f.name }
-func (f fakePlatform) GetHostName() string              { return f.name + "-host" }
-func (f fakePlatform) GetToolchain() celerctx.Toolchain { return nil }
-func (f fakePlatform) GetRootFS() celerctx.RootFS       { return nil }
+func (f fakePlatform) Init(platformName string) error  { return nil }
+func (f fakePlatform) GetName() string                 { return f.name }
+func (f fakePlatform) GetHostName() string             { return f.name + "-host" }
+func (f fakePlatform) GetToolchain() context.Toolchain { return nil }
+func (f fakePlatform) GetRootFS() context.RootFS       { return nil }
 func (f fakePlatform) GetArchiveChecksums() (toolchainChecksum, rootfsChecksum string, err error) {
 	return "", "", nil
 }
@@ -54,11 +55,11 @@ type fakeProject struct {
 	name string
 }
 
-func (f fakeProject) Init(ctx celerctx.Context, projectName string) error { return nil }
-func (f fakeProject) GetName() string                                     { return f.name }
-func (f fakeProject) GetPorts() []string                                  { return nil }
-func (f fakeProject) GetTargetPlatform() string                           { return "" }
-func (f fakeProject) Write(platformPath string) error                     { return nil }
+func (f fakeProject) Init(ctx context.Context, projectName string) error { return nil }
+func (f fakeProject) GetName() string                                    { return f.name }
+func (f fakeProject) GetPorts() []string                                 { return nil }
+func (f fakeProject) GetTargetPlatform() string                          { return "" }
+func (f fakeProject) Write(platformPath string) error                    { return nil }
 
 func TestPackageCacheRead(t *testing.T) {
 	oldWorkspace := dirs.WorkspaceDir
