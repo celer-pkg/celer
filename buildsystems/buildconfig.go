@@ -3,6 +3,7 @@ package buildsystems
 import (
 	"celer/context"
 	"celer/generator"
+	"celer/packagecache"
 	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -23,24 +24,25 @@ var (
 )
 
 type PortConfig struct {
-	LibName         string          // like: `ffmpeg`
-	LibVersion      string          // like: `4.4`
-	Archive         string          // like: `ffmpeg-4.4.tar.xz`
-	Url             string          // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
-	IgnoreSubmodule bool            // whether ignore submodule during git clone.
-	HostName        string          // like: `x86_64-linux`, `x86_64-windows`
-	ProjectName     string          // toml filename in conf/projects.
-	SrcDir          string          // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
-	RepoDir         string          // for example: ${workspace}/buildtrees/icu@75.1/src
-	BuildDir        string          // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
-	PackageDir      string          // for example: ${workspace}/packages/ffmpeg-3.4.13-x86_64-linux-20.04-Release
-	LibraryFolder   string          // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
-	IncludeDirs     []string        // headers not in standard include path.
-	LibDirs         []string        // libs not in standard lib path.
-	Jobs            int             // number of jobs to run in parallel
-	DevDep          bool            // whether dev dependency
-	HostDev         bool            // whether native build
-	Ctx             context.Context `toml:"-"`
+	LibName         string   // like: `ffmpeg`
+	LibVersion      string   // like: `4.4`
+	Archive         string   // like: `ffmpeg-4.4.tar.xz`
+	Url             string   // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
+	IgnoreSubmodule bool     // whether ignore submodule during git clone.
+	HostName        string   // like: `x86_64-linux`, `x86_64-windows`
+	ProjectName     string   // toml filename in conf/projects.
+	SrcDir          string   // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
+	RepoDir         string   // for example: ${workspace}/buildtrees/icu@75.1/src
+	BuildDir        string   // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
+	PackageDir      string   // for example: ${workspace}/packages/ffmpeg-3.4.13-x86_64-linux-20.04-Release
+	LibraryFolder   string   // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
+	IncludeDirs     []string // headers not in standard include path.
+	LibDirs         []string // libs not in standard lib path.
+	Jobs            int      // number of jobs to run in parallel
+	DevDep          bool     // whether dev dependency
+	HostDev         bool     // whether native build
+
+	Ctx context.Context `toml:"-"`
 }
 
 func (p PortConfig) nameVersionDesc() string {
@@ -61,7 +63,7 @@ type buildSystem interface {
 	Clean() error
 
 	// Clone & patch source code
-	Clone(repoUrl, repoRef, archive string, depth int) error
+	Clone(repoUrl, repoRef, repoCommit, archive string, depth int) error
 	ApplyPatches() error
 	UpdateSubmodules() error
 
@@ -294,7 +296,7 @@ func (b BuildConfig) Validate() error {
 	return nil
 }
 
-func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
+func (b BuildConfig) Clone(repoUrl, repoRef, repoCommit, archive string, depth int) error {
 	// In default, clone or download into repo dir.
 	var cmakeConfigPath string
 	var initRepoForArchive bool
@@ -331,14 +333,29 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 	// For git repo, clone it when source dir doesn't exists.
 	if strings.HasSuffix(repoUrl, ".git") {
+		gitRepoCache := packagecache.NewGitRepo(b.Ctx, b.PortConfig.RepoDir)
+		cacheCommit := strings.TrimSpace(repoCommit)
+		if restored, err := gitRepoCache.Restore(repoUrl, cacheCommit); err != nil {
+			color.Printf(color.Warning, "\n[!] failed to restore git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)
+		} else if restored {
+			return nil
+		}
+
 		// Skip cloning in offline mode.
 		if b.Ctx.Offline() {
-			return fmt.Errorf("cannot clone git repository in offline mode")
+			if cacheCommit == "" {
+				return fmt.Errorf("cannot clone git repository in offline mode: package.commit is empty, repo cache cannot be resolved")
+			}
+			return fmt.Errorf("cannot clone git repository in offline mode: repo cache not found for commit %s", cacheCommit)
 		}
 
 		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
 		if err := git.CloneRepo(title, repoUrl, repoRef, depth, b.PortConfig.RepoDir); err != nil {
 			return err
+		}
+
+		if err := gitRepoCache.Store(repoUrl); err != nil {
+			color.Printf(color.Warning, "\n[!] failed to store git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)
 		}
 	} else if repoUrl != "_" {
 		// Check and repair resource.
@@ -429,8 +446,15 @@ func (b BuildConfig) ApplyPatches() error {
 			}
 
 			// Find patch file to apply.
-			defaultPatchPath := filepath.Join(dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion), patch)
-			preferedPatchPath := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion, patch)
+			portDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
+			defaultPatchPath := filepath.Join(portDir, patch)
+			preferedPatchPath := filepath.Join(
+				dirs.ConfProjectsDir,
+				b.PortConfig.ProjectName,
+				b.PortConfig.LibName,
+				b.PortConfig.LibVersion,
+				patch,
+			)
 
 			var patchPath string
 			if fileio.PathExists(preferedPatchPath) {
