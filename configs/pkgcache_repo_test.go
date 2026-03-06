@@ -12,21 +12,21 @@ import (
 	"testing"
 )
 
-type fakePackageCache struct {
+type fakePkgCache struct {
 	dir      string
 	writable bool
 }
 
-func (f fakePackageCache) GetDir() string                                       { return f.dir }
-func (f fakePackageCache) IsWritable() bool                                     { return f.writable }
-func (f fakePackageCache) Read(nameVersion, hash, destDir string) (bool, error) { return false, nil }
-func (f fakePackageCache) Write(packageDir, meta string) error                  { return nil }
+func (f fakePkgCache) GetDir() string                                       { return f.dir }
+func (f fakePkgCache) IsWritable() bool                                     { return f.writable }
+func (f fakePkgCache) Read(nameVersion, hash, destDir string) (bool, error) { return false, nil }
+func (f fakePkgCache) Write(packageDir, meta string) error                  { return nil }
 
 func TestBuildConfigClone_GitRepoCache_OfflineRestore(t *testing.T) {
-	oldWorkspace := dirs.WorkspaceDir
+	// Init workspace.
 	tmpWorkspace := t.TempDir()
 	dirs.Init(tmpWorkspace)
-	t.Cleanup(func() { dirs.Init(oldWorkspace) })
+	t.Cleanup(func() { dirs.Init(dirs.WorkspaceDir) })
 
 	cacheDir := filepath.Join(tmpWorkspace, "package-cache")
 	if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
@@ -55,7 +55,7 @@ func TestBuildConfigClone_GitRepoCache_OfflineRestore(t *testing.T) {
 		platform: "x86_64-linux",
 		project:  "proj",
 		build:    "release",
-		packageCache: fakePackageCache{
+		packageCache: fakePkgCache{
 			dir:      cacheDir,
 			writable: true,
 		},
@@ -93,7 +93,7 @@ func TestBuildConfigClone_GitRepoCache_OfflineRestore(t *testing.T) {
 		project:  "proj",
 		build:    "release",
 		offline:  true,
-		packageCache: fakePackageCache{
+		packageCache: fakePkgCache{
 			dir:      cacheDir,
 			writable: false,
 		},

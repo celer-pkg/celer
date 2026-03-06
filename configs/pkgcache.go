@@ -22,10 +22,10 @@ type PackageCache struct {
 
 func (p PackageCache) Validate() error {
 	if p.Dir == "" {
-		return fmt.Errorf("package cache dir is empty")
+		return fmt.Errorf("pkgcache dir is empty")
 	}
 	if !fileio.PathExists(p.Dir) {
-		return fmt.Errorf("package cache dir does not exist: %s", p.Dir)
+		return fmt.Errorf("pkgcache dir does not exist: %s", p.Dir)
 	}
 	return nil
 }

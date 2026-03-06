@@ -1,4 +1,4 @@
-package packagecache
+package pkgcache
 
 import (
 	"celer/context"
@@ -94,7 +94,7 @@ func (g GitRepo) Restore(repoURL, commit string) (bool, error) {
 		return false, fmt.Errorf("cached repo commit mismatch, expect %s, got %s", commit, restoredCommit)
 	}
 
-	color.Printf(color.Hint, "✔ restored repo from package-cache: %s\n", archivePath)
+	color.Printf(color.Hint, "✔ restored repo from pkgcache: %s\n", archivePath)
 	return true, nil
 }
 

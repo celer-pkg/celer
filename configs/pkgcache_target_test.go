@@ -61,7 +61,7 @@ func (f fakeProject) GetPorts() []string                                 { retur
 func (f fakeProject) GetTargetPlatform() string                          { return "" }
 func (f fakeProject) Write(platformPath string) error                    { return nil }
 
-func TestPackageCacheRead(t *testing.T) {
+func TestPkgCacheRead(t *testing.T) {
 	oldWorkspace := dirs.WorkspaceDir
 	tmpWorkspace := t.TempDir()
 	dirs.Init(tmpWorkspace)

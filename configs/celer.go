@@ -480,7 +480,7 @@ func (c *Celer) SetVerbose(vebose bool) error {
 	return nil
 }
 
-func (c *Celer) SetPackageCacheDir(dir string) error {
+func (c *Celer) SetPkgCacheDir(dir string) error {
 	// Check dir empty and exist.
 	if strings.TrimSpace(dir) == "" {
 		return errors.ErrPackageCacheInvalid
@@ -511,7 +511,7 @@ func (c *Celer) SetPackageCacheDir(dir string) error {
 	return nil
 }
 
-func (c *Celer) SetPackageCacheWritable(writable bool) error {
+func (c *Celer) SetPkgCacheWritable(writable bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
