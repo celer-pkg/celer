@@ -3,7 +3,7 @@ package buildsystems
 import (
 	"celer/context"
 	"celer/generator"
-	"celer/packagecache"
+	"celer/pkgcache"
 	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -333,7 +333,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, repoCommit, archive string, depth i
 
 	// For git repo, clone it when source dir doesn't exists.
 	if strings.HasSuffix(repoUrl, ".git") {
-		gitRepoCache := packagecache.NewGitRepo(b.Ctx, b.PortConfig.RepoDir)
+		gitRepoCache := pkgcache.NewGitRepo(b.Ctx, b.PortConfig.RepoDir)
 		cacheCommit := strings.TrimSpace(repoCommit)
 		if restored, err := gitRepoCache.Restore(repoUrl, cacheCommit); err != nil {
 			color.Printf(color.Warning, "\n[!] failed to restore git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)

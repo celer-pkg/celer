@@ -2,7 +2,7 @@ package configs
 
 import (
 	"celer/buildsystems"
-	"celer/packagecache"
+	"celer/pkgcache"
 	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -31,7 +31,7 @@ func (p Port) meta2hash(metaData string) string {
 }
 
 func (p Port) buildMeta(commit string) (string, error) {
-	port := packagecache.Port{
+	port := pkgcache.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    p.ctx.Platform().GetName(),
 		Project:     p.ctx.Project().GetName(),
@@ -130,7 +130,7 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 	}
 }
 
-func (p Port) GetBuildConfig(nameVersion string, devDep bool) (*packagecache.BuildConfig, error) {
+func (p Port) GetBuildConfig(nameVersion string, devDep bool) (*pkgcache.BuildConfig, error) {
 	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return nil, err
@@ -149,8 +149,8 @@ func (p Port) CheckHostSupported(nameVersion string) bool {
 	return port.IsHostSupported()
 }
 
-func (p Port) toCacheBuildConfig(buildConfig *buildsystems.BuildConfig) packagecache.BuildConfig {
-	return packagecache.BuildConfig{
+func (p Port) toCacheBuildConfig(buildConfig *buildsystems.BuildConfig) pkgcache.BuildConfig {
+	return pkgcache.BuildConfig{
 		Patches:         append([]string{}, buildConfig.Patches...),
 		Dependencies:    append([]string{}, buildConfig.Dependencies...),
 		DevDependencies: append([]string{}, buildConfig.DevDependencies...),
