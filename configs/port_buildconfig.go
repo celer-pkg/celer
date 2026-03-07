@@ -50,6 +50,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		LibVersion:      p.Version,
 		Archive:         p.Package.Archive,
 		Url:             p.Package.Url,
+		CacheRepo:       p.Package.CacheRepo,
 		IgnoreSubmodule: p.Package.IgnoreSubmodule,
 		ProjectName:     p.ctx.Project().GetName(),
 		HostName:        p.ctx.Platform().GetHostName(),

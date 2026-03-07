@@ -213,10 +213,10 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if celer2.PackageCache().GetDir() != dirs.TestCacheDir {
+	if celer2.PkgCache().GetDir() != dirs.TestCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
 	}
-	if !celer2.PackageCache().IsWritable() {
+	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("cache writable should be `true`")
 	}
 }
@@ -651,7 +651,7 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
-	if celer2.PackageCache().GetDir() != dirs.TestCacheDir {
+	if celer2.PkgCache().GetDir() != dirs.TestCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
 	}
 }
@@ -681,7 +681,7 @@ func TestConfigure_PkgCacheWritable(t *testing.T) {
 
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
-	if !celer2.PackageCache().IsWritable() {
+	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("cache writable should be `true`")
 	}
 }
