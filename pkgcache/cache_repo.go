@@ -48,7 +48,7 @@ func (r Repo) Store(repoUrl, repoDir string) error {
 	// Archive name will be like: x264/472338e072b6a83fd47825cc91cef81dc848e564.tar.gz
 	repoName := r.gitRepoName(repoUrl)
 	archivePath := filepath.Join(r.repoCacheDir, repoName, commit+".tar.gz")
-	if !fileio.PathExists(archivePath) {
+	if fileio.PathExists(archivePath) {
 		return nil
 	}
 

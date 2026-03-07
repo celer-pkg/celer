@@ -7,7 +7,6 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -98,7 +97,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		archivePath := filepath.Join(cacheDir, pkgcache.RepoCacheDir, fmt.Sprintf("x264-%s.tar.gz", commit))
+		archivePath := filepath.Join(cacheDir, pkgcache.RepoCacheDir, "x264", commit+".tar.gz")
 		if !fileio.PathExists(archivePath) {
 			t.Fatalf("expected git repo cache archive: %s", archivePath)
 		}
