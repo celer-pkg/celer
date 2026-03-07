@@ -12,7 +12,7 @@ celer configure [flags]
 
 - 单次命令只能修改一个配置组。
 - 混用不同组的 flag 会报错。
-- 只有同一组内的多个 flag 才能在一条命令里一起配置（例如 package cache、proxy、ccache）。
+- 只有同一组内的多个 flag 才能在一条命令里一起配置（例如 pkgcache、proxy、ccache）。
 
 ## 命令选项
 | 选项                      | 类型    | 说明                                  |
@@ -26,8 +26,8 @@ celer configure [flags]
 | --verbose                 | 布尔    | 开启/关闭详细日志模式                   |
 | --proxy-host              | 字符串  | 设置代理地址                           |
 | --proxy-port              | 整数    | 设置代理端口                           |
-| --package-cache-dir       | 字符串  | 设置二进制缓存目录                      |
-| --package-cache-writable  | 布尔    | 设置二进制缓存是否可写                  |
+| --pkgcache-dir            | 字符串  | 设置 pkgcache 目录                      |
+| --pkgcache-writable       | 布尔    | 设置 pkgcache 是否可写                  |
 | --ccache-enabled          | 布尔    | 开启/关闭 ccache                       |
 | --ccache-dir              | 字符串  | 设置 ccache 工作目录                   |
 | --ccache-maxsize          | 字符串  | 设置 ccache 最大容量                   |
@@ -50,8 +50,8 @@ celer configure --jobs=8
 celer configure --offline=true
 celer configure --verbose=false
 
-# package cache 组（可同命令组合）
-celer configure --package-cache-dir=/home/xxx/cache --package-cache-writable=true
+# pkgcache 组（可同命令组合）
+celer configure --pkgcache-dir=/home/xxx/cache --pkgcache-writable=true
 
 # proxy 组（可同命令组合）
 celer configure --proxy-host=127.0.0.1 --proxy-port=7890
@@ -67,8 +67,8 @@ celer configure --ccache-enabled=true --ccache-maxsize=5G --ccache-remote-only=t
 - `--build-type`：支持 `Release`、`Debug`、`RelWithDebInfo`、`MinSizeRel`（保存时转为小写）。
 - `--downloads`：目录必须已存在。
 - `--jobs`：必须大于 `0`。
-- `--package-cache-dir`：不能为空，且目录必须已存在。
-- `--package-cache-writable`：布尔值；使用前需先配置 `--package-cache-dir`（可同命令一起配置）。
+- `--pkgcache-dir`：不能为空，且目录必须已存在。
+- `--pkgcache-writable`：布尔值；使用前需先配置 `--pkgcache-dir`（可同命令一起配置）。
 - `--proxy-host`：不能为空。
 - `--proxy-port`：必须大于 `0`。
 - `--ccache-dir`：目录必须已存在。

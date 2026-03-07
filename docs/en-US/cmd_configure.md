@@ -12,7 +12,7 @@ celer configure [flags]
 
 - In one command, you can configure only one setting group.
 - Mixing flags from different groups fails.
-- Multiple flags are allowed only inside the same related group (for example package cache, proxy, or ccache).
+- Multiple flags are allowed only inside the same related group (for example pkgcache, proxy, or ccache).
 
 ## Command Options
 | Option                    | Type    | Description                            |
@@ -26,8 +26,8 @@ celer configure [flags]
 | --verbose                 | boolean | Enable/disable verbose logging         |
 | --proxy-host              | string  | Set proxy host                         |
 | --proxy-port              | integer | Set proxy port                         |
-| --package-cache-dir       | string  | Set package cache directory            |
-| --package-cache-writable  | boolean | Set whether package cache is writable  |
+| --pkgcache-dir            | string  | Set pkgcache directory                 |
+| --pkgcache-writable       | boolean | Set whether pkgcache is writable       |
 | --ccache-enabled          | boolean | Enable/disable ccache                  |
 | --ccache-dir              | string  | Set ccache working directory           |
 | --ccache-maxsize          | string  | Set ccache max size                    |
@@ -50,8 +50,8 @@ celer configure --jobs=8
 celer configure --offline=true
 celer configure --verbose=false
 
-# Package cache group (can combine in one command)
-celer configure --package-cache-dir=/home/xxx/cache --package-cache-writable=true
+# PkgCache group (can combine in one command)
+celer configure --pkgcache-dir=/home/xxx/cache --pkgcache-writable=true
 
 # Proxy group (can combine in one command)
 celer configure --proxy-host=127.0.0.1 --proxy-port=7890
@@ -67,8 +67,8 @@ celer configure --ccache-enabled=true --ccache-maxsize=5G --ccache-remote-only=t
 - `--build-type`: supports `Release`, `Debug`, `RelWithDebInfo`, `MinSizeRel` (stored in lowercase).
 - `--downloads`: directory must already exist.
 - `--jobs`: must be greater than `0`.
-- `--package-cache-dir`: cannot be empty, and directory must already exist.
-- `--package-cache-writable`: boolean; package cache dir must be configured first (or in the same command).
+- `--pkgcache-dir`: cannot be empty, and directory must already exist.
+- `--pkgcache-writable`: boolean; pkgcache dir must be configured first (or in the same command).
 - `--proxy-host`: cannot be empty.
 - `--proxy-port`: must be greater than `0`.
 - `--ccache-dir`: directory must already exist.

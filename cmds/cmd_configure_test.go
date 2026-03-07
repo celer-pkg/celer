@@ -41,8 +41,8 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"jobs", ""},
 		{"offline", ""},
 		{"verbose", ""},
-		{"package-cache-dir", ""},
-		{"package-cache-writable", ""},
+		{"pkgcache-dir", ""},
+		{"pkgcache-writable", ""},
 		{"proxy-host", ""},
 		{"proxy-port", ""},
 		{"ccache-enabled", ""},
@@ -104,14 +104,14 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--verbose"},
 		},
 		{
-			name:       "complete_package_cache_dir_flag",
-			toComplete: "--package-cache-d",
-			expected:   []string{"--package-cache-dir"},
+			name:       "complete_pkgcache_dir_flag",
+			toComplete: "--pkgcache-d",
+			expected:   []string{"--pkgcache-dir"},
 		},
 		{
-			name:       "complete_package_cache_writable_flag",
-			toComplete: "--package-cache-w",
-			expected:   []string{"--package-cache-writable"},
+			name:       "complete_pkgcache_writable_flag",
+			toComplete: "--pkgcache-w",
+			expected:   []string{"--pkgcache-writable"},
 		},
 		{
 			name:       "complete_proxy_host_flag",
@@ -191,7 +191,7 @@ func TestConfigureCmd_NoFlagShouldFail(t *testing.T) {
 	}
 }
 
-func TestConfigureCmd_PackageCacheGroupShouldSucceed(t *testing.T) {
+func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -202,7 +202,7 @@ func TestConfigureCmd_PackageCacheGroupShouldSucceed(t *testing.T) {
 	configCmd := configureCmd{}
 	celer := configs.NewCeler()
 	cmd := configCmd.Command(celer)
-	cmd.SetArgs([]string{"--package-cache-dir", dirs.TestCacheDir, "--package-cache-writable", "true"})
+	cmd.SetArgs([]string{"--pkgcache-dir", dirs.TestCacheDir, "--pkgcache-writable=true"})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("expected success when package-cache group flags are provided, got: %v", err)
@@ -213,10 +213,10 @@ func TestConfigureCmd_PackageCacheGroupShouldSucceed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if celer2.PackageCache().GetDir() != dirs.TestCacheDir {
+	if celer2.PkgCache().GetDir() != dirs.TestCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
 	}
-	if !celer2.PackageCache().IsWritable() {
+	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("cache writable should be `true`")
 	}
 }
@@ -627,7 +627,7 @@ func TestConfigure_Verbose_OFF(t *testing.T) {
 	}
 }
 
-func TestConfigure_PackageCacheDir(t *testing.T) {
+func TestConfigure_PkgCacheDir(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -647,16 +647,16 @@ func TestConfigure_PackageCacheDir(t *testing.T) {
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
 
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
-	if celer2.PackageCache().GetDir() != dirs.TestCacheDir {
+	if celer2.PkgCache().GetDir() != dirs.TestCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
 	}
 }
 
-func TestConfigure_PackageCacheWritable(t *testing.T) {
+func TestConfigure_PkgCacheWritable(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -676,17 +676,17 @@ func TestConfigure_PackageCacheWritable(t *testing.T) {
 
 	// Must create cache dir before setting cache dir.
 	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheWritable(true))
+	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheWritable(true))
 
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
-	if !celer2.PackageCache().IsWritable() {
+	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("cache writable should be `true`")
 	}
 }
 
-func TestConfigure_PackageCacheDir_DirNotExist(t *testing.T) {
+func TestConfigure_PkgCacheDir_DirNotExist(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -704,7 +704,7 @@ func TestConfigure_PackageCacheDir_DirNotExist(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetPackageCacheDir(dirs.TestCacheDir); !errors.Is(err, errors.ErrPackageCacheDirNotExist) {
+	if err := celer.SetPkgCacheDir(dirs.TestCacheDir); !errors.Is(err, errors.ErrPackageCacheDirNotExist) {
 		t.Fatal("expected error for package cache dir not exist")
 	}
 }
