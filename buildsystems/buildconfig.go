@@ -3,7 +3,6 @@ package buildsystems
 import (
 	"celer/context"
 	"celer/generator"
-	"celer/pkgcache"
 	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -28,6 +27,7 @@ type PortConfig struct {
 	LibVersion      string   // like: `4.4`
 	Archive         string   // like: `ffmpeg-4.4.tar.xz`
 	Url             string   // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
+	CacheRepo       bool     // If true, repo will be archived to pkgcache's repos folder.
 	IgnoreSubmodule bool     // whether ignore submodule during git clone.
 	HostName        string   // like: `x86_64-linux`, `x86_64-windows`
 	ProjectName     string   // toml filename in conf/projects.
@@ -333,29 +333,40 @@ func (b BuildConfig) Clone(repoUrl, repoRef, repoCommit, archive string, depth i
 
 	// For git repo, clone it when source dir doesn't exists.
 	if strings.HasSuffix(repoUrl, ".git") {
-		gitRepoCache := pkgcache.NewGitRepo(b.Ctx, b.PortConfig.RepoDir)
-		cacheCommit := strings.TrimSpace(repoCommit)
-		if restored, err := gitRepoCache.Restore(repoUrl, cacheCommit); err != nil {
-			color.Printf(color.Warning, "\n[!] failed to restore git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)
-		} else if restored {
-			return nil
+		var repoCache context.RepoCache
+
+		// Try to fetch repo from pkgcache.
+		pkgCache := b.Ctx.PkgCache()
+		if pkgCache != nil {
+			repoCache = pkgCache.GetRepoCache()
+			if repoCache != nil && b.PortConfig.CacheRepo {
+				if restored, err := repoCache.Fetch(repoUrl, b.PortConfig.RepoDir, repoCommit); err != nil {
+					color.Printf(color.Warning, "\n[!] failed to restore git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)
+				} else if restored {
+					return nil
+				}
+			}
 		}
 
 		// Skip cloning in offline mode.
 		if b.Ctx.Offline() {
-			if cacheCommit == "" {
+			if repoCommit == "" {
 				return fmt.Errorf("cannot clone git repository in offline mode: package.commit is empty, repo cache cannot be resolved")
 			}
-			return fmt.Errorf("cannot clone git repository in offline mode: repo cache not found for commit %s", cacheCommit)
+			return fmt.Errorf("cannot clone git repository in offline mode: repo cache not found for commit %s", repoCommit)
 		}
 
+		// Do clone or download repo.
 		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
 		if err := git.CloneRepo(title, repoUrl, repoRef, depth, b.PortConfig.RepoDir); err != nil {
 			return err
 		}
 
-		if err := gitRepoCache.Store(repoUrl); err != nil {
-			color.Printf(color.Warning, "\n[!] failed to store git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)
+		// Store git repo as archive after clone or download.
+		if repoCache != nil && b.PortConfig.CacheRepo {
+			if err := repoCache.Store(repoUrl, b.PortConfig.RepoDir); err != nil {
+				color.Printf(color.Warning, "\n[!] failed to store repo cache for %s -> %v\n", b.PortConfig.nameVersionDesc(), err)
+			}
 		}
 	} else if repoUrl != "_" {
 		// Check and repair resource.

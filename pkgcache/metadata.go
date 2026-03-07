@@ -160,14 +160,14 @@ func (p Port) BuildMeta(commit string) (string, error) {
 			return "", fmt.Errorf("get build config of dependency %s -> %w", nameVersion, err)
 		}
 
+		parent := expr.If(len(p.Parents) == 0, p.NameVersion, fmt.Sprintf("dependency: %s", p.NameVersion))
 		port := Port{
 			Platform:    p.Platform,
 			PortType:    portTypeDependency,
 			NameVersion: nameVersion,
 			Project:     p.Project,
 			DevDep:      p.DevDep,
-			Parents: append(p.Parents, expr.If(len(p.Parents) == 0,
-				p.NameVersion, fmt.Sprintf("dependency: %s", p.NameVersion))),
+			Parents:     append(p.Parents, parent),
 			BuildConfig: *buildConfig,
 			Callbacks:   p.Callbacks,
 		}
