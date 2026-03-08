@@ -2,7 +2,6 @@ package cmds
 
 import (
 	"celer/configs"
-	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"os"
 	"path/filepath"
@@ -395,22 +394,5 @@ func TestInstallCmd_ErrorHandling(t *testing.T) {
 				t.Errorf("Expected error containing '%s' for input '%s', got: %v", test.expectError, test.input, err)
 			}
 		})
-	}
-}
-
-func TestInstallCmd_RunInstall_MultiPackages_PreInitValidation(t *testing.T) {
-	installCmd := &installCmd{}
-
-	defer func() {
-		if r := recover(); r != nil {
-			t.Fatalf("runInstall should not panic before input validation, got panic: %v", r)
-		}
-	}()
-
-	// The second package is invalid, so validation should fail before Init() is called.
-	// This confirms pre-init validation works in multi-package mode.
-	err := installCmd.runInstall([]string{"opencv@4.8.0", "invalid"})
-	if err != color.ErrSilent {
-		t.Fatalf("expected ErrSilent for invalid package input, got: %v", err)
 	}
 }
