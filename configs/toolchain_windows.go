@@ -228,11 +228,11 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 	// Print download & extract info.
 	if !silent {
 		if t.rootDir == "" {
-			color.Printf(color.List, "\n[✔] -- toolchain: %s\n", "local")
-			color.Printf(color.Hint, "Location: %s\n", strings.ReplaceAll(t.Url, "file:///", ""))
+			color.PrintPass("toolchain: %s", "local")
+			color.PrintHint("Location: %s\n", strings.ReplaceAll(t.Url, "file:///", ""))
 		} else {
-			color.Printf(color.List, "\n[✔] -- toolchain: %s\n", t.displayName)
-			color.Printf(color.Hint, "Location: %s\n", t.rootDir)
+			color.PrintPass("toolchain: %s", t.displayName)
+			color.PrintHint("Location: %s\n", t.rootDir)
 		}
 	}
 	return nil

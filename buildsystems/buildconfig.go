@@ -394,7 +394,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 func (b BuildConfig) Clean() error {
 	// Skip for none exist folder.
 	if !fileio.PathExists(b.PortConfig.RepoDir) {
-		color.Printf(color.Warning, "\n[%s] no source found, skip clean.\n", b.PortConfig.nameVersionDesc())
+		color.Printf(color.Warning, "[!] -- no source found for %s, skip clean.\n", b.PortConfig.nameVersionDesc())
 		return nil
 	}
 
@@ -407,7 +407,7 @@ func (b BuildConfig) Clean() error {
 		if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
 			return fmt.Errorf("cannot remove empty folder: %s \n %w", b.PortConfig.RepoDir, err)
 		}
-		color.Printf(color.Warning, "\n[%s] no source found, skip clean\n", b.PortConfig.nameVersionDesc())
+		color.Printf(color.Warning, "[!] -- no source found for %s, skip clean\n", b.PortConfig.nameVersionDesc())
 		return nil
 	}
 
@@ -429,8 +429,15 @@ func (b BuildConfig) ApplyPatches() error {
 			}
 
 			// Find patch file to apply.
-			defaultPatchPath := filepath.Join(dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion), patch)
-			preferedPatchPath := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion, patch)
+			portDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
+			defaultPatchPath := filepath.Join(portDir, patch)
+			preferedPatchPath := filepath.Join(
+				dirs.ConfProjectsDir,
+				b.PortConfig.ProjectName,
+				b.PortConfig.LibName,
+				b.PortConfig.LibVersion,
+				patch,
+			)
 
 			var patchPath string
 			if fileio.PathExists(preferedPatchPath) {

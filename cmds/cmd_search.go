@@ -54,13 +54,13 @@ Examples:
 func (s *searchCmd) doSearch(pattern string) error {
 	// Initialize celer configuration.
 	if err := s.celer.Init(); err != nil {
-		return configs.PrintError(err, "Failed to initialize celer.")
+		return color.PrintError(err, "Failed to initialize celer.")
 	}
 
 	// Perform search.
 	libraries, err := s.search(pattern)
 	if err != nil {
-		return configs.PrintError(err, "Failed to search available ports.")
+		return color.PrintError(err, "Failed to search available ports.")
 	}
 
 	// Display results.

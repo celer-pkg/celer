@@ -107,7 +107,7 @@ func (e *Exporter) Export() error {
 		return fmt.Errorf("failed to save snapshot -> %w", err)
 	}
 
-	configs.PrintSuccess("Snapshot exported to: %s", e.exportDir)
+	color.PrintSuccess("Snapshot exported to: %s", e.exportDir)
 	return nil
 }
 
@@ -144,7 +144,7 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 
 		// Create a copy of the port with fixed commit and only matched config.
 		exportedPort := *port
-		exportedPort.Package.Ref = commit // Change ref to commit.
+		exportedPort.Package.Commit = commit
 
 		// Only export the matched build config for current platform.
 		if port.MatchedConfig == nil {

@@ -3,6 +3,7 @@ package cmds
 import (
 	"celer/completion"
 	"celer/configs"
+	"celer/pkgs/color"
 	"fmt"
 	"os"
 	"runtime"
@@ -37,7 +38,7 @@ Examples:
 		Args: cobra.NoArgs,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			if err := i.execute(); err != nil {
-				return configs.PrintError(err, "integration failed")
+				return color.PrintError(err, "integration failed")
 			}
 			return nil
 		},
@@ -115,7 +116,7 @@ func (i *integrateCmd) handleRegister(shell completion.ShellType) error {
 		return fmt.Errorf("failed to register %s completion -> %w", i.getShellName(shell), err)
 	}
 
-	configs.PrintSuccess("%s tab completion has been integrated successfully", i.getShellName(shell))
+	color.PrintSuccess("%s tab completion has been integrated successfully", i.getShellName(shell))
 	return nil
 }
 
@@ -124,7 +125,7 @@ func (i *integrateCmd) handleUnregister(shell completion.ShellType) error {
 		return fmt.Errorf("failed to unregister %s completion -> %w", i.getShellName(shell), err)
 	}
 
-	configs.PrintSuccess("%s tab completion has been removed successfully", i.getShellName(shell))
+	color.PrintSuccess("%s tab completion has been removed successfully", i.getShellName(shell))
 	return nil
 }
 

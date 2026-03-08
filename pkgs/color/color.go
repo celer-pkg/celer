@@ -14,7 +14,7 @@ var (
 	Muted     = New(BrightBlack)
 	Title     = New(Blue, Bold)
 	Line      = New(Gray)
-	List      = New(Green)
+	Pass      = New(Green)
 	Hint      = New(Gray)
 	Summary   = New(Blue, Bold)
 	Important = New(BrightMagenta, Bold)

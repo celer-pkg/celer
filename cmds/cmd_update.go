@@ -3,6 +3,7 @@ package cmds
 import (
 	"celer/buildtools"
 	"celer/configs"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
@@ -98,33 +99,33 @@ func (u *updateCmd) validateArgs(cmd *cobra.Command, args []string) error {
 func (u *updateCmd) doUpdate(args []string) error {
 	// Initialize celer configuration.
 	if err := u.celer.Init(); err != nil {
-		return configs.PrintError(err, "Failed to initialize celer.")
+		return color.PrintError(err, "Failed to initialize celer.")
 	}
 
 	// Make sure git is available.
 	if err := buildtools.CheckTools(u.celer, "git"); err != nil {
-		return configs.PrintError(err, "Failed to check if git is available.")
+		return color.PrintError(err, "Failed to check if git is available.")
 	}
 
 	// Perform update based on flags.
 	if u.confRepo {
 		if err := u.updateConfRepo(); err != nil {
-			return configs.PrintError(err, "Failed to update conf repository.")
+			return color.PrintError(err, "Failed to update conf repository.")
 		}
-		configs.PrintSuccess("Successfully updated conf repository.")
+		color.PrintSuccess("Successfully updated conf repository.")
 	} else if u.portsRepo {
 		if err := u.updatePortsRepo(); err != nil {
-			return configs.PrintError(err, "Failed to update ports repository.")
+			return color.PrintError(err, "Failed to update ports repository.")
 		}
-		configs.PrintSuccess("Successfully updated ports repository.")
+		color.PrintSuccess("Successfully updated ports repository.")
 	} else {
 		if err := u.updateProjectRepos(args); err != nil {
-			return configs.PrintError(err, "Failed to update port repository.")
+			return color.PrintError(err, "Failed to update port repository.")
 		}
 		if len(args) == 1 {
-			configs.PrintSuccess("Successfully updated %s.", args[0])
+			color.PrintSuccess("Successfully updated %s.", args[0])
 		} else {
-			configs.PrintSuccess("Successfully updated %d ports.", len(args))
+			color.PrintSuccess("Successfully updated %d ports.", len(args))
 		}
 	}
 

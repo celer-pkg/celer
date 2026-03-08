@@ -37,10 +37,10 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		if p.Parent == "" {
 			reportPath, err := p.installReport.write(p)
 			if err != nil {
-				color.Printf(color.Warning, "\n[!] failed to write install report for %s: %v\n", p.NameVersion(), err)
+				color.PrintWarning(err, "failed to write install report for %s", p.NameVersion())
 				return
 			}
-			color.Printf(color.Hint, "Report: %s\n", reportPath)
+			color.PrintHint("Report: %s\n", reportPath)
 		}
 	}()
 
@@ -59,8 +59,8 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 	// If preinstalled and not with "--force/-f", report and return.
 	if installed && !options.Force {
 		if p.IsHostSupported() {
-			color.Printf(color.List, "\n[✔] -- package: %s\n", p.NameVersion())
-			color.Printf(color.Hint, "Location: %s\n", installedDir)
+			color.PrintPass("package: %s", p.NameVersion())
+			color.PrintHint("Location: %s\n", installedDir)
 		}
 		installedFrom = "preinstalled"
 		retErr = nil
@@ -194,7 +194,7 @@ func (p Port) doInstallFromPackageCache(options InstallOptions, cache context.Pa
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
 		var port Port
 		port.DevDep = false
-		port.HostDep = p.DevDep || p.HostDep
+		port.HostDep = p.HostDep
 		port.Parent = p.NameVersion()
 		port.installReport = p.installReport
 		if err := port.Init(p.ctx, nameVersion); err != nil {
@@ -839,7 +839,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	}
 
 	// Print install trace.
-	color.Printf(color.List, "\n[✔] -- package: %s is installed from %s\n", p.NameVersion(), installedFrom)
-	color.Printf(color.Hint, "Location: %s\n", p.InstalledDir)
+	color.PrintPass("package: %s is installed from %s", p.NameVersion(), installedFrom)
+	color.PrintHint("Location: %s\n", p.InstalledDir)
 	return nil
 }

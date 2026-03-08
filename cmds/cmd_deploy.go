@@ -30,7 +30,7 @@ for reproducible builds using the --export flag.`,
 		Args: d.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := d.celer.Init(); err != nil {
-				return configs.PrintError(err, "failed to init celer.")
+				return color.PrintError(err, "failed to init celer.")
 			}
 
 			// Display deployment header.
@@ -42,19 +42,19 @@ for reproducible builds using the --export flag.`,
 
 			// Check circular dependency and version conflict.
 			if err := d.checkProject(); err != nil {
-				return configs.PrintError(err, "failed to check circular dependency and version conflict.")
+				return color.PrintError(err, "failed to check circular dependency and version conflict.")
 			}
 
 			if err := d.celer.Deploy(d.force); err != nil {
-				return configs.PrintError(err, "failed to deploy celer.")
+				return color.PrintError(err, "failed to deploy celer.")
 			}
 
-			configs.PrintSuccess("%s has been successfully deployed.", d.celer.Global.Project)
+			color.PrintSuccess("%s has been successfully deployed.", d.celer.Global.Project)
 
 			// Export snapshot if requested.
 			if d.exportPath != "" {
 				if err := timemachine.Export(d.celer, d.exportPath); err != nil {
-					return configs.PrintError(err, "failed to export workspace.")
+					return color.PrintError(err, "failed to export workspace.")
 				}
 			}
 
