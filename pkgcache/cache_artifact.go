@@ -20,19 +20,20 @@ type Aritifact struct {
 	writable         bool
 }
 
-func NewArtifactCacheDir(ctx context.Context, pkgCacheDir string, writable bool) *Aritifact {
-	if pkgCacheDir == "" {
+func NewArtifact(ctx context.Context, pkgDir string, writable bool) *Aritifact {
+	if pkgDir == "" {
 		return nil
 	}
 
 	return &Aritifact{
 		ctx:              ctx,
-		artifactCacheDir: filepath.Join(pkgCacheDir, ArtifactCacheDir),
+		artifactCacheDir: filepath.Join(pkgDir, ArtifactCacheDir),
 		writable:         writable,
 	}
 }
 
-func (a Aritifact) Fetch(nameVersion, hash, destDir string) (bool, error) {
+// Restore extract restored archive to destination and return the archive filepath that restored from.
+func (a Aritifact) Restore(nameVersion, hash, destDir string) (string, error) {
 	platformName := a.ctx.Platform().GetName()
 	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
@@ -40,7 +41,7 @@ func (a Aritifact) Fetch(nameVersion, hash, destDir string) (bool, error) {
 	archiveDir := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	archivePath := filepath.Join(archiveDir, hash+".tar.gz")
 	if !fileio.PathExists(archivePath) {
-		return false, nil // not an error even not exist.
+		return "", nil // not an error even not exist.
 	}
 
 	// The meta file hash should be the same as hash that calcuated dynamically.
@@ -48,42 +49,43 @@ func (a Aritifact) Fetch(nameVersion, hash, destDir string) (bool, error) {
 	metaBytes, err := os.ReadFile(metaPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return false, fmt.Errorf("cache archive exists but metadata is missing: %s", metaPath)
+			return "", fmt.Errorf("cache archive exists but metadata is missing: %s", metaPath)
 		}
-		return false, err
+		return "", err
 	}
 	metaHash := sha256.Sum256(metaBytes)
 	if fmt.Sprintf("%x", metaHash) != hash {
-		return false, fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
+		return "", fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
 	}
 
 	// Create tmp dir for extracting inside.
 	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return false, fmt.Errorf("failed to clean tmp files dir -> %w", err)
+		return "", fmt.Errorf("failed to clean tmp files dir -> %w", err)
 	}
 	tempDir, err := os.MkdirTemp(dirs.TmpFilesDir, "pkgcache-extract-*")
 	if err != nil {
-		return false, err
+		return "", err
 	}
 	defer os.RemoveAll(tempDir)
 
 	// Extract to a tmp dir and move back to dest dir.
 	if err := fileio.Extract(archivePath, tempDir); err != nil {
-		return false, err
+		return "", err
 	}
 	if err := os.RemoveAll(destDir); err != nil {
-		return false, err
+		return "", err
 	}
 	if err := os.MkdirAll(filepath.Dir(destDir), os.ModePerm); err != nil {
-		return false, err
+		return "", err
 	}
 	if err := os.Rename(tempDir, destDir); err != nil {
-		return false, err
+		return "", err
 	}
 
-	return true, nil
+	return archivePath, nil
 }
 
+// Store pack package as archive and save it to sub-dir in package dir.
 func (a Aritifact) Store(packageDir, meta string) error {
 	if !fileio.PathExists(packageDir) {
 		return fmt.Errorf("package dir does not exist: %s", packageDir)

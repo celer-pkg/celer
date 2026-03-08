@@ -115,11 +115,11 @@ func TestArtifactCacheStoreAndFetch(t *testing.T) {
 	t.Run("artifact not exist", func(t *testing.T) {
 		artifactCache, nameVersion, _, _, _ := setupArtifactFixture(t)
 		destDir := filepath.Join(tmpWorkspace, "out-not-exist")
-		ok, err := artifactCache.Fetch(nameVersion, "not-exist-hash", destDir)
+		fromWhere, err := artifactCache.Restore(nameVersion, "not-exist-hash", destDir)
 		if err != nil {
 			t.Fatalf("expected no error, got: %v", err)
 		}
-		if ok {
+		if fromWhere != "" {
 			t.Fatal("expected not installed when archive not exist")
 		}
 	})
@@ -133,13 +133,13 @@ func TestArtifactCacheStoreAndFetch(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// Fetch cache to test_package.
+		// Restore cache to test_package.
 		packageDir := filepath.Join(tmpWorkspace, "test_package")
-		ok, err := artifactCache.Fetch(nameVersion, hash, packageDir)
+		fromWhere, err := artifactCache.Restore(nameVersion, hash, packageDir)
 		if err == nil {
 			t.Fatal("expected error when metadata is missing")
 		}
-		if ok {
+		if fromWhere != "" {
 			t.Fatal("expected not installed when metadata is missing")
 		}
 	})
@@ -154,11 +154,11 @@ func TestArtifactCacheStoreAndFetch(t *testing.T) {
 		}
 
 		destDir := filepath.Join(tmpWorkspace, "out-meta-mismatch")
-		ok, err := artifactCache.Fetch(nameVersion, hash, destDir)
+		fromWhere, err := artifactCache.Restore(nameVersion, hash, destDir)
 		if err == nil {
 			t.Fatal("expected error when metadata checksum mismatches")
 		}
-		if ok {
+		if fromWhere != "" {
 			t.Fatal("expected not installed when metadata checksum mismatches")
 		}
 
@@ -170,11 +170,11 @@ func TestArtifactCacheStoreAndFetch(t *testing.T) {
 	t.Run("read success", func(t *testing.T) {
 		artifactCache, nameVersion, _, hash, _ := setupArtifactFixture(t)
 		destDir := filepath.Join(tmpWorkspace, "out-success")
-		ok, err := artifactCache.Fetch(nameVersion, hash, destDir)
+		fromWhere, err := artifactCache.Restore(nameVersion, hash, destDir)
 		if err != nil {
 			t.Fatalf("expected no error, got: %v", err)
 		}
-		if !ok {
+		if fromWhere == "" {
 			t.Fatal("expected install from cache success")
 		}
 

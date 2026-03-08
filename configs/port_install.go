@@ -214,9 +214,9 @@ func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache contex
 
 	// Read cache file and extract them to package dir.
 	if artifactCache != nil {
-		if ok, err := artifactCache.Fetch(p.NameVersion(), buildhash, p.MatchedConfig.PortConfig.PackageDir); err != nil {
+		if fromWhere, err := artifactCache.Restore(p.NameVersion(), buildhash, p.MatchedConfig.PortConfig.PackageDir); err != nil {
 			return false, fmt.Errorf("read cache with buildhash: %s", err)
-		} else if ok {
+		} else if fromWhere != "" {
 			return true, nil
 		}
 	}

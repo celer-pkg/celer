@@ -28,11 +28,11 @@ type PkgCache interface {
 }
 
 type AritifactCache interface {
-	Fetch(nameVersion, hash, destDir string) (bool, error)
+	Restore(nameVersion, hash, destDir string) (string, error)
 	Store(packageDir, meta string) error
 }
 
 type RepoCache interface {
-	Fetch(repoUrl, repoDir, commit string) (string, error)
+	Restore(repoUrl, repoDir, commit string) (string, error)
 	Store(repoUrl, repoDir string) (string, error)
 }

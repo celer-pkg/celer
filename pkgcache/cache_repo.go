@@ -28,6 +28,7 @@ func NewRepo(pkgCacheDir string, writable bool) *Repo {
 	}
 }
 
+// Store pack package as archive and save it to sub-dir in package dir.
 func (r Repo) Store(repoUrl, repoDir string) (string, error) {
 	if !r.writable {
 		return "", nil
@@ -70,7 +71,8 @@ func (r Repo) Store(repoUrl, repoDir string) (string, error) {
 	return archivePath, nil
 }
 
-func (r Repo) Fetch(repoUrl, repoDir, repoRef string) (string, error) {
+// Restore extract restored archive to destination and return the archive filepath that restored from.
+func (r Repo) Restore(repoUrl, repoDir, repoRef string) (string, error) {
 	// Ignore when repoRef is not git commit hash.
 	if strings.TrimSpace(repoRef) == "" || !git.IsCommitHash(repoRef) {
 		return "", nil
