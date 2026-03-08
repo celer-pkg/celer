@@ -16,7 +16,7 @@ celer deploy --export=<export_dir>
 
 ## 导出内容
 
-- `ports/`：项目实际使用端口，写入固定 commit/ref 和匹配构建配置
+- `ports/`：项目实际使用端口，写入固定 commit 和匹配构建配置
 - `conf/`：工作区配置目录（不包含 `.git`）
 - `celer.toml`
 - `toolchain_file.cmake`
@@ -26,7 +26,7 @@ celer deploy --export=<export_dir>
 ## commit 采集规则
 
 - Git URL（`*.git`）：读取本地源码仓库实际 commit。
-- 私有仓库在 `package.ref` 中指定固定 commit：使用该固定 commit。
+- 私有仓库且指定了 `package.commit`：使用该固定 commit。
 - 压缩包 URL（`.zip/.tar...`）：使用 `sha-256:<checksum>` 作为 commit。
 
 ## 常用示例

@@ -81,9 +81,9 @@ func (c *Collector) GetPortCommit(port *configs.Port) (string, error) {
 		return "sha-256:" + commit, nil
 	}
 
-	// For private repositories with fixed commit in package.ref, just use it.
-	if git.IsCommitHash(port.Package.Ref) {
-		return port.Package.Ref, nil
+	// For private repositories with fixed commit, just use the specified commit.
+	if port.Package.Commit != "" {
+		return port.Package.Commit, nil
 	}
 
 	// For git repositories, read the actual commit from the cloned repo.

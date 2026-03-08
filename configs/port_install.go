@@ -207,7 +207,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache contex
 	}
 
 	// Calculate buildhash.
-	buildhash, err := p.buildhash(p.Package.Ref)
+	buildhash, err := p.buildhash(p.Package.Commit)
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate buildhash -> %w", err)
 	}
@@ -281,7 +281,7 @@ func (p Port) doInstallFromSource() error {
 		}
 
 		// Write meta file with installed files and build environment.
-		metaData, err := p.buildMeta(p.Package.Ref)
+		metaData, err := p.buildMeta(p.Package.Commit)
 		if err != nil {
 			installFailed = true
 			return err
@@ -389,7 +389,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to read package meta of %s -> %w", p.NameVersion(), err)
 	}
-	newMeta, err := p.buildMeta(p.Package.Ref)
+	newMeta, err := p.buildMeta(p.Package.Commit)
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate meta of %s -> %w", p.NameVersion(), err)
 	}
@@ -465,8 +465,8 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 
 		fromDir := pkgCache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("package pkgcache: %q", fromDir))
-	} else if git.IsCommitHash(p.Package.Ref) {
-		return false, fmt.Errorf("%w: %s", errors.ErrArtifactCacheNotFound, p.Package.Ref)
+	} else if p.Package.Commit != "" {
+		return false, fmt.Errorf("%w: %s", errors.ErrArtifactCacheNotFound, p.Package.Commit)
 	}
 
 	return false, nil

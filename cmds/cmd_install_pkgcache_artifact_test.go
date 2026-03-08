@@ -295,7 +295,7 @@ func TestInstall_PkgCache_DirNotDefined_ShouldSkipStoreCache(t *testing.T) {
 	check(port.InstallFromSource(options))
 }
 
-func TestInstall_PkgCache_With_Ref_Success(t *testing.T) {
+func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -346,8 +346,8 @@ func TestInstall_PkgCache_With_Ref_Success(t *testing.T) {
 	check(port.Remove(removeOptions))
 	check(port.MatchedConfig.Clean())
 
-	// Install from cache with commit hash in ref.
-	port.Package.Ref = commit
+	// Install from cache with commit.
+	port.Package.Commit = commit
 	installed, err := port.InstallFromPackageCache(options)
 	check(err)
 	if !installed {
@@ -358,7 +358,7 @@ func TestInstall_PkgCache_With_Ref_Success(t *testing.T) {
 	check(port.Remove(removeOptions))
 }
 
-func TestInstall_PkgCache_With_Ref_Failed(t *testing.T) {
+func TestInstall_PkgCache_With_Commit_Failed(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -405,11 +405,11 @@ func TestInstall_PkgCache_With_Ref_Failed(t *testing.T) {
 	check(port.Remove(removeOptions))
 	check(port.MatchedConfig.Clean())
 
-	// Install from cache with not matched ref.
-	port.Package.Ref = "not_matched_commit_xxxxxx"
+	// Install from cache with not matched commit.
+	port.Package.Commit = "not_matched_commit_xxxxxx"
 	installed, err := port.InstallFromPackageCache(options)
 	if err == nil || !errors.Is(err, errors.ErrArtifactCacheNotFound) {
-		t.Fatal("should return ErrCacheNotFoundWithRef")
+		t.Fatal("should return ErrArtifactCacheNotFound")
 	}
 	if installed {
 		t.Fatal("should not be installed from cache")

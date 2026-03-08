@@ -16,7 +16,7 @@ celer deploy --export=<export_dir>
 
 ## Exported Content
 
-- `ports/`: used ports with matched build config and fixed commit ref
+- `ports/`: used ports with matched build config and fixed commit
 - `conf/`: workspace conf directory (`.git` excluded)
 - `celer.toml`
 - `toolchain_file.cmake`
@@ -26,7 +26,7 @@ celer deploy --export=<export_dir>
 ## Commit Source Rules
 
 - Git URL (`*.git`): read actual local commit from cloned source.
-- Private repo with fixed commit in `package.ref`: use that fixed commit.
+- Private repo with fixed `package.commit`: use that fixed commit.
 - Archive URL (`.zip/.tar...`): use `sha-256:<checksum>` as commit.
 
 ## Common Examples
