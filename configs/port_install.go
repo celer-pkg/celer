@@ -465,8 +465,8 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 
 		fromDir := pkgCache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("package pkgcache: %q", fromDir))
-	} else if p.Package.Ref != "" {
-		return false, fmt.Errorf("%w: %s", errors.ErrCacheNotFoundWithRef, p.Package.Ref)
+	} else if git.IsCommitHash(p.Package.Ref) {
+		return false, fmt.Errorf("%w: %s", errors.ErrArtifactCacheNotFound, p.Package.Ref)
 	}
 
 	return false, nil

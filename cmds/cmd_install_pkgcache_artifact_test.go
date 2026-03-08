@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-func TestInstall_PkgCache_Success(t *testing.T) {
+func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -42,11 +42,6 @@ func TestInstall_PkgCache_Success(t *testing.T) {
 	)
 
 	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
-		msg := err.Error()
-		if strings.Contains(msg, "Could not resolve host") ||
-			strings.Contains(msg, "not accessible") {
-			t.Skipf("skip due to unavailable network: %v", err)
-		}
 		t.Fatal(err)
 	}
 	check(celer.SetBuildType("Release"))
@@ -97,7 +92,7 @@ func TestInstall_PkgCache_Success(t *testing.T) {
 	check(port.Remove(removeOptions))
 }
 
-func TestInstall_PkgCache_With_Deps_Success(t *testing.T) {
+func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -124,11 +119,6 @@ func TestInstall_PkgCache_With_Deps_Success(t *testing.T) {
 	)
 
 	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
-		msg := err.Error()
-		if strings.Contains(msg, "Could not resolve host") ||
-			strings.Contains(msg, "not accessible") {
-			t.Skipf("skip due to unavailable network: %v", err)
-		}
 		t.Fatal(err)
 	}
 	check(celer.SetBuildType("Release"))
@@ -418,7 +408,7 @@ func TestInstall_PkgCache_With_Ref_Failed(t *testing.T) {
 	// Install from cache with not matched ref.
 	port.Package.Ref = "not_matched_commit_xxxxxx"
 	installed, err := port.InstallFromPackageCache(options)
-	if err == nil || !errors.Is(err, errors.ErrCacheNotFoundWithRef) {
+	if err == nil || !errors.Is(err, errors.ErrArtifactCacheNotFound) {
 		t.Fatal("should return ErrCacheNotFoundWithRef")
 	}
 	if installed {

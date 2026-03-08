@@ -16,8 +16,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-func (p Port) buildhash(repoRef string) (string, error) {
-	metaData, err := p.buildMeta(repoRef)
+func (p Port) buildhash(commit string) (string, error) {
+	metaData, err := p.buildMeta(commit)
 	if err != nil {
 		return "", err
 	}
@@ -30,7 +30,7 @@ func (p Port) meta2hash(metaData string) string {
 	return fmt.Sprintf("%x", checksum)
 }
 
-func (p Port) buildMeta(repoRef string) (string, error) {
+func (p Port) buildMeta(commit string) (string, error) {
 	port := pkgcache.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    p.ctx.Platform().GetName(),
@@ -41,8 +41,7 @@ func (p Port) buildMeta(repoRef string) (string, error) {
 		Callbacks:   p,
 	}
 
-	commitHash := expr.If(git.IsCommitHash(repoRef), repoRef, "")
-	return port.BuildMeta(commitHash)
+	return port.BuildMeta(commit)
 }
 
 func (c Port) GenPlatformTomlString() (string, error) {
