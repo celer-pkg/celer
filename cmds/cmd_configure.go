@@ -195,15 +195,15 @@ Examples:
 
 			if flags.Changed("pkgcache-dir") {
 				if err := c.celer.SetPkgCacheDir(c.pkgCacheDir); err != nil {
-					return configs.PrintError(err, "failed to set pkgcache dir: %s.", c.pkgCacheDir)
+					return color.PrintError(err, "failed to set pkgcache dir: %s.", c.pkgCacheDir)
 				}
-				configs.PrintSuccess("current pkgcache dir: %s.", expr.If(c.pkgCacheDir != "", c.pkgCacheDir, "empty"))
+				color.PrintSuccess("current pkgcache dir: %s.", expr.If(c.pkgCacheDir != "", c.pkgCacheDir, "empty"))
 			}
 			if flags.Changed("pkgcache-writable") {
 				if err := c.celer.SetPkgCacheWritable(c.pkgCacheWritable); err != nil {
-					return configs.PrintError(err, "failed to set pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
+					return color.PrintError(err, "failed to set pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
 				}
-				configs.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
+				color.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
 			}
 
 			if flags.Changed("proxy-host") {

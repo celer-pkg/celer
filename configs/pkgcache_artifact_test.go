@@ -13,11 +13,12 @@ import (
 )
 
 type fakeContext struct {
-	platform string
-	project  string
-	build    string
-	offline  bool
-	pkgCache context.PkgCache
+	platform  string
+	project   string
+	build     string
+	downloads string
+	offline   bool
+	pkgCache  context.PkgCache
 }
 
 func (f fakeContext) Version() string                                          { return "test" }
@@ -25,7 +26,7 @@ func (f fakeContext) Platform() context.Platform                               {
 func (f fakeContext) RootFS() context.RootFS                                   { return nil }
 func (f fakeContext) Project() context.Project                                 { return fakeProject{name: f.project} }
 func (f fakeContext) BuildType() string                                        { return f.build }
-func (f fakeContext) Downloads() string                                        { return "" }
+func (f fakeContext) Downloads() string                                        { return f.downloads }
 func (f fakeContext) Jobs() int                                                { return 1 }
 func (f fakeContext) Offline() bool                                            { return f.offline }
 func (f fakeContext) Verbose() bool                                            { return false }

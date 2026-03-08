@@ -16,7 +16,7 @@ celer install <name@version> [<name@version> ...] [flags]
 - 安装前会检查循环依赖和版本冲突。
 - 会同时在全局 `ports/` 和项目私有端口目录中查找端口。
 - 源码构建成功后会默认尝试写入 package-cache。
-  仅当 `package_cache.writable=true` 时会写入；若未配置缓存目录、缓存只读或源码在构建前已有人为改动，会跳过写入，不影响安装成功。
+  仅当 `pkgcache.writable=true` 时会写入；若未配置缓存目录、缓存只读或源码在构建前已有人为改动，会跳过写入，不影响安装成功。
 - `--jobs` 与 `--verbose` 会覆盖本次命令的运行行为（对本次所有包生效）。
 
 ## 命令选项

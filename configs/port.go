@@ -33,7 +33,6 @@ type RemoveOptions struct {
 type Package struct {
 	Url             string `toml:"url"`
 	Ref             string `toml:"ref"`
-	Commit          string `toml:"commit,omitempty"`
 	CacheRepo       bool   `toml:"cache_repo,omitempty"`
 	Depth           int    `toml:"depth,omitempty"`
 	Archive         string `toml:"archive,omitempty"`
@@ -164,7 +163,7 @@ func (p Port) Installed() (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		newMeta, err := p.buildMeta(p.Package.Commit)
+		newMeta, err := p.buildMeta(p.Package.Ref)
 		if err != nil {
 			// Repo not exist is not error.
 			if errors.Is(err, errors.ErrRepoNotExit) {

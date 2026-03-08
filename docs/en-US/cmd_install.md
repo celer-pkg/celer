@@ -16,7 +16,7 @@ celer install <name@version> [<name@version> ...] [flags]
 - Celer checks circular dependencies and version conflicts before install.
 - Celer searches ports in both global `ports/` and project-specific ports.
 - After successful source builds, Celer best-effort stores package cache by default.
-  Cache is written only when `package_cache.writable=true`; if cache is not configured,
+  Cache is written only when `pkgcache.writable=true`; if cache is not configured,
   cache is readonly, or source was already locally modified before build,
   cache storing is skipped without failing install.
 - `--jobs` and `--verbose` override install runtime behavior for this command run (all packages in it).

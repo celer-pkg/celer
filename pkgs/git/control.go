@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -336,4 +337,11 @@ func pathExists(path string) bool {
 		return true
 	}
 	return !os.IsNotExist(err)
+}
+
+var commitHashPattern = regexp.MustCompile(`^[a-fA-F0-9]{7,40}$`)
+
+// IsCommitHash check if a valid git commit hash, booth short hash and long hash can be supported.
+func IsCommitHash(hash string) bool {
+	return commitHashPattern.MatchString(strings.TrimSpace(hash))
 }

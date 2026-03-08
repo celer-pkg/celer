@@ -374,7 +374,7 @@ ls -la /path/to/installed/lib/
 
 - [快速开始](./quick_start.md) - 开始使用 Celer
 - [创建新端口](./cmd_create.md#3-创建一个新的端口) - 添加新库
-- [缓存构建产物](./article_package_cache.md) - 加速构建
+- [缓存构建产物](./article_pkgcache.md) - 加速构建
 
 ---
 

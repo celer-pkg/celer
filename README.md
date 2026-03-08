@@ -94,7 +94,7 @@ Celer has solved critical pain points that traditional C/C++ package managers st
 
 **Advanced Features:**
 - [Generate CMake Configs](./docs/en-US/article_generate_cmake_config.md) - Auto-generate configs for prebuilt libraries
-- [Package Cache](./docs/en-US/article_package_cache.md) - Accelerate integration by caching build artifact of every library
+- [Package Cache](./docs/en-US/article_pkgcache.md) - Accelerate integration by caching build artifact of every library
 - [Support CCache](./docs/en-US/article_ccache.md) - Speeds up recompilation by caching previous compilations
 - [Detect version conflict and circular dependencies](./docs/en-US/article_detect_conflict_circular.md) - Auto detect version conflict and circular dependencies before building any libraries
 - [CUDA auto detect](./docs/en-US/article_cuda_support.md) - Seamless CUDA toolkit integration for GPU-accelerated projects

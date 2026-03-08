@@ -63,7 +63,7 @@ type buildSystem interface {
 	Clean() error
 
 	// Clone & patch source code
-	Clone(repoUrl, repoRef, repoCommit, archive string, depth int) error
+	Clone(repoUrl, repoRef, archive string, depth int) error
 	ApplyPatches() error
 	UpdateSubmodules() error
 
@@ -296,7 +296,7 @@ func (b BuildConfig) Validate() error {
 	return nil
 }
 
-func (b BuildConfig) Clone(repoUrl, repoRef, repoCommit, archive string, depth int) error {
+func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// In default, clone or download into repo dir.
 	var cmakeConfigPath string
 	var initRepoForArchive bool
@@ -340,9 +340,10 @@ func (b BuildConfig) Clone(repoUrl, repoRef, repoCommit, archive string, depth i
 		if pkgCache != nil {
 			repoCache = pkgCache.GetRepoCache()
 			if repoCache != nil && b.PortConfig.CacheRepo {
-				if restored, err := repoCache.Fetch(repoUrl, b.PortConfig.RepoDir, repoCommit); err != nil {
+				if fromWhere, err := repoCache.Fetch(repoUrl, b.PortConfig.RepoDir, repoRef); err != nil {
 					color.Printf(color.Warning, "\n[!] failed to restore git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)
-				} else if restored {
+				} else if fromWhere != "" {
+					color.PrintHint("[%s] Repo is restored from pkgcache: %s\n", b.PortConfig.nameVersionDesc(), fromWhere)
 					return nil
 				}
 			}
@@ -350,10 +351,10 @@ func (b BuildConfig) Clone(repoUrl, repoRef, repoCommit, archive string, depth i
 
 		// Skip cloning in offline mode.
 		if b.Ctx.Offline() {
-			if repoCommit == "" {
-				return fmt.Errorf("cannot clone git repository in offline mode: package.commit is empty, repo cache cannot be resolved")
+			if repoRef == "" {
+				return fmt.Errorf("cannot clone git repository in offline mode: package.ref is empty, repo cache cannot be resolved")
 			}
-			return fmt.Errorf("cannot clone git repository in offline mode: repo cache not found for commit %s", repoCommit)
+			return fmt.Errorf("cannot clone git repository in offline mode: repo cache not found for ref %s", repoRef)
 		}
 
 		// Do clone or download repo.
@@ -364,8 +365,10 @@ func (b BuildConfig) Clone(repoUrl, repoRef, repoCommit, archive string, depth i
 
 		// Store git repo as archive after clone or download.
 		if repoCache != nil && b.PortConfig.CacheRepo {
-			if err := repoCache.Store(repoUrl, b.PortConfig.RepoDir); err != nil {
-				color.Printf(color.Warning, "\n[!] failed to store repo cache for %s -> %v\n", b.PortConfig.nameVersionDesc(), err)
+			if whereStored, err := repoCache.Store(repoUrl, b.PortConfig.RepoDir); err != nil {
+				color.Printf(color.Warning, "[x] -- failed to store repo cache for %s -> %v\n", b.PortConfig.nameVersionDesc(), err)
+			} else if whereStored != "" {
+				color.PrintInfo("[%s]: repo is stored to %s\n", b.PortConfig.nameVersionDesc(), whereStored)
 			}
 		}
 	} else if repoUrl != "_" {

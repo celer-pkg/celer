@@ -84,13 +84,12 @@ celer install opencv@4.5.1
 
 ### 分发预编译二进制文件而不暴露源代码
 
-对于私有或专有库，您可以在不暴露源代码的情况下分发预编译制品。通过指定 `commit` 哈希，Celer 可以直接从缓存中检索构建制品：
+对于私有或专有库，您可以在不暴露源代码的情况下分发预编译制品。通过在 `ref` 中指定 commit 哈希，Celer 可以直接从缓存中检索构建制品：
 
 ```toml
 [package]
 url = "https://gitlab.com/libeigen/eigen.git"
-ref = "3.4.0"
-commit = "3147391d946bb4b6c68edd901f2add6ac1f31f8c"  # 启用仅缓存模式
+ref = "3147391d946bb4b6c68edd901f2add6ac1f31f8c"  # 启用仅缓存模式
 
 [[build_configs]]
 build_system = "cmake"
@@ -98,7 +97,7 @@ options = ["-DEIGEN_TEST_NO_OPENGL=1", "-DBUILD_TESTING=OFF"]
 ```
 
 **工作原理：**
-1. Celer 使用 `commit` 哈希和构建配置计算缓存键
+1. Celer 使用 `ref` 中的 commit 哈希和构建配置计算缓存键
 2. 在 `package_cache` 中搜索匹配的制品
 3. 如果找到，提取并使用，**无需克隆仓库**
 4. 如果未找到，则回退到从源码构建（如果可访问）

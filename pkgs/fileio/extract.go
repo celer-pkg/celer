@@ -25,9 +25,6 @@ func Extract(archiveFile, destDir string) error {
 		return err
 	}
 
-	fileName := filepath.Base(archiveFile)
-	expr.PrintInline(fmt.Sprintf("\rExtracting: %s...", fileName))
-
 	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
 		return fmt.Errorf("mkdir for extract -> %w", err)
 	}
@@ -72,7 +69,6 @@ func Extract(archiveFile, destDir string) error {
 		return fmt.Errorf("extract archive -> %w", err)
 	}
 
-	expr.PrintInline(fmt.Sprintf("\rExtracting: %s...\n", fileName))
 	return nil
 }
 

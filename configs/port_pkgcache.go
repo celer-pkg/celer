@@ -16,8 +16,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-func (p Port) buildhash(commit string) (string, error) {
-	metaData, err := p.buildMeta(commit)
+func (p Port) buildhash(repoRef string) (string, error) {
+	metaData, err := p.buildMeta(repoRef)
 	if err != nil {
 		return "", err
 	}
@@ -30,7 +30,7 @@ func (p Port) meta2hash(metaData string) string {
 	return fmt.Sprintf("%x", checksum)
 }
 
-func (p Port) buildMeta(commit string) (string, error) {
+func (p Port) buildMeta(repoRef string) (string, error) {
 	port := pkgcache.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    p.ctx.Platform().GetName(),
@@ -41,7 +41,8 @@ func (p Port) buildMeta(commit string) (string, error) {
 		Callbacks:   p,
 	}
 
-	return port.BuildMeta(commit)
+	commitHash := expr.If(git.IsCommitHash(repoRef), repoRef, "")
+	return port.BuildMeta(commitHash)
 }
 
 func (c Port) GenPlatformTomlString() (string, error) {
@@ -116,7 +117,7 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 				return "", err
 			}
 			archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-			if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Commit, archive, port.Package.Depth); err != nil {
+			if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, archive, port.Package.Depth); err != nil {
 				return "", fmt.Errorf("archive file is missing and auto-download failed for %s -> %w", nameVersion, err)
 			}
 		}

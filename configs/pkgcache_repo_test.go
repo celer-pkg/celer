@@ -7,6 +7,7 @@ import (
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -61,6 +62,29 @@ func newBuildConfig(ctx context.Context, repoDir string) buildsystems.BuildConfi
 	}
 }
 
+func setupArchiveFile(t *testing.T, tmpWorkspace string) (archivePath string, archiveSha string) {
+	t.Helper()
+
+	srcRoot := filepath.Join(tmpWorkspace, "archive-src")
+	if err := os.MkdirAll(srcRoot, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(srcRoot, "hello.txt"), []byte("hello-from-archive"), os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	archivePath = filepath.Join(tmpWorkspace, "x264-archive.tar.gz")
+	if err := fileio.Targz(archivePath, srcRoot, false); err != nil {
+		t.Fatal(err)
+	}
+
+	sha, err := fileio.CalculateChecksum(archivePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return archivePath, sha
+}
+
 func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 	// Redirect workspace globals to a temp dir so test side effects stay isolated.
 	oldWorkspace := dirs.WorkspaceDir
@@ -88,7 +112,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 		}
 
 		buildConfig := newBuildConfig(onlineCtx, repoDir)
-		if err := buildConfig.Clone(originURL, "", "", "", 0); err != nil {
+		if err := buildConfig.Clone(originURL, "", "", 0); err != nil {
 			t.Fatal(err)
 		}
 
@@ -115,7 +139,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			},
 		}
 		onlineBuildConfig := newBuildConfig(onlineCtx, repoDir)
-		if err := onlineBuildConfig.Clone(originURL, "", "", "", 0); err != nil {
+		if err := onlineBuildConfig.Clone(originURL, "", "", 0); err != nil {
 			t.Fatal(err)
 		}
 
@@ -140,7 +164,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			},
 		}
 		offlineBuildConfig := newBuildConfig(offlineCtx, repoDir)
-		if err := offlineBuildConfig.Clone(originURL, "", commit, "", 0); err != nil {
+		if err := offlineBuildConfig.Clone(originURL, commit, "", 0); err != nil {
 			t.Fatal(err)
 		}
 
@@ -152,4 +176,81 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			t.Fatalf("expected restored commit %s, got %s", commit, restoredCommit)
 		}
 	})
+}
+
+func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
+	oldWorkspace := dirs.WorkspaceDir
+	tmpWorkspace := t.TempDir()
+	dirs.Init(tmpWorkspace)
+	t.Cleanup(func() { dirs.Init(oldWorkspace) })
+
+	cacheDir := filepath.Join(tmpWorkspace, "pkgcache")
+	downloadsDir := filepath.Join(tmpWorkspace, "downloads")
+	if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(downloadsDir, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	archivePath, archiveSha := setupArchiveFile(t, tmpWorkspace)
+	repoURL := fmt.Sprintf("file:///%s", archivePath)
+	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@archive", "src")
+
+	onlineCtx := fakeContext{
+		platform:  "x86_64-linux",
+		project:   "proj",
+		build:     "release",
+		downloads: downloadsDir,
+		pkgCache: fakePkgCache{
+			dir:      cacheDir,
+			writable: true,
+		},
+	}
+	onlineBuildConfig := newBuildConfig(onlineCtx, repoDir)
+	if err := onlineBuildConfig.Clone(repoURL, "file:"+archiveSha, "", 0); err != nil {
+		t.Fatal(err)
+	}
+
+	if !fileio.PathExists(filepath.Join(repoDir, "hello.txt")) {
+		t.Fatalf("expected archive extracted into %s", repoDir)
+	}
+
+	cacheArchivePath := filepath.Join(cacheDir, pkgcache.RepoCacheDir, "x264-archive.tar.gz", archiveSha+".tar.gz")
+	if !fileio.PathExists(cacheArchivePath) {
+		t.Fatalf("expected archive repo cache exists: %s", cacheArchivePath)
+	}
+
+	// Make sure offline restore is truly from repo cache:
+	// 1) remove extracted repo dir, 2) remove original local archive file.
+	if err := os.RemoveAll(repoDir); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(archivePath); err != nil {
+		t.Fatal(err)
+	}
+
+	offlineCtx := fakeContext{
+		platform:  "x86_64-linux",
+		project:   "proj",
+		build:     "release",
+		downloads: downloadsDir,
+		offline:   true,
+		pkgCache: fakePkgCache{
+			dir:      cacheDir,
+			writable: false,
+		},
+	}
+	offlineBuildConfig := newBuildConfig(offlineCtx, repoDir)
+	if err := offlineBuildConfig.Clone(repoURL, "file:"+archiveSha, "", 0); err != nil {
+		t.Fatal(err)
+	}
+
+	content, err := os.ReadFile(filepath.Join(repoDir, "hello.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(content) != "hello-from-archive" {
+		t.Fatalf("unexpected restored content: %q", string(content))
+	}
 }

@@ -84,13 +84,12 @@ celer install opencv@4.5.1
 
 ### Distribute Pre-built Binaries Without Source Code
 
-For private or proprietary libraries, you can distribute pre-built artifacts without exposing source code. By specifying the `commit` hash, Celer can retrieve the build artifact directly from cache:
+For private or proprietary libraries, you can distribute pre-built artifacts without exposing source code. By specifying a commit hash in `ref`, Celer can retrieve the build artifact directly from cache:
 
 ```toml
 [package]
 url = "https://gitlab.com/libeigen/eigen.git"
-ref = "3.4.0"
-commit = "3147391d946bb4b6c68edd901f2add6ac1f31f8c"  # Enables cache-only mode
+ref = "3147391d946bb4b6c68edd901f2add6ac1f31f8c"  # Enables cache-only mode
 
 [[build_configs]]
 build_system = "cmake"
@@ -98,7 +97,7 @@ options = ["-DEIGEN_TEST_NO_OPENGL=1", "-DBUILD_TESTING=OFF"]
 ```
 
 **How it works:**
-1. Celer calculates the cache key using the `commit` hash and build config
+1. Celer calculates the cache key using the commit hash in `ref` and build config
 2. Searches for matching artifact in `package_cache`
 3. If found, extracts and uses it **without cloning the repository**
 4. If not found, falls back to building from source (if accessible)

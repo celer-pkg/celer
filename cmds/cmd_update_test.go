@@ -592,7 +592,7 @@ func TestUpdateCmd_UpdatePortRepo_WithGitRepo(t *testing.T) {
 	if buildConfig == nil {
 		t.Fatal("Build config should not be nil")
 	}
-	check(buildConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Commit, port.Package.Archive, port.Package.Depth))
+	check(buildConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive, port.Package.Depth))
 
 	// Test update with force.
 	updateCmd := updateCmd{
