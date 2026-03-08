@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"celer/configs"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -108,7 +109,7 @@ Examples:
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := c.celer.Init(); err != nil {
-				return configs.PrintError(err, "failed to init celer.")
+				return color.PrintError(err, "failed to init celer.")
 			}
 
 			flags := cmd.Flags()
@@ -123,73 +124,73 @@ Examples:
 			}
 
 			if changedCount == 0 {
-				return configs.PrintError(
+				return color.PrintError(
 					fmt.Errorf("no configuration flag provided"),
 					"please specify exactly one configuration flag.",
 				)
 			}
 			if len(activeGroups) > 1 {
-				return configs.PrintError(
+				return color.PrintError(
 					fmt.Errorf("flags from different groups were provided"),
 					"please configure only one setting or one related group at a time.",
 				)
 			}
 			if flags.Changed("platform") {
 				if err := c.celer.SetPlatform(c.platform); err != nil {
-					return configs.PrintError(err, "failed to set platform.")
+					return color.PrintError(err, "failed to set platform.")
 				}
-				configs.PrintSuccess("current platform: %s.", c.platform)
+				color.PrintSuccess("current platform: %s.", c.platform)
 			}
 
 			if flags.Changed("project") {
 				if err := c.celer.SetProject(c.project); err != nil {
-					return configs.PrintError(err, "failed to set project: %s.", c.project)
+					return color.PrintError(err, "failed to set project: %s.", c.project)
 				}
-				configs.PrintSuccess("current project: %s.", c.project)
+				color.PrintSuccess("current project: %s.", c.project)
 
 				// Auto configure platform.
 				targetPlatform := c.celer.Project().GetTargetPlatform()
 				if targetPlatform != "" && c.celer.Global.Platform == "" {
 					if err := c.celer.SetPlatform(targetPlatform); err != nil {
-						return configs.PrintError(err, "failed to set platform: %s.", targetPlatform)
+						return color.PrintError(err, "failed to set platform: %s.", targetPlatform)
 					}
-					configs.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Global.Platform)
+					color.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Global.Platform)
 				}
 			}
 
 			if flags.Changed("build-type") {
 				if err := c.celer.SetBuildType(c.buildType); err != nil {
-					return configs.PrintError(err, "failed to set build type: %s.", c.buildType)
+					return color.PrintError(err, "failed to set build type: %s.", c.buildType)
 				}
-				configs.PrintSuccess("current build type: %s.", c.buildType)
+				color.PrintSuccess("current build type: %s.", c.buildType)
 			}
 
 			if flags.Changed("downloads") {
 				if err := c.celer.SetDownloads(c.downloads); err != nil {
-					return configs.PrintError(err, "failed to set downloads: %s.", c.downloads)
+					return color.PrintError(err, "failed to set downloads: %s.", c.downloads)
 				}
-				configs.PrintSuccess("current downloads: %s.", c.downloads)
+				color.PrintSuccess("current downloads: %s.", c.downloads)
 			}
 
 			if flags.Changed("jobs") {
 				if err := c.celer.SetJobs(c.jobs); err != nil {
-					return configs.PrintError(err, "failed to set job num: %d.", c.jobs)
+					return color.PrintError(err, "failed to set job num: %d.", c.jobs)
 				}
-				configs.PrintSuccess("current job num: %d.", c.jobs)
+				color.PrintSuccess("current job num: %d.", c.jobs)
 			}
 
 			if flags.Changed("offline") {
 				if err := c.celer.SetOffline(c.offline); err != nil {
-					return configs.PrintError(err, "failed to set offline mode: %s.", expr.If(c.offline, "true", "false"))
+					return color.PrintError(err, "failed to set offline mode: %s.", expr.If(c.offline, "true", "false"))
 				}
-				configs.PrintSuccess("current offline mode: %s.", expr.If(c.offline, "true", "false"))
+				color.PrintSuccess("current offline mode: %s.", expr.If(c.offline, "true", "false"))
 			}
 
 			if flags.Changed("verbose") {
 				if err := c.celer.SetVerbose(c.verbose); err != nil {
-					return configs.PrintError(err, "failed to set verbose mode: %s.", expr.If(c.verbose, "true", "false"))
+					return color.PrintError(err, "failed to set verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 				}
-				configs.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
+				color.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 			}
 
 			if flags.Changed("package-cache-dir") {
@@ -202,56 +203,56 @@ Examples:
 				if err := c.celer.SetPackageCacheWritable(c.packageCacheWritable); err != nil {
 					return configs.PrintError(err, "failed to set package cache writable: %s.", expr.If(c.packageCacheWritable, "true", "false"))
 				}
-				configs.PrintSuccess("current cache writable: %s.", expr.If(c.packageCacheWritable, "true", "false"))
+				color.PrintSuccess("current cache writable: %s.", expr.If(c.packageCacheWritable, "true", "false"))
 			}
 
 			if flags.Changed("proxy-host") {
 				if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
-					return configs.PrintError(err, "failed to set proxy host: %s.", c.proxy.Host)
+					return color.PrintError(err, "failed to set proxy host: %s.", c.proxy.Host)
 				}
-				configs.PrintSuccess("current proxy host: %s.", c.proxy.Host)
+				color.PrintSuccess("current proxy host: %s.", c.proxy.Host)
 			}
 
 			if flags.Changed("proxy-port") {
 				if err := c.celer.SetProxyPort(c.proxy.Port); err != nil {
-					return configs.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
+					return color.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
 				}
-				configs.PrintSuccess("current proxy port: %d.", c.proxy.Port)
+				color.PrintSuccess("current proxy port: %d.", c.proxy.Port)
 			}
 
 			if flags.Changed("ccache-enabled") {
 				if err := c.celer.SetCCacheEnabled(c.ccache.Enabled); err != nil {
-					return configs.PrintError(err, "failed to update ccache enabled.")
+					return color.PrintError(err, "failed to update ccache enabled.")
 				}
-				configs.PrintSuccess("current ccache enabled: %s.", expr.If(c.ccache.Enabled, "true", "false"))
+				color.PrintSuccess("current ccache enabled: %s.", expr.If(c.ccache.Enabled, "true", "false"))
 			}
 
 			if flags.Changed("ccache-dir") {
 				if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
-					return configs.PrintError(err, "failed to update ccache dir.")
+					return color.PrintError(err, "failed to update ccache dir.")
 				}
-				configs.PrintSuccess("current ccache dir: %s.", c.ccache.Dir)
+				color.PrintSuccess("current ccache dir: %s.", c.ccache.Dir)
 			}
 
 			if flags.Changed("ccache-maxsize") {
 				if err := c.celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
-					return configs.PrintError(err, "failed to update ccache.maxsize.")
+					return color.PrintError(err, "failed to update ccache.maxsize.")
 				}
-				configs.PrintSuccess("current ccache maxsize: %s.", c.ccache.MaxSize)
+				color.PrintSuccess("current ccache maxsize: %s.", c.ccache.MaxSize)
 			}
 
 			if flags.Changed("ccache-remote-storage") {
 				if err := c.celer.SetCCacheRemoteStorage(c.ccache.RemoteStorage); err != nil {
-					return configs.PrintError(err, "failed to update ccache.remote_storage.")
+					return color.PrintError(err, "failed to update ccache.remote_storage.")
 				}
-				configs.PrintSuccess("current ccache remote storage: %s.", c.ccache.RemoteStorage)
+				color.PrintSuccess("current ccache remote storage: %s.", c.ccache.RemoteStorage)
 			}
 
 			if flags.Changed("ccache-remote-only") {
 				if err := c.celer.SetCCacheRemoteOnly(c.ccache.RemoteOnly); err != nil {
-					return configs.PrintError(err, "failed to update ccache.remote_only.")
+					return color.PrintError(err, "failed to update ccache.remote_only.")
 				}
-				configs.PrintSuccess("current ccache remote only: %s.", expr.If(c.ccache.RemoteOnly, "true", "false"))
+				color.PrintSuccess("current ccache remote only: %s.", expr.If(c.ccache.RemoteOnly, "true", "false"))
 			}
 
 			return nil

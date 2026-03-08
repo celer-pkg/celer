@@ -3,6 +3,7 @@ package cmds
 import (
 	"celer/buildtools"
 	"celer/configs"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -402,7 +403,7 @@ func TestCleanCmd_Execute_ValidateTargetsError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected validation error for empty targets")
 	}
-	if err != configs.ErrSilent {
+	if err != color.ErrSilent {
 		t.Fatalf("expected ErrSilent, got: %#v", err)
 	}
 }

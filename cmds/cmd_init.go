@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"celer/configs"
+	"celer/pkgs/color"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -56,18 +57,18 @@ func (i *initCmd) doInit() error {
 
 	// Initialize celer configuration.
 	if err := i.celer.Init(); err != nil {
-		return configs.PrintError(err, "Failed to initialize celer.")
+		return color.PrintError(err, "Failed to initialize celer.")
 	}
 
 	// Setup configuration repository.
 	if err := i.celer.CloneConf(i.url, i.branch, i.force); err != nil {
-		return configs.PrintError(err, "Failed to setup configuration repository.")
+		return color.PrintError(err, "Failed to setup configuration repository.")
 	}
 
 	if i.branch != "" {
-		configs.PrintSuccess("Successfully initialized celer with repository: %s --branch %s", i.url, i.branch)
+		color.PrintSuccess("Successfully initialized celer with repository: %s --branch %s", i.url, i.branch)
 	} else {
-		configs.PrintSuccess("Successfully initialized celer with repository: %s", i.url)
+		color.PrintSuccess("Successfully initialized celer with repository: %s", i.url)
 	}
 
 	return nil

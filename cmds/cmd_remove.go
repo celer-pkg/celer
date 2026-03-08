@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"celer/configs"
+	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"celer/pkgs/fileio"
 	"fmt"
@@ -41,7 +42,7 @@ Examples:
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := r.execute(args); err != nil {
-				return configs.PrintError(err, "removal failed")
+				return color.PrintError(err, "removal failed")
 			}
 			return nil
 		},
@@ -79,7 +80,7 @@ func (r *removeCmd) execute(args []string) error {
 	}
 
 	// Print success message.
-	configs.PrintSuccess("Successfully removed %s", strings.Join(nameVersions, ", "))
+	color.PrintSuccess("Successfully removed %s", strings.Join(nameVersions, ", "))
 	return nil
 }
 

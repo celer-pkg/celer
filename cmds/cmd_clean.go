@@ -83,7 +83,7 @@ func (c *cleanCmd) validateArgs(cmd *cobra.Command, args []string) error {
 
 func (c *cleanCmd) execute(args []string) error {
 	if err := c.celer.Init(); err != nil {
-		return configs.PrintError(err, "failed to init celer.")
+		return color.PrintError(err, "failed to init celer.")
 	}
 
 	// Must check tool after celer initialized, since "downloads" will be assign value after init.
@@ -93,16 +93,16 @@ func (c *cleanCmd) execute(args []string) error {
 
 	if c.all {
 		if err := c.cleanAll(); err != nil {
-			return configs.PrintError(err, "failed to clean all packages.")
+			return color.PrintError(err, "failed to clean all packages.")
 		}
-		configs.PrintSuccess("all packages cleaned.")
+		color.PrintSuccess("all packages cleaned.")
 	} else {
 		if err := c.validateTargets(args); err != nil {
-			return configs.PrintError(err, "invalid arguments.")
+			return color.PrintError(err, "invalid arguments.")
 		}
 
 		if err := c.clean(args...); err != nil {
-			return configs.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
+			return color.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
 		}
 	}
 
@@ -179,7 +179,7 @@ func (c *cleanCmd) clean(targets ...string) error {
 		summaries = append(summaries, target)
 	}
 
-	configs.PrintSuccess("clean %s successfully.", strings.Join(summaries, ", "))
+	color.PrintSuccess("clean %s successfully.", strings.Join(summaries, ", "))
 	return nil
 }
 

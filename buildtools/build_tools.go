@@ -245,8 +245,8 @@ func (b *BuildTool) checkAndFix() error {
 	// Only print if tool was just downloaded (didn't exist before).
 	if !fileio.PathExists(location) {
 		// Print download & extract info.
-		color.Printf(color.List, "\n[✔] -- tool: %s\n", fileio.FileBaseName(b.Url))
-		color.Printf(color.Hint, "Location: %s\n", location)
+		color.PrintHint("tool: %s", fileio.FileBaseName(b.Url))
+		color.PrintHint("Location: %s", location)
 	}
 
 	return nil

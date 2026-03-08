@@ -49,7 +49,7 @@ Examples:
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := t.tree(args[0]); err != nil {
-				return configs.PrintError(err, "Failed to show dependency tree.")
+				return color.PrintError(err, "Failed to show dependency tree.")
 			}
 			return nil
 		},

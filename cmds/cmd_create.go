@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"celer/configs"
+	"celer/pkgs/color"
 	"fmt"
 	"strings"
 
@@ -57,28 +58,28 @@ EXAMPLES:
 
 func (c *createCmd) createPlatform(platformName string) error {
 	if err := c.celer.CreatePlatform(platformName); err != nil {
-		return configs.PrintError(err, "%s could not be created.", platformName)
+		return color.PrintError(err, "%s could not be created.", platformName)
 	}
 
-	configs.PrintSuccess("%s is created, please proceed with its refinement.", platformName)
+	color.PrintSuccess("%s is created, please proceed with its refinement.", platformName)
 	return nil
 }
 
 func (c *createCmd) createProject(projectName string) error {
 	if err := c.celer.CreateProject(projectName); err != nil {
-		return configs.PrintError(err, "%s could not be created.", projectName)
+		return color.PrintError(err, "%s could not be created.", projectName)
 	}
 
-	configs.PrintSuccess("%s is created, please proceed with its refinement.", projectName)
+	color.PrintSuccess("%s is created, please proceed with its refinement.", projectName)
 	return nil
 }
 
 func (c *createCmd) createPort(nameVersion string) error {
 	if err := c.celer.CreatePort(nameVersion); err != nil {
-		return configs.PrintError(err, "%s could not be created.", nameVersion)
+		return color.PrintError(err, "%s could not be created.", nameVersion)
 	}
 
-	configs.PrintSuccess("%s is created, please proceed with its refinement.", nameVersion)
+	color.PrintSuccess("%s is created, please proceed with its refinement.", nameVersion)
 	return nil
 }
 
@@ -102,27 +103,27 @@ func (c *createCmd) doCreate(cmd *cobra.Command) error {
 
 	if provided != 1 {
 		err := fmt.Errorf("invalid input argument")
-		return configs.PrintError(err, "You must specify exactly one component to create (--platform, --project, or --port).")
+		return color.PrintError(err, "You must specify exactly one component to create (--platform, --project, or --port).")
 	}
 
 	// Validate inputs and create.
 	if platformChanged {
 		if err := c.validatePlatformName(c.platform); err != nil {
-			return configs.PrintError(err, "Invalid platform name.")
+			return color.PrintError(err, "Invalid platform name.")
 		}
 		return c.createPlatform(c.platform)
 	}
 
 	if projectChanged {
 		if err := c.validateProjectName(c.project); err != nil {
-			return configs.PrintError(err, "Invalid project name.")
+			return color.PrintError(err, "Invalid project name.")
 		}
 		return c.createProject(c.project)
 	}
 
 	if portChanged {
 		if err := c.validatePortName(c.port); err != nil {
-			return configs.PrintError(err, "Invalid port name.")
+			return color.PrintError(err, "Invalid port name.")
 		}
 		return c.createPort(c.port)
 	}
