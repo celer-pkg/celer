@@ -14,6 +14,16 @@ import (
 	"testing"
 )
 
+// This file verifies repo-source caching from the caller's perspective:
+// BuildConfig.Clone should store a source tree into pkgcache when online,
+// and later restore that exact source tree from pkgcache before touching the
+// remote source again.
+//
+// The tests are intentionally end-to-end at the BuildConfig layer instead of
+// testing pkgcache.Repo in isolation, because the behavior we care about is
+// the integration between Clone(), pkgcache wiring, and the
+// on-disk cache layout.
+
 type fakePkgCache struct {
 	dir      string
 	writable bool
@@ -22,13 +32,16 @@ type fakePkgCache struct {
 func (f fakePkgCache) GetDir() string                           { return f.dir }
 func (f fakePkgCache) IsWritable() bool                         { return f.writable }
 func (f fakePkgCache) GetArtifactCache() context.AritifactCache { return nil }
-func (f fakePkgCache) GetRepoCache() context.RepoCache          { return pkgcache.NewRepo(f.dir, f.writable) }
+func (f fakePkgCache) GetRepoCache() context.RepoCache {
+	return pkgcache.NewRepo(fakeContext{}, f.dir, f.writable)
+}
 
 // creates a local bare repo that acts like remote origin.
 // Using a local origin keeps this test deterministic and network-independent.
 func setupGitOriginRepo(t *testing.T, tmpWorkspace string) string {
 	t.Helper()
 
+	// repo-src is the editable working repository that will contain one commit.
 	repoRoot := filepath.Join(tmpWorkspace, "repo-src")
 	if err := os.MkdirAll(repoRoot, os.ModePerm); err != nil {
 		t.Fatal(err)
@@ -40,6 +53,8 @@ func setupGitOriginRepo(t *testing.T, tmpWorkspace string) string {
 		t.Fatal(err)
 	}
 
+	// BuildConfig.Clone expects to clone from a remote-like URL. A local bare
+	// repository gives us that behavior without using the network.
 	originURL := filepath.Join(tmpWorkspace, "x264.git")
 	out, err := exec.Command("git", "clone", "--bare", repoRoot, originURL).CombinedOutput()
 	if err != nil {
@@ -65,6 +80,8 @@ func newBuildConfig(ctx context.Context, repoDir string) buildsystems.BuildConfi
 func setupArchiveFile(t *testing.T, tmpWorkspace string) (archivePath string, archiveSha string) {
 	t.Helper()
 
+	// Create a tiny source tree and compress it into a local archive so the
+	// archive-cache test stays deterministic and does not depend on downloads.
 	srcRoot := filepath.Join(tmpWorkspace, "archive-src")
 	if err := os.MkdirAll(srcRoot, os.ModePerm); err != nil {
 		t.Fatal(err)
@@ -86,7 +103,13 @@ func setupArchiveFile(t *testing.T, tmpWorkspace string) (archivePath string, ar
 }
 
 func TestBuildConfigClone_GitRepoCache(t *testing.T) {
-	// Redirect workspace globals to a temp dir so test side effects stay isolated.
+	// Goal:
+	// 1. An online git clone should be archived into repo pkgcache.
+	// 2. A later clone of the same commit should restore from pkgcache before
+	//    touching the remote repository.
+	//
+	// Workspace globals are redirected into a temp dir so the test does not
+	// leak state into the developer's real workspace.
 	oldWorkspace := dirs.WorkspaceDir
 	tmpWorkspace := t.TempDir()
 	dirs.Init(tmpWorkspace)
@@ -101,6 +124,9 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@stable", "src")
 
 	t.Run("store repo cache after clone", func(t *testing.T) {
+		// This subtest only checks the write path:
+		// Clone() should create the source tree and also create the repo cache
+		// archive named by the resolved git commit.
 		onlineCtx := fakeContext{
 			platform: "x86_64-linux",
 			project:  "proj",
@@ -116,6 +142,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		// The cache key for git repos is the checked-out commit hash.
 		commit, err := git.GetCurrentCommit(repoDir)
 		if err != nil {
 			t.Fatal(err)
@@ -127,8 +154,8 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 		}
 	})
 
-	t.Run("offline restore from repo cache", func(t *testing.T) {
-		// First clone online once to seed repo cache for a known commit.
+	t.Run("restore from repo cache before remote access", func(t *testing.T) {
+		// First clone online once so pkgcache contains a known commit archive.
 		onlineCtx := fakeContext{
 			platform: "x86_64-linux",
 			project:  "proj",
@@ -143,31 +170,41 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		// Record the exact commit that should be restorable later.
 		commit, err := git.GetCurrentCommit(repoDir)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		// Remove source tree so offline clone must restore from cache instead of reusing local dir.
+		// Remove the working source tree. If the next Clone() succeeds, it cannot
+		// be because the old directory was reused.
 		if err := os.RemoveAll(repoDir); err != nil {
 			t.Fatal(err)
 		}
 
-		offlineCtx := fakeContext{
+		// Remove the origin repository too. If the next Clone() succeeds, it
+		// proves the restore happened from pkgcache before any remote access.
+		if err := os.RemoveAll(originURL); err != nil {
+			t.Fatal(err)
+		}
+
+		// writable=false is deliberate here: this call is only allowed to read
+		// from cache, not write new cache entries.
+		restoreCtx := fakeContext{
 			platform: "x86_64-linux",
 			project:  "proj",
 			build:    "release",
-			offline:  true,
 			pkgCache: fakePkgCache{
 				dir:      cacheDir,
 				writable: false,
 			},
 		}
-		offlineBuildConfig := newBuildConfig(offlineCtx, repoDir)
-		if err := offlineBuildConfig.Clone(originURL, commit, "", 0); err != nil {
+		restoreBuildConfig := newBuildConfig(restoreCtx, repoDir)
+		if err := restoreBuildConfig.Clone(originURL, commit, "", 0); err != nil {
 			t.Fatal(err)
 		}
 
+		// Restoring from cache must give us the exact same checked-out commit.
 		restoredCommit, err := git.GetCurrentCommit(repoDir)
 		if err != nil {
 			t.Fatal(err)
@@ -179,6 +216,14 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 }
 
 func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
+	// Goal:
+	// 1. An archive source should be unpacked once and then stored into repo
+	//    pkgcache using the archive checksum as cache key.
+	// 2. A later clone should restore that unpacked source tree from repo
+	//    pkgcache even if the original archive file has been removed.
+	//
+	// If archive repo-cache support is intentionally disabled in the product,
+	// this test should be removed or skipped rather than kept half-working.
 	oldWorkspace := dirs.WorkspaceDir
 	tmpWorkspace := t.TempDir()
 	dirs.Init(tmpWorkspace)
@@ -197,6 +242,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 	repoURL := fmt.Sprintf("file:///%s", archivePath)
 	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@archive", "src")
 
+	// First pass: unpack the archive and populate repo pkgcache.
 	onlineCtx := fakeContext{
 		platform:  "x86_64-linux",
 		project:   "proj",
@@ -216,12 +262,14 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		t.Fatalf("expected archive extracted into %s", repoDir)
 	}
 
+	// Archive sources use the archive checksum as the cache key, so the stored
+	// repo cache is expected to be <repo-name>/<sha>.tar.gz.
 	cacheArchivePath := filepath.Join(cacheDir, pkgcache.RepoCacheDir, "x264-archive.tar.gz", archiveSha+".tar.gz")
 	if !fileio.PathExists(cacheArchivePath) {
 		t.Fatalf("expected archive repo cache exists: %s", cacheArchivePath)
 	}
 
-	// Make sure offline restore is truly from repo cache:
+	// Make sure restore is truly from repo cache:
 	// 1) remove extracted repo dir, 2) remove original local archive file.
 	if err := os.RemoveAll(repoDir); err != nil {
 		t.Fatal(err)
@@ -230,22 +278,24 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	offlineCtx := fakeContext{
+	// Second pass: with both the working tree and original archive removed,
+	// success now proves that Clone() restored from repo pkgcache.
+	restoreCtx := fakeContext{
 		platform:  "x86_64-linux",
 		project:   "proj",
 		build:     "release",
 		downloads: downloadsDir,
-		offline:   true,
 		pkgCache: fakePkgCache{
 			dir:      cacheDir,
 			writable: false,
 		},
 	}
-	offlineBuildConfig := newBuildConfig(offlineCtx, repoDir)
-	if err := offlineBuildConfig.Clone(repoURL, "file:"+archiveSha, "", 0); err != nil {
+	restoreBuildConfig := newBuildConfig(restoreCtx, repoDir)
+	if err := restoreBuildConfig.Clone(repoURL, "file:"+archiveSha, "", 0); err != nil {
 		t.Fatal(err)
 	}
 
+	// Validate restored file contents, not just file existence.
 	content, err := os.ReadFile(filepath.Join(repoDir, "hello.txt"))
 	if err != nil {
 		t.Fatal(err)

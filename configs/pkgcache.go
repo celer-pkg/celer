@@ -37,7 +37,7 @@ func (p *pkgCache) Validate() error {
 
 	// Create valid aritifact and repo cache.
 	p.artifactCache = pkgcache.NewArtifact(p.ctx, p.Dir, p.Writable)
-	p.repoCache = pkgcache.NewRepo(p.Dir, p.Writable)
+	p.repoCache = pkgcache.NewRepo(p.ctx, p.Dir, p.Writable)
 	return nil
 }
 

@@ -340,21 +340,13 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		if pkgCache != nil {
 			repoCache = pkgCache.GetRepoCache()
 			if repoCache != nil && b.PortConfig.CacheRepo {
-				if fromWhere, err := repoCache.Fetch(repoUrl, b.PortConfig.RepoDir, repoRef); err != nil {
+				if fromWhere, err := repoCache.Restore(repoUrl, b.PortConfig.RepoDir, repoRef); err != nil {
 					color.Printf(color.Warning, "\n[!] failed to restore git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)
 				} else if fromWhere != "" {
 					color.PrintHint("[%s] Repo is restored from pkgcache: %s\n", b.PortConfig.nameVersionDesc(), fromWhere)
 					return nil
 				}
 			}
-		}
-
-		// Skip cloning in offline mode.
-		if b.Ctx.Offline() {
-			if repoRef == "" {
-				return fmt.Errorf("cannot clone git repository in offline mode: package.ref is empty, repo cache cannot be resolved")
-			}
-			return fmt.Errorf("cannot clone git repository in offline mode: repo cache not found for ref %s", repoRef)
 		}
 
 		// Do clone or download repo.

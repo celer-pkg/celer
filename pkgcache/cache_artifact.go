@@ -32,8 +32,14 @@ func NewArtifact(ctx context.Context, pkgDir string, writable bool) *Aritifact {
 	}
 }
 
-// Restore extract restored archive to destination and return the archive filepath that restored from.
+// Restore restores the cached package to destDir if cache hit, and return the archive path.
+// If cache miss, just return empty string without error.
 func (a Aritifact) Restore(nameVersion, hash, destDir string) (string, error) {
+	// skip restore cache when offline.
+	if a.ctx.Offline() {
+		return "", nil
+	}
+
 	platformName := a.ctx.Platform().GetName()
 	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
@@ -85,8 +91,14 @@ func (a Aritifact) Restore(nameVersion, hash, destDir string) (string, error) {
 	return archivePath, nil
 }
 
-// Store pack package as archive and save it to sub-dir in package dir.
+// Store compresses the package dir and store in cache,
+// the meta is expected to be a string and would be used to calculate the hash key for cache.
 func (a Aritifact) Store(packageDir, meta string) error {
+	// skip storing cache when offline.
+	if a.ctx.Offline() {
+		return nil
+	}
+
 	if !fileio.PathExists(packageDir) {
 		return fmt.Errorf("package dir does not exist: %s", packageDir)
 	}

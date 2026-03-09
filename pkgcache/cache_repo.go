@@ -1,6 +1,7 @@
 package pkgcache
 
 import (
+	"celer/context"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
 	"fmt"
@@ -13,16 +14,18 @@ import (
 const RepoCacheDir = "repos"
 
 type Repo struct {
+	ctx          context.Context
 	repoCacheDir string
 	writable     bool
 }
 
-func NewRepo(pkgCacheDir string, writable bool) *Repo {
+func NewRepo(ctx context.Context, pkgCacheDir string, writable bool) *Repo {
 	if pkgCacheDir == "" {
 		return nil
 	}
 
 	return &Repo{
+		ctx:          ctx,
 		repoCacheDir: filepath.Join(pkgCacheDir, RepoCacheDir),
 		writable:     writable,
 	}
@@ -30,6 +33,11 @@ func NewRepo(pkgCacheDir string, writable bool) *Repo {
 
 // Store pack package as archive and save it to sub-dir in package dir.
 func (r Repo) Store(repoUrl, repoDir string) (string, error) {
+	// skip storing cache when offline.
+	if r.ctx.Offline() {
+		return "", nil
+	}
+
 	if !r.writable {
 		return "", nil
 	}
@@ -73,6 +81,11 @@ func (r Repo) Store(repoUrl, repoDir string) (string, error) {
 
 // Restore extract restored archive to destination and return the archive filepath that restored from.
 func (r Repo) Restore(repoUrl, repoDir, repoRef string) (string, error) {
+	// skip restore cache when offline.
+	if r.ctx.Offline() {
+		return "", nil
+	}
+
 	// Ignore when repoRef is not git commit hash.
 	if strings.TrimSpace(repoRef) == "" || !git.IsCommitHash(repoRef) {
 		return "", nil
