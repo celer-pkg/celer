@@ -95,7 +95,7 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 
 	// Get commit hash or archive checksum.
 	if strings.HasSuffix(port.Package.Url, ".git") {
-		commit, err := git.GetCurrentCommit(port.MatchedConfig.PortConfig.RepoDir)
+		commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
 		}
@@ -116,13 +116,18 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 				return "", err
 			}
 			archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-			if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, archive, port.Package.Depth); err != nil {
+			if err := port.MatchedConfig.Clone(
+				port.Package.Url,
+				port.Package.Ref,
+				archive,
+				port.Package.Depth,
+			); err != nil {
 				return "", fmt.Errorf("archive file is missing and auto-download failed for %s -> %w", nameVersion, err)
 			}
 		}
 
 		// Calculate checksum of archive file.
-		commit, err := fileio.CalculateChecksum(filePath)
+		commit, err := fileio.GetFileSha256(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of part's archive %s -> %w", nameVersion, err)
 		}

@@ -28,7 +28,7 @@ func (b BuildConfig) preConfigure() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[pre configure %s]", b.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[pre configure %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
@@ -53,7 +53,7 @@ func (b BuildConfig) postConfigure() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[post confiure %s]", b.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[post confiure %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
@@ -78,7 +78,7 @@ func (b BuildConfig) preBuild() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[pre build %s]", b.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[pre build %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
@@ -102,7 +102,7 @@ func (b BuildConfig) postBuild() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[post build %s]", b.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[post build %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
@@ -126,7 +126,7 @@ func (b BuildConfig) preInstall() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[pre install %s]", b.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[pre install %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
@@ -150,7 +150,7 @@ func (b BuildConfig) postInstall() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[post install %s]", b.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[post install %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
@@ -174,7 +174,7 @@ func (b BuildConfig) fixBuild() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[fix build %s]", b.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[fix build %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
 		executor := cmd.NewExecutor(title, script)
 		executor.SetWorkDir(b.PortConfig.RepoDir)

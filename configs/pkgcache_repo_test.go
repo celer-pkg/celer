@@ -90,7 +90,7 @@ func setupArchiveFile(t *testing.T, tmpWorkspace string) (archivePath string, ar
 		t.Fatal(err)
 	}
 
-	checksum, err := fileio.CalculateChecksum(archivePath)
+	checksum, err := fileio.GetFileSha256(archivePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,12 +138,12 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 		}
 
 		// The cache key for git repos is the checked-out commit hash.
-		commit, err := git.GetCurrentCommit(repoDir)
+		commit, err := git.GetCommitHash(repoDir)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		archivePath := filepath.Join(pkgCacheDir, pkgcache.RepoCacheDir, "x264", commit+".tar.gz")
+		archivePath := filepath.Join(pkgCacheDir, pkgcache.RepoCacheDir, "x264@stable", commit+".tar.gz")
 		if !fileio.PathExists(archivePath) {
 			t.Fatalf("expected git repo cache archive: %s", archivePath)
 		}
@@ -166,7 +166,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 		}
 
 		// Record the exact commit that should be restorable later.
-		commit, err := git.GetCurrentCommit(repoDir)
+		commit, err := git.GetCommitHash(repoDir)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -200,7 +200,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 		}
 
 		// Restoring from cache must give us the exact same checked-out commit.
-		restoredCommit, err := git.GetCurrentCommit(repoDir)
+		restoredCommit, err := git.GetCommitHash(repoDir)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -233,7 +233,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	archivePath, archiveSha := setupArchiveFile(t, tmpWorkspace)
+	archivePath, checksum := setupArchiveFile(t, tmpWorkspace)
 	repoURL := fmt.Sprintf("file:///%s", archivePath)
 	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@archive", "src")
 
@@ -249,7 +249,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		},
 	}
 	onlineBuildConfig := newBuildConfig(onlineCtx, repoDir)
-	if err := onlineBuildConfig.Clone(repoURL, "file:"+archiveSha, "", 0); err != nil {
+	if err := onlineBuildConfig.Clone(repoURL, checksum, "", 0); err != nil {
 		t.Fatal(err)
 	}
 
@@ -259,7 +259,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 
 	// Archive sources use the archive checksum as the cache key, so the stored
 	// repo cache is expected to be <repo-name>/<sha>.tar.gz.
-	cacheArchivePath := filepath.Join(pkgCacheDir, pkgcache.RepoCacheDir, "x264-archive.tar.gz", archiveSha+".tar.gz")
+	cacheArchivePath := filepath.Join(pkgCacheDir, pkgcache.RepoCacheDir, "x264@stable", checksum+".tar.gz")
 	if !fileio.PathExists(cacheArchivePath) {
 		t.Fatalf("expected archive repo cache exists: %s", cacheArchivePath)
 	}
@@ -286,7 +286,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		},
 	}
 	restoreBuildConfig := newBuildConfig(restoreCtx, repoDir)
-	if err := restoreBuildConfig.Clone(repoURL, "file:"+archiveSha, "", 0); err != nil {
+	if err := restoreBuildConfig.Clone(repoURL, checksum, "", 0); err != nil {
 		t.Fatal(err)
 	}
 

@@ -159,7 +159,12 @@ func (p Port) Clone() error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive, port.Package.Depth); err != nil {
+		if err := port.MatchedConfig.Clone(
+			port.Package.Url,
+			port.Package.Ref,
+			port.Package.Archive,
+			port.Package.Depth,
+		); err != nil {
 			return err
 		}
 	}
@@ -169,14 +174,22 @@ func (p Port) Clone() error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive, port.Package.Depth); err != nil {
+		if err := port.MatchedConfig.Clone(
+			port.Package.Url,
+			port.Package.Ref,
+			port.Package.Archive,
+			port.Package.Depth,
+		); err != nil {
 			return err
 		}
 	}
 
 	// url with "_" means virtual port, no need to clone.
 	if p.Package.Url != "_" {
-		if err := p.MatchedConfig.Clone(p.Package.Url, p.Package.Ref, p.Package.Archive, p.Package.Depth); err != nil {
+		// Repo may archived in pkgcache/repos with filename of commit hash,
+		// we prefer clone with commit, so that repo can restore from pkgcache/repos.
+		repoRef := expr.If(p.Package.Commit != "", p.Package.Commit, p.Package.Ref)
+		if err := p.MatchedConfig.Clone(p.Package.Url, repoRef, p.Package.Archive, p.Package.Depth); err != nil {
 			return err
 		}
 	}

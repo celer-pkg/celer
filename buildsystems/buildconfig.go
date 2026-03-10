@@ -45,9 +45,9 @@ type PortConfig struct {
 	Ctx context.Context `toml:"-"`
 }
 
-func (p PortConfig) nameVersionDesc() string {
-	if p.DevDep {
-		return fmt.Sprintf("%s@%s [dev]", p.LibName, p.LibVersion)
+func (p PortConfig) nameVersion() string {
+	if p.DevDep || p.HostDev {
+		return fmt.Sprintf("%s@%s-dev", p.LibName, p.LibVersion)
 	} else {
 		return fmt.Sprintf("%s@%s", p.LibName, p.LibVersion)
 	}
@@ -333,14 +333,17 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 	// Try to fetch repo from pkgcache.
 	var repoCache context.RepoCache
+	// p.PortConfig.nameVersion() may contains "-dev", here must use a clear name@version.
+	nameVersion := fmt.Sprintf("%s@%s", b.PortConfig.LibName, b.PortConfig.LibVersion)
+
 	pkgCache := b.Ctx.PkgCache()
 	if repoUrl != "_" && pkgCache != nil {
 		repoCache = pkgCache.GetRepoCache()
 		if repoCache != nil && b.PortConfig.CacheRepo {
-			if fromWhere, err := repoCache.Restore(repoUrl, b.PortConfig.RepoDir, repoRef); err != nil {
-				color.Printf(color.Warning, "\n[!] failed to restore git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)
+			if fromWhere, err := repoCache.Restore(nameVersion, repoUrl, b.PortConfig.RepoDir, repoRef); err != nil {
+				color.PrintWarning(err, "failed to restore git repo cache for %s", nameVersion)
 			} else if fromWhere != "" {
-				color.PrintHint("[%s] Repo is restored from pkgcache: %s\n", b.PortConfig.nameVersionDesc(), fromWhere)
+				color.PrintHint("[%s] Repo is restored from pkgcache: %s\n", nameVersion, fromWhere)
 				return nil
 			}
 		}
@@ -349,18 +352,9 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// For git repo, clone it when source dir doesn't exists.
 	if strings.HasSuffix(repoUrl, ".git") {
 		// Do clone or download repo.
-		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersion())
 		if err := git.CloneRepo(title, repoUrl, repoRef, depth, b.PortConfig.RepoDir); err != nil {
 			return err
-		}
-
-		// Store git repo as archive after clone.
-		if repoCache != nil && b.PortConfig.CacheRepo {
-			if whereStored, err := repoCache.Store(repoUrl, b.PortConfig.RepoDir); err != nil {
-				return fmt.Errorf("failed to store repo cache for %s -> %v\n", b.PortConfig.nameVersionDesc(), err)
-			} else if whereStored != "" {
-				color.PrintInfo("[%s]: repo is stored to %s\n", b.PortConfig.nameVersionDesc(), whereStored)
-			}
 		}
 	} else if repoUrl != "_" {
 		// Check and repair resource.
@@ -402,20 +396,23 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		}
 	}
 
+	// Store sources after any internal generated files are ready. Archive
+	// sources are cached before local git tracking is initialized so the cache
+	// stays keyed by the original archive ref and does not include the tracking
+	// .git directory.
+	if repoUrl != "_" && repoCache != nil && b.PortConfig.CacheRepo {
+		if whereStored, err := repoCache.Store(nameVersion, repoUrl, b.PortConfig.RepoDir); err != nil {
+			return fmt.Errorf("failed to store repo cache for %s -> %v\n", nameVersion, err)
+		} else if whereStored != "" {
+			color.PrintInfo("[%s]: repo is stored to %s\n", nameVersion, whereStored)
+		}
+	}
+
 	// Initialize archive source as local git repo after internal generated files
 	// are ready, so they won't be treated as user local modifications.
 	if trackArchiveAsLocalRepo {
 		if err := git.InitAsLocalRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
 			return err
-		}
-
-		// Store git repo as archive after download.
-		if repoCache != nil && b.PortConfig.CacheRepo {
-			if whereStored, err := repoCache.Store(repoUrl, b.PortConfig.RepoDir); err != nil {
-				return fmt.Errorf("failed to store repo cache for %s -> %v\n", b.PortConfig.nameVersionDesc(), err)
-			} else if whereStored != "" {
-				color.PrintInfo("[%s]: repo is stored to %s\n", b.PortConfig.nameVersionDesc(), whereStored)
-			}
 		}
 	}
 
@@ -425,7 +422,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 func (b BuildConfig) Clean() error {
 	// Skip for none exist folder.
 	if !fileio.PathExists(b.PortConfig.RepoDir) {
-		color.Printf(color.Warning, "[!] -- no source found for %s, skip clean.\n", b.PortConfig.nameVersionDesc())
+		color.Printf(color.Warning, "[!] -- no source found for %s, skip clean.\n", b.PortConfig.nameVersion())
 		return nil
 	}
 
@@ -438,11 +435,11 @@ func (b BuildConfig) Clean() error {
 		if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
 			return fmt.Errorf("cannot remove empty folder: %s \n %w", b.PortConfig.RepoDir, err)
 		}
-		color.Printf(color.Warning, "[!] -- no source found for %s, skip clean\n", b.PortConfig.nameVersionDesc())
+		color.Printf(color.Warning, "[!] -- no source found for %s, skip clean\n", b.PortConfig.nameVersion())
 		return nil
 	}
 
-	title := fmt.Sprintf("[clean %s]", b.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[clean %s]", b.PortConfig.nameVersion())
 	if err := git.Clean(title, b.PortConfig.RepoDir); err != nil {
 		return err
 	}
@@ -531,7 +528,7 @@ func (b BuildConfig) UpdateSubmodules() error {
 		return nil
 	}
 
-	title := fmt.Sprintf("[update submodules for %s]", b.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[update submodules for %s]", b.PortConfig.nameVersion())
 	return git.UpdateSubmodules(title, b.PortConfig.RepoDir)
 }
 
@@ -605,69 +602,69 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 
 	// Apply patches.
 	if err := b.buildSystem.ApplyPatches(); err != nil {
-		return fmt.Errorf("patch %s -> %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("patch %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 
 	// Update submodules if exist and not ignored that configured in port.toml.
 	if err := b.buildSystem.UpdateSubmodules(); err != nil {
-		return fmt.Errorf("update submodules %s -> %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("update submodules %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 
 	// Configure related steps.
 	if !b.buildSystem.configured() {
 		if err := b.buildSystem.preConfigure(); err != nil {
-			return fmt.Errorf("failed to pre configure %s -> %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("failed to pre configure %s -> %w", b.PortConfig.nameVersion(), err)
 		}
 		configureOptions, err := b.buildSystem.configureOptions()
 		if err != nil {
-			return fmt.Errorf("configure %s -> %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("configure %s -> %w", b.PortConfig.nameVersion(), err)
 		}
 		if err := b.buildSystem.Configure(configureOptions); err != nil {
-			return fmt.Errorf("configure %s\n %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("configure %s\n %w", b.PortConfig.nameVersion(), err)
 		}
 		if err := b.buildSystem.postConfigure(); err != nil {
-			return fmt.Errorf("post configure %s\n %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("post configure %s\n %w", b.PortConfig.nameVersion(), err)
 		}
 	}
 
 	// Build related steps.
 	if err := b.buildSystem.preBuild(); err != nil {
-		return fmt.Errorf("pre build %s\n %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("pre build %s\n %w", b.PortConfig.nameVersion(), err)
 	}
 	buildOptions, err := b.buildSystem.buildOptions()
 	if err != nil {
-		return fmt.Errorf("get build options %s\n %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("get build options %s\n %w", b.PortConfig.nameVersion(), err)
 	}
 	if err := b.buildSystem.Build(buildOptions); err != nil {
 		// Some third-party need extra steps to fix build. For example: nspr.
 		if len(b.FixBuild) > 0 {
 			if err := b.buildSystem.fixBuild(); err != nil {
-				return fmt.Errorf("fix build %s\n %w", b.PortConfig.nameVersionDesc(), err)
+				return fmt.Errorf("fix build %s\n %w", b.PortConfig.nameVersion(), err)
 			}
 			if err := b.buildSystem.Build(buildOptions); err != nil {
-				return fmt.Errorf("build %s again\n %w", b.PortConfig.nameVersionDesc(), err)
+				return fmt.Errorf("build %s again\n %w", b.PortConfig.nameVersion(), err)
 			}
 		} else {
-			return fmt.Errorf("build %s\n %w", b.PortConfig.nameVersionDesc(), err)
+			return fmt.Errorf("build %s\n %w", b.PortConfig.nameVersion(), err)
 		}
 	}
 	if err := b.buildSystem.postBuild(); err != nil {
-		return fmt.Errorf("post build %s\n %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("post build %s\n %w", b.PortConfig.nameVersion(), err)
 	}
 
 	// Install related steps.
 	if err := b.buildSystem.preInstall(); err != nil {
-		return fmt.Errorf("pre install %s\n %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("pre install %s\n %w", b.PortConfig.nameVersion(), err)
 	}
 	installOptions, err := b.buildSystem.installOptions()
 	if err != nil {
-		return fmt.Errorf("get install options %s\n %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("get install options %s\n %w", b.PortConfig.nameVersion(), err)
 	}
 	if err := b.buildSystem.Install(installOptions); err != nil {
-		return fmt.Errorf("install %s\n %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("install %s\n %w", b.PortConfig.nameVersion(), err)
 	}
 	if err := b.buildSystem.postInstall(); err != nil {
-		return fmt.Errorf("post install %s\n %w", b.PortConfig.nameVersionDesc(), err)
+		return fmt.Errorf("post install %s\n %w", b.PortConfig.nameVersion(), err)
 	}
 
 	// Fixup pkg config files.

@@ -39,7 +39,7 @@ func (p *Platform) toolchainChecksum() (string, error) {
 		return "", fmt.Errorf("toolchain archive not found: %s", toolchainPath)
 	}
 
-	return fileio.CalculateChecksum(toolchainPath)
+	return fileio.GetFileSha256(toolchainPath)
 }
 
 func (p *Platform) getToolchainPath() string {
@@ -89,7 +89,7 @@ func (p *Platform) rootfsChecksum() (string, error) {
 		return "", fmt.Errorf("rootfs archive not found: %s", rootfsPath)
 	}
 
-	return fileio.CalculateChecksum(rootfsPath)
+	return fileio.GetFileSha256(rootfsPath)
 }
 
 func (p *Platform) getRootfsPath() string {

@@ -67,8 +67,8 @@ func CleanRepo(repoDir string) error {
 	return nil
 }
 
-// GetCurrentCommit read git commit hash.
-func GetCurrentCommit(repoDir string) (string, error) {
+// GetCommitHash read git commit hash.
+func GetCommitHash(repoDir string) (string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -111,7 +111,7 @@ func gitRevParse(repoDir, ref string) (string, error) {
 // CheckIfUpToDate check if repo matches remote state for current branch or tag.
 func CheckIfUpToDate(repoDir string) (bool, error) {
 	// Get current commit hash.
-	currentCommit, err := GetCurrentCommit(repoDir)
+	currentCommit, err := GetCommitHash(repoDir)
 	if err != nil {
 		return false, err
 	}

@@ -88,7 +88,7 @@ func (b b2) Configure(options []string) error {
 
 	// Execute configure.
 	logPath := b.getLogPath("configure")
-	title := fmt.Sprintf("[configure %s]", b.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[configure %s]", b.PortConfig.nameVersion())
 	configure := expr.If(runtime.GOOS == "windows", "bootstrap.bat", "./bootstrap.sh")
 
 	// For cross-compilation, set --prefix to dependency directory.

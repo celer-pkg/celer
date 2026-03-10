@@ -74,7 +74,7 @@ func (c *Collector) GetPortCommit(port *configs.Port) (string, error) {
 	if !strings.HasSuffix(port.Package.Url, ".git") {
 		archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
 		filePath := filepath.Join(c.ctx.Downloads(), archive)
-		commit, err := fileio.CalculateChecksum(filePath)
+		commit, err := fileio.GetFileSha256(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of port's archive %s -> %w", port.NameVersion(), err)
 		}
@@ -87,7 +87,7 @@ func (c *Collector) GetPortCommit(port *configs.Port) (string, error) {
 	}
 
 	// For git repositories, read the actual commit from the cloned repo.
-	commit, err := git.GetCurrentCommit(port.Package.SrcDir)
+	commit, err := git.GetCommitHash(port.Package.SrcDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to read local commit for %s -> %w", port.NameVersion(), err)
 	}

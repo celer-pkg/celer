@@ -33,6 +33,6 @@ type AritifactCache interface {
 }
 
 type RepoCache interface {
-	Restore(repoUrl, repoDir, commit string) (string, error)
-	Store(repoUrl, repoDir string) (string, error)
+	Restore(nameVersion, repoUrl, repoDir, commit string) (string, error)
+	Store(nameVersion, repoUrl, repoDir string) (string, error)
 }

@@ -260,7 +260,7 @@ func (c cmake) Configure(options []string) error {
 
 	// Execute configure.
 	logPath := c.getLogPath("configure")
-	title := fmt.Sprintf("[configure %s]", c.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[configure %s]", c.PortConfig.nameVersion())
 	executor := cmd.NewExecutor(title, "cmake", args...)
 	executor.SetWorkDir(c.PortConfig.BuildDir)
 	executor.SetLogPath(logPath)

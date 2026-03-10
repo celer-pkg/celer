@@ -7,6 +7,7 @@ import (
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -73,7 +74,7 @@ func (m *makefiles) preConfigure() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[pre configure %s]", m.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[pre configure %s]", m.PortConfig.nameVersion())
 		command = m.expandVariables(command)
 		executor := cmd.NewExecutor(title, command)
 		executor.SetWorkDir(m.PortConfig.RepoDir)
@@ -324,7 +325,7 @@ func (m makefiles) Configure(options []string) error {
 		command = expr.If(configureWithPerl, fmt.Sprintf("perl %s", command), fileio.ToCygpath(command))
 	}
 
-	title := fmt.Sprintf("[configure %s]", m.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[configure %s]", m.PortConfig.nameVersion())
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(m.getLogPath("configure"))
 	executor.SetWorkDir(expr.If(m.BuildInSource, m.PortConfig.SrcDir, m.PortConfig.BuildDir))
@@ -364,7 +365,7 @@ func (m makefiles) Build(options []string) error {
 	}
 
 	// Execute build.
-	title := fmt.Sprintf("[build %s]", m.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[build %s]", m.PortConfig.nameVersion())
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(m.getLogPath("build"))
 
@@ -388,6 +389,11 @@ func (m makefiles) Build(options []string) error {
 }
 
 func (m makefiles) Install(options []string) error {
+	// This works for library like alsa-lib.
+	if err := m.disableLibtoolRelinkForInstall(); err != nil {
+		return err
+	}
+
 	configureWithPerl := m.shouldConfigureWithPerl()
 	makeCommand := expr.If(runtime.GOOS == "windows" && configureWithPerl, "nmake", "make")
 
@@ -407,7 +413,7 @@ func (m makefiles) Install(options []string) error {
 	}
 
 	// Execute install.
-	title := fmt.Sprintf("[install %s]", m.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[install %s]", m.PortConfig.nameVersion())
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(m.getLogPath("install"))
 
@@ -424,6 +430,65 @@ func (m makefiles) Install(options []string) error {
 	}
 
 	if err := executor.Execute(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// disableLibtoolRelinkForInstall if without this action, mismatched libraries would be linked during relink,
+// and error will occurred.
+func (m makefiles) disableLibtoolRelinkForInstall() error {
+	if runtime.GOOS == "windows" {
+		return nil
+	}
+	if m.Ctx.Platform().GetRootFS() == nil || m.DevDep || m.PortConfig.HostDev {
+		return nil
+	}
+
+	rootDir := m.PortConfig.SrcDir
+	if m.configureRequired() && !m.BuildInSource {
+		rootDir = m.PortConfig.BuildDir
+	}
+
+	if err := filepath.WalkDir(rootDir, func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() {
+			if d.Name() == ".git" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if filepath.Ext(path) != ".la" {
+			return nil
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		text := string(content)
+		if !strings.Contains(text, "relink_command=") {
+			return nil
+		}
+
+		lines := strings.Split(text, "\n")
+		changed := false
+		for index, line := range lines {
+			if strings.HasPrefix(line, "relink_command=") && line != `relink_command=""` {
+				lines[index] = `relink_command=""`
+				changed = true
+			}
+		}
+		if !changed {
+			return nil
+		}
+
+		return os.WriteFile(path, []byte(strings.Join(lines, "\n")), os.ModePerm)
+	}); err != nil {
 		return err
 	}
 

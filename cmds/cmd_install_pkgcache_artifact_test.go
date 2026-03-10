@@ -334,7 +334,7 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	check(port.InstallFromSource(options))
 
 	// Read commit hash.
-	commit, err := git.GetCurrentCommit(port.MatchedConfig.PortConfig.RepoDir)
+	commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
 	check(err)
 
 	// Remove installed and src dir.
