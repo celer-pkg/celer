@@ -20,7 +20,6 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 		if fileio.PathExists(repoDir) {
 			executor.SetWorkDir(repoDir)
 		}
-		executor.SetMaxRetries(3)
 		return executor.Execute()
 	}
 

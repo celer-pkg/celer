@@ -11,28 +11,25 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 type Executor struct {
-	msys2Env   bool
-	title      string
-	cmd        string
-	args       []string
-	msvcEnvs   string
-	workDir    string
-	logPath    string
-	maxRetries int
+	msys2Env bool
+	title    string
+	cmd      string
+	args     []string
+	msvcEnvs string
+	workDir  string
+	logPath  string
 }
 
 func NewExecutor(title string, cmd string, args ...string) *Executor {
 	return &Executor{
-		title:      title,
-		cmd:        cmd,
-		args:       args,
-		workDir:    "",
-		logPath:    "",
-		maxRetries: 1,
+		title:   title,
+		cmd:     cmd,
+		args:    args,
+		workDir: "",
+		logPath: "",
 	}
 }
 
@@ -54,50 +51,19 @@ func (e *Executor) SetLogPath(logPath string) *Executor {
 	return e
 }
 
-func (e *Executor) SetMaxRetries(max int) *Executor {
-	if max < 1 {
-		panic("max retries should be greater or equals than 1")
-	}
-	e.maxRetries = max
-	return e
-}
-
 func (e *Executor) ExecuteOutput() (string, error) {
-	var lastErr error
 	var buffer bytes.Buffer
-
-	for attempt := 1; attempt <= e.maxRetries; attempt++ {
-		if err := e.doExecute(&buffer); err == nil {
-			return buffer.String(), nil
-		} else {
-			lastErr = err
-			color.Printf(color.Warning, "-- %s (attempt %d/%d): %v\n", e.title, attempt, e.maxRetries, err)
-		}
-
-		if attempt < e.maxRetries {
-			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
-		}
+	if err := e.doExecute(&buffer); err != nil {
+		return "", err
 	}
-
-	return "", fmt.Errorf("%s failed after %d attempts -> %w", e.title, e.maxRetries, lastErr)
+	return buffer.String(), nil
 }
 
 func (e Executor) Execute() error {
-	var lastErr error
-	for attempt := 1; attempt <= e.maxRetries; attempt++ {
-		if err := e.doExecute(nil); err == nil {
-			return nil
-		} else {
-			lastErr = err
-			color.Printf(color.Warning, "-- %s (attempt %d/%d): %v\n", e.title, attempt, e.maxRetries, err)
-		}
-
-		if attempt < e.maxRetries {
-			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
-		}
+	if err := e.doExecute(nil); err != nil {
+		return err
 	}
-
-	return fmt.Errorf("%s failed after %d attempts -> %w", e.title, e.maxRetries, lastErr)
+	return nil
 }
 
 func (e Executor) doExecute(buffer *bytes.Buffer) error {
