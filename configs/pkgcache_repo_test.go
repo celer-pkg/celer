@@ -18,11 +18,6 @@ import (
 // BuildConfig.Clone should store a source tree into pkgcache when online,
 // and later restore that exact source tree from pkgcache before touching the
 // remote source again.
-//
-// The tests are intentionally end-to-end at the BuildConfig layer instead of
-// testing pkgcache.Repo in isolation, because the behavior we care about is
-// the integration between Clone(), pkgcache wiring, and the
-// on-disk cache layout.
 
 type fakePkgCache struct {
 	dir      string
@@ -95,11 +90,11 @@ func setupArchiveFile(t *testing.T, tmpWorkspace string) (archivePath string, ar
 		t.Fatal(err)
 	}
 
-	sha, err := fileio.CalculateChecksum(archivePath)
+	checksum, err := fileio.CalculateChecksum(archivePath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return archivePath, sha
+	return archivePath, checksum
 }
 
 func TestBuildConfigClone_GitRepoCache(t *testing.T) {
@@ -115,8 +110,8 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 	dirs.Init(tmpWorkspace)
 	t.Cleanup(func() { dirs.Init(oldWorkspace) })
 
-	cacheDir := filepath.Join(tmpWorkspace, "pkgcache")
-	if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
+	pkgCacheDir := filepath.Join(tmpWorkspace, "pkgcache")
+	if err := os.MkdirAll(pkgCacheDir, os.ModePerm); err != nil {
 		t.Fatal(err)
 	}
 
@@ -127,17 +122,17 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 		// This subtest only checks the write path:
 		// Clone() should create the source tree and also create the repo cache
 		// archive named by the resolved git commit.
-		onlineCtx := fakeContext{
+		ctx := fakeContext{
 			platform: "x86_64-linux",
 			project:  "proj",
 			build:    "release",
 			pkgCache: fakePkgCache{
-				dir:      cacheDir,
+				dir:      pkgCacheDir,
 				writable: true,
 			},
 		}
 
-		buildConfig := newBuildConfig(onlineCtx, repoDir)
+		buildConfig := newBuildConfig(ctx, repoDir)
 		if err := buildConfig.Clone(originURL, "", "", 0); err != nil {
 			t.Fatal(err)
 		}
@@ -148,20 +143,20 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		archivePath := filepath.Join(cacheDir, pkgcache.RepoCacheDir, "x264", commit+".tar.gz")
+		archivePath := filepath.Join(pkgCacheDir, pkgcache.RepoCacheDir, "x264", commit+".tar.gz")
 		if !fileio.PathExists(archivePath) {
 			t.Fatalf("expected git repo cache archive: %s", archivePath)
 		}
 	})
 
-	t.Run("restore from repo cache before remote access", func(t *testing.T) {
+	t.Run("restore from pkgcache", func(t *testing.T) {
 		// First clone online once so pkgcache contains a known commit archive.
 		onlineCtx := fakeContext{
 			platform: "x86_64-linux",
 			project:  "proj",
 			build:    "release",
 			pkgCache: fakePkgCache{
-				dir:      cacheDir,
+				dir:      pkgCacheDir,
 				writable: true,
 			},
 		}
@@ -195,7 +190,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 			pkgCache: fakePkgCache{
-				dir:      cacheDir,
+				dir:      pkgCacheDir,
 				writable: false,
 			},
 		}
@@ -229,9 +224,9 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 	dirs.Init(tmpWorkspace)
 	t.Cleanup(func() { dirs.Init(oldWorkspace) })
 
-	cacheDir := filepath.Join(tmpWorkspace, "pkgcache")
+	pkgCacheDir := filepath.Join(tmpWorkspace, "pkgcache")
 	downloadsDir := filepath.Join(tmpWorkspace, "downloads")
-	if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(pkgCacheDir, os.ModePerm); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.MkdirAll(downloadsDir, os.ModePerm); err != nil {
@@ -249,7 +244,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		build:     "release",
 		downloads: downloadsDir,
 		pkgCache: fakePkgCache{
-			dir:      cacheDir,
+			dir:      pkgCacheDir,
 			writable: true,
 		},
 	}
@@ -264,7 +259,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 
 	// Archive sources use the archive checksum as the cache key, so the stored
 	// repo cache is expected to be <repo-name>/<sha>.tar.gz.
-	cacheArchivePath := filepath.Join(cacheDir, pkgcache.RepoCacheDir, "x264-archive.tar.gz", archiveSha+".tar.gz")
+	cacheArchivePath := filepath.Join(pkgCacheDir, pkgcache.RepoCacheDir, "x264-archive.tar.gz", archiveSha+".tar.gz")
 	if !fileio.PathExists(cacheArchivePath) {
 		t.Fatalf("expected archive repo cache exists: %s", cacheArchivePath)
 	}
@@ -286,7 +281,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		build:     "release",
 		downloads: downloadsDir,
 		pkgCache: fakePkgCache{
-			dir:      cacheDir,
+			dir:      pkgCacheDir,
 			writable: false,
 		},
 	}

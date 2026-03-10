@@ -299,7 +299,7 @@ func (b BuildConfig) Validate() error {
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// In default, clone or download into repo dir.
 	var cmakeConfigPath string
-	var initRepoForArchive bool
+	var trackArchiveAsLocalRepo bool
 
 	// Check cmake_config.toml in port dirs.
 	publicPortDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
@@ -331,34 +331,33 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		}
 	}
 
-	// For git repo, clone it when source dir doesn't exists.
-	if strings.HasSuffix(repoUrl, ".git") {
-		var repoCache context.RepoCache
-
-		// Try to fetch repo from pkgcache.
-		pkgCache := b.Ctx.PkgCache()
-		if pkgCache != nil {
-			repoCache = pkgCache.GetRepoCache()
-			if repoCache != nil && b.PortConfig.CacheRepo {
-				if fromWhere, err := repoCache.Restore(repoUrl, b.PortConfig.RepoDir, repoRef); err != nil {
-					color.Printf(color.Warning, "\n[!] failed to restore git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)
-				} else if fromWhere != "" {
-					color.PrintHint("[%s] Repo is restored from pkgcache: %s\n", b.PortConfig.nameVersionDesc(), fromWhere)
-					return nil
-				}
+	// Try to fetch repo from pkgcache.
+	var repoCache context.RepoCache
+	pkgCache := b.Ctx.PkgCache()
+	if repoUrl != "_" && pkgCache != nil {
+		repoCache = pkgCache.GetRepoCache()
+		if repoCache != nil && b.PortConfig.CacheRepo {
+			if fromWhere, err := repoCache.Restore(repoUrl, b.PortConfig.RepoDir, repoRef); err != nil {
+				color.Printf(color.Warning, "\n[!] failed to restore git repo cache for %s: %v\n", b.PortConfig.nameVersionDesc(), err)
+			} else if fromWhere != "" {
+				color.PrintHint("[%s] Repo is restored from pkgcache: %s\n", b.PortConfig.nameVersionDesc(), fromWhere)
+				return nil
 			}
 		}
+	}
 
+	// For git repo, clone it when source dir doesn't exists.
+	if strings.HasSuffix(repoUrl, ".git") {
 		// Do clone or download repo.
 		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersionDesc())
 		if err := git.CloneRepo(title, repoUrl, repoRef, depth, b.PortConfig.RepoDir); err != nil {
 			return err
 		}
 
-		// Store git repo as archive after clone or download.
+		// Store git repo as archive after clone.
 		if repoCache != nil && b.PortConfig.CacheRepo {
 			if whereStored, err := repoCache.Store(repoUrl, b.PortConfig.RepoDir); err != nil {
-				color.Printf(color.Warning, "[x] -- failed to store repo cache for %s -> %v\n", b.PortConfig.nameVersionDesc(), err)
+				return fmt.Errorf("failed to store repo cache for %s -> %v\n", b.PortConfig.nameVersionDesc(), err)
 			} else if whereStored != "" {
 				color.PrintInfo("[%s]: repo is stored to %s\n", b.PortConfig.nameVersionDesc(), whereStored)
 			}
@@ -388,7 +387,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		// Archive sources under buildtrees are tracked as local git repos for
 		// local-change detection in install flow. Delay init until after any
 		// generated files (e.g. prebuilt CMakeLists) are created.
-		initRepoForArchive = strings.Contains(b.PortConfig.RepoDir, dirs.BuildtreesDir)
+		trackArchiveAsLocalRepo = fileio.IsSubPath(dirs.BuildtreesDir, b.PortConfig.RepoDir)
 	}
 
 	// Generate a CMakeLists.txt for prebuilt project.
@@ -405,9 +404,18 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 	// Initialize archive source as local git repo after internal generated files
 	// are ready, so they won't be treated as user local modifications.
-	if initRepoForArchive {
+	if trackArchiveAsLocalRepo {
 		if err := git.InitAsLocalRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
 			return err
+		}
+
+		// Store git repo as archive after download.
+		if repoCache != nil && b.PortConfig.CacheRepo {
+			if whereStored, err := repoCache.Store(repoUrl, b.PortConfig.RepoDir); err != nil {
+				return fmt.Errorf("failed to store repo cache for %s -> %v\n", b.PortConfig.nameVersionDesc(), err)
+			} else if whereStored != "" {
+				color.PrintInfo("[%s]: repo is stored to %s\n", b.PortConfig.nameVersionDesc(), whereStored)
+			}
 		}
 	}
 

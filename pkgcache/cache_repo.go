@@ -42,41 +42,71 @@ func (r Repo) Store(repoUrl, repoDir string) (string, error) {
 		return "", nil
 	}
 
-	commit, err := git.GetCurrentCommit(repoDir)
-	if err != nil {
-		return "", fmt.Errorf("read current commit -> %w", err)
-	}
-
 	// Create folder to store repo archive.
 	if err := os.MkdirAll(r.repoCacheDir, os.ModePerm); err != nil {
 		return "", err
 	}
 
-	// Ignore when repo archive is stored before.
-	// Archive name will be like: x264/472338e072b6a83fd47825cc91cef81dc848e564.tar.gz
-	repoName := r.gitRepoName(repoUrl)
-	archivePath := filepath.Join(r.repoCacheDir, repoName, commit+".tar.gz")
-	if fileio.PathExists(archivePath) {
-		return "", nil
-	}
+	if strings.HasSuffix(repoUrl, ".git") {
+		commit, err := git.GetCurrentCommit(repoDir)
+		if err != nil {
+			return "", fmt.Errorf("read current commit -> %w", err)
+		}
 
-	// Create repo name folder if not exist.
-	if err := os.MkdirAll(filepath.Dir(archivePath), os.ModePerm); err != nil {
-		return "", err
-	}
+		// Ignore when repo archive is stored before.
+		// Archive name will be like: x264/472338e072b6a83fd47825cc91cef81dc848e564.tar.gz
+		repoName := r.gitRepoName(repoUrl)
+		archivePath := filepath.Join(r.repoCacheDir, repoName, commit+".tar.gz")
+		if fileio.PathExists(archivePath) {
+			return "", nil
+		}
 
-	// Compress as a tmp tar.gz and mv to final repo archive.
-	millisecond := time.Now().UnixMilli()
-	tempArchivePath := archivePath + fmt.Sprintf(".tmp-%d", millisecond)
-	if err := fileio.Targz(tempArchivePath, repoDir, false); err != nil {
-		return "", err
-	}
-	if err := os.Rename(tempArchivePath, archivePath); err != nil {
-		_ = os.Remove(tempArchivePath)
-		return "", err
-	}
+		// Create repo name folder if not exist.
+		if err := os.MkdirAll(filepath.Dir(archivePath), os.ModePerm); err != nil {
+			return "", err
+		}
 
-	return archivePath, nil
+		// Compress as a tmp tar.gz and mv to final repo archive.
+		millisecond := time.Now().UnixMilli()
+		tempArchivePath := archivePath + fmt.Sprintf(".tmp-%d", millisecond)
+		if err := fileio.Targz(tempArchivePath, repoDir, false); err != nil {
+			return "", err
+		}
+		if err := os.Rename(tempArchivePath, archivePath); err != nil {
+			_ = os.Remove(tempArchivePath)
+			return "", err
+		}
+		return archivePath, nil
+	} else {
+		// Compress as a tmp tar.gz and mv to final repo archive.
+		millisecond := time.Now().UnixMilli()
+		tempArchivePath := fmt.Sprintf("%s/archive.tmp-%d", os.TempDir(), millisecond)
+		if err := fileio.Targz(tempArchivePath, repoDir, false); err != nil {
+			return "", err
+		}
+		checksum, err := fileio.CalculateChecksum(tempArchivePath)
+		if err != nil {
+			return "", err
+		}
+
+		// Ignore when repo archive is stored before.
+		// Archive name will be like: x264/472338e072b6a83fd47825cc91cef81dc848e564.tar.gz
+		repoName := r.gitRepoName(repoUrl)
+		archivePath := filepath.Join(r.repoCacheDir, repoName, checksum+".tar.gz")
+		if fileio.PathExists(archivePath) {
+			return "", nil
+		}
+
+		// Create repo name folder if not exist.
+		if err := os.MkdirAll(filepath.Dir(archivePath), os.ModePerm); err != nil {
+			return "", err
+		}
+		if err := os.Rename(tempArchivePath, archivePath); err != nil {
+			_ = os.Remove(tempArchivePath)
+			return "", err
+		}
+		return archivePath, nil
+	}
 }
 
 // Restore extract restored archive to destination and return the archive filepath that restored from.
