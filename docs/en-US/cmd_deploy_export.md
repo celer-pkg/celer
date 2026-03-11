@@ -12,22 +12,22 @@ celer deploy --export=<export_dir>
 
 - Export starts only after deployment succeeds.
 - Existing export directory is removed and recreated.
-- Snapshot contains fixed dependency commits or archive hash for reproducibility.
+- Snapshot contains fixed dependency checksums for reproducibility.
 
 ## Exported Content
 
-- `ports/`: used ports with matched build config and fixed commit
+- `ports/`: used ports with matched build config and fixed checksum
 - `conf/`: workspace conf directory (`.git` excluded)
 - `celer.toml`
 - `toolchain_file.cmake`
 - `snapshot.json`
 - current `celer` executable
 
-## Commit Source Rules
+## Checksum Rules
 
-- Git URL (`*.git`): read actual local commit from cloned source.
-- Private repo with fixed `package.commit`: use that fixed commit.
-- Archive URL (`.zip/.tar...`): use `sha-256:<checksum>` as commit.
+- Git URL (`*.git`): read the actual local commit hash from cloned source as the checksum.
+- Private repo with fixed `package.checksum`: use that fixed checksum.
+- Archive URL (`.zip/.tar...`): use `sha-256:<checksum>` as the checksum.
 
 ## Common Examples
 
@@ -56,7 +56,7 @@ celer deploy --force --export=snapshots/rebuild
     {
       "name": "opencv",
       "version": "4.11.0",
-      "commit": "0e5254ebf54d2aed6e7eaf6660bf3b797cf50a02",
+      "checksum": "0e5254ebf54d2aed6e7eaf6660bf3b797cf50a02",
       "url": "https://github.com/opencv/opencv.git"
     }
   ]

@@ -188,7 +188,7 @@ func (p Port) Clone() error {
 	if p.Package.Url != "_" {
 		// Repo may archived in pkgcache/repos with filename of commit hash,
 		// we prefer clone with commit, so that repo can restore from pkgcache/repos.
-		repoRef := expr.If(p.Package.Commit != "", p.Package.Commit, p.Package.Ref)
+		repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
 		if err := p.MatchedConfig.Clone(p.Package.Url, repoRef, p.Package.Archive, p.Package.Depth); err != nil {
 			return err
 		}
@@ -220,7 +220,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache contex
 	}
 
 	// Calculate buildhash.
-	buildhash, err := p.buildhash(p.Package.Commit)
+	buildhash, err := p.buildhash(p.Package.Checksum)
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate buildhash -> %w", err)
 	}
@@ -294,7 +294,7 @@ func (p Port) doInstallFromSource() error {
 		}
 
 		// Write meta file with installed files and build environment.
-		metaData, err := p.buildMeta(p.Package.Commit)
+		metaData, err := p.buildMeta(p.Package.Checksum)
 		if err != nil {
 			installFailed = true
 			return err
@@ -402,7 +402,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to read package meta of %s -> %w", p.NameVersion(), err)
 	}
-	newMeta, err := p.buildMeta(p.Package.Commit)
+	newMeta, err := p.buildMeta(p.Package.Checksum)
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate meta of %s -> %w", p.NameVersion(), err)
 	}
@@ -478,8 +478,8 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 
 		fromDir := pkgCache.GetDir()
 		return true, p.writeTraceFile(fmt.Sprintf("package pkgcache: %q", fromDir))
-	} else if p.Package.Commit != "" {
-		return false, fmt.Errorf("%w: %s", errors.ErrArtifactCacheNotFound, p.Package.Commit)
+	} else if p.Package.Checksum != "" {
+		return false, fmt.Errorf("%w: %s", errors.ErrArtifactCacheNotFound, p.Package.Checksum)
 	}
 
 	return false, nil

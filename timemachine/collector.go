@@ -67,32 +67,33 @@ func (c *Collector) collectRecursive(nameVersion string) error {
 	return nil
 }
 
-// GetPortCommit gets the actual commit hash from the downloaded source repository.
-// This reads the commit from the actual git repository after it has been cloned.
-func (c *Collector) GetPortCommit(port *configs.Port) (string, error) {
-	// For archive downloads (zip/tar), use the sha-256 as commit.
+// GetPortChecksum gets the reproducibility checksum from the downloaded source.
+// For git sources this is the checked-out commit hash. For archive sources this
+// is the archive sha-256 prefixed with "sha-256:".
+func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
+	// For archive downloads (zip/tar), use the sha-256 as checksum.
 	if !strings.HasSuffix(port.Package.Url, ".git") {
 		archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
 		filePath := filepath.Join(c.ctx.Downloads(), archive)
-		commit, err := fileio.GetFileSha256(filePath)
+		sha256, err := fileio.GetFileSha256(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of port's archive %s -> %w", port.NameVersion(), err)
 		}
-		return "sha-256:" + commit, nil
+		return "sha-256:" + sha256, nil
 	}
 
-	// For private repositories with fixed commit, just use the specified commit.
-	if port.Package.Commit != "" {
-		return port.Package.Commit, nil
+	// For private repositories with fixed checksum, just use the specified value.
+	if port.Package.Checksum != "" {
+		return port.Package.Checksum, nil
 	}
 
 	// For git repositories, read the actual commit from the cloned repo.
-	commit, err := git.GetCommitHash(port.Package.SrcDir)
+	commitHash, err := git.GetCommitHash(port.Package.SrcDir)
 	if err != nil {
-		return "", fmt.Errorf("failed to read local commit for %s -> %w", port.NameVersion(), err)
+		return "", fmt.Errorf("failed to read local source checksum for %s -> %w", port.NameVersion(), err)
 	}
-	if commit != "" {
-		return commit, nil
+	if commitHash != "" {
+		return commitHash, nil
 	}
-	return "", fmt.Errorf("commit not found for %s", port.NameVersion())
+	return "", fmt.Errorf("source checksum not found for %s", port.NameVersion())
 }

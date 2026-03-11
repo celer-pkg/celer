@@ -17,12 +17,12 @@ type Snapshot struct {
 	Notes        string         `json:"notes,omitempty"`
 }
 
-// PortSnapshot represents a snapshot of a port with fixed commit.
+// PortSnapshot represents a snapshot of a port with a fixed source checksum.
 type PortSnapshot struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Commit  string `json:"commit"`
-	URL     string `json:"url"`
+	Name     string `json:"name"`
+	Version  string `json:"version"`
+	Checksum string `json:"checksum"`
+	URL      string `json:"url"`
 }
 
 // Save saves the snapshot to a JSON file.

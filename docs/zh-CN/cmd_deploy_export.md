@@ -12,22 +12,22 @@ celer deploy --export=<export_dir>
 
 - 只有部署成功后才会开始导出。
 - 目标导出目录会先清空再重建。
-- 快照会固定依赖提交信息，用于复现。
+- 快照会固定依赖源码校验值，用于复现。
 
 ## 导出内容
 
-- `ports/`：项目实际使用端口，写入固定 commit 和匹配构建配置
+- `ports/`：项目实际使用端口，写入固定 checksum 和匹配构建配置
 - `conf/`：工作区配置目录（不包含 `.git`）
 - `celer.toml`
 - `toolchain_file.cmake`
 - `snapshot.json`
 - 当前 `celer` 可执行文件
 
-## commit 采集规则
+## checksum 采集规则
 
-- Git URL（`*.git`）：读取本地源码仓库实际 commit。
-- 私有仓库且指定了 `package.commit`：使用该固定 commit。
-- 压缩包 URL（`.zip/.tar...`）：使用 `sha-256:<checksum>` 作为 commit。
+- Git URL（`*.git`）：读取本地源码仓库实际 commit 哈希作为 checksum。
+- 私有仓库且指定了 `package.checksum`：使用该固定 checksum。
+- 压缩包 URL（`.zip/.tar...`）：使用 `sha-256:<checksum>` 作为 checksum。
 
 ## 常用示例
 
@@ -56,7 +56,7 @@ celer deploy --force --export=snapshots/rebuild
     {
       "name": "opencv",
       "version": "4.11.0",
-      "commit": "0e5254ebf54d2aed6e7eaf6660bf3b797cf50a02",
+      "checksum": "0e5254ebf54d2aed6e7eaf6660bf3b797cf50a02",
       "url": "https://github.com/opencv/opencv.git"
     }
   ]
