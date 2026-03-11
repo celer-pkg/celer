@@ -5,13 +5,13 @@ import (
 )
 
 var (
-	ErrPortNotFound            = errors.New("port is not found")
-	ErrNoMatchedConfigFound    = errors.New("no matched config found")
-	ErrRepoNotExit             = errors.New("repo not exist")
-	ErrInvalidBuildType        = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
-	ErrPackageCacheInvalid     = errors.New("package cache is invalid")
-	ErrPackageCacheDirNotExist = errors.New("package cache dir not exist")
-	ErrArtifactCacheNotFound   = errors.New("artifact cache not found with commit hash")
+	ErrPortNotFound             = errors.New("port is not found")
+	ErrNoMatchedConfigFound     = errors.New("no matched config found")
+	ErrRepoNotExit              = errors.New("repo not exist")
+	ErrInvalidBuildType         = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
+	ErrPkgCacheDirEmpty         = errors.New("pkgcache dir is invalid")
+	ErrPkgCacheDirNotExist      = errors.New("pkgcache dir not exist")
+	ErrPkgCacheArtifactNotFound = errors.New("artifact cache not found with commit hash")
 )
 
 // Is same as errors.Is

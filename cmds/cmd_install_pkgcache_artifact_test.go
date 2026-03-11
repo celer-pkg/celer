@@ -408,7 +408,7 @@ func TestInstall_PkgCache_With_Commit_Failed(t *testing.T) {
 	// Install from cache with not matched commit.
 	port.Package.Checksum = "not_matched_commit_xxxxxx"
 	installed, err := port.InstallFromPackageCache(options)
-	if err == nil || !errors.Is(err, errors.ErrArtifactCacheNotFound) {
+	if err == nil || !errors.Is(err, errors.ErrPkgCacheArtifactNotFound) {
 		t.Fatal("should return ErrArtifactCacheNotFound")
 	}
 	if installed {

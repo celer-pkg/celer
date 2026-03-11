@@ -32,9 +32,9 @@ func NewArtifact(ctx context.Context, pkgDir string, writable bool) *Aritifact {
 	}
 }
 
-// Restore restores the cached package to destDir if cache hit, and return the archive path.
+// Restore restores the cached package to package directory if cache hit, and return the archive path.
 // If cache miss, just return empty string without error.
-func (a Aritifact) Restore(nameVersion, hash, destDir string) (string, error) {
+func (a Aritifact) Restore(nameVersion, buildHash, packageDir string) (string, error) {
 	// skip restore cache when offline.
 	if a.ctx.Offline() {
 		return "", nil
@@ -45,13 +45,13 @@ func (a Aritifact) Restore(nameVersion, hash, destDir string) (string, error) {
 	buildType := a.ctx.BuildType()
 
 	archiveDir := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion)
-	archivePath := filepath.Join(archiveDir, hash+".tar.gz")
+	archivePath := filepath.Join(archiveDir, buildHash+".tar.gz")
 	if !fileio.PathExists(archivePath) {
 		return "", nil // not an error even not exist.
 	}
 
 	// The meta file hash should be the same as hash that calcuated dynamically.
-	metaPath := filepath.Join(archiveDir, "meta", hash+".meta")
+	metaPath := filepath.Join(archiveDir, "meta", buildHash+".meta")
 	metaBytes, err := os.ReadFile(metaPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -60,7 +60,7 @@ func (a Aritifact) Restore(nameVersion, hash, destDir string) (string, error) {
 		return "", err
 	}
 	metaHash := sha256.Sum256(metaBytes)
-	if fmt.Sprintf("%x", metaHash) != hash {
+	if fmt.Sprintf("%x", metaHash) != buildHash {
 		return "", fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
 	}
 
@@ -78,13 +78,13 @@ func (a Aritifact) Restore(nameVersion, hash, destDir string) (string, error) {
 	if err := fileio.Extract(archivePath, tempDir); err != nil {
 		return "", err
 	}
-	if err := os.RemoveAll(destDir); err != nil {
+	if err := os.RemoveAll(packageDir); err != nil {
 		return "", err
 	}
-	if err := os.MkdirAll(filepath.Dir(destDir), os.ModePerm); err != nil {
+	if err := os.MkdirAll(filepath.Dir(packageDir), os.ModePerm); err != nil {
 		return "", err
 	}
-	if err := os.Rename(tempDir, destDir); err != nil {
+	if err := os.Rename(tempDir, packageDir); err != nil {
 		return "", err
 	}
 

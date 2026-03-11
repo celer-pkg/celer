@@ -704,7 +704,7 @@ func TestConfigure_PkgCacheDir_DirNotExist(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetPkgCacheDir(dirs.TestCacheDir); !errors.Is(err, errors.ErrPackageCacheDirNotExist) {
+	if err := celer.SetPkgCacheDir(dirs.TestCacheDir); !errors.Is(err, errors.ErrPkgCacheDirNotExist) {
 		t.Fatal("expected error for package cache dir not exist")
 	}
 }

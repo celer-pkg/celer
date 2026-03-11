@@ -341,9 +341,9 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		repoCache = pkgCache.GetRepoCache()
 		if repoCache != nil && b.PortConfig.CacheRepo {
 			if fromWhere, err := repoCache.Restore(nameVersion, repoUrl, b.PortConfig.RepoDir, repoRef); err != nil {
-				color.PrintWarning(err, "failed to restore git repo cache for %s", nameVersion)
+				color.PrintWarning("failed to restore %s with git repo cache: %s", nameVersion, err)
 			} else if fromWhere != "" {
-				color.PrintHint("[%s] Repo is restored from pkgcache: %s\n", nameVersion, fromWhere)
+				color.PrintInfo("[%s] Repo is restored from pkgcache: %s\n", nameVersion, fromWhere)
 				return nil
 			}
 		}

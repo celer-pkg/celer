@@ -37,7 +37,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		if p.Parent == "" {
 			reportPath, err := p.installReport.write(p)
 			if err != nil {
-				color.PrintWarning(err, "failed to write install report for %s", p.NameVersion())
+				color.PrintWarning("failed to write install report for %s: %s", p.NameVersion(), err)
 				return
 			}
 			color.PrintHint("Report: %s\n", reportPath)
@@ -197,7 +197,7 @@ func (p Port) Clone() error {
 	return nil
 }
 
-func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache context.AritifactCache) (bool, error) {
+func (p Port) doInstallFromPackageCache(options InstallOptions, artifactCache context.AritifactCache) (bool, error) {
 	// Try to install dependencies first.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
 		var port Port
@@ -227,7 +227,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache contex
 
 	// Read cache file and extract them to package dir.
 	if artifactCache != nil {
-		if fromWhere, err := artifactCache.Restore(p.NameVersion(), buildhash, p.MatchedConfig.PortConfig.PackageDir); err != nil {
+		if fromWhere, err := artifactCache.Restore(p.NameVersion(), buildhash, p.PackageDir); err != nil {
 			return false, fmt.Errorf("read cache with buildhash: %s", err)
 		} else if fromWhere != "" {
 			return true, nil
@@ -262,17 +262,18 @@ func (p Port) doInstallFromSource() error {
 			return err
 		}
 		if modified {
-			skipStoreCacheReason = "\n[!] skip storing package cache for %s: source repo has local modifications before build.\n"
-		}
-
-		// Only up to date repo can store package cache for git repo.
-		if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
-			upToDate, err := git.CheckIfUpToDate(p.MatchedConfig.PortConfig.RepoDir)
-			if err != nil {
-				return err
-			}
-			if !upToDate {
-				skipStoreCacheReason = "\n[!] skip storing package cache for %s: source repo is not up to date.\n"
+			skipStoreCacheReason = "skip storing package cache for %s: source repo has local modifications before build."
+		} else {
+			// Only repos that match the configured source ref can store package cache.
+			if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
+				repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
+				matchesRef, err := git.CheckIfMatchesRef(p.ctx, p.MatchedConfig.PortConfig.RepoDir, repoRef)
+				if err != nil {
+					return err
+				}
+				if !matchesRef {
+					skipStoreCacheReason = "skip storing package cache for %s: source repo does not match the configured ref."
+				}
 			}
 		}
 	}
@@ -310,9 +311,10 @@ func (p Port) doInstallFromSource() error {
 		}
 
 		// Store package cache with meta file inside.
-		if pkgCache != nil && pkgCache.IsWritable() {
+		// For dev port, artifacts are built with local toolchains that may differ in different devcies.
+		if pkgCache != nil && pkgCache.IsWritable() && !p.DevDep && !p.HostDep {
 			if skipStoreCacheReason != "" {
-				color.Printf(color.Warning, skipStoreCacheReason, p.NameVersion())
+				color.PrintWarning(skipStoreCacheReason, p.NameVersion())
 				return nil
 			}
 
@@ -457,7 +459,7 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 		return false, nil
 	}
 
-	installed, err := p.doInstallFromPkgCache(options, pkgCache.GetArtifactCache())
+	installed, err := p.doInstallFromPackageCache(options, pkgCache.GetArtifactCache())
 	if err != nil {
 		// Repo not exist is not error.
 		if errors.Is(err, errors.ErrRepoNotExit) {
@@ -477,9 +479,9 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 		}
 
 		fromDir := pkgCache.GetDir()
-		return true, p.writeTraceFile(fmt.Sprintf("package pkgcache: %q", fromDir))
+		return true, p.writeTraceFile(fmt.Sprintf("pkgcache: %q", fromDir))
 	} else if p.Package.Checksum != "" {
-		return false, fmt.Errorf("%w: %s", errors.ErrArtifactCacheNotFound, p.Package.Checksum)
+		return false, fmt.Errorf("%w: %s", errors.ErrPkgCacheDirNotExist, p.Package.Checksum)
 	}
 
 	return false, nil

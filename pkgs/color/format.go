@@ -35,14 +35,8 @@ func PrintError(err error, format string, args ...any) error {
 	return ErrSilent
 }
 
-func PrintWarning(err error, format string, args ...any) string {
-	details := strings.ReplaceAll(err.Error(), " -> ", ":\n--> ")
-	return Sprintf(Warning, "\n[!] %s\n[☛] %s\n", fmt.Sprintf(format, args...), details)
-}
-
-func SprintWarning(err error, format string, args ...any) string {
-	details := strings.ReplaceAll(err.Error(), " -> ", ":\n--> ")
-	return Sprintf(Warning, "\n[!] %s\n[☛] %s\n", fmt.Sprintf(format, args...), details)
+func PrintWarning(format string, args ...any) {
+	Printf(Pass, "\n[!] -- %s", fmt.Sprintf(format, args...))
 }
 
 func PrintPass(format string, args ...any) {

@@ -483,10 +483,10 @@ func (c *Celer) SetVerbose(vebose bool) error {
 func (c *Celer) SetPkgCacheDir(dir string) error {
 	// Check dir empty and exist.
 	if strings.TrimSpace(dir) == "" {
-		return errors.ErrPackageCacheInvalid
+		return errors.ErrPkgCacheDirEmpty
 	}
 	if !fileio.PathExists(dir) {
-		return errors.ErrPackageCacheDirNotExist
+		return errors.ErrPkgCacheDirNotExist
 	}
 
 	if err := c.readOrCreate(); err != nil {
