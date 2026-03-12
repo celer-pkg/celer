@@ -20,12 +20,12 @@ Celer is not just another wrapper around C/C++ dependency management. It is desi
 
 It is not optimized for the simple case of “download a library and link it”. It is built for the harder cases that show up in real projects:
 
-- 🎯 **Zero project intrusion**: integrate through `toolchain_file.cmake` without rewriting your business code or build logic.
-- 🚀 **Cross-compilation first**: describe compilers, sysroots, ABIs, environment variables, and dependency sources in one platform model instead of stitching them together later.
-- 📦 **Reusable build artifacts**: reduce rebuild cost and environment drift with hash-based artifact reuse.
-- 🔧 **Multiple upstream build systems**: supports CMake, Make, Meson, B2, QMake, and GYP without forcing a single build ecosystem.
-- 🏢 **Project-level isolation**: dependency versions, macros, environment variables, and CMake variables stay scoped to the project instead of leaking globally.
-- 🔗 **Built for collaboration and delivery**: generated `toolchain_file.cmake` files can be shared directly with teams and CI systems without requiring every user to operate Celer locally.
+- 🎯 **Low intrusion**: integrate through `toolchain_file.cmake` without rewriting your business code or build logic.
+- 🚀 **Cross-compile ready**: describe compilers, sysroots, ABIs, environment variables, and dependency sources in one platform model instead of stitching them together later.
+- 📦 **Artifact reuse**: reduce rebuild cost and environment drift with hash-based artifact reuse.
+- 🔧 **Multi-buildsystem**: supports CMake, Make, Meson, B2, QMake, and GYP without forcing a single build ecosystem.
+- 🏢 **Project isolation**: dependency versions, macros, environment variables, and CMake variables stay scoped to the project instead of leaking globally.
+- 🔗 **Team delivery**: generated `toolchain_file.cmake` files can be shared directly with teams and CI systems without requiring every user to operate Celer locally.
 
 ## 🚀 Quick Start
 
@@ -74,7 +74,7 @@ In practice, this means:
 | **📦 CMake Config** | Automatically generates CMake configuration for prebuilt binaries to reduce integration friction. |
 | **⚡ Artifact Cache** | Uses hash-based artifact caching for private libraries, binary delivery, and large-scale repeated builds. |
 | **💻 Dev Mode** | Run `celer deploy` once, then continue development in any IDE with the generated toolchain file. |
-| **🔄 CI/CD integration** | Platform and project configuration can flow directly into pipelines, reducing drift between developer and CI environments. |
+| **🔄 CI/CD** | Platform and project configuration can flow directly into pipelines, reducing drift between developer and CI environments. |
 | **📸 Snapshots** | Export reproducible workspace snapshots for debugging, traceability, and handoff. |
 
 ## 🆚 Where Celer Wins Against Other C++ Package Managers
@@ -85,13 +85,13 @@ Celer is stronger where **delivery efficiency and environment consistency** matt
 
 | Dimension | Conan / vcpkg / XMake typical approach | ✅ Where Celer is stronger |
 | --- | --- | --- |
-| **Project intrusion** | Often requires recipes, ports, or ecosystem-specific integration work | Integrates through `toolchain_file.cmake` with lower project intrusion |
-| **Cross-compilation modeling** | Toolchains, profiles, and triplets are often assembled separately | Platforms, toolchains, environment variables, and dependencies are modeled together |
-| **Project-level isolation** | Shared/global configuration can become a conflict source | Dependency and build settings stay scoped at the project boundary |
-| **Multi-subproject coordination** | Often wired manually one project at a time | A single configuration can coordinate multiple subprojects |
-| **Private libraries and binary delivery** | Usually needs extra packaging conventions and workflow glue | Better suited for enterprise artifact repositories and prebuilt internal packages |
-| **Caching and rebuild cost** | Caching exists, but is not always centered on engineering-level artifact reuse | Hash-based artifact caching is designed to maximize team-wide reuse and build stability |
-| **Collaboration and environment reproduction** | Users often need to understand the full local toolchain stack | Generated toolchain files and workspace snapshots are easier to share and reproduce |
+| **Intrusion** | Often requires recipes, ports, or ecosystem-specific integration work | Integrates through `toolchain_file.cmake` with lower project intrusion |
+| **Cross-compile model** | Toolchains, profiles, and triplets are often assembled separately | Platforms, toolchains, environment variables, and dependencies are modeled together |
+| **Project isolation** | Shared/global configuration can become a conflict source | Dependency and build settings stay scoped at the project boundary |
+| **Multi-project sync** | Often wired manually one project at a time | A single configuration can coordinate multiple subprojects |
+| **Private binaries** | Usually needs extra packaging conventions and workflow glue | Better suited for enterprise artifact repositories and prebuilt internal packages |
+| **Cache and rebuilds** | Caching exists, but is not always centered on engineering-level artifact reuse | Hash-based artifact caching is designed to maximize team-wide reuse and build stability |
+| **Sharing and repro** | Users often need to understand the full local toolchain stack | Generated toolchain files and workspace snapshots are easier to share and reproduce |
 
 In one sentence:
 
