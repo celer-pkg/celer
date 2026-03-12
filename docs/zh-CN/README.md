@@ -2,7 +2,7 @@
 
 # Celer
 
-**轻量级、非侵入式的 C/C++ 包管理器，专为 CMake 项目设计**
+**轻量、非侵入、面向工程交付的 C/C++ 包管理工具，适用于以 CMake 为主的项目**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Report Card](https://goreportcard.com/badge/github.com/celer-pkg/celer)](https://goreportcard.com/report/github.com/celer-pkg/celer)
@@ -16,14 +16,16 @@
 
 ## ✨ 为什么选择 Celer？
 
-Celer 是 C/C++ 的加速器，解决实际依赖管理中的核心挑战：
+Celer 不是把 C/C++ 依赖管理再包装一层，而是把**依赖、工具链、平台、项目配置和交付环境**统一到一条可复用的工程链路里。
 
-- 🎯 **项目零侵入** - 只需一个 `toolchain_file.cmake`你的项目就可以进行开发
-- 🚀 **简化的交叉编译** - 平台感知的依赖管理，自动配置工具链编译环境
-- 📦 **智能缓存** - 基于哈希的二进制制品缓存，节省数小时构建时间
-- 🔧 **多构建系统支持** - 原生支持 CMake、MakeFiles、Meson、B2、QMake、GYP等
-- 🏢 **企业级就绪** - 项目级配置防止依赖版本冲突和环形依赖
-- 🔗 **非侵入式设计** - 可移植的 `toolchain_file.cmake` 生成后可独立使用
+它适合的不是“只想下载一个库”的场景，而是下面这些真实工程问题：
+
+- 🎯 **对项目零侵入**：通过生成 `toolchain_file.cmake` 对接现有工程，不要求你改业务代码或重写构建系统。
+- 🚀 **天然面向交叉编译**：平台配置中直接描述编译器、sysroot、ABI、环境变量和依赖来源，而不是事后手工拼接。
+- 📦 **强调可复用的构建产物**：通过基于哈希的缓存机制复用包产物，减少重复编译和环境漂移。
+- 🔧 **支持多种上游构建系统**：不仅支持 CMake，也支持 Make、Meson、B2、QMake、GYP 等常见构建方式。
+- 🏢 **项目级隔离**：依赖版本、宏、环境变量和 CMake 变量都跟项目走，避免全局污染和版本互相踩踏。
+- 🔗 **面向协作和交付**：生成后的 `toolchain_file.cmake` 可以单独分发，使用方不必强依赖本地安装 Celer。
 
 ## 🚀 快速开始
 
@@ -53,95 +55,108 @@ cmake --build .
 
 ![workflow](../assets/workflow.svg)
 
-Celer 生成平台特定的 `toolchain_file.cmake`，作为项目与预配置构建环境及依赖之间的桥梁。这使得 Celer 完全与项目解耦 - 一旦生成工具链文件，你可以将其分享给团队，他们甚至不需要安装 Celer！
+Celer 会根据选定的平台和项目配置生成一个平台感知的 `toolchain_file.cmake`，把你的工程与预定义的工具链、依赖、环境变量和构建参数连接起来。
 
-## 🌟 核心功能
+这意味着：
 
-| 功能特性 | 你将获得 |
+- 你的项目仍然保持原有的 CMake 组织方式；
+- 依赖和平台配置由外部统一管理；
+- 工具链文件生成后可以独立使用，适合团队协作、CI/CD 和问题复现。
+
+## 🌟 核心能力
+
+| 能力 | 价值 |
 | --- | --- |
-| **🔧 可配置化的交叉编译平台** | 通过友好的 TOML 配置预定义 ARM、x86、Windows、Linux 等平台的工具链。 |
-| **🎮 嵌入式系统支持** | 通过 `embedded_system` 标志完善支持 MCU 和裸机环境 - 无需操作系统依赖。 |
-| **📁 项目级依赖管理** | 每个项目维护独立的依赖版本、环境变量、宏定义和 CMake 变量 - 避免全局冲突。 |
-| **🛠️ 多构建系统支持** | 原生支持 **CMake**、**Makefiles**、**Meson**、**B2**、**QMake**、**GYP** - 无需编写复杂脚本。 |
-| **📦 自动生成 CMake 配置** | 为预编译号的二进制库自动生成 CMake config 文件，确保无缝集成。 |
-| **⚡ 智能二进制缓存** | 基于哈希的制品缓存，通过本地网络共享消除冗余构建，支持私有库的预编译二进制分发。 |
-| **💻 开发者模式** | 通过 `celer deploy` 一次性生成 `toolchain_file.cmake`，然后使用任意 IDE 开发。 |
-| **🔄 CI/CD 集成** | 在 `conf/projects` 中配置项目，无缝集成到持续集成流水线。 |
-| 📸 **Workspace快照** | 可复现的工作区快照，简化错误修复与功能开发|
+| **🔧 可配置的交叉编译平台** | 用 TOML 统一描述 ARM、x86、QNX、Windows、Linux 等平台的工具链与构建环境。 |
+| **🎮 嵌入式系统支持** | 通过 `embedded_system` 支持 MCU 和裸机环境，不强依赖传统操作系统运行时。 |
+| **📁 项目级依赖管理** | 每个项目拥有独立的依赖版本、环境变量、宏和 CMake 变量，降低多项目并行开发的冲突风险。 |
+| **🛠️ 多构建系统支持** | 原生兼容 **CMake**、**Makefiles**、**Meson**、**B2**、**QMake**、**GYP**，减少适配脚本。 |
+| **📦 自动生成 CMake Config** | 对预编译二进制库自动补齐 CMake 配置，降低接入门槛。 |
+| **⚡ 制品缓存** | 基于哈希缓存构建产物，适合私有库、二进制分发和大规模重复构建场景。 |
+| **💻 开发者模式** | 通过 `celer deploy` 生成工具链后，可直接使用任意 IDE 继续开发。 |
+| **🔄 CI/CD 集成** | 平台和项目配置可直接进入流水线，减少 CI 环境与开发环境的偏差。 |
+| **📸 Workspace 快照** | 支持导出可复现的工作区快照，便于问题追踪、回溯和协作交接。 |
 
-## 🆚 Celer vs 其他工具
+## 🆚 Celer 相对其他 C++ 包管理器的优势
 
-Celer 解决了传统 C/C++ 包管理器难以应对的核心痛点：
+如果你的诉求只是“获取开源库”，那么 Conan、vcpkg、XMake 都有成熟解法。
 
-| 挑战 | Conan / Vcpkg / XMake | ✅ Celer |
-|-----------|----------------------|---------|
-| **📦 简化库集成流程** | 需要复杂的配方脚本 | 只需声明构建系统类型 |
-| **🏢 项目级依赖隔离** | 全局配置导致冲突 | 项目级隔离配置 |
-| **🔗 平台多子工程管理** | 手动逐项目设置 | 单一 TOML，自动同步子项目 |
-| **⚡ 智能哈希缓存** | 有限或手动缓存 | 精确的基于哈希的制品缓存 |
-| **🔍 自动冲突检测** | 运行时发现 | 构建时检查并报告 |
-| **🤝 无缝跨公司/团队协作** | 手动环境搭建 | 可移植的工具链文件 - 开箱即用 |
+Celer 的优势在于它更关注**复杂工程环境里的交付效率和一致性**：
 
-📖 [深入了解 & 详细对比说明： Celer 独特解决的问题](./why_celer.md)
+| 维度 | Conan / vcpkg / XMake 常见做法 | ✅ Celer 的优势 |
+| --- | --- | --- |
+| **工程侵入性** | 往往需要适配 recipe、port、专用集成方式 | 通过 `toolchain_file.cmake` 对接现有 CMake 工程，侵入性低 |
+| **交叉编译建模** | 需要额外拼接 toolchain、profile、triplet | 平台、工具链、环境变量和依赖在同一套配置里统一描述 |
+| **项目级隔离** | 容易落入全局配置或共享环境带来的冲突 | 项目维度维护依赖、变量和构建参数，边界更清晰 |
+| **多子工程协同** | 常需逐项目手工接线 | 单一配置可同步多个子工程，降低维护成本 |
+| **私有库与二进制交付** | 需要额外封装和流程补丁 | 更适合企业内部制品库、预编译包和定制交付链路 |
+| **缓存与重复构建成本** | 缓存能力可用，但通常不聚焦工程级制品复用 | 基于哈希的制品缓存更强调团队级复用和构建稳定性 |
+| **协作与环境复现** | 通常要求使用方也理解完整工具链体系 | 生成的工具链文件和快照更利于共享、复现和交接 |
+
+一句话概括：
+
+> **通用生态不是 Celer 的核心卖点；工程落地、交叉编译、私有依赖治理和团队协作效率才是。**
+
+📖 [深入说明：Celer 解决了哪些实际问题](./why_celer.md)
 
 ## 📚 文档
 
 **快速入门：**
 - [快速开始指南](./quick_start.md) - 5 分钟上手
 - [创建新平台](./cmd_create.md#1-创建一个新的平台) - 定义自定义交叉编译环境
-- [创建新项目](./cmd_create.md#2-创建一个新的项目) - 配置项目特定设置
-- [添加新包](./cmd_create.md#3-创建一个新的端口) - 托管你自己的库
+- [创建新项目](./cmd_create.md#2-创建一个新的项目) - 配置项目级设置
+- [添加新端口](./cmd_create.md#3-创建一个新的端口) - 托管和管理自己的库
 
 **高级功能：**
-- [生成 CMake 配置文件](./article_generate_cmake_config.md) - 为预编译好的二进制库自动生成配置
-- [缓存构建产物](./article_pkgcache_artifacts.md) - 通过复用每个库的构建产物来加速项目集成
-- [缓存源码仓库](./article_pkgcache_repos.md) - 在上游源码访问不稳定时，通过 Repo Cache 复用源码树
-- [支持CCache](./article_ccache.md) - 通过缓存编译结果来加速重新编译
-- [动态变量](./article_expvars.md) - TOML 配置可用的动态变量完整清单
-- [库版本冲突和环形依赖检测](./article_detect_conflict_circular.md) - 在编译前提前发现导致环形依赖和冲突的错误配置
-- [CUDA环境自动识别](./article_cuda_support.md) - 为 GPU 加速项目提供无缝的 CUDA 工具包集成
-- [导出快照](./cmd_deploy_export.md) - 当部署项目成功后允许导出当前的workspace为一个可以回溯编译的快照
+- [生成 CMake 配置文件](./article_generate_cmake_config.md) - 为预编译二进制库自动生成配置
+- [缓存构建产物](./article_pkgcache_artifacts.md) - 复用已构建产物，降低重复集成成本
+- [缓存源码仓库](./article_pkgcache_repos.md) - 上游仓库不稳定时，通过 Repo Cache 复用源码树
+- [支持 CCache](./article_ccache.md) - 通过缓存编译结果加速重复编译
+- [动态变量](./article_expvars.md) - 查看 TOML 配置中可用的动态变量
+- [库版本冲突与环形依赖检测](./article_detect_conflict_circular.md) - 在构建前提前发现冲突和错误依赖关系
+- [CUDA 环境自动识别](./article_cuda_support.md) - 为 GPU 工程自动对接 CUDA 工具链
+- [导出快照](./cmd_deploy_export.md) - 在部署完成后导出可回溯、可复现的工作区快照
 
 ## 📋 命令列表
 
-| 命令                                   | 描述  |
-| ------------------------------------- | -----|
-| [autoremove](./cmd_autoremove.md)     | 清理安装目录，移除项目不依赖的库 |
-| [clean](./cmd_clean.md)               | 清理指定目标的构建缓存，或使用 `--all` 清理全部 |
-| [configure](./cmd_configfure.md)      | 修改workspace的全局配置 |
-| [create](./cmd_create.md)             | 创建平台、项目或端口 |
-| [deploy](./cmd_deploy.md)             | 以选择的*平台*和*项目*部署项目 |
-| [init](./quick_start.md#3-setup-conf) | 用一个conf仓库初始化Celer |
-| [install](./cmd_install.md)           | 安装一个库 |
-| [integrate](./cmd_integrate.md)       | 集成以支持tab补全 |
-| [remove](./cmd_remove.md)             | 移除已安装的库 |
-| [reverse](./cmd_reverse.md)           | 反向查询依赖指定的库 |
-| [search](./cmd_search.md)             | 搜索库 |
-| [tree](./cmd_tree.md)                 | 显示三方库或项目的依赖关系 | 
-| [update](./cmd_update.md)             | 仓库模式不接收端口参数；端口模式至少需要一个 `name@version` |
-| [version](./cmd_version.md)           | 显示Celer版本信息 |
+| 命令 | 描述 |
+| --- | --- |
+| [autoremove](./cmd_autoremove.md) | 清理安装目录，移除当前项目不再依赖的库 |
+| [clean](./cmd_clean.md) | 清理指定目标的构建缓存，或使用 `--all` 清理全部 |
+| [configure](./cmd_configure.md) | 修改当前 workspace 的全局配置 |
+| [create](./cmd_create.md) | 创建平台、项目或端口 |
+| [deploy](./cmd_deploy.md) | 使用当前选择的平台和项目执行部署 |
+| [init](./quick_start.md#3-setup-conf) | 使用配置仓库初始化 Celer |
+| [install](./cmd_install.md) | 安装一个库 |
+| [integrate](./cmd_integrate.md) | 集成 shell 补全 |
+| [remove](./cmd_remove.md) | 移除已安装的库 |
+| [reverse](./cmd_reverse.md) | 反向查询依赖指定库的项目或库 |
+| [search](./cmd_search.md) | 搜索可用端口 |
+| [tree](./cmd_tree.md) | 查看库或项目的依赖树 |
+| [update](./cmd_update.md) | 仓库模式不接收端口参数；端口模式至少需要一个 `name@version` |
+| [version](./cmd_version.md) | 查看 Celer 版本信息 |
 
 ## 🤝 贡献
 
-Celer 是一个欢迎由社区贡献构建的开源项目，欢迎为以下部分做出贡献：
+Celer 是一个面向社区协作的开源项目，欢迎参与以下部分：
 
-- **[celer](https://github.com/celer-pkg/celer)** - 核心包管理器实现
-- **[ports](https://github.com/celer-pkg/ports)** - 包定义和构建配置
+- **[celer](https://github.com/celer-pkg/celer)** - 包管理器核心实现
+- **[ports](https://github.com/celer-pkg/ports)** - 端口定义与构建配置
 
-无论你想添加新功能、改进文档还是贡献新的包定义，我们都欢迎你的帮助！
+如果你希望补充功能、改进文档，或新增端口定义，欢迎提交贡献。
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证 - 详见 [LICENSE](../../LICENSE) 文件。
+本项目基于 MIT 许可证发布，详见 [LICENSE](../../LICENSE) 文件。
 
-ports 仓库中的第三方库依据其各自的原始许可条款进行授权。
+`ports` 仓库中的第三方库遵循各自原始许可证条款。
 
 ---
 
 <div align="center">
 
-**用 ❤️ 为 C/C++ 社区打造**
+**为复杂 C/C++ 工程交付而设计**
 
-[⭐ 在 GitHub 上为我们点星](https://github.com/celer-pkg/celer) | [📖 文档](./quick_start.md) | [🐛 报告问题](https://github.com/celer-pkg/celer/issues)
+[⭐ 在 GitHub 上点星](https://github.com/celer-pkg/celer) | [📖 文档](./quick_start.md) | [🐛 报告问题](https://github.com/celer-pkg/celer/issues)
 
 </div>
