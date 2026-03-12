@@ -21,11 +21,11 @@ Celer is not just another wrapper around C/C++ dependency management. It is desi
 It is not optimized for the simple case of “download a library and link it”. It is built for the harder cases that show up in real projects:
 
 - 🎯 **Low intrusion**: integrate through `toolchain_file.cmake` without rewriting your business code or build logic.
-- 🚀 **Cross-compile ready**: describe compilers, sysroots, ABIs, environment variables, and dependency sources in one platform model instead of stitching them together later.
-- 📦 **Artifact reuse**: reduce rebuild cost and environment drift with hash-based artifact reuse.
-- 🔧 **Multi-buildsystem**: supports CMake, Make, Meson, B2, QMake, and GYP without forcing a single build ecosystem.
-- 🏢 **Project isolation**: dependency versions, macros, environment variables, and CMake variables stay scoped to the project instead of leaking globally.
-- 🔗 **Team delivery**: generated `toolchain_file.cmake` files can be shared directly with teams and CI systems without requiring every user to operate Celer locally.
+- 🚀 **Cross-compile&nbsp;ready**: describe compilers, sysroots, ABIs, environment variables, and dependency sources in one platform model instead of stitching them together later.
+- 📦 **Artifact&nbsp;reuse**: reduce rebuild cost and environment drift with hash-based artifact reuse.
+- 🔧 **Multi-build**: supports CMake, Make, Meson, B2, QMake, and GYP without forcing a single build ecosystem.
+- 🏢 **Project&nbsp;isolation**: dependency versions, macros, environment variables, and CMake variables stay scoped to the project instead of leaking globally.
+- 🔗 **Team&nbsp;delivery**: generated `toolchain_file.cmake` files can be shared directly with teams and CI systems without requiring every user to operate Celer locally.
 
 ## 🚀 Quick Start
 
@@ -86,12 +86,12 @@ Celer is stronger where **delivery efficiency and environment consistency** matt
 | Dimension | Conan / vcpkg / XMake typical approach | ✅ Where Celer is stronger |
 | --- | --- | --- |
 | **Intrusion** | Often requires recipes, ports, or ecosystem-specific integration work | Integrates through `toolchain_file.cmake` with lower project intrusion |
-| **Cross-compile model** | Toolchains, profiles, and triplets are often assembled separately | Platforms, toolchains, environment variables, and dependencies are modeled together |
-| **Project isolation** | Shared/global configuration can become a conflict source | Dependency and build settings stay scoped at the project boundary |
-| **Multi-project sync** | Often wired manually one project at a time | A single configuration can coordinate multiple subprojects |
-| **Private binaries** | Usually needs extra packaging conventions and workflow glue | Better suited for enterprise artifact repositories and prebuilt internal packages |
-| **Cache and rebuilds** | Caching exists, but is not always centered on engineering-level artifact reuse | Hash-based artifact caching is designed to maximize team-wide reuse and build stability |
-| **Sharing and repro** | Users often need to understand the full local toolchain stack | Generated toolchain files and workspace snapshots are easier to share and reproduce |
+| **Cross-compile&nbsp;model** | Toolchains, profiles, and triplets are often assembled separately | Platforms, toolchains, environment variables, and dependencies are modeled together |
+| **Project&nbsp;isolation** | Shared/global configuration can become a conflict source | Dependency and build settings stay scoped at the project boundary |
+| **Multi-project&nbsp;sync** | Often wired manually one project at a time | A single configuration can coordinate multiple subprojects |
+| **Private&nbsp;binaries** | Usually needs extra packaging conventions and workflow glue | Better suited for enterprise artifact repositories and prebuilt internal packages |
+| **Cache&nbsp;and&nbsp;rebuilds** | Caching exists, but is not always centered on engineering-level artifact reuse | Hash-based artifact caching is designed to maximize team-wide reuse and build stability |
+| **Sharing&nbsp;and&nbsp;repro** | Users often need to understand the full local toolchain stack | Generated toolchain files and workspace snapshots are easier to share and reproduce |
 
 In one sentence:
 
