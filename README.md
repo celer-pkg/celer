@@ -67,15 +67,15 @@ In practice, this means:
 
 | Capability | Value |
 | --- | --- |
-| **🔧 Cross-Compile** | Define toolchains and build environments for ARM, x86, RISC-V, Windows, Linux, and more through TOML configuration. |
-| **🎮 Embedded** | Supports MCU and bare-metal workflows through `embedded_system`, without assuming a traditional OS runtime. |
-| **📁 Project Scope** | Each project owns its dependency versions, environment variables, macros, and CMake variables, reducing multi-project conflicts. |
-| **🛠️ Build Systems** | Works with **CMake**, **Makefiles**, **Meson**, **B2**, **QMake**, and **GYP** without requiring heavy adapter scripts. |
-| **📦 CMake Config** | Automatically generates CMake configuration for prebuilt binaries to reduce integration friction. |
-| **⚡ Artifact Cache** | Uses hash-based artifact caching for private libraries, binary delivery, and large-scale repeated builds. |
-| **💻 Dev Mode** | Run `celer deploy` once, then continue development in any IDE with the generated toolchain file. |
-| **🔄 CI/CD** | Platform and project configuration can flow directly into pipelines, reducing drift between developer and CI environments. |
-| **📸 Snapshots** | Export reproducible workspace snapshots for debugging, traceability, and handoff. |
+| **Cross-Compile** | Define toolchains and build environments for ARM, x86, RISC-V, Windows, Linux, and more through TOML configuration. |
+| **Embedded** | Supports MCU and bare-metal workflows through `embedded_system`, without assuming a traditional OS runtime. |
+| **Project Scope** | Each project owns its dependency versions, environment variables, macros, and CMake variables, reducing multi-project conflicts. |
+| **Build Systems** | Works with **CMake**, **Makefiles**, **Meson**, **B2**, **QMake**, and **GYP** without requiring heavy adapter scripts. |
+| **CMake Config** | Automatically generates CMake configuration for prebuilt binaries to reduce integration friction. |
+| **Artifact Cache** | Uses hash-based artifact caching for private libraries, binary delivery, and large-scale repeated builds. |
+| **Dev Mode** | Run `celer deploy` once, then continue development in any IDE with the generated toolchain file. |
+| **CI/CD** | Platform and project configuration can flow directly into pipelines, reducing drift between developer and CI environments. |
+| **Snapshots** | Export reproducible workspace snapshots for debugging, traceability, and handoff. |
 
 ## 🆚 Where Celer Wins Against Other C++ Package Managers
 
@@ -86,7 +86,7 @@ Celer is stronger where **delivery efficiency and environment consistency** matt
 | Dimension | Conan / vcpkg / XMake typical approach | ✅ Where Celer is stronger |
 | --- | --- | --- |
 | **Intrusion** | Often requires recipes, ports, or ecosystem-specific integration work | Integrates through `toolchain_file.cmake` with lower project intrusion |
-| **Cross-compile&nbsp;model** | Toolchains, profiles, and triplets are often assembled separately | Platforms, toolchains, environment variables, and dependencies are modeled together |
+| **Cross&nbsp;compile** | Toolchains, profiles, and triplets are often assembled separately | Platforms, toolchains, environment variables, and dependencies are modeled together |
 | **Project&nbsp;isolation** | Shared/global configuration can become a conflict source | Dependency and build settings stay scoped at the project boundary |
 | **Multi-project&nbsp;sync** | Often wired manually one project at a time | A single configuration can coordinate multiple subprojects |
 | **Private&nbsp;binaries** | Usually needs extra packaging conventions and workflow glue | Better suited for enterprise artifact repositories and prebuilt internal packages |
