@@ -18,7 +18,7 @@ When a project depends on many git repositories or source archives, repeated clo
 - **Handle temporary upstream outages** - Restore from local cache when the remote source is temporarily unavailable
 - **Combine with build artifact cache** - Reuse source first, then decide whether build outputs can also be reused
 
-## 🔍 Repo Cache vs Build Artifact Cache
+## 🔍 Repo Cache vs Artifact Cache
 
 | Capability | Repo Cache | Build Artifact Cache |
 |------------|------------|----------------------|
@@ -29,7 +29,7 @@ When a project depends on many git repositories or source archives, repeated clo
 
 In simple terms:
 - A **repo cache** hit may still lead to a normal build
-- A **build artifact cache** hit can usually skip the build and install flow entirely
+- An **artifact cache** hit usually means the build step is skipped and Celer goes through the simulated install flow instead
 
 ## 💡 How It Works
 
@@ -80,8 +80,8 @@ Enable it in the `[package]` section of `port.toml`:
 ```
 
 **Recommended practice:**
-- **`checksum=[commit-hash/sha-256]`**: For git repositories, fix it to a git commit hash. For source archives, fix it to the file's `sha-256` value. Only a git commit hash or archive checksum can precisely identify identical source content.
-- **`cache_repo=true`**: Explicitly opt this port into repo caching.
+- **`checksum=[commit-hash/sha-256]`**: For git repositories, prefer a fixed git commit hash. For source archives, prefer the file's `sha-256` value. Only a commit hash or `sha-256` can precisely identify identical source content.
+- **`cache_repo=true`**: This is `false` by default. Enable it for ports whose sources are difficult to access, or when you want to distribute source through a shared cache.
 
 This is what makes repo cache stable across different workspaces.
 
@@ -101,18 +101,18 @@ This means:
 - After the first online clone, Celer packages the source tree for that commit into repo cache
 - If a later install resolves to the same commit hash, Celer can restore it directly from cache
 
-> 💡 If `ref` is a floating branch or tag instead of a fixed commit, Celer may still write cache after the first clone, but future runs may not reliably hit that cache before touching the remote source. For stable cache hits, prefer a fixed commit.
+> 💡 If `ref` is a floating branch or tag instead of a fixed commit, Celer may still write cache after the first clone, but future runs may not reliably hit that cache before touching the remote source. For stable cache hits, it is better to write the fixed commit hash into the `checksum` field.
 
 ### 2. Source archives
 
-For archive-based sources, the cache key is the **archive checksum**.
+For archive-based sources, the cache key is the **archive `sha-256` checksum**.
 
 Example:
 
 ```toml
 [package]
 	url = "https://example.com/x264-20250101.tar.gz"
-	version = "20250101"
+	ref = "20250101"
 	checksum = "3147391d946bb4b6c68edd901f2add6ac1f31f8c"
 	cache_repo = true
 ```
@@ -123,10 +123,7 @@ Example path:
 pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 ```
 
-This is useful for:
-- Source archives mirrored inside a private network
-- Third-party source archives shipped with a private SDK
-- Cases where you want to lock source content to an exact archive checksum
+These scenarios are similar to git repositories. The real goal is the same: keep source access stable even when the network is restricted.
 
 ## 🔄 Runtime Behavior Details
 
@@ -138,7 +135,7 @@ Celer tries repo cache before clone/download when all of these are true:
 - The current port enables `package.cache_repo=true`
 - The current source directory does not exist, or it exists but is empty
 - The current package is not a virtual port (`url != "_"`)
-- There is a usable `repoRef` / `checksum` to locate the cache entry
+- There is a usable `ref` or `checksum` to locate the cache entry
 
 ### When does Celer write repo cache?
 
@@ -182,18 +179,18 @@ Breakdown:
 - The second level is the library name and version, for example `x264@stable`
 - The third level is a `.tar.gz` file named by the cache key
 
-## 🧩 How It Works with Build Artifact Cache
+## 🧩 How It Works with Artifact Cache
 
 In a typical install, Celer may work in this order:
 
 1. Try restoring source code from **repo cache**
-2. Try restoring built outputs from **build artifact cache**
-3. If build artifact cache misses, continue with a normal build
-4. After a successful build, write back repo cache and build artifact cache when conditions allow
+2. Try restoring built outputs from **artifact cache**
+3. If artifact cache misses, continue with a normal build
+4. After a successful build, write back repo cache and artifact cache when conditions allow
 
 These two mechanisms do not conflict. They complement each other:
 - Repo cache answers "where does the source come from?"
-- Build artifact cache answers "can the build result be reused directly?"
+- Artifact cache answers "can the build result be reused directly?"
 
 ## ⚠️ Current Notes
 
@@ -209,7 +206,7 @@ If your project uses both repo cache and build artifact cache, a good setup is:
 - Configure a shared `pkgcache.dir` in `celer.toml`
 - In teams with poor network access or restricted GitHub connectivity, put `pkgcache.dir` on a LAN-shared directory
 - Enable `package.cache_repo=true` for ports that are repeatedly cloned or downloaded
-- Use fixed commits for stable git dependencies
+- Use fixed `commit hash` values for stable git dependencies
 - Provide explicit `checksum` values for archive sources
 - Keep build artifact cache enabled for reusable build outputs
 

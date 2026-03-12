@@ -11,14 +11,14 @@
 当一个项目依赖很多 git 仓库或源码压缩包时，即使最终仍然需要重新编译，重复的 clone、下载、解压也会浪费不少时间；而一旦外网受限，这些步骤甚至会直接失败。Celer 支持把源码树打包到 `pkgcache/repos` 中，在后续安装时优先恢复源码，而不是再次访问远端仓库或重新下载压缩包。
 
 **适合的场景：**
-- **GitHub 访问受限** - 团队成员并不都具备稳定访问外网源码站点的能力
+- **GitHub 访问受限** - 团队成员并不都具备稳定访问外网源码站点的条件
 - **不能要求每个人配置代理** - 希望通过共享缓存降低环境门槛
 - **减少重复 clone / 下载** - 尤其适合大型仓库或网络较慢的环境
 - **加速 CI / 本地重装** - 重新拉起源码目录时更快
 - **应对上游短暂不可用** - 远端仓库或文件临时不可达时，仍可从本地缓存恢复
 - **和构建产物缓存配合** - 先复用源码，再决定是否继续复用已编译产物
 
-## 🔍 Repo Cache 和构建产物缓存的区别
+## 🔍 Repo Cache 和 Artifact Cache 的区别
 
 | 能力 | Repo Cache | 构建产物缓存 |
 |------|------------|--------------|
@@ -28,8 +28,8 @@
 | 存储位置 | `pkgcache/repos` | `pkgcache/artifacts` |
 
 简单理解：
-- **repo 缓存** 命中后，仍可能继续编译
-- **构建产物缓存** 命中后，通常可以直接跳过编译安装过程
+- **Repo 缓存** 命中后，仍可能需要继续编译
+- **Artifact 缓存** 命中后，通常意味着直接跳过编译过程，而走了模拟安装过程
 
 ## 💡 工作原理
 
@@ -70,9 +70,9 @@
 ```toml
 [package]
 	url = "https://gitlab.com/libeigen/eigen.git"
-    ref = "3.4.0"
+	ref = "3.4.0"
 	checksum = "31e19f92f00c7003fa115047ce50978bc98c3a0d"
-    cache_repo = true
+	cache_repo = true
 
 [[build_configs]]
 	build_system = "cmake"
@@ -80,8 +80,8 @@
 ```
 
 **推荐做法：**
-- **checksum=[commit-hash/sha-256]**: 对于git repo需要固定为git commit hash, 对于压缩包需要固定为文件sha-256的值，因为只有git commit hash和sha-256能决定代码的一致性
-- **cache_repo=true**: 
+- **`checksum=[commit-hash/sha-256]`**：对于 git 仓库，建议固定为 git commit hash；对于压缩包，建议固定为文件的 `sha-256`。只有 commit hash 和 `sha-256` 能精确标识源码内容是否一致
+- **`cache_repo=true`**：默认是 `false`，只有访问困难或希望通过共享缓存分发源码的端口才需要开启它。
 
 这样 repo 缓存才能在新的工作空间里稳定命中。
 
@@ -101,18 +101,18 @@ pkgcache/repos/x264@stable/31e19f92f00c7003fa115047ce50978bc98c3a0d.tar.gz
 - 首次在线 clone 后，Celer 会把当前 commit 对应的源码树打包进 repo 缓存
 - 后续如果再次安装时拿到的是同一个 commit hash，就可以直接从缓存恢复
 
-> 💡 如果 `ref` 使用的是浮动分支或 tag，而不是固定 commit，那么首次 clone 后虽然会写入缓存，但后续在“真正访问远端之前”不一定能稳定命中该缓存。想稳定命中，最好固定到 commit。
+> 💡 如果 `ref` 使用的是浮动分支或 tag，而不是固定 commit，那么首次 clone 后虽然会写入缓存，但后续在真正访问远端之前不一定能稳定命中该缓存。想稳定命中，建议把固定 commit hash 写入 `checksum` 字段。
 
 ### 2. 源码压缩包
 
-压缩包类型的源码缓存以 **压缩包 checksum** 作为缓存键。
+压缩包类型的源码缓存以 **压缩包的 `sha-256`** 作为缓存键。
 
 示例：
 
 ```toml
 [package]
 	url = "https://example.com/x264-20250101.tar.gz"
-	version = "20250101"
+	ref = "20250101"
 	checksum = "3147391d946bb4b6c68edd901f2add6ac1f31f8c"
 	cache_repo = true
 ```
@@ -123,10 +123,7 @@ pkgcache/repos/x264@stable/31e19f92f00c7003fa115047ce50978bc98c3a0d.tar.gz
 pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 ```
 
-这类缓存适合：
-- 内网镜像的源码包
-- 私有 SDK 附带的第三方源码包
-- 希望明确锁定某个源码归档内容的场景
+这类缓存适合的场景与 git 仓库类似，本质上都是为了在网络受限时仍然能稳定拿到源码。
 
 ## 🔄 实际行为细节
 
@@ -138,7 +135,7 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 - 当前端口配置了 `package.cache_repo=true`
 - 当前源码目录不存在，或为空目录
 - 当前包不是虚拟端口（`url != "_"`）
-- 有可用于定位缓存的 `repoRef` / `checksum`
+- 有可用于定位缓存的 `ref` 或 `checksum`
 
 ### 什么时候会写入 repo 缓存？
 
@@ -200,7 +197,7 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 - **Repo Cache 不是离线源替代品**：当前实现里，`offline=true` 时不会读写 repo 缓存。
 - **Repo Cache 不包含最终安装结果**：命中 repo 缓存并不代表能跳过编译。
 - **已有源码目录优先级更高**：如果 `buildtrees/.../src` 已经存在且非空，Celer 直接复用，不会再尝试恢复 repo 缓存。
-- **建议锁定源码版本**：想跨工作空间稳定命中 repo 缓存，最好使用固定 commit 或固定 checksum，而不是浮动 branch。
+- **建议锁定源码版本**：想跨工作空间稳定命中 repo 缓存，最好使用固定 `commit hash` 或固定 `sha-256`，而不是浮动 branch 或 tag。
 
 ## ✅ 建议配置
 
@@ -208,9 +205,9 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 
 - 在 `celer.toml` 中统一配置共享的 `pkgcache.dir`
 - 在网络较差或访问 GitHub 受限的团队环境里，把 `pkgcache.dir` 放到局域网共享目录
-- 对经常重复 clone 的源码端口开启 `package.cache_repo=true`
-- 对稳定版本的 git 依赖使用固定 commit
-- 对压缩包源码提供明确 `checksum`
+- 对访问有困难的 port，在其 `port.toml` 里开启 `package.cache_repo=true`
+- 对稳定版本的 git 依赖使用固定 `commit hash`
+- 对压缩包源码提供明确的 `sha-256` 作为 `checksum`
 - 对可复用的构建结果继续启用构建产物缓存
 
 这样可以同时减少：

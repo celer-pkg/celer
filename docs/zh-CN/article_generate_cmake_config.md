@@ -367,15 +367,3 @@ ls -la /path/to/installed/lib/
 
 # 确保 filename 字段与实际文件名完全一致（包括版本号）
 ```
-
----
-
-## 📚 相关文档
-
-- [快速开始](./quick_start.md) - 开始使用 Celer
-- [创建新端口](./cmd_create.md#3-创建一个新的端口) - 添加新库
-- [缓存构建产物](./article_pkgcache.md) - 加速构建
-
----
-
-**需要帮助？** [报告问题](https://github.com/celer-pkg/celer/issues) 或查看[文档](../../README.md)

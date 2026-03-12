@@ -201,7 +201,7 @@ After configuration, the `celer.toml` file will be updated as follows:
 | `build_type` | Build type, default is `release`, can also be set to `debug` |
 | `offline` | Offline mode. When enabled, Celer will not try to update repositories or download resources |
 | `verbose` | Verbose mode. When enabled, Celer will show more detailed logs during building |
-| `pkgcache` | Package cache configuration. Celer supports caching build artifacts to avoid redundant compilation. [Can be configured as a local directory or a shared folder in the LAN](./article_pkgcache.md) |
+| `pkgcache` | Package cache configuration. Celer supports both [build artifact caching](./article_pkgcache_artifacts.md) and [source repository caching](./article_pkgcache_repos.md). It can be configured as a local directory or a shared LAN folder. |
 
 ---
 
@@ -263,7 +263,8 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="/path/to/workspace/toolchain_file.cmake"
 
 - [Advanced Platform Configuration](./article_platform.md)
 - [Advanced Port Configuration](./article_port.md)
-- [Package Cache Configuration](./article_pkgcache.md)
+- [Caching Build Artifacts](./article_pkgcache_artifacts.md)
+- [Caching Source Repositories](./article_pkgcache_repos.md)
 - [Command Reference](./cmd_install.md)
 
 ---

@@ -94,7 +94,8 @@ Celer 解决了传统 C/C++ 包管理器难以应对的核心痛点：
 
 **高级功能：**
 - [生成 CMake 配置文件](./article_generate_cmake_config.md) - 为预编译好的二进制库自动生成配置
-- [缓存构建产物](./article_pkgcache.md) - 通过智能缓存每个库的编译产物来加速项目集成
+- [缓存构建产物](./article_pkgcache_artifacts.md) - 通过复用每个库的构建产物来加速项目集成
+- [缓存源码仓库](./article_pkgcache_repos.md) - 在上游源码访问不稳定时，通过 Repo Cache 复用源码树
 - [支持CCache](./article_ccache.md) - 通过缓存编译结果来加速重新编译
 - [动态变量](./article_expvars.md) - TOML 配置可用的动态变量完整清单
 - [库版本冲突和环形依赖检测](./article_detect_conflict_circular.md) - 在编译前提前发现导致环形依赖和冲突的错误配置

@@ -201,7 +201,7 @@ celer configure --project=project_test_02
 | `build_type` | 构建类型，默认为 `release`，也可设置为 `debug` |
 | `offline` | 离线模式。启用后，Celer 将不再尝试更新仓库和下载资源 |
 | `verbose` | 详细模式。启用后，Celer 将生成更详细的编译日志 |
-| `pkgcache` | 二进制缓存配置。Celer 支持缓存构建产物以避免重复编译。[可配置为本地目录或局域网共享文件夹](./article_pkgcache.md) |
+| `pkgcache` | 二进制缓存配置。Celer 同时支持[缓存构建产物](./article_pkgcache_artifacts.md)和[缓存源码仓库](./article_pkgcache_repos.md)，可配置为本地目录或局域网共享文件夹。 |
 
 ---
 
@@ -263,7 +263,6 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="/path/to/workspace/toolchain_file.cmake"
 
 - [平台配置进阶](./article_platform.md)
 - [端口配置进阶](./article_port.md)
-- [二进制缓存配置](./article_pkgcache.md)
 - [命令参考](./cmd_install.md)
 
 ---
