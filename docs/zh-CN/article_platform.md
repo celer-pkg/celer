@@ -73,6 +73,9 @@
   crosstool_prefix = "x86_64-linux-gnu-"
   cc = "x86_64-linux-gnu-gcc"
   cxx = "x86_64-linux-gnu-g++"
+  cflags = ["-fPIC"]                          # 可选字段
+  cxxflags = ["-fPIC", "-stdlib=libc++"]      # 可选字段
+  linkflags = ["-Wl,--as-needed"]             # 可选字段
   fc = "x86_64-linux-gnu-gfortran"            # 可选字段
   ranlib = "x86_64-linux-gnu-ranlib"          # 可选字段
   ar = "x86_64-linux-gnu-ar"                  # 可选字段
@@ -98,6 +101,12 @@
 | `c_compiler_target` | ❌ | 传递给 CMake 的 C 编译器 target 变体（`CMAKE_C_COMPILER_TARGET`） | `gcc_ntoaarch64le` |
 | `cxx_compiler_target` | ❌ | 传递给 CMake 的 C++ 编译器 target 变体（`CMAKE_CXX_COMPILER_TARGET`） | `gcc_ntoaarch64le_cxx` |
 | `envs` | ❌ | 工具链额外环境变量（适用于需要运行时环境的工具链，例如 QNX） | `["QNX_CONFIGURATION=/dir/of/qnx/license"]` |
+| `cflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_C_FLAGS_INIT` 的 C 编译参数 | `["-fPIC", "--sysroot=${SYSROOT_DIR}"]` |
+| `cxxflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_CXX_FLAGS_INIT` 的 C++ 编译参数 | `["-fPIC", "-stdlib=libc++"]` |
+| `linkflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_EXE/SHARED/MODULE_LINKER_FLAGS_INIT` 的链接参数 | `["-Wl,--as-needed"]` |
+| `cflags_debug` | ❌ | 当 `build_type=debug` 时优先使用的 C 编译参数；未配置时回退到 `cflags` | `["-O0", "-g3"]` |
+| `cxxflags_debug` | ❌ | 当 `build_type=debug` 时优先使用的 C++ 编译参数；未配置时回退到 `cxxflags` | `["-O0", "-g3"]` |
+| `linkflags_debug` | ❌ | 当 `build_type=debug` 时优先使用的链接参数；未配置时回退到 `linkflags` | `["-Wl,--export-dynamic"]` |
 | `embedded_system` | ❌ | 是否为嵌入式系统环境（如 MCU、裸机） | `true`（MCU/裸机）<br>`false` 或不设置（常规系统） |
 | `fc` | ❌ | Fortran 编译器（如果需要） | `x86_64-linux-gnu-gfortran` |
 | `ranlib` | ❌ | 库索引生成器 | `x86_64-linux-gnu-ranlib` |

@@ -25,6 +25,9 @@ type Toolchain interface {
 	GetCXXStandard() string
 	GetCC() string
 	GetCXX() string
+	GetCFlags() []string
+	GetCXXFlags() []string
+	GetLinkFlags() []string
 	GetCPP() string
 	GetLD() string
 	GetGCOV() string

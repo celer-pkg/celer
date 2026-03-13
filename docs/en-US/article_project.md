@@ -10,7 +10,7 @@ Project configuration defines how Celer manages dependencies and build environme
 - 🔧 **Vars (CMake Variables)** - Global CMake build variables
 - 🌍 **Envs (Environment Variables)** - Environment variables needed during build
 - 🏷️ **Macros (Macro Definitions)** - C/C++ preprocessor macros
-- ⚙️ **Compile Options (Optimization Flags)** - Compiler flags and optimization options
+- ⚙️ **Optimize (Optimization Flags)** - Per-build-type optimization settings
 
 **Why do we need project configuration?**
 
@@ -18,7 +18,7 @@ Each project has its unique configuration characteristics. Project configuration
 - ✅ Manage project dependencies uniformly
 - ✅ Share consistent build environments across teams
 - ✅ Quickly switch between different project build configurations
-- ✅ Independently manage compilation options and macro definitions for each project
+- ✅ Independently manage optimization strategy and macro definitions for each project
 
 **Project File Location:** All project configuration files are stored in the `conf/projects` directory.
 
@@ -143,8 +143,8 @@ Define environment variables needed during build, affecting compilation behavior
 **Example:**
 ```toml
 envs = [
-    "CFLAGS=-march=native",         # Set C compiler flags
-    "CXXFLAGS=-march=native"        # Set C++ compiler flags
+    "PKG_CONFIG_PATH=/opt/sdk/pkgconfig",
+    "QNX_CONFIGURATION=/opt/qnx/.qnx"
 ]
 ```
 

@@ -66,7 +66,7 @@ func (c *Celer) GenerateToolchainFile() error {
 		}
 	}
 
-	// Define global cmake vars, env vars, micro vars and compile flags.
+	// Define global cmake vars, env vars and macros.
 	for index, item := range c.project.Vars {
 		if index == 0 {
 			fmt.Fprintf(&toolchain, "\n# Global cmake vars.\n")
@@ -111,15 +111,6 @@ func (c *Celer) GenerateToolchainFile() error {
 		fmt.Fprintf(&toolchain, "add_compile_definitions(%s)\n", item)
 	}
 
-	for index, item := range c.project.Flags {
-		if index == 0 {
-			fmt.Fprintf(&toolchain, "\n# Global flags.\n")
-		}
-
-		item = c.exprVars.Expand(item)
-		fmt.Fprintf(&toolchain, "add_compile_options(%s)\n", item)
-	}
-
 	// Compile flags.
 	optimize := c.Optimize("cmake", c.platform.GetToolchain().GetName())
 	if optimize != nil {
@@ -140,11 +131,6 @@ func (c *Celer) GenerateToolchainFile() error {
 		if optimize.MinSizeRel != "" {
 			flags := strings.Join(strings.Fields(optimize.MinSizeRel), ";")
 			fmt.Fprintf(&toolchain, `    "$<$<CONFIG:MinSizeRel>:%s>"`+"\n", flags)
-		}
-		if len(c.project.Flags) > 0 {
-			for _, item := range c.project.Flags {
-				fmt.Fprintf(&toolchain, "    %q\n", item)
-			}
 		}
 		fmt.Fprintf(&toolchain, ")\n")
 	}

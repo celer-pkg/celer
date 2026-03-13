@@ -68,8 +68,14 @@ type Toolchain struct {
 	// Additional compiler tools.
 	FC string `toml:"fc,omitempty"` // Compile Fortran code.
 
-	// Compiler like qnx, need to supply extra environments.
-	Envs []string `toml:"envs"`
+	// Platform-aware envs, flags.
+	Envs           []string `toml:"envs"`
+	CFlags         []string `toml:"cflags"`
+	CXXFlags       []string `toml:"cxxflags"`
+	LinkFlags      []string `toml:"linkflags"`
+	CFlagsDebug    []string `toml:"cflags_debug"`
+	CXXFlagsDebug  []string `toml:"cxxflags_debug"`
+	LinkFlagsDebug []string `toml:"linkflags_debug"`
 
 	// Internal fields.
 	MSVC        context.MSVC `toml:"-"`
@@ -95,12 +101,56 @@ func (t Toolchain) setupEnvs() {
 	}
 }
 
+func (t Toolchain) effectiveFlags(buildType string) (cflags, cxxflags, linkflags []string) {
+	if strings.EqualFold(buildType, "debug") {
+		if len(t.CFlagsDebug) > 0 {
+			cflags = t.CFlagsDebug
+		} else {
+			cflags = t.CFlags
+		}
+
+		if len(t.CXXFlagsDebug) > 0 {
+			cxxflags = t.CXXFlagsDebug
+		} else {
+			cxxflags = t.CXXFlags
+		}
+
+		if len(t.LinkFlagsDebug) > 0 {
+			linkflags = t.LinkFlagsDebug
+		} else {
+			linkflags = t.LinkFlags
+		}
+		return cflags, cxxflags, linkflags
+	}
+
+	return t.CFlags, t.CXXFlags, t.LinkFlags
+}
+
 func (t Toolchain) generate(toolchain *strings.Builder) error {
 	writeIfNotEmpty := func(key, value string) {
 		if value != "" {
 			fmt.Fprintf(toolchain, "set(%-30s%q)\n", key, "${TOOLCHAIN_DIR}/"+value)
 		}
 	}
+	appendFlags := func(key string, flags []string) {
+		for _, item := range flags {
+			item = strings.TrimSpace(item)
+			if item == "" {
+				continue
+			}
+			if t.ctx != nil {
+				if exprVars := t.ctx.ExprVars(); exprVars != nil {
+					item = exprVars.Expand(item)
+				}
+			}
+			fmt.Fprintf(toolchain, "string(APPEND %s %q)\n", key, " "+item)
+		}
+	}
+	buildType := ""
+	if t.ctx != nil {
+		buildType = t.ctx.BuildType()
+	}
+	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
 
 	fmt.Fprintf(toolchain, "\n# Target information for cross-compile.\n")
 	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_NAME", expr.UpperFirst(t.SystemName))
@@ -206,6 +256,15 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		}
 	}
 
+	if len(cflags) > 0 || len(cxxflags) > 0 || len(linkflags) > 0 {
+		fmt.Fprint(toolchain, "\n# Toolchain custom flags.\n")
+		appendFlags("CMAKE_C_FLAGS_INIT", cflags)
+		appendFlags("CMAKE_CXX_FLAGS_INIT", cxxflags)
+		appendFlags("CMAKE_EXE_LINKER_FLAGS_INIT", linkflags)
+		appendFlags("CMAKE_SHARED_LINKER_FLAGS_INIT", linkflags)
+		appendFlags("CMAKE_MODULE_LINKER_FLAGS_INIT", linkflags)
+	}
+
 	// Write C/C++ language standard.
 	if t.CStandard != "" || t.CXXStandard != "" {
 		fmt.Fprint(toolchain, "\n# C/CXX language standard.\n")
@@ -282,6 +341,18 @@ func (t Toolchain) GetCC() string {
 
 func (t Toolchain) GetCXX() string {
 	return t.CXX
+}
+
+func (t Toolchain) GetCFlags() []string {
+	return t.CFlags
+}
+
+func (t Toolchain) GetCXXFlags() []string {
+	return t.CXXFlags
+}
+
+func (t Toolchain) GetLinkFlags() []string {
+	return t.LinkFlags
 }
 
 func (t Toolchain) GetCPP() string {
