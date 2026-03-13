@@ -67,14 +67,14 @@ In practice, this means:
 
 | Capability | Value |
 | --- | --- |
-| **Cross-Compile** | Define toolchains and build environments for ARM, x86, RISC-V, Windows, Linux, and more through TOML configuration. |
+| **Cross&nbsp;Compile** | Define toolchains and build environments for ARM, x86, RISC-V, Windows, Linux, and more through TOML configuration. |
 | **Embedded** | Supports MCU and bare-metal workflows through `embedded_system`, without assuming a traditional OS runtime. |
-| **Project Scope** | Each project owns its dependency versions, environment variables, macros, and CMake variables, reducing multi-project conflicts. |
-| **Build Systems** | Works with **CMake**, **Makefiles**, **Meson**, **B2**, **QMake**, and **GYP** without requiring heavy adapter scripts. |
-| **CMake Config** | Automatically generates CMake configuration for prebuilt binaries to reduce integration friction. |
-| **Artifact Cache** | Uses hash-based artifact caching for private libraries, binary delivery, and large-scale repeated builds. |
-| **Dev Mode** | Run `celer deploy` once, then continue development in any IDE with the generated toolchain file. |
-| **CI/CD** | Platform and project configuration can flow directly into pipelines, reducing drift between developer and CI environments. |
+| **Project&nbsp;Scope** | Each project owns its dependency versions, environment variables, macros, and CMake variables, reducing multi-project conflicts. |
+| **Build&nbsp;Systems** | Works with **CMake**, **Makefiles**, **Meson**, **B2**, **QMake**, and **GYP** without requiring heavy adapter scripts. |
+| **CMake&nbsp;Config** | Automatically generates CMake configuration for prebuilt binaries to reduce integration friction. |
+| **Artifact&nbsp;Cache** | Uses hash-based artifact caching for private libraries, binary delivery, and large-scale repeated builds. |
+| **Dev&nbsp;Mode** | Run `celer deploy` once, then continue development in any IDE with the generated toolchain file. |
+| **CI/CD&nbsp;Integrate** | Platform and project configuration can flow directly into pipelines, reducing drift between developer and CI environments. |
 | **Snapshots** | Export reproducible workspace snapshots for debugging, traceability, and handoff. |
 
 ## 🆚 Where Celer Wins Against Other C++ Package Managers
