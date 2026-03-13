@@ -24,30 +24,30 @@ type configureCmd struct {
 	verbose   bool
 
 	// Package cache options.
-	packageCacheDir      string
-	packageCacheWritable bool
+	pkgCacheDir      string
+	pkgCacheWritable bool
 
 	proxy  configs.Proxy
 	ccache configs.CCache
 }
 
 var flagGroup = map[string]string{
-	"platform":               "platform",
-	"project":                "project",
-	"build-type":             "build-type",
-	"downloads":              "downloads",
-	"jobs":                   "jobs",
-	"offline":                "offline",
-	"verbose":                "verbose",
-	"package-cache-dir":      "package-cache",
-	"package-cache-writable": "package-cache",
-	"proxy-host":             "proxy",
-	"proxy-port":             "proxy",
-	"ccache-enabled":         "ccache",
-	"ccache-dir":             "ccache",
-	"ccache-maxsize":         "ccache",
-	"ccache-remote-storage":  "ccache",
-	"ccache-remote-only":     "ccache",
+	"platform":              "platform",
+	"project":               "project",
+	"build-type":            "build-type",
+	"downloads":             "downloads",
+	"jobs":                  "jobs",
+	"offline":               "offline",
+	"verbose":               "verbose",
+	"pkgcache-dir":          "pkgcache",
+	"pkgcache-writable":     "pkgcache",
+	"proxy-host":            "proxy",
+	"proxy-port":            "proxy",
+	"ccache-enabled":        "ccache",
+	"ccache-dir":            "ccache",
+	"ccache-maxsize":        "ccache",
+	"ccache-remote-storage": "ccache",
+	"ccache-remote-only":    "ccache",
 }
 
 func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -78,9 +78,9 @@ Available Configuration Options:
     --offline         Enable/disable offline mode (true/false)
     --verbose         Enable/disable verbose output (true/false)
     
-  Package Cache Configuration:
-    --package-cache-dir    Set the package cache directory path
-    --package-cache-writable
+  PkgCache Configuration:
+    --pkgcache-dir    Set the pkgcache directory path
+    --pkgcache-writable
                       Set whether package cache is writable (true/false)
     
   Proxy Configuration:
@@ -101,8 +101,8 @@ Examples:
   celer configure --jobs=8                        # Use 8 parallel build jobs
   celer configure --offline=true                  # Enable offline mode
   celer configure --verbose=false                 # Disable verbose output
-  celer configure --package-cache-dir=/tmp/cache  # Set package cache directory
-  celer configure --package-cache-writable=true   # Enable package cache write
+  celer configure --pkgcache-dir=/tmp/cache       # Set pkgcache directory
+  celer configure --pkgcache-writable=true        # Enable pkgcache write
   celer configure --proxy-host=proxy.example.com  # Set proxy host
   celer configure --proxy-port=8080               # Set proxy port
   celer configure --ccache-maxsize=5G             # Set ccache max size to 5GB`,
@@ -193,17 +193,17 @@ Examples:
 				color.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
 			}
 
-			if flags.Changed("package-cache-dir") {
-				if err := c.celer.SetPackageCacheDir(c.packageCacheDir); err != nil {
-					return configs.PrintError(err, "failed to set package cache dir: %s.", c.packageCacheDir)
+			if flags.Changed("pkgcache-dir") {
+				if err := c.celer.SetPkgCacheDir(c.pkgCacheDir); err != nil {
+					return color.PrintError(err, "failed to set pkgcache dir: %s.", c.pkgCacheDir)
 				}
-				configs.PrintSuccess("current cache dir: %s.", expr.If(c.packageCacheDir != "", c.packageCacheDir, "empty"))
+				color.PrintSuccess("current pkgcache dir: %s.", expr.If(c.pkgCacheDir != "", c.pkgCacheDir, "empty"))
 			}
-			if flags.Changed("package-cache-writable") {
-				if err := c.celer.SetPackageCacheWritable(c.packageCacheWritable); err != nil {
-					return configs.PrintError(err, "failed to set package cache writable: %s.", expr.If(c.packageCacheWritable, "true", "false"))
+			if flags.Changed("pkgcache-writable") {
+				if err := c.celer.SetPkgCacheWritable(c.pkgCacheWritable); err != nil {
+					return color.PrintError(err, "failed to set pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
 				}
-				color.PrintSuccess("current cache writable: %s.", expr.If(c.packageCacheWritable, "true", "false"))
+				color.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
 			}
 
 			if flags.Changed("proxy-host") {
@@ -271,8 +271,8 @@ Examples:
 	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
 
 	// Package cache flags.
-	flags.StringVar(&c.packageCacheDir, "package-cache-dir", "", "configure package cache dir.")
-	flags.BoolVar(&c.packageCacheWritable, "package-cache-writable", false, "configure package cache writable.")
+	flags.StringVar(&c.pkgCacheDir, "pkgcache-dir", "", "configure package cache dir.")
+	flags.BoolVar(&c.pkgCacheWritable, "pkgcache-writable", false, "configure package cache writable.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -301,7 +301,7 @@ Examples:
 	command.RegisterFlagCompletionFunc("verbose", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
-	command.RegisterFlagCompletionFunc("package-cache-writable", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	command.RegisterFlagCompletionFunc("pkgcache-writable", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
 
@@ -352,8 +352,8 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--jobs",
 		"--offline",
 		"--verbose",
-		"--package-cache-dir",
-		"--package-cache-writable",
+		"--pkgcache-dir",
+		"--pkgcache-writable",
 		"--proxy-host",
 		"--proxy-port",
 		"--ccache-enabled",

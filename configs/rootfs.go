@@ -45,7 +45,7 @@ func (r *RootFS) CheckAndRepair() error {
 	// but it can be specified by archive name.
 	folderName := strings.Split(r.Path, string(filepath.Separator))[0]
 	if r.Archive != "" {
-		folderName = fileio.FileBaseName(r.Archive)
+		folderName = fileio.Base(r.Archive)
 	}
 
 	// Check and repair resource.
@@ -58,7 +58,7 @@ func (r *RootFS) CheckAndRepair() error {
 
 	// Print download & extract info.
 	location := filepath.Join(toolsDir, folderName)
-	color.PrintPass("rootfs: %s", fileio.FileBaseName(r.Url))
+	color.PrintPass("rootfs: %s", fileio.Base(r.Url))
 	color.PrintHint("Location: %s\n", location)
 
 	return nil

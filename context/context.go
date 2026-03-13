@@ -12,7 +12,7 @@ type Context interface {
 	Verbose() bool
 	InstalledDir() string
 	InstalledDevDir() string
-	PackageCache() PackageCache
+	PkgCache() PkgCache
 	ProxyHostPort() (host string, port int)
 	Optimize(buildsystem, toolchain string) *Optimize
 	CCacheEnabled() bool
@@ -20,9 +20,19 @@ type Context interface {
 	ExprVars() *ExprVars
 }
 
-type PackageCache interface {
+type PkgCache interface {
 	GetDir() string
 	IsWritable() bool
-	Read(nameVersion, hash, destDir string) (bool, error)
-	Write(packageDir, meta string) error
+	GetArtifactCache() AritifactCache
+	GetRepoCache() RepoCache
+}
+
+type AritifactCache interface {
+	Restore(nameVersion, buildhash, packageDir string) (string, error)
+	Store(packageDir, metadata string) error
+}
+
+type RepoCache interface {
+	Restore(nameVersion, repoUrl, repoDir, checksum string) (string, error)
+	Store(nameVersion, repoUrl, repoDir string) (string, error)
 }

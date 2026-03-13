@@ -62,7 +62,7 @@ func (c custom) Configure(options []string) error {
 		}
 
 		scripts := strings.Join(c.CustomConfigure, " && ")
-		title := fmt.Sprintf("[configure %s]", c.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[configure %s]", c.PortConfig.nameVersion())
 		executor := cmd.NewExecutor(title, scripts)
 		executor.SetLogPath(c.getLogPath("configure"))
 		executor.SetWorkDir(expr.If(c.BuildInSource, c.PortConfig.SrcDir, c.PortConfig.BuildDir))
@@ -89,7 +89,7 @@ func (c custom) Build(options []string) error {
 
 		scripts := strings.Join(c.CustomBuild, " && ")
 		scripts = c.expandVariables(scripts)
-		title := fmt.Sprintf("[build %s]", c.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[build %s]", c.PortConfig.nameVersion())
 		executor := cmd.NewExecutor(title, scripts)
 		executor.SetLogPath(c.getLogPath("build"))
 		executor.SetWorkDir(expr.If(c.BuildInSource, c.PortConfig.SrcDir, c.PortConfig.BuildDir))
@@ -116,7 +116,7 @@ func (c custom) Install(options []string) error {
 
 		scripts := strings.Join(c.CustomInstall, " && ")
 		scripts = c.expandVariables(scripts)
-		title := fmt.Sprintf("[install %s]", c.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[install %s]", c.PortConfig.nameVersion())
 		executor := cmd.NewExecutor(title, scripts)
 		executor.SetLogPath(c.getLogPath("install"))
 		executor.SetWorkDir(expr.If(c.BuildInSource, c.PortConfig.SrcDir, c.PortConfig.BuildDir))

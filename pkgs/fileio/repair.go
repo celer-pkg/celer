@@ -123,7 +123,7 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 			return nil
 		}
 
-		simpleName := FileBaseName(r.downloader.url)
+		simpleName := Base(r.downloader.url)
 		destDir := filepath.Join(r.destDir, simpleName)
 
 		// Skip if destDir exist.

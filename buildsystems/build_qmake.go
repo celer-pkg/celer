@@ -42,7 +42,7 @@ func (q qmake) preConfigure() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[post confiure %s]", q.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[post confiure %s]", q.PortConfig.nameVersion())
 		script = q.expandVariables(script)
 		executor := cmd.NewExecutor(title, script)
 		if err := executor.Execute(); err != nil {
@@ -157,7 +157,7 @@ func (q qmake) Configure(options []string) error {
 	// Asssemble configure command.
 	joinedOptions := strings.Join(options, " ")
 	command := fmt.Sprintf("%s/configure %s", q.PortConfig.SrcDir, joinedOptions)
-	title := fmt.Sprintf("[configure %s]", q.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[configure %s]", q.PortConfig.nameVersion())
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(q.getLogPath("configure"))
 	executor.SetWorkDir(expr.If(q.BuildInSource, q.PortConfig.SrcDir, q.PortConfig.BuildDir))
@@ -177,7 +177,7 @@ func (q qmake) Build(options []string) error {
 	command := fmt.Sprintf("make -j %d", q.PortConfig.Jobs)
 
 	// Execute build.
-	title := fmt.Sprintf("[build %s]", q.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[build %s]", q.PortConfig.nameVersion())
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(q.getLogPath("build"))
 	executor.SetWorkDir(q.PortConfig.BuildDir)
@@ -190,7 +190,7 @@ func (q qmake) Build(options []string) error {
 
 func (q qmake) Install(options []string) error {
 	// Execute install.
-	title := fmt.Sprintf("[install %s]", q.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[install %s]", q.PortConfig.nameVersion())
 	executor := cmd.NewExecutor(title, "make install")
 	executor.SetLogPath(q.getLogPath("install"))
 	executor.SetWorkDir(q.PortConfig.BuildDir)

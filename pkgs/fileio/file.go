@@ -56,8 +56,8 @@ func PathExists(path string) bool {
 	return !os.IsNotExist(err)
 }
 
-// FileBaseName it's a improved version to get file base name.
-func FileBaseName(fileName string) string {
+// Base it's a improved version to get file base name.
+func Base(fileName string) string {
 	fileName = filepath.Base(fileName)
 	index := strings.Index(fileName, ".tar.")
 	if index > 0 {
@@ -397,7 +397,7 @@ func ToCygpath(path string) string {
 	return path
 }
 
-func CalculateChecksum(filePath string) (string, error) {
+func GetFileSha256(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err

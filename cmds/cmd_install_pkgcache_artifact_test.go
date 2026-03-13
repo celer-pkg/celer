@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-func TestInstall_PackageCache_Success(t *testing.T) {
+func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -42,17 +42,12 @@ func TestInstall_PackageCache_Success(t *testing.T) {
 	)
 
 	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
-		msg := err.Error()
-		if strings.Contains(msg, "Could not resolve host") ||
-			strings.Contains(msg, "not accessible") {
-			t.Skipf("skip due to unavailable network: %v", err)
-		}
 		t.Fatal(err)
 	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheWritable(true))
+	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
@@ -97,7 +92,7 @@ func TestInstall_PackageCache_Success(t *testing.T) {
 	check(port.Remove(removeOptions))
 }
 
-func TestInstall_PackageCache_With_Deps_Success(t *testing.T) {
+func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -124,17 +119,12 @@ func TestInstall_PackageCache_With_Deps_Success(t *testing.T) {
 	)
 
 	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
-		msg := err.Error()
-		if strings.Contains(msg, "Could not resolve host") ||
-			strings.Contains(msg, "not accessible") {
-			t.Skipf("skip due to unavailable network: %v", err)
-		}
 		t.Fatal(err)
 	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheWritable(true))
+	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var glogPort configs.Port
@@ -190,7 +180,7 @@ func TestInstall_PackageCache_With_Deps_Success(t *testing.T) {
 	check(gflagsPort.Remove(removeOptions))
 }
 
-func TestInstall_PackageCache_Prebuilt_Success(t *testing.T) {
+func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -219,8 +209,8 @@ func TestInstall_PackageCache_Prebuilt_Success(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheWritable(true))
+	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
@@ -268,7 +258,7 @@ func TestInstall_PackageCache_Prebuilt_Success(t *testing.T) {
 	check(port.Remove(removeOptions))
 }
 
-func TestInstall_PackageCache_DirNotDefined_ShouldSkipStoreCache(t *testing.T) {
+func TestInstall_PkgCache_DirNotDefined_ShouldSkipStoreCache(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -305,7 +295,7 @@ func TestInstall_PackageCache_DirNotDefined_ShouldSkipStoreCache(t *testing.T) {
 	check(port.InstallFromSource(options))
 }
 
-func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
+func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -334,8 +324,8 @@ func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheWritable(true))
+	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
@@ -343,8 +333,8 @@ func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
 	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
-	// Read commit.
-	commit, err := git.GetCurrentCommit(port.MatchedConfig.PortConfig.RepoDir)
+	// Read commit hash.
+	commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
 	check(err)
 
 	// Remove installed and src dir.
@@ -357,7 +347,7 @@ func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
 	check(port.MatchedConfig.Clean())
 
 	// Install from cache with commit.
-	port.Package.Commit = commit
+	port.Package.Checksum = commit
 	installed, err := port.InstallFromPackageCache(options)
 	check(err)
 	if !installed {
@@ -368,7 +358,7 @@ func TestInstall_PackageCache_With_Commit_Success(t *testing.T) {
 	check(port.Remove(removeOptions))
 }
 
-func TestInstall_PackageCache_With_Commit_Failed(t *testing.T) {
+func TestInstall_PkgCache_With_Commit_Failed(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -397,8 +387,8 @@ func TestInstall_PackageCache_With_Commit_Failed(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheWritable(true))
+	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	var port configs.Port
@@ -416,17 +406,17 @@ func TestInstall_PackageCache_With_Commit_Failed(t *testing.T) {
 	check(port.MatchedConfig.Clean())
 
 	// Install from cache with not matched commit.
-	port.Package.Commit = "not_matched_commit_xxxxxx"
+	port.Package.Checksum = "not_matched_commit_xxxxxx"
 	installed, err := port.InstallFromPackageCache(options)
-	if err == nil || !errors.Is(err, errors.ErrCacheNotFoundWithCommit) {
-		t.Fatal("should return ErrCacheNotFoundWithCommit")
+	if err == nil || !errors.Is(err, errors.ErrPkgCacheArtifactNotFound) {
+		t.Fatal("should return ErrArtifactCacheNotFound")
 	}
 	if installed {
 		t.Fatal("should not be installed from cache")
 	}
 }
 
-func TestInstall_Command_ReportContainsPackageCacheSource(t *testing.T) {
+func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -462,8 +452,8 @@ func TestInstall_Command_ReportContainsPackageCacheSource(t *testing.T) {
 	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPackageCacheDir(dirs.TestCacheDir))
-	check(celer.SetPackageCacheWritable(true))
+	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
 	// Prepare cache by installing from source once.

@@ -61,7 +61,7 @@ func (e *Exporter) Export() error {
 	e.usedPorts = usedPorts
 	color.Printf(color.Hint, "  Found %d port(s)\n", len(e.usedPorts))
 
-	// 2. Export ports with fixed commits.
+	// 2. Export ports with fixed source checksums.
 	color.Println(color.Hint, "✔ Exporting ports...")
 	portSnapshots, err := e.exportPorts()
 	if err != nil {
@@ -130,10 +130,10 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 	}
 
 	for nameVersion, port := range e.usedPorts {
-		// Get commit hash.
-		commit, err := e.collector.GetPortCommit(port)
+		// Get the reproducibility checksum for this port source.
+		checksum, err := e.collector.GetPortChecksum(port)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get commit for %s -> %w", nameVersion, err)
+			return nil, fmt.Errorf("failed to get checksum for %s -> %w", nameVersion, err)
 		}
 
 		// Create port directory.
@@ -142,9 +142,9 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 			return nil, err
 		}
 
-		// Create a copy of the port with fixed commit and only matched config.
+		// Create a copy of the port with a fixed checksum and only matched config.
 		exportedPort := *port
-		exportedPort.Package.Commit = commit
+		exportedPort.Package.Checksum = checksum
 
 		// Only export the matched build config for current platform.
 		if port.MatchedConfig == nil {
@@ -172,10 +172,10 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 
 		// Add to snapshots.
 		snapshots = append(snapshots, PortSnapshot{
-			Name:    port.Name,
-			Version: port.Version,
-			Commit:  commit,
-			URL:     port.Package.Url,
+			Name:     port.Name,
+			Version:  port.Version,
+			Checksum: checksum,
+			URL:      port.Package.Url,
 		})
 	}
 

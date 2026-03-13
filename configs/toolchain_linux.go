@@ -26,7 +26,7 @@ func (t *Toolchain) Validate() error {
 	if t.Url == "file:////usr/bin" {
 		t.displayName = t.Name
 	} else {
-		t.displayName = fileio.FileBaseName(t.Url)
+		t.displayName = fileio.Base(t.Url)
 	}
 
 	// Validate toolchain.name.
@@ -138,7 +138,7 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 	// but it can be specified by archive name.
 	folderName := strings.Split(t.Path, string(filepath.Separator))[0]
 	if t.Archive != "" {
-		folderName = fileio.FileBaseName(t.Archive)
+		folderName = fileio.Base(t.Archive)
 	}
 
 	// Check and repair resource.

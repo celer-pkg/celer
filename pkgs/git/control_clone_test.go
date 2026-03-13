@@ -65,7 +65,7 @@ func TestCloneRepo_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result, err := GetCurrentCommit("testdata")
+	result, err := GetCommitHash("testdata")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -74,7 +74,7 @@ func (m *makefiles) preConfigure() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[pre configure %s]", m.PortConfig.nameVersionDesc())
+		title := fmt.Sprintf("[pre configure %s]", m.PortConfig.nameVersion())
 		command = m.expandVariables(command)
 		executor := cmd.NewExecutor(title, command)
 		executor.SetWorkDir(m.PortConfig.RepoDir)
@@ -325,7 +325,7 @@ func (m makefiles) Configure(options []string) error {
 		command = expr.If(configureWithPerl, fmt.Sprintf("perl %s", command), fileio.ToCygpath(command))
 	}
 
-	title := fmt.Sprintf("[configure %s]", m.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[configure %s]", m.PortConfig.nameVersion())
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(m.getLogPath("configure"))
 	executor.SetWorkDir(expr.If(m.BuildInSource, m.PortConfig.SrcDir, m.PortConfig.BuildDir))
@@ -365,7 +365,7 @@ func (m makefiles) Build(options []string) error {
 	}
 
 	// Execute build.
-	title := fmt.Sprintf("[build %s]", m.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[build %s]", m.PortConfig.nameVersion())
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(m.getLogPath("build"))
 
@@ -389,6 +389,7 @@ func (m makefiles) Build(options []string) error {
 }
 
 func (m makefiles) Install(options []string) error {
+	// This works for library like alsa-lib.
 	if err := m.disableLibtoolRelinkForInstall(); err != nil {
 		return err
 	}
@@ -412,7 +413,7 @@ func (m makefiles) Install(options []string) error {
 	}
 
 	// Execute install.
-	title := fmt.Sprintf("[install %s]", m.PortConfig.nameVersionDesc())
+	title := fmt.Sprintf("[install %s]", m.PortConfig.nameVersion())
 	executor := cmd.NewExecutor(title, command)
 	executor.SetLogPath(m.getLogPath("install"))
 

@@ -1,6 +1,7 @@
 package git
 
 import (
+	"celer/context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -67,8 +68,13 @@ func CleanRepo(repoDir string) error {
 	return nil
 }
 
-// GetCurrentCommit read git commit hash.
-func GetCurrentCommit(repoDir string) (string, error) {
+// GetCommitHash read git commit hash.
+func GetCommitHash(repoDir string) (string, error) {
+	// Check if repo exists.
+	if _, err := os.Stat(repoDir); err != nil {
+		return "", fmt.Errorf("directory error: %w", err)
+	}
+
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -99,19 +105,12 @@ func GetDefaultBranch(repoDir string) (string, error) {
 	return "", fmt.Errorf("default branch not found of %s", repoDir)
 }
 
-func gitRevParse(repoDir, ref string) (string, error) {
-	cmd := exec.Command("git", "-C", repoDir, "rev-parse", ref)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("git rev-parse %s -> %s", ref, output)
-	}
-	return strings.TrimSpace(string(output)), nil
-}
-
-// CheckIfUpToDate check if repo matches remote state for current branch or tag.
-func CheckIfUpToDate(repoDir string) (bool, error) {
+// CheckIfMatchesRef checks whether the local checkout matches the expected ref.
+// If expectedRef is empty, it falls back to comparing against the remote branch
+// or tag that the current checkout tracks.
+func CheckIfMatchesRef(ctx context.Context, repoDir, expectedRef string) (bool, error) {
 	// Get current commit hash.
-	currentCommit, err := GetCurrentCommit(repoDir)
+	currentCommit, err := GetCommitHash(repoDir)
 	if err != nil {
 		return false, err
 	}
@@ -123,8 +122,11 @@ func CheckIfUpToDate(repoDir string) (bool, error) {
 		return false, fmt.Errorf("git remote failed: %v", err)
 	}
 
-	// No remote - local repo is up to date.
+	// No remote - compare against the explicit ref if one was provided.
 	if strings.TrimSpace(string(output)) == "" {
+		if commit, err := GitRevParse(ctx, repoDir, expectedRef); err == nil && commit != "" {
+			return currentCommit == commit, nil
+		}
 		return true, nil
 	}
 
@@ -132,6 +134,12 @@ func CheckIfUpToDate(repoDir string) (bool, error) {
 	cmd = exec.Command("git", "-C", repoDir, "fetch", "--tags", "origin")
 	if err := cmd.Run(); err != nil {
 		return false, fmt.Errorf("git fetch failed: %v", err)
+	}
+
+	// Explicit ref/checksum from port config has higher priority than tracking
+	// the current branch or remote default branch.
+	if expectedCommit, err := GitRevParse(ctx, repoDir, expectedRef); err == nil && expectedCommit != "" {
+		return currentCommit == expectedCommit, nil
 	}
 
 	// If current checkout is on a branch, compare with origin/<branch>.
@@ -217,4 +225,34 @@ func InitAsLocalRepo(repoDir, message string) error {
 	}
 
 	return nil
+}
+
+// GitRevParse return full commit hash with repo ref, if repo ref is not found in remote,
+// then find it in local repo, the ref can be any valid git revision (branch, tag, HEAD, commit hash, etc.).
+func GitRevParse(ctx context.Context, repoDir, repoRef string) (string, error) {
+	repoRef = strings.TrimSpace(repoRef)
+	if repoRef == "" {
+		return "", nil
+	}
+
+	// Prefer remote branch heads when the expected ref names a branch.
+	if !ctx.Offline() {
+		if remoteCommit, err := gitRevParse(repoDir, "origin/"+repoRef); err == nil {
+			return remoteCommit, nil
+		}
+	}
+
+	// Fall back to any locally resolvable ref: commit hash, tag, branch, etc.
+	return gitRevParse(repoDir, repoRef)
+}
+
+// gitRevParse returns the full commit hash for the given repo ref from local repo.
+// The ref can be any valid git revision (branch, tag, HEAD, commit hash, etc.).
+func gitRevParse(repoDir, repoRef string) (string, error) {
+	cmd := exec.Command("git", "-C", repoDir, "rev-parse", repoRef)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("git rev-parse %s -> %s", repoRef, output)
+	}
+	return strings.TrimSpace(string(output)), nil
 }

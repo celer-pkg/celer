@@ -2,7 +2,7 @@ package configs
 
 import (
 	"celer/buildsystems"
-	"celer/packagecache"
+	"celer/pkgcache"
 	"celer/pkgs/errors"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -31,13 +31,13 @@ func (p Port) meta2hash(metaData string) string {
 }
 
 func (p Port) buildMeta(commit string) (string, error) {
-	port := packagecache.Port{
+	port := pkgcache.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    p.ctx.Platform().GetName(),
 		Project:     p.ctx.Project().GetName(),
 		DevDep:      p.DevDep,
 		HostDev:     p.HostDep,
-		BuildConfig: *p.MatchedConfig,
+		BuildConfig: p.toCacheBuildConfig(p.MatchedConfig),
 		Callbacks:   p,
 	}
 
@@ -95,7 +95,7 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 
 	// Get commit hash or archive checksum.
 	if strings.HasSuffix(port.Package.Url, ".git") {
-		commit, err := git.GetCurrentCommit(port.MatchedConfig.PortConfig.RepoDir)
+		commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
 		}
@@ -116,13 +116,18 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 				return "", err
 			}
 			archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-			if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, archive, port.Package.Depth); err != nil {
+			if err := port.MatchedConfig.Clone(
+				port.Package.Url,
+				port.Package.Ref,
+				archive,
+				port.Package.Depth,
+			); err != nil {
 				return "", fmt.Errorf("archive file is missing and auto-download failed for %s -> %w", nameVersion, err)
 			}
 		}
 
 		// Calculate checksum of archive file.
-		commit, err := fileio.CalculateChecksum(filePath)
+		commit, err := fileio.GetFileSha256(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of part's archive %s -> %w", nameVersion, err)
 		}
@@ -130,12 +135,13 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 	}
 }
 
-func (p Port) GetBuildConfig(nameVersion string, devDep bool) (*buildsystems.BuildConfig, error) {
+func (p Port) GetBuildConfig(nameVersion string, devDep bool) (*pkgcache.BuildConfig, error) {
 	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return nil, err
 	}
-	return port.MatchedConfig, nil
+	config := p.toCacheBuildConfig(port.MatchedConfig)
+	return &config, nil
 }
 
 // CheckHostSupported Host supported means that the port can be built natively.
@@ -146,4 +152,13 @@ func (p Port) CheckHostSupported(nameVersion string) bool {
 	}
 
 	return port.IsHostSupported()
+}
+
+func (p Port) toCacheBuildConfig(buildConfig *buildsystems.BuildConfig) pkgcache.BuildConfig {
+	return pkgcache.BuildConfig{
+		Patches:         append([]string{}, buildConfig.Patches...),
+		Dependencies:    append([]string{}, buildConfig.Dependencies...),
+		DevDependencies: append([]string{}, buildConfig.DevDependencies...),
+		BuildTools:      buildConfig.CheckTools(),
+	}
 }

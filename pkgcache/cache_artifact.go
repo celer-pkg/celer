@@ -1,4 +1,4 @@
-package configs
+package pkgcache
 
 import (
 	"celer/context"
@@ -12,76 +12,93 @@ import (
 	"strings"
 )
 
-type PackageCache struct {
-	Dir      string `toml:"dir"`
-	Writable bool   `toml:"writable"`
+const ArtifactCacheDir = "artifacts"
 
-	// Internal field.
-	ctx context.Context
+type Aritifact struct {
+	ctx              context.Context
+	artifactCacheDir string
+	writable         bool
 }
 
-func (p PackageCache) Validate() error {
-	if p.Dir == "" {
-		return fmt.Errorf("package cache dir is empty")
+func NewArtifact(ctx context.Context, pkgDir string, writable bool) *Aritifact {
+	if pkgDir == "" {
+		return nil
 	}
-	if !fileio.PathExists(p.Dir) {
-		return fmt.Errorf("package cache dir does not exist: %s", p.Dir)
+
+	return &Aritifact{
+		ctx:              ctx,
+		artifactCacheDir: filepath.Join(pkgDir, ArtifactCacheDir),
+		writable:         writable,
 	}
-	return nil
 }
 
-func (p PackageCache) Read(nameVersion, hash, destDir string) (bool, error) {
-	platformName := p.ctx.Platform().GetName()
-	projectName := p.ctx.Project().GetName()
-	buildType := p.ctx.BuildType()
-	archiveDir := filepath.Join(p.Dir, platformName, projectName, buildType, nameVersion)
-	archivePath := filepath.Join(archiveDir, hash+".tar.gz")
+// Restore restores the cached package to package directory if cache hit, and return the archive path.
+// If cache miss, just return empty string without error.
+func (a Aritifact) Restore(nameVersion, buildHash, packageDir string) (string, error) {
+	// skip restore cache when offline.
+	if a.ctx.Offline() {
+		return "", nil
+	}
+
+	platformName := a.ctx.Platform().GetName()
+	projectName := a.ctx.Project().GetName()
+	buildType := a.ctx.BuildType()
+
+	archiveDir := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion)
+	archivePath := filepath.Join(archiveDir, buildHash+".tar.gz")
 	if !fileio.PathExists(archivePath) {
-		return false, nil // not an error even not exist.
+		return "", nil // not an error even not exist.
 	}
 
 	// The meta file hash should be the same as hash that calcuated dynamically.
-	metaPath := filepath.Join(archiveDir, "meta", hash+".meta")
+	metaPath := filepath.Join(archiveDir, "meta", buildHash+".meta")
 	metaBytes, err := os.ReadFile(metaPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return false, fmt.Errorf("cache archive exists but metadata is missing: %s", metaPath)
+			return "", fmt.Errorf("cache archive exists but metadata is missing: %s", metaPath)
 		}
-		return false, err
+		return "", err
 	}
 	metaHash := sha256.Sum256(metaBytes)
-	if fmt.Sprintf("%x", metaHash) != hash {
-		return false, fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
+	if fmt.Sprintf("%x", metaHash) != buildHash {
+		return "", fmt.Errorf("cache metadata checksum mismatch for %s", nameVersion)
 	}
 
 	// Create tmp dir for extracting inside.
 	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return false, fmt.Errorf("failed to clean tmp files dir -> %w", err)
+		return "", fmt.Errorf("failed to clean tmp files dir -> %w", err)
 	}
 	tempDir, err := os.MkdirTemp(dirs.TmpFilesDir, "pkgcache-extract-*")
 	if err != nil {
-		return false, err
+		return "", err
 	}
 	defer os.RemoveAll(tempDir)
 
 	// Extract to a tmp dir and move back to dest dir.
 	if err := fileio.Extract(archivePath, tempDir); err != nil {
-		return false, err
+		return "", err
 	}
-	if err := os.RemoveAll(destDir); err != nil {
-		return false, err
+	if err := os.RemoveAll(packageDir); err != nil {
+		return "", err
 	}
-	if err := os.MkdirAll(filepath.Dir(destDir), os.ModePerm); err != nil {
-		return false, err
+	if err := os.MkdirAll(filepath.Dir(packageDir), os.ModePerm); err != nil {
+		return "", err
 	}
-	if err := os.Rename(tempDir, destDir); err != nil {
-		return false, err
+	if err := os.Rename(tempDir, packageDir); err != nil {
+		return "", err
 	}
 
-	return true, nil
+	return archivePath, nil
 }
 
-func (p PackageCache) Write(packageDir, meta string) error {
+// Store compresses the package dir and store in cache,
+// the meta is expected to be a string and would be used to calculate the hash key for cache.
+func (a Aritifact) Store(packageDir, meta string) error {
+	// skip storing cache when offline.
+	if a.ctx.Offline() {
+		return nil
+	}
+
 	if !fileio.PathExists(packageDir) {
 		return fmt.Errorf("package dir does not exist: %s", packageDir)
 	}
@@ -118,7 +135,7 @@ func (p PackageCache) Write(packageDir, meta string) error {
 	}
 
 	nameVersion := fmt.Sprintf("%s@%s", libName, libVersion)
-	destDir := filepath.Join(p.Dir, platformName, projectName, buildType, nameVersion)
+	destDir := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	metaDir := filepath.Join(destDir, "meta")
 
 	// Calculate checksum of metadata (this would be the cache key).
@@ -159,11 +176,11 @@ func (p PackageCache) Write(packageDir, meta string) error {
 }
 
 // Remove removes the cache for the specified platform, project, build type and name version.
-func (p PackageCache) Remove(nameVersion string) error {
-	platformName := p.ctx.Platform().GetName()
-	projectName := p.ctx.Project().GetName()
-	buildType := p.ctx.BuildType()
-	pacakgeDir := filepath.Join(p.Dir, platformName, projectName, buildType, nameVersion)
+func (a Aritifact) Remove(nameVersion string) error {
+	platformName := a.ctx.Platform().GetName()
+	projectName := a.ctx.Project().GetName()
+	buildType := a.ctx.BuildType()
+	pacakgeDir := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	if fileio.PathExists(pacakgeDir) {
 		if err := os.RemoveAll(pacakgeDir); err != nil {
 			return fmt.Errorf("failed toremove cache package %s -> %w", pacakgeDir, err)
@@ -174,19 +191,11 @@ func (p PackageCache) Remove(nameVersion string) error {
 }
 
 // Exist check both archive file and build desc file exist.
-func (p PackageCache) Exist(nameVersion, hash string) bool {
-	platformName := p.ctx.Platform().GetName()
-	projectName := p.ctx.Project().GetName()
-	buildType := p.ctx.BuildType()
-	archivePath := filepath.Join(p.Dir, platformName, projectName, buildType, nameVersion, hash+".tar.gz")
-	metaFilePath := filepath.Join(p.Dir, platformName, projectName, buildType, nameVersion, "meta", hash+".meta")
+func (a Aritifact) Exist(nameVersion, hash string) bool {
+	platformName := a.ctx.Platform().GetName()
+	projectName := a.ctx.Project().GetName()
+	buildType := a.ctx.BuildType()
+	archivePath := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion, hash+".tar.gz")
+	metaFilePath := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion, "meta", hash+".meta")
 	return fileio.PathExists(archivePath) && fileio.PathExists(metaFilePath)
-}
-
-func (p PackageCache) GetDir() string {
-	return p.Dir
-}
-
-func (p PackageCache) IsWritable() bool {
-	return p.Writable
 }

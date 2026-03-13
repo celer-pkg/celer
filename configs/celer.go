@@ -67,10 +67,10 @@ type Proxy struct {
 }
 
 type configData struct {
-	Global       global        `toml:"global"`
-	Proxy        *Proxy        `toml:"proxy,omitempty"`
-	PackageCache *PackageCache `toml:"package_cache,omitempty"`
-	CCache       *CCache       `toml:"ccache,omitempty"`
+	Global   global    `toml:"global"`
+	Proxy    *Proxy    `toml:"proxy,omitempty"`
+	PkgCache *pkgCache `toml:"pkgcache,omitempty"`
+	CCache   *CCache   `toml:"ccache,omitempty"`
 }
 
 // Init initializes celer with existing platform.
@@ -152,9 +152,9 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		}
 
 		// Validate package cache.
-		if c.configData.PackageCache != nil {
-			c.configData.PackageCache.ctx = c
-			if err := c.configData.PackageCache.Validate(); err != nil {
+		if c.configData.PkgCache != nil {
+			c.configData.PkgCache.ctx = c
+			if err := c.configData.PkgCache.Validate(); err != nil {
 				return err
 			}
 		}
@@ -480,13 +480,13 @@ func (c *Celer) SetVerbose(vebose bool) error {
 	return nil
 }
 
-func (c *Celer) SetPackageCacheDir(dir string) error {
+func (c *Celer) SetPkgCacheDir(dir string) error {
 	// Check dir empty and exist.
 	if strings.TrimSpace(dir) == "" {
-		return errors.ErrPackageCacheInvalid
+		return errors.ErrPkgCacheDirEmpty
 	}
 	if !fileio.PathExists(dir) {
-		return errors.ErrPackageCacheDirNotExist
+		return errors.ErrPkgCacheDirNotExist
 	}
 
 	if err := c.readOrCreate(); err != nil {
@@ -494,15 +494,14 @@ func (c *Celer) SetPackageCacheDir(dir string) error {
 	}
 
 	// Update package cache dir.
-	if c.configData.PackageCache == nil {
-		c.configData.PackageCache = &PackageCache{
-			ctx:      c,
-			Dir:      dir,
-			Writable: false,
-		}
+	if c.configData.PkgCache == nil {
+		c.configData.PkgCache = NewPkgCache(c, dir, false)
 	} else {
-		c.configData.PackageCache.ctx = c
-		c.configData.PackageCache.Dir = dir
+		c.configData.PkgCache.ctx = c
+		c.configData.PkgCache.Dir = dir
+	}
+	if err := c.configData.PkgCache.Validate(); err != nil {
+		return err
 	}
 	if err := c.save(); err != nil {
 		return err
@@ -511,20 +510,27 @@ func (c *Celer) SetPackageCacheDir(dir string) error {
 	return nil
 }
 
-func (c *Celer) SetPackageCacheWritable(writable bool) error {
+func (c *Celer) SetPkgCacheWritable(writable bool) error {
 	if err := c.readOrCreate(); err != nil {
 		return err
 	}
 
 	// Update package cache wriable.
-	if c.configData.PackageCache == nil {
-		c.configData.PackageCache = &PackageCache{
+	if c.configData.PkgCache == nil {
+		c.configData.PkgCache = &pkgCache{
 			ctx:      c,
 			Writable: writable,
 		}
 	} else {
-		c.configData.PackageCache.ctx = c
-		c.configData.PackageCache.Writable = writable
+		c.configData.PkgCache.ctx = c
+		c.configData.PkgCache.Writable = writable
+	}
+
+	// Rebuild internal handlers if dir is already configured.
+	if c.configData.PkgCache.Dir != "" {
+		if err := c.configData.PkgCache.Validate(); err != nil {
+			return err
+		}
 	}
 
 	if err := c.save(); err != nil {
@@ -855,14 +861,14 @@ func (c *Celer) Offline() bool {
 	return c.Global.Offline
 }
 
-func (c *Celer) PackageCache() context.PackageCache {
+func (c *Celer) PkgCache() context.PkgCache {
 	// Must return exactly nil if cache dir is none.
 	// otherwise, the result of CacheDir() will not be nil.
-	if c.configData.PackageCache == nil {
+	if c.configData.PkgCache == nil {
 		return nil
 	}
 
-	return c.configData.PackageCache
+	return c.configData.PkgCache
 }
 
 func (c *Celer) Verbose() bool {

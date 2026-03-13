@@ -37,7 +37,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		if p.Parent == "" {
 			reportPath, err := p.installReport.write(p)
 			if err != nil {
-				color.PrintWarning(err, "failed to write install report for %s", p.NameVersion())
+				color.PrintWarning("failed to write install report for %s: %s", p.NameVersion(), err)
 				return
 			}
 			color.PrintHint("Report: %s\n", reportPath)
@@ -159,7 +159,12 @@ func (p Port) Clone() error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive, port.Package.Depth); err != nil {
+		if err := port.MatchedConfig.Clone(
+			port.Package.Url,
+			port.Package.Ref,
+			port.Package.Archive,
+			port.Package.Depth,
+		); err != nil {
 			return err
 		}
 	}
@@ -169,14 +174,22 @@ func (p Port) Clone() error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		if err := port.MatchedConfig.Clone(port.Package.Url, port.Package.Ref, port.Package.Archive, port.Package.Depth); err != nil {
+		if err := port.MatchedConfig.Clone(
+			port.Package.Url,
+			port.Package.Ref,
+			port.Package.Archive,
+			port.Package.Depth,
+		); err != nil {
 			return err
 		}
 	}
 
 	// url with "_" means virtual port, no need to clone.
 	if p.Package.Url != "_" {
-		if err := p.MatchedConfig.Clone(p.Package.Url, p.Package.Ref, p.Package.Archive, p.Package.Depth); err != nil {
+		// Repo may archived in pkgcache/repos with filename of commit hash,
+		// we prefer clone with commit, so that repo can restore from pkgcache/repos.
+		repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
+		if err := p.MatchedConfig.Clone(p.Package.Url, repoRef, p.Package.Archive, p.Package.Depth); err != nil {
 			return err
 		}
 	}
@@ -184,12 +197,7 @@ func (p Port) Clone() error {
 	return nil
 }
 
-func (p Port) doInstallFromPackageCache(options InstallOptions, cache context.PackageCache) (bool, error) {
-	// No cache dir configured, skip it.
-	if cache.GetDir() == "" {
-		return false, nil
-	}
-
+func (p Port) doInstallFromPackageCache(options InstallOptions, artifactCache context.AritifactCache) (bool, error) {
 	// Try to install dependencies first.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
 		var port Port
@@ -212,16 +220,18 @@ func (p Port) doInstallFromPackageCache(options InstallOptions, cache context.Pa
 	}
 
 	// Calculate buildhash.
-	buildhash, err := p.buildhash(p.Package.Commit)
+	buildhash, err := p.buildhash(p.Package.Checksum)
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate buildhash -> %w", err)
 	}
 
 	// Read cache file and extract them to package dir.
-	if ok, err := cache.Read(p.NameVersion(), buildhash, p.MatchedConfig.PortConfig.PackageDir); err != nil {
-		return false, fmt.Errorf("read cache with buildhash: %s", err)
-	} else if ok {
-		return true, nil
+	if artifactCache != nil {
+		if fromWhere, err := artifactCache.Restore(p.NameVersion(), buildhash, p.PackageDir); err != nil {
+			return false, fmt.Errorf("read cache with buildhash: %s", err)
+		} else if fromWhere != "" {
+			return true, nil
+		}
 	}
 
 	return false, nil
@@ -241,15 +251,10 @@ func (p Port) doInstallFromSource() error {
 	// Validate cache dir before building to avoid wasting build time.
 	// Note: only store cache for non-devdep and non-host builds.
 	var (
-		writeCacheAfterInstall bool
-		skipStoreCacheReason   string
-		packageCache           = p.ctx.PackageCache()
+		skipStoreCacheReason string
+		pkgCache             = p.ctx.PkgCache()
 	)
 	if !p.MatchedConfig.DevDep && !p.MatchedConfig.HostDev {
-		if packageCache != nil && packageCache.GetDir() != "" && packageCache.IsWritable() {
-			writeCacheAfterInstall = true
-		}
-
 		// Only write cache from a clean source tree before applying patches.
 		// This keeps patch-applied dirty repos eligible, but skips developer-modified repos.
 		modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
@@ -257,17 +262,18 @@ func (p Port) doInstallFromSource() error {
 			return err
 		}
 		if modified {
-			skipStoreCacheReason = "\n[!] skip storing package cache for %s: source repo has local modifications before build.\n"
-		}
-
-		// Only up to date repo can store package cache for git repo.
-		if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
-			upToDate, err := git.CheckIfUpToDate(p.MatchedConfig.PortConfig.RepoDir)
-			if err != nil {
-				return err
-			}
-			if !upToDate {
-				skipStoreCacheReason = "\n[!] skip storing package cache for %s: source repo is not up to date.\n"
+			skipStoreCacheReason = "skip storing package cache for %s: source repo has local modifications before build."
+		} else {
+			// Only repos that match the configured source ref can store package cache.
+			if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
+				repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
+				matchesRef, err := git.CheckIfMatchesRef(p.ctx, p.MatchedConfig.PortConfig.RepoDir, repoRef)
+				if err != nil {
+					return err
+				}
+				if !matchesRef {
+					skipStoreCacheReason = "skip storing package cache for %s: source repo does not match the configured ref."
+				}
 			}
 		}
 	}
@@ -289,7 +295,7 @@ func (p Port) doInstallFromSource() error {
 		}
 
 		// Write meta file with installed files and build environment.
-		metaData, err := p.buildMeta(p.Package.Commit)
+		metaData, err := p.buildMeta(p.Package.Checksum)
 		if err != nil {
 			installFailed = true
 			return err
@@ -305,14 +311,18 @@ func (p Port) doInstallFromSource() error {
 		}
 
 		// Store package cache with meta file inside.
-		if writeCacheAfterInstall {
+		// For dev port, artifacts are built with local toolchains that may differ in different devcies.
+		if pkgCache != nil && pkgCache.IsWritable() && !p.DevDep && !p.HostDep {
 			if skipStoreCacheReason != "" {
-				color.Printf(color.Warning, skipStoreCacheReason, p.NameVersion())
+				color.PrintWarning(skipStoreCacheReason, p.NameVersion())
 				return nil
 			}
 
-			if err := packageCache.Write(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
-				return err
+			artifactCache := pkgCache.GetArtifactCache()
+			if artifactCache != nil {
+				if err := artifactCache.Store(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -394,7 +404,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to read package meta of %s -> %w", p.NameVersion(), err)
 	}
-	newMeta, err := p.buildMeta(p.Package.Commit)
+	newMeta, err := p.buildMeta(p.Package.Checksum)
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate meta of %s -> %w", p.NameVersion(), err)
 	}
@@ -443,19 +453,19 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 }
 
 func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
-	// Check if has package cache configure.
-	cache := p.ctx.PackageCache()
-	if cache == nil {
+	// Check if has package pkgCache configure.
+	pkgCache := p.ctx.PkgCache()
+	if pkgCache == nil || pkgCache.GetDir() == "" {
 		return false, nil
 	}
 
-	installed, err := p.doInstallFromPackageCache(options, cache)
+	installed, err := p.doInstallFromPackageCache(options, pkgCache.GetArtifactCache())
 	if err != nil {
 		// Repo not exist is not error.
 		if errors.Is(err, errors.ErrRepoNotExit) {
 			return false, nil
 		}
-		return false, fmt.Errorf("failed to install from package cache -> %w", err)
+		return false, fmt.Errorf("failed to install from pkgcache -> %w", err)
 	}
 
 	if installed {
@@ -468,10 +478,10 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		fromDir := cache.GetDir()
-		return true, p.writeTraceFile(fmt.Sprintf("package cache, dir: %q", fromDir))
-	} else if p.Package.Commit != "" {
-		return false, fmt.Errorf("%w: %s", errors.ErrCacheNotFoundWithCommit, p.Package.Commit)
+		fromDir := pkgCache.GetDir()
+		return true, p.writeTraceFile(fmt.Sprintf("pkgcache: %q", fromDir))
+	} else if p.Package.Checksum != "" {
+		return false, fmt.Errorf("%w: %s", errors.ErrPkgCacheArtifactNotFound, p.Package.Checksum)
 	}
 
 	return false, nil
