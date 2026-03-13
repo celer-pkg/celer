@@ -81,7 +81,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   strip = "x86_64-linux-gnu-strip"            # Optional field
 ```
 
-### 1️⃣ Toolchain Configuration Fields
+### 1. Toolchain Configuration Fields
 
 | Field | Required | Description | Examples |
 |-------|----------|-------------|----------|
@@ -108,7 +108,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 
 > ⚠️ **Note**: Optional tools (fc, ranlib, etc.) will be automatically located using `crosstool_prefix` if not specified.
 
-### 2️⃣ Rootfs (Root Filesystem) Configuration Fields
+### 2. Rootfs (Root Filesystem) Configuration Fields
 
 | Field | Required | Description | Examples |
 |-------|----------|-------------|----------|

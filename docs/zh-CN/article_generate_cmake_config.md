@@ -112,7 +112,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 
 ---
 
-## 2️⃣ 多组件库配置
+## 2. 多组件库配置
 
 ### 使用场景
 
@@ -196,7 +196,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 ---
 
-## 3️⃣ 预构建库 CMake 配置生成
+## 3. 预构建库 CMake 配置生成
 
 对于预构建库（`build_system = "prebuilt"`），你可以手动创建 `cmake_config.toml` 文件，无需手动配置。
 
