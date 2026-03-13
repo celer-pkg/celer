@@ -24,23 +24,6 @@ Each project has its unique configuration characteristics. Project configuration
 
 ---
 
-## 📝 Project Naming Convention
-
-Project configuration files follow a unified naming format:
-
-```
-project_<name>.toml
-```
-
-**Examples:**
-- `project_001.toml` - First project configuration
-- `project_opencv.toml` - OpenCV project configuration
-- `project_multimedia.toml` - Multimedia project configuration
-
-> 💡 **Tip**: It's recommended to use meaningful names or numbers to identify different projects for easy team recognition and management.
-
----
-
 ## 🛠️ Configuration Field Details
 
 ### Complete Example Configuration

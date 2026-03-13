@@ -97,7 +97,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `version` | ✅ | Toolchain version number | `9.5`, `11.3`, `14.0.0` |
 | `c_compiler_target` | ❌ | C compiler target variant passed to CMake (`CMAKE_C_COMPILER_TARGET`) | `gcc_ntoaarch64le` |
 | `cxx_compiler_target` | ❌ | C++ compiler target variant passed to CMake (`CMAKE_CXX_COMPILER_TARGET`) | `gcc_ntoaarch64le_cxx` |
-| `envs` | ❌ | Extra environment variables for toolchains that require runtime env setup (for example QNX) | `["QNX_HOST=/opt/qnx800/host/linux/x86_64"]` |
+| `envs` | ❌ | Extra environment variables for toolchains that require runtime env setup (for example QNX) | `["QNX_CONFIGURATION=/dir/of/qnx/license"]` |
 | `embedded_system` | ❌ | Whether this is for embedded systems (like MCU or bare-metal) | `true` (MCU/bare-metal)<br>`false` or omit (regular systems) |
 | `fc` | ❌ | Fortran compiler (if needed) | `x86_64-linux-gnu-gfortran` |
 | `ranlib` | ❌ | Library index generator | `x86_64-linux-gnu-ranlib` |
@@ -182,10 +182,6 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   c_compiler_target = "gcc_ntoaarch64le"
   cxx_compiler_target = "gcc_ntoaarch64le_cxx"
   envs = [
-    "CFLAGS=-D_QNX_SOURCE",
-    "CXXFLAGS=-D_QNX_SOURCE",
-    "QNX_HOST=${TOOLCHAIN_DIR}/host/linux/x86_64",
-    "QNX_TARGET=${TOOLCHAIN_DIR}/target/qnx",
     "QNX_CONFIGURATION=${TOOLCHAIN_DIR}/.qnx",
     "QNX_CONFIGURATION_EXCLUSIVE=${TOOLCHAIN_DIR}/.qnx",
     "MAKEFLAGS=${TOOLCHAIN_DIR}/target/qnx/usr/include",
