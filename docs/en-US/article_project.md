@@ -24,23 +24,6 @@ Each project has its unique configuration characteristics. Project configuration
 
 ---
 
-## 📝 Project Naming Convention
-
-Project configuration files follow a unified naming format:
-
-```
-project_<name>.toml
-```
-
-**Examples:**
-- `project_001.toml` - First project configuration
-- `project_opencv.toml` - OpenCV project configuration
-- `project_multimedia.toml` - Multimedia project configuration
-
-> 💡 **Tip**: It's recommended to use meaningful names or numbers to identify different projects for easy team recognition and management.
-
----
-
 ## 🛠️ Configuration Field Details
 
 ### Complete Example Configuration
@@ -114,7 +97,7 @@ macros = [
 
 > ⚠️ **Note**: All fields are optional. You can configure them selectively based on project needs.
 
-### 1️⃣ Ports (Dependencies)
+### 1. Ports (Dependencies)
 
 Specify third-party libraries that the project depends on. Celer will automatically download, compile, and install these dependencies.
 
@@ -137,7 +120,7 @@ ports = [
 
 > 💡 **Tip**: Use `celer search <package>` to view available version lists.
 
-### 2️⃣ Vars (CMake Variables)
+### 2. Vars (CMake Variables)
 
 Define global CMake variables that will be passed to the build process of all dependent libraries and app development projects.
 
@@ -151,7 +134,7 @@ vars = [
 ]
 ```
 
-### 3️⃣ Envs (Environment Variables)
+### 3. Envs (Environment Variables)
 
 Define environment variables needed during build, affecting compilation behavior.
 
@@ -165,7 +148,7 @@ envs = [
 ]
 ```
 
-### 4️⃣ Macros (Macro Definitions)
+### 4. Macros (Macro Definitions)
 
 Define C/C++ preprocessor macros to be injected into code during compilation.
 
@@ -181,7 +164,7 @@ macros = [
 ]
 ```
 
-### 5️⃣ Optimize (Compilation Optimization Options)
+### 5. Optimize (Compilation Optimization Options)
 
 Define compiler optimization flags for different build types. Celer supports configuring independent optimization options for different compilers, achieving consistent build configuration across platforms and compilers.
 

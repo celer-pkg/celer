@@ -81,7 +81,7 @@
   strip = "x86_64-linux-gnu-strip"            # 可选字段
 ```
 
-### 1️⃣ Toolchain（工具链）配置字段
+### 1. Toolchain（工具链）配置字段
 
 | 字段 | 必选 | 描述 | 示例 |
 |------|------|------|------|
@@ -97,7 +97,7 @@
 | `version` | ✅ | 工具链版本号 | `9.5`, `11.3`, `14.0.0` |
 | `c_compiler_target` | ❌ | 传递给 CMake 的 C 编译器 target 变体（`CMAKE_C_COMPILER_TARGET`） | `gcc_ntoaarch64le` |
 | `cxx_compiler_target` | ❌ | 传递给 CMake 的 C++ 编译器 target 变体（`CMAKE_CXX_COMPILER_TARGET`） | `gcc_ntoaarch64le_cxx` |
-| `envs` | ❌ | 工具链额外环境变量（适用于需要运行时环境的工具链，例如 QNX） | `["QNX_HOST=/opt/qnx800/host/linux/x86_64"]` |
+| `envs` | ❌ | 工具链额外环境变量（适用于需要运行时环境的工具链，例如 QNX） | `["QNX_CONFIGURATION=/dir/of/qnx/license"]` |
 | `embedded_system` | ❌ | 是否为嵌入式系统环境（如 MCU、裸机） | `true`（MCU/裸机）<br>`false` 或不设置（常规系统） |
 | `fc` | ❌ | Fortran 编译器（如果需要） | `x86_64-linux-gnu-gfortran` |
 | `ranlib` | ❌ | 库索引生成器 | `x86_64-linux-gnu-ranlib` |
@@ -108,7 +108,7 @@
 
 > ⚠️ **注意**：可选工具（fc、ranlib 等）如果未指定，Celer 会使用 `crosstool_prefix` 自动查找。
 
-### 2️⃣ Rootfs（根文件系统）配置字段
+### 2. Rootfs（根文件系统）配置字段
 
 | 字段 | 必选 | 描述 | 示例 |
 |------|------|------|------|
@@ -182,10 +182,6 @@
   c_compiler_target = "gcc_ntoaarch64le"
   cxx_compiler_target = "gcc_ntoaarch64le_cxx"
   envs = [
-    "CFLAGS=-D_QNX_SOURCE",
-    "CXXFLAGS=-D_QNX_SOURCE",
-    "QNX_HOST=${TOOLCHAIN_DIR}/host/linux/x86_64",
-    "QNX_TARGET=${TOOLCHAIN_DIR}/target/qnx",
     "QNX_CONFIGURATION=${TOOLCHAIN_DIR}/.qnx",
     "QNX_CONFIGURATION_EXCLUSIVE=${TOOLCHAIN_DIR}/.qnx",
     "MAKEFLAGS=${TOOLCHAIN_DIR}/target/qnx/usr/include",

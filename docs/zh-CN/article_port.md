@@ -20,35 +20,35 @@
 [package]
 url = "https://github.com/google/glog.git"
 ref = "v0.6.0"
-archive = ""            # 可选字段，仅当 url 不是 git 仓库时有效
-src_dir = "xxx"         # 可选字段
-supported_hosts = []    # 可选字段
+archive = ""                    # 可选字段，仅当 url 不是 git 仓库时有效
+src_dir = "xxx"                 # 可选字段
+supported_hosts = []            # 可选字段
 
 [[build_configs]]
-system_name = "linux"   # 可选选择器
-system_processor = "x86_64" # 可选选择器
-build_system = "cmake"  # 必填字段，可选值：cmake、makefiles、b2、meson 等
-cmake_generator = []    # 可选字段
-build_tools = []        # 可选字段
-library_type = "shared" # 可选字段，默认 shared，可选 static
-build_shared = "--with-shared" # 可选字段
-build_static = "--with-static" # 可选字段
-c_standard = "c99"      # 可选字段
-cxx_standard = "cxx17"  # 可选字段
-envs = []               # 可选字段
-patches = []            # 可选字段
-build_in_source = false # 可选字段，默认 false
-autogen_options = []    # 可选字段
-pre_configure = []      # 可选字段
-post_configure = []     # 可选字段
-pre_build = []          # 可选字段
-options = []            # 可选字段
-fix_build = []          # 可选字段
-post_build = []         # 可选字段
-pre_install = []        # 可选字段
-post_install = []       # 可选字段
-dependencies = []       # 可选字段
-dev_dependencies = []   # 可选字段
+system_name = "linux"           # 可选选择器
+system_processor = "x86_64"     # 可选选择器
+build_system = "cmake"          # 必填字段，可选值：cmake、makefiles、b2、meson 等
+cmake_generator = []            # 可选字段
+build_tools = []                # 可选字段
+library_type = "shared"         # 可选字段，默认 shared，可选 static
+build_shared = "--with-shared"  # 可选字段
+build_static = "--with-static"  # 可选字段
+c_standard = "c99"              # 可选字段
+cxx_standard = "cxx17"          # 可选字段
+envs = []                       # 可选字段
+patches = []                    # 可选字段
+build_in_source = false         # 可选字段，默认 false
+autogen_options = []            # 可选字段
+pre_configure = []              # 可选字段
+post_configure = []             # 可选字段
+pre_build = []                  # 可选字段
+options = []                    # 可选字段
+fix_build = []                  # 可选字段
+post_build = []                 # 可选字段
+pre_install = []                # 可选字段
+post_install = []               # 可选字段
+dependencies = []               # 可选字段
+dev_dependencies = []           # 可选字段
 ```
 ```
 

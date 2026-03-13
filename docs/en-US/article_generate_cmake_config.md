@@ -30,7 +30,7 @@ Choose the appropriate configuration type based on your library's characteristic
 
 ---
 
-## 1️⃣ Single Target Library Configuration
+## 1. Single Target Library Configuration
 
 ### Use Case
 
@@ -112,7 +112,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 
 ---
 
-## 2️⃣ Multi-Component Library Configuration
+## 2. Multi-Component Library Configuration
 
 ### Use Case
 
