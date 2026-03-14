@@ -73,6 +73,9 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   crosstool_prefix = "x86_64-linux-gnu-"
   cc = "x86_64-linux-gnu-gcc"
   cxx = "x86_64-linux-gnu-g++"
+  cflags = ["-fPIC"]                          # Optional field
+  cxxflags = ["-fPIC", "-stdlib=libc++"]      # Optional field
+  linkflags = ["-Wl,--as-needed"]             # Optional field
   fc = "x86_64-linux-gnu-gfortran"            # Optional field
   ranlib = "x86_64-linux-gnu-ranlib"          # Optional field
   ar = "x86_64-linux-gnu-ar"                  # Optional field
@@ -98,6 +101,12 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `c_compiler_target` | ❌ | C compiler target variant passed to CMake (`CMAKE_C_COMPILER_TARGET`) | `gcc_ntoaarch64le` |
 | `cxx_compiler_target` | ❌ | C++ compiler target variant passed to CMake (`CMAKE_CXX_COMPILER_TARGET`) | `gcc_ntoaarch64le_cxx` |
 | `envs` | ❌ | Extra environment variables for toolchains that require runtime env setup (for example QNX) | `["QNX_CONFIGURATION=/dir/of/qnx/license"]` |
+| `cflags` | ❌ | Appended to `CMAKE_C_FLAGS_INIT` in `toolchain_file.cmake` | `["-fPIC", "--sysroot=${SYSROOT_DIR}"]` |
+| `cxxflags` | ❌ | Appended to `CMAKE_CXX_FLAGS_INIT` in `toolchain_file.cmake` | `["-fPIC", "-stdlib=libc++"]` |
+| `linkflags` | ❌ | Appended to `CMAKE_EXE/SHARED/MODULE_LINKER_FLAGS_INIT` in `toolchain_file.cmake` | `["-Wl,--as-needed"]` |
+| `cflags_debug` | ❌ | C compiler flags preferred when `build_type=debug`; falls back to `cflags` when unset | `["-O0", "-g3"]` |
+| `cxxflags_debug` | ❌ | C++ compiler flags preferred when `build_type=debug`; falls back to `cxxflags` when unset | `["-O0", "-g3"]` |
+| `linkflags_debug` | ❌ | Linker flags preferred when `build_type=debug`; falls back to `linkflags` when unset | `["-Wl,--export-dynamic"]` |
 | `embedded_system` | ❌ | Whether this is for embedded systems (like MCU or bare-metal) | `true` (MCU/bare-metal)<br>`false` or omit (regular systems) |
 | `fc` | ❌ | Fortran compiler (if needed) | `x86_64-linux-gnu-gfortran` |
 | `ranlib` | ❌ | Library index generator | `x86_64-linux-gnu-ranlib` |

@@ -19,7 +19,6 @@ type Project struct {
 	Vars           []string          `toml:"vars"`
 	Envs           []string          `toml:"envs"`
 	Macros         []string          `toml:"macros"`
-	Flags          []string          `toml:"flags"`
 	OptimizeGCC    *context.Optimize `toml:"optimize_gcc"`
 	OptimizeMSVC   *context.Optimize `toml:"optimize_msvc"`
 	OptimizeClang  *context.Optimize `toml:"optimize_clang"`

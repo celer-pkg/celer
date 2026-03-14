@@ -10,7 +10,7 @@
 - 🔧 **Vars（CMake 变量）** - 全局 CMake 构建变量
 - 🌍 **Envs（环境变量）** - 构建时需要的环境变量
 - 🏷️ **Macros（宏定义）** - C/C++ 预处理器宏
-- ⚙️ **Compile Options（编译选项）** - 编译器标志和优化选项
+- ⚙️ **Optimize（编译优化）** - 不同构建类型下的优化选项
 
 **为什么需要项目配置？**
 
@@ -18,7 +18,7 @@
 - ✅ 统一管理项目依赖关系
 - ✅ 在团队中共享一致的构建环境
 - ✅ 快速切换不同项目的构建配置
-- ✅ 独立管理每个项目的编译选项和宏定义
+- ✅ 独立管理每个项目的优化策略和宏定义
 
 **项目文件位置：** 所有项目配置文件存放在 `conf/projects` 目录中。
 
@@ -143,8 +143,8 @@ vars = [
 **示例：**
 ```toml
 envs = [
-    "CFLAGS=-march=native",         # 设置 C 编译器标志
-    "CXXFLAGS=-march=native"        # 设置 C++ 编译器标志
+    "PKG_CONFIG_PATH=/opt/sdk/pkgconfig",
+    "QNX_CONFIGURATION=/opt/qnx/.qnx"
 ]
 ```
 

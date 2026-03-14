@@ -53,7 +53,7 @@ These are injected per matched `build_config` before build execution.
 ## Where Replacement Happens
 
 - `toolchain.envs` in platform TOML.
-- `project.vars`, `project.envs`, `project.macros`, `project.flags`.
+- `project.vars`, `project.envs`, `project.macros`, `toolchain.cflags`, `toolchain.cxxflags`, `toolchain.linkflags`.
 - Port `build_config` fields such as `envs` and `options`.
 
 ## Extra Placeholders in Build Options
@@ -62,4 +62,3 @@ These are not part of `ExprVars`, but are also replaced during build option expa
 
 - `${CC}`
 - `${CXX}`
-
