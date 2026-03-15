@@ -39,14 +39,10 @@ celer init --url=https://github.com/celer-pkg/test-conf.git
 
 # 3. Configure your platform and project
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
-celer configure --project=my_project
+celer configure --project=project_test_01
 
-# 4. Deploy and generate the toolchain file
-celer deploy
-
-# 5. Use it in your CMake project
-cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/workspace/toolchain_file.cmake ..
-cmake --build .
+# 4. Test clone, build and install a library.
+celer install glog@0.6.0
 ```
 
 📖 [Full Quick Start Guide](./quick_start.md)
@@ -104,9 +100,9 @@ In one sentence:
 
 **Getting Started:**
 - [Quick Start Guide](./quick_start.md) - Get started in 5 minutes
-- [Create a New Platform](./cmd_create.md#1-create-a-new-platform) - Define custom cross-compilation environments
-- [Create a New Project](./cmd_create.md#2-create-a-new-project) - Configure project-level settings
-- [Add a New Port](./cmd_create.md#3-create-a-new-port) - Host and manage your own libraries
+- [Create a New Platform](./cmd_create.md) - Define custom cross-compilation environments
+- [Create a New Project](./cmd_create.md) - Configure project-level settings
+- [Add a New Port](./cmd_create.md) - Host and manage your own libraries
 
 **Advanced Topics:**
 - [Generate CMake Configs](./article_generate_cmake_config.md) - Auto-generate configuration for prebuilt binaries

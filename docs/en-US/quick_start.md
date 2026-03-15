@@ -101,9 +101,9 @@ conf
 
 ### 🔗 Related Documentation
 
-- [Create a New Platform](./cmd_create.md#1-create-a-new-platform)
-- [Create a New Project](./cmd_create.md#2-create-a-new-project)
-- [Create a New Port](./cmd_create.md#3-create-a-new-port)
+- [Create a New Platform](./cmd_create.md)
+- [Create a New Project](./cmd_create.md)
+- [Create a New Port](./cmd_create.md)
 
 ### 📌 Note
 
@@ -263,8 +263,6 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE="/path/to/workspace/toolchain_file.cmake"
 
 - [Advanced Platform Configuration](./article_platform.md)
 - [Advanced Port Configuration](./article_port.md)
-- [Caching Build Artifacts](./article_pkgcache_artifacts.md)
-- [Caching Source Repositories](./article_pkgcache_repos.md)
 - [Command Reference](./cmd_install.md)
 
 ---

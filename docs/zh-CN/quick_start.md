@@ -101,9 +101,9 @@ conf
 
 ### 🔗 相关文档
 
-- [创建新平台](./cmd_create.md#1-创建一个新的平台)
-- [创建新项目](./cmd_create.md#2-创建一个新的项目)
-- [创建新端口](./cmd_create.md#3-创建一个新的端口)
+- [创建新平台](./cmd_create.md)
+- [创建新项目](./cmd_create.md)
+- [创建新端口](./cmd_create.md)
 
 ### 📌 注意事项
 

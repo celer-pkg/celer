@@ -12,7 +12,7 @@ url                 = "https://github.com/google/glog.git"
 ref                 = "v0.6.0"
 archive             = ""                    # optional field, only works when url is not a git repo url.
 src_dir             = "xxx"                 # optional field
-supported_hosts     = [...]                 # optional field
+build_tool          = true|false          # optional field
 
 [[build_configs]]
 system_name         = "linux"               # optional selector
@@ -65,7 +65,7 @@ The following are fields and their descriptions:
 | ref | Tag name, branch name, commit id, or version in archive filename. |
 | archive | Optional, only works when url is not a git url. Used to rename downloaded archive file. |
 | src_dir | Optional, used to specify where **configure** or **CMakeLists.txt** is located. |
-| build_tool | Optional. Set to `true` for build-time tools (e.g. m4, automake, libtool, autoconf): always built natively, install path has no platform/project/buildType segments, and only built on Linux/Darwin (no need for supported_hosts). |
+| build_tool | Optional. Set to `true` for build-time tools (e.g. m4, automake, libtool, autoconf): always built natively, install path has no platform/project/buildType segments, and only built on Linux/Darwin. |
 | build_configs | Array, describes how to build the library on different platforms. |
 | dev_dependencies | Array, tools required during build (e.g. autoconf, nasm). |
 

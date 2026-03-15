@@ -39,14 +39,10 @@ celer init --url=https://github.com/celer-pkg/test-conf.git
 
 # 3. 配置平台和项目
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
-celer configure --project=my_project
+celer configure --project=project_test_01
 
-# 4. 部署并生成工具链文件
-celer deploy
-
-# 5. 在 CMake 项目中使用
-cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/workspace/toolchain_file.cmake ..
-cmake --build .
+# 4. 测试构建、编译和安装一个代码库
+celer install glog@0.6.0
 ```
 
 📖 [完整快速入门指南](./quick_start.md)
@@ -104,9 +100,9 @@ Celer 的优势在于它更关注**复杂工程环境里的交付效率和一致
 
 **快速入门：**
 - [快速开始指南](./quick_start.md) - 5 分钟上手
-- [创建新平台](./cmd_create.md#1-创建一个新的平台) - 定义自定义交叉编译环境
-- [创建新项目](./cmd_create.md#2-创建一个新的项目) - 配置项目级设置
-- [添加新端口](./cmd_create.md#3-创建一个新的端口) - 托管和管理自己的库
+- [创建新平台](./cmd_create.md) - 定义自定义交叉编译环境
+- [创建新项目](./cmd_create.md) - 配置项目级设置
+- [添加新端口](./cmd_create.md) - 托管和管理自己的库
 
 **高级功能：**
 - [生成 CMake 配置文件](./article_generate_cmake_config.md) - 为预编译二进制库自动生成配置
@@ -127,7 +123,7 @@ Celer 的优势在于它更关注**复杂工程环境里的交付效率和一致
 | [configure](./cmd_configure.md) | 修改当前 workspace 的全局配置 |
 | [create](./cmd_create.md) | 创建平台、项目或端口 |
 | [deploy](./cmd_deploy.md) | 使用当前选择的平台和项目执行部署 |
-| [init](./quick_start.md#3-setup-conf) | 使用配置仓库初始化 Celer |
+| [init](./quick_start.md#3-配置-conf) | 使用配置仓库初始化 Celer |
 | [install](./cmd_install.md) | 安装一个库 |
 | [integrate](./cmd_integrate.md) | 集成 shell 补全 |
 | [remove](./cmd_remove.md) | 移除已安装的库 |
