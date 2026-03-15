@@ -23,7 +23,7 @@ In real C/C++ projects, the common pain points usually look like this:
 - 🎯 **High integration cost**: existing projects often depend on specific build conventions, so taking over a project means touching code and build scripts.
 - 🚀 **Complex cross-compilation environments**: compilers, sysroots, ABIs, environment variables, and dependency sources are scattered, so switching platforms and reproducing environments is expensive.
 - 📦 **Built artifacts are hard to reuse**: repeated builds are common, outputs vary across machines and stages, and environment drift is easy to introduce.
-- 🔧 **Third-party libraries use many build tools**: CMake, Make, Meson, B2, and QMake all need different handling.
+- 🔧 **Third-party libraries use many build tools**: CMake, Makefiles, Meson, B2, and QMake all need different handling.
 - 🏢 **Projects contaminate each other**: dependency versions, macros, and environment variables leak globally and create conflicts.
 - 🔗 **Team collaboration and delivery are difficult**: environments are tightly bound to individual machines, making handoff, collaboration, and CI rollout expensive.
 
@@ -39,14 +39,10 @@ celer init --url=https://github.com/celer-pkg/test-conf.git
 
 # 3. Configure your platform and project
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
-celer configure --project=my_project
+celer configure --project=project_test_01
 
-# 4. Deploy and generate the toolchain file
-celer deploy
-
-# 5. Use it in your CMake project
-cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/workspace/toolchain_file.cmake ..
-cmake --build .
+# 4. Test clone, build and install a library.
+celer install glog@0.6.0
 ```
 
 📖 [Full Quick Start Guide](./docs/en-US/quick_start.md)
@@ -104,9 +100,9 @@ In one sentence:
 
 **Getting Started:**
 - [Quick Start Guide](./docs/en-US/quick_start.md) - Get started in 5 minutes
-- [Create a New Platform](./docs/en-US/cmd_create.md#1-create-a-new-platform) - Define custom cross-compilation environments
-- [Create a New Project](./docs/en-US/cmd_create.md#2-create-a-new-project) - Configure project-level settings
-- [Add a New Port](./docs/en-US/cmd_create.md#3-create-a-new-port) - Host and manage your own libraries
+- [Create a New Platform](./docs/en-US/cmd_create.md) - Define custom cross-compilation environments
+- [Create a New Project](./docs/en-US/cmd_create.md) - Configure project-level settings
+- [Add a New Port](./docs/en-US/cmd_create.md) - Host and manage your own libraries
 
 **Advanced Topics:**
 - [Generate CMake Configs](./docs/en-US/article_generate_cmake_config.md) - Auto-generate configuration for prebuilt binaries

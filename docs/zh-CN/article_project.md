@@ -329,15 +329,3 @@ project = "project_001"
 ```bash
 celer tree project_001
 ```
-
----
-
-## 📚 相关文档
-
-- [快速开始指南](./quick_start.md) - 开始使用 Celer
-- [创建项目](./cmd_create.md) - 使用 celer create 命令
-- [平台配置](./article_platform.md) - 配置编译工具链
-
----
-
-**需要帮助？** [报告问题](https://github.com/celer-pkg/celer/issues) 或查看我们的[文档](../../README.md)
