@@ -246,15 +246,3 @@ system_processor = "x86_64"
 ```
 
 > 💡 **Tip**: Celer automatically detects MSVC installation paths, including Windows SDK, UCRT, and compiler tools.
-
----
-
-## 📚 Related Documentation
-
-- [Quick Start Guide](./quick_start.md) - Get started with Celer
-- [Project Configuration](./cmd_create.md#2-create-a-new-project) - Select platform in celer.toml
-- [Build Configuration](./article_buildconfig.md) - Configure build options and dependencies
-
----
-
-**Need help?** [Report an issue](https://github.com/celer-pkg/celer/issues) or check our [documentation](../../README.md)

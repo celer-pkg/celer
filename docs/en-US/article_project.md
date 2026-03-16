@@ -329,15 +329,3 @@ View the dependency tree of the current project:
 ```bash
 celer tree project_001
 ```
-
----
-
-## 📚 Related Documentation
-
-- [Quick Start Guide](./quick_start.md) - Get started with Celer
-- [Create Project](./cmd_create.md) - Using the celer create command
-- [Platform Configuration](./article_platform.md) - Configure compilation toolchains
-
----
-
-**Need Help?** [Report Issues](https://github.com/celer-pkg/celer/issues) or check our [Documentation](../../README.md)
