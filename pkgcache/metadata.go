@@ -53,18 +53,18 @@ func (p Port) BuildMeta(commit string) (string, error) {
 
 	// Collect buildtool infos.
 	if p.PortType == portTypePort {
-		tools, err := p.collectBuildTools(map[string]struct{}{}, map[string]struct{}{})
+		buildTools, err := p.collectBuildTools(map[string]struct{}{}, map[string]struct{}{})
 		if err != nil {
 			return "", fmt.Errorf("collect build tools -> %w", err)
 		}
 
-		versions, err := p.Callbacks.GenBuildToolsVersions(tools)
+		toolVersions, err := p.Callbacks.GenBuildToolsVersions(buildTools)
 		if err != nil {
 			return "", fmt.Errorf("failed to get build tools versions -> %w", err)
 		}
-		if versions != "" {
-			p.writeDivider(&buffer, p.Parents, p.NameVersion, "build tools versions")
-			buffer.WriteString(versions + "\n\n")
+		if toolVersions != "" {
+			p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "build tools versions")
+			buffer.WriteString(toolVersions + "\n\n")
 		}
 	}
 
@@ -82,7 +82,7 @@ func (p Port) buildMeta(commit string) (string, error) {
 	// Write celer version and platform content for root port only.
 	if p.PortType == portTypePort {
 		// Write content of platform toml.
-		p.writeDivider(&buffer, p.Parents, p.NameVersion, "platform")
+		p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "platform")
 		platform, err := p.Callbacks.GenPlatformTomlString()
 		if err != nil {
 			return "", err
@@ -119,19 +119,19 @@ func (p Port) buildMeta(commit string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("generate toml content of port %s -> %w", p.NameVersion, err)
 	}
-	p.writeDivider(&buffer, p.Parents, p.NameVersion, "port")
+	p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "port")
 	buffer.WriteString(content + "\n")
 
 	// Write commit of port.
 	if commit != "" {
-		p.writeDivider(&buffer, p.Parents, p.NameVersion, "commit")
+		p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "commit")
 		buffer.WriteString(commit + "\n\n")
 	} else {
 		commit, err := p.Callbacks.GetCommitHash(p.NameVersion, p.DevDep)
 		if err != nil {
 			return "", fmt.Errorf("failed to get commit of port %s\n %w", p.NameVersion, err)
 		}
-		p.writeDivider(&buffer, p.Parents, p.NameVersion, "commit")
+		p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "commit")
 		buffer.WriteString(commit + "\n\n")
 	}
 
@@ -141,7 +141,7 @@ func (p Port) buildMeta(commit string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("read patch %s -> %w", patch, err)
 		}
-		p.writeDivider(&buffer, p.Parents, p.NameVersion, fmt.Sprintf("patch: %s", patch))
+		p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, fmt.Sprintf("patch: %s", patch))
 		buffer.WriteString(content + "\n")
 	}
 
@@ -162,14 +162,14 @@ func (p Port) buildMeta(commit string) (string, error) {
 			return "", fmt.Errorf("get build config of dependency %s -> %w", nameVersion, err)
 		}
 
+		parent := expr.If(len(p.Parents) == 0, p.NameVersion, fmt.Sprintf("dev_dependency: %s", p.NameVersion))
 		port := Port{
 			Platform:    p.Platform,
 			PortType:    portTypeDevDependency,
 			NameVersion: nameVersion,
 			Project:     p.Project,
 			DevDep:      true,
-			Parents: append(p.Parents, expr.If(len(p.Parents) == 0,
-				p.NameVersion, fmt.Sprintf("dev_dependency: %s", p.NameVersion))),
+			Parents:     append(p.Parents, parent),
 			BuildConfig: *buildConfig,
 			Callbacks:   p.Callbacks,
 		}
@@ -219,11 +219,10 @@ func (p Port) collectBuildTools(visitedPorts, seenTools map[string]struct{}) ([]
 
 	var tools []string
 	appendTool := func(tool string) {
-		if _, ok := seenTools[tool]; ok {
-			return
+		if _, ok := seenTools[tool]; !ok {
+			seenTools[tool] = struct{}{}
+			tools = append(tools, tool)
 		}
-		seenTools[tool] = struct{}{}
-		tools = append(tools, tool)
 	}
 
 	for _, tool := range p.BuildConfig.BuildTools {
@@ -231,6 +230,7 @@ func (p Port) collectBuildTools(visitedPorts, seenTools map[string]struct{}) ([]
 	}
 
 	for _, nameVersion := range p.BuildConfig.DevDependencies {
+		// Ignore self.
 		if (p.DevDep || p.HostDev) && p.NameVersion == nameVersion {
 			continue
 		}
@@ -286,7 +286,7 @@ func (p Port) collectBuildTools(visitedPorts, seenTools map[string]struct{}) ([]
 	return tools, nil
 }
 
-func (p Port) writeDivider(buffer *bytes.Buffer, parents []string, nameVersion, what string) {
+func (p Port) writeSectionTitle(buffer *bytes.Buffer, parents []string, nameVersion, what string) {
 	switch p.PortType {
 	case portTypePort:
 		buffer.WriteString(newDivider(parents, nameVersion, what))
