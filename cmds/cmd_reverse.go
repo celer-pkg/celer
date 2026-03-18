@@ -44,11 +44,7 @@ Examples:
   celer reverse boost@1.87.0`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := r.doExecute(args); err != nil {
-				return color.PrintError(err, "failed to exec reverse")
-			}
-
-			return nil
+			return r.doExecute(args)
 		},
 		ValidArgsFunction: r.completion,
 	}

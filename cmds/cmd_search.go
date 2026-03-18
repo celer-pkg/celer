@@ -40,11 +40,7 @@ Examples:
   celer search *ffmpeg*      # Search for all ports containing 'ffmpeg'`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := s.doSearch(args[0]); err != nil {
-				return color.PrintError(err, "failed to exec search")
-			}
-
-			return nil
+			return s.doSearch(args[0])
 		},
 		ValidArgsFunction: s.completion,
 	}

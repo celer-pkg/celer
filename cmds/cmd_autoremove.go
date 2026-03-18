@@ -3,7 +3,6 @@ package cmds
 import (
 	"celer/configs"
 	"celer/depcheck"
-	"celer/pkgs/color"
 	"celer/pkgs/dirs"
 	"fmt"
 	"os"
@@ -44,14 +43,10 @@ Examples:
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := a.celer.Init(); err != nil {
-				return color.PrintError(err, "failed to init celer.")
+				return fmt.Errorf("failed to init celer -> %w", err)
 			}
 
-			if err := a.autoremove(); err != nil {
-				return color.PrintError(err, "failed to exec autoremove.")
-			}
-
-			return nil
+			return a.autoremove()
 		},
 		ValidArgsFunction: a.completion,
 	}

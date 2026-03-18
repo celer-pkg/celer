@@ -44,11 +44,7 @@ Examples:
   celer update --force boost@1.82.0             # Force update (overwrites local changes)`,
 		Args: u.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := u.doUpdate(args); err != nil {
-				return color.PrintError(err, "failed to exec update")
-			}
-
-			return nil
+			return u.doUpdate(args)
 		},
 		ValidArgsFunction: u.completion,
 	}

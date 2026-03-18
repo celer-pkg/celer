@@ -63,12 +63,7 @@ EXAMPLES:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			i.jobsChanged = cmd.Flags().Changed("jobs")
 			i.verboseChanged = cmd.Flags().Changed("verbose")
-
-			if err := i.runInstall(args); err != nil {
-				return color.PrintError(err, "failed to exec install")
-			}
-
-			return nil
+			return i.runInstall(args)
 		},
 		ValidArgsFunction: i.completion,
 	}

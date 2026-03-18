@@ -38,11 +38,7 @@ EXAMPLES:
   celer create --port opencv@4.8.0`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := c.doCreate(cmd); err != nil {
-				return color.PrintError(err, "failed to exec create")
-			}
-
-			return nil
+			return c.doCreate(cmd)
 		},
 		ValidArgsFunction: c.completion,
 	}

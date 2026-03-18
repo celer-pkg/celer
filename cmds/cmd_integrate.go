@@ -37,11 +37,7 @@ Examples:
   celer integrate --remove # Remove tab completion`,
 		Args: cobra.NoArgs,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
-			if err := i.execute(); err != nil {
-				return color.PrintError(err, "failed to exec integrate")
-			}
-
-			return nil
+			return i.execute()
 		},
 		ValidArgsFunction: i.completion,
 	}

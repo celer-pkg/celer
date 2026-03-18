@@ -48,11 +48,7 @@ Examples:
   celer tree opencv@4.11.0 --hide-dev  # Hide development dependencies`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := t.tree(args[0]); err != nil {
-				return color.PrintError(err, "failed to exec tree")
-			}
-
-			return nil
+			return t.tree(args[0])
 		},
 		ValidArgsFunction: t.completion,
 	}
