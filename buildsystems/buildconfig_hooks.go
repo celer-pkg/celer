@@ -53,7 +53,7 @@ func (b BuildConfig) postConfigure() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[post confiure %s]", b.PortConfig.nameVersion())
+		title := fmt.Sprintf("[post configure %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
 		executor := cmd.NewExecutor(title, script)
 
@@ -178,6 +178,7 @@ func (b BuildConfig) fixBuild() error {
 		script = b.expandVariables(script)
 		executor := cmd.NewExecutor(title, script)
 		executor.SetWorkDir(b.PortConfig.RepoDir)
+		executor.MSYS2Env(runtime.GOOS == "windows")
 		if err := executor.Execute(); err != nil {
 			return err
 		}
