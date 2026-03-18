@@ -38,8 +38,9 @@ Examples:
 		Args: cobra.NoArgs,
 		RunE: func(cobraCmd *cobra.Command, args []string) error {
 			if err := i.execute(); err != nil {
-				return color.PrintError(err, "integration failed")
+				return color.PrintError(err, "failed to exec integrate")
 			}
+
 			return nil
 		},
 		ValidArgsFunction: i.completion,

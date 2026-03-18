@@ -44,13 +44,21 @@ Examples:
   celer reverse boost@1.87.0`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return r.doExecute(args)
+			if err := r.doExecute(args); err != nil {
+				return color.PrintError(err, "failed to exec reverse")
+			}
+
+			return nil
 		},
 		ValidArgsFunction: r.completion,
 	}
 
 	// Register flags.
 	command.Flags().BoolVarP(&r.dev, "dev", "d", false, "include development dependencies in reverse lookup.")
+
+	// Silence cobra's error and usage output to avoid duplicate messages.
+	command.SilenceErrors = true
+	command.SilenceUsage = true
 	return command
 }
 
@@ -66,7 +74,7 @@ func (r *reverseCmd) doExecute(args []string) error {
 
 	libraries, err := r.query(args[0])
 	if err != nil {
-		return fmt.Errorf("failed to query reverse dependencies -> %w", err)
+		return fmt.Errorf("failed to query %s -> %w", args[0], err)
 	}
 
 	r.displayResults(args[0], libraries)

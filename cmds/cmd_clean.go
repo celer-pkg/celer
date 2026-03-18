@@ -45,7 +45,11 @@ Examples:
   celer clean x264@stable ffmpeg@3.4.13 --recursive   	# Clean multiple packages`,
 		Args: c.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return c.execute(args)
+			if err := c.execute(args); err != nil {
+				return color.PrintError(err, "failed to exec clean")
+			}
+
+			return nil
 		},
 		ValidArgsFunction: c.completion,
 	}
@@ -104,6 +108,8 @@ func (c *cleanCmd) execute(args []string) error {
 		if err := c.clean(args...); err != nil {
 			return color.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
 		}
+
+		color.PrintSuccess("%s are cleaned.", strings.Join(args, ", "))
 	}
 
 	return nil

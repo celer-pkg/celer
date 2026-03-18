@@ -32,7 +32,12 @@ Examples:
   celer init --url https://github.com/example/conf --force	# Force re-initialize`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return i.doInit()
+			if err := i.doInit(); err != nil {
+				return color.PrintError(err, "failed to exec init")
+			}
+
+			color.PrintSuccess("init successfully.")
+			return nil
 		},
 		ValidArgsFunction: i.completion,
 	}

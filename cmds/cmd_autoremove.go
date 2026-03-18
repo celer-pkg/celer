@@ -48,10 +48,9 @@ Examples:
 			}
 
 			if err := a.autoremove(); err != nil {
-				return color.PrintError(err, "failed to autoremove.")
+				return color.PrintError(err, "failed to exec autoremove.")
 			}
 
-			color.PrintSuccess("autoremove successfully.")
 			return nil
 		},
 		ValidArgsFunction: a.completion,

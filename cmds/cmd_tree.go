@@ -49,8 +49,9 @@ Examples:
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := t.tree(args[0]); err != nil {
-				return color.PrintError(err, "Failed to show dependency tree.")
+				return color.PrintError(err, "failed to exec tree")
 			}
+
 			return nil
 		},
 		ValidArgsFunction: t.completion,
