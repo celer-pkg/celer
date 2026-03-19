@@ -10,7 +10,7 @@ import (
 func main() {
 	if err := cmds.Execute(); err != nil {
 		if !errors.Is(err, color.ErrSilent) {
-			color.Printf(color.Error, "failed to execute command:\n %s.\n", err)
+			color.PrintError(err, "error occurred when exec command.")
 		}
 		os.Exit(1)
 	}

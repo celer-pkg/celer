@@ -133,7 +133,7 @@ func CheckIfMatchesRef(ctx context.Context, repoDir, expectedRef string) (bool, 
 	// Fetch remote updates.
 	cmd = exec.Command("git", "-C", repoDir, "fetch", "--tags", "origin")
 	if err := cmd.Run(); err != nil {
-		return false, fmt.Errorf("git fetch failed: %v", err)
+		return false, fmt.Errorf("git fetch --tags origin failed for %s with %s: %v", repoDir, expectedRef, err)
 	}
 
 	// Explicit ref/checksum from port config has higher priority than tracking
