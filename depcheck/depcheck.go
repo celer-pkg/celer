@@ -87,7 +87,7 @@ func (d *depcheck) CheckConflict(ctx context.Context, ports ...configs.Port) err
 		}
 	}
 	if len(summaries) > 0 {
-		return fmt.Errorf("conflicting versions of ports detected:\n%s", strings.Join(summaries, "\n"))
+		return fmt.Errorf("conflicting versions of ports detected -> %s", strings.Join(summaries, "\n"))
 	}
 
 	return nil
