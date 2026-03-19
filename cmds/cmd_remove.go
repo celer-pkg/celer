@@ -41,10 +41,7 @@ Examples:
   celer remove boost@1.87.0 -rpc     # Remove with all cleanup options`,
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := r.execute(args); err != nil {
-				return color.PrintError(err, "removal failed")
-			}
-			return nil
+			return r.execute(args)
 		},
 		ValidArgsFunction: r.completion,
 	}

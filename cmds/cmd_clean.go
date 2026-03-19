@@ -104,6 +104,8 @@ func (c *cleanCmd) execute(args []string) error {
 		if err := c.clean(args...); err != nil {
 			return color.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
 		}
+
+		color.PrintSuccess("%s are cleaned.", strings.Join(args, ", "))
 	}
 
 	return nil

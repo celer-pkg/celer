@@ -465,7 +465,7 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 		if errors.Is(err, errors.ErrRepoNotExit) {
 			return false, nil
 		}
-		return false, fmt.Errorf("failed to install from pkgcache -> %w", err)
+		return false, err
 	}
 
 	if installed {

@@ -109,7 +109,7 @@ Examples:
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := c.celer.Init(); err != nil {
-				return color.PrintError(err, "failed to init celer.")
+				return fmt.Errorf("failed to init celer -> %w", err)
 			}
 
 			flags := cmd.Flags()

@@ -4,6 +4,7 @@ import (
 	"celer/pkgs/cmd"
 	"celer/pkgs/fileio"
 	"fmt"
+	"regexp"
 	"runtime"
 	"strings"
 )
@@ -30,6 +31,9 @@ func (b BuildConfig) preConfigure() error {
 
 		title := fmt.Sprintf("[pre configure %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
+		if err := checkUnexpandedVariables(script, title); err != nil {
+			return err
+		}
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -53,8 +57,11 @@ func (b BuildConfig) postConfigure() error {
 			continue
 		}
 
-		title := fmt.Sprintf("[post confiure %s]", b.PortConfig.nameVersion())
+		title := fmt.Sprintf("[post configure %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
+		if err := checkUnexpandedVariables(script, title); err != nil {
+			return err
+		}
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -80,6 +87,9 @@ func (b BuildConfig) preBuild() error {
 
 		title := fmt.Sprintf("[pre build %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
+		if err := checkUnexpandedVariables(script, title); err != nil {
+			return err
+		}
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -104,6 +114,9 @@ func (b BuildConfig) postBuild() error {
 
 		title := fmt.Sprintf("[post build %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
+		if err := checkUnexpandedVariables(script, title); err != nil {
+			return err
+		}
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -128,6 +141,9 @@ func (b BuildConfig) preInstall() error {
 
 		title := fmt.Sprintf("[pre install %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
+		if err := checkUnexpandedVariables(script, title); err != nil {
+			return err
+		}
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -152,6 +168,9 @@ func (b BuildConfig) postInstall() error {
 
 		title := fmt.Sprintf("[post install %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
+		if err := checkUnexpandedVariables(script, title); err != nil {
+			return err
+		}
 		executor := cmd.NewExecutor(title, script)
 
 		// prebuild port does not have repo dir.
@@ -176,11 +195,39 @@ func (b BuildConfig) fixBuild() error {
 
 		title := fmt.Sprintf("[fix build %s]", b.PortConfig.nameVersion())
 		script = b.expandVariables(script)
+		if err := checkUnexpandedVariables(script, title); err != nil {
+			return err
+		}
 		executor := cmd.NewExecutor(title, script)
 		executor.SetWorkDir(b.PortConfig.RepoDir)
+		executor.MSYS2Env(runtime.GOOS == "windows")
 		if err := executor.Execute(); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// checkUnexpandedVariables checks if there are any unexpanded variables in the script.
+// It looks for patterns like ${VAR_NAME} or $VAR_NAME that weren't expanded.
+func checkUnexpandedVariables(script, label string) error {
+	// Pattern to find unexpanded ${...} variables
+	varPattern := regexp.MustCompile(`\$\{[^}]+\}`)
+	matches := varPattern.FindAllString(script, -1)
+
+	if len(matches) > 0 {
+		uniqueVars := make(map[string]bool)
+		for _, match := range matches {
+			uniqueVars[match] = true
+		}
+
+		var unexpandedList []string
+		for v := range uniqueVars {
+			unexpandedList = append(unexpandedList, v)
+		}
+
+		return fmt.Errorf("%s: unexpanded variables found: %v", label, unexpandedList)
 	}
 
 	return nil

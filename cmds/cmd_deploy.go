@@ -54,7 +54,7 @@ for reproducible builds using the --export flag.`,
 			// Export snapshot if requested.
 			if d.exportPath != "" {
 				if err := timemachine.Export(d.celer, d.exportPath); err != nil {
-					return color.PrintError(err, "failed to export workspace.")
+					return fmt.Errorf("failed to export snapshot -> %w", err)
 				}
 			}
 

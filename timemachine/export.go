@@ -107,7 +107,7 @@ func (e *Exporter) Export() error {
 		return fmt.Errorf("failed to save snapshot -> %w", err)
 	}
 
-	color.PrintSuccess("Snapshot exported to: %s", e.exportDir)
+	color.PrintSuccess("Snapshot is exported to: %s", e.exportDir)
 	return nil
 }
 
