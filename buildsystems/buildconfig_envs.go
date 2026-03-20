@@ -125,7 +125,7 @@ func (b *BuildConfig) setupEnvs() {
 	if slices.ContainsFunc(b.DevDependencies, func(element string) bool {
 		return strings.HasPrefix(element, "libtool@")
 	}) {
-		joined := env.JoinPaths("ACLOCAL_PATH", filepath.Join(tmpDevDir, "share", "libtool"))
+		joined := env.JoinPaths("ACLOCAL_PATH", filepath.Join(tmpDevDir, "share", "aclocal"))
 		b.envBackup.setenv("ACLOCAL_PATH", joined)
 	}
 
