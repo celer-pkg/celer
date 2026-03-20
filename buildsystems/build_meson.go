@@ -260,11 +260,11 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 
 	buffers.WriteString("cmake = 'cmake'\n")
 
-	// Explicitly set python to use host system's Python interpreter
-	if buildtools.Python3 == nil || buildtools.Python3.Path == "" {
-		return "", fmt.Errorf("python3 should be set up in advance.")
+	pythonPath, err := m.pythonPath()
+	if err != nil {
+		return "", err
 	}
-	fmt.Fprintf(&buffers, "python = '%s'\n", filepath.ToSlash(buildtools.Python3.Path))
+	fmt.Fprintf(&buffers, "python = '%s'\n", filepath.ToSlash(pythonPath))
 
 	if ccacheEnabled {
 		fmt.Fprintf(&buffers, "c = ['ccache', '%s']\n", toolchain.GetCC())
@@ -472,10 +472,11 @@ exec %s "$@"
 	fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(wrapperPath))
 	fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(wrapperPath))
 
-	// Same venv python as cross file for build-time tools (e.g. mako).
-	if buildtools.Python3 != nil && buildtools.Python3.Path != "" {
-		fmt.Fprintf(&buffers, "python = '%s'\n", filepath.ToSlash(buildtools.Python3.Path))
+	pythonPath, err := m.pythonPath()
+	if err != nil {
+		return "", err
 	}
+	fmt.Fprintf(&buffers, "python = '%s'\n", filepath.ToSlash(pythonPath))
 
 	fmt.Fprintf(&buffers, "\n[properties]\n")
 	buffers.WriteString("cross_file = 'false'\n")
@@ -566,4 +567,17 @@ func (m meson) appendLinkArgs(linkArgs *[]string, linkDir string) {
 	case "darwin":
 		// TODO: it may supported in the future for darwin.
 	}
+}
+
+func (m meson) pythonPath() (string, error) {
+	tmpDevPython := filepath.Join(dirs.TmpDepsDir, m.PortConfig.HostName+"-dev", "bin", "python3")
+	if fileio.PathExists(tmpDevPython) {
+		return tmpDevPython, nil
+	}
+
+	if buildtools.Python3 == nil || buildtools.Python3.Path == "" {
+		return "", fmt.Errorf("python3 should be set up in advance")
+	}
+
+	return buildtools.Python3.Path, nil
 }
