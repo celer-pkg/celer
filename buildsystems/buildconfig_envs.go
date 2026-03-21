@@ -141,6 +141,14 @@ func (b *BuildConfig) setupEnvs() {
 	// Ensure PYTHONPATH for python.
 	b.envBackup.setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 
+	// Expose Python modules shipped by host-side dev dependencies.
+	// This keeps Python runtime dependencies inside the workspace instead of
+	// relying on system dist-packages.
+	devPythonDir := filepath.Join(tmpDevDir, "python")
+	if fileio.PathExists(devPythonDir) {
+		b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", devPythonDir))
+	}
+
 	// Expose LLVM_CONFIG for ports that rely on llvm-config.
 	if buildtools.LLVMPath != "" {
 		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
@@ -157,7 +165,7 @@ func (b *BuildConfig) setupEnvs() {
 				if entry.IsDir() && strings.HasPrefix(entry.Name(), "python") {
 					sitePackages := filepath.Join(libDir, entry.Name(), "site-packages")
 					if fileio.PathExists(sitePackages) {
-						b.envBackup.setenv("PYTHONPATH", sitePackages)
+						b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", sitePackages))
 						break
 					}
 				}

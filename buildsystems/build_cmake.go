@@ -170,6 +170,7 @@ func (c cmake) configureOptions() ([]string, error) {
 	if buildtools.Python3 != nil && buildtools.Python3.Path != "" {
 		pythonPath := filepath.ToSlash(buildtools.Python3.Path)
 		options = append(options, "-DPython3_EXECUTABLE="+pythonPath)
+		options = append(options, "-DPython_EXECUTABLE="+pythonPath)
 	}
 
 	// Enable verbose makefile.

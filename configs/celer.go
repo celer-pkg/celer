@@ -243,7 +243,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		color.Printf(color.Warning, "\n================ WARNING: You're in offline mode currently! ================\n")
 	}
 
-	// Store global express vars if exist.
+	// Store global express vars if exist(maybe can delete later?)
 	if buildtools.Python3 != nil {
 		c.exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python3.Path))
 	}

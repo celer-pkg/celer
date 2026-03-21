@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 )
@@ -586,6 +587,24 @@ func (p *Port) checkAllTools() error {
 	// Validate tools exist and ensure tool paths are in PATH.
 	if err := buildtools.CheckTools(p.ctx, allTools...); err != nil {
 		return err
+	}
+
+	// Refresh dynamic expression variables after tool detection because some
+	// ports rely on build_tools-provided paths during option expansion.
+	if exprVars := p.ctx.ExprVars(); exprVars != nil {
+		if buildtools.Python3 != nil && buildtools.Python3.Path != "" {
+			exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python3.Path))
+		}
+		if buildtools.LLVMPath != "" {
+			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
+			llvmRoot := fileio.ToRelPath(buildtools.LLVMPath)
+			exprVars.Put("LLVM_CONFIG", filepath.ToSlash(filepath.Join(llvmRoot, "bin", llvmConfig)))
+		}
+	}
+
+	if p.MatchedConfig != nil {
+		p.putExprVars(*p.MatchedConfig)
+		p.MatchedConfig.ExprVars = p.exprVars
 	}
 
 	return nil
