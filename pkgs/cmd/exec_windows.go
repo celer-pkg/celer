@@ -74,7 +74,7 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 		var args []string
 		args = append(args, e.msvcEnvs)
 		args = append(args, e.cmd)
-		message = e.cmd + " " + strings.Join(args, " ")
+		message = strings.Join(args, " ")
 
 		cmd = exec.Command("bash", "-lc", strings.Join(args, " "))
 		cmd.Env = append(os.Environ(),

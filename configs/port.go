@@ -122,7 +122,16 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	}
 	p.MatchedConfig = matchedConfig
 	if p.MatchedConfig == nil {
-		return fmt.Errorf("%w for %s", errors.ErrNoMatchedConfigFound, p.NameVersion())
+		// For build_tool packages not supported on current platform, create a nobuild config.
+		if p.Package.BuildTool && !p.IsHostSupported() {
+			nobuildConfig := buildsystems.BuildConfig{
+				BuildSystem: "nobuild",
+			}
+			p.BuildConfigs = append(p.BuildConfigs, nobuildConfig)
+			p.MatchedConfig = &p.BuildConfigs[len(p.BuildConfigs)-1]
+		} else {
+			return fmt.Errorf("%w for %s", errors.ErrNoMatchedConfigFound, p.NameVersion())
+		}
 	}
 	if p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "" {
 		p.Package.Url = p.MatchedConfig.Url
