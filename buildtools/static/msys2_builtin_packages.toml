@@ -9,5 +9,6 @@ builtin_packages = [
   "m4",
   "pkgconf",
   "intltool",
-  "gettext"
+  "gettext",
+  "xorg-util-macros"
 ]
