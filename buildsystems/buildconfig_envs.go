@@ -202,6 +202,7 @@ func (b BuildConfig) setupPkgConfig() {
 
 	rootfs := b.Ctx.Platform().GetRootFS()
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+	hostBuild := b.DevDep || b.HostDev
 
 	switch runtime.GOOS {
 	case "windows":
@@ -227,7 +228,7 @@ func (b BuildConfig) setupPkgConfig() {
 
 	case "linux":
 		// Pkg config paths and sysroot dir.
-		if rootfs != nil {
+		if rootfs != nil && !hostBuild {
 			sysrootDir = rootfs.GetAbsDir()
 
 			// PKG_CONFIG related.
@@ -264,9 +265,9 @@ func (b BuildConfig) setupPkgConfig() {
 	}
 	b.envBackup.setenv("PKG_CONFIG_PATH", strings.Join(configPaths, pathDivider))
 
-	// For dev dependencies, .pc files use absolute paths, so we should not set PKG_CONFIG_SYSROOT_DIR.
+	// Host-side builds use absolute dependency paths and should not inherit target sysroot.
 	// PKG_CONFIG_SYSROOT_DIR is only needed for cross-compilation when .pc files use relative paths.
-	b.envBackup.setenv("PKG_CONFIG_SYSROOT_DIR", expr.If(b.DevDep, "", sysrootDir))
+	b.envBackup.setenv("PKG_CONFIG_SYSROOT_DIR", expr.If(hostBuild, "", sysrootDir))
 }
 
 func (b *BuildConfig) setLanguageStandard() {
@@ -312,9 +313,10 @@ func (b *BuildConfig) setLanguageStandard() {
 func (b *BuildConfig) setEnvFlags() {
 	rootfs := b.Ctx.Platform().GetRootFS()
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+	hostBuild := b.DevDep || b.HostDev
 
 	// sysroot and tmp dir.
-	if rootfs != nil {
+	if rootfs != nil && !hostBuild {
 		// Set sysroot.
 		sysrootDir := rootfs.GetAbsDir()
 		b.envBackup.setenv("SYSROOT", sysrootDir)

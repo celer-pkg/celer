@@ -46,7 +46,7 @@ func (c custom) Configure(options []string) error {
 
 	if len(c.CustomConfigure) > 0 {
 		// msvc and clang-cl need to set build environment event in dev mode.
-		if c.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
+		if (c.DevDep || c.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 			toolchain.ClearEnvs()
 		} else {
 			toolchain.SetEnvs(rootfs, c.Name())
@@ -79,7 +79,7 @@ func (c custom) Build(options []string) error {
 
 	if len(c.CustomBuild) > 0 {
 		// msvc and clang-cl need to set build environment event in dev mode.
-		if c.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
+		if (c.DevDep || c.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 			toolchain.ClearEnvs()
 		} else {
 			toolchain.SetEnvs(rootfs, c.Name())
@@ -106,7 +106,7 @@ func (c custom) Install(options []string) error {
 
 	if len(c.CustomInstall) > 0 {
 		// msvc and clang-cl need to set build environment event in dev mode.
-		if c.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
+		if (c.DevDep || c.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 			toolchain.ClearEnvs()
 		} else {
 			toolchain.SetEnvs(rootfs, c.Name())
