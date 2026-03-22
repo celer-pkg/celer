@@ -95,7 +95,6 @@ func (c *cleanCmd) execute(args []string) error {
 		if err := c.cleanAll(); err != nil {
 			return color.PrintError(err, "failed to clean all packages.")
 		}
-		color.PrintSuccess("all packages cleaned.")
 	} else {
 		if err := c.validateTargets(args); err != nil {
 			return color.PrintError(err, "invalid arguments.")
@@ -104,8 +103,6 @@ func (c *cleanCmd) execute(args []string) error {
 		if err := c.clean(args...); err != nil {
 			return color.PrintError(err, "failed to clean %s.", strings.Join(args, ", "))
 		}
-
-		color.PrintSuccess("%s are cleaned.", strings.Join(args, ", "))
 	}
 
 	return nil
@@ -234,6 +231,7 @@ func (c *cleanCmd) cleanAll() error {
 		}
 	}
 
+	color.PrintSuccess("all packages cleaned.")
 	return nil
 }
 

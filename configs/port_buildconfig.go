@@ -53,7 +53,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		CacheRepo:       p.Package.CacheRepo,
 		IgnoreSubmodule: p.Package.IgnoreSubmodule,
 		ProjectName:     p.ctx.Project().GetName(),
-		HostName:        p.ctx.Platform().GetHostName(),
+		HostName:        hostName, 
 		SrcDir:          filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 		BuildDir:        filepath.Join(dirs.WorkspaceDir, "buildtrees", buildFolder),
 		PackageDir:      p.PackageDir,

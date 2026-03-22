@@ -235,7 +235,7 @@ func (m makefiles) Configure(options []string) error {
 	// msvc and clang-cl need to set build environment event in dev mode.
 	toolchain := m.Ctx.Platform().GetToolchain()
 	rootfs := m.Ctx.Platform().GetRootFS()
-	if m.DevDep && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
+	if (m.DevDep || m.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 		toolchain.ClearEnvs()
 	} else {
 		toolchain.SetEnvs(rootfs, m.Name())
