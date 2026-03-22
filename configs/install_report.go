@@ -3,6 +3,7 @@ package configs
 import (
 	"bytes"
 	"celer/pkgs/dirs"
+	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"fmt"
 	"html"
@@ -217,12 +218,14 @@ func (i *installReport) renderMarkdown(p *Port) string {
 		))
 	}
 
+	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
+
 	lines = append(lines, "")
 	lines = append(lines, "## Workspace Configuration")
 	lines = append(lines, "")
 	lines = append(lines, "| Name | Value |")
 	lines = append(lines, "| --- | --- |")
-	lines = append(lines, fmt.Sprintf("| Platform | `%s` |", normalize(p.ctx.Platform().GetName())))
+	lines = append(lines, fmt.Sprintf("| Platform | `%s` |", normalize(platformName)))
 	lines = append(lines, fmt.Sprintf("| Project | `%s` |", normalize(p.ctx.Project().GetName())))
 	lines = append(lines, fmt.Sprintf("| Build Type | `%s` |", normalize(p.ctx.BuildType())))
 	lines = append(lines, "")
@@ -305,9 +308,10 @@ func (i *installReport) write(p *Port) (string, error) {
 		return "", err
 	}
 
+	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
 	fileBase := fmt.Sprintf("%s@%s@%s@%s",
 		strings.ReplaceAll(i.rootPort, "@", "_"),
-		p.ctx.Platform().GetName(),
+		platformName,
 		p.ctx.Project().GetName(),
 		p.ctx.BuildType(),
 	)

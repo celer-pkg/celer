@@ -381,6 +381,17 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 }
 
 func (p Port) currentSystemName() string {
+	if p.DevDep || p.HostDep {
+		// Host-side tools/dev dependencies must match the native machine,
+		// not the target toolchain. Otherwise ports like ICU may select the
+		// target config (for example aarch64) while building an x86_64 host tool.
+		hostName := strings.TrimSpace(p.ctx.Platform().GetHostName())
+		if _, systemName, ok := strings.Cut(hostName, "-"); ok && systemName != "" {
+			return systemName
+		}
+		return runtime.GOOS
+	}
+
 	toolchain := p.ctx.Platform().GetToolchain()
 	if toolchain != nil && strings.TrimSpace(toolchain.GetSystemName()) != "" {
 		return toolchain.GetSystemName()
@@ -389,6 +400,25 @@ func (p Port) currentSystemName() string {
 }
 
 func (p Port) currentSystemProcessor() string {
+	if p.DevDep || p.HostDep {
+		// Host-side tools/dev dependencies must use the host architecture for
+		// build_config matching so we pick the native x86_64 config instead of
+		// the target architecture's config.
+		hostName := strings.TrimSpace(p.ctx.Platform().GetHostName())
+		if systemProcessor, _, ok := strings.Cut(hostName, "-"); ok && systemProcessor != "" {
+			return systemProcessor
+		}
+
+		switch runtime.GOARCH {
+		case "amd64":
+			return "x86_64"
+		case "arm64":
+			return "aarch64"
+		default:
+			return runtime.GOARCH
+		}
+	}
+
 	toolchain := p.ctx.Platform().GetToolchain()
 	if toolchain != nil && strings.TrimSpace(toolchain.GetSystemProcessor()) != "" {
 		return toolchain.GetSystemProcessor()

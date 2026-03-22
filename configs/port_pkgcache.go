@@ -31,9 +31,11 @@ func (p Port) meta2hash(metaData string) string {
 }
 
 func (p Port) buildMeta(commit string) (string, error) {
+	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
+
 	port := pkgcache.Port{
 		NameVersion: p.NameVersion(),
-		Platform:    p.ctx.Platform().GetName(),
+		Platform:    platformName,
 		Project:     p.ctx.Project().GetName(),
 		DevDep:      p.DevDep,
 		HostDev:     p.HostDep,
@@ -45,6 +47,22 @@ func (p Port) buildMeta(commit string) (string, error) {
 }
 
 func (c Port) GenPlatformTomlString() (string, error) {
+	if c.DevDep || c.HostDep {
+		// Host/dev packages should describe the native host side instead of the
+		// target cross toolchain/rootfs from the workspace platform config.
+		bytes, err := toml.Marshal(struct {
+			Name    string `toml:"name"`
+			HostDev bool   `toml:"host_dev,omitempty"`
+		}{
+			Name:    c.ctx.Platform().GetHostName(),
+			HostDev: true,
+		})
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal host platform %s -> %w", c.ctx.Platform().GetHostName(), err)
+		}
+		return string(bytes), nil
+	}
+
 	bytes, err := toml.Marshal(c.ctx.Platform())
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal platform %s -> %w", c.ctx.Platform().GetName(), err)
@@ -53,6 +71,9 @@ func (c Port) GenPlatformTomlString() (string, error) {
 }
 
 func (p Port) GenPlatformChecksums() (toolchainChecksum, rootfsChecksum string, err error) {
+	if p.DevDep || p.HostDep {
+		return "", "", nil
+	}
 	return p.ctx.Platform().GetArchiveChecksums()
 }
 
