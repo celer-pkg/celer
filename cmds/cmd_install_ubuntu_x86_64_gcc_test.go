@@ -88,7 +88,7 @@ func TestInstall_x86_64_GCC_Prebuilt(t *testing.T) {
 }
 
 func TestInstall_x86_64_GCC_Nobuild(t *testing.T) {
-	buildWithAMD64GCC(t, ubuntu_x86_64_gcc_11_5_0, "gnulib@master", true)
+	buildWithAMD64GCC(t, ubuntu_x86_64_gcc_11_5_0, "gnulib@1.0", true)
 }
 
 func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool) {

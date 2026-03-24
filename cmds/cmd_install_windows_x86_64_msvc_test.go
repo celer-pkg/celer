@@ -75,7 +75,7 @@ func TestInstall_x86_64_MSVC_Prebuilt(t *testing.T) {
 
 func TestInstall_x86_64_MSVC_Nobuild(t *testing.T) {
 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-	buildWithAMD64MSVC(t, platform, "gnulib@master", true)
+	buildWithAMD64MSVC(t, platform, "gnulib@1.0", true)
 }
 
 func buildWithAMD64MSVC(t *testing.T, platform, nameVersion string, nobuild bool) {

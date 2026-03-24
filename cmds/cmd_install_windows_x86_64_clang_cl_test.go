@@ -36,7 +36,7 @@ func TestInstall_x86_64_Clang_CL_Prebuilt(t *testing.T) {
 
 func TestInstall_x86_64_Clang_CL_Nobuild(t *testing.T) {
 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
-	buildWithAMD64Clang(t, platform, "gnulib@master", true)
+	buildWithAMD64Clang(t, platform, "gnulib@1.0", true)
 }
 
 func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild bool) {

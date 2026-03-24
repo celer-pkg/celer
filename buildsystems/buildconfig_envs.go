@@ -135,8 +135,12 @@ func (b *BuildConfig) setupEnvs() {
 		b.envBackup.setenv("PATH", env.JoinPaths("PATH", venvBin))
 	}
 
-	// Expose dev/bin to PATH.
-	b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
+	// Expose host-side dev tools to PATH.
+	// Prefer the per-build tmp closure first, but keep installed/<host>-dev/bin as a
+	// fallback so build-time tools like xmllint/msgfmt remain discoverable when the
+	// tmp closure has not yet been fully materialized.
+	installedDevBin := filepath.Join(dirs.InstalledDir, b.PortConfig.HostName+"-dev", "bin")
+	b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin"), installedDevBin))
 
 	// Ensure PYTHONPATH for python.
 	b.envBackup.setenv("PYTHONUSERBASE", dirs.PythonUserBase)

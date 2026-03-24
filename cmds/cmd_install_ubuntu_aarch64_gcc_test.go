@@ -78,7 +78,7 @@ func TestInstall_AArch64_GCC_Prebuilt(t *testing.T) {
 }
 
 func TestInstall_AArch64_GCC_Nobuild(t *testing.T) {
-	buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "gnulib@master", true)
+	buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "gnulib@1.0", true)
 }
 
 func buildWithAArch64GCC(t *testing.T, platform, nameVersion string, nobuild bool) {
