@@ -20,6 +20,11 @@ jobs:
       with:
         go-version: '1.22.1'
 
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
+
     - name: Free disk space
       run: |
         echo "Disk space before cleanup:"

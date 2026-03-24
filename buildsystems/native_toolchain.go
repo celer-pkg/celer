@@ -83,6 +83,7 @@ func (n nativeToolchain) GetGCOV() string { return "" }
 
 // Additional compiler tools.
 func (n nativeToolchain) GetFC() string { return "" }
+func (n nativeToolchain) GetRustc() string { return "rustc" }
 
 // MSVC support.
 func (n nativeToolchain) GetMSVC() *context.MSVC { return n.msvc }

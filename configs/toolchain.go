@@ -67,6 +67,7 @@ type Toolchain struct {
 
 	// Additional compiler tools.
 	FC string `toml:"fc,omitempty"` // Compile Fortran code.
+    Rustc string `toml:"rustc,omitempty"` // Rust language compiler.
 
 	// Platform-aware envs, flags.
 	Envs           []string `toml:"envs"`
@@ -374,6 +375,14 @@ func (t Toolchain) GetAS() string {
 func (t Toolchain) GetFC() string {
 	return t.FC
 }
+
+func (t Toolchain) GetRustc() string {
+        if t.Rustc != "" {
+                return t.Rustc
+        }
+        return "rustc"
+}
+
 
 func (t Toolchain) GetRANLIB() string {
 	return t.RANLIB

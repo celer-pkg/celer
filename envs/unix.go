@@ -34,6 +34,7 @@ func CleanEnv() {
 	paths = append(paths, "/usr/bin")
 	paths = append(paths, "/usr/sbin")
 	paths = append(paths, filepath.Join(dirs.PythonUserBase, "bin"))
+	paths = append(paths, filepath.Join(home, ".cargo", "bin"))
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
 	os.Setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 }

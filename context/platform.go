@@ -33,6 +33,7 @@ type Toolchain interface {
 	GetGCOV() string
 	GetAS() string
 	GetFC() string
+    GetRustc() string
 	GetAR() string
 	GetRANLIB() string
 	GetNM() string

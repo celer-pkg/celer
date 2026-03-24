@@ -277,6 +277,9 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	if toolchain.GetFC() != "" {
 		fmt.Fprintf(&buffers, "fc = '%s'\n", toolchain.GetFC())
 	}
+	if toolchain.GetRustc() != "" {
+		fmt.Fprintf(&buffers, "rust = '%s'\n", toolchain.GetRustc())
+	}
 	if toolchain.GetRANLIB() != "" {
 		fmt.Fprintf(&buffers, "ranlib = '%s'\n", toolchain.GetRANLIB())
 	}
