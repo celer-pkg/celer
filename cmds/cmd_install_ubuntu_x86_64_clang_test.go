@@ -38,7 +38,7 @@ func TestInstall_x86_64_Clang_Prebuilt(t *testing.T) {
 }
 
 func TestInstall_x86_64_Clang_Nobuild(t *testing.T) {
-	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "gnulib@master", true)
+	buildWithAMD64Clang(t, ubuntu_x86_64_clang_21_1_4, "gnulib@1.0", true)
 }
 
 func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild bool) {
