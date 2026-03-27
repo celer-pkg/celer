@@ -423,7 +423,6 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 func (b BuildConfig) Clean() error {
 	// Skip for none exist folder.
 	if !fileio.PathExists(b.PortConfig.RepoDir) {
-		color.Printf(color.Warning, "[!] -- no source found for %s, skip clean.\n", b.PortConfig.nameVersion())
 		return nil
 	}
 
@@ -436,7 +435,6 @@ func (b BuildConfig) Clean() error {
 		if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
 			return fmt.Errorf("cannot remove empty folder: %s \n %w", b.PortConfig.RepoDir, err)
 		}
-		color.Printf(color.Warning, "[!] -- no source found for %s, skip clean\n", b.PortConfig.nameVersion())
 		return nil
 	}
 
