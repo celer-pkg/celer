@@ -90,11 +90,19 @@ func (c *Celer) InitWithPlatform(platform string) error {
 			return err
 		}
 
+		// Use all CPU cores for CI, otherwise use all cores except 1 to avoid blocking UI.
+		var jobs int
+		if _, ok := os.LookupEnv("GITHUB_ACTIONS"); ok {
+			jobs = runtime.NumCPU()
+		} else {
+			jobs = runtime.NumCPU() - 1
+		}
+
 		// Default global values.
 		c.configData.Global = global{
 			BuildType: "release",
 			Downloads: filepath.Join(dirs.WorkspaceDir, "downloads"),
-			Jobs:      runtime.NumCPU() - 1,
+			Jobs:      jobs,
 			Offline:   false,
 			Verbose:   false,
 		}
