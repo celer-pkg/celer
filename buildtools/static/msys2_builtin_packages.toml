@@ -10,5 +10,6 @@ builtin_packages = [
   "pkgconf",
   "intltool",
   "gettext",
+  "flex",
   "xorg-util-macros"
 ]
