@@ -423,7 +423,6 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 func (b BuildConfig) Clean() error {
 	// Skip for none exist folder.
 	if !fileio.PathExists(b.PortConfig.RepoDir) {
-		color.Printf(color.Warning, "[!] -- no source found for %s, skip clean.\n", b.PortConfig.nameVersion())
 		return nil
 	}
 
@@ -436,7 +435,6 @@ func (b BuildConfig) Clean() error {
 		if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
 			return fmt.Errorf("cannot remove empty folder: %s \n %w", b.PortConfig.RepoDir, err)
 		}
-		color.Printf(color.Warning, "[!] -- no source found for %s, skip clean\n", b.PortConfig.nameVersion())
 		return nil
 	}
 
@@ -583,21 +581,21 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 			}
 		}
 
-		// For host dev and dev dep cases, create symlink from tmpDepsDir/<HostName>-dev to installedDir/<HostName>-dev
-		// This ensures dev dependencies can be found via PATH
-		if b.HostDev || b.DevDep {
-			devTmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
-			devInstalledDir := filepath.Join(dirs.InstalledDir, b.PortConfig.HostName+"-dev")
+		// Keep the host-side tool runtime closure available at a stable tmp/deps path
+		// for every build. Some persistent host tools (for example bison) may embed
+		// absolute paths discovered during their own build, and top-level `install -f`
+		// clears tmp/deps before rebuilding the next port.
+		devTmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
+		devInstalledDir := filepath.Join(dirs.InstalledDir, b.PortConfig.HostName+"-dev")
 
-			// Create parent directory if not exists
-			if err := os.MkdirAll(filepath.Dir(devTmpDepsDir), os.ModePerm); err != nil {
-				return fmt.Errorf("failed to create tmp deps parent dir -> %w", err)
-			}
+		// Create parent directory if not exists
+		if err := os.MkdirAll(filepath.Dir(devTmpDepsDir), os.ModePerm); err != nil {
+			return fmt.Errorf("failed to create tmp deps parent dir -> %w", err)
+		}
 
-			// Create symlink
-			if err := b.checkSymlink(devInstalledDir, devTmpDepsDir); err != nil {
-				return fmt.Errorf("failed to create dev symlink -> %w", err)
-			}
+		// Create symlink
+		if err := b.checkSymlink(devInstalledDir, devTmpDepsDir); err != nil {
+			return fmt.Errorf("failed to create dev symlink -> %w", err)
 		}
 	}
 
