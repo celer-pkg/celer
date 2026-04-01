@@ -94,6 +94,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		var jobs int
 		if _, ok := os.LookupEnv("GITHUB_ACTIONS"); ok {
 			jobs = runtime.NumCPU()
+			fmt.Printf("-- GITHUB_ACTIONS: jobs: %d\n", jobs)
 		} else {
 			jobs = runtime.NumCPU() - 1
 		}
