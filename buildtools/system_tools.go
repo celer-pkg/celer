@@ -26,8 +26,8 @@ func checkSystemTools(packageNames []string) error {
 	for _, packageName := range packageNames {
 		packageName = strings.TrimSpace(packageName)
 		if packageName == "" ||
-			strings.HasPrefix(packageName, "python3:") ||
-			strings.HasPrefix(packageName, "msys2:") ||
+			strings.HasPrefix(packageName, "python3") ||
+			strings.HasPrefix(packageName, "msys2") ||
 			strings.Contains(packageName, "@") {
 			continue
 		}
@@ -79,13 +79,13 @@ func checkSystemTools(packageNames []string) error {
 		case "linux":
 			switch osType {
 			case "debian", "ubuntu":
-				return fmt.Errorf("%s.\n please install it with 'sudo apt install %s'", summary, joined)
+				return fmt.Errorf("%s -> please install it with 'sudo apt install %s'", summary, joined)
 			case "centos", "fedora", "rhel":
-				return fmt.Errorf("%s.\n please install it with 'sudo yum install %s'", summary, joined)
+				return fmt.Errorf("%s -> please install it with 'sudo yum install %s'", summary, joined)
 			}
 
 		case "darwin":
-			return fmt.Errorf("%s.\n please install it with 'brew install %s'", summary, joined)
+			return fmt.Errorf("%s -> please install it with 'brew install %s'", summary, joined)
 		}
 	}
 
