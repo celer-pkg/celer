@@ -266,9 +266,9 @@ func (b b2) buildOptions() ([]string, error) {
 	case "x86":
 		options = append(options, "address-model=32", "architecture=x86")
 	case "arm64", "aarch64":
-		options = append(options, "address-model=64", "architecture=arm")
+		options = append(options, "address-model=64", "architecture=arm", "abi=aapcs")
 	case "arm":
-		options = append(options, "address-model=32", "architecture=arm")
+		options = append(options, "address-model=32", "architecture=arm", "abi=aapcs")
 	default:
 		return nil, fmt.Errorf("unsupported architecture: %s", toolchain.GetSystemProcessor())
 	}
