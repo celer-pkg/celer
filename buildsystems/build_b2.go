@@ -259,7 +259,15 @@ func (b b2) buildOptions() ([]string, error) {
 		}
 	}
 
-	// Set build architecture.
+	// Boost build system (b2) requires architecture and ABI specifications.
+	//
+	// ABI (Application Binary Interface) Selection Strategy:
+	// - x86/x86_64: Boost Jamfile has default rules for SYSV ABI (Linux) and MS ABI (Windows).
+	//   No explicit ABI needed; b2 will auto-select based on platform.
+	// - ARM32/ARM64: Boost Jamfile ONLY has AAPCS ABI rules, NO SYSV rules exist.
+	//   Without explicit "abi=aapcs", b2 defaults to SYSV which has no ARM rules,
+	//   causing build failure: "No best alternative for asm_sources".
+	//   Solution: Always specify "abi=aapcs" for ARM architectures.
 	switch toolchain.GetSystemProcessor() {
 	case "x86_64", "amd64":
 		options = append(options, "address-model=64", "architecture=x86")
