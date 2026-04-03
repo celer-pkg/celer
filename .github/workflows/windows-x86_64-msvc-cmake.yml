@@ -15,9 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install tar and xz
-        run: choco install archiver 7zip -y
-
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
