@@ -358,7 +358,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			return err
 		}
 	} else if repoUrl != "_" {
-		color.Printf(color.Title, "\n[fixup repo %s]\n", b.PortConfig.nameVersion())
+		color.Printf(color.Title, "\n[fetch repo %s]\n", b.PortConfig.nameVersion())
 
 		// Check and repair resource.
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
