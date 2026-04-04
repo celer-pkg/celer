@@ -89,5 +89,5 @@
   url = "https://github.com/git-lfs/git-lfs/releases/download/v3.5.1/git-lfs-windows-amd64-v3.5.1.zip"
   archive = "git-lfs-windows-amd64-v3.5.1.zip"
   paths = [
-    "git-lfs-windows-amd64-v3.5.1",
+    "git-lfs-windows-amd64-v3.5.1/git-lfs-3.5.1",
   ]
