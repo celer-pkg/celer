@@ -2,6 +2,7 @@ package git
 
 import (
 	"celer/context"
+	"celer/pkgs/color"
 	"fmt"
 	"os"
 	"os/exec"
@@ -188,41 +189,45 @@ func CheckIfMatchesRef(ctx context.Context, repoDir, expectedRef string) (bool, 
 
 // InitAsLocalRepo init folder as a local repo.
 func InitAsLocalRepo(repoDir, message string) error {
-	cmd := exec.Command("git", "-C", repoDir, "init")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		if len(output) == 0 {
-			return fmt.Errorf("failed to git init repo -> %s", err)
-		} else {
-			return fmt.Errorf("failed to git init repo -> %s", output)
-		}
+	// Check if repo directory exists
+	if _, err := os.Stat(repoDir); err != nil {
+		return fmt.Errorf("directory error: %w", err)
 	}
 
-	cmd = exec.Command("git", "-C", repoDir, "add", "-A")
-	output, err = cmd.CombinedOutput()
-	if err != nil {
-		if len(output) == 0 {
-			return fmt.Errorf("failed to git add -A -> %s", err)
-		} else {
-			return fmt.Errorf("failed to git add -A -> %s", output)
-		}
-	}
-
-	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
-	cmd.Env = append(os.Environ(),
+	// Set up environment variables for git commits
+	gitEnv := append(os.Environ(),
 		"GIT_AUTHOR_NAME=CI Robot",
 		"GIT_AUTHOR_EMAIL=ci@celer.com",
 		"GIT_COMMITTER_NAME=CI Robot",
 		"GIT_COMMITTER_EMAIL=ci@celer.com",
 	)
-	output, err = cmd.CombinedOutput()
-	if err != nil {
-		if len(output) == 0 {
-			return fmt.Errorf("failed to git commit repo -> %s", err)
-		} else {
-			return fmt.Errorf("failed to git commit repo -> %s", output)
-		}
+
+	// git init
+	color.Printf(color.Hint, "- git -C %s init", repoDir)
+	cmd := exec.Command("git", "-C", repoDir, "init")
+	cmd.Env = gitEnv
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to git init repo: %w (output: %s)", err, output)
 	}
+	color.PrintInline(color.Hint, "✔ git -C %s init\n", repoDir)
+
+	// git add
+	color.Printf(color.Hint, "- git -C %s add -A", repoDir)
+	cmd = exec.Command("git", "-C", repoDir, "add", "-A")
+	cmd.Env = gitEnv
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to git add -A: %w (output: %s)", err, output)
+	}
+	color.PrintInline(color.Hint, "✔ git -C %s add -A\n", repoDir)
+
+	// git commit
+	color.Printf(color.Hint, "- git -C %s commit -m %s", repoDir, message)
+	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
+	cmd.Env = gitEnv
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to git commit: %w (output: %s)", err, output)
+	}
+	color.PrintInline(color.Hint, "✔ git -C %s commit -m %s\n", repoDir, message)
 
 	return nil
 }

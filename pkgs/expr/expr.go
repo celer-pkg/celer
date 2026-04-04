@@ -2,19 +2,8 @@ package expr
 
 import (
 	"fmt"
-	"os"
 	"strings"
-
-	"golang.org/x/term"
 )
-
-func PrintInline(content string) {
-	padding := terminalWidth() - len(content) - 10
-	if padding > 0 {
-		content += strings.Repeat(" ", padding)
-	}
-	fmt.Printf("\r%s", content)
-}
 
 func FormatSize(byteSize int64) string {
 	const (
@@ -42,14 +31,6 @@ func FormatSize(byteSize int64) string {
 	}
 
 	return fmt.Sprintf("%.2f%s", size, unit)
-}
-
-func terminalWidth() int {
-	width, _, err := term.GetSize(int(os.Stdout.Fd()))
-	if err != nil {
-		return 150
-	}
-	return width
 }
 
 func If[T any](condition bool, first T, second T) T {
