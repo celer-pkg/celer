@@ -46,11 +46,11 @@ func PrintPass(format string, args ...any) {
 }
 
 func PrintInfo(format string, args ...any) {
-	Printf(Info, "%s", fmt.Sprintf(format, args...))
+	Printf(Info, "\n%s", fmt.Sprintf(format, args...))
 }
 
 func PrintHint(format string, args ...any) {
-	Printf(Hint, "%s", fmt.Sprintf(format, args...))
+	Printf(Hint, "\n%s", fmt.Sprintf(format, args...))
 }
 
 func PrintInline(colorFmt *Style, format string, args ...any) {

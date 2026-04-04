@@ -221,7 +221,7 @@ func InitAsLocalRepo(repoDir, message string) error {
 	color.PrintInline(color.Hint, "✔ git -C %s add -A\n", repoDir)
 
 	// git commit
-	color.Printf(color.Hint, "- git -C %s commit -m %s", repoDir, message)
+	color.Printf(color.Hint, "- git -C %s commit -m %q", repoDir, message)
 	cmd = exec.Command("git", "-C", repoDir, "commit", "-m", message)
 	cmd.Env = gitEnv
 	if output, err := cmd.CombinedOutput(); err != nil {
