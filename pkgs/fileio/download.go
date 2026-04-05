@@ -187,7 +187,7 @@ func (p *progressBar) Write(b []byte) (int, error) {
 			expr.FormatSize(p.fileSize),
 		)
 
-		expr.PrintInline(content)
+		color.PrintInline(color.Hint, "%s", content)
 		if progress == 100 {
 			fmt.Println()
 		}

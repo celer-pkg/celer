@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"golang.org/x/term"
 )
 
 const ClearScreen = "\033[2J"
@@ -49,4 +51,38 @@ func PrintInfo(format string, args ...any) {
 
 func PrintHint(format string, args ...any) {
 	Printf(Hint, "\n%s", fmt.Sprintf(format, args...))
+}
+
+func PrintInline(colorFmt *Style, format string, args ...any) {
+	content := fmt.Sprintf(format, args...)
+
+	// Handle newline separately
+	hasNewline := strings.HasSuffix(content, "\n")
+	if hasNewline {
+		content = strings.TrimSuffix(content, "\n")
+	}
+
+	// Calculate padding to fill the rest of the line
+	padding := terminalWidth() - len(content)
+	if padding > 0 {
+		content += strings.Repeat(" ", padding)
+	}
+
+	// Add back the newline if it existed
+	if hasNewline {
+		content += "\n"
+	}
+
+	fmt.Printf("\r"+colorFmt.Format(), content)
+
+	// Flush to ensure immediate display
+	os.Stdout.Sync()
+}
+
+func terminalWidth() int {
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		return 150
+	}
+	return width
 }
