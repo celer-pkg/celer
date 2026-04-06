@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -41,19 +42,17 @@ func GetCurrentTag(repoDir string) (string, error) {
 
 // IsModified check if repo is modified.
 func IsModified(repoDir string) (bool, error) {
-	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
-	output, err := cmd.CombinedOutput()
+	lines, err := statusLines(repoDir)
 	if err != nil {
-		return false, fmt.Errorf("check if repo is modified -> %s", output)
+		return false, err
 	}
-
-	return strings.TrimSpace(string(output)) != "", nil
+	return len(lines) > 0, nil
 }
 
 // CleanRepo clean local changes of a repo to HEAD.
 func CleanRepo(repoDir string) error {
 	// git clean
-	cmd1 := exec.Command("git", "-C", repoDir, "clean", "-xfd")
+	cmd1 := exec.Command("git", "-C", repoDir, "clean", "-ffdx")
 	output1, err := cmd1.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git clean failed: %s", output1)
@@ -67,6 +66,76 @@ func CleanRepo(repoDir string) error {
 	}
 
 	return nil
+}
+
+// StatusSummary returns a concise git-status summary for diagnostics.
+func StatusSummary(repoDir string, maxEntries int) (string, error) {
+	lines, err := statusLines(repoDir)
+	if err != nil {
+		return "", err
+	}
+	if len(lines) == 0 {
+		return "", nil
+	}
+
+	if maxEntries <= 0 || maxEntries > len(lines) {
+		maxEntries = len(lines)
+	}
+
+	summary := strings.Join(lines[:maxEntries], "; ")
+	if len(lines) > maxEntries {
+		summary += "; ..."
+	}
+	return summary, nil
+}
+
+func statusLines(repoDir string) ([]string, error) {
+	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("check if repo is modified -> %s", output)
+	}
+
+	var lines []string
+	for line := range strings.SplitSeq(strings.TrimSpace(string(output)), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			if shouldIgnoreStatusLine(repoDir, line) {
+				continue
+			}
+			lines = append(lines, line)
+		}
+	}
+	return lines, nil
+}
+
+func shouldIgnoreStatusLine(repoDir, line string) bool {
+	if !strings.HasPrefix(line, "?? ") {
+		return false
+	}
+
+	path := strings.TrimSpace(line[3:])
+	path = strings.Trim(path, "\"")
+	path = strings.TrimSuffix(filepath.ToSlash(path), "/")
+	if !strings.HasPrefix(path, "subprojects/") {
+		return false
+	}
+
+	base := filepath.Base(path)
+	if base == ".wraplock" || strings.HasSuffix(base, ".wrap") {
+		return true
+	}
+
+	absPath := filepath.Join(repoDir, filepath.FromSlash(path))
+	if pathExists(filepath.Join(absPath, ".git")) || pathExists(filepath.Join(absPath, ".meson-subproject-wrap-hash.txt")) {
+		return true
+	}
+
+	if pathExists(filepath.Join(repoDir, "subprojects", base+".wrap")) {
+		return true
+	}
+
+	return false
 }
 
 // GetCommitHash read git commit hash.

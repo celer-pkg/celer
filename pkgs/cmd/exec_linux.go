@@ -68,7 +68,8 @@ func (e Executor) Execute() error {
 
 func (e Executor) doExecute(buffer *bytes.Buffer) error {
 	if e.title != "" {
-		color.Printf(color.Title, "\n%s: %s\n", e.title, e.cmd+" "+strings.Join(e.args, " "))
+		color.Printf(color.Title, "\n%s\n", e.title)
+		color.Printf(color.Hint, "✔ %s\n", e.cmd+" "+strings.Join(e.args, " "))
 	}
 
 	var cmd *exec.Cmd
