@@ -269,12 +269,12 @@ func (p Port) doInstallFromSource() error {
 			// Only repos that match the configured source ref can store package cache.
 			if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
 				repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
-				matchesRef, err := git.CheckIfMatchesRef(p.ctx, p.MatchedConfig.PortConfig.RepoDir, repoRef)
+				mismatchDetails, err := git.CheckIfMatchesRef(p.ctx, p.MatchedConfig.PortConfig.RepoDir, repoRef)
 				if err != nil {
 					return err
 				}
-				if !matchesRef {
-					skipStoreCacheReason = "skip storing package cache for %s: source repo does not match the configured ref."
+				if mismatchDetails != "" {
+					skipStoreCacheReason = "skip storing package cache for %s: " + mismatchDetails + "."
 				}
 			}
 		}
