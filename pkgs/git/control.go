@@ -144,7 +144,7 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	if isBranch {
 		commands := []string{
 			"git reset --hard",
-			"git clean -xfd",
+			"git clean -ffdx",
 			"git fetch origin " + repoRef,
 			"git checkout -B " + repoRef + " origin/" + repoRef,
 			"git pull origin " + repoRef,
@@ -173,7 +173,7 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 		// Fetch and checkout tag
 		commands := []string{
 			"git reset --hard",
-			"git clean -xfd",
+			"git clean -ffdx",
 			"git fetch --tags origin",
 			"git checkout " + repoRef,
 		}
@@ -247,7 +247,7 @@ func Clean(title, repoDir string) error {
 
 	var commands []string
 	commands = append(commands, "git reset --hard")
-	commands = append(commands, "git clean -xfd")
+	commands = append(commands, "git clean -ffdx")
 
 	commandLine := strings.Join(commands, " && ")
 	executor := cmd.NewExecutor(title, commandLine)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -41,19 +42,17 @@ func GetCurrentTag(repoDir string) (string, error) {
 
 // IsModified check if repo is modified.
 func IsModified(repoDir string) (bool, error) {
-	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
-	output, err := cmd.CombinedOutput()
+	lines, err := statusLines(repoDir)
 	if err != nil {
-		return false, fmt.Errorf("check if repo is modified -> %s", output)
+		return false, err
 	}
-
-	return strings.TrimSpace(string(output)) != "", nil
+	return len(lines) > 0, nil
 }
 
 // CleanRepo clean local changes of a repo to HEAD.
 func CleanRepo(repoDir string) error {
 	// git clean
-	cmd1 := exec.Command("git", "-C", repoDir, "clean", "-xfd")
+	cmd1 := exec.Command("git", "-C", repoDir, "clean", "-ffdx")
 	output1, err := cmd1.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git clean failed: %s", output1)
@@ -67,6 +66,76 @@ func CleanRepo(repoDir string) error {
 	}
 
 	return nil
+}
+
+// StatusSummary returns a concise git-status summary for diagnostics.
+func StatusSummary(repoDir string, maxEntries int) (string, error) {
+	lines, err := statusLines(repoDir)
+	if err != nil {
+		return "", err
+	}
+	if len(lines) == 0 {
+		return "", nil
+	}
+
+	if maxEntries <= 0 || maxEntries > len(lines) {
+		maxEntries = len(lines)
+	}
+
+	summary := strings.Join(lines[:maxEntries], "; ")
+	if len(lines) > maxEntries {
+		summary += "; ..."
+	}
+	return summary, nil
+}
+
+func statusLines(repoDir string) ([]string, error) {
+	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("check if repo is modified -> %s", output)
+	}
+
+	var lines []string
+	for line := range strings.SplitSeq(strings.TrimSpace(string(output)), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			if shouldIgnoreStatusLine(repoDir, line) {
+				continue
+			}
+			lines = append(lines, line)
+		}
+	}
+	return lines, nil
+}
+
+func shouldIgnoreStatusLine(repoDir, line string) bool {
+	if !strings.HasPrefix(line, "?? ") {
+		return false
+	}
+
+	path := strings.TrimSpace(line[3:])
+	path = strings.Trim(path, "\"")
+	path = strings.TrimSuffix(filepath.ToSlash(path), "/")
+	if !strings.HasPrefix(path, "subprojects/") {
+		return false
+	}
+
+	base := filepath.Base(path)
+	if base == ".wraplock" || strings.HasSuffix(base, ".wrap") {
+		return true
+	}
+
+	absPath := filepath.Join(repoDir, filepath.FromSlash(path))
+	if pathExists(filepath.Join(absPath, ".git")) || pathExists(filepath.Join(absPath, ".meson-subproject-wrap-hash.txt")) {
+		return true
+	}
+
+	if pathExists(filepath.Join(repoDir, "subprojects", base+".wrap")) {
+		return true
+	}
+
+	return false
 }
 
 // GetCommitHash read git commit hash.
@@ -107,84 +176,106 @@ func GetDefaultBranch(repoDir string) (string, error) {
 }
 
 // CheckIfMatchesRef checks whether the local checkout matches the expected ref.
-// If expectedRef is empty, it falls back to comparing against the remote branch
-// or tag that the current checkout tracks.
-func CheckIfMatchesRef(ctx context.Context, repoDir, expectedRef string) (bool, error) {
-	// Get current commit hash.
+// It returns an empty string on match, or a human-readable mismatch reason when
+// the checkout does not match. If expectedRef is empty, it falls back to
+// comparing the current branch HEAD with its upstream branch.
+func CheckIfMatchesRef(ctx context.Context, repoDir, expectedRef string) (string, error) {
 	currentCommit, err := GetCommitHash(repoDir)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
-	// Check if there's any remote configured.
+	expectedRef = strings.TrimSpace(expectedRef)
+	if expectedRef != "" {
+		expectedCommit, err := GitRevParse(ctx, repoDir, expectedRef)
+		if err != nil {
+			return "", fmt.Errorf("resolve git ref %q: %w", expectedRef, err)
+		}
+		if currentCommit == expectedCommit {
+			return "", nil
+		}
+		return fmt.Sprintf("expect ref %q @ %s, got HEAD @ %s", expectedRef, expectedCommit, currentCommit), nil
+	}
+
+	// No configured ref means "is my current branch still aligned with its upstream?".
+	branch, err := GetCurrentBranch(repoDir)
+	if err != nil {
+		return "", err
+	}
+	if branch == "" || branch == "HEAD" {
+		return fmt.Sprintf("expect upstream, got detached HEAD @ %s", currentCommit), nil
+	}
+
+	upstreamBranch, err := getUpstreamBranch(repoDir)
+	if err != nil {
+		return fmt.Sprintf("expect upstream for %q, got none (HEAD @ %s)", branch, currentCommit), nil
+	}
+
+	if !ctx.Offline() {
+		// Upstream branches are reported as <remote>/<branch>, so peel out the remote
+		// name before fetching the latest remote state.
+		remoteName := upstreamBranch
+		if index := strings.IndexByte(upstreamBranch, '/'); index > 0 {
+			remoteName = upstreamBranch[:index]
+		}
+
+		cmd := exec.Command("git", "-C", repoDir, "fetch", "--tags", remoteName)
+		if err := cmd.Run(); err != nil {
+			return "", fmt.Errorf("git fetch --tags %s failed for %s: %v", remoteName, repoDir, err)
+		}
+	}
+
+	upstreamCommit, err := gitRevParseCommit(repoDir, upstreamBranch)
+	if err != nil {
+		return "", err
+	}
+	if currentCommit == upstreamCommit {
+		return "", nil
+	}
+	return fmt.Sprintf("expect upstream %q @ %s, got HEAD @ %s", upstreamBranch, upstreamCommit, currentCommit), nil
+}
+
+func getRemoteNames(repoDir string) ([]string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "remote")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return false, fmt.Errorf("git remote failed: %v", err)
+		return nil, fmt.Errorf("git remote failed: %v", err)
 	}
 
-	// No remote - compare against the explicit ref if one was provided.
-	if strings.TrimSpace(string(output)) == "" {
-		if commit, err := GitRevParse(ctx, repoDir, expectedRef); err == nil && commit != "" {
-			return currentCommit == commit, nil
-		}
-		return true, nil
-	}
-
-	// Fetch remote updates.
-	cmd = exec.Command("git", "-C", repoDir, "fetch", "--tags", "origin")
-	if err := cmd.Run(); err != nil {
-		return false, fmt.Errorf("git fetch --tags origin failed for %s with %s: %v", repoDir, expectedRef, err)
-	}
-
-	// Explicit ref/checksum from port config has higher priority than tracking
-	// the current branch or remote default branch.
-	if expectedCommit, err := GitRevParse(ctx, repoDir, expectedRef); err == nil && expectedCommit != "" {
-		return currentCommit == expectedCommit, nil
-	}
-
-	// If current checkout is on a branch, compare with origin/<branch>.
-	branch, err := GetCurrentBranch(repoDir)
-	if err == nil && branch != "" && branch != "HEAD" {
-		if remoteCommit, err := gitRevParse(repoDir, "origin/"+branch); err == nil {
-			return currentCommit == remoteCommit, nil
+	var remotes []string
+	for line := range strings.SplitSeq(strings.TrimSpace(string(output)), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			remotes = append(remotes, line)
 		}
 	}
+	return remotes, nil
+}
 
-	// If current checkout is exactly at a tag, ensure this tag exists on origin.
-	tag, err := GetCurrentTag(repoDir)
-	if err == nil && tag != "" {
-		cmd = exec.Command("git", "-C", repoDir, "ls-remote", "--tags", "origin", "refs/tags/"+tag, "refs/tags/"+tag+"^{}")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			return false, fmt.Errorf("git ls-remote --tags %s -> %s", tag, output)
-		}
-		for line := range strings.SplitSeq(strings.TrimSpace(string(output)), "\n") {
-			if line == "" {
-				continue
-			}
-
-			hash := strings.Fields(line)[0]
-			if hash == currentCommit {
-				return true, nil
-			}
-		}
-		return false, nil
+func getPrimaryRemote(repoDir string) (string, error) {
+	remotes, err := getRemoteNames(repoDir)
+	if err != nil {
+		return "", err
+	}
+	if len(remotes) == 0 {
+		return "", nil
 	}
 
-	// Fallback to remote default branch head.
-	remoteCommit, err := gitRevParse(repoDir, "origin/HEAD")
-	if err == nil {
-		return currentCommit == remoteCommit, nil
-	}
-	if defaultBranch, err := GetDefaultBranch(repoDir); err == nil && defaultBranch != "" {
-		if remoteCommit, err := gitRevParse(repoDir, "origin/"+defaultBranch); err == nil {
-			return currentCommit == remoteCommit, nil
+	for _, remote := range remotes {
+		if remote == "origin" {
+			return remote, nil
 		}
 	}
+	return remotes[0], nil
+}
 
-	// Cannot resolve a meaningful remote target.
-	return false, nil
+func getUpstreamBranch(repoDir string) (string, error) {
+	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("get upstream branch -> %s", output)
+	}
+	return strings.TrimSpace(string(output)), nil
 }
 
 // InitAsLocalRepo init folder as a local repo.
@@ -242,13 +333,32 @@ func GitRevParse(ctx context.Context, repoDir, repoRef string) (string, error) {
 
 	// Prefer remote branch heads when the expected ref names a branch.
 	if !ctx.Offline() {
-		if remoteCommit, err := gitRevParse(repoDir, "origin/"+repoRef); err == nil {
-			return remoteCommit, nil
+		remoteName, err := getPrimaryRemote(repoDir)
+		if err != nil {
+			return "", err
+		}
+		if remoteName != "" {
+			cmd := exec.Command("git", "-C", repoDir, "fetch", "--tags", remoteName)
+			if err := cmd.Run(); err != nil {
+				return "", fmt.Errorf("git fetch --tags %s failed for %s: %v", remoteName, repoDir, err)
+			}
+			if remoteCommit, err := gitRevParseCommit(repoDir, remoteName+"/"+repoRef); err == nil {
+				return remoteCommit, nil
+			}
 		}
 	}
 
 	// Fall back to any locally resolvable ref: commit hash, tag, branch, etc.
-	return gitRevParse(repoDir, repoRef)
+	return gitRevParseCommit(repoDir, repoRef)
+}
+
+func gitRevParseCommit(repoDir, repoRef string) (string, error) {
+	repoRef = strings.TrimSpace(repoRef)
+	if repoRef == "" {
+		return "", nil
+	}
+	// Force refs like annotated tags to resolve to the commit they point at.
+	return gitRevParse(repoDir, repoRef+"^{commit}")
 }
 
 // gitRevParse returns the full commit hash for the given repo ref from local repo.
