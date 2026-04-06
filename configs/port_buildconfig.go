@@ -53,7 +53,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		CacheRepo:       p.Package.CacheRepo,
 		IgnoreSubmodule: p.Package.IgnoreSubmodule,
 		ProjectName:     p.ctx.Project().GetName(),
-		HostName:        hostName, 
+		HostName:        hostName,
 		SrcDir:          filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 		BuildDir:        filepath.Join(dirs.WorkspaceDir, "buildtrees", buildFolder),
 		PackageDir:      p.PackageDir,
@@ -165,7 +165,7 @@ func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildCon
 	fields := []string{
 		"BuildSystem", "CMakeGenerator", "BuildTools", "LibraryType",
 		"BuildShared", "BuildStatic", "CStandard", "CXXStandard", "BuildType",
-		"Envs", "Patches", "Dependencies", "DevDependencies",
+		"Envs", "Patches", "Dependencies", "DevDependencies", "PkgConfigToolVars",
 		"PreConfigure", "CustomConfigure", "PostConfigure",
 		"PreBuild", "FixBuild", "CustomBuild", "PostBuild",
 		"PreInstall", "CustomInstall", "PostInstall",

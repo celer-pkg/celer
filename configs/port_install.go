@@ -841,6 +841,20 @@ func (p Port) prepareTmpDeps() error {
 			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
 		}
 
+		// Some target-side pkg-config files expose build-time tools.
+		// Rewrite those variables to the host-dev toolchain so cross builds resolve
+		// native helpers instead of target binaries.
+		if len(port.MatchedConfig.PkgConfigTools) > 0 && !port.DevDep && !port.HostDep {
+			hostBinDir := filepath.Join(dirs.TmpDepsDir, port.ctx.Platform().GetHostName()+"-dev", "bin")
+			var sysrootDir string
+			if rootfs := port.ctx.Platform().GetRootFS(); rootfs != nil {
+				sysrootDir = rootfs.GetAbsDir()
+			}
+			if err := fileio.FixupPkgConfigTools(port.tmpDepsDir, hostBinDir, sysrootDir, port.MatchedConfig.PkgConfigTools); err != nil {
+				return fmt.Errorf("failed to rewrite pkg-config tool vars -> %w", err)
+			}
+		}
+
 		// Provider tmp deps recursively.
 		preparedTmpDeps = append(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.HostDep, " [dev]", ""))
 		if err := port.prepareTmpDeps(); err != nil {

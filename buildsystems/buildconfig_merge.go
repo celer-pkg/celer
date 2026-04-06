@@ -20,7 +20,7 @@ func (b *BuildConfig) mergeConfig() {
 	fields := []string{
 		"BuildSystem", "CMakeGenerator", "BuildTools", "LibraryType",
 		"BuildShared", "BuildStatic", "CStandard", "CXXStandard", "BuildType",
-		"Envs", "Patches", "Dependencies", "DevDependencies",
+		"Envs", "Patches", "Dependencies", "DevDependencies", "PkgConfigToolVars",
 		"PreConfigure", "CustomConfigure", "PostConfigure",
 		"PreBuild", "FixBuild", "CustomBuild", "PostBuild",
 		"PreInstall", "CustomInstall", "PostInstall",

@@ -37,6 +37,75 @@ func FixupPkgConfig(packageDir, prefix string) error {
 	return nil
 }
 
+// FixupPkgConfigTools rewrites selected pkg-config variables to point to a
+// host-side tool directory. Variable names are converted from snake_case to
+// tool-style names when building the destination path.
+//
+// pkgconf prepends PKG_CONFIG_SYSROOT_DIR to absolute path variables when a
+// target-side .pc file is queried during cross builds. To preserve a usable
+// host tool path, encode the value as a path relative to sysroot, anchored by
+// ${pc_sysrootdir}, so pkgconf resolves back to the real host tool.
+func FixupPkgConfigTools(packageDir, binDir, sysrootDir string, vars []string) error {
+	if len(vars) == 0 {
+		return nil
+	}
+
+	pkgConfigs := []string{
+		filepath.Join(packageDir, "share", "pkgconfig"),
+		filepath.Join(packageDir, "lib", "pkgconfig"),
+		filepath.Join(packageDir, "lib64", "pkgconfig"),
+	}
+
+	toolPaths := make(map[string]string, len(vars))
+	for _, varName := range vars {
+		varName = strings.TrimSpace(varName)
+		if varName == "" {
+			continue
+		}
+
+		toolName := strings.ReplaceAll(varName, "_", "-")
+		toolPath := filepath.Join(binDir, toolName)
+		if sysrootDir != "" && filepath.IsAbs(toolPath) {
+			relativeToSysroot, err := filepath.Rel(sysrootDir, toolPath)
+			if err != nil {
+				return err
+			}
+			toolPath = "${pc_sysrootdir}/" + filepath.ToSlash(relativeToSysroot)
+		} else {
+			toolPath = filepath.ToSlash(toolPath)
+		}
+		toolPaths[varName] = toolPath
+	}
+
+	if len(toolPaths) == 0 {
+		return nil
+	}
+
+	for _, pkgConfig := range pkgConfigs {
+		if !PathExists(pkgConfig) {
+			continue
+		}
+
+		entities, err := os.ReadDir(pkgConfig)
+		if err != nil {
+			return err
+		}
+
+		for _, entity := range entities {
+			if !strings.HasSuffix(entity.Name(), ".pc") {
+				continue
+			}
+
+			pkgPath := filepath.Join(pkgConfig, entity.Name())
+			if err := doFixupPkgConfigTools(pkgPath, toolPaths); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func doFixupPkgConfig(pkgPath, prefix string) error {
 	// Ensure the file is writable before opening it for RDWR.
 	if err := os.Chmod(pkgPath, os.ModePerm); err != nil {
@@ -140,6 +209,51 @@ func doFixupPkgConfig(pkgPath, prefix string) error {
 
 	if buffer.Len() > 0 {
 		os.WriteFile(pkgPath, buffer.Bytes(), os.ModePerm)
+	}
+
+	return nil
+}
+
+func doFixupPkgConfigTools(pkgPath string, toolPaths map[string]string) error {
+	if err := os.Chmod(pkgPath, os.ModePerm); err != nil {
+		return err
+	}
+
+	pkgFile, err := os.OpenFile(pkgPath, os.O_RDWR, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer pkgFile.Close()
+
+	var buffer bytes.Buffer
+	scanner := bufio.NewScanner(pkgFile)
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		key, _, ok := strings.Cut(line, "=")
+		if !ok {
+			buffer.WriteString(line + "\n")
+			continue
+		}
+
+		key = strings.TrimSpace(key)
+		toolPath, matched := toolPaths[key]
+		if !matched {
+			buffer.WriteString(line + "\n")
+			continue
+		}
+
+		buffer.WriteString(key + "=" + toolPath + "\n")
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	if buffer.Len() > 0 {
+		if err := os.WriteFile(pkgPath, buffer.Bytes(), os.ModePerm); err != nil {
+			return err
+		}
 	}
 
 	return nil
