@@ -213,6 +213,7 @@ func (p Port) Write(portPath string) error {
 		Options:         []string{},
 		Dependencies:    []string{},
 		DevDependencies: []string{},
+		PkgConfigTools:  []string{},
 		PreConfigure:    []string{},
 		PostConfigure:   []string{},
 		PreBuild:        []string{},

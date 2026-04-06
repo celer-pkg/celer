@@ -1,15 +1,29 @@
-package fileio
+package pc
 
 import (
 	"bufio"
 	"bytes"
+	"celer/pkgs/fileio"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-// FixupPkgConfig change prefix as specified.
-func FixupPkgConfig(packageDir, prefix string) error {
+type PkgConfig struct {
+	ToolBinDir     string
+	SysrootDir     string
+	PkgConfigTools []string
+}
+
+// Apply changes standard pkg-config directories as specified and can
+// optionally rewrite selected tool variables to host-side tool paths.
+func (p PkgConfig) Apply(packageDir, prefix string) error {
+	toolPaths, err := p.buildToolPaths()
+	if err != nil {
+		return err
+	}
+
 	pkgConfigs := []string{
 		filepath.Join(packageDir, "share", "pkgconfig"),
 		filepath.Join(packageDir, "lib", "pkgconfig"),
@@ -17,7 +31,7 @@ func FixupPkgConfig(packageDir, prefix string) error {
 	}
 
 	for _, pkgConfig := range pkgConfigs {
-		if PathExists(pkgConfig) {
+		if fileio.PathExists(pkgConfig) {
 			entities, err := os.ReadDir(pkgConfig)
 			if err != nil {
 				return err
@@ -26,7 +40,7 @@ func FixupPkgConfig(packageDir, prefix string) error {
 			for _, entity := range entities {
 				if strings.HasSuffix(entity.Name(), ".pc") {
 					pkgPath := filepath.Join(pkgConfig, entity.Name())
-					if err := doFixupPkgConfig(pkgPath, prefix); err != nil {
+					if err := p.apply(pkgPath, prefix, toolPaths); err != nil {
 						return err
 					}
 				}
@@ -37,7 +51,44 @@ func FixupPkgConfig(packageDir, prefix string) error {
 	return nil
 }
 
-func doFixupPkgConfig(pkgPath, prefix string) error {
+func (p PkgConfig) buildToolPaths() (map[string]string, error) {
+	if len(p.PkgConfigTools) == 0 {
+		return nil, nil
+	}
+
+	if strings.TrimSpace(p.ToolBinDir) == "" {
+		return nil, fmt.Errorf("pkg-config tool rewrite requires ToolBinDir")
+	}
+
+	toolPaths := make(map[string]string, len(p.PkgConfigTools))
+	for _, varName := range p.PkgConfigTools {
+		varName = strings.TrimSpace(varName)
+		if varName == "" {
+			continue
+		}
+
+		toolName := strings.ReplaceAll(varName, "_", "-")
+		toolPath := filepath.Join(p.ToolBinDir, toolName)
+		if p.SysrootDir != "" && filepath.IsAbs(toolPath) {
+			relativeToSysroot, err := filepath.Rel(p.SysrootDir, toolPath)
+			if err != nil {
+				return nil, err
+			}
+			toolPath = "${pc_sysrootdir}/" + filepath.ToSlash(relativeToSysroot)
+		} else {
+			toolPath = filepath.ToSlash(toolPath)
+		}
+		toolPaths[varName] = toolPath
+	}
+
+	if len(toolPaths) == 0 {
+		return nil, nil
+	}
+
+	return toolPaths, nil
+}
+
+func (p PkgConfig) apply(pkgPath, prefix string, toolPaths map[string]string) error {
 	// Ensure the file is writable before opening it for RDWR.
 	if err := os.Chmod(pkgPath, os.ModePerm); err != nil {
 		return err
@@ -53,6 +104,17 @@ func doFixupPkgConfig(pkgPath, prefix string) error {
 	scanner := bufio.NewScanner(pkgFile)
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		if len(toolPaths) > 0 {
+			key, _, ok := strings.Cut(line, "=")
+			if ok {
+				key = strings.TrimSpace(key)
+				if toolPath, matched := toolPaths[key]; matched {
+					buffer.WriteString(key + "=" + toolPath + "\n")
+					continue
+				}
+			}
+		}
 
 		// Remove space before `=`
 		line = strings.ReplaceAll(line, "prefix =", "prefix=")
