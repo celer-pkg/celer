@@ -9,6 +9,7 @@ import (
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
 	"celer/pkgs/git"
+	"celer/pkgs/pc"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -792,7 +793,8 @@ func (p Port) prepareTmpDeps() error {
 		// Use absolute path for dev dependencies since native_file wrapper unsets PKG_CONFIG_SYSROOT_DIR
 		// and this can also make sure system pc file can work right.
 		var pkgConfigPrefix = filepath.Join(dirs.TmpDepsDir, port.ctx.Platform().GetHostName()+"-dev")
-		if err := fileio.FixupPkgConfig(port.tmpDepsDir, pkgConfigPrefix); err != nil {
+		var pkgConfig pc.PkgConfig
+		if err := pkgConfig.Apply(port.tmpDepsDir, pkgConfigPrefix); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
 		}
 
@@ -837,22 +839,20 @@ func (p Port) prepareTmpDeps() error {
 			port.tmpDepsDir,
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.MatchedConfig.PortConfig.LibraryFolder),
 		)
-		if err := fileio.FixupPkgConfig(port.tmpDepsDir, pkgConfigPrefix); err != nil {
-			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
-		}
-
 		// Some target-side pkg-config files expose build-time tools.
 		// Rewrite those variables to the host-dev toolchain so cross builds resolve
 		// native helpers instead of target binaries.
+		var pkgConfig pc.PkgConfig
 		if len(port.MatchedConfig.PkgConfigTools) > 0 && !port.DevDep && !port.HostDep {
 			hostBinDir := filepath.Join(dirs.TmpDepsDir, port.ctx.Platform().GetHostName()+"-dev", "bin")
-			var sysrootDir string
+			pkgConfig.ToolBinDir = hostBinDir
+			pkgConfig.PkgConfigTools = port.MatchedConfig.PkgConfigTools
 			if rootfs := port.ctx.Platform().GetRootFS(); rootfs != nil {
-				sysrootDir = rootfs.GetAbsDir()
+				pkgConfig.SysrootDir = rootfs.GetAbsDir()
 			}
-			if err := fileio.FixupPkgConfigTools(port.tmpDepsDir, hostBinDir, sysrootDir, port.MatchedConfig.PkgConfigTools); err != nil {
-				return fmt.Errorf("failed to rewrite pkg-config tool vars -> %w", err)
-			}
+		}
+		if err := pkgConfig.Apply(port.tmpDepsDir, pkgConfigPrefix); err != nil {
+			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
 		}
 
 		// Provider tmp deps recursively.
