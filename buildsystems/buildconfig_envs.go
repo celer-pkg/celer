@@ -138,6 +138,25 @@ func (b *BuildConfig) setupEnvs() {
 	// Expose host-side dev tools to PATH.
 	b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
 
+	// Keep host-side dev tool runtimes resolvable before any helper process starts.
+	// This is especially important for Python extensions and other host tools that
+	// link against libraries from tmp/deps/<host>-dev/lib.
+	for _, devLibDir := range []string{
+		filepath.Join(tmpDevDir, "lib"),
+		filepath.Join(tmpDevDir, "lib64"),
+	} {
+		if !fileio.PathExists(devLibDir) {
+			continue
+		}
+
+		switch runtime.GOOS {
+		case "linux":
+			b.envBackup.setenv("LD_LIBRARY_PATH", env.JoinPaths("LD_LIBRARY_PATH", devLibDir))
+		case "darwin":
+			b.envBackup.setenv("DYLD_LIBRARY_PATH", env.JoinPaths("DYLD_LIBRARY_PATH", devLibDir))
+		}
+	}
+
 	// Ensure PYTHONPATH for python.
 	b.envBackup.setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 

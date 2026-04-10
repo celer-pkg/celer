@@ -180,7 +180,6 @@ func (p Port) toCacheBuildConfig(buildConfig *buildsystems.BuildConfig) pkgcache
 		Patches:         append([]string{}, buildConfig.Patches...),
 		Dependencies:    append([]string{}, buildConfig.Dependencies...),
 		DevDependencies: append([]string{}, buildConfig.DevDependencies...),
-		PkgConfigTools:  append([]string{}, buildConfig.PkgConfigTools...),
 		BuildTools:      buildConfig.CheckTools(),
 	}
 }
