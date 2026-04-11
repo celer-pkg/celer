@@ -847,18 +847,7 @@ func (p Port) prepareTmpDeps() error {
 			port.tmpDepsDir,
 			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.MatchedConfig.PortConfig.LibraryFolder),
 		)
-		// Some target-side pkg-config files expose build-time tools.
-		// Rewrite those variables to the host-dev toolchain so cross builds resolve
-		// native helpers instead of target binaries.
 		var pkgConfig pc.PkgConfig
-		if len(port.MatchedConfig.PkgConfigTools) > 0 && !port.DevDep && !port.HostDep {
-			hostBinDir := filepath.Join(dirs.TmpDepsDir, port.ctx.Platform().GetHostName()+"-dev", "bin")
-			pkgConfig.ToolBinDir = hostBinDir
-			pkgConfig.PkgConfigTools = port.MatchedConfig.PkgConfigTools
-			if rootfs := port.ctx.Platform().GetRootFS(); rootfs != nil {
-				pkgConfig.SysrootDir = rootfs.GetAbsDir()
-			}
-		}
 		if err := pkgConfig.Apply(port.tmpDepsDir, pkgConfigPrefix); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
 		}

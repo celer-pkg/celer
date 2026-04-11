@@ -33,7 +33,6 @@ type BuildConfig struct {
 	Patches         []string
 	Dependencies    []string
 	DevDependencies []string
-	PkgConfigTools  []string
 	BuildTools      []string
 }
 

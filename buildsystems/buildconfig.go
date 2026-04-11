@@ -191,12 +191,6 @@ type BuildConfig struct {
 	DevDependencies_Linux   []string `toml:"dev_dependencies_linux,omitempty"`
 	DevDependencies_Darwin  []string `toml:"dev_dependencies_darwin,omitempty"`
 
-	// PkgConfig Tools
-	PkgConfigTools         []string `toml:"pkg_config_tools,omitempty"`
-	PkgConfigTools_Windows []string `toml:"pkg_config_tools_windows,omitempty"`
-	PkgConfigTools_Linux   []string `toml:"pkg_config_tools_linux,omitempty"`
-	PkgConfigTools_Darwin  []string `toml:"pkg_config_tools_darwin,omitempty"`
-
 	// Event hooks for PreConfigure
 	PreConfigure         []string `toml:"pre_configure,omitempty"`
 	PreConfigure_Windows []string `toml:"pre_configure_windows,omitempty"`

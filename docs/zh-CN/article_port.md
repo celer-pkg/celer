@@ -48,7 +48,6 @@ pre_install = []                # 可选字段
 post_install = []               # 可选字段
 dependencies = []               # 可选字段
 dev_dependencies = []           # 可选字段
-pkg_config_tools = []           # 可选字段
 ```
 
 &emsp;&emsp;在 port.toml 中，只有少数字段是必填的，其他都是可选的。大多数情况下，管理一个第三方库都很简单，例如：
@@ -77,7 +76,6 @@ options = [
 | build_tool | ❌ | 是否为“构建期工具”端口（如 m4、automake、libtool、autoconf）。设为 `true` 时始终本机编译、安装路径不含平台/项目等 `@` 段，且仅在 Linux/Darwin 上构建 | `true` |
 | build_configs | ✅ | 构建配置数组，描述不同平台的构建方式 | 见下方示例 |
 | dev_dependencies | ❌ | 构建期所需工具（如 autoconf、nasm） | `autoconf@2.72` |
-| pkg_config_tools | ❌ | 需要从目标 `.pc` 重写到宿主机工具路径的 pkg-config 变量名 | `g_ir_scanner` |
 
 ## 🛠️ 构建配置详解
 
@@ -192,39 +190,7 @@ options = [
 >- 避免手动使用 **sudo apt install xxx** 安装一些本地工具。  
 >- 当编译一个第三方库的新版本时，即使你使用 **apt** 安装了这些工具，仍然可能遇到 **autoconf** 版本过低的错误。在这种情况下，你需要手动下载工具的源代码，本地编译安装，而不是污染系统环境。
 
-### 1.2.15 pkg_config_tools
-
-&emsp;&emsp;可选配置，默认为空，用于声明一些需要从目标侧 `.pc` 文件重写为宿主机工具路径的 pkg-config 变量。它主要用于交叉编译场景：某些上游项目会通过 `pkg-config --variable=xxx` 从目标依赖中读取构建期工具路径，例如 `g_ir_scanner`。如果不做处理，这些变量可能指向目标包内的工具，或者在带 `PKG_CONFIG_SYSROOT_DIR` 的查询中被错误拼接到 sysroot 下。
-
-&emsp;&emsp;当端口声明 `pkg_config_tools` 后，Celer 会在准备 `tmp/deps` 时，把对应变量重写到宿主机 `tmp/deps/<host>-dev/bin` 目录中的同名工具。变量名会按“下划线转中划线”的规则映射为工具名，例如 `g_ir_scanner -> g-ir-scanner`。
-
->什么时候需要 **pkg_config_tools**:  
->- 上游构建脚本通过 `pkg-config --variable=...` 获取一个构建期工具。  
->- 这个工具必须运行在 build machine，而不是目标机。  
->- 仅把对应端口加入 **dev_dependencies** 仍不足以让上游拿到正确工具路径。
-
->什么时候通常不需要 **pkg_config_tools**:  
->- 上游已经使用 `find_program()`、`native: true` 依赖或 PATH 直接查找宿主机工具。  
->- 该变量描述的是目标侧库路径或数据目录，而不是可执行工具。
-
-```toml
-[[build_configs]]
-build_system = "meson"
-dev_dependencies = [
-    "gobject-introspection@1.86.0",
-    "cpython@3.11.13",
-]
-dependencies = ["libiconv@1.18"]
-pkg_config_tools = [
-    "g_ir_scanner",
-    "g_ir_compiler",
-    "g_ir_generate",
-]
-```
-
-&emsp;&emsp;以上示例中，`dev_dependencies` 负责先准备宿主机可执行的 `g-ir-scanner`、`g-ir-compiler`、`g-ir-generate`；`pkg_config_tools` 则负责把目标侧 `gobject-introspection-1.0.pc` 中导出的这些变量重写到宿主机工具路径。两者通常需要配合使用。
-
-### 1.2.16 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
+### 1.2.15 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
 
 &emsp;&emsp;可选配置，默认为空，某些库可能存在代码问题导致编译失败时，可通过补丁修复源码。对于相对较小的问题（如输出文件名错误），可在 post_install 中添加修正命令；同理，若其他阶段出现文件相关问题，也可在对应步骤进行预处理或后处理调整。典型案例如 libffi 库在 Windows 上无法直接编译通过——必须通过多项预处理和后处理步骤才能使其正常工作。
 
@@ -249,6 +215,6 @@ options = [
 
 > 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。完整列表请参考 [动态变量](./article_expvars.md)。
 
-### 1.2.17 options
+### 1.2.16 options
 
 &emsp;&emsp;可选配置，默认值为空，当编译第三方库时，通常会有许多选项需要启用或禁用。我们可以在这里定义它们，例如 **-DBUILD_TESTING=OFF**；

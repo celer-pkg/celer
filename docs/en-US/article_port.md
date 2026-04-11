@@ -40,7 +40,6 @@ pre_install         = [...]                 # optional field
 post_install        = [...]                 # optional field
 dependencies        = [...]                 # optional field
 dev_dependencies    = [...]                 # optional field
-pkg_config_tools    = [...]                 # optional field
 ```
 
 &emsp;&emsp;In a port.toml, there are many fields that can be configured, but actually only a few are mandatory, and the rest are optional. Most of the time, managing a third-party library is very simple, for example:
@@ -69,7 +68,6 @@ The following are fields and their descriptions:
 | build_tool | Optional. Set to `true` for build-time tools (e.g. m4, automake, libtool, autoconf): always built natively, install path has no platform/project/buildType segments, and only built on Linux/Darwin. |
 | build_configs | Array, describes how to build the library on different platforms. |
 | dev_dependencies | Array, tools required during build (e.g. autoconf, nasm). |
-| pkg_config_tools | Array, pkg-config variable names that should be rewritten to host tool paths during cross builds. |
 
 ## 1.2 build_configs
 
@@ -185,39 +183,7 @@ When **library_type** is set to **shared**, Celer will try to read the value in 
 >- To avoid manually installing some local tools using **sudo apt install xxx**.  
 >- When compiling a third-party library that is a newer version, even if you install these tools using **apt**, you may still encounter errors such as **autoconf** version too low. In this case, you need to manually download the tool source code, compile it locally, and install it to the system directory. This is not only time-consuming but also pollutes the system environment.
 
-### 1.2.15 pkg_config_tools
-
-&emsp;&emsp;Optional, default empty. Use it when a target-side `.pc` file exports build-time tool variables that must be rewritten to host tool paths. This is mainly for cross builds where upstream queries a dependency with `pkg-config --variable=xxx`, for example `g_ir_scanner`. Without rewriting, the variable may still point at a target package path, or it may be incorrectly prefixed by `PKG_CONFIG_SYSROOT_DIR`.
-
-&emsp;&emsp;When `pkg_config_tools` is declared, Celer rewrites the selected variables while preparing `tmp/deps`, so they point to the matching tools under `tmp/deps/<host>-dev/bin`. Variable names are mapped to tool names by replacing underscores with hyphens, for example `g_ir_scanner -> g-ir-scanner`.
-
->When to use **pkg_config_tools**:  
->- The upstream build scripts read a build-time tool via `pkg-config --variable=...`.  
->- That tool must run on the build machine, not on the target machine.  
->- Adding the related port to **dev_dependencies** alone is not enough to make upstream resolve the correct tool path.
-
->When you usually do not need **pkg_config_tools**:  
->- Upstream already uses `find_program()`, a `native: true` dependency, or PATH to locate the host tool directly.  
->- The variable describes a target library path or data directory instead of an executable tool.
-
-```toml
-[[build_configs]]
-build_system = "meson"
-dev_dependencies = [
-    "gobject-introspection@1.86.0",
-    "cpython@3.11.13",
-]
-dependencies = ["libiconv@1.18"]
-pkg_config_tools = [
-    "g_ir_scanner",
-    "g_ir_compiler",
-    "g_ir_generate",
-]
-```
-
-&emsp;&emsp;In the example above, `dev_dependencies` prepares runnable host tools first, while `pkg_config_tools` rewrites the exported variables from the target-side `gobject-introspection-1.0.pc` file to those host tool paths. In practice, the two fields are often used together.
-
-### 1.2.16 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
+### 1.2.15 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
 
 &emsp;&emsp;Optional, there are always libraries with problematic code. When compilation fails, we can provide patches to fix the source code. For relatively minor issues like incorrect output filenames, we can add corrective commands in **post_install**. Similarly, if file-related issues occur in other stages, we can apply pre-processing or post-processing adjustments at the corresponding steps. A typical example is the libffi library, which doesn't compile smoothly on Windows—various pre-and post-processing steps are required to make it work.
 
