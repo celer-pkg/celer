@@ -6,7 +6,7 @@ You may already be using **Conan**, **Vcpkg**, or **XMake**. They are powerful t
 
 ## 🎯 The Pain Points Celer Targets
 
-### 1. 📦 New Library Integration Is Slow Because the Process Is Heavy
+### 1. New Library Integration Is Slow Because the Process Is Heavy
 
 **What hurts:**
 
@@ -25,7 +25,7 @@ You may already be using **Conan**, **Vcpkg**, or **XMake**. They are powerful t
 Declare build system type (CMake/Make/Meson, etc.) and required options in TOML, and Celer standardizes the rest of the integration flow.  
 You focus on what the library needs, not on taming toolchain internals.
 
-### 2. 🏢 Cross-Project Contamination Causes Rework
+### 2. Cross-Project Contamination Causes Rework
 
 **What hurts:**
 
@@ -44,7 +44,7 @@ You focus on what the library needs, not on taming toolchain internals.
 Isolate dependency versions, build options, and private library definitions per project.  
 Each project has its own reproducible dependency configuration, with no cross-project contamination.
 
-### 3. 🔗 Dependency Drift Across Sub-Projects Gets Harder to Control as the Platform Grows
+### 3. Dependency Drift Across Sub-Projects Gets Harder to Control as the Platform Grows
 
 **What hurts:**
 
@@ -63,7 +63,7 @@ Each project has its own reproducible dependency configuration, with no cross-pr
 Use one TOML file for centralized dependency definitions and auto-generate a unified `toolchain_file.cmake` inherited by all sub-projects.  
 Update once, sync globally, and reduce manual alignment work.
 
-### 4. ⚡ Uncontrolled Build Caching Wastes Time on Rebuilds
+### 4. Uncontrolled Build Caching Wastes Time on Rebuilds
 
 **What hurts:**
 
@@ -82,7 +82,7 @@ Update once, sync globally, and reduce manual alignment work.
 Generate hash keys from environment, compiler options, and dependency chains to reuse artifacts precisely.  
 Reuse when safe, invalidate when needed, and cut repeated builds plus manual cache cleanup.
 
-### 5. 🔍 Conflicts Are Found Too Late and Explode During Integration
+### 5. Conflicts Are Found Too Late and Explode During Integration
 
 **What hurts:**
 
@@ -101,7 +101,7 @@ Reuse when safe, invalidate when needed, and cut repeated builds plus manual cac
 Run dependency version consistency checks at build time and report actionable conflict details.  
 Move "pre-release failures" forward to "visible during build."
 
-### 6. 🤝 Cross-Company Collaboration Has a High Environment Handoff Cost
+### 6. Cross-Company Collaboration Has a High Environment Handoff Cost
 
 **What hurts:**
 
@@ -125,9 +125,9 @@ Partners only set `CMAKE_TOOLCHAIN_FILE` to get a consistent build context quick
 ## 🚀 Who Celer Is For
 
 Celer is designed for teams that need:
-- ✅ Frequent integration of both third-party libraries and internally developed shared libraries
-- ✅ Enterprise-grade dependency management
-- ✅ Fast, reproducible builds
-- ✅ A shift from experience-driven dependency handling to an engineering workflow
+- Frequent integration of both third-party libraries and internally developed shared libraries
+- Enterprise-grade dependency management
+- Fast, reproducible builds
+- A shift from experience-driven dependency handling to an engineering workflow
 
 [Get Started →](./quick_start.md) | [Back to README →](../../README.md)
