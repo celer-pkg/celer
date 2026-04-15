@@ -348,7 +348,7 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 			return err
 		}
 		if modified && !force {
-			return fmt.Errorf("conf repo has local modifications, update is skipped ... ⭐⭐⭐ you can try with --force/-f ⭐⭐⭐")
+			return fmt.Errorf("conf repo has local modifications, update is skipped ... 🚩 you can try with --force/-f 🚩")
 		}
 
 		if err := git.UpdateRepo("[update conf repo]", branch, confDir, force); err != nil {
