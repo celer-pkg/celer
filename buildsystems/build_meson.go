@@ -125,6 +125,9 @@ func (m meson) configureOptions() ([]string, error) {
 	// Set install dir.
 	options = append(options, "--prefix="+m.PortConfig.PackageDir)
 
+	// Disable subprojects and must specified them by dependencies.
+	options = append(options, "--wrap-mode=nofallback")
+
 	// Replace placeholders.
 	for index, value := range options {
 		options[index] = m.expandVariables(value)
