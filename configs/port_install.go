@@ -250,6 +250,12 @@ func (p Port) doInstallFromSource() error {
 		}
 	}()
 
+	// Clean package directory.
+	if err := os.RemoveAll(p.PackageDir); err != nil {
+		installFailed = true
+		return fmt.Errorf("failed to clean package dir %s -> %w", p.PackageDir, err)
+	}
+
 	// Validate cache dir before building to avoid wasting build time.
 	// Note: only store cache for non-devdep and non-host builds.
 	var (

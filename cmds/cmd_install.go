@@ -151,7 +151,8 @@ func (i *installCmd) install(nameVersion string) error {
 	// Display install header.
 	color.Println(color.Title, "=======================================================================")
 	color.Printf(color.Title, "🚀 start to install %s\n", nameVersion)
-	color.Printf(color.Title, "🛠️  platform: %s\n", i.celer.Global.Platform)
+	color.Printf(color.Title, "🔨 platform: %s\n", i.celer.Global.Platform)
+	color.Printf(color.Title, "🔨 product: %s\n", i.celer.Global.Project)
 	color.Println(color.Title, "=======================================================================")
 
 	// Parse name and version (already validated)
@@ -161,7 +162,8 @@ func (i *installCmd) install(nameVersion string) error {
 	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName(), name, version, "port.toml")
 	portInPorts := dirs.GetPortPath(name, version)
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
-		err := fmt.Errorf("port %s is not yet available in the ports collection.\n ⭐⭐⭐ Welcome to contribute to the ports. ⭐⭐⭐", nameVersion)
+		err := fmt.Errorf("port %s is not yet available in the ports collection.\n 🚩 Welcome to contribute %s to the ports. 🚩",
+			nameVersion, nameVersion)
 		return color.PrintError(err, "failed to install %s.", nameVersion)
 	}
 
