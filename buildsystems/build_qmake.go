@@ -103,7 +103,10 @@ func (q qmake) Configure(options []string) error {
 	toolchain := q.Ctx.Platform().GetToolchain()
 	rootfs := q.Ctx.Platform().GetRootFS()
 
-	// In windows, we set msvc related environments.
+	// Host-side dev dependencies must not inherit the target toolchain's
+	// CC/CXX/AR/... from previously built cross packages. Otherwise QMake
+	// may lock onto a target compiler (for example aarch64-linux-gnu-g++)
+	// and produce an un-runnable host tool inside x86_64-linux-dev.
 	if q.DevDep || toolchain.GetName() == "msvc" || toolchain.GetName() == "clang" {
 		toolchain.ClearEnvs()
 	} else {
