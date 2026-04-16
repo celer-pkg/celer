@@ -2,8 +2,8 @@ package git
 
 import (
 	"bufio"
-	"bytes"
 	"celer/pkgs/cmd"
+	"celer/pkgs/color"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
@@ -23,24 +23,68 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 		return executor.Execute()
 	}
 
-	cloneRepo := func(repoRef, repoUrl, repoDir string, depth int) string {
-		var buffer bytes.Buffer
-		buffer.WriteString("git clone")
+	cloneArgs := func(repoRef, repoUrl, repoDir string, depth int) []string {
+		args := []string{"clone"}
 		if repoRef != "" {
-			buffer.WriteString(" --branch " + repoRef)
+			args = append(args, "--branch", repoRef)
 		}
 		if depth > 0 {
-			fmt.Fprintf(&buffer, " --depth %d", depth)
+			args = append(args, "--depth", fmt.Sprint(depth))
 		}
-		fmt.Fprintf(&buffer, " %s %s", repoUrl, repoDir)
-		return buffer.String()
+		args = append(args, repoUrl, repoDir)
+		return args
+	}
+
+	cloneWithRetry := func(action string, args []string) error {
+		var lastErr error
+		var lastOutput string
+
+		for attempt := 1; attempt <= gitRetryMaxAttempts; attempt++ {
+			// Failed clones can leave a partial destination behind and poison the
+			// next attempt, so always retry from a clean target directory.
+			if err := os.RemoveAll(repoDir); err != nil {
+				return fmt.Errorf("failed to clean repo dir %s -> %w", repoDir, err)
+			}
+
+			executor := cmd.NewExecutor(title, "git", args...)
+			output, err := executor.ExecuteOutput()
+			if err == nil {
+				return nil
+			}
+
+			lastErr = err
+			lastOutput = output
+			color.Printf(color.Warning, "-- Git %s failed (attempt %d/%d): %v\n", action, attempt, gitRetryMaxAttempts, err)
+			if attempt < gitRetryMaxAttempts {
+				gitRetrySleep(attempt)
+			}
+		}
+
+		trimmedOutput := strings.TrimSpace(lastOutput)
+		if trimmedOutput == "" {
+			return fmt.Errorf("git %s failed after %d attempts -> %w", action, gitRetryMaxAttempts, lastErr)
+		}
+		return fmt.Errorf("git %s failed after %d attempts -> %w: %s", action, gitRetryMaxAttempts, lastErr, trimmedOutput)
+	}
+
+	cloneWithFallback := func(action string, repoRef string, depth int) error {
+		args := cloneArgs(repoRef, repoUrl, repoDir, depth)
+		if err := cloneWithRetry(action, args); err != nil {
+			if depth > 0 {
+				color.Printf(color.Warning, "-- Git %s failed with shallow clone, retrying without --depth\n", action)
+				if fallbackErr := cloneWithRetry(action+" without depth", cloneArgs(repoRef, repoUrl, repoDir, 0)); fallbackErr == nil {
+					return nil
+				}
+			}
+			return err
+		}
+		return nil
 	}
 
 	// ============ Clone default branch ============
 	if repoRef == "" {
-		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
-		if err := retryExecutor(title, command); err != nil {
-			return fmt.Errorf("faield to clone git repo -> %w", err)
+		if err := cloneWithFallback("clone git repo", repoRef, depth); err != nil {
+			return fmt.Errorf("failed to clone git repo -> %w", err)
 		}
 		return nil
 	}
@@ -51,9 +95,8 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 		return fmt.Errorf("failed to check if remote branch -> %w", err)
 	}
 	if isBranch {
-		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
-		if err := retryExecutor(title, command); err != nil {
-			return fmt.Errorf("faield to clone git repo -> %w", err)
+		if err := cloneWithFallback("clone git branch", repoRef, depth); err != nil {
+			return fmt.Errorf("failed to clone git repo -> %w", err)
 		}
 		return nil
 	}
@@ -64,9 +107,8 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 		return fmt.Errorf("failed to check if remote tag: %s -> %w", repoRef, err)
 	}
 	if isTag {
-		command := cloneRepo(repoRef, repoUrl, repoDir, depth)
-		if err := retryExecutor(title, command); err != nil {
-			return fmt.Errorf("faield to clone git repo -> %w", err)
+		if err := cloneWithFallback("clone git tag", repoRef, depth); err != nil {
+			return fmt.Errorf("failed to clone git repo -> %w", err)
 		}
 		return nil
 	}
@@ -74,7 +116,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	// ============ Clone and checkout commit ============
 	command := fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
 	if err := retryExecutor(title, command); err != nil {
-		return fmt.Errorf("faield to clone git repo -> %w", err)
+		return fmt.Errorf("failed to clone git repo -> %w", err)
 	}
 
 	// Checkout repo to commit.
