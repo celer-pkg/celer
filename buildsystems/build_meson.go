@@ -145,7 +145,10 @@ func (m meson) Configure(options []string) error {
 	toolchain := m.Ctx.Platform().GetToolchain()
 	rootfs := m.Ctx.Platform().GetRootFS()
 
-	// In windows, we set msvc related environments.
+	// Host-side dev dependencies must not inherit the target toolchain's
+	// CC/CXX/AR/... from previously built cross packages. Otherwise Meson
+	// may lock onto a target compiler (for example aarch64-linux-gnu-g++) and
+	// produce an un-runnable host tool inside x86_64-linux-dev.
 	if m.DevDep && (toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cli") {
 		toolchain.ClearEnvs()
 	} else {

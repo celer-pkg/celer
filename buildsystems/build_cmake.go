@@ -237,6 +237,19 @@ func (c cmake) configured() bool {
 }
 
 func (c cmake) Configure(options []string) error {
+	toolchain := c.Ctx.Platform().GetToolchain()
+	rootfs := c.Ctx.Platform().GetRootFS()
+
+	// Host-side dev dependencies must not inherit the target toolchain's
+	// CC/CXX/AR/... from previously built cross packages. Otherwise CMake
+	// may lock onto a target compiler (for example aarch64-linux-gnu-g++) and
+	// produce an un-runnable host tool inside x86_64-linux-dev.
+	if (c.DevDep || c.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
+		toolchain.ClearEnvs()
+	} else {
+		toolchain.SetEnvs(rootfs, c.Name())
+	}
+
 	// Remove build dir and create it for configure.
 	if err := os.RemoveAll(c.PortConfig.BuildDir); err != nil {
 		return err

@@ -232,9 +232,13 @@ func (m makefiles) Configure(options []string) error {
 		return nil
 	}
 
-	// msvc and clang-cl need to set build environment event in dev mode.
 	toolchain := m.Ctx.Platform().GetToolchain()
 	rootfs := m.Ctx.Platform().GetRootFS()
+
+	// Host-side dev dependencies must not inherit the target toolchain's
+	// CC/CXX/AR/... from previously built cross packages. Otherwise Makefiles may
+	// lock onto a target compiler (for example aarch64-linux-gnu-g++) and
+	// produce an un-runnable host tool inside x86_64-linux-dev.
 	if (m.DevDep || m.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 		toolchain.ClearEnvs()
 	} else {
