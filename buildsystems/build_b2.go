@@ -3,7 +3,6 @@ package buildsystems
 import (
 	"bufio"
 	"bytes"
-	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -17,16 +16,14 @@ import (
 	"strings"
 )
 
-func NewB2(config *BuildConfig, optimize *context.Optimize) *b2 {
+func NewB2(config *BuildConfig) *b2 {
 	return &b2{
 		BuildConfig: config,
-		Optimize:    optimize,
 	}
 }
 
 type b2 struct {
 	*BuildConfig
-	*context.Optimize
 }
 
 func (b b2) Name() string {

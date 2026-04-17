@@ -1,24 +1,21 @@
 package buildsystems
 
 import (
-	"celer/context"
 	"celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"slices"
 )
 
-func NewPrebuilt(config *BuildConfig, optimize *context.Optimize) *prebuilt {
+func NewPrebuilt(config *BuildConfig) *prebuilt {
 	return &prebuilt{
 		BuildConfig: config,
-		Optimize:    optimize,
-		cmakeInside: NewCMake(config, optimize),
+		cmakeInside: NewCMake(config),
 	}
 }
 
 type prebuilt struct {
 	*BuildConfig
-	*context.Optimize
 
 	// This is used to generate CMake config file for prebuilt.
 	cmakeInside *cmake

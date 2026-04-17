@@ -75,8 +75,6 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	}
 
 	if len(p.BuildConfigs) > 0 {
-		toolchain := p.ctx.Platform().GetToolchain()
-
 		for index := range p.BuildConfigs {
 			// Merge ports defined in project if exists.
 			portInPorts := dirs.GetPortPath(p.Name, p.Version)
@@ -109,8 +107,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 			p.BuildConfigs[index].PortConfig = portConfig
 			p.BuildConfigs[index].DevDep = p.DevDep
 			p.BuildConfigs[index].HostDev = p.HostDep || p.DevDep
-			p.BuildConfigs[index].Optimize = p.ctx.Optimize(p.MatchedConfig.BuildSystem, toolchain.GetName())
-			if err := p.BuildConfigs[index].InitBuildSystem(p.BuildConfigs[index].Optimize); err != nil {
+			if err := p.BuildConfigs[index].InitBuildSystem(); err != nil {
 				return err
 			}
 		}

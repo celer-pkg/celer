@@ -1,26 +1,22 @@
 package buildsystems
 
 import (
-	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"fmt"
 	"os"
-	"runtime"
 	"slices"
 	"strings"
 )
 
-func NewCustom(config *BuildConfig, optimize *context.Optimize) *custom {
+func NewCustom(config *BuildConfig) *custom {
 	return &custom{
 		BuildConfig: config,
-		Optimize:    optimize,
 	}
 }
 
 type custom struct {
 	*BuildConfig
-	*context.Optimize
 }
 
 func (c custom) CheckTools() []string {
@@ -51,8 +47,6 @@ func (c custom) Configure(options []string) error {
 		} else {
 			toolchain.SetEnvs(rootfs, c.Name())
 		}
-
-		c.setOptimizeFlags()
 
 		// Create build dir if not exists.
 		if !c.BuildInSource {
@@ -85,8 +79,6 @@ func (c custom) Build(options []string) error {
 			toolchain.SetEnvs(rootfs, c.Name())
 		}
 
-		c.setOptimizeFlags()
-
 		scripts := strings.Join(c.CustomBuild, " && ")
 		scripts = c.expandVariables(scripts)
 		title := fmt.Sprintf("[build %s]", c.PortConfig.nameVersion())
@@ -112,8 +104,6 @@ func (c custom) Install(options []string) error {
 			toolchain.SetEnvs(rootfs, c.Name())
 		}
 
-		c.setOptimizeFlags()
-
 		scripts := strings.Join(c.CustomInstall, " && ")
 		scripts = c.expandVariables(scripts)
 		title := fmt.Sprintf("[install %s]", c.PortConfig.nameVersion())
@@ -125,42 +115,4 @@ func (c custom) Install(options []string) error {
 		}
 	}
 	return nil
-}
-
-func (c custom) setOptimizeFlags() {
-	if c.Optimize != nil && runtime.GOOS != "windows" {
-		cflags := strings.Fields(os.Getenv("CFLAGS"))
-		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
-		if c.DevDep {
-			if c.Optimize.Release != "" {
-				cflags = append(cflags, c.Optimize.Release)
-				cxxflags = append(cxxflags, c.Optimize.Release)
-			}
-		} else {
-			switch c.BuildType {
-			case "release":
-				if c.Optimize.Release != "" {
-					cflags = append(cflags, c.Optimize.Release)
-					cxxflags = append(cxxflags, c.Optimize.Release)
-				}
-			case "debug":
-				if c.Optimize.Debug != "" {
-					cflags = append(cflags, c.Optimize.Debug)
-					cxxflags = append(cxxflags, c.Optimize.Debug)
-				}
-			case "relwithdebinfo":
-				if c.Optimize.RelWithDebInfo != "" {
-					cflags = append(cflags, c.Optimize.RelWithDebInfo)
-					cxxflags = append(cxxflags, c.Optimize.RelWithDebInfo)
-				}
-			case "minsizerel":
-				if c.Optimize.MinSizeRel != "" {
-					cflags = append(cflags, c.Optimize.MinSizeRel)
-					cxxflags = append(cxxflags, c.Optimize.MinSizeRel)
-				}
-			}
-		}
-		c.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
-		c.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
-	}
 }

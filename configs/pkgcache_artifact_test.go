@@ -21,23 +21,22 @@ type fakeContext struct {
 	pkgCache  context.PkgCache
 }
 
-func (f fakeContext) Version() string                                          { return "test" }
-func (f fakeContext) Platform() context.Platform                               { return fakePlatform{name: f.platform} }
-func (f fakeContext) RootFS() context.RootFS                                   { return nil }
-func (f fakeContext) Project() context.Project                                 { return fakeProject{name: f.project} }
-func (f fakeContext) BuildType() string                                        { return f.build }
-func (f fakeContext) Downloads() string                                        { return f.downloads }
-func (f fakeContext) Jobs() int                                                { return 1 }
-func (f fakeContext) Offline() bool                                            { return f.offline }
-func (f fakeContext) Verbose() bool                                            { return false }
-func (f fakeContext) InstalledDir() string                                     { return "" }
-func (f fakeContext) InstalledDevDir() string                                  { return "" }
-func (f fakeContext) PkgCache() context.PkgCache                               { return f.pkgCache }
-func (f fakeContext) ProxyHostPort() (host string, port int)                   { return "", 0 }
-func (f fakeContext) Optimize(buildsystem, toolchain string) *context.Optimize { return nil }
-func (f fakeContext) CCacheEnabled() bool                                      { return false }
-func (f fakeContext) GenerateToolchainFile() error                             { return nil }
-func (f fakeContext) ExprVars() *context.ExprVars                              { return nil }
+func (f fakeContext) Version() string                        { return "test" }
+func (f fakeContext) Platform() context.Platform             { return fakePlatform{name: f.platform} }
+func (f fakeContext) RootFS() context.RootFS                 { return nil }
+func (f fakeContext) Project() context.Project               { return fakeProject{name: f.project} }
+func (f fakeContext) BuildType() string                      { return f.build }
+func (f fakeContext) Downloads() string                      { return f.downloads }
+func (f fakeContext) Jobs() int                              { return 1 }
+func (f fakeContext) Offline() bool                          { return f.offline }
+func (f fakeContext) Verbose() bool                          { return false }
+func (f fakeContext) InstalledDir() string                   { return "" }
+func (f fakeContext) InstalledDevDir() string                { return "" }
+func (f fakeContext) PkgCache() context.PkgCache             { return f.pkgCache }
+func (f fakeContext) ProxyHostPort() (host string, port int) { return "", 0 }
+func (f fakeContext) CCacheEnabled() bool                    { return false }
+func (f fakeContext) GenerateToolchainFile() error           { return nil }
+func (f fakeContext) ExprVars() *context.ExprVars            { return nil }
 
 type fakePlatform struct {
 	name string
