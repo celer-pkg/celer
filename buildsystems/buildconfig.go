@@ -258,12 +258,11 @@ type BuildConfig struct {
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
 	// Internal fields
-	Ctx         context.Context   `toml:"-"`
-	ExprVars    context.ExprVars  `toml:"-"`
-	DevDep      bool              `toml:"-"`
-	HostDev     bool              `toml:"-"`
-	PortConfig  PortConfig        `toml:"-"`
-	Optimize    *context.Optimize `toml:"-"`
+	Ctx         context.Context  `toml:"-"`
+	ExprVars    context.ExprVars `toml:"-"`
+	DevDep      bool             `toml:"-"`
+	HostDev     bool             `toml:"-"`
+	PortConfig  PortConfig       `toml:"-"`
 	buildSystem buildSystem
 	envBackup   envsBackup
 }
@@ -690,7 +689,7 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	return nil
 }
 
-func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
+func (b *BuildConfig) InitBuildSystem() error {
 	name, _, _, err := b.parseBuildSystem(b.BuildSystem)
 	if err != nil {
 		return err
@@ -698,23 +697,23 @@ func (b *BuildConfig) InitBuildSystem(optimize *context.Optimize) error {
 
 	switch name {
 	case "cmake":
-		b.buildSystem = NewCMake(b, optimize)
+		b.buildSystem = NewCMake(b)
 	case "makefiles":
-		b.buildSystem = NewMakefiles(b, optimize)
+		b.buildSystem = NewMakefiles(b)
 	case "meson":
-		b.buildSystem = NewMeson(b, optimize)
+		b.buildSystem = NewMeson(b)
 	case "b2":
-		b.buildSystem = NewB2(b, optimize)
+		b.buildSystem = NewB2(b)
 	case "gyp":
-		b.buildSystem = NewGyp(b, optimize)
+		b.buildSystem = NewGyp(b)
 	case "qmake":
-		b.buildSystem = NewQMake(b, optimize)
+		b.buildSystem = NewQMake(b)
 	case "prebuilt":
-		b.buildSystem = NewPrebuilt(b, optimize)
+		b.buildSystem = NewPrebuilt(b)
 	case "nobuild":
-		b.buildSystem = NewNoBuild(b, optimize)
+		b.buildSystem = NewNoBuild(b)
 	case "custom":
-		b.buildSystem = NewCustom(b, optimize)
+		b.buildSystem = NewCustom(b)
 	default:
 		return fmt.Errorf("unsupported build system for %s", b.BuildSystem)
 	}
@@ -893,39 +892,6 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	}
 
 	var cflags, cxxflags, ldflags []string
-
-	// Set optimization flags with build_type.
-	if b.Optimize != nil {
-		if b.DevDep {
-			if b.Optimize.Release != "" {
-				cflags = append(cflags, b.Optimize.Release)
-				cxxflags = append(cxxflags, b.Optimize.Release)
-			}
-		} else {
-			switch b.BuildType {
-			case "release":
-				if b.Optimize.Release != "" {
-					cflags = append(cflags, b.Optimize.Release)
-					cxxflags = append(cxxflags, b.Optimize.Release)
-				}
-			case "debug":
-				if b.Optimize.Debug != "" {
-					cflags = append(cflags, b.Optimize.Debug)
-					cxxflags = append(cxxflags, b.Optimize.Debug)
-				}
-			case "relwithdebinfo":
-				if b.Optimize.RelWithDebInfo != "" {
-					cflags = append(cflags, b.Optimize.RelWithDebInfo)
-					cxxflags = append(cxxflags, b.Optimize.RelWithDebInfo)
-				}
-			case "minsizerel":
-				if b.Optimize.MinSizeRel != "" {
-					cflags = append(cflags, b.Optimize.MinSizeRel)
-					cxxflags = append(cxxflags, b.Optimize.MinSizeRel)
-				}
-			}
-		}
-	}
 
 	// Set CFLAGS/CXXFLAGS/LDFLAGS.
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)

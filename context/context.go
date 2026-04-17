@@ -14,7 +14,6 @@ type Context interface {
 	InstalledDevDir() string
 	PkgCache() PkgCache
 	ProxyHostPort() (host string, port int)
-	Optimize(buildsystem, toolchain string) *Optimize
 	CCacheEnabled() bool
 	GenerateToolchainFile() error
 	ExprVars() *ExprVars

@@ -111,30 +111,6 @@ func (c *Celer) GenerateToolchainFile() error {
 		fmt.Fprintf(&toolchain, "add_compile_definitions(%s)\n", item)
 	}
 
-	// Compile flags.
-	optimize := c.Optimize("cmake", c.platform.GetToolchain().GetName())
-	if optimize != nil {
-		fmt.Fprintf(&toolchain, "\n# Compile flags.\n")
-		fmt.Fprintf(&toolchain, "add_compile_options(\n")
-		if optimize.Release != "" {
-			flags := strings.Join(strings.Fields(optimize.Release), ";")
-			fmt.Fprintf(&toolchain, `    "$<$<CONFIG:Release>:%s>"`+"\n", flags)
-		}
-		if optimize.Debug != "" {
-			flags := strings.Join(strings.Fields(optimize.Debug), ";")
-			fmt.Fprintf(&toolchain, `    "$<$<CONFIG:Debug>:%s>"`+"\n", flags)
-		}
-		if optimize.RelWithDebInfo != "" {
-			flags := strings.Join(strings.Fields(optimize.RelWithDebInfo), ";")
-			fmt.Fprintf(&toolchain, `    "$<$<CONFIG:RelWithDebInfo>:%s>"`+"\n", flags)
-		}
-		if optimize.MinSizeRel != "" {
-			flags := strings.Join(strings.Fields(optimize.MinSizeRel), ";")
-			fmt.Fprintf(&toolchain, `    "$<$<CONFIG:MinSizeRel>:%s>"`+"\n", flags)
-		}
-		fmt.Fprintf(&toolchain, ")\n")
-	}
-
 	fmt.Fprintf(&toolchain, "\n")
 	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
 		fmt.Fprintf(&toolchain, "set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`)

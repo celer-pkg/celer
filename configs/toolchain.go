@@ -257,7 +257,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	}
 
 	if len(cflags) > 0 || len(cxxflags) > 0 || len(linkflags) > 0 {
-		fmt.Fprint(toolchain, "\n# Toolchain custom flags.\n")
+		fmt.Fprint(toolchain, "\n# Override toolchain default flags.\n")
 		appendFlags("CMAKE_C_FLAGS_INIT", cflags)
 		appendFlags("CMAKE_CXX_FLAGS_INIT", cxxflags)
 		appendFlags("CMAKE_EXE_LINKER_FLAGS_INIT", linkflags)

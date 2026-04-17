@@ -1,28 +1,24 @@
 package buildsystems
 
 import (
-	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 )
 
-func NewGyp(config *BuildConfig, optimize *context.Optimize) *gyp {
+func NewGyp(config *BuildConfig) *gyp {
 	return &gyp{
 		BuildConfig: config,
-		Optimize:    optimize,
 		buildSystem: config.BuildSystem,
 	}
 }
 
 type gyp struct {
 	*BuildConfig
-	*context.Optimize
 	buildSystem string
 }
 
@@ -56,43 +52,6 @@ func (g gyp) Configure(options []string) error {
 		toolchain.ClearEnvs()
 	} else {
 		toolchain.SetEnvs(rootfs, g.Name())
-	}
-
-	// Set optimization flags with build_type.
-	if g.Optimize != nil && runtime.GOOS != "windows" {
-		cflags := strings.Fields(os.Getenv("CFLAGS"))
-		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
-		if g.DevDep {
-			if g.Optimize.Release != "" {
-				cflags = append(cflags, g.Optimize.Release)
-				cxxflags = append(cxxflags, g.Optimize.Release)
-			}
-		} else {
-			switch g.BuildType {
-			case "release":
-				if g.Optimize.Release != "" {
-					cflags = append(cflags, g.Optimize.Release)
-					cxxflags = append(cxxflags, g.Optimize.Release)
-				}
-			case "debug":
-				if g.Optimize.Debug != "" {
-					cflags = append(cflags, g.Optimize.Debug)
-					cxxflags = append(cxxflags, g.Optimize.Debug)
-				}
-			case "relwithdebinfo":
-				if g.Optimize.RelWithDebInfo != "" {
-					cflags = append(cflags, g.Optimize.RelWithDebInfo)
-					cxxflags = append(cxxflags, g.Optimize.RelWithDebInfo)
-				}
-			case "minsizerel":
-				if g.Optimize.MinSizeRel != "" {
-					cflags = append(cflags, g.Optimize.MinSizeRel)
-					cxxflags = append(cxxflags, g.Optimize.MinSizeRel)
-				}
-			}
-		}
-		g.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
-		g.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 	}
 
 	return nil

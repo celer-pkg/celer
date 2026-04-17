@@ -13,16 +13,12 @@ import (
 )
 
 type Project struct {
-	TargetPlatform string            `toml:"target_platform,omitempty"`
-	BuildType      string            `toml:"build_type"`
-	Ports          []string          `toml:"ports"`
-	Vars           []string          `toml:"vars"`
-	Envs           []string          `toml:"envs"`
-	Macros         []string          `toml:"macros"`
-	OptimizeGCC    *context.Optimize `toml:"optimize_gcc"`
-	OptimizeMSVC   *context.Optimize `toml:"optimize_msvc"`
-	OptimizeClang  *context.Optimize `toml:"optimize_clang"`
-	Optimize       *context.Optimize `toml:"optimize"`
+	TargetPlatform string   `toml:"target_platform,omitempty"`
+	BuildType      string   `toml:"build_type"`
+	Ports          []string `toml:"ports"`
+	Vars           []string `toml:"vars"`
+	Envs           []string `toml:"envs"`
+	Macros         []string `toml:"macros"`
 
 	// Internal fields.
 	Name string `toml:"-"`
@@ -79,21 +75,6 @@ func (p Project) Write(platformPath string) error {
 	}
 	if len(p.Macros) == 0 {
 		p.Macros = []string{}
-	}
-
-	// Default opt level values.
-	p.OptimizeMSVC = &context.Optimize{
-		Debug:          "/MDd /Zi /Ob0 /Od /RTC1",
-		Release:        "/MD /O2 /Ob2 /DNDEBUG",
-		RelWithDebInfo: "/MD /Zi /O2 /Ob1 /DNDEBUG",
-		MinSizeRel:     "/MD /O1 /Ob1 /DNDEBUG",
-	}
-
-	p.OptimizeGCC = &context.Optimize{
-		Debug:          "-g",
-		Release:        "-O3",
-		RelWithDebInfo: "-O2 -g",
-		MinSizeRel:     "-Os",
 	}
 
 	bytes, err := toml.Marshal(p)

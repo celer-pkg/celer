@@ -2,7 +2,6 @@ package buildsystems
 
 import (
 	"celer/buildtools"
-	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"celer/pkgs/dirs"
@@ -23,17 +22,15 @@ const (
 	visualStudio_14_2015 = "Visual Studio 14 2015 Win64"
 )
 
-func NewCMake(config *BuildConfig, optimize *context.Optimize) *cmake {
+func NewCMake(config *BuildConfig) *cmake {
 	return &cmake{
 		BuildConfig: config,
-		Optimize:    optimize,
 		buildSystem: config.BuildSystem,
 	}
 }
 
 type cmake struct {
 	*BuildConfig
-	*context.Optimize
 	buildSystem string
 }
 

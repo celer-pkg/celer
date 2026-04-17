@@ -1,19 +1,13 @@
 package buildsystems
 
-import (
-	"celer/context"
-)
-
-func NewNoBuild(config *BuildConfig, optimize *context.Optimize) *nobuild {
+func NewNoBuild(config *BuildConfig) *nobuild {
 	return &nobuild{
 		BuildConfig: config,
-		Optimize:    optimize,
 	}
 }
 
 type nobuild struct {
 	*BuildConfig
-	*context.Optimize
 }
 
 func (n nobuild) CheckTools() []string {

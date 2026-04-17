@@ -892,27 +892,6 @@ func (c *Celer) InstalledDevDir() string {
 	return filepath.Join(dirs.WorkspaceDir, "installed", c.Platform().GetHostName()+"-dev")
 }
 
-func (c *Celer) Optimize(buildsystem, toolchain string) *context.Optimize {
-	if c.project.Optimize != nil {
-		return c.project.Optimize
-	}
-
-	switch toolchain {
-	case "msvc", "clang-cl":
-		if buildsystem == "makefiles" {
-			return c.project.OptimizeGCC
-		} else {
-			return c.project.OptimizeMSVC
-		}
-	case "gcc":
-		return c.project.OptimizeGCC
-	case "clang":
-		return c.project.OptimizeClang
-	default:
-		return c.project.Optimize
-	}
-}
-
 func (c *Celer) CCacheEnabled() bool {
 	return c.configData.CCache != nil && c.configData.CCache.Enabled
 }

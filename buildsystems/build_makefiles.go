@@ -1,7 +1,6 @@
 package buildsystems
 
 import (
-	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/dirs"
 	"celer/pkgs/expr"
@@ -16,16 +15,14 @@ import (
 	"strings"
 )
 
-func NewMakefiles(config *BuildConfig, optimize *context.Optimize) *makefiles {
+func NewMakefiles(config *BuildConfig) *makefiles {
 	return &makefiles{
 		BuildConfig: config,
-		Optimize:    optimize,
 	}
 }
 
 type makefiles struct {
 	*BuildConfig
-	*context.Optimize
 	msvcEnvs string
 }
 
@@ -271,43 +268,6 @@ func (m makefiles) Configure(options []string) error {
 		if nasmPath != "" {
 			m.envBackup.setenv("AS", nasmPath)
 		}
-	}
-
-	// Set optimization flags with build_type.
-	if m.Optimize != nil && runtime.GOOS != "windows" {
-		cflags := strings.Fields(os.Getenv("CFLAGS"))
-		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
-		if m.DevDep {
-			if m.Optimize.Release != "" {
-				cflags = append(cflags, m.Optimize.Release)
-				cxxflags = append(cxxflags, m.Optimize.Release)
-			}
-		} else {
-			switch m.BuildType {
-			case "release":
-				if m.Optimize.Release != "" {
-					cflags = append(cflags, m.Optimize.Release)
-					cxxflags = append(cxxflags, m.Optimize.Release)
-				}
-			case "debug":
-				if m.Optimize.Debug != "" {
-					cflags = append(cflags, m.Optimize.Debug)
-					cxxflags = append(cxxflags, m.Optimize.Debug)
-				}
-			case "relwithdebinfo":
-				if m.Optimize.RelWithDebInfo != "" {
-					cflags = append(cflags, m.Optimize.RelWithDebInfo)
-					cxxflags = append(cxxflags, m.Optimize.RelWithDebInfo)
-				}
-			case "minsizerel":
-				if m.Optimize.MinSizeRel != "" {
-					cflags = append(cflags, m.Optimize.MinSizeRel)
-					cxxflags = append(cxxflags, m.Optimize.MinSizeRel)
-				}
-			}
-		}
-		m.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
-		m.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 	}
 
 	// Create build dir if not exists.

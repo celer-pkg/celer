@@ -55,13 +55,6 @@ type RootFS interface {
 	GetAbsDir() string
 }
 
-type Optimize struct {
-	Debug          string `toml:"debug"`
-	Release        string `toml:"release"`
-	RelWithDebInfo string `toml:"relwithdebinfo"`
-	MinSizeRel     string `toml:"minsizerel"`
-}
-
 type WindowsKit interface {
 	Detect(msvc *MSVC) error
 }

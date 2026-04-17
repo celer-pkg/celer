@@ -1,7 +1,6 @@
 package buildsystems
 
 import (
-	"celer/context"
 	"celer/pkgs/cmd"
 	"celer/pkgs/expr"
 	"celer/pkgs/fileio"
@@ -12,13 +11,12 @@ import (
 	"strings"
 )
 
-func NewQMake(config *BuildConfig, optimize *context.Optimize) *qmake {
-	return &qmake{BuildConfig: config, Optimize: optimize}
+func NewQMake(config *BuildConfig) *qmake {
+	return &qmake{BuildConfig: config}
 }
 
 type qmake struct {
 	*BuildConfig
-	*context.Optimize
 }
 
 func (qmake) Name() string {
@@ -111,43 +109,6 @@ func (q qmake) Configure(options []string) error {
 		toolchain.ClearEnvs()
 	} else {
 		toolchain.SetEnvs(rootfs, q.Name())
-	}
-
-	// Set optimization flags with build_type.
-	if q.Optimize != nil {
-		cflags := strings.Fields(os.Getenv("CFLAGS"))
-		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
-		if q.DevDep {
-			if q.Optimize.Release != "" {
-				cflags = append(cflags, q.Optimize.Release)
-				cxxflags = append(cxxflags, q.Optimize.Release)
-			}
-		} else {
-			switch q.BuildType {
-			case "release":
-				if q.Optimize.Release != "" {
-					cflags = append(cflags, q.Optimize.Release)
-					cxxflags = append(cxxflags, q.Optimize.Release)
-				}
-			case "debug":
-				if q.Optimize.Debug != "" {
-					cflags = append(cflags, q.Optimize.Debug)
-					cxxflags = append(cxxflags, q.Optimize.Debug)
-				}
-			case "relwithdebinfo":
-				if q.Optimize.RelWithDebInfo != "" {
-					cflags = append(cflags, q.Optimize.RelWithDebInfo)
-					cxxflags = append(cxxflags, q.Optimize.RelWithDebInfo)
-				}
-			case "minsizerel":
-				if q.Optimize.MinSizeRel != "" {
-					cflags = append(cflags, q.Optimize.MinSizeRel)
-					cxxflags = append(cxxflags, q.Optimize.MinSizeRel)
-				}
-			}
-		}
-		q.envBackup.setenv("CFLAGS", strings.Join(cflags, " "))
-		q.envBackup.setenv("CXXFLAGS", strings.Join(cxxflags, " "))
 	}
 
 	// Create build dir if not exists.

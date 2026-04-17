@@ -16,17 +16,15 @@ import (
 	"strings"
 )
 
-func NewMeson(config *BuildConfig, optimize *context.Optimize) *meson {
+func NewMeson(config *BuildConfig) *meson {
 	return &meson{
 		BuildConfig: config,
-		Optimize:    optimize,
 		buildSystem: config.BuildSystem,
 	}
 }
 
 type meson struct {
 	*BuildConfig
-	*context.Optimize
 	buildSystem string
 	msvcEnvs    map[string]string
 }
