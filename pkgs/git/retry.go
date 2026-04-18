@@ -23,7 +23,7 @@ func retrySleep(attempt int) {
 	time.Sleep(time.Duration(attempt) * time.Second)
 }
 
-func runWithRetry(repoDir, action string, args ...string) ([]byte, error) {
+func runWithRetry(title, repoDir string, args ...string) ([]byte, error) {
 	var lastErr error
 	var lastOutput []byte
 
@@ -35,7 +35,7 @@ func runWithRetry(repoDir, action string, args ...string) ([]byte, error) {
 
 		lastErr = err
 		lastOutput = output
-		color.Printf(color.Warning, "-- Git %s failed (attempt %d/%d): %v\n", action, attempt, gitRetryMaxAttempts, err)
+		color.Printf(color.Warning, "-- Git %s failed (attempt %d/%d): %v\n", title, attempt, gitRetryMaxAttempts, err)
 		if attempt < gitRetryMaxAttempts {
 			retrySleep(attempt)
 		}
@@ -43,7 +43,7 @@ func runWithRetry(repoDir, action string, args ...string) ([]byte, error) {
 
 	trimmedOutput := strings.TrimSpace(string(lastOutput))
 	if trimmedOutput == "" {
-		return nil, fmt.Errorf("git %s failed after %d attempts -> %w", action, gitRetryMaxAttempts, lastErr)
+		return nil, fmt.Errorf("git %s failed after %d attempts -> %w", title, gitRetryMaxAttempts, lastErr)
 	}
-	return nil, fmt.Errorf("git %s failed after %d attempts -> %w: %s", action, gitRetryMaxAttempts, lastErr, trimmedOutput)
+	return nil, fmt.Errorf("git %s failed after %d attempts -> %w: %s", title, gitRetryMaxAttempts, lastErr, trimmedOutput)
 }
