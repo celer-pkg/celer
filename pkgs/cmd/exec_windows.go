@@ -5,6 +5,7 @@ package cmd
 import (
 	"bytes"
 	"celer/pkgs/color"
+	"celer/pkgs/fileio"
 	"fmt"
 	"io"
 	"os"
@@ -53,11 +54,9 @@ func (e *Executor) SetLogPath(logPath string) *Executor {
 }
 
 func (e *Executor) ExecuteOutput() (string, error) {
-	var buffer bytes.Buffer
-	if err := e.doExecute(&buffer); err != nil {
-		return "", err
-	}
-	return buffer.String(), nil
+	var output fileio.LockedBuffer
+	err := e.doExecute(&output)
+	return output.String(), err
 }
 
 func (e Executor) Execute() error {
@@ -67,7 +66,7 @@ func (e Executor) Execute() error {
 	return nil
 }
 
-func (e Executor) doExecute(buffer *bytes.Buffer) error {
+func (e Executor) doExecute(output io.Writer) error {
 	var cmd *exec.Cmd
 	var message string
 	if e.msys2Env {
@@ -124,14 +123,19 @@ func (e Executor) doExecute(buffer *bytes.Buffer) error {
 		// Write command summary as header content of file.
 		io.WriteString(logFile, fmt.Sprintf("%s: %s\n\n", e.title, e.cmd+" "+strings.Join(e.args, " ")))
 
-		cmd.Stdout = io.MultiWriter(os.Stdout, logFile)
-		cmd.Stderr = io.MultiWriter(os.Stderr, logFile)
-	} else if buffer != nil {
-		cmd.Stdout = buffer
-		cmd.Stderr = buffer
+		if output != nil {
+			cmd.Stdout = io.MultiWriter(os.Stdout, logFile, output)
+			cmd.Stderr = io.MultiWriter(os.Stderr, logFile, output)
+		} else {
+			cmd.Stdout = io.MultiWriter(os.Stdout, logFile)
+			cmd.Stderr = io.MultiWriter(os.Stderr, logFile)
+		}
+	} else if output != nil {
+		cmd.Stdout = io.MultiWriter(os.Stdout, output)
+		cmd.Stderr = io.MultiWriter(os.Stderr, output)
 	} else {
 		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stdout
+		cmd.Stderr = os.Stderr
 	}
 
 	if e.title != "" {

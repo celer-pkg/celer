@@ -56,7 +56,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 			lastOutput = output
 			color.Printf(color.Warning, "-- Git %s failed (attempt %d/%d): %v\n", action, attempt, gitRetryMaxAttempts, err)
 			if attempt < gitRetryMaxAttempts {
-				gitRetrySleep(attempt)
+				retrySleep(attempt)
 			}
 		}
 

@@ -1,34 +1,34 @@
 package git
 
 import (
+	"celer/pkgs/cmd"
 	"celer/pkgs/color"
 	"fmt"
-	"os/exec"
 	"strings"
 	"time"
 )
 
-var (
-	gitRetryMaxAttempts = 3
-	gitRetrySleep       = func(attempt int) {
-		time.Sleep(time.Duration(attempt) * time.Second)
+const gitRetryMaxAttempts = 3
+
+func combinedOutput(repoDir string, args ...string) ([]byte, error) {
+	executor := cmd.NewExecutor("", "git", args...)
+	if repoDir != "" {
+		executor.SetWorkDir(repoDir)
 	}
-	gitCombinedOutput = func(repoDir string, args ...string) ([]byte, error) {
-		fullArgs := append([]string{}, args...)
-		if repoDir != "" {
-			fullArgs = append([]string{"-C", repoDir}, fullArgs...)
-		}
-		cmd := exec.Command("git", fullArgs...)
-		return cmd.CombinedOutput()
-	}
-)
+	output, err := executor.ExecuteOutput()
+	return []byte(output), err
+}
+
+func retrySleep(attempt int) {
+	time.Sleep(time.Duration(attempt) * time.Second)
+}
 
 func runWithRetry(repoDir, action string, args ...string) ([]byte, error) {
 	var lastErr error
 	var lastOutput []byte
 
 	for attempt := 1; attempt <= gitRetryMaxAttempts; attempt++ {
-		output, err := gitCombinedOutput(repoDir, args...)
+		output, err := combinedOutput(repoDir, args...)
 		if err == nil {
 			return output, nil
 		}
@@ -37,7 +37,7 @@ func runWithRetry(repoDir, action string, args ...string) ([]byte, error) {
 		lastOutput = output
 		color.Printf(color.Warning, "-- Git %s failed (attempt %d/%d): %v\n", action, attempt, gitRetryMaxAttempts, err)
 		if attempt < gitRetryMaxAttempts {
-			gitRetrySleep(attempt)
+			retrySleep(attempt)
 		}
 	}
 
