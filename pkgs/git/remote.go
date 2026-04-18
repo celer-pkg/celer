@@ -7,7 +7,7 @@ import (
 
 // CheckIfRemoteBranch check if repoRef is a branch.
 func CheckIfRemoteBranch(repoUrl, repoRef string) (bool, error) {
-	output, err := runWithRetry("", "query remote branch", "ls-remote", "--heads", repoUrl, repoRef)
+	output, err := runWithRetry("query remote branch", "", "ls-remote", "--heads", repoUrl, repoRef)
 	if err != nil {
 		return false, err
 	}
@@ -16,7 +16,7 @@ func CheckIfRemoteBranch(repoUrl, repoRef string) (bool, error) {
 
 // CheckIfRemoteTag check if repoRef is a tag.
 func CheckIfRemoteTag(repoUrl, repoRef string) (bool, error) {
-	output, err := runWithRetry("", "query remote tag", "ls-remote", "--tags", repoUrl, repoRef)
+	output, err := runWithRetry("query remote tag", "", "ls-remote", "--tags", repoUrl, repoRef)
 	if err != nil {
 		return false, err
 	}
@@ -31,7 +31,7 @@ func GetRemoteCommit(repoUrl, repoRef string) (string, error) {
 		return "", fmt.Errorf("failed to check if remote branch -> %w", err)
 	}
 	if isBranch {
-		output, err := runWithRetry("", "read remote branch commit", "ls-remote", repoUrl, "refs/heads/"+repoRef)
+		output, err := runWithRetry("read remote branch commit", "", "ls-remote", repoUrl, "refs/heads/"+repoRef)
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
 		}
@@ -50,7 +50,7 @@ func GetRemoteCommit(repoUrl, repoRef string) (string, error) {
 		return "", fmt.Errorf("failed to check if remote tag: %s -> %w", repoRef, err)
 	}
 	if isTag {
-		output, err := runWithRetry("", "read remote tag commit", "ls-remote", repoUrl, "refs/tags/"+repoRef)
+		output, err := runWithRetry("read remote tag commit", "", "ls-remote", repoUrl, "refs/tags/"+repoRef)
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
 		}

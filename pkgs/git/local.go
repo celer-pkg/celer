@@ -156,7 +156,7 @@ func GetCommitHash(repoDir string) (string, error) {
 
 // GetDefaultBranch read git default branch.
 func GetDefaultBranch(repoDir string) (string, error) {
-	output, err := runWithRetry(repoDir, "read default branch", "remote", "show", "origin")
+	output, err := runWithRetry("read default branch", repoDir, "remote", "show", "origin")
 	if err != nil {
 		return "", fmt.Errorf("read git default branch: %w", err)
 	}
@@ -218,7 +218,7 @@ func CheckIfMatchesRef(ctx context.Context, repoDir, expectedRef string) (string
 			remoteName = upstreamBranch[:index]
 		}
 
-		if _, err := runWithRetry(repoDir, "fetch upstream refs", "fetch", "--tags", remoteName); err != nil {
+		if _, err := runWithRetry("fetch upstream refs", repoDir, "fetch", "--tags", remoteName); err != nil {
 			return "", fmt.Errorf("git fetch --tags %s failed for %s: %w", remoteName, repoDir, err)
 		}
 	}
