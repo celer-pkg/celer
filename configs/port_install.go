@@ -525,7 +525,7 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 
 	// Prepare dependencies.
 	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
-		color.Printf(color.Title, "\n[prepare deps for %s]\n", p.NameVersion())
+		color.Printf(color.Title, "\n[prepare dependencies for %s]\n", p.NameVersion())
 		preparedTmpDeps = []string{}
 		if err := p.prepareTmpDeps(); err != nil {
 			return err
@@ -797,6 +797,8 @@ func (p Port) prepareTmpDeps() error {
 			return err
 		}
 
+		color.Printf(color.Hint, "▶ preparing %-15s -- [dev] -> %s\n", port.NameVersion(), port.tmpDepsDir)
+
 		// Copy package files to tmp/deps.
 		if err := port.doInstallFromPackage(port.tmpDepsDir); err != nil {
 			return err
@@ -839,6 +841,12 @@ func (p Port) prepareTmpDeps() error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
+
+		startContent := expr.If(port.DevDep || port.HostDep,
+			"▶ preparing %-15s -- [dev] -> %s\n",
+			"▶ preparing %s -> %s\n",
+		)
+		color.Printf(color.Hint, startContent, port.NameVersion(), port.tmpDepsDir)
 
 		// Copy package files to tmp/deps.
 		if err := port.doInstallFromPackage(port.tmpDepsDir); err != nil {
