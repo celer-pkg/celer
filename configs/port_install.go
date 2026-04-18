@@ -285,9 +285,8 @@ func (p Port) doInstallFromSource() error {
 				repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
 				mismatchDetails, err := git.CheckIfMatchesRef(p.ctx, p.MatchedConfig.PortConfig.RepoDir, repoRef)
 				if err != nil {
-					return err
-				}
-				if mismatchDetails != "" {
+					skipStoreCacheReason = "skip storing package cache for %s: failed to verify source ref: " + err.Error() + "."
+				} else if mismatchDetails != "" {
 					skipStoreCacheReason = "skip storing package cache for %s: " + mismatchDetails + "."
 				}
 			}

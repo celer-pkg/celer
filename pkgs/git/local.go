@@ -156,7 +156,7 @@ func GetCommitHash(repoDir string) (string, error) {
 
 // GetDefaultBranch read git default branch.
 func GetDefaultBranch(repoDir string) (string, error) {
-	output, err := runWithRetry(repoDir, "read default branch", "remote", "show", "origin")
+	output, err := runWithRetry("read default branch", repoDir, "remote", "show", "origin")
 	if err != nil {
 		return "", fmt.Errorf("read git default branch: %w", err)
 	}
@@ -218,7 +218,7 @@ func CheckIfMatchesRef(ctx context.Context, repoDir, expectedRef string) (string
 			remoteName = upstreamBranch[:index]
 		}
 
-		if _, err := runWithRetry(repoDir, "fetch upstream refs", "fetch", "--tags", remoteName); err != nil {
+		if _, err := runWithRetry("fetch upstream refs", repoDir, "fetch", "--tags", remoteName); err != nil {
 			return "", fmt.Errorf("git fetch --tags %s failed for %s: %w", remoteName, repoDir, err)
 		}
 	}
@@ -336,7 +336,7 @@ func GitRevParse(ctx context.Context, repoDir, repoRef string) (string, error) {
 			return "", err
 		}
 		if remoteName != "" {
-			if _, err := runWithRetry(repoDir, "fetch refs for revision lookup", "fetch", "--tags", remoteName); err != nil {
+			if _, err := runWithRetry("fetch refs for revision", repoDir, "fetch", "--tags", remoteName); err != nil {
 				return "", fmt.Errorf("git fetch --tags %s failed for %s: %w", remoteName, repoDir, err)
 			}
 			if remoteCommit, err := gitRevParseCommit(repoDir, remoteName+"/"+repoRef); err == nil {
@@ -364,7 +364,7 @@ func gitRevParse(repoDir, repoRef string) (string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", repoRef)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("git rev-parse %s -> %s", repoRef, output)
+		return "", fmt.Errorf("git rev-parse %q -> %s", repoRef, output)
 	}
 	return strings.TrimSpace(string(output)), nil
 }
