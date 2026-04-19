@@ -15,6 +15,7 @@ func combinedOutput(repoDir string, args ...string) ([]byte, error) {
 	if repoDir != "" {
 		executor.SetWorkDir(repoDir)
 	}
+	executor.SetMirrorOutput(true)
 	output, err := executor.ExecuteOutput()
 	return []byte(output), err
 }

@@ -3,120 +3,39 @@
 package cmd
 
 import (
-	"bytes"
 	"celer/pkgs/color"
-	"celer/pkgs/fileio"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 )
-
-type Executor struct {
-	msys2Env bool
-	title    string
-	cmd      string
-	args     []string
-	msvcEnvs string
-	workDir  string
-	logPath  string
-}
-
-func NewExecutor(title string, cmd string, args ...string) *Executor {
-	return &Executor{
-		title:   title,
-		cmd:     cmd,
-		args:    args,
-		workDir: "",
-		logPath: "",
-	}
-}
-
-func (e *Executor) MSYS2Env(msys2Env bool) {
-	e.msys2Env = msys2Env
-}
-
-func (e *Executor) SetMsvcEnvs(msvcEnvs string) {
-	e.msvcEnvs = msvcEnvs
-}
-
-func (e *Executor) SetWorkDir(workDir string) *Executor {
-	e.workDir = workDir
-	return e
-}
-
-func (e *Executor) SetLogPath(logPath string) *Executor {
-	e.logPath = logPath
-	return e
-}
-
-func (e *Executor) ExecuteOutput() (string, error) {
-	var output fileio.LockedBuffer
-	err := e.doExecute(&output)
-	return output.String(), err
-}
-
-func (e Executor) Execute() error {
-	if err := e.doExecute(nil); err != nil {
-		return err
-	}
-	return nil
-}
 
 func (e Executor) doExecute(output io.Writer) error {
 	if e.title != "" {
 		color.Printf(color.Title, "\n%s\n", e.title)
-		color.Printf(color.Hint, "▶ %s\n", e.cmd+" "+strings.Join(e.args, " "))
+		color.Printf(color.Hint, "▶ %s\n", e.command+" "+strings.Join(e.args, " "))
 	}
 
 	var cmd *exec.Cmd
 	if len(e.args) == 0 {
-		cmd = exec.Command("bash", "-c", e.cmd)
+		cmd = exec.Command("bash", "-c", e.command)
 	} else {
-		cmd = exec.Command(e.cmd, e.args...)
+		cmd = exec.Command(e.command, e.args...)
 	}
 
 	cmd.Env = os.Environ()
 	cmd.Dir = e.workDir
 	cmd.Stdin = os.Stdin
 
-	// Create log file if log path specified.
-	if e.logPath != "" {
-		if err := os.MkdirAll(filepath.Dir(e.logPath), os.ModePerm); err != nil {
-			return err
-		}
-		logFile, err := os.Create(e.logPath)
-		if err != nil {
-			return err
-		}
-		defer logFile.Close()
-
-		// Write env variables to log file.
-		var buffer bytes.Buffer
-		for _, envVar := range cmd.Env {
-			buffer.WriteString(envVar + "\n")
-		}
-		io.WriteString(logFile, fmt.Sprintf("Environment:\n%s\n", buffer.String()))
-
-		// Write command summary as header content of file.
-		io.WriteString(logFile, fmt.Sprintf("%s: %s %s\n\n", e.title, e.cmd, strings.Join(e.args, " ")))
-
-		if output != nil {
-			cmd.Stdout = io.MultiWriter(os.Stdout, logFile, output)
-			cmd.Stderr = io.MultiWriter(os.Stderr, logFile, output)
-		} else {
-			cmd.Stdout = io.MultiWriter(os.Stdout, logFile)
-			cmd.Stderr = io.MultiWriter(os.Stderr, logFile)
-		}
-	} else if output != nil {
-		cmd.Stdout = io.MultiWriter(os.Stdout, output)
-		cmd.Stderr = io.MultiWriter(os.Stderr, output)
-	} else {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+	logFile, err := e.createLogFile(cmd)
+	if err != nil {
+		return err
 	}
+	if logFile != nil {
+		defer logFile.Close()
+	}
+
+	e.configureOutputs(cmd, logFile, output)
 
 	if err := cmd.Run(); err != nil {
 		return err
