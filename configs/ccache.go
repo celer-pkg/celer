@@ -65,7 +65,7 @@ func (c *CCache) init() {
 
 func (c CCache) Generate(toolchain *strings.Builder) error {
 	fmt.Fprintf(toolchain, "\n# CCache.\n")
-	fmt.Fprintf(toolchain, "set(%-28s%q)\n", "CMAKE_C_COMPILER_LAUNCHER", "ccache")
-	fmt.Fprintf(toolchain, "set(%-28s%q)\n", "CMAKE_CXX_COMPILER_LAUNCHER", "ccache")
+	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_C_COMPILER_LAUNCHER", "ccache")
+	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_CXX_COMPILER_LAUNCHER", "ccache")
 	return nil
 }
