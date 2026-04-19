@@ -129,7 +129,7 @@ func (t Toolchain) effectiveFlags(buildType string) (cflags, cxxflags, linkflags
 func (t Toolchain) generate(toolchain *strings.Builder) error {
 	writeIfNotEmpty := func(key, value string) {
 		if value != "" {
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", key, "${TOOLCHAIN_DIR}/"+value)
+			fmt.Fprintf(toolchain, "set(%s %q)\n", key, "${TOOLCHAIN_DIR}/"+value)
 		}
 	}
 	appendFlags := func(key string, flags []string) {
@@ -153,25 +153,25 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
 
 	fmt.Fprintf(toolchain, "\n# Target information for cross-compile.\n")
-	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_NAME", expr.UpperFirst(t.SystemName))
-	fmt.Fprintf(toolchain, "set(%-24s%q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
+	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", expr.UpperFirst(t.SystemName))
+	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
 	fmt.Fprintf(toolchain, "\n# Toolchain for cross-compile.\n")
 
 	switch runtime.GOOS {
 	case "windows":
 		if t.Name == "msvc" || t.Name == "clang-cl" || t.Name == "clang" {
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
 		}
 
 	case "linux":
 		if t.Path == "/usr/bin" {
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", "/usr/bin")
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", "/usr/bin")
 		} else {
 			if strings.HasPrefix(t.Url, "file:///") {
-				fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", t.abspath)
+				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", t.abspath)
 			} else {
-				fmt.Fprintf(toolchain, "set(%-30s%q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
+				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
 			}
 		}
 	}
@@ -183,10 +183,10 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 
 	// Configure compiler targets are usually required by embed platform, like qnx.
 	if t.CCompilerTarget != "" {
-		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_C_COMPILER_TARGET", t.CCompilerTarget)
+		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_C_COMPILER_TARGET", t.CCompilerTarget)
 	}
 	if t.CXXCompilerTarget != "" {
-		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_CXX_COMPILER_TARGET", t.CXXCompilerTarget)
+		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_CXX_COMPILER_TARGET", t.CXXCompilerTarget)
 	}
 
 	switch t.Name {
@@ -214,8 +214,8 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		}
 
 	case "msvc", "clang-cl":
-		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
-		fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
+		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
+		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
 
 		// For Ninja generator with MSVC, add include/lib paths as compiler/linker flags.
 		// Note: Environment variables (INCLUDE/LIB) must still be set in preConfigure()
@@ -236,8 +236,8 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 				fmt.Fprintf(toolchain, `string(APPEND CMAKE_RC_FLAGS_INIT " /I\"%s\"")`+"\n", filepath.ToSlash(inc))
 			}
 		} else {
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
-			fmt.Fprintf(toolchain, "set(%-30s%q)\n", "CMAKE_RC_FLAGS", "/nologo")
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_RC_FLAGS", "/nologo")
 		}
 
 		if len(t.MSVC.Libs) > 0 {
@@ -270,13 +270,13 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		fmt.Fprint(toolchain, "\n# C/CXX language standard.\n")
 
 		if t.CStandard != "" {
-			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_C_STANDARD", strings.TrimPrefix(t.CStandard, "c"))
-			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_C_STANDARD_REQUIRED", "ON")
+			fmt.Fprintf(toolchain, "set(%s %s)\n", "CMAKE_C_STANDARD", strings.TrimPrefix(t.CStandard, "c"))
+			fmt.Fprintf(toolchain, "set(%s %s)\n", "CMAKE_C_STANDARD_REQUIRED", "ON")
 		}
 
 		if t.CXXStandard != "" {
-			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_CXX_STANDARD", strings.TrimPrefix(t.CXXStandard, "c++"))
-			fmt.Fprintf(toolchain, "set(%-30s%s)\n", "CMAKE_CXX_STANDARD_REQUIRED", "ON")
+			fmt.Fprintf(toolchain, "set(%s %s)\n", "CMAKE_CXX_STANDARD", strings.TrimPrefix(t.CXXStandard, "c++"))
+			fmt.Fprintf(toolchain, "set(%s %s)\n", "CMAKE_CXX_STANDARD_REQUIRED", "ON")
 		}
 	}
 

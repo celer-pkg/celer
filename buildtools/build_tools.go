@@ -206,13 +206,13 @@ func (b *BuildTool) validate() error {
 }
 
 func (b *BuildTool) checkAndFix() error {
-	// Determine folder name and location based on tool type
 	var (
 		folderName  string
 		archiveName string
 		location    string
 	)
 
+	// Determine folder name and location based on tool type
 	toolsDir := filepath.Join(b.ctx.Downloads(), "tools")
 	if len(b.Paths) > 0 {
 		// Archive with paths: extract to subdirectory.

@@ -54,9 +54,9 @@ func (c *Celer) GenerateToolchainFile() error {
 	}
 	fmt.Fprintf(&toolchain, "\n# Package search root paths.\n")
 	fmt.Fprintf(&toolchain, "if(DEFINED CMAKE_FIND_ROOT_PATH)\n")
-	fmt.Fprintf(&toolchain, `    set(CMAKE_FIND_ROOT_PATH "${CMAKE_FIND_ROOT_PATH}")`+"\n")
+	fmt.Fprintf(&toolchain, `  set(CMAKE_FIND_ROOT_PATH "${CMAKE_FIND_ROOT_PATH}")`+"\n")
 	fmt.Fprintf(&toolchain, "else()\n")
-	fmt.Fprintf(&toolchain, "    set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";"))
+	fmt.Fprintf(&toolchain, "  set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";"))
 	fmt.Fprintf(&toolchain, "endif()\n")
 
 	// Set CCache only when enabled.
@@ -115,7 +115,7 @@ func (c *Celer) GenerateToolchainFile() error {
 	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
 		fmt.Fprintf(&toolchain, "set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`)
 	}
-	fmt.Fprintf(&toolchain, "set(%-30s%s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON")
+	fmt.Fprintf(&toolchain, "set(%s %s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON")
 
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
@@ -131,10 +131,25 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 		configPaths   []string
 		configLibDirs []string
 		sysrootDir    string
+		tmpDepDir     string
+		tmpDepSysroot string
 	)
 
 	libraryFolder := fmt.Sprintf("%s@%s@%s", c.Platform().GetName(), c.Project().GetName(), c.BuildType())
 	installedDir := filepath.Join("${WORKSPACE_ROOT}/installed", libraryFolder)
+	writePathList := func(indent, name string, paths []string) {
+		if len(paths) == 0 {
+			return
+		}
+
+		toolchain.WriteString(indent + "set(" + name + "\n")
+		for _, path := range paths {
+			toolchain.WriteString(fmt.Sprintf("%s  %q", indent, path) + "\n")
+		}
+		toolchain.WriteString(indent + ")\n")
+		toolchain.WriteString(fmt.Sprintf(`%slist(JOIN %s "%s" %s_STR)`, indent, name, string(os.PathListSeparator), name) + "\n")
+		fmt.Fprintf(toolchain, "%sset(%s %q)\n", indent, "ENV{"+name+"}", "${"+name+"_STR}")
+	}
 
 	switch runtime.GOOS {
 	case "windows":
@@ -143,13 +158,18 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 			filepath.ToSlash(filepath.Join(installedDir, "share", "pkgconfig")),
 		}
 		sysrootDir = filepath.ToSlash(installedDir)
+		tmpDepDir = filepath.ToSlash("${TMP_DEP_DIR}")
+		tmpDepSysroot = tmpDepDir
 
 	case "linux":
+		tmpDepDir = filepath.ToSlash("${TMP_DEP_DIR}")
+
 		// Target directory.
 		var targetDir string
 		if c.RootFS() != nil {
 			// tmp/deps is a symlink in rootfs.
 			sysrootDir = "${CMAKE_SYSROOT}"
+			tmpDepSysroot = "${CMAKE_SYSROOT}"
 			targetDir = filepath.Join(sysrootDir, "tmp", "deps", libraryFolder)
 
 			// Prepend pkgconfig with tmp/deps directory to prioritize it.
@@ -164,9 +184,10 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 			}
 		} else {
 			sysrootDir = "${WORKSPACE_ROOT}/installed"
+			tmpDepSysroot = "${WORKSPACE_ROOT}"
 			targetDir = sysrootDir
 
-			// Append pkgconfig with tmp/deps directory.
+			// Fallback pkgconfig paths when building outside the celer build pipeline.
 			configPaths = []string{
 				filepath.Join(targetDir, "lib", "pkgconfig"),
 				filepath.Join(targetDir, "share", "pkgconfig"),
@@ -176,32 +197,24 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 
 	fmt.Fprintf(toolchain, "\n# pkg-config search paths.\n")
 	executablePath := fmt.Sprintf("${WORKSPACE_ROOT}/installed/%s-dev/bin/pkgconf", c.platform.GetHostName())
-	fmt.Fprintf(toolchain, "set(%-30s%q)\n", "PKG_CONFIG_EXECUTABLE", executablePath)
-
-	// PKG_CONFIG_SYSROOT_DIR
-	fmt.Fprintf(toolchain, "set(%-30s%q)\n", "ENV{PKG_CONFIG_SYSROOT_DIR}", sysrootDir)
+	fmt.Fprintf(toolchain, "set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH FALSE)\n")
+	fmt.Fprintf(toolchain, "set(PKG_CONFIG_EXECUTABLE %q)\n", executablePath)
 
 	// PKG_CONFIG_LIBDIR
-	if len(configLibDirs) > 0 {
-		toolchain.WriteString("set(PKG_CONFIG_LIBDIR" + "\n")
-		for _, path := range configLibDirs {
-			toolchain.WriteString(fmt.Sprintf(`	"%s"`, path) + "\n")
-		}
-		toolchain.WriteString(")\n")
-		toolchain.WriteString(fmt.Sprintf(`list(JOIN PKG_CONFIG_LIBDIR "%s" PKG_CONFIG_LIBDIR_STR)`, string(os.PathListSeparator)) + "\n")
-		fmt.Fprintf(toolchain, "set(%s %q)\n\n", "ENV{PKG_CONFIG_LIBDIR}", "${PKG_CONFIG_LIBDIR_STR}")
+	writePathList("", "PKG_CONFIG_LIBDIR", configLibDirs)
+
+	tmpDepConfigPaths := []string{
+		filepath.ToSlash(filepath.Join(tmpDepDir, "lib", "pkgconfig")),
+		filepath.ToSlash(filepath.Join(tmpDepDir, "share", "pkgconfig")),
 	}
 
-	// PKG_CONFIG_PATH
-	if len(configPaths) > 0 {
-		toolchain.WriteString("set(PKG_CONFIG_PATH" + "\n")
-		for _, path := range configPaths {
-			toolchain.WriteString(fmt.Sprintf("    %q", path) + "\n")
-		}
-		toolchain.WriteString(")\n")
-		toolchain.WriteString(fmt.Sprintf(`list(JOIN PKG_CONFIG_PATH "%s" PKG_CONFIG_PATH_STR)`, string(os.PathListSeparator)) + "\n")
-		fmt.Fprintf(toolchain, "set(%s %q)\n", "ENV{PKG_CONFIG_PATH}", "${PKG_CONFIG_PATH_STR}")
-	}
+	fmt.Fprintf(toolchain, "if(DEFINED TMP_DEP_DIR)\n")
+	fmt.Fprintf(toolchain, "  set(ENV{PKG_CONFIG_SYSROOT_DIR} %q)\n", tmpDepSysroot)
+	writePathList("  ", "PKG_CONFIG_PATH", tmpDepConfigPaths)
+	fmt.Fprintf(toolchain, "else()\n")
+	fmt.Fprintf(toolchain, "  set(ENV{PKG_CONFIG_SYSROOT_DIR} %q)\n", sysrootDir)
+	writePathList("  ", "PKG_CONFIG_PATH", configPaths)
+	fmt.Fprintf(toolchain, "endif()\n")
 }
 
 // writeCUDAConfig detects CUDA dependencies and writes CUDA compiler configuration to toolchain file.
@@ -229,26 +242,26 @@ func (c *Celer) writeCUDAConfig(toolchain *strings.Builder) {
 	nvccCMakePath := filepath.ToSlash(filepath.Join(installedRelDir, "bin", nvccName))
 
 	fmt.Fprintf(toolchain, "\nif(DEFINED TMP_DEP_DIR)\n")
-	fmt.Fprintf(toolchain, "    # CUDA compiler configuration.\n")
-	fmt.Fprintf(toolchain, `    set(CUDA_TOOLKIT_ROOT_DIR "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
-	fmt.Fprintf(toolchain, `    set(CUDAToolkit_ROOT "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
-	fmt.Fprintf(toolchain, `    set(CMAKE_CUDA_COMPILER "${TMP_DEP_DIR}/bin/%s" CACHE INTERNAL "CUDA compiler" FORCE)`+"\n", nvccName)
+	fmt.Fprintf(toolchain, "  # CUDA compiler configuration.\n")
+	fmt.Fprintf(toolchain, `  set(CUDA_TOOLKIT_ROOT_DIR "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
+	fmt.Fprintf(toolchain, `  set(CUDAToolkit_ROOT "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA Toolkit root directory.")`+"\n")
+	fmt.Fprintf(toolchain, `  set(CMAKE_CUDA_COMPILER "${TMP_DEP_DIR}/bin/%s" CACHE INTERNAL "CUDA compiler" FORCE)`+"\n", nvccName)
 
 	if runtime.GOOS == "windows" {
-		fmt.Fprintf(toolchain, "\n    # Set CUDA toolset for Visual Studio generator (VS integration is in TMP_DEP_DIR).\n")
-		fmt.Fprintf(toolchain, `    set(CMAKE_GENERATOR_TOOLSET "cuda=${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset for Visual Studio generator.")`+"\n")
-		fmt.Fprintf(toolchain, `    set(CMAKE_VS_PLATFORM_TOOLSET_CUDA "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset path for Visual Studio.")`+"\n")
+		fmt.Fprintf(toolchain, "\n  # Set CUDA toolset for Visual Studio generator (VS integration is in TMP_DEP_DIR).\n")
+		fmt.Fprintf(toolchain, `  set(CMAKE_GENERATOR_TOOLSET "cuda=${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset for Visual Studio generator.")`+"\n")
+		fmt.Fprintf(toolchain, `  set(CMAKE_VS_PLATFORM_TOOLSET_CUDA "${TMP_DEP_DIR}" CACHE INTERNAL "CUDA toolset path for Visual Studio.")`+"\n")
 	}
 	fmt.Fprintf(toolchain, "else()\n")
-	fmt.Fprintf(toolchain, "    # CUDA compiler configuration.\n")
-	fmt.Fprintf(toolchain, "    set(CUDA_TOOLKIT_ROOT_DIR %q CACHE INTERNAL \"CUDA Toolkit root directory.\")\n", cudaToolkitRoot)
-	fmt.Fprintf(toolchain, "    set(CUDAToolkit_ROOT %q CACHE INTERNAL \"CUDA Toolkit root directory.\")\n", cudaToolkitRoot)
-	fmt.Fprintf(toolchain, "    set(CMAKE_CUDA_COMPILER %q CACHE INTERNAL \"CUDA compiler\" FORCE)\n", nvccCMakePath)
+	fmt.Fprintf(toolchain, "  # CUDA compiler configuration.\n")
+	fmt.Fprintf(toolchain, "  set(CUDA_TOOLKIT_ROOT_DIR %q CACHE INTERNAL \"CUDA Toolkit root directory.\")\n", cudaToolkitRoot)
+	fmt.Fprintf(toolchain, "  set(CUDAToolkit_ROOT %q CACHE INTERNAL \"CUDA Toolkit root directory.\")\n", cudaToolkitRoot)
+	fmt.Fprintf(toolchain, "  set(CMAKE_CUDA_COMPILER %q CACHE INTERNAL \"CUDA compiler\" FORCE)\n", nvccCMakePath)
 
 	if runtime.GOOS == "windows" {
-		fmt.Fprintf(toolchain, "\n    # Set CUDA toolset for Visual Studio generator.\n")
-		fmt.Fprintf(toolchain, "    set(CMAKE_GENERATOR_TOOLSET %q CACHE INTERNAL \"CUDA toolset for Visual Studio generator.\")\n", "cuda="+cudaToolkitRoot)
-		fmt.Fprintf(toolchain, "    set(CMAKE_VS_PLATFORM_TOOLSET_CUDA %q CACHE INTERNAL \"CUDA toolset path for Visual Studio.\")\n", cudaToolkitRoot)
+		fmt.Fprintf(toolchain, "\n  # Set CUDA toolset for Visual Studio generator.\n")
+		fmt.Fprintf(toolchain, "  set(CMAKE_GENERATOR_TOOLSET %q CACHE INTERNAL \"CUDA toolset for Visual Studio generator.\")\n", "cuda="+cudaToolkitRoot)
+		fmt.Fprintf(toolchain, "  set(CMAKE_VS_PLATFORM_TOOLSET_CUDA %q CACHE INTERNAL \"CUDA toolset path for Visual Studio.\")\n", cudaToolkitRoot)
 	}
 	fmt.Fprintf(toolchain, "endif()\n")
 
