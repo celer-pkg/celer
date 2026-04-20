@@ -10,8 +10,9 @@ import (
 
 const gitRetryMaxAttempts = 3
 
-func combinedOutput(repoDir string, args ...string) ([]byte, error) {
-	executor := cmd.NewExecutor("", "git", args...)
+func combinedOutput(title, repoDir string, args ...string) ([]byte, error) {
+	title = fmt.Sprintf("[%s]", title)
+	executor := cmd.NewExecutor(title, "git", args...)
 	if repoDir != "" {
 		executor.SetWorkDir(repoDir)
 	}
@@ -29,7 +30,7 @@ func runWithRetry(title, repoDir string, args ...string) ([]byte, error) {
 	var lastOutput []byte
 
 	for attempt := 1; attempt <= gitRetryMaxAttempts; attempt++ {
-		output, err := combinedOutput(repoDir, args...)
+		output, err := combinedOutput(title, repoDir, args...)
 		if err == nil {
 			return output, nil
 		}
