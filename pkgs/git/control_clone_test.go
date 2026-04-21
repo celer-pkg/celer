@@ -22,8 +22,8 @@ func TestCloneRepo_Branch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	branch := "bzip2-1.0.8"
-	if err := CloneRepo("[test clone repo]", "bzip2@bzip2-1.0.8", testRepo, branch, 0, "testdata"); err != nil {
+	branch := "master"
+	if err := CloneRepo("[test clone repo]", "bzip2@master", testRepo, branch, 0, "testdata"); err != nil {
 		t.Fatal(err)
 	}
 
