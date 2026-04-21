@@ -351,12 +351,12 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 			return fmt.Errorf("conf repo has local modifications, update is skipped ... 🚩 you can try with --force/-f 🚩")
 		}
 
-		if err := git.UpdateRepo("[update conf repo]", branch, confDir, force); err != nil {
+		if err := git.UpdateRepo("[update conf repo]", "conf repo", branch, confDir, force); err != nil {
 			return fmt.Errorf("update conf repo -> %w", err)
 		}
 	} else {
 		// Clone conf repo.
-		if err := git.CloneRepo("[clone conf repo]", url, branch, 0, confDir); err != nil {
+		if err := git.CloneRepo("[clone conf repo]", "conf repo", url, branch, 0, confDir); err != nil {
 			return fmt.Errorf("clone conf repo -> %w", err)
 		}
 
@@ -814,7 +814,7 @@ func (c *Celer) clonePorts() error {
 			return err
 		}
 
-		if err := git.CloneRepo("[clone ports]", portsRepoUrl, defaultPortRepoBranch, 0, portsDir); err != nil {
+		if err := git.CloneRepo("[clone ports]", "ports repo", portsRepoUrl, defaultPortRepoBranch, 0, portsDir); err != nil {
 			return err
 		}
 	}

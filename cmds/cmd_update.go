@@ -135,13 +135,13 @@ func (u *updateCmd) doUpdate(args []string) error {
 func (u *updateCmd) updateConfRepo() error {
 	title := "[update conf repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	return git.UpdateRepo(title, "", repoDir, u.force)
+	return git.UpdateRepo(title, "conf repo", "", repoDir, u.force)
 }
 
 func (u *updateCmd) updatePortsRepo() error {
 	title := "[update ports repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	return git.UpdateRepo(title, "", repoDir, u.force)
+	return git.UpdateRepo(title, "ports repo", "", repoDir, u.force)
 }
 
 func (u *updateCmd) updateProjectRepos(nameVersions []string) error {
@@ -198,7 +198,7 @@ func (u *updateCmd) updatePortRepo(nameVersion string, visited map[string]bool) 
 
 	// Update port.
 	title := fmt.Sprintf("[update %s]", nameVersion)
-	if err := git.UpdateRepo(title, port.Package.Ref, srcDir, u.force); err != nil {
+	if err := git.UpdateRepo(title, nameVersion, port.Package.Ref, srcDir, u.force); err != nil {
 		return err
 	}
 
