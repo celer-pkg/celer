@@ -14,7 +14,7 @@ import (
 )
 
 // CloneRepo clone git repo.
-func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error {
+func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string) error {
 	retryExecutor := func(title, command string) error {
 		executor := cmd.NewExecutor(title, command)
 		if fileio.PathExists(repoDir) {
@@ -90,7 +90,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	}
 
 	// ============ Clone specific branch ============
-	isBranch, err := CheckIfRemoteBranch(repoUrl, repoRef)
+	isBranch, err := CheckIfRemoteBranch(target, repoUrl, repoRef)
 	if err != nil {
 		return fmt.Errorf("failed to check if remote branch -> %w", err)
 	}
@@ -102,7 +102,7 @@ func CloneRepo(title, repoUrl, repoRef string, depth int, repoDir string) error 
 	}
 
 	// ============ Clone specific tag ============
-	isTag, err := CheckIfRemoteTag(repoUrl, repoRef)
+	isTag, err := CheckIfRemoteTag(target, repoUrl, repoRef)
 	if err != nil {
 		return fmt.Errorf("failed to check if remote tag: %s -> %w", repoRef, err)
 	}
@@ -144,7 +144,7 @@ func UpdateSubmodules(title, repoDir string) error {
 }
 
 // UpdateRepo update git repo.
-func UpdateRepo(title, repoRef, repoDir string, force bool) error {
+func UpdateRepo(title, target, repoRef, repoDir string, force bool) error {
 	if !fileio.PathExists(repoDir) {
 		return nil
 	}
@@ -179,7 +179,7 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	}
 
 	// Update to branch.
-	isBranch, err := CheckIfRemoteBranch(repoUrl, repoRef)
+	isBranch, err := CheckIfRemoteBranch(target, repoUrl, repoRef)
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func UpdateRepo(title, repoRef, repoDir string, force bool) error {
 	}
 
 	// Update to tag.
-	isTag, err := CheckIfRemoteTag(repoUrl, repoRef)
+	isTag, err := CheckIfRemoteTag(target, repoUrl, repoRef)
 	if err != nil {
 		return err
 	}
@@ -302,7 +302,7 @@ func Clean(title, repoDir string) error {
 }
 
 // ApplyPatch apply git patch.
-func ApplyPatch(port, repoDir, patchFile string) error {
+func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 	patchFileName := filepath.Base(patchFile)
 
 	// Check if patched already.
@@ -342,7 +342,7 @@ func ApplyPatch(port, repoDir, patchFile string) error {
 	}
 
 	if gitBatch {
-		title := fmt.Sprintf("[patch %s]", port)
+		title := fmt.Sprintf("[patch %s]", nameVersion)
 		args := []string{"apply", "--ignore-space-change", "--ignore-whitespace", "-v", patchFile}
 		executor := cmd.NewExecutor(title, "git", args...)
 		executor.SetWorkDir(repoDir)
@@ -351,7 +351,7 @@ func ApplyPatch(port, repoDir, patchFile string) error {
 		}
 	} else {
 		// Others, assume it's a regular patch file.
-		title := fmt.Sprintf("[patch %s]", port)
+		title := fmt.Sprintf("[patch %s]", nameVersion)
 		executor := cmd.NewExecutor(title, "patch", "-Np1", "-i", patchFile)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {

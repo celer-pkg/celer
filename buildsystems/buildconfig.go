@@ -353,8 +353,9 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// For git repo, clone it when source dir doesn't exists.
 	if strings.HasSuffix(repoUrl, ".git") {
 		// Do clone or download repo.
-		title := fmt.Sprintf("[clone %s]", b.PortConfig.nameVersion())
-		if err := git.CloneRepo(title, repoUrl, repoRef, depth, b.PortConfig.RepoDir); err != nil {
+		nameVersion := b.PortConfig.nameVersion()
+		title := fmt.Sprintf("[clone %s]", nameVersion)
+		if err := git.CloneRepo(title, nameVersion, repoUrl, repoRef, depth, b.PortConfig.RepoDir); err != nil {
 			return err
 		}
 	} else if repoUrl != "_" {
@@ -480,7 +481,7 @@ func (b BuildConfig) ApplyPatches() error {
 			}
 
 			// Apply patch (linux patch or git patch).
-			if err := git.ApplyPatch(b.PortConfig.RepoDir, b.PortConfig.RepoDir, patchPath); err != nil {
+			if err := git.ApplyPatch(b.PortConfig.nameVersion(), b.PortConfig.RepoDir, patchPath); err != nil {
 				return err
 			}
 		}
@@ -585,21 +586,14 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 			}
 		}
 
-		// Keep the host-side tool runtime closure available at a stable tmp/deps path
-		// for every build. Some persistent host tools (for example bison) may embed
-		// absolute paths discovered during their own build, and top-level `install -f`
-		// clears tmp/deps before rebuilding the next port.
+		// Keep the host-side tool runtime closure isolated under tmp/deps for every
+		// build. Host-side tools must be prepared explicitly into tmp/deps instead of
+		// silently falling back to the installed directory.
 		devTmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
-		devInstalledDir := filepath.Join(dirs.InstalledDir, b.PortConfig.HostName+"-dev")
 
 		// Create parent directory if not exists
 		if err := os.MkdirAll(filepath.Dir(devTmpDepsDir), os.ModePerm); err != nil {
 			return fmt.Errorf("failed to create tmp deps parent dir -> %w", err)
-		}
-
-		// Create symlink
-		if err := b.checkSymlink(devInstalledDir, devTmpDepsDir); err != nil {
-			return fmt.Errorf("failed to create dev symlink -> %w", err)
 		}
 	}
 

@@ -178,7 +178,7 @@ func GetDefaultBranch(repoDir string) (string, error) {
 // It returns an empty string on match, or a human-readable mismatch reason when
 // the checkout does not match. If expectedRef is empty, it falls back to
 // comparing the current branch HEAD with its upstream branch.
-func CheckIfMatchesRef(ctx context.Context, repoDir, expectedRef string) (string, error) {
+func CheckIfMatchesRef(ctx context.Context, nameVersion, repoDir, expectedRef string) (string, error) {
 	currentCommit, err := GetCommitHash(repoDir)
 	if err != nil {
 		return "", err
@@ -186,7 +186,7 @@ func CheckIfMatchesRef(ctx context.Context, repoDir, expectedRef string) (string
 
 	expectedRef = strings.TrimSpace(expectedRef)
 	if expectedRef != "" {
-		expectedCommit, err := GitRevParse(ctx, repoDir, expectedRef)
+		expectedCommit, err := GitRevParse(ctx, nameVersion, repoDir, expectedRef)
 		if err != nil {
 			return "", fmt.Errorf("resolve git ref %q: %w", expectedRef, err)
 		}
@@ -323,7 +323,7 @@ func InitAsLocalRepo(repoDir, message string) error {
 
 // GitRevParse return full commit hash with repo ref, if repo ref is not found in remote,
 // then find it in local repo, the ref can be any valid git revision (branch, tag, HEAD, commit hash, etc.).
-func GitRevParse(ctx context.Context, repoDir, repoRef string) (string, error) {
+func GitRevParse(ctx context.Context, nameVersion, repoDir, repoRef string) (string, error) {
 	repoRef = strings.TrimSpace(repoRef)
 	if repoRef == "" {
 		return "", nil
@@ -336,7 +336,7 @@ func GitRevParse(ctx context.Context, repoDir, repoRef string) (string, error) {
 			return "", err
 		}
 		if remoteName != "" {
-			if _, err := runWithRetry("fetch refs for revision", repoDir, "fetch", "--tags", remoteName); err != nil {
+			if _, err := runWithRetry("fetch refs revision for "+nameVersion, repoDir, "fetch", "--tags", remoteName); err != nil {
 				return "", fmt.Errorf("git fetch --tags %s failed for %s: %w", remoteName, repoDir, err)
 			}
 			if remoteCommit, err := gitRevParseCommit(repoDir, remoteName+"/"+repoRef); err == nil {

@@ -283,7 +283,7 @@ func (p Port) doInstallFromSource() error {
 			// Only repos that match the configured source ref can store package cache.
 			if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
 				repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
-				mismatchDetails, err := git.CheckIfMatchesRef(p.ctx, p.MatchedConfig.PortConfig.RepoDir, repoRef)
+				mismatchDetails, err := git.CheckIfMatchesRef(p.ctx, p.NameVersion(), p.MatchedConfig.PortConfig.RepoDir, repoRef)
 				if err != nil {
 					skipStoreCacheReason = "skip storing package cache for %s: failed to verify source ref: " + err.Error() + "."
 				} else if mismatchDetails != "" {
@@ -797,8 +797,6 @@ func (p Port) prepareTmpDeps() error {
 			return err
 		}
 
-		color.Printf(color.Hint, "▶ preparing %-15s -- [dev] -> %s\n", port.NameVersion(), port.tmpDepsDir)
-
 		// Copy package files to tmp/deps.
 		if err := port.doInstallFromPackage(port.tmpDepsDir); err != nil {
 			return err
@@ -841,12 +839,6 @@ func (p Port) prepareTmpDeps() error {
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-
-		startContent := expr.If(port.DevDep || port.HostDep,
-			"▶ preparing %-15s -- [dev] -> %s\n",
-			"▶ preparing %s -> %s\n",
-		)
-		color.Printf(color.Hint, startContent, port.NameVersion(), port.tmpDepsDir)
 
 		// Copy package files to tmp/deps.
 		if err := port.doInstallFromPackage(port.tmpDepsDir); err != nil {
