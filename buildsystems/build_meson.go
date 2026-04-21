@@ -254,8 +254,8 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	fmt.Fprintf(&buffers, "\n[binaries]\n")
 
 	// For host machine and target compilation.
-	pkgconfPath := filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
-	if m.PortConfig.LibName != "pkgconf" {
+	pkgconfPath := filepath.Join(dirs.TmpDepsDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
+	if fileio.PathExists(pkgconfPath) && m.PortConfig.LibName != "pkgconf" {
 		fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath))
 		fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(pkgconfPath))
 		fmt.Fprintf(&buffers, "host_pkgconfig = '%s'\n", filepath.ToSlash(pkgconfPath))
@@ -459,26 +459,26 @@ func (m meson) generateNativeFile() (string, error) {
 	// This ensures that celer-installed tools (like wayland-scanner) take priority over system versions
 	allPaths := append(devPkgConfigPaths, systemPkgConfigPath)
 
-	wrapperContent := fmt.Sprintf(`#!/bin/bash
-# pkg-config wrapper that includes dev dependencies' pkg-config paths
-# This wrapper is used by meson to find build-time dependencies
-# For native build, we need to search system paths for system libraries like glib-2.0
-export PKG_CONFIG_PATH="%s"
-unset PKG_CONFIG_SYSROOT_DIR
-unset PKG_CONFIG_LIBDIR
-exec %s "$@"
-`,
-		strings.Join(allPaths, ":"),
-		filepath.Join(dirs.InstalledDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf"),
-	)
+	// pkg-config wrapper that includes dev dependencies' pkg-config paths.
+	// This wrapper is used by meson to find build-time dependencies.
+	// For native build, we need to search system paths for system libraries.
+	pkgconfPath := filepath.Join(dirs.TmpDepsDir, m.PortConfig.HostName+"-dev", "bin", "pkgconf")
+	if fileio.PathExists(pkgconfPath) {
+		wrapperContent := fmt.Sprintf(`#!/bin/bash
+	export PKG_CONFIG_PATH="%s"
+	unset PKG_CONFIG_SYSROOT_DIR
+	unset PKG_CONFIG_LIBDIR
+	exec %s "$@"
+	`, strings.Join(allPaths, ":"), pkgconfPath)
 
-	if err := os.WriteFile(wrapperPath, []byte(wrapperContent), 0755); err != nil {
-		return "", fmt.Errorf("failed to create pkg-config wrapper -> %w", err)
+		if err := os.WriteFile(wrapperPath, []byte(wrapperContent), 0755); err != nil {
+			return "", fmt.Errorf("failed to create pkg-config wrapper -> %w", err)
+		}
+
+		// Use the wrapper script as the pkg-config binary
+		fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(wrapperPath))
+		fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(wrapperPath))
 	}
-
-	// Use the wrapper script as the pkg-config binary
-	fmt.Fprintf(&buffers, "pkgconfig = '%s'\n", filepath.ToSlash(wrapperPath))
-	fmt.Fprintf(&buffers, "pkg-config = '%s'\n", filepath.ToSlash(wrapperPath))
 
 	pythonPath, err := m.pythonPath()
 	if err != nil {
