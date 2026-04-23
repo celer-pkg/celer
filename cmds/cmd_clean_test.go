@@ -1,14 +1,14 @@
 package cmds
 
 import (
-	"celer/buildtools"
-	"celer/configs"
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 	"os"
 	"path/filepath"
 	"runtime"

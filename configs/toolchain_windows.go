@@ -3,15 +3,15 @@
 package configs
 
 import (
-	"celer/buildsystems"
-	"celer/buildtools"
-	"celer/context"
-	"celer/pkgs/cmd"
-	"celer/pkgs/color"
-	"celer/pkgs/env"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/buildsystems"
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/env"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"runtime"

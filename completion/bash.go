@@ -3,12 +3,13 @@ package completion
 import (
 	"bufio"
 	"bytes"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
 )

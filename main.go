@@ -1,8 +1,8 @@
 package main
 
 import (
-	"celer/cmds"
-	"celer/pkgs/color"
+	"github.com/celer-pkg/celer/cmds"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"errors"
 	"os"
 )

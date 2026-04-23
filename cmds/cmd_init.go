@@ -1,8 +1,8 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/pkgs/color"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"strings"
 
 	"github.com/spf13/cobra"

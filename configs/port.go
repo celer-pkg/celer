@@ -1,12 +1,12 @@
 package configs
 
 import (
-	"celer/buildsystems"
-	"celer/context"
-	"celer/pkgs/dirs"
-	"celer/pkgs/errors"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/buildsystems"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"

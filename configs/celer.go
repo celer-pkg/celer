@@ -1,21 +1,22 @@
 package configs
 
 import (
-	"celer/buildtools"
-	"celer/context"
-	"celer/envs"
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
-	"celer/pkgs/errors"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/envs"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 
 	"github.com/BurntSushi/toml"
 )

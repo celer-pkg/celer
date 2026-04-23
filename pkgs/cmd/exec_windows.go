@@ -3,8 +3,8 @@
 package cmd
 
 import (
-	"celer/pkgs/color"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"io"
 	"os"
 	"os/exec"

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 
 	"github.com/spf13/cobra"
 )

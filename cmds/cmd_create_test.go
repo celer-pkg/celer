@@ -1,13 +1,14 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"slices"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
 )

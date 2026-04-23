@@ -1,16 +1,17 @@
 package timemachine
 
 import (
-	"celer/buildsystems"
-	"celer/configs"
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/celer-pkg/celer/buildsystems"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
 )

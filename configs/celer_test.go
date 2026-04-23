@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 func TestCeler_Init_NewConfig(t *testing.T) {

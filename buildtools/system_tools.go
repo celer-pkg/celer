@@ -1,8 +1,8 @@
 package buildtools
 
 import (
-	"celer/pkgs/cmd"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/cmd"
 	"runtime"
 	"slices"
 	"strings"

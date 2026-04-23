@@ -1,14 +1,14 @@
 package configs
 
 import (
-	"celer/buildsystems"
-	"celer/pkgcache"
-	"celer/pkgs/errors"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"crypto/sha256"
 	"fmt"
+	"github.com/celer-pkg/celer/buildsystems"
+	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 	"os"
 	"path/filepath"
 	"strings"

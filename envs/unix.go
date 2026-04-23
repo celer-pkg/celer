@@ -3,10 +3,11 @@
 package envs
 
 import (
-	"celer/pkgs/dirs"
-	"celer/pkgs/env"
 	"os"
 	"path/filepath"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/env"
 )
 
 // CleanEnv clear all environments and reset PATH.

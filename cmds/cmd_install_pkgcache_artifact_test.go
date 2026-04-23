@@ -1,18 +1,19 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/pkgs/dirs"
-	"celer/pkgs/errors"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 )
 
 func TestInstall_PkgCache_Artifact_Success(t *testing.T) {

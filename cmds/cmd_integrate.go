@@ -1,10 +1,10 @@
 package cmds
 
 import (
-	"celer/completion"
-	"celer/configs"
-	"celer/pkgs/color"
 	"fmt"
+	"github.com/celer-pkg/celer/completion"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"os"
 	"runtime"
 	"strings"

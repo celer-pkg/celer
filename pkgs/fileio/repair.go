@@ -1,9 +1,9 @@
 package fileio
 
 import (
-	"celer/context"
-	"celer/pkgs/expr"
 	"fmt"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"net/http"
 	"os"
 	"path/filepath"

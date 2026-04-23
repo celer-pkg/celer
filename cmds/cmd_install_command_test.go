@@ -1,9 +1,9 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"os"
 	"path/filepath"
 	"slices"

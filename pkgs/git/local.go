@@ -1,9 +1,9 @@
 package git
 
 import (
-	"celer/context"
-	"celer/pkgs/color"
 	"fmt"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"os"
 	"os/exec"
 	"path/filepath"

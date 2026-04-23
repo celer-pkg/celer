@@ -1,10 +1,10 @@
 package configs
 
 import (
-	"celer/context"
-	"celer/pkgcache"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 type pkgCache struct {

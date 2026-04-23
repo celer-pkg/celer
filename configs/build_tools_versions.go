@@ -1,12 +1,13 @@
 package configs
 
 import (
-	"celer/buildtools"
-	"celer/pkgs/cmd"
-	"celer/pkgs/errors"
-	"celer/pkgs/fileio"
 	"fmt"
 	"strings"
+
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 var toolVersionArgs = map[string][]string{

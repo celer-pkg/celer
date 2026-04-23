@@ -1,9 +1,9 @@
 package generator
 
 import (
-	"celer/pkgs/expr"
 	"embed"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"os"
 	"path/filepath"
 	"regexp"

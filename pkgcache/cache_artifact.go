@@ -1,12 +1,12 @@
 package pkgcache
 
 import (
-	"celer/context"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"strings"

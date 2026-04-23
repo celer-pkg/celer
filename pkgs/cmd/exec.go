@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"bytes"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"io"
 	"os"
 	"os/exec"

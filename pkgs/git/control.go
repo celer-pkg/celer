@@ -2,10 +2,10 @@ package git
 
 import (
 	"bufio"
-	"celer/pkgs/cmd"
-	"celer/pkgs/color"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"regexp"

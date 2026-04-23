@@ -1,13 +1,13 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/depcheck"
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
-	"celer/pkgs/errors"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"io/fs"
 	"path/filepath"
 	"regexp"

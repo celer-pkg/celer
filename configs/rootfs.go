@@ -2,11 +2,11 @@ package configs
 
 import (
 	"bytes"
-	"celer/context"
-	"celer/pkgs/color"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"path/filepath"
 	"strings"
 )

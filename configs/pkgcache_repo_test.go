@@ -1,17 +1,18 @@
 package configs
 
 import (
-	"celer/buildsystems"
-	"celer/context"
-	"celer/pkgcache"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/celer-pkg/celer/buildsystems"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 )
 
 // This file verifies repo-source caching from the caller's perspective:

@@ -1,21 +1,22 @@
 package configs
 
 import (
-	"celer/buildtools"
-	"celer/context"
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
-	"celer/pkgs/errors"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
-	"celer/pkgs/pc"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/pc"
 )
 
 // Install install a port and tell me where it was installed from.

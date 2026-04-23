@@ -1,14 +1,15 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
 )

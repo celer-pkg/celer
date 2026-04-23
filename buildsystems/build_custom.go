@@ -1,9 +1,9 @@
 package buildsystems
 
 import (
-	"celer/pkgs/cmd"
-	"celer/pkgs/expr"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"os"
 	"slices"
 	"strings"

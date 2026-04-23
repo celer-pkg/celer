@@ -1,8 +1,8 @@
 package buildsystems
 
 import (
-	"celer/context"
-	"celer/pkgs/expr"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"runtime"
 )
 
