@@ -142,7 +142,7 @@ func (p powershell) ensureFileReleased(filePath string) error {
 func (p powershell) uninstallCompletion() error {
 	// Unregister completion ps file.
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
-	celerDir := filepath.Join(modulesDir, "github.com/celer-pkg/celer")
+	celerDir := filepath.Join(modulesDir, "celer")
 	if err := os.RemoveAll(celerDir); err != nil {
 		return fmt.Errorf("failed to unregister celer module -> %w", err)
 	}
@@ -154,7 +154,7 @@ func (p powershell) uninstallCompletion() error {
 func (p powershell) uninstallBinary() error {
 	// Unregister completion ps file.
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
-	celerDir := filepath.Join(modulesDir, "github.com/celer-pkg/celer")
+	celerDir := filepath.Join(modulesDir, "celer")
 	if err := os.RemoveAll(celerDir); err != nil {
 		return fmt.Errorf("failed to unregister celer module -> %w", err)
 	}

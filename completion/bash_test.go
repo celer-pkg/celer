@@ -31,7 +31,7 @@ func TestInstallAndUninstall_Bash(t *testing.T) {
 	defer func() { dirs.TmpFilesDir = origTmp }()
 
 	rootCmd := &cobra.Command{
-		Use: "github.com/celer-pkg/celer",
+		Use: "celer",
 	}
 	b := NewBashCompletion(home, rootCmd)
 

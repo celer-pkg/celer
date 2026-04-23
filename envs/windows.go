@@ -51,7 +51,7 @@ func CleanEnv() {
 	setEnvIfNotEmpty("PROCESSOR_LEVEL", processorLevel)
 	setEnvIfNotEmpty("PROCESSOR_REVISION", processorRevision)
 	setEnvIfNotEmpty("NUMBER_OF_PROCESSORS", numberOfProcessors)
-	setEnvIfNotEmpty("github.com/celer-pkg/celer_PORTS_REPO", portsRepo)
+	setEnvIfNotEmpty("CELER_PORTS_REPO", portsRepo)
 	setEnvIfNotEmpty("GITHUB_ACTIONS", githubActions)
 
 	// Reset PATH.

@@ -23,7 +23,7 @@ func CleanEnv() {
 	os.Setenv("SHELL", shell)
 	os.Setenv("HOME", home)
 	if portsRepo != "" {
-		os.Setenv("github.com/celer-pkg/celer_PORTS_REPO", portsRepo)
+		os.Setenv("CELER_PORTS_REPO", portsRepo)
 	}
 	if githubActions != "" {
 		os.Setenv("GITHUB_ACTIONS", githubActions)
