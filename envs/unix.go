@@ -3,17 +3,18 @@
 package envs
 
 import (
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/env"
 	"os"
 	"path/filepath"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/env"
 )
 
 // CleanEnv clear all environments and reset PATH.
 func CleanEnv() {
 	home := os.Getenv("HOME")
 	shell := os.Getenv("SHELL")
-	portsRepo := os.Getenv("github.com/celer-pkg/celer_PORTS_REPO")
+	portsRepo := os.Getenv("CELER_PORTS_REPO")
 	githubActions := os.Getenv("GITHUB_ACTIONS")
 
 	// Clear all environments.

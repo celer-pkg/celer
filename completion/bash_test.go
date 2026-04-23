@@ -45,7 +45,7 @@ func TestInstallAndUninstall_Bash(t *testing.T) {
 		t.Fatalf("installCompletion failed: %v", err)
 	}
 
-	dest := filepath.Join(home, ".local", "share", "bash-completion", "completions", "github.com/celer-pkg/celer")
+	dest := filepath.Join(home, ".local", "share", "bash-completion", "completions", "celer")
 	if !fileExists(dest) {
 		t.Fatalf("expected completion file at %s to exist", dest)
 	}
@@ -62,7 +62,7 @@ func TestInstallAndUninstall_Bash(t *testing.T) {
 	parent := filepath.Dir(dest)
 	if fileExists(parent) {
 		// If parent still exists ensure it's not containing our file
-		if fileExists(filepath.Join(parent, "github.com/celer-pkg/celer")) {
+		if fileExists(filepath.Join(parent, "celer")) {
 			t.Fatalf("completion file still present after uninstall")
 		}
 	}
@@ -70,7 +70,7 @@ func TestInstallAndUninstall_Bash(t *testing.T) {
 
 func TestRegisterAndUnregisterRunCommand_Bash(t *testing.T) {
 	home := t.TempDir()
-	b := NewBashCompletion(home, &cobra.Command{Use: "github.com/celer-pkg/celer"})
+	b := NewBashCompletion(home, &cobra.Command{Use: "celer"})
 
 	// prepare a .bashrc without the register line
 	bashrc := filepath.Join(home, ".bashrc")

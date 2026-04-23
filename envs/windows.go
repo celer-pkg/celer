@@ -4,11 +4,12 @@ package envs
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"path/filepath"
 )
 
 // CleanEnv clear all environments that not required and reset PATH.
@@ -29,7 +30,7 @@ func CleanEnv() {
 	processorLevel := os.Getenv("PROCESSOR_LEVEL")
 	processorRevision := os.Getenv("PROCESSOR_REVISION")
 	numberOfProcessors := os.Getenv("NUMBER_OF_PROCESSORS")
-	portsRepo := os.Getenv("github.com/celer-pkg/celer_PORTS_REPO")
+	portsRepo := os.Getenv("CELER_PORTS_REPO")
 	githubActions := os.Getenv("GITHUB_ACTIONS")
 
 	os.Clearenv()

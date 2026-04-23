@@ -3,13 +3,14 @@ package configs
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 func (p Port) Remove(options RemoveOptions) error {
@@ -148,7 +149,7 @@ func (p Port) doRemovePort() error {
 		noError = false
 		return fmt.Errorf("cannot remove info file: %s", err)
 	}
-	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace")
 	if err := fileio.RemoveFolderRecursively(traceDir); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove info dir: %s", err)

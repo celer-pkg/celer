@@ -1,13 +1,14 @@
 package cmds
 
 import (
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"slices"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
 )
@@ -271,7 +272,7 @@ func TestCreateCmd(t *testing.T) {
 			t.Errorf("it should be failed")
 		}
 
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")))
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 	})
 	check(celer.SetBuildType("Release"))
 

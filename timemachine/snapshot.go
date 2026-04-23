@@ -10,7 +10,7 @@ import (
 // Snapshot represents the metadata of an exported workspace.
 type Snapshot struct {
 	ExportedAt   time.Time      `json:"exported_at"`
-	CelerVersion string         `json:"github.com/celer-pkg/celer_version"`
+	CelerVersion string         `json:"celer_version"`
 	Platform     string         `json:"platform"`
 	Project      string         `json:"project"`
 	Dependencies []PortSnapshot `json:"dependencies"`

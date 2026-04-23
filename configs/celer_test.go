@@ -12,10 +12,10 @@ import (
 func TestCeler_Init_NewConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	dirs.Init(tmpDir)
-	celerPath := filepath.Join(tmpDir, "github.com/celer-pkg/celer.toml")
+	celerPath := filepath.Join(tmpDir, "celer.toml")
 
 	if fileio.PathExists(celerPath) {
-		t.Fatalf("github.com/celer-pkg/celer.toml should not exist initially")
+		t.Fatalf("celer.toml should not exist initially")
 	}
 
 	// Test init.
@@ -26,7 +26,7 @@ func TestCeler_Init_NewConfig(t *testing.T) {
 
 	// Test cases.
 	if !fileio.PathExists(celerPath) {
-		t.Error("github.com/celer-pkg/celer.toml should be created")
+		t.Error("celer.toml should be created")
 	}
 	if buildType := celer.BuildType(); buildType != "release" {
 		t.Errorf("BuildType() = %v, want release", buildType)
@@ -53,7 +53,7 @@ func TestCeler_Init_ExistingConfig(t *testing.T) {
 	platform = ""
 	project = ""`
 
-	celerPath := filepath.Join(tmpDir, "github.com/celer-pkg/celer.toml")
+	celerPath := filepath.Join(tmpDir, "celer.toml")
 	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
 		t.Fatalf("MkdirAll() error = %v", err)
 	}
@@ -78,7 +78,7 @@ func TestCeler_Init_InvalidTOML(t *testing.T) {
 	// Prepare test environment.
 	tmpDir := t.TempDir()
 	dirs.Init(tmpDir)
-	celerPath := filepath.Join(tmpDir, "github.com/celer-pkg/celer.toml")
+	celerPath := filepath.Join(tmpDir, "celer.toml")
 
 	// Create invalid TOML content.
 	invalidConfig := `invalid toml content`
@@ -100,7 +100,7 @@ func TestCeler_Init_InvalidCacheDir(t *testing.T) {
 	// Prepare test environment.
 	tmpDir := t.TempDir()
 	dirs.Init(tmpDir)
-	celerPath := filepath.Join(tmpDir, "github.com/celer-pkg/celer.toml")
+	celerPath := filepath.Join(tmpDir, "celer.toml")
 
 	// Create config with invalid cache dir.
 	configWithInvalidCache := `[pkgcache]

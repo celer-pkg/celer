@@ -2,13 +2,14 @@ package cmds
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/depcheck"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 
 	"github.com/spf13/cobra"
 )
@@ -225,7 +226,7 @@ func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []st
 }
 
 func (a *autoremoveCmd) readInstalledPackages(libraryFolder string) ([]string, error) {
-	traceDir := filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace")
 	pattern := filepath.Join(traceDir, "*@"+libraryFolder+".trace")
 	suffix := "@" + libraryFolder + ".trace"
 

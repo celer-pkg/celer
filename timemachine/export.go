@@ -2,15 +2,16 @@ package timemachine
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/BurntSushi/toml"
 )
@@ -211,8 +212,8 @@ func (e *Exporter) exportConf() error {
 }
 
 func (e *Exporter) exportCelerToml() error {
-	src := filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")
-	dst := filepath.Join(e.exportDir, "github.com/celer-pkg/celer.toml")
+	src := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	dst := filepath.Join(e.exportDir, "celer.toml")
 
 	return fileio.CopyFile(src, dst)
 }

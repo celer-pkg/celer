@@ -2,14 +2,15 @@ package cmds
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
 )
@@ -167,7 +168,7 @@ func (r *removeCmd) completion(cmd *cobra.Command, args []string, toComplete str
 func (r *removeCmd) getInstalledPackages(toComplete string) []string {
 	var packages []string
 
-	traceDir := filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace")
 	if !fileio.PathExists(traceDir) {
 		return packages
 	}

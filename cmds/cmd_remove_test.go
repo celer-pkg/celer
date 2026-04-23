@@ -2,16 +2,17 @@ package cmds
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
 )
@@ -89,11 +90,11 @@ func TestRemoveCmd_Completion(t *testing.T) {
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
 	// Create temporary test directory
-	testDir := filepath.Join(os.TempDir(), "github.com/celer-pkg/celer-test-completion")
+	testDir := filepath.Join(os.TempDir(), "celer-test-completion")
 	defer os.RemoveAll(testDir)
 	dirs.InstalledDir = testDir
 
-	traceDir := filepath.Join(testDir, "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(testDir, "celer", "trace")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
@@ -314,7 +315,7 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 	dirs.InstalledDir = testDir
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	traceDir := filepath.Join(testDir, "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(testDir, "celer", "trace")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
@@ -402,11 +403,11 @@ func TestRemoveCmd_Completion_DeduplicateInstalledPackages(t *testing.T) {
 	originalInstalledDir := dirs.InstalledDir
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	testDir := filepath.Join(os.TempDir(), "github.com/celer-pkg/celer-test-remove-dedup")
+	testDir := filepath.Join(os.TempDir(), "celer-test-remove-dedup")
 	defer os.RemoveAll(testDir)
 	dirs.InstalledDir = testDir
 
-	traceDir := filepath.Join(testDir, "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(testDir, "celer", "trace")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("failed to create trace dir: %v", err)
 	}

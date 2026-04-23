@@ -2,6 +2,12 @@ package configs
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/color"
@@ -11,11 +17,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/pc"
-	"os"
-	"path/filepath"
-	"runtime"
-	"slices"
-	"strings"
 )
 
 // Install install a port and tell me where it was installed from.
@@ -431,7 +432,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 
 		// Backup current installed meta file if it exists.
 		if fileio.PathExists(p.metaFile) {
-			metaFileBackup := filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "meta", "outdated", filepath.Base(p.metaFile))
+			metaFileBackup := filepath.Join(dirs.InstalledDir, "celer", "meta", "outdated", filepath.Base(p.metaFile))
 			if err := fileio.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
 				return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
 			}

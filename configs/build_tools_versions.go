@@ -31,7 +31,7 @@ func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
 	}
 
 	var buffer strings.Builder
-	fmt.Fprintf(&buffer, "github.com/celer-pkg/celer: %s", Version)
+	fmt.Fprintf(&buffer, "celer: %s", Version)
 
 	for _, tool := range tools {
 		toolName, _, _ := strings.Cut(tool, "@")
