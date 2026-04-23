@@ -1,9 +1,9 @@
 package cmds
 
 import (
-	"celer/buildsystems"
-	"celer/configs"
-	"celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/buildsystems"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"path/filepath"
 	"slices"
 	"strings"

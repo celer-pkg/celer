@@ -1,11 +1,11 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/pkgs/dirs"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -89,11 +89,11 @@ func TestRemoveCmd_Completion(t *testing.T) {
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
 	// Create temporary test directory
-	testDir := filepath.Join(os.TempDir(), "celer-test-completion")
+	testDir := filepath.Join(os.TempDir(), "github.com/celer-pkg/celer-test-completion")
 	defer os.RemoveAll(testDir)
 	dirs.InstalledDir = testDir
 
-	traceDir := filepath.Join(testDir, "celer", "trace")
+	traceDir := filepath.Join(testDir, "github.com/celer-pkg/celer", "trace")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
@@ -306,7 +306,7 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 	remove := &removeCmd{}
 
 	// Create temporary test directory structure.
-	testDir := filepath.Join(os.TempDir(), "celer-test-remove")
+	testDir := filepath.Join(os.TempDir(), "github.com/celer-pkg/celer-test-remove")
 	defer os.RemoveAll(testDir)
 
 	// Backup original dirs.InstalledDir.
@@ -314,7 +314,7 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 	dirs.InstalledDir = testDir
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	traceDir := filepath.Join(testDir, "celer", "trace")
+	traceDir := filepath.Join(testDir, "github.com/celer-pkg/celer", "trace")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
@@ -402,11 +402,11 @@ func TestRemoveCmd_Completion_DeduplicateInstalledPackages(t *testing.T) {
 	originalInstalledDir := dirs.InstalledDir
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	testDir := filepath.Join(os.TempDir(), "celer-test-remove-dedup")
+	testDir := filepath.Join(os.TempDir(), "github.com/celer-pkg/celer-test-remove-dedup")
 	defer os.RemoveAll(testDir)
 	dirs.InstalledDir = testDir
 
-	traceDir := filepath.Join(testDir, "celer", "trace")
+	traceDir := filepath.Join(testDir, "github.com/celer-pkg/celer", "trace")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("failed to create trace dir: %v", err)
 	}

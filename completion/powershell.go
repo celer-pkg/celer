@@ -3,9 +3,9 @@ package completion
 import (
 	"bufio"
 	"bytes"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -56,7 +56,7 @@ func (p powershell) installBinary() error {
 		return fmt.Errorf("failed to get celer's path -> %w", err)
 	}
 
-	dest := filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "celer", "celer.exe")
+	dest := filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "github.com/celer-pkg/celer", "github.com/celer-pkg/celer.exe")
 	if err := os.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create celer.exe destination dir -> %w", err)
 	}
@@ -83,7 +83,7 @@ func (p powershell) installCompletion() error {
 
 	// Use temporary file mode to ensure file operation safety.
 	tmpDir := dirs.TmpFilesDir
-	tmpFile := filepath.Join(tmpDir, "celer_completion.ps1")
+	tmpFile := filepath.Join(tmpDir, "github.com/celer-pkg/celer_completion.ps1")
 
 	// Create and write temporary completion file.
 	if err := func() error {
@@ -106,7 +106,7 @@ func (p powershell) installCompletion() error {
 
 	// Install completion file to `~/Documents/WindowsPowerShell/Modules`
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
-	celerRcFile := filepath.Join(modulesDir, "celer", "celer_completion.ps1")
+	celerRcFile := filepath.Join(modulesDir, "github.com/celer-pkg/celer", "github.com/celer-pkg/celer_completion.ps1")
 	if err := os.MkdirAll(filepath.Dir(celerRcFile), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create PowerShell Modules dir -> %w", err)
 	}
@@ -141,7 +141,7 @@ func (p powershell) ensureFileReleased(filePath string) error {
 func (p powershell) uninstallCompletion() error {
 	// Unregister completion ps file.
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
-	celerDir := filepath.Join(modulesDir, "celer")
+	celerDir := filepath.Join(modulesDir, "github.com/celer-pkg/celer")
 	if err := os.RemoveAll(celerDir); err != nil {
 		return fmt.Errorf("failed to unregister celer module -> %w", err)
 	}
@@ -153,14 +153,14 @@ func (p powershell) uninstallCompletion() error {
 func (p powershell) uninstallBinary() error {
 	// Unregister completion ps file.
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
-	celerDir := filepath.Join(modulesDir, "celer")
+	celerDir := filepath.Join(modulesDir, "github.com/celer-pkg/celer")
 	if err := os.RemoveAll(celerDir); err != nil {
 		return fmt.Errorf("failed to unregister celer module -> %w", err)
 	}
 	fmt.Printf("[integrate] rm -rf %s\n", celerDir)
 
 	// Remove celer.exe
-	binDir := filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "celer")
+	binDir := filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local", "github.com/celer-pkg/celer")
 	if err := os.RemoveAll(binDir); err != nil {
 		return fmt.Errorf("failed to remove celer.exe -> %w", err)
 	}

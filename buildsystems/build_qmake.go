@@ -1,10 +1,10 @@
 package buildsystems
 
 import (
-	"celer/pkgs/cmd"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"slices"

@@ -3,9 +3,9 @@ package completion
 import (
 	"bufio"
 	"bytes"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"strings"
@@ -89,7 +89,7 @@ func (z zsh) installCompletion() error {
 	}
 
 	// Generate completion file.
-	filePath := filepath.Join(dirs.TmpFilesDir, "celer")
+	filePath := filepath.Join(dirs.TmpFilesDir, "github.com/celer-pkg/celer")
 	file, err := os.Create(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to create zsh completion file -> %w", err)

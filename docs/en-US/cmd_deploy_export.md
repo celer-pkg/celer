@@ -49,7 +49,7 @@ celer deploy --force --export=snapshots/rebuild
 ```json
 {
   "exported_at": "2025-12-14T16:51:10.290199679+08:00",
-  "celer_version": "0.1.0",
+  "github.com/celer-pkg/celer_version": "0.1.0",
   "platform": "aarch64-linux-ubuntu-22.04-gcc-11.5.0",
   "project": "project_test_01",
   "dependencies": [

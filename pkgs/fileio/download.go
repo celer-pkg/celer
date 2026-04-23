@@ -1,10 +1,10 @@
 package fileio
 
 import (
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
-	"celer/pkgs/expr"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"io"
 	"net/http"
 	"net/url"

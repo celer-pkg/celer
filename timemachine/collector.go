@@ -1,12 +1,12 @@
 package timemachine
 
 import (
-	"celer/configs"
-	"celer/context"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 	"path/filepath"
 	"strings"
 )

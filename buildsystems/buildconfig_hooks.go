@@ -1,9 +1,9 @@
 package buildsystems
 
 import (
-	"celer/pkgs/cmd"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"regexp"
 	"runtime"
 	"strings"

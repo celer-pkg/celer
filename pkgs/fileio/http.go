@@ -1,9 +1,9 @@
 package fileio
 
 import (
-	"celer/pkgs/color"
 	"crypto/tls"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"net/http"
 	"net/url"
 	"strings"

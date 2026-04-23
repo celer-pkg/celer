@@ -101,7 +101,7 @@ func CleanTmpFilesDir() error {
 }
 
 func RemoveAllForTest() {
-	os.RemoveAll(filepath.Join(WorkspaceDir, "celer.toml"))
+	os.RemoveAll(filepath.Join(WorkspaceDir, "github.com/celer-pkg/celer.toml"))
 	os.RemoveAll(TmpDir)
 	os.RemoveAll(TestCacheDir)
 	os.RemoveAll(PackagesDir)

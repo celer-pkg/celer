@@ -1,8 +1,8 @@
 package context
 
 import (
-	"celer/pkgs/dirs"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"maps"
 	"os"
 	"path/filepath"

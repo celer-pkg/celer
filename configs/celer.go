@@ -1,16 +1,16 @@
 package configs
 
 import (
-	"celer/buildtools"
-	"celer/context"
-	"celer/envs"
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
-	"celer/pkgs/errors"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/envs"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -83,7 +83,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	c.exprVars.Init(c)
 	c.platform.ctx = c
 
-	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	configPath := filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")
 	if !fileio.PathExists(configPath) {
 		// Create conf dir if not exists.
 		if err := os.MkdirAll(filepath.Dir(configPath), os.ModePerm); err != nil {
@@ -709,7 +709,7 @@ func (c *Celer) SetCCacheRemoteOnly(remoteOnly bool) error {
 }
 
 func (c *Celer) readOrCreate() error {
-	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	celerPath := filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")
 	if !fileio.PathExists(celerPath) {
 		// Create conf directory.
 		if err := os.MkdirAll(filepath.Dir(celerPath), os.ModePerm); err != nil {
@@ -759,7 +759,7 @@ func (c *Celer) save() error {
 		return err
 	}
 
-	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	celerPath := filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")
 	if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
 		return err
 	}
@@ -768,7 +768,7 @@ func (c *Celer) save() error {
 }
 
 func (c *Celer) portsRepoUrl() string {
-	portsRepo := os.Getenv("CELER_PORTS_REPO")
+	portsRepo := os.Getenv("github.com/celer-pkg/celer_PORTS_REPO")
 	if portsRepo != "" {
 		return portsRepo
 	}

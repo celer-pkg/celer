@@ -1,4 +1,4 @@
-module celer
+module github.com/celer-pkg/celer
 
 go 1.24.0
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 
 	"github.com/spf13/cobra"
 )
@@ -33,7 +33,7 @@ func TestPowerShellRegisterAndUnregisterRunCommand_PowerShell(t *testing.T) {
 		t.Fatalf("CleanTmpFilesDir failed: %v", err)
 	}
 
-	rootCmd := &cobra.Command{Use: "celer"}
+	rootCmd := &cobra.Command{Use: "github.com/celer-pkg/celer"}
 	p := NewPowerShellCompletion(userProfile, rootCmd)
 
 	// Install completion into tmp dir (generates celer_completion.ps1)
@@ -47,7 +47,7 @@ func TestPowerShellRegisterAndUnregisterRunCommand_PowerShell(t *testing.T) {
 	}
 
 	modulesDir := filepath.Join(userProfile, "Documents", "WindowsPowerShell", "Modules")
-	celerRcFile := filepath.Join(modulesDir, "celer", "celer_completion.ps1")
+	celerRcFile := filepath.Join(modulesDir, "github.com/celer-pkg/celer", "github.com/celer-pkg/celer_completion.ps1")
 	if !fileExists(celerRcFile) {
 		t.Fatalf("expected completion file at %s to exist", celerRcFile)
 	}
@@ -109,7 +109,7 @@ func TestPowerShellInstallAndUninstallCompletion_PowerShell(t *testing.T) {
 		t.Fatalf("CleanTmpFilesDir failed: %v", err)
 	}
 
-	rootCmd := &cobra.Command{Use: "celer"}
+	rootCmd := &cobra.Command{Use: "github.com/celer-pkg/celer"}
 	p := NewPowerShellCompletion(userProfile, rootCmd)
 
 	// Create the tmp completion file
@@ -123,8 +123,8 @@ func TestPowerShellInstallAndUninstallCompletion_PowerShell(t *testing.T) {
 	}
 
 	modulesDir := filepath.Join(userProfile, "Documents", "WindowsPowerShell", "Modules")
-	celerDir := filepath.Join(modulesDir, "celer")
-	if !fileExists(filepath.Join(celerDir, "celer_completion.ps1")) {
+	celerDir := filepath.Join(modulesDir, "github.com/celer-pkg/celer")
+	if !fileExists(filepath.Join(celerDir, "github.com/celer-pkg/celer_completion.ps1")) {
 		t.Fatalf("expected completion file in modules dir")
 	}
 

@@ -1,11 +1,11 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"io/fs"
 	"path/filepath"
 	"strings"

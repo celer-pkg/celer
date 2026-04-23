@@ -1,7 +1,7 @@
 package cmds
 
 import (
-	"celer/configs"
+	"github.com/celer-pkg/celer/configs"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -18,7 +18,7 @@ type Command interface {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "celer",
+	Use:   "github.com/celer-pkg/celer",
 	Short: "A super lightweight package manager for C/C++.",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Println("welcome to celer.")

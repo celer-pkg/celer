@@ -1,11 +1,11 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/depcheck"
-	"celer/pkgs/color"
-	"celer/timemachine"
 	"fmt"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/timemachine"
 	"path/filepath"
 	"strings"
 

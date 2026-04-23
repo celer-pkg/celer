@@ -3,11 +3,11 @@
 package cmds
 
 import (
-	"celer/buildtools"
-	"celer/configs"
-	"celer/pkgs/cmd"
-	"celer/pkgs/dirs"
 	"fmt"
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"os"
 	"path/filepath"
 	"testing"

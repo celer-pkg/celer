@@ -1,13 +1,13 @@
 package cmds
 
 import (
-	"celer/buildtools"
-	"celer/configs"
-	"celer/depcheck"
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
 	"fmt"
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"io/fs"
 	"path/filepath"
 	"strings"

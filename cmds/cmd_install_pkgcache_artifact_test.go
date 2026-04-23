@@ -1,13 +1,13 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/pkgs/dirs"
-	"celer/pkgs/errors"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -475,7 +475,7 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	check(install.runInstall([]string{nameVersion}))
 
 	// Report should contain package cache source.
-	reportPath := filepath.Join(dirs.InstalledDir, "celer", "report",
+	reportPath := filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "report",
 		fmt.Sprintf("eigen_3.4.0@%s@%s@%s.html", platform, project, celer.BuildType()))
 	if !fileio.PathExists(reportPath) {
 		t.Fatalf("install report not found: %s", reportPath)

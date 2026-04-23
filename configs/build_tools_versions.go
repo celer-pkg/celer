@@ -1,12 +1,13 @@
 package configs
 
 import (
-	"celer/buildtools"
-	"celer/pkgs/cmd"
-	"celer/pkgs/errors"
-	"celer/pkgs/fileio"
 	"fmt"
 	"strings"
+
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 var toolVersionArgs = map[string][]string{
@@ -30,7 +31,7 @@ func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
 	}
 
 	var buffer strings.Builder
-	fmt.Fprintf(&buffer, "celer: %s", Version)
+	fmt.Fprintf(&buffer, "github.com/celer-pkg/celer: %s", Version)
 
 	for _, tool := range tools {
 		toolName, _, _ := strings.Cut(tool, "@")

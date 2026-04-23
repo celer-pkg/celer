@@ -1,10 +1,10 @@
 package pkgcache
 
 import (
-	"celer/context"
-	"celer/pkgs/fileio"
-	"celer/pkgs/git"
 	"fmt"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 	"os"
 	"path/filepath"
 	"strings"

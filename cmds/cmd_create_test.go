@@ -1,9 +1,9 @@
 package cmds
 
 import (
-	"celer/configs"
-	"celer/pkgs/dirs"
-	"celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"slices"
@@ -271,7 +271,7 @@ func TestCreateCmd(t *testing.T) {
 			t.Errorf("it should be failed")
 		}
 
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")))
 	})
 	check(celer.SetBuildType("Release"))
 

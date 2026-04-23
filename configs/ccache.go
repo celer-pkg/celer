@@ -1,12 +1,13 @@
 package configs
 
 import (
-	"celer/pkgs/dirs"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
 )
 
 const ccacheDefaultMaxSize = "10G"

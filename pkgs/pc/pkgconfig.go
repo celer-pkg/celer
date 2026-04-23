@@ -3,7 +3,7 @@ package pc
 import (
 	"bufio"
 	"bytes"
-	"celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"strings"

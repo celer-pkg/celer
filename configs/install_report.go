@@ -2,9 +2,6 @@ package configs
 
 import (
 	"bytes"
-	"celer/pkgs/dirs"
-	"celer/pkgs/expr"
-	"celer/pkgs/fileio"
 	"fmt"
 	"html"
 	"os"
@@ -12,6 +9,10 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
@@ -303,7 +304,7 @@ func (i *installReport) write(p *Port) (string, error) {
 		return "", nil
 	}
 
-	reportDir := filepath.Join(dirs.InstalledDir, "celer", "report")
+	reportDir := filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "report")
 	if err := fileio.MkdirAll(reportDir, os.ModePerm); err != nil {
 		return "", err
 	}

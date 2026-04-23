@@ -1,9 +1,9 @@
 package git
 
 import (
-	"celer/pkgs/cmd"
-	"celer/pkgs/color"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"strings"
 	"time"
 )

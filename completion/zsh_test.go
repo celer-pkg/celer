@@ -7,14 +7,14 @@ import (
 	"strings"
 	"testing"
 
-	"celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 
 	"github.com/spf13/cobra"
 )
 
 func TestZshRegisterAndUnregisterRunCommand_ZSH(t *testing.T) {
 	home := t.TempDir()
-	rootCmd := &cobra.Command{Use: "celer"}
+	rootCmd := &cobra.Command{Use: "github.com/celer-pkg/celer"}
 	z := NewZshCompletion(home, rootCmd)
 
 	// prepare a .zshrc that already contains the registerBinary line
@@ -79,7 +79,7 @@ func TestZshInstallAndUninstallCompletion_ZSH(t *testing.T) {
 	dirs.TmpFilesDir = tmpRoot
 	defer func() { dirs.TmpFilesDir = origTmp }()
 
-	rootCmd := &cobra.Command{Use: "celer"}
+	rootCmd := &cobra.Command{Use: "github.com/celer-pkg/celer"}
 	z := NewZshCompletion(home, rootCmd)
 
 	// Ensure .zshrc exists and contains the registerBinary (registerRunCommand expects it)

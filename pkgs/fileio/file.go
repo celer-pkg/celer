@@ -1,10 +1,10 @@
 package fileio
 
 import (
-	"celer/pkgs/dirs"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"io"
 	"os"
 	"path/filepath"

@@ -1,13 +1,13 @@
 package buildtools
 
 import (
-	"celer/context"
-	"celer/pkgs/color"
-	"celer/pkgs/dirs"
-	"celer/pkgs/env"
-	"celer/pkgs/fileio"
 	"embed"
 	"fmt"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/env"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"runtime"
