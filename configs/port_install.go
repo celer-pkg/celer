@@ -2,6 +2,12 @@ package configs
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/color"
@@ -11,11 +17,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/pc"
-	"os"
-	"path/filepath"
-	"runtime"
-	"slices"
-	"strings"
 )
 
 // Install install a port and tell me where it was installed from.
@@ -606,8 +607,8 @@ func (p *Port) checkAllTools() error {
 	// Refresh dynamic expression variables after tool detection because some
 	// ports rely on build_tools-provided paths during option expansion.
 	if exprVars := p.ctx.ExprVars(); exprVars != nil {
-		if buildtools.Python3 != nil && buildtools.Python3.Path != "" {
-			exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python3.Path))
+		if buildtools.Python != nil && buildtools.Python.Path != "" {
+			exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python.Path))
 		}
 		if buildtools.LLVMPath != "" {
 			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")

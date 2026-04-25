@@ -3,13 +3,14 @@ package configs
 import (
 	"crypto/sha256"
 	"fmt"
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 type fakeContext struct {
@@ -60,6 +61,7 @@ func (f fakeProject) Init(ctx context.Context, projectName string) error { retur
 func (f fakeProject) GetName() string                                    { return f.name }
 func (f fakeProject) GetPorts() []string                                 { return nil }
 func (f fakeProject) GetTargetPlatform() string                          { return "" }
+func (f fakeProject) GetPythonVersion() string                           { return "" }
 func (f fakeProject) Write(platformPath string) error                    { return nil }
 
 func TestArtifactCache_StoreAndFetch(t *testing.T) {

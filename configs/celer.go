@@ -2,6 +2,12 @@ package configs
 
 import (
 	"fmt"
+	"net/url"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/envs"
@@ -11,11 +17,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
-	"net/url"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -253,8 +254,8 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	}
 
 	// Store global express vars if exist(maybe can delete later?)
-	if buildtools.Python3 != nil {
-		c.exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python3.Path))
+	if buildtools.Python != nil {
+		c.exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python.Path))
 	}
 	if buildtools.LLVMPath != "" {
 		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")

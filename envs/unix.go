@@ -3,10 +3,12 @@
 package envs
 
 import (
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/env"
 	"os"
 	"path/filepath"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/env"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 // CleanEnv clear all environments and reset PATH.
@@ -38,6 +40,14 @@ func CleanEnv() {
 	os.Setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 }
 
-// In linux, python user scripts are always in ${PYTHONUSERBASE}/bin.
-// It has been added to PATH in CleanEnv, so here do nothing.
-func AppendPythonBinDir(_ string) {}
+// AppendPythonBinDir adds the Python virtual environment bin directory to PATH.
+func AppendPythonBinDir(venvDir string) {
+	if venvDir == "" {
+		return
+	}
+
+	binDir := filepath.Join(venvDir, "bin")
+	if fileio.PathExists(binDir) {
+		os.Setenv("PATH", env.JoinPaths("PATH", binDir))
+	}
+}

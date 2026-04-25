@@ -2,17 +2,18 @@ package buildsystems
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/buildtools"
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/color"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 const (
@@ -164,8 +165,8 @@ func (c cmake) configureOptions() ([]string, error) {
 	options = append(options, "-DTMP_DEP_DIR="+filepath.ToSlash(tmpDepDir))
 
 	// Explicitly set Python3_EXECUTABLE to use host system's Python instead of target arch Python.
-	if buildtools.Python3 != nil && buildtools.Python3.Path != "" {
-		pythonPath := filepath.ToSlash(buildtools.Python3.Path)
+	if buildtools.Python != nil && buildtools.Python.Path != "" {
+		pythonPath := filepath.ToSlash(buildtools.Python.Path)
 		options = append(options, "-DPython3_EXECUTABLE="+pythonPath)
 		options = append(options, "-DPython_EXECUTABLE="+pythonPath)
 	}

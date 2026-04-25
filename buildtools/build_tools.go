@@ -3,16 +3,17 @@ package buildtools
 import (
 	"embed"
 	"fmt"
-	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/color"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/env"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/env"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
 )
@@ -131,7 +132,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	// Install python3 packages.
 	if python3Required {
-		if err := pip3Install(python3Tool, &uniqueTools); err != nil {
+		if err := pip3Install(ctx, python3Tool, &uniqueTools); err != nil {
 			return err
 		}
 	}

@@ -2,12 +2,13 @@ package configs
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
 )
@@ -15,6 +16,7 @@ import (
 type Project struct {
 	TargetPlatform string   `toml:"target_platform,omitempty"`
 	BuildType      string   `toml:"build_type"`
+	PythonVersion  string   `toml:"python_version,omitempty"`
 	Ports          []string `toml:"ports"`
 	Vars           []string `toml:"vars"`
 	Envs           []string `toml:"envs"`
@@ -106,6 +108,10 @@ func (p Project) GetTargetPlatform() string {
 
 func (p Project) GetPorts() []string {
 	return p.Ports
+}
+
+func (p Project) GetPythonVersion() string {
+	return p.PythonVersion
 }
 
 func (p Project) deploy(force bool) error {
