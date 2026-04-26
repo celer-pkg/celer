@@ -4,9 +4,6 @@ package envs
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/env"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 
