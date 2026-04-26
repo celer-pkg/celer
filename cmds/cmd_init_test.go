@@ -173,9 +173,9 @@ func TestInitCmd_Command(t *testing.T) {
 			}
 
 			// Verify that celer.toml was created
-			celerPath := filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")
+			celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 			if !fileio.PathExists(celerPath) {
-				t.Error("github.com/celer-pkg/celer.toml should be created after init")
+				t.Error("celer.toml should be created after init")
 			}
 
 			// If URL was provided, verify conf repo was cloned.
@@ -204,7 +204,7 @@ func TestInitCmd_Initialize(t *testing.T) {
 	// Test init with URL.
 	t.Run("init_with_url", func(t *testing.T) {
 		// Remove existing config for fresh test.
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml"))
+		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
 		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf"))
 
 		celer := configs.NewCeler()
@@ -216,11 +216,11 @@ func TestInitCmd_Initialize(t *testing.T) {
 		}
 
 		// Verify both celer.toml and conf directory exist.
-		celerPath := filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")
+		celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 		confDir := filepath.Join(dirs.WorkspaceDir, "conf")
 
 		if !fileio.PathExists(celerPath) {
-			t.Error("github.com/celer-pkg/celer.toml should be created")
+			t.Error("celer.toml should be created")
 		}
 		if !fileio.PathExists(confDir) {
 			t.Error("conf directory should be created")
@@ -290,7 +290,7 @@ func TestInitCmd_EdgeCases(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// Clean up before each test.
-			os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml"))
+			os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
 			os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf"))
 
 			celer := configs.NewCeler()

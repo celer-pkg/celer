@@ -272,7 +272,7 @@ func TestCreateCmd(t *testing.T) {
 			t.Errorf("it should be failed")
 		}
 
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")))
+		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
 	})
 	check(celer.SetBuildType("Release"))
 

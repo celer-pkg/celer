@@ -212,8 +212,8 @@ func (e *Exporter) exportConf() error {
 }
 
 func (e *Exporter) exportCelerToml() error {
-	src := filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")
-	dst := filepath.Join(e.exportDir, "github.com/celer-pkg/celer.toml")
+	src := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	dst := filepath.Join(e.exportDir, "celer.toml")
 
 	return fileio.CopyFile(src, dst)
 }

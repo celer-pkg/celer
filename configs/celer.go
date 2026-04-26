@@ -84,7 +84,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	c.exprVars.Init(c)
 	c.platform.ctx = c
 
-	configPath := filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")
+	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 	if !fileio.PathExists(configPath) {
 		// Create conf dir if not exists.
 		if err := os.MkdirAll(filepath.Dir(configPath), os.ModePerm); err != nil {
@@ -710,7 +710,7 @@ func (c *Celer) SetCCacheRemoteOnly(remoteOnly bool) error {
 }
 
 func (c *Celer) readOrCreate() error {
-	celerPath := filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")
+	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 	if !fileio.PathExists(celerPath) {
 		// Create conf directory.
 		if err := os.MkdirAll(filepath.Dir(celerPath), os.ModePerm); err != nil {
@@ -760,7 +760,7 @@ func (c *Celer) save() error {
 		return err
 	}
 
-	celerPath := filepath.Join(dirs.WorkspaceDir, "github.com/celer-pkg/celer.toml")
+	celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 	if err := os.WriteFile(celerPath, bytes, os.ModePerm); err != nil {
 		return err
 	}
