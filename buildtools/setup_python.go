@@ -124,11 +124,6 @@ func tryInstallCondaIfNeeded(ctx context.Context, pythonVersion string) error {
 
 	color.PrintHint("conda not found, attempting to install Miniconda for Python %s...", minorVersion)
 
-	// Use CheckTools to download Miniconda installer
-	if err := CheckTools(ctx, "conda"); err != nil {
-		return fmt.Errorf("failed to download conda: %w", err)
-	}
-
 	// Now we need to execute the Miniconda installer script
 	// Determine the path to the downloaded installer (version-specific)
 	condaInstallerPath, condaInstallDir, err := getCondaInstallerPaths(ctx)
@@ -371,10 +366,10 @@ func tryCondaPython(version string, condaBinary string) string {
 	return ""
 }
 
-// setupPython3 sets up Python with a specific version.
+// setupPython sets up Python with a specific version.
 // If pythonVersion is empty, uses system default (backward compatible).
 // Supports switching between different Python versions for different projects.
-func setupPython3(ctx context.Context, rootDir string, pythonVersion string) error {
+func setupPython(ctx context.Context, rootDir string, pythonVersion string) error {
 	// Check if version changed - if so, allow reinitializing
 	if Python != nil {
 		if currentPythonVersion == pythonVersion {
@@ -498,9 +493,9 @@ func pip3Install(ctx context.Context, python3Tool *BuildTool, libraries *[]strin
 	// Setup python3 if not set.
 	var err error
 	if python3Tool != nil {
-		err = setupPython3(ctx, python3Tool.rootDir, pythonVersion)
+		err = setupPython(ctx, python3Tool.rootDir, pythonVersion)
 	} else if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
-		err = setupPython3(ctx, "/usr/bin", pythonVersion)
+		err = setupPython(ctx, "/usr/bin", pythonVersion)
 	} else {
 		return fmt.Errorf("unsupported os: %s", runtime.GOOS)
 	}
