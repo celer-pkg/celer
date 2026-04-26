@@ -2,13 +2,14 @@ package cmds
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/depcheck"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 
 	"github.com/spf13/cobra"
 )

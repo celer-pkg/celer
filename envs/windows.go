@@ -9,6 +9,10 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/env"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 // CleanEnv clear all environments that not required and reset PATH.

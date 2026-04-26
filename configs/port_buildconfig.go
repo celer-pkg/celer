@@ -2,14 +2,15 @@ package configs
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/buildsystems"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
+
+	"github.com/celer-pkg/celer/buildsystems"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
 )

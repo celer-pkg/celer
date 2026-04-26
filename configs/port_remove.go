@@ -3,13 +3,14 @@ package configs
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 func (p Port) Remove(options RemoveOptions) error {
