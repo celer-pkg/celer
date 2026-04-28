@@ -226,7 +226,7 @@ func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []st
 }
 
 func (a *autoremoveCmd) readInstalledPackages(libraryFolder string) ([]string, error) {
-	traceDir := filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace")
 	pattern := filepath.Join(traceDir, "*@"+libraryFolder+".trace")
 	suffix := "@" + libraryFolder + ".trace"
 

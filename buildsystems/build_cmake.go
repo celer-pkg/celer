@@ -165,8 +165,8 @@ func (c cmake) configureOptions() ([]string, error) {
 	options = append(options, "-DTMP_DEP_DIR="+filepath.ToSlash(tmpDepDir))
 
 	// Explicitly set Python3_EXECUTABLE to use host system's Python instead of target arch Python.
-	if buildtools.Python != nil && buildtools.Python.Path != "" {
-		pythonPath := filepath.ToSlash(buildtools.Python.Path)
+	if buildtools.PythonTool != nil && buildtools.PythonTool.Path != "" {
+		pythonPath := filepath.ToSlash(buildtools.PythonTool.Path)
 		options = append(options, "-DPython3_EXECUTABLE="+pythonPath)
 		options = append(options, "-DPython_EXECUTABLE="+pythonPath)
 	}

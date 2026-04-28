@@ -6,15 +6,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
 )
-
-// All Python environments are provisioned via conda with this version if not explicitly specified.
-const DefaultPythonVersion = "3.10"
 
 type Project struct {
 	TargetPlatform string   `toml:"target_platform,omitempty"`
@@ -62,9 +60,9 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 		needRewrite = true
 	}
 
-	// Default python version.
+	// Default python version - dynamically determined based on platform
 	if p.PythonVersion == "" {
-		p.PythonVersion = DefaultPythonVersion
+		p.PythonVersion = buildtools.GetDefaultPythonVersion()
 		needRewrite = true
 	}
 
@@ -98,9 +96,9 @@ func (p Project) Write(platformPath string, override bool) error {
 		p.Macros = []string{}
 	}
 
-	// Default python version.
+	// Default python version - dynamically determined based on platform.
 	if p.PythonVersion == "" {
-		p.PythonVersion = DefaultPythonVersion
+		p.PythonVersion = buildtools.GetDefaultPythonVersion()
 	}
 
 	bytes, err := toml.Marshal(p)

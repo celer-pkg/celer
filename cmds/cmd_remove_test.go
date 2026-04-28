@@ -90,11 +90,11 @@ func TestRemoveCmd_Completion(t *testing.T) {
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
 	// Create temporary test directory
-	testDir := filepath.Join(os.TempDir(), "github.com/celer-pkg/celer-test-completion")
+	testDir := filepath.Join(os.TempDir(), "celer-test-completion")
 	defer os.RemoveAll(testDir)
 	dirs.InstalledDir = testDir
 
-	traceDir := filepath.Join(testDir, "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(testDir, "celer", "trace")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
@@ -315,7 +315,7 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 	dirs.InstalledDir = testDir
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	traceDir := filepath.Join(testDir, "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(testDir, "celer", "trace")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
@@ -407,7 +407,7 @@ func TestRemoveCmd_Completion_DeduplicateInstalledPackages(t *testing.T) {
 	defer os.RemoveAll(testDir)
 	dirs.InstalledDir = testDir
 
-	traceDir := filepath.Join(testDir, "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(testDir, "celer", "trace")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("failed to create trace dir: %v", err)
 	}

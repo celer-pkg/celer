@@ -254,8 +254,8 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	}
 
 	// Store global express vars if exist(maybe can delete later?)
-	if buildtools.Python != nil {
-		c.exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python.Path))
+	if buildtools.PythonTool != nil {
+		c.exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.PythonTool.Path))
 	}
 	if buildtools.LLVMPath != "" {
 		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")

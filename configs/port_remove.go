@@ -149,7 +149,7 @@ func (p Port) doRemovePort() error {
 		noError = false
 		return fmt.Errorf("cannot remove info file: %s", err)
 	}
-	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace")
 	if err := fileio.RemoveFolderRecursively(traceDir); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove info dir: %s", err)
@@ -165,7 +165,7 @@ func (p Port) doRemovePort() error {
 			}
 		}
 
-		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "github.com/celer-pkg/celer", "meta")
+		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "meta")
 		if err := fileio.RemoveFolderRecursively(metaDir); err != nil {
 			noError = false
 			return fmt.Errorf("cannot remove meta dir: %s", err)

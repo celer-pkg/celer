@@ -61,7 +61,7 @@ func (b bash) installBinary() error {
 	}
 
 	// Copy into `~/.local/bin`
-	if err := fileio.CopyFile(executable, filepath.Join(binDir, "github.com/celer-pkg/celer")); err != nil {
+	if err := fileio.CopyFile(executable, filepath.Join(binDir, "celer")); err != nil {
 		return fmt.Errorf("failed to copy celer to ~/.local/bin -> %w", err)
 	}
 	fmt.Println("[integrate] celer -> ~/.local/bin")
@@ -96,7 +96,7 @@ func (b bash) installCompletion() error {
 	}
 
 	// Generate completion file.
-	filePath := filepath.Join(dirs.TmpFilesDir, "github.com/celer-pkg/celer")
+	filePath := filepath.Join(dirs.TmpFilesDir, "celer")
 	file, err := os.Create(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to create bash completion file -> %w", err)
@@ -108,7 +108,7 @@ func (b bash) installCompletion() error {
 	}
 
 	// Install completion file to `~/.local/share/bash-completion/completions`
-	destination := filepath.Join(b.homeDir, ".local", "share", "bash-completion", "completions", "github.com/celer-pkg/celer")
+	destination := filepath.Join(b.homeDir, ".local", "share", "bash-completion", "completions", "celer")
 	if err := os.MkdirAll(filepath.Dir(destination), os.ModePerm); err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (b bash) installCompletion() error {
 }
 
 func (b bash) uninstallCompletion() error {
-	destination := filepath.Join(b.homeDir, ".local", "share", "bash-completion", "completions", "github.com/celer-pkg/celer")
+	destination := filepath.Join(b.homeDir, ".local", "share", "bash-completion", "completions", "celer")
 	if err := os.Remove(destination); err != nil {
 		return fmt.Errorf("failed to remove bash completion file -> %w", err)
 	}

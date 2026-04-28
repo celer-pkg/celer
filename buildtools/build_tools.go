@@ -13,6 +13,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/env"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
@@ -88,14 +89,17 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		}
 	}
 
-	var msys2Tool *BuildTool
+	var (
+		msys2Tool *BuildTool
+	)
 
 	// Find tool instances of python3 and msys2.
 	for _, tool := range uniqueTools {
-		// Python is managed by conda, validate Python tool with conda tool.
-		if strings.HasPrefix(tool, "python") {
-			tool = "conda"
+		// Python: only use conda if version mismatch; otherwise use system Python
+		if strings.HasPrefix(tool, "python3") {
+			tool = expr.If(shouldUseConda(ctx), "conda", "python3")
 		}
+
 		if found := buildTools.findTool(ctx, tool); found != nil {
 			if err := found.validate(); err != nil {
 				return err

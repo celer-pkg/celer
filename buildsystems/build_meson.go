@@ -595,9 +595,9 @@ func (m meson) pythonPath() (string, error) {
 		return tmpDevPython, nil
 	}
 
-	if buildtools.Python == nil || buildtools.Python.Path == "" {
+	if buildtools.PythonTool == nil || buildtools.PythonTool.Path == "" {
 		return "", fmt.Errorf("python3 should be set up in advance")
 	}
 
-	return buildtools.Python.Path, nil
+	return buildtools.PythonTool.Path, nil
 }

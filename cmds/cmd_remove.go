@@ -168,7 +168,7 @@ func (r *removeCmd) completion(cmd *cobra.Command, args []string, toComplete str
 func (r *removeCmd) getInstalledPackages(toComplete string) []string {
 	var packages []string
 
-	traceDir := filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "trace")
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace")
 	if !fileio.PathExists(traceDir) {
 		return packages
 	}

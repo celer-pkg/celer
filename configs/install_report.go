@@ -304,7 +304,7 @@ func (i *installReport) write(p *Port) (string, error) {
 		return "", nil
 	}
 
-	reportDir := filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "report")
+	reportDir := filepath.Join(dirs.InstalledDir, "celer", "report")
 	if err := fileio.MkdirAll(reportDir, os.ModePerm); err != nil {
 		return "", err
 	}

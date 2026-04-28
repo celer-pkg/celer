@@ -90,7 +90,7 @@ func (z zsh) installCompletion() error {
 	}
 
 	// Generate completion file.
-	filePath := filepath.Join(dirs.TmpFilesDir, "github.com/celer-pkg/celer")
+	filePath := filepath.Join(dirs.TmpFilesDir, "celer")
 	file, err := os.Create(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to create zsh completion file -> %w", err)

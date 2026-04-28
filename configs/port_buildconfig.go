@@ -33,12 +33,12 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		fmt.Sprintf("%s@%s@%s@%s", nameVersion, p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType),
 	)
 	p.traceFile = expr.If(p.DevDep || p.HostDep,
-		filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "trace", nameVersion+"@"+hostName+"-dev.trace"),
-		filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "trace", nameVersion+"@"+platformProject+".trace"),
+		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+hostName+"-dev.trace"),
+		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+platformProject+".trace"),
 	)
 	p.metaFile = expr.If(p.DevDep || p.HostDep,
-		filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "meta", nameVersion+"@"+hostName+"-dev.meta"),
-		filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "meta", nameVersion+"@"+platformProject+".meta"),
+		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+hostName+"-dev.meta"),
+		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+platformProject+".meta"),
 	)
 
 	p.PackageDir = filepath.Join(dirs.WorkspaceDir, "packages", packageFolder)

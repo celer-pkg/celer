@@ -432,7 +432,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 
 		// Backup current installed meta file if it exists.
 		if fileio.PathExists(p.metaFile) {
-			metaFileBackup := filepath.Join(dirs.InstalledDir, "github.com/celer-pkg/celer", "meta", "outdated", filepath.Base(p.metaFile))
+			metaFileBackup := filepath.Join(dirs.InstalledDir, "celer", "meta", "outdated", filepath.Base(p.metaFile))
 			if err := fileio.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
 				return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
 			}
@@ -607,8 +607,8 @@ func (p *Port) checkAllTools() error {
 	// Refresh dynamic expression variables after tool detection because some
 	// ports rely on build_tools-provided paths during option expansion.
 	if exprVars := p.ctx.ExprVars(); exprVars != nil {
-		if buildtools.Python != nil && buildtools.Python.Path != "" {
-			exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python.Path))
+		if buildtools.PythonTool != nil && buildtools.PythonTool.Path != "" {
+			exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.PythonTool.Path))
 		}
 		if buildtools.LLVMPath != "" {
 			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")

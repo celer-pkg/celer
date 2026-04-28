@@ -19,7 +19,7 @@ type Command interface {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "github.com/celer-pkg/celer",
+	Use:   "celer",
 	Short: "A super lightweight package manager for C/C++.",
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Println("welcome to celer.")
