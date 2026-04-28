@@ -29,7 +29,7 @@ func CleanEnv() {
 	processorLevel := os.Getenv("PROCESSOR_LEVEL")
 	processorRevision := os.Getenv("PROCESSOR_REVISION")
 	numberOfProcessors := os.Getenv("NUMBER_OF_PROCESSORS")
-	portsRepo := os.Getenv("github.com/celer-pkg/celer_PORTS_REPO")
+	portsRepo := os.Getenv("CELER_PORTS_REPO")
 	githubActions := os.Getenv("GITHUB_ACTIONS")
 
 	os.Clearenv()

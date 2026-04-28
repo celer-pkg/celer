@@ -769,7 +769,7 @@ func (c *Celer) save() error {
 }
 
 func (c *Celer) portsRepoUrl() string {
-	portsRepo := os.Getenv("github.com/celer-pkg/celer_PORTS_REPO")
+	portsRepo := os.Getenv("CELER_PORTS_REPO")
 	if portsRepo != "" {
 		return portsRepo
 	}
