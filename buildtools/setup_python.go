@@ -72,8 +72,11 @@ func pip3Install(ctx context.Context, libraries *[]string) error {
 
 // setupPython sets up Python with a specific version via conda.
 func setupPython(ctx context.Context, pythonVersion string) error {
-	// Check if version changed - if so, allow reinitializing.
-	if Python != nil && Python.version == pythonVersion {
+	// Check if venv is already setup for this version.
+	envDir := getVersionedVenvPath(pythonVersion)
+
+	// Quick return only if version hasn't changed AND venv still exists on disk.
+	if Python != nil && Python.version == pythonVersion && fileio.PathExists(envDir) {
 		return nil
 	}
 
@@ -90,7 +93,6 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 	}
 
 	// Ensure virtual environment exists.
-	envDir := getVersionedVenvPath(pythonVersion)
 	if !fileio.PathExists(envDir) {
 		command := fmt.Sprintf("%s -m venv %s", pythonExec, envDir)
 		executor := cmd.NewExecutor("[create python venv]", command)
