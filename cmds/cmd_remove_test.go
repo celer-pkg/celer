@@ -307,7 +307,7 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 	remove := &removeCmd{}
 
 	// Create temporary test directory structure.
-	testDir := filepath.Join(os.TempDir(), "github.com/celer-pkg/celer-test-remove")
+	testDir := filepath.Join(os.TempDir(), "celer-test-remove")
 	defer os.RemoveAll(testDir)
 
 	// Backup original dirs.InstalledDir.
@@ -403,7 +403,7 @@ func TestRemoveCmd_Completion_DeduplicateInstalledPackages(t *testing.T) {
 	originalInstalledDir := dirs.InstalledDir
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	testDir := filepath.Join(os.TempDir(), "github.com/celer-pkg/celer-test-remove-dedup")
+	testDir := filepath.Join(os.TempDir(), "celer-test-remove-dedup")
 	defer os.RemoveAll(testDir)
 	dirs.InstalledDir = testDir
 

@@ -84,7 +84,7 @@ func (p powershell) installCompletion() error {
 
 	// Use temporary file mode to ensure file operation safety.
 	tmpDir := dirs.TmpFilesDir
-	tmpFile := filepath.Join(tmpDir, "github.com/celer-pkg/celer_completion.ps1")
+	tmpFile := filepath.Join(tmpDir, "celer_completion.ps1")
 
 	// Create and write temporary completion file.
 	if err := func() error {
@@ -107,7 +107,7 @@ func (p powershell) installCompletion() error {
 
 	// Install completion file to `~/Documents/WindowsPowerShell/Modules`
 	modulesDir := filepath.Join(os.Getenv("USERPROFILE"), "Documents", "WindowsPowerShell", "Modules")
-	celerRcFile := filepath.Join(modulesDir, "celer", "github.com/celer-pkg/celer_completion.ps1")
+	celerRcFile := filepath.Join(modulesDir, "celer", "celer_completion.ps1")
 	if err := os.MkdirAll(filepath.Dir(celerRcFile), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create PowerShell Modules dir -> %w", err)
 	}
