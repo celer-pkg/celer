@@ -88,22 +88,20 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		}
 	}
 
-	var (
-		msys2Tool   *BuildTool
-		python3Tool *BuildTool
-	)
+	var msys2Tool *BuildTool
 
 	// Find tool instances of python3 and msys2.
 	for _, tool := range uniqueTools {
+		// Python is managed by conda, validate Python tool with conda tool.
+		if strings.HasPrefix(tool, "python") {
+			tool = "conda"
+		}
 		if found := buildTools.findTool(ctx, tool); found != nil {
 			if err := found.validate(); err != nil {
 				return err
 			}
 
 			switch found.Name {
-			case "python3":
-				python3Tool = found
-
 			case "msys2":
 				msys2Tool = found
 
@@ -132,7 +130,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	// Install python3 packages.
 	if python3Required {
-		if err := pip3Install(ctx, python3Tool, &uniqueTools); err != nil {
+		if err := pip3Install(ctx, &uniqueTools); err != nil {
 			return err
 		}
 	}
@@ -229,7 +227,7 @@ func (b *BuildTool) checkAndFix() error {
 		folderName = fmt.Sprintf("%s-%s", b.Name, b.Version)
 		location = filepath.Join(toolsDir, folderName)
 
-		// For single-file tools: download with original filename, but pass Archive for symlink creation
+		// For single-file tools: download with original filename, but pass Archive for symlink creation.
 		archiveName = "" // Empty means use original URL filename for download
 	}
 
@@ -246,7 +244,7 @@ func (b *BuildTool) checkAndFix() error {
 	// Only print if tool was just downloaded (didn't exist before).
 	if !fileio.PathExists(location) {
 		// Print download & extract info.
-		color.PrintHint("tool: %s", fileio.Base(b.Url))
+		color.PrintPass("tool: %s", fileio.Base(b.Url))
 		color.PrintHint("Location: %s", location)
 	}
 

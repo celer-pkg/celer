@@ -62,14 +62,6 @@
   paths = ["ccache-4.12.1-windows-x86_64"]
 
 [[build_tools]]
-  name = "python3"
-  version = "3.14.2"
-  default = true
-  url = "https://www.python.org/ftp/python/3.14.2/python-3.14.2-win32.zip"
-  archive = "python-3.14.2-win32.zip"
-  paths = ["python-3.14.2-win32", "python-3.14.2-win32/Scripts"]
-
-[[build_tools]]
   name = "git-lfs"
   version = "3.5.1"
   default = true
@@ -79,8 +71,8 @@
 
 [[build_tools]]
   name = "conda"
-  version = "latest"
+  version = "26.1.1-1"
   default = true
-  url = "https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe"
-  archive = "Miniconda3-latest-Windows-x86_64.exe"
-  paths = ["miniconda3/bin"]
+  url = "https://repo.anaconda.com/miniconda/Miniconda3-py313_26.1.1-1-Windows-x86_64.exe"
+  archive = "Miniconda3-py313_26.1.1-1-Windows-x86_64.exe"
+  paths = ["Miniconda3-py313_26.1.1-1"]

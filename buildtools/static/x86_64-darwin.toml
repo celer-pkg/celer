@@ -40,8 +40,8 @@
 
 [[build_tools]]
   name = "conda"
-  version = "latest"
+  version = "26.1.1-1"
   default = true
-  url = "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
-  archive = "Miniconda3-latest-MacOSX-x86_64.sh"
-  paths = ["miniconda3/bin"]
+  url = "https://repo.anaconda.com/miniconda/Miniconda3-py312_26.1.1-1-MacOSX-x86_64.sh"
+  archive = "Miniconda3-py312_26.1.1-1-MacOSX-x86_64.sh"
+  paths = ["Miniconda3-py312_26.1.1-1"]

@@ -311,7 +311,7 @@ func (c *Celer) CreateProject(projectName string) error {
 	// Create project file.
 	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
 	var project Project
-	if err := project.Write(projectPath); err != nil {
+	if err := project.Write(projectPath, false); err != nil {
 		return err
 	}
 

@@ -31,7 +31,7 @@ func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
 	}
 
 	var buffer strings.Builder
-	fmt.Fprintf(&buffer, "github.com/celer-pkg/celer: %s", Version)
+	fmt.Fprintf(&buffer, "celer: %s", Version)
 
 	for _, tool := range tools {
 		toolName, _, _ := strings.Cut(tool, "@")
@@ -46,6 +46,7 @@ func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
 			cmdName = buildtools.Python.Path
 		}
 
+		// Try to execute the command to get the version.
 		executor := cmd.NewExecutor("", cmdName, args...)
 		out, err := executor.ExecuteOutput()
 		if err != nil {

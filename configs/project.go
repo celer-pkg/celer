@@ -13,6 +13,9 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// All Python environments are provisioned via conda with this version if not explicitly specified.
+const DefaultPythonVersion = "3.10"
+
 type Project struct {
 	TargetPlatform string   `toml:"target_platform,omitempty"`
 	BuildType      string   `toml:"build_type"`
@@ -51,9 +54,25 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 		return fmt.Errorf("failed to read %s -> %w", projectPath, err)
 	}
 
+	var needRewrite bool
+
 	// Default build_type.
 	if p.BuildType == "" {
 		p.BuildType = "Release"
+		needRewrite = true
+	}
+
+	// Default python version.
+	if p.PythonVersion == "" {
+		p.PythonVersion = DefaultPythonVersion
+		needRewrite = true
+	}
+
+	// Rewrite project with default values.
+	if needRewrite {
+		if err := p.Write(projectPath, true); err != nil {
+			return err
+		}
 	}
 
 	// Set values of internal fields.
@@ -62,7 +81,7 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 	return nil
 }
 
-func (p Project) Write(platformPath string) error {
+func (p Project) Write(platformPath string, override bool) error {
 	if p.BuildType == "" {
 		p.BuildType = "Release"
 	}
@@ -79,13 +98,18 @@ func (p Project) Write(platformPath string) error {
 		p.Macros = []string{}
 	}
 
+	// Default python version.
+	if p.PythonVersion == "" {
+		p.PythonVersion = DefaultPythonVersion
+	}
+
 	bytes, err := toml.Marshal(p)
 	if err != nil {
 		return err
 	}
 
 	// Check if conf/projects/<project_name>.toml exists.
-	if fileio.PathExists(platformPath) {
+	if fileio.PathExists(platformPath) && !override {
 		return fmt.Errorf("%s is already exists", platformPath)
 	}
 
