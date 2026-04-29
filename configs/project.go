@@ -63,7 +63,6 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 	// Default python version - dynamically determined based on platform
 	if p.PythonVersion == "" {
 		p.PythonVersion = buildtools.GetDefaultPythonVersion()
-		needRewrite = true
 	}
 
 	// Rewrite project with default values.
