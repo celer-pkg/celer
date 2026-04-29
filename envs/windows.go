@@ -3,7 +3,6 @@
 package envs
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -80,22 +79,9 @@ func setEnvIfNotEmpty(key, value string) {
 
 // AppendPythonBinDir appends the Python user "Scripts" directory to PATH if it exists.
 func AppendPythonBinDir(userBaseDir string) {
-	// Check if the Scripts directory exists directly (Windows python case)
 	scriptsDir := filepath.Join(userBaseDir, "Scripts")
 	if fileio.PathExists(scriptsDir) {
 		os.Setenv("PATH", env.JoinPaths("PATH", scriptsDir))
 		return
-	}
-
-	// Otherwise, search for Python<version>-<arch> directories (System Python case)
-	matches, err := filepath.Glob(filepath.Join(userBaseDir, "Python*", "Scripts"))
-	if err != nil {
-		panic(fmt.Sprintf("failed to glob %s: %s", userBaseDir, err))
-	}
-	for _, scriptDir := range matches {
-		if fileio.PathExists(scriptDir) {
-			os.Setenv("PATH", env.JoinPaths("PATH", scriptDir))
-			break
-		}
 	}
 }

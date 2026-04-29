@@ -42,10 +42,11 @@ func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
 
 		// For python3:xxx tools, use the Python executable from virtual environment.
 		cmdName, _, _ := strings.Cut(toolName, ":")
-		if cmdName == "python3" && buildtools.Python3 != nil {
-			cmdName = buildtools.Python3.Path
+		if cmdName == "python3" && buildtools.PythonTool != nil {
+			cmdName = buildtools.PythonTool.Path
 		}
 
+		// Try to execute the command to get the version.
 		executor := cmd.NewExecutor("", cmdName, args...)
 		out, err := executor.ExecuteOutput()
 		if err != nil {

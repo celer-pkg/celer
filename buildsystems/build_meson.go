@@ -3,17 +3,18 @@ package buildsystems
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"path/filepath"
-	"runtime"
-	"slices"
-	"strings"
 )
 
 func NewMeson(config *BuildConfig) *meson {
@@ -594,9 +595,9 @@ func (m meson) pythonPath() (string, error) {
 		return tmpDevPython, nil
 	}
 
-	if buildtools.Python3 == nil || buildtools.Python3.Path == "" {
+	if buildtools.PythonTool == nil || buildtools.PythonTool.Path == "" {
 		return "", fmt.Errorf("python3 should be set up in advance")
 	}
 
-	return buildtools.Python3.Path, nil
+	return buildtools.PythonTool.Path, nil
 }

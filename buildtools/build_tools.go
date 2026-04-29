@@ -3,16 +3,18 @@ package buildtools
 import (
 	"embed"
 	"fmt"
-	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/color"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/env"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/env"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
 )
@@ -88,21 +90,22 @@ func CheckTools(ctx context.Context, tools ...string) error {
 	}
 
 	var (
-		msys2Tool   *BuildTool
-		python3Tool *BuildTool
+		msys2Tool *BuildTool
 	)
 
 	// Find tool instances of python3 and msys2.
 	for _, tool := range uniqueTools {
+		// Python: only use conda if version mismatch; otherwise use system Python
+		if strings.HasPrefix(tool, "python3") {
+			tool = expr.If(shouldUseConda(ctx), "conda", "python3")
+		}
+
 		if found := buildTools.findTool(ctx, tool); found != nil {
 			if err := found.validate(); err != nil {
 				return err
 			}
 
 			switch found.Name {
-			case "python3":
-				python3Tool = found
-
 			case "msys2":
 				msys2Tool = found
 
@@ -131,7 +134,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	// Install python3 packages.
 	if python3Required {
-		if err := pip3Install(python3Tool, &uniqueTools); err != nil {
+		if err := pip3Install(ctx, &uniqueTools); err != nil {
 			return err
 		}
 	}
@@ -228,7 +231,7 @@ func (b *BuildTool) checkAndFix() error {
 		folderName = fmt.Sprintf("%s-%s", b.Name, b.Version)
 		location = filepath.Join(toolsDir, folderName)
 
-		// For single-file tools: download with original filename, but pass Archive for symlink creation
+		// For single-file tools: download with original filename, but pass Archive for symlink creation.
 		archiveName = "" // Empty means use original URL filename for download
 	}
 
@@ -245,7 +248,7 @@ func (b *BuildTool) checkAndFix() error {
 	// Only print if tool was just downloaded (didn't exist before).
 	if !fileio.PathExists(location) {
 		// Print download & extract info.
-		color.PrintHint("tool: %s", fileio.Base(b.Url))
+		color.PrintPass("tool: %s", fileio.Base(b.Url))
 		color.PrintHint("Location: %s", location)
 	}
 

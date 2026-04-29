@@ -5,5 +5,6 @@ type Project interface {
 	GetName() string
 	GetPorts() []string
 	GetTargetPlatform() string
-	Write(platformPath string) error
+	GetPythonVersion() string
+	Write(platformPath string, override bool) error
 }

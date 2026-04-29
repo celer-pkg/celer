@@ -2,12 +2,14 @@ package configs
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
 )
@@ -15,6 +17,7 @@ import (
 type Project struct {
 	TargetPlatform string   `toml:"target_platform,omitempty"`
 	BuildType      string   `toml:"build_type"`
+	PythonVersion  string   `toml:"python_version,omitempty"`
 	Ports          []string `toml:"ports"`
 	Vars           []string `toml:"vars"`
 	Envs           []string `toml:"envs"`
@@ -49,9 +52,25 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 		return fmt.Errorf("failed to read %s -> %w", projectPath, err)
 	}
 
+	var needRewrite bool
+
 	// Default build_type.
 	if p.BuildType == "" {
 		p.BuildType = "Release"
+		needRewrite = true
+	}
+
+	// Default python version - dynamically determined based on platform
+	if p.PythonVersion == "" {
+		p.PythonVersion = buildtools.GetDefaultPythonVersion()
+		needRewrite = true
+	}
+
+	// Rewrite project with default values.
+	if needRewrite {
+		if err := p.Write(projectPath, true); err != nil {
+			return err
+		}
 	}
 
 	// Set values of internal fields.
@@ -60,7 +79,7 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 	return nil
 }
 
-func (p Project) Write(platformPath string) error {
+func (p Project) Write(platformPath string, override bool) error {
 	if p.BuildType == "" {
 		p.BuildType = "Release"
 	}
@@ -77,13 +96,18 @@ func (p Project) Write(platformPath string) error {
 		p.Macros = []string{}
 	}
 
+	// Default python version - dynamically determined based on platform.
+	if p.PythonVersion == "" {
+		p.PythonVersion = buildtools.GetDefaultPythonVersion()
+	}
+
 	bytes, err := toml.Marshal(p)
 	if err != nil {
 		return err
 	}
 
 	// Check if conf/projects/<project_name>.toml exists.
-	if fileio.PathExists(platformPath) {
+	if fileio.PathExists(platformPath) && !override {
 		return fmt.Errorf("%s is already exists", platformPath)
 	}
 
@@ -106,6 +130,10 @@ func (p Project) GetTargetPlatform() string {
 
 func (p Project) GetPorts() []string {
 	return p.Ports
+}
+
+func (p Project) GetPythonVersion() string {
+	return p.PythonVersion
 }
 
 func (p Project) deploy(force bool) error {

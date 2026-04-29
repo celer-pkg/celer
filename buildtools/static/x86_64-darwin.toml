@@ -1,0 +1,47 @@
+[[build_tools]]
+  name = "cmake"
+  version = "3.30.5"
+  default = true
+  url = "https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-macos10.13-universal2.tar.gz"
+  archive = "cmake-3.30.5-macos10.13-universal2.tar.gz"
+  paths = ["cmake-3.30.5-macos10.13-universal2/CMake.app/Contents/bin"]
+
+[[build_tools]]
+  name = "ninja"
+  version = "v1.12.1"
+  default = true
+  url = "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-mac.zip"
+  archive = "ninja-mac-v1.12.1.zip"
+  paths = ["ninja-mac-v1.12.1"]
+
+[[build_tools]]
+  name = "ccache"
+  version = "4.12.1"
+  default = true
+  url = "https://github.com/ccache/ccache/releases/download/v4.12.1/ccache-4.12.1-macos-universal2.tar.gz"
+  archive = "ccache-4.12.1-macos-universal2.tar.gz"
+  paths = ["ccache-4.12.1-macos-universal2"]
+
+[[build_tools]]
+  name = "llvm"
+  version = "17.0.6"
+  default = true
+  url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-apple-darwin21.0.tar.xz"
+  archive = "clang+llvm-17.0.6-x86_64-apple-darwin21.0.tar.xz"
+  paths = ["clang+llvm-17.0.6-x86_64-apple-darwin21.0/bin"]
+
+[[build_tools]]
+  name = "git-lfs"
+  version = "3.5.1"
+  default = true
+  url = "https://github.com/git-lfs/git-lfs/releases/download/v3.5.1/git-lfs-darwin-amd64-v3.5.1.tar.gz"
+  archive = "git-lfs-darwin-amd64-v3.5.1.tar.gz"
+  paths = ["git-lfs-darwin-amd64-v3.5.1/git-lfs-3.5.1"]
+
+[[build_tools]]
+  name = "conda"
+  version = "26.1.1-1"
+  default = true
+  url = "https://repo.anaconda.com/miniconda/Miniconda3-py312_26.1.1-1-MacOSX-x86_64.sh"
+  archive = "Miniconda3-py312_26.1.1-1-MacOSX-x86_64.sh"
+  paths = ["Miniconda3-py312_26.1.1-1"]

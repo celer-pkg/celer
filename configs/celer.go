@@ -254,8 +254,8 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	}
 
 	// Store global express vars if exist(maybe can delete later?)
-	if buildtools.Python3 != nil {
-		c.exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.Python3.Path))
+	if buildtools.PythonTool != nil {
+		c.exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.PythonTool.Path))
 	}
 	if buildtools.LLVMPath != "" {
 		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
@@ -311,7 +311,7 @@ func (c *Celer) CreateProject(projectName string) error {
 	// Create project file.
 	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
 	var project Project
-	if err := project.Write(projectPath); err != nil {
+	if err := project.Write(projectPath, false); err != nil {
 		return err
 	}
 
