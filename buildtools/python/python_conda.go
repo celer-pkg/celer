@@ -18,21 +18,23 @@ import (
 )
 
 type CondaPython struct {
-	ctx         context.Context
-	archiveName string
-	version     string
-	condaBinary string
+	ctx           context.Context
+	archiveName   string
+	pythonVersion string
+	condaVersion  string
+	condaBinary   string
 }
 
-func NewCondaPython(ctx context.Context, archiveName, version string) *CondaPython {
+func NewCondaPython(ctx context.Context, archiveName, condaVersion, pythonVersion string) *CondaPython {
 	return &CondaPython{
-		ctx:         ctx,
-		archiveName: archiveName,
-		version:     version,
+		ctx:           ctx,
+		archiveName:   archiveName,
+		condaVersion:  condaVersion,
+		pythonVersion: pythonVersion,
 	}
 }
 
-func installConda(scriptPath, installDir string) error {
+func (c *CondaPython) installConda(scriptPath, installDir string) error {
 	if !fileio.PathExists(scriptPath) {
 		return fmt.Errorf("Miniconda script not found at %s", scriptPath)
 	}
@@ -44,13 +46,13 @@ func installConda(scriptPath, installDir string) error {
 		condaBinary := filepath.Join(installDir, binDir, condaName)
 		if fileio.PathExists(condaBinary) {
 			if err := exec.Command(condaBinary, "--version").Run(); err == nil {
-				color.PrintPass("tool: %s", "Miniconda")
+				color.PrintPass("tool: %s", "conda-"+c.condaVersion)
 				color.PrintHint("Location: %s\n", installDir)
 				return nil
 			}
 		}
 		// Directory exists but conda might be broken, try to update existing installation.
-		color.PrintHint("Found existing Miniconda directory, attempting update...")
+		color.PrintHint("Found existing conda directory, attempting update...")
 	} else {
 		// Ensure install directory exists
 		if err := os.MkdirAll(installDir, os.ModePerm); err != nil {
@@ -62,10 +64,10 @@ func installConda(scriptPath, installDir string) error {
 	case "linux", "darwin":
 		// Make script executable on Unix systems.
 		if err := os.Chmod(scriptPath, os.ModePerm); err != nil {
-			return fmt.Errorf("failed to make Miniconda script executable: %w", err)
+			return fmt.Errorf("failed to make conda script executable: %w", err)
 		}
 
-		// Run Miniconda installer in batch mode with -b -p flags.
+		// Run conda installer in batch mode with -b -p flags.
 		// -b: batch mode (no interactive prompts)
 		// -p: installation prefix (directory)
 		// -u: update existing installation (if directory already exists)
@@ -78,10 +80,10 @@ func installConda(scriptPath, installDir string) error {
 				command := fmt.Sprintf("bash %s -b -u -p %s", scriptPath, installDir)
 				executor := cmd.NewExecutor("[conda install in update mode]", command)
 				if err := executor.Execute(); err != nil {
-					return fmt.Errorf("failed to install/update Miniconda: %w", err)
+					return fmt.Errorf("failed to install/update conda: %w", err)
 				}
 			} else {
-				return fmt.Errorf("failed to install Miniconda: %w", err)
+				return fmt.Errorf("failed to install conda: %w", err)
 			}
 		}
 
@@ -96,7 +98,7 @@ func installConda(scriptPath, installDir string) error {
 		command := fmt.Sprintf("%s /S /D=%s", scriptPath, installDir)
 		executor := cmd.NewExecutor("[conda install]", command)
 		if err := executor.Execute(); err != nil {
-			return fmt.Errorf("failed to install Miniconda: %w", err)
+			return fmt.Errorf("failed to install conda: %w", err)
 		}
 
 		// Verify conda binary exists
@@ -120,9 +122,9 @@ func (c *CondaPython) GetExecutable() (string, error) {
 	}
 
 	// Normalize version to minor version (e.g., 3.11.0 -> 3.11).
-	minorVersion := c.version
-	if strings.Count(c.version, ".") > 1 {
-		parts := strings.Split(c.version, ".")
+	minorVersion := c.pythonVersion
+	if strings.Count(c.pythonVersion, ".") > 1 {
+		parts := strings.Split(c.pythonVersion, ".")
 		minorVersion = parts[0] + "." + parts[1]
 	}
 
@@ -154,10 +156,9 @@ func (c *CondaPython) GetExecutable() (string, error) {
 	}
 
 	// Environment not found, attempt to create it with the specified Python version.
-	// Use conda-forge channel as fallback to ensure Python versions are available.
-	// Use --override-channels to avoid Terms of Service issues with default channels.
+	// Use conda-forge channel as the default source.
 	color.Printf(color.Hint, "- creating conda environment for Python %s (venv name: %s)", minorVersion, envName)
-	createCmd := exec.Command(c.condaBinary, "create", "-y", "--override-channels", "-c", "conda-forge", "-n", envName, fmt.Sprintf("python=%s", minorVersion))
+	createCmd := exec.Command(c.condaBinary, "create", "-y", "-c", "conda-forge", "-n", envName, fmt.Sprintf("python=%s", minorVersion))
 	if output, err := createCmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("failed to create conda environment for Python %s -> %s -> %w",
 			minorVersion, string(output), err)
@@ -185,14 +186,14 @@ func (c *CondaPython) GetExecutable() (string, error) {
 }
 
 func (c *CondaPython) GetVersion() string {
-	return c.version
+	return c.pythonVersion
 }
 
-// Setup proactively installs Miniconda if conda is not available.
+// Setup proactively installs conda if conda is not available.
 // Returns the path to the conda binary and error if installation fails.
 func (c *CondaPython) Setup() error {
 	// Determine the expected conda binary path
-	condaInstallDir := filepath.Join(dirs.WorkspaceDir, "downloads", "tools", "miniconda3")
+	condaInstallDir := filepath.Join(dirs.WorkspaceDir, "downloads", "tools", "conda-"+c.condaVersion)
 	condaBinDir := filepath.Join(condaInstallDir, expr.If(runtime.GOOS == "windows", "Scripts", "bin"))
 	condaBinary := filepath.Join(condaBinDir, expr.If(runtime.GOOS == "windows", "conda.exe", "conda"))
 
@@ -204,15 +205,15 @@ func (c *CondaPython) Setup() error {
 		}
 	}
 
-	// Need to install conda - get the Miniconda installer
-	condaInstallerPath, condaInstallDir, err := getCondaInstallerPaths(c.ctx, c.archiveName)
+	// Need to install conda - get the conda installer
+	condaInstallerPath, condaInstallDir, err := c.getCondaInstallerPaths()
 	if err != nil {
-		return fmt.Errorf("failed to locate Miniconda installer: %w", err)
+		return fmt.Errorf("failed to locate conda installer: %w", err)
 	}
 
-	// Execute the Miniconda installation script.
-	if err := installConda(condaInstallerPath, condaInstallDir); err != nil {
-		return fmt.Errorf("failed to execute Miniconda installation: %w", err)
+	// Execute the conda installation script.
+	if err := c.installConda(condaInstallerPath, condaInstallDir); err != nil {
+		return fmt.Errorf("failed to execute conda installation: %w", err)
 	}
 
 	// Update PATH to include conda's bin directory.
@@ -226,11 +227,11 @@ func (c *CondaPython) Setup() error {
 		return fmt.Errorf("conda binary not found at %s after installation", condaBinary)
 	}
 
-	// Accept Anaconda Terms of Service for new Miniconda versions.
-	// This is required for conda to work with the default channels.
-	tosCmd := exec.Command(condaBinary, "tos", "accept", "--override-channels", "--channel", "https://repo.anaconda.com/pkgs/main")
+	// Configure conda to use conda-forge channel as default.
+	// This enables conda-forge packages by default.
+	tosCmd := exec.Command(condaBinary, "config", "--add", "channels", "conda-forge")
 	if err := tosCmd.Run(); err != nil {
-		return fmt.Errorf("Note: Could not auto-accept conda ToS, some channels may require manual acceptance: %v", err)
+		return fmt.Errorf("Note: Could not configure conda-forge channel: %v", err)
 	}
 
 	// Note: Python version installation is handled by getPythonExecutable via conda create
@@ -240,17 +241,17 @@ func (c *CondaPython) Setup() error {
 	return nil
 }
 
-// getCondaInstallerPaths determines the paths to the Miniconda installer and installation directory.
-// Returns installer path and installation directory (e.g., miniconda3)
-func getCondaInstallerPaths(ctx context.Context, archiveName string) (string, string, error) {
-	downloadsDir := ctx.Downloads()
+// getCondaInstallerPaths determines the paths to the conda installer and installation directory.
+// Returns installer path and installation directory
+func (c *CondaPython) getCondaInstallerPaths() (string, string, error) {
+	downloadsDir := c.ctx.Downloads()
 
 	// Locate the installer in the downloads directory
-	installerPath := filepath.Join(downloadsDir, archiveName)
+	installerPath := filepath.Join(downloadsDir, c.archiveName)
 	if !fileio.PathExists(installerPath) {
-		return "", "", fmt.Errorf("Miniconda installer not found at %s", installerPath)
+		return "", "", fmt.Errorf("conda installer not found at %s", installerPath)
 	}
 
-	installDir := filepath.Join(downloadsDir, "tools", "miniconda3")
+	installDir := filepath.Join(downloadsDir, "tools", "conda-"+c.condaVersion)
 	return installerPath, installDir, nil
 }

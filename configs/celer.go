@@ -159,6 +159,12 @@ func (c *Celer) InitWithPlatform(platform string) error {
 			if err := c.project.Init(c, c.configData.Global.Project); err != nil {
 				return err
 			}
+		} else { // Set default project name.
+			if c.configData.Global.Project == "" {
+				c.configData.Global.Project = "unnamed"
+				c.project.Name = "unnamed"
+				c.project.PythonVersion = buildtools.GetDefaultPythonVersion()
+			}
 		}
 
 		// Validate package cache.
@@ -234,12 +240,6 @@ func (c *Celer) InitWithPlatform(platform string) error {
 
 	if c.platform.Toolchain == nil {
 		panic("Toolchain should not be empty, it may specified in platform or automatically detected.")
-	}
-
-	// Set default project name.
-	if c.configData.Global.Project == "" {
-		c.configData.Global.Project = "unnamed"
-		c.project.Name = "unnamed"
 	}
 
 	// Set global proxy.
