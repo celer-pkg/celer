@@ -91,11 +91,11 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 	if useSystemPython { // Use system Python if version matches.
 		currentPython = &python.SystemPython{}
 	} else { // Fallback to conda if system Python doesn't match or doesn't exist.
-		archiveName, err := getCondaArchiveFromConfig()
+		condaTool, err := findBuildTool("conda")
 		if err != nil {
-			return fmt.Errorf("failed to get conda archive from config -> %w", err)
+			return fmt.Errorf("failed to find conda tool for python setup -> %w", err)
 		}
-		currentPython = python.NewCondaPython(ctx, archiveName, pythonVersion)
+		currentPython = python.NewCondaPython(ctx, condaTool.Archive, condaTool.Version, pythonVersion)
 	}
 
 	if err := currentPython.Setup(); err != nil {
@@ -148,43 +148,6 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 		version: pythonVersion,
 	}
 	return nil
-}
-
-func getCondaArchiveFromConfig() (string, error) {
-	// Determine current architecture
-	arch := runtime.GOARCH
-	switch arch {
-	case "amd64", "x86_64":
-		arch = "x86_64"
-	case "arm64":
-		arch = "aarch64"
-	}
-
-	// Read the static TOML file for the current platform
-	staticFile := fmt.Sprintf("static/%s-%s.toml", arch, runtime.GOOS)
-	bytes, err := static.ReadFile(staticFile)
-	if err != nil {
-		return "", fmt.Errorf("failed to read TOML config %s -> %w", staticFile, err)
-	}
-
-	var buildTools BuildTools
-	if err := toml.Unmarshal(bytes, &buildTools); err != nil {
-		return "", fmt.Errorf("failed to parse TOML config %s -> %w", staticFile, err)
-	}
-
-	// Find the conda tool entry.
-	condaTool := buildTools.findTool(nil, "conda")
-	if condaTool == nil {
-		return "", fmt.Errorf("conda tool not found in %s", staticFile)
-	}
-
-	// Use the Archive field if specified, otherwise use the filename from URL.
-	if condaTool.Archive != "" {
-		return condaTool.Archive, nil
-	}
-
-	// Fallback: extract filename from URL.
-	return filepath.Base(condaTool.Url), nil
 }
 
 func getVersionedVenvPath(pythonVersion string) string {

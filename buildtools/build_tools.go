@@ -315,3 +315,35 @@ func (b BuildTools) parseNameVersion(buildtool string) (string, string) {
 
 	return buildtool, ""
 }
+
+// findBuildTool find build tool with tool name.
+func findBuildTool(toolName string) (*BuildTool, error) {
+	// Determine current architecture
+	arch := runtime.GOARCH
+	switch arch {
+	case "amd64", "x86_64":
+		arch = "x86_64"
+	case "arm64":
+		arch = "aarch64"
+	}
+
+	// Read the static TOML file for the current platform
+	staticFile := fmt.Sprintf("static/%s-%s.toml", arch, runtime.GOOS)
+	bytes, err := static.ReadFile(staticFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read TOML config %s -> %w", staticFile, err)
+	}
+
+	var buildTools BuildTools
+	if err := toml.Unmarshal(bytes, &buildTools); err != nil {
+		return nil, fmt.Errorf("failed to parse TOML config %s -> %w", staticFile, err)
+	}
+
+	// Find the tool entry.
+	condaTool := buildTools.findTool(nil, toolName)
+	if condaTool == nil {
+		return nil, fmt.Errorf("%s tool not found in %s", toolName, staticFile)
+	}
+
+	return condaTool, nil
+}

@@ -42,6 +42,6 @@
   name = "conda"
   version = "26.1.1-1"
   default = true
-  url = "https://repo.anaconda.com/miniconda/Miniconda3-py313_26.1.1-1-MacOSX-arm64.sh"
-  archive = "Miniconda3-py313_26.1.1-1-MacOSX-arm64.sh"
-  paths = ["Miniconda3-py313_26.1.1-1"]
+  url = "https://github.com/conda-forge/miniforge/releases/download/26.1.1-1/Miniforge3-26.1.1-1-MacOSX-arm64.sh"
+  archive = "Miniforge3-26.1.1-1-MacOSX-arm64.sh"
+  paths = ["Miniforge3-26.1.1-1-MacOSX-arm64"]
