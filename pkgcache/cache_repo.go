@@ -2,13 +2,14 @@ package pkgcache
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/fileio"
-	"github.com/celer-pkg/celer/pkgs/git"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 )
 
 const RepoCacheDir = "repos"
@@ -113,7 +114,7 @@ func (r Repo) Store(nameVersion, repoUrl, repoDir string) (string, error) {
 }
 
 // Restore extract restored archive to destination and return the archive filepath that restored from.
-// the checksum maybe sha-256 of a file or git commit hash.
+// the checksum maybe sha256 of a file or git commit hash.
 func (r Repo) Restore(nameVersion, repoUrl, repoDir, checksum string) (string, error) {
 	// skip restore cache when offline.
 	if r.ctx.Offline() {

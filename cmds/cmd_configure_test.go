@@ -1,14 +1,16 @@
 package cmds
 
 import (
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/errors"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/expr"
 
 	"github.com/spf13/cobra"
 )
@@ -213,7 +215,7 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if celer2.PkgCache().GetDir() != dirs.TestCacheDir {
+	if celer2.PkgCache().GetDir(context.PkgCacheDirRoot) != dirs.TestCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
 	}
 	if !celer2.PkgCache().IsWritable() {
@@ -651,7 +653,7 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
-	if celer2.PkgCache().GetDir() != dirs.TestCacheDir {
+	if celer2.PkgCache().GetDir(context.PkgCacheDirRoot) != dirs.TestCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
 	}
 }

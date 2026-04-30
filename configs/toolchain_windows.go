@@ -4,6 +4,13 @@ package configs
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"strconv"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/context"
@@ -12,12 +19,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"path/filepath"
-	"runtime"
-	"slices"
-	"strconv"
-	"strings"
 
 	"golang.org/x/sys/windows/registry"
 )
@@ -33,6 +34,11 @@ func (t *Toolchain) Validate() error {
 		t.displayName = "Microsoft Visual Studio"
 	} else {
 		t.displayName = fileio.Base(t.Url)
+	}
+
+	// Validate toolchain.sha256.
+	if !strings.HasPrefix(t.Url, "file:///") && t.SHA256 == "" {
+		return fmt.Errorf("toolchain.sha256 is empty, it's required for verification and caching")
 	}
 
 	// Validate toolchain.name.
@@ -220,7 +226,7 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 
 	// Check and repair resource.
 	toolsDir := filepath.Join(t.ctx.Downloads(), "tools")
-	repair := fileio.NewRepair(t.Url, t.ctx.Downloads(), archive, folderName, toolsDir)
+	repair := fileio.NewRepair(t.Url, t.ctx.Downloads(), archive, folderName, toolsDir, t.SHA256)
 	if err := repair.CheckAndRepair(t.ctx); err != nil {
 		return err
 	}

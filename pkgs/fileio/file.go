@@ -4,13 +4,14 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
 )
 
 // IsExecutable check if file was executable
@@ -66,6 +67,15 @@ func Base(fileName string) string {
 
 	ext := filepath.Ext(fileName)
 	return strings.TrimSuffix(fileName, ext)
+}
+
+// Ext it's a improved version to get file extension, it will return .tar.gz for archive file.
+func Ext(fileName string) string {
+	index := strings.Index(fileName, ".tar.")
+	if index > 0 {
+		return fileName[index:]
+	}
+	return filepath.Ext(fileName)
 }
 
 // CopyDir copy files in src to dest.

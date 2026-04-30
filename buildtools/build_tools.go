@@ -154,6 +154,7 @@ type BuildTool struct {
 	Version string   `toml:"version"`
 	Default bool     `toml:"default"`
 	Url     string   `toml:"url"`
+	SHA256  string   `toml:"sha256"`
 	Archive string   `toml:"archive"`
 	Paths   []string `toml:"paths"`
 
@@ -240,7 +241,7 @@ func (b *BuildTool) checkAndFix() error {
 	if len(b.Paths) == 0 && b.Archive != "" {
 		archiveName = b.Archive
 	}
-	repair := fileio.NewRepair(b.Url, b.ctx.Downloads(), archiveName, folderName, toolsDir)
+	repair := fileio.NewRepair(b.Url, b.ctx.Downloads(), archiveName, folderName, toolsDir, b.SHA256)
 	if err := repair.CheckAndRepair(b.ctx); err != nil {
 		return err
 	}

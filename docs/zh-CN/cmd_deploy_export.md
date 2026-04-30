@@ -27,7 +27,7 @@ celer deploy --export=<export_dir>
 
 - Git URL（`*.git`）：读取本地源码仓库实际 commit 哈希作为 checksum。
 - 私有仓库且指定了 `package.checksum`：使用该固定 checksum。
-- 压缩包 URL（`.zip/.tar...`）：使用 `sha-256:<checksum>` 作为 checksum。
+- 压缩包 URL（`.zip/.tar...`）：使用 `sha256:<checksum>` 作为 checksum。
 
 ## 常用示例
 

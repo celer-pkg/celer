@@ -80,7 +80,7 @@
 ```
 
 **推荐做法：**
-- **`checksum=[commit-hash/sha-256]`**：对于 git 仓库，建议固定为 git commit hash；对于压缩包，建议固定为文件的 `sha-256`。只有 commit hash 和 `sha-256` 能精确标识源码内容是否一致
+- **`checksum=[commit-hash/sha256]`**：对于 git 仓库，建议固定为 git commit hash；对于压缩包，建议固定为文件的 `sha256`。只有 commit hash 和 `sha256` 能精确标识源码内容是否一致
 - **`cache_repo=true`**：默认是 `false`，只有访问困难或希望通过共享缓存分发源码的端口才需要开启它。
 
 这样 repo 缓存才能在新的工作空间里稳定命中。
@@ -105,7 +105,7 @@ pkgcache/repos/x264@stable/31e19f92f00c7003fa115047ce50978bc98c3a0d.tar.gz
 
 ### 2. 源码压缩包
 
-压缩包类型的源码缓存以 **压缩包的 `sha-256`** 作为缓存键。
+压缩包类型的源码缓存以 **压缩包的 `sha256`** 作为缓存键。
 
 示例：
 
@@ -197,7 +197,7 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 - **Repo Cache 不是离线源替代品**：当前实现里，`offline=true` 时不会读写 repo 缓存。
 - **Repo Cache 不包含最终安装结果**：命中 repo 缓存并不代表能跳过编译。
 - **已有源码目录优先级更高**：如果 `buildtrees/.../src` 已经存在且非空，Celer 直接复用，不会再尝试恢复 repo 缓存。
-- **建议锁定源码版本**：想跨工作空间稳定命中 repo 缓存，最好使用固定 `commit hash` 或固定 `sha-256`，而不是浮动 branch 或 tag。
+- **建议锁定源码版本**：想跨工作空间稳定命中 repo 缓存，最好使用固定 `commit hash` 或固定 `sha256`，而不是浮动 branch 或 tag。
 
 ## ✅ 建议配置
 
@@ -207,7 +207,7 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 - 在网络较差或访问 GitHub 受限的团队环境里，把 `pkgcache.dir` 放到局域网共享目录
 - 对访问有困难的 port，在其 `port.toml` 里开启 `package.cache_repo=true`
 - 对稳定版本的 git 依赖使用固定 `commit hash`
-- 对压缩包源码提供明确的 `sha-256` 作为 `checksum`
+- 对压缩包源码提供明确的 `sha256` 作为 `checksum`
 - 对可复用的构建结果继续启用构建产物缓存
 
 这样可以同时减少：

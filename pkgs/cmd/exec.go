@@ -3,12 +3,13 @@ package cmd
 import (
 	"bytes"
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 type Executor struct {
@@ -117,13 +118,4 @@ func (e Executor) composeWriters(writers ...io.Writer) io.Writer {
 		return writers[0]
 	}
 	return io.MultiWriter(writers...)
-}
-
-func (e Executor) pathExists(path string) bool {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-
-	return !os.IsNotExist(err)
 }

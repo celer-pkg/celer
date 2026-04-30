@@ -2,22 +2,20 @@ package configs
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/env"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
-)
 
-var supportedToolchains = []string{
-	"gcc", "clang", "clang-cl", "qcc",
-}
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/env"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
+)
 
 type Toolchain struct {
 	Url             string `toml:"url"`                       // Download url or local file url.
+	SHA256          string `toml:"sha256"`                    // SHA256 of the toolchain archive, used for verification and caching.
 	Name            string `toml:"name"`                      // It should be "gcc", "msvc", "clang-cl", "clang" and "msys2".
 	Version         string `toml:"version"`                   // It should be version of gcc/msvc/clang.
 	Archive         string `toml:"archive,omitempty"`         // Archive can be changed to avoid conflict.

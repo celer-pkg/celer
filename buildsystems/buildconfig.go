@@ -2,6 +2,12 @@ package buildsystems
 
 import (
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/generator"
 	"github.com/celer-pkg/celer/pkgs/cmd"
@@ -11,11 +17,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/pc"
-	"io/fs"
-	"os"
-	"path/filepath"
-	"slices"
-	"strings"
 )
 
 var (
@@ -29,6 +30,7 @@ type PortConfig struct {
 	LibVersion      string   // like: `4.4`
 	Archive         string   // like: `ffmpeg-4.4.tar.xz`
 	Url             string   // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
+	Checksum        string   // Checksum(sha-256) of the archive, used for verification and caching.
 	CacheRepo       bool     // If true, repo will be archived to pkgcache's repos folder.
 	IgnoreSubmodule bool     // whether ignore submodule during git clone.
 	HostName        string   // like: `x86_64-linux`, `x86_64-windows`
@@ -363,7 +365,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 		// Check and repair resource.
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
-		repair := fileio.NewRepair(repoUrl, b.Ctx.Downloads(), archive, ".", b.PortConfig.RepoDir)
+		repair := fileio.NewRepair(repoUrl, b.Ctx.Downloads(), archive, ".", b.PortConfig.RepoDir, b.PortConfig.Checksum)
 		if err := repair.CheckAndRepair(b.Ctx); err != nil {
 			return err
 		}

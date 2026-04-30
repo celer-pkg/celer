@@ -80,7 +80,7 @@ Enable it in the `[package]` section of `port.toml`:
 ```
 
 **Recommended practice:**
-- **`checksum=[commit-hash/sha-256]`**: For git repositories, prefer a fixed git commit hash. For source archives, prefer the file's `sha-256` value. Only a commit hash or `sha-256` can precisely identify identical source content.
+- **`checksum=[commit-hash/sha256]`**: For git repositories, prefer a fixed git commit hash. For source archives, prefer the file's `sha256` value. Only a commit hash or `sha256` can precisely identify identical source content.
 - **`cache_repo=true`**: This is `false` by default. Enable it for ports whose sources are difficult to access, or when you want to distribute source through a shared cache.
 
 This is what makes repo cache stable across different workspaces.
@@ -105,7 +105,7 @@ This means:
 
 ### 2. Source archives
 
-For archive-based sources, the cache key is the **archive `sha-256` checksum**.
+For archive-based sources, the cache key is the **archive `sha256` checksum**.
 
 Example:
 
