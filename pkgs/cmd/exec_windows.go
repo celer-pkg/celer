@@ -4,12 +4,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"syscall"
+
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 func (e Executor) doExecute(output io.Writer) error {
@@ -42,7 +44,7 @@ func (e Executor) doExecute(output io.Writer) error {
 		cmd.Env = os.Environ()
 	}
 
-	if e.workDir != "" && !e.pathExists(e.workDir) {
+	if e.workDir != "" && !fileio.PathExists(e.workDir) {
 		return fmt.Errorf("work dir does not exist: %s", e.workDir)
 	}
 
