@@ -2,7 +2,7 @@
 
 > **Seamless CUDA toolkit integration for GPU-accelerated projects**
 
-## 🎯 Overview
+## Overview
 
 Celer provides automatic CUDA toolkit detection and configuration, making it easy to build GPU-accelerated C/C++ projects with CMake. When CUDA dependencies are detected in your project configuration, Celer automatically configures the CMake toolchain file with all necessary CUDA settings.
 
@@ -12,7 +12,7 @@ Celer provides automatic CUDA toolkit detection and configuration, making it eas
 - 🪟 **Visual Studio Integration** - Full support for Visual Studio CUDA projects on Windows
 - 🐧 **Cross-Platform** - Works seamlessly on both Windows and Linux
 
-## 💡 How It Works
+## How It Works
 
 Celer detects CUDA dependencies in two ways:
 
@@ -27,7 +27,7 @@ When CUDA is detected, Celer automatically adds the following configurations to 
 - `CMAKE_CUDA_FLAGS_INIT` - Default CUDA compiler flags
 - Windows-specific: `CMAKE_GENERATOR_TOOLSET` and `CMAKE_VS_PLATFORM_TOOLSET_CUDA` for Visual Studio integration
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Step 1: Install CUDA Toolkit
 
@@ -156,7 +156,7 @@ cmake --build . --config Release
 
 The toolchain file will automatically configure the CUDA toolset for Visual Studio.
 
-## 🔍 Manual CUDA Detection
+## Manual CUDA Detection
 
 If you prefer not to declare CUDA in your project dependencies, Celer can still detect it through backward compatibility mode. Simply ensure that:
 

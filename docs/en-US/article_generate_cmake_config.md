@@ -2,7 +2,7 @@
 
 > **Automatically generate standard CMake config files for prebuilt libraries**
 
-## 🎯 Why Do You Need This?
+## Why Do You Need This?
 
 Many excellent third-party libraries (like FFmpeg, x264) don't use CMake as their build system and don't generate CMake config files after installation. This creates integration challenges for projects using CMake:
 
@@ -13,10 +13,10 @@ Many excellent third-party libraries (like FFmpeg, x264) don't use CMake as thei
 - ⚙️ **High Maintenance Cost**: Each library needs custom find scripts
 
 **Celer's Solution:**
-- ✅ Automatically generate standard CMake config files
-- ✅ Consistent cross-platform experience
-- ✅ Automatically handle inter-component dependencies
-- ✅ Support for static, shared, and interface libraries
+- Automatically generate standard CMake config files
+- Consistent cross-platform experience
+- Automatically handle inter-component dependencies
+- Support for static, shared, and interface libraries
 
 ## 📚 Configuration Types Overview
 

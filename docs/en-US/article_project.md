@@ -2,7 +2,7 @@
 
 > **Define independent build environments and dependencies for different projects**
 
-## 🎯 What is Project Configuration?
+## What is Project Configuration?
 
 Project configuration defines how Celer manages dependencies and build environments for a specific project. Each project configuration contains five core components:
 
@@ -297,7 +297,7 @@ Configure independent optimization options for different compilers. A single pro
 
 ---
 
-## 🚀 Using Project Configuration
+## Using Project Configuration
 
 ### Create New Project
 

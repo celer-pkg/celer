@@ -2,12 +2,12 @@
 
 > **自动检测项目中的版本冲突和环形依赖问题**
 
-## 🎯 概述
+## 概述
 
 Celer 提供了强大的依赖检测机制，能够在项目构建前自动发现并报告两类关键问题：
 
-- 🔴 **版本冲突检测** - 同一库的不同版本在项目中共存
-- 🔄 **环形依赖检测** - 库之间存在循环引用关系
+- **版本冲突检测** - 同一库的不同版本在项目中共存
+- **环形依赖检测** - 库之间存在循环引用关系
 
 这些检测机制确保项目的依赖关系清晰、一致，避免构建时出现难以排查的错误。
 
@@ -35,8 +35,8 @@ Celer 会在以下操作时自动进行版本冲突检测：
 当检测到版本冲突时，Celer 会输出详细的冲突信息：
 
 ```
-[✘] failed to check circular dependency and version conflict.
-[☛] conflicting versions of ports detected:
+[failed] failed to check circular dependency and version conflict.
+[error] conflicting versions of ports detected:
 --> ffmpeg@5.1.6 is defined in opencv@4.11.0, ffmpeg@3.4.13 is defined in project_xxx.
 ```
 
@@ -45,7 +45,7 @@ Celer 会在以下操作时自动进行版本冲突检测：
 
 ---
 
-## 🔄 环形依赖检测
+## 环形依赖检测
 
 ### 什么是环形依赖？
 
@@ -82,7 +82,7 @@ Error: circular dev_dependency detected: m4@1.4.19 -> automake@1.18 [dev] -> aut
 
 ---
 
-## 🔍 检测原理
+## 检测原理
 
 ### 冲突检测算法
 
@@ -102,7 +102,7 @@ Celer 使用**深度优先搜索（DFS）+ 路径记录**算法：
 5. **报告路径** - 输出完整的循环依赖路径
 
 **关键特性：**
-- ✅ 区分开发依赖和运行时依赖
-- ✅ 支持 dev 依赖标记
-- ✅ 提供完整的循环路径信息
-- ✅ 高效的缓存机制避免重复检测
+- 区分开发依赖和运行时依赖
+- 支持 dev 依赖标记
+- 提供完整的循环路径信息
+- 高效的缓存机制避免重复检测

@@ -108,6 +108,7 @@ Celer 的优势在于它更关注**复杂工程环境里的交付效率和一致
 - [生成 CMake 配置文件](./article_generate_cmake_config.md) - 为预编译二进制库自动生成配置
 - [缓存构建产物](./article_pkgcache_artifacts.md) - 复用已构建产物，降低重复集成成本
 - [缓存源码仓库](./article_pkgcache_repos.md) - 上游仓库不稳定时，通过 Repo Cache 复用源码树
+- [缓存编译工具](./article_pkgcache_downloads.md) - 通过缓存编译工具，加快编译环境的速度和稳定性
 - [支持 CCache](./article_ccache.md) - 通过缓存编译结果加速重复编译
 - [动态变量](./article_expvars.md) - 查看 TOML 配置中可用的动态变量
 - [库版本冲突与环形依赖检测](./article_detect_conflict_circular.md) - 在构建前提前发现冲突和错误依赖关系
