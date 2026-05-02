@@ -2,16 +2,19 @@ package configs
 
 import (
 	"fmt"
+	"path/filepath"
+
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 type pkgCache struct {
-	Dir            string `toml:"dir"`
-	Writable       bool   `toml:"writable"`
-	CacheArtifiact bool   `toml:"cache_artifiact"`
-	CacheRepo      bool   `toml:"cache_repo"`
+	Dir             string `toml:"dir"`
+	Writable        bool   `toml:"writable"`
+	CacheArtifiacts bool   `toml:"cache_artifiacts"`
+	CacheRepos      bool   `toml:"cache_repos"`
+	CacheDownloads  bool   `toml:"cache_downloads"`
 
 	// Internal field.
 	ctx           context.Context
@@ -21,9 +24,12 @@ type pkgCache struct {
 
 func NewPkgCache(ctx context.Context, dir string, writable bool) *pkgCache {
 	return &pkgCache{
-		ctx:      ctx,
-		Dir:      dir,
-		Writable: writable,
+		ctx:             ctx,
+		Dir:             dir,
+		Writable:        writable,
+		CacheArtifiacts: true,
+		CacheRepos:      true,
+		CacheDownloads:  true,
 	}
 }
 
@@ -41,8 +47,20 @@ func (p *pkgCache) Validate() error {
 	return nil
 }
 
-func (p pkgCache) GetDir() string {
-	return p.Dir
+func (p pkgCache) GetDir(dirType context.PkgCacheDirType) string {
+	switch dirType {
+	case context.PkgCacheDirArtifacts:
+		return filepath.Join(p.Dir, "artifacts")
+
+	case context.PkgCacheDirRepos:
+		return filepath.Join(p.Dir, "repos")
+
+	case context.PkgCacheDirDownloads:
+		return filepath.Join(p.Dir, "downloads")
+
+	default:
+		return p.Dir
+	}
 }
 
 func (p pkgCache) IsWritable() bool {

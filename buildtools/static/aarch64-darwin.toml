@@ -2,15 +2,17 @@
   name = "cmake"
   version = "3.30.5"
   default = true
-  url = "https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-macos10.13-universal2.tar.gz"
-  archive = "cmake-3.30.5-macos10.13-universal2.tar.gz"
-  paths = ["cmake-3.30.5-macos10.13-universal2/CMake.app/Contents/bin"]
+  url = "https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-macos-universal.tar.gz"
+  sha256 = "3d603e507c7579b13518ef752b4ffcf3ed479fba80ee171d7d85da8153e869d0"
+  archive = "cmake-3.30.5-macos-universal.tar.gz"
+  paths = ["cmake-3.30.5-macos-universal/CMake.app/Contents/bin"]
 
 [[build_tools]]
   name = "ninja"
   version = "v1.12.1"
   default = true
   url = "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-mac.zip"
+  sha256 = "89a287444b5b3e98f88a945afa50ce937b8ffd1dcc59c555ad9b1baf855298c9"
   archive = "ninja-mac-v1.12.1.zip"
   paths = ["ninja-mac-v1.12.1"]
 
@@ -18,30 +20,34 @@
   name = "ccache"
   version = "4.12.1"
   default = true
-  url = "https://github.com/ccache/ccache/releases/download/v4.12.1/ccache-4.12.1-macos-universal2.tar.gz"
-  archive = "ccache-4.12.1-macos-universal2.tar.gz"
-  paths = ["ccache-4.12.1-macos-universal2"]
+  url = "https://github.com/ccache/ccache/releases/download/v4.12.1/ccache-4.12.1-darwin.tar.gz"
+  sha256 = "4cc7353ecfb53102512c1affc09fd52600421c66b8abaeb071a3babd3bf8f530"
+  archive = "ccache-4.12.1-darwin.tar.gz"
+  paths = ["ccache-4.12.1-darwin"]
 
 [[build_tools]]
   name = "llvm"
   version = "17.0.6"
   default = true
-  url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-arm64-apple-darwin21.0.tar.xz"
-  archive = "clang+llvm-17.0.6-arm64-apple-darwin21.0.tar.xz"
-  paths = ["clang+llvm-17.0.6-arm64-apple-darwin21.0/bin"]
+  url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-arm64-apple-darwin22.0.tar.xz"
+  sha256 = ""
+  archive = "clang+llvm-17.0.6-arm64-apple-darwin22.0.tar.xz"
+  paths = ["clang+llvm-17.0.6-arm64-apple-darwin22.0/bin"]
 
 [[build_tools]]
   name = "git-lfs"
   version = "3.5.1"
   default = true
   url = "https://github.com/git-lfs/git-lfs/releases/download/v3.5.1/git-lfs-darwin-arm64-v3.5.1.tar.gz"
+  sha256 = "1264eb3c2a4a6d5e9354c3e5dc5cb6c6481e678f6456f36d2e0e566e9400fcad"
   archive = "git-lfs-darwin-arm64-v3.5.1.tar.gz"
   paths = ["git-lfs-darwin-arm64-v3.5.1/git-lfs-3.5.1"]
 
 [[build_tools]]
   name = "conda"
-  version = "26.1.1-1"
+  version = "26.1.1-3"
   default = true
-  url = "https://github.com/conda-forge/miniforge/releases/download/26.1.1-1/Miniforge3-26.1.1-1-MacOSX-arm64.sh"
-  archive = "Miniforge3-26.1.1-1-MacOSX-arm64.sh"
-  paths = ["Miniforge3-26.1.1-1-MacOSX-arm64"]
+  url = "https://github.com/conda-forge/miniforge/releases/download/26.1.1-3/Miniforge3-26.1.1-3-MacOSX-arm64.sh"
+  sha256 = "38e73713bc504e11cf2a70f8bc01de4a778c547e9191e682606ba76fa4397fd9"
+  archive = "Miniforge3-26.1.1-3-MacOSX-arm64.sh"
+  paths = ["Miniforge3-26.1.1-3-MacOSX-arm64"]

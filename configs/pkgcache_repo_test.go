@@ -25,9 +25,9 @@ type fakePkgCache struct {
 	writable bool
 }
 
-func (f fakePkgCache) GetDir() string                           { return f.dir }
-func (f fakePkgCache) IsWritable() bool                         { return f.writable }
-func (f fakePkgCache) GetArtifactCache() context.AritifactCache { return nil }
+func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string { return f.dir }
+func (f fakePkgCache) IsWritable() bool                              { return f.writable }
+func (f fakePkgCache) GetArtifactCache() context.AritifactCache      { return nil }
 func (f fakePkgCache) GetRepoCache() context.RepoCache {
 	return pkgcache.NewRepo(fakeContext{}, f.dir, f.writable)
 }

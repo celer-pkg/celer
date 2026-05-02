@@ -19,8 +19,17 @@ type Context interface {
 	ExprVars() *ExprVars
 }
 
+type PkgCacheDirType uint8
+
+const (
+	PkgCacheDirRoot PkgCacheDirType = iota
+	PkgCacheDirRepos
+	PkgCacheDirArtifacts
+	PkgCacheDirDownloads
+)
+
 type PkgCache interface {
-	GetDir() string
+	GetDir(dirType PkgCacheDirType) string
 	IsWritable() bool
 	GetArtifactCache() AritifactCache
 	GetRepoCache() RepoCache

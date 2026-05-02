@@ -4,6 +4,11 @@ package configs
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/context"
@@ -11,22 +16,26 @@ import (
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"path/filepath"
-	"slices"
-	"strings"
 )
+
+var supportedToolchains = []string{
+	"gcc", "clang", "clang-cl", "qcc",
+}
 
 func (t *Toolchain) Validate() error {
 	// Validate toolchain download url.
 	if t.Url == "" {
 		return fmt.Errorf("toolchain.url would be http url or local file url, but it's empty")
 	}
-
 	if t.Url == "file:////usr/bin" {
 		t.displayName = t.Name
 	} else {
 		t.displayName = fileio.Base(t.Url)
+	}
+
+	// Validate toolchain.sha256.
+	if !strings.HasPrefix(t.Url, "file:///") && t.SHA256 == "" {
+		return fmt.Errorf("toolchain.sha256 is empty, it's required for verification and caching")
 	}
 
 	// Validate toolchain.name.
@@ -144,7 +153,7 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 	// Check and repair resource.
 	archiveName := expr.If(t.Archive != "", t.Archive, filepath.Base(t.Url))
 	toolsDir := filepath.Join(t.ctx.Downloads(), "tools")
-	repair := fileio.NewRepair(t.Url, t.ctx.Downloads(), archiveName, folderName, toolsDir)
+	repair := fileio.NewRepair(t.Url, t.ctx.Downloads(), archiveName, folderName, toolsDir, t.SHA256)
 	if err := repair.CheckAndRepair(t.ctx); err != nil {
 		return err
 	}

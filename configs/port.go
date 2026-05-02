@@ -1,17 +1,18 @@
 package configs
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"fmt"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strings"
 
 	"github.com/BurntSushi/toml"
 )

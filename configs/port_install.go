@@ -471,7 +471,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 	// Check if has package pkgCache configure.
 	pkgCache := p.ctx.PkgCache()
-	if pkgCache == nil || pkgCache.GetDir() == "" {
+	if pkgCache == nil || pkgCache.GetDir(context.PkgCacheDirRoot) == "" {
 		return false, nil
 	}
 
@@ -494,7 +494,7 @@ func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		fromDir := pkgCache.GetDir()
+		fromDir := pkgCache.GetDir(context.PkgCacheDirRoot)
 		return true, p.writeTraceFile(fmt.Sprintf("pkgcache: %q", fromDir))
 	} else if p.Package.Checksum != "" {
 		return false, fmt.Errorf("%w: %s", errors.ErrPkgCacheArtifactNotFound, p.Package.Checksum)

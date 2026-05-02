@@ -2,7 +2,7 @@
 
 > **通过 Repo Cache 避免重复 克隆 / 下载源码**
 
-## 🎯 为什么需要 Repo Cache？
+## 为什么需要 Repo Cache？
 
 构建产物缓存解决的是“已经编译好的库能否复用”，而 **repo 缓存** 解决的是“源码能否直接复用”。
 
@@ -18,7 +18,7 @@
 - **应对上游短暂不可用** - 远端仓库或文件临时不可达时，仍可从本地缓存恢复
 - **和构建产物缓存配合** - 先复用源码，再决定是否继续复用已编译产物
 
-## 🔍 Repo Cache 和 Artifact Cache 的区别
+## Repo Cache 和 Artifact Cache 的区別
 
 | 能力 | Repo Cache | 构建产物缓存 |
 |------|------------|--------------|
@@ -31,7 +31,7 @@
 - **Repo 缓存** 命中后，仍可能需要继续编译
 - **Artifact 缓存** 命中后，通常意味着直接跳过编译过程，而走了模拟安装过程
 
-## 💡 工作原理
+## 工作原理
 
 在需要准备源码时，Celer 的流程如下：
 
@@ -41,7 +41,7 @@
 4. 如果缓存未命中，再执行正常的 git clone 或压缩包下载/解压
 5. 当源码准备完成后，如果 `pkgcache.writable=true` 且当前不是 offline 模式，则把源码打包写入 repo 缓存
 
-## 🚀 快速开始
+## 快速开始
 
 ### 步骤1：配置 pkgcache
 
@@ -80,7 +80,7 @@
 ```
 
 **推荐做法：**
-- **`checksum=[commit-hash/sha-256]`**：对于 git 仓库，建议固定为 git commit hash；对于压缩包，建议固定为文件的 `sha-256`。只有 commit hash 和 `sha-256` 能精确标识源码内容是否一致
+- **`checksum=[commit-hash/sha256]`**：对于 git 仓库，建议固定为 git commit hash；对于压缩包，建议固定为文件的 `sha256`。只有 commit hash 和 `sha256` 能精确标识源码内容是否一致
 - **`cache_repo=true`**：默认是 `false`，只有访问困难或希望通过共享缓存分发源码的端口才需要开启它。
 
 这样 repo 缓存才能在新的工作空间里稳定命中。
@@ -105,7 +105,7 @@ pkgcache/repos/x264@stable/31e19f92f00c7003fa115047ce50978bc98c3a0d.tar.gz
 
 ### 2. 源码压缩包
 
-压缩包类型的源码缓存以 **压缩包的 `sha-256`** 作为缓存键。
+压缩包类型的源码缓存以 **压缩包的 `sha256`** 作为缓存键。
 
 示例：
 
@@ -125,7 +125,7 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 
 这类缓存适合的场景与 git 仓库类似，本质上都是为了在网络受限时仍然能稳定拿到源码。
 
-## 🔄 实际行为细节
+## 实际行为细节
 
 ### 什么时候会尝试读取 repo 缓存？
 
@@ -158,7 +158,7 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 - 请求的 commit / checksum 对应缓存不存在
 - 开启了 offline 模式
 
-## 📁 目录结构
+## 目录结构
 
 repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 
@@ -179,7 +179,7 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 - 第二层是库名和版本，例如 `x264@stable`
 - 第三层是缓存键命名的 `.tar.gz` 文件
 
-## 🧩 和构建产物缓存如何配合
+## 和构建产物缓存如何配合
 
 一次典型安装中，Celer 可能按下面顺序工作：
 
@@ -192,14 +192,14 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 - repo 缓存解决“源码从哪里来”
 - 构建产物缓存解决“编译结果能不能直接复用”
 
-## ⚠️ 当前注意事项
+## 当前注意事项
 
 - **Repo Cache 不是离线源替代品**：当前实现里，`offline=true` 时不会读写 repo 缓存。
 - **Repo Cache 不包含最终安装结果**：命中 repo 缓存并不代表能跳过编译。
 - **已有源码目录优先级更高**：如果 `buildtrees/.../src` 已经存在且非空，Celer 直接复用，不会再尝试恢复 repo 缓存。
-- **建议锁定源码版本**：想跨工作空间稳定命中 repo 缓存，最好使用固定 `commit hash` 或固定 `sha-256`，而不是浮动 branch 或 tag。
+- **建议锁定源码版本**：想跨工作空间稳定命中 repo 缓存，最好使用固定 `commit hash` 或固定 `sha256`，而不是浮动 branch 或 tag。
 
-## ✅ 建议配置
+## 建议配置
 
 如果你的项目同时支持 repo 缓存和构建产物缓存，推荐这样使用：
 
@@ -207,7 +207,7 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 - 在网络较差或访问 GitHub 受限的团队环境里，把 `pkgcache.dir` 放到局域网共享目录
 - 对访问有困难的 port，在其 `port.toml` 里开启 `package.cache_repo=true`
 - 对稳定版本的 git 依赖使用固定 `commit hash`
-- 对压缩包源码提供明确的 `sha-256` 作为 `checksum`
+- 对压缩包源码提供明确的 `sha256` 作为 `checksum`
 - 对可复用的构建结果继续启用构建产物缓存
 
 这样可以同时减少：

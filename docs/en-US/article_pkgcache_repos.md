@@ -2,7 +2,7 @@
 
 > **Avoid repeated clones and source downloads with Repo Cache**
 
-## 🎯 Why Repo Cache?
+## Why Repo Cache?
 
 Artifact cache solves the question of whether an already built library can be reused, while **repo cache** solves whether the **source code itself** can be reused.
 
@@ -18,7 +18,7 @@ When a project depends on many git repositories or source archives, repeated clo
 - **Handle temporary upstream outages** - Restore from local cache when the remote source is temporarily unavailable
 - **Combine with build artifact cache** - Reuse source first, then decide whether build outputs can also be reused
 
-## 🔍 Repo Cache vs Artifact Cache
+## Repo Cache vs Artifact Cache
 
 | Capability | Repo Cache | Build Artifact Cache |
 |------------|------------|----------------------|
@@ -31,7 +31,7 @@ In simple terms:
 - A **repo cache** hit may still lead to a normal build
 - An **artifact cache** hit usually means the build step is skipped and Celer goes through the simulated install flow instead
 
-## 💡 How It Works
+## How It Works
 
 When source code needs to be prepared, Celer follows this flow:
 
@@ -41,7 +41,7 @@ When source code needs to be prepared, Celer follows this flow:
 4. If there is no cache hit, fall back to the normal git clone or archive download/extract flow
 5. After the source is ready, if `pkgcache.writable=true` and the current run is not in offline mode, package that source into repo cache
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Step 1: Configure `pkgcache`
 
@@ -80,12 +80,12 @@ Enable it in the `[package]` section of `port.toml`:
 ```
 
 **Recommended practice:**
-- **`checksum=[commit-hash/sha-256]`**: For git repositories, prefer a fixed git commit hash. For source archives, prefer the file's `sha-256` value. Only a commit hash or `sha-256` can precisely identify identical source content.
+- **`checksum=[commit-hash/sha256]`**: For git repositories, prefer a fixed git commit hash. For source archives, prefer the file's `sha256` value. Only a commit hash or `sha256` can precisely identify identical source content.
 - **`cache_repo=true`**: This is `false` by default. Enable it for ports whose sources are difficult to access, or when you want to distribute source through a shared cache.
 
 This is what makes repo cache stable across different workspaces.
 
-## 🧭 Cache Keys for the Two Source Types
+## Cache Keys for the Two Source Types
 
 ### 1. Git repositories
 
@@ -101,11 +101,11 @@ This means:
 - After the first online clone, Celer packages the source tree for that commit into repo cache
 - If a later install resolves to the same commit hash, Celer can restore it directly from cache
 
-> 💡 If `ref` is a floating branch or tag instead of a fixed commit, Celer may still write cache after the first clone, but future runs may not reliably hit that cache before touching the remote source. For stable cache hits, it is better to write the fixed commit hash into the `checksum` field.
+> If `ref` is a floating branch or tag instead of a fixed commit, Celer may still write cache after the first clone, but future runs may not reliably hit that cache before touching the remote source. For stable cache hits, it is better to write the fixed commit hash into the `checksum` field.
 
 ### 2. Source archives
 
-For archive-based sources, the cache key is the **archive `sha-256` checksum**.
+For archive-based sources, the cache key is the **archive `sha256` checksum**.
 
 Example:
 
@@ -125,7 +125,7 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 
 These scenarios are similar to git repositories. The real goal is the same: keep source access stable even when the network is restricted.
 
-## 🔄 Runtime Behavior Details
+## Runtime Behavior Details
 
 ### When does Celer try to read repo cache?
 
@@ -158,7 +158,7 @@ Common cases include:
 - No cache entry exists for the requested commit / checksum
 - Offline mode is enabled
 
-## 📁 Directory Layout
+## Directory Layout
 
 Repo cache entries are organized by `name@version` under `pkgcache/repos`:
 
@@ -179,7 +179,7 @@ Breakdown:
 - The second level is the library name and version, for example `x264@stable`
 - The third level is a `.tar.gz` file named by the cache key
 
-## 🧩 How It Works with Artifact Cache
+## How It Works with Artifact Cache
 
 In a typical install, Celer may work in this order:
 
@@ -192,14 +192,14 @@ These two mechanisms do not conflict. They complement each other:
 - Repo cache answers "where does the source come from?"
 - Artifact cache answers "can the build result be reused directly?"
 
-## ⚠️ Current Notes
+## Current Notes
 
 - **Repo cache is not a full offline-source replacement**: In the current implementation, `offline=true` disables both reading and writing repo cache.
 - **Repo cache does not contain final install outputs**: A repo cache hit does not mean the build can be skipped.
 - **An existing source directory has higher priority**: If `buildtrees/.../src` already exists and is non-empty, Celer reuses it instead of restoring repo cache.
 - **Lock source versions for reliable hits**: To get stable repo cache hits across workspaces, prefer fixed commits or fixed checksums instead of floating branches.
 
-## ✅ Recommended Setup
+## Recommended Setup
 
 If your project uses both repo cache and build artifact cache, a good setup is:
 

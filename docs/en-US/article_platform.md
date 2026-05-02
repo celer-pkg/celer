@@ -2,7 +2,7 @@
 
 > **Configure cross-compilation environments for different target platforms**
 
-## 🎯 What is Platform Configuration?
+## What is Platform Configuration?
 
 Platform configuration defines how Celer compiles C/C++ libraries for specific target systems. Each platform configuration contains two core components:
 

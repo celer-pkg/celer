@@ -3,6 +3,7 @@
   version = "3.30.5"
   default = true
   url = "https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-macos10.13-universal2.tar.gz"
+  sha256 = ""
   archive = "cmake-3.30.5-macos10.13-universal2.tar.gz"
   paths = ["cmake-3.30.5-macos10.13-universal2/CMake.app/Contents/bin"]
 
@@ -11,6 +12,7 @@
   version = "v1.12.1"
   default = true
   url = "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-mac.zip"
+  sha256 = ""
   archive = "ninja-mac-v1.12.1.zip"
   paths = ["ninja-mac-v1.12.1"]
 
@@ -19,6 +21,7 @@
   version = "4.12.1"
   default = true
   url = "https://github.com/ccache/ccache/releases/download/v4.12.1/ccache-4.12.1-macos-universal2.tar.gz"
+  sha256 = ""
   archive = "ccache-4.12.1-macos-universal2.tar.gz"
   paths = ["ccache-4.12.1-macos-universal2"]
 
@@ -27,6 +30,7 @@
   version = "17.0.6"
   default = true
   url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-apple-darwin21.0.tar.xz"
+  sha256 = ""
   archive = "clang+llvm-17.0.6-x86_64-apple-darwin21.0.tar.xz"
   paths = ["clang+llvm-17.0.6-x86_64-apple-darwin21.0/bin"]
 
@@ -35,6 +39,7 @@
   version = "3.5.1"
   default = true
   url = "https://github.com/git-lfs/git-lfs/releases/download/v3.5.1/git-lfs-darwin-amd64-v3.5.1.tar.gz"
+  sha256 = ""
   archive = "git-lfs-darwin-amd64-v3.5.1.tar.gz"
   paths = ["git-lfs-darwin-amd64-v3.5.1/git-lfs-3.5.1"]
 
@@ -43,5 +48,6 @@
   version = "26.1.1-3"
   default = true
   url = "https://github.com/conda-forge/miniforge/releases/download/26.1.1-3/Miniforge3-26.1.1-3-MacOSX-x86_64.sh"
+  sha256 = ""
   archive = "Miniforge3-26.1.1-3-MacOSX-x86_64.sh"
   paths = ["Miniforge3-26.1.1-3-MacOSX-x86_64"]

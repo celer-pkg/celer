@@ -2,7 +2,7 @@
 
 > **Save hours of build time with intelligent artifact caching**
 
-## 🎯 Why Cache?
+## Why Cache?
 
 Compiling C/C++ libraries from source is time-consuming and can severely impact development efficiency. A typical project with 20+ dependencies may take **2-3 hours** for the first build. Celer's intelligent caching system can reduce later builds to **just a few minutes**.
 
@@ -12,7 +12,7 @@ Compiling C/C++ libraries from source is time-consuming and can severely impact 
 - **Private libraries** - Distribute prebuilt binaries without exposing source code
 - **Precise invalidation** - Cache entries are invalidated automatically whenever dependencies or configuration change
 
-## 💡 How It Works
+## How It Works
 
 Celer uses **hash-based caching** to store and retrieve build artifacts:
 
@@ -21,7 +21,7 @@ Celer uses **hash-based caching** to store and retrieve build artifacts:
 3. **Use or build**: If found, extract and use it; if not, build from source
 4. **Store the result**: Automatically save the new build artifact for future reuse when conditions allow
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Step 1: Configure the Cache Location
 
@@ -44,7 +44,7 @@ Add a `[pkgcache]` section to `celer.toml` to enable cache lookup:
 - If a match is found, it is extracted and used immediately
 - If not found, the library is built from source as usual
 
-> 💡 **Tip**: Use a network-mounted folder such as NFS, SMB, or FTP to share cache across a team
+> **Tip**: Use a network-mounted folder such as NFS, SMB, or FTP to share cache across a team
 
 ### Step 2: Store Build Artifacts Automatically
 
@@ -84,7 +84,7 @@ celer install eigen@3.4.0
 - Search under `pkgcache/artifacts` using that hash and the current build configuration
 - If a matching artifact archive is found, reuse it by simulating the normal post-build install flow
 
-## 🔒 Private Library Distribution
+## Private Library Distribution
 
 ### Distribute Prebuilt Binaries Without Exposing Source Code
 
@@ -112,7 +112,7 @@ For private or proprietary libraries, you can distribute prebuilt artifacts with
 - Speed up CI/CD pipelines by skipping git clone
 - Control access to proprietary code while still sharing binaries
 
-## 📁 Cache Directory Structure
+## Cache Directory Structure
 
 Celer organizes cached artifacts in a hierarchical layout that is easy to manage:
 
@@ -146,7 +146,7 @@ Celer organizes cached artifacts in a hierarchical layout that is easy to manage
 - **Artifacts**: Hash-named `.tar.gz` files containing built outputs
 - **Metadata**: `.meta` files storing the hash key and build configuration
 
-## 🔑 How Cache Keys Work
+## How Cache Keys Work
 
 Celer generates a **unique hash** for every build configuration. This hash is the cache key, so artifacts are reused only when the build is truly identical.
 
@@ -172,7 +172,7 @@ The hash is calculated from multiple factors:
 - **Recursive dependency hashes**: Hashes of all dependencies, such as x264 and nasm
 - **Dependency configuration**: Their build options, versions, and patches
 
-### 🔄 Automatic Cache Invalidation
+### Automatic Cache Invalidation
 
 **Any change to these factors produces a new hash:**
 
@@ -186,4 +186,4 @@ When the hash changes:
 2. The library is rebuilt from source
 3. The new artifact is stored under the new hash
 
-> ✅ **Result**: You never reuse stale or incompatible cached artifacts.
+> **Result**: You never reuse stale or incompatible cached artifacts.

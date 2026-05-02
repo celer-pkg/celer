@@ -2,14 +2,15 @@ package configs
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-// GetArchiveChecksums returns SHA-256 of toolchain and rootfs archives for cache key.
+// GetArchiveChecksums returns sha256 of toolchain and rootfs archives for cache key.
 // Empty string means no archive (e.g. native toolchain, local dir, or nil rootfs).
 func (p *Platform) GetArchiveChecksums() (toolchainChecksum, rootfsChecksum string, err error) {
 	if p.Toolchain != nil {

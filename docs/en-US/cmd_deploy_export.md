@@ -27,7 +27,7 @@ celer deploy --export=<export_dir>
 
 - Git URL (`*.git`): read the actual local commit hash from cloned source as the checksum.
 - Private repo with fixed `package.checksum`: use that fixed checksum.
-- Archive URL (`.zip/.tar...`): use `sha-256:<checksum>` as the checksum.
+- Archive URL (`.zip/.tar...`): use `sha256:<checksum>` as the checksum.
 
 ## Common Examples
 

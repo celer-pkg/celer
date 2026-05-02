@@ -2,7 +2,7 @@
 
 > **Accelerate C/C++ compilation by caching object files**
 
-## 🎯 What is CCache?
+## What is CCache?
 
 CCache (Compiler Cache) is a compiler cache that speeds up recompilation by caching previous compilations and detecting when the same compilation is being done again. Unlike [build artifact cache](article_pkgcache_artifacts.md), which caches entire built libraries, CCache works at the **object file level** during compilation.
 
@@ -12,7 +12,7 @@ CCache (Compiler Cache) is a compiler cache that speeds up recompilation by cach
 - 🌐 **Remote storage** - Share compilation cache across teams via HTTP
 - 💾 **Space efficient** - Configurable cache size with automatic cleanup
 
-## 💡 CCache vs Package Cache
+## CCache vs Package Cache
 
 | Feature | CCache | Package Cache |
 |---------|--------|--------------|
@@ -26,7 +26,7 @@ CCache (Compiler Cache) is a compiler cache that speeds up recompilation by cach
 - **CCache**: Speeds up daily development when making small changes
 - **Package Cache**: Eliminates full dependency rebuilds when switching branches or setting up new environments
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Step 1: Enable CCache
 

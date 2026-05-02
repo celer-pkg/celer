@@ -3,16 +3,18 @@ package configs
 import (
 	"bytes"
 	"fmt"
+	"path/filepath"
+	"strings"
+
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"path/filepath"
-	"strings"
 )
 
 type RootFS struct {
 	Url           string   `toml:"url"`               // Download url.
+	SHA256        string   `toml:"sha256"`            // SHA256 of the toolchain archive, used for verification and caching.
 	Archive       string   `toml:"archive,omitempty"` // Archive can be changed to avoid conflict.
 	Path          string   `toml:"path"`              // Runtime path of tool, it's relative path  and would be converted to absolute path later.
 	PkgConfigPath []string `toml:"pkg_config_path"`
@@ -27,12 +29,16 @@ type RootFS struct {
 func (r *RootFS) Validate() error {
 	// Validate rootfs download url.
 	if r.Url == "" {
-		return fmt.Errorf("rootfs.url is empty")
+		return fmt.Errorf("rootfs.url is empty, it's required for downloading and caching")
+	}
+
+	if r.SHA256 == "" {
+		return fmt.Errorf("rootfs.sha256 is empty, it's required for verification and caching")
 	}
 
 	// Validate rootfs path and convert to absolute path.
 	if r.Path == "" {
-		return fmt.Errorf("rootfs.path is empty")
+		return fmt.Errorf("rootfs.path is empty, it's required for specifying the root filesystem location")
 	}
 
 	r.abspath = filepath.Join(r.ctx.Downloads(), "tools", r.Path)
@@ -51,7 +57,7 @@ func (r *RootFS) CheckAndRepair() error {
 	// Check and repair resource.
 	archiveName := expr.If(r.Archive != "", r.Archive, filepath.Base(r.Url))
 	toolsDir := filepath.Join(r.ctx.Downloads(), "tools")
-	repair := fileio.NewRepair(r.Url, r.ctx.Downloads(), archiveName, folderName, toolsDir)
+	repair := fileio.NewRepair(r.Url, r.ctx.Downloads(), archiveName, folderName, toolsDir, r.SHA256)
 	if err := repair.CheckAndRepair(r.ctx); err != nil {
 		return err
 	}

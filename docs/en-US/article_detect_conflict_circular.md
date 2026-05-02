@@ -2,12 +2,12 @@
 
 > **Automatically detect version conflicts and circular dependencies in your project**
 
-## 🎯 Overview
+## Overview
 
 Celer provides powerful dependency detection mechanisms that automatically discover and report two critical types of issues before project builds:
 
-- 🔴 **Version Conflict Detection** - Multiple versions of the same library coexisting in the project
-- 🔄 **Circular Dependency Detection** - Circular reference relationships between libraries
+- **Version Conflict Detection** - Multiple versions of the same library coexisting in the project
+- **Circular Dependency Detection** - Circular reference relationships between libraries
 
 These detection mechanisms ensure clear and consistent dependency relationships in your project, avoiding hard-to-debug errors during builds.
 
@@ -35,8 +35,8 @@ Celer automatically performs version conflict detection during the following ope
 When a version conflict is detected, Celer outputs detailed conflict information:
 
 ```
-[✘] failed to check circular dependency and version conflict.
-[☛] conflicting versions of ports detected:
+[failed] failed to check circular dependency and version conflict.
+[error] conflicting versions of ports detected:
 --> ffmpeg@5.1.6 is defined in opencv@4.11.0, ffmpeg@3.4.13 is defined in project_xxx.
 ```
 
@@ -45,7 +45,7 @@ The `ffmpeg` library has two versions (5.1.6 and 3.4.13) referenced simultaneous
 
 ---
 
-## 🔄 Circular Dependency Detection
+## Circular Dependency Detection
 
 ### What is a Circular Dependency?
 
@@ -82,7 +82,7 @@ The `[dev]` marker indicates this is compiled by the local toolchain and serves 
 
 ---
 
-## 🔍 Detection Principles
+## Detection Principles
 
 ### Conflict Detection Algorithm
 
@@ -102,7 +102,7 @@ Celer uses a **Depth-First Search (DFS) + Path Recording** algorithm:
 5. **Report Path** - Output complete circular dependency path
 
 **Key Features:**
-- ✅ Distinguishes between dev dependencies and runtime dependencies
-- ✅ Supports dev dependency markers
-- ✅ Provides complete circular path information
-- ✅ Efficient caching mechanism to avoid duplicate detection
+- Distinguishes between dev dependencies and runtime dependencies
+- Supports dev dependency markers
+- Provides complete circular path information
+- Efficient caching mechanism to avoid duplicate detection

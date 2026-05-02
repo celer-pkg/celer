@@ -2,13 +2,14 @@ package timemachine
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
-	"path/filepath"
-	"strings"
 )
 
 // Collector collects ports and their dependencies.
@@ -69,9 +70,9 @@ func (c *Collector) collectRecursive(nameVersion string) error {
 
 // GetPortChecksum gets the reproducibility checksum from the downloaded source.
 // For git sources this is the checked-out commit hash. For archive sources this
-// is the archive sha-256 prefixed with "sha-256:".
+// is the archive sha-256 prefixed with "sha256:".
 func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
-	// For archive downloads (zip/tar), use the sha-256 as checksum.
+	// For archive downloads (zip/tar), use the sha256 as checksum.
 	if !strings.HasSuffix(port.Package.Url, ".git") {
 		archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
 		filePath := filepath.Join(c.ctx.Downloads(), archive)
@@ -79,7 +80,7 @@ func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of port's archive %s -> %w", port.NameVersion(), err)
 		}
-		return "sha-256:" + sha256, nil
+		return "sha256:" + sha256, nil
 	}
 
 	// For private repositories with fixed checksum, just use the specified value.

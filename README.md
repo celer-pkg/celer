@@ -108,6 +108,7 @@ In one sentence:
 - [Generate CMake Configs](./docs/en-US/article_generate_cmake_config.md) - Auto-generate configuration for prebuilt binaries
 - [Cache Build Artifacts](./docs/en-US/article_pkgcache_artifacts.md) - Reuse built artifacts to reduce repeated integration cost
 - [Cache Source Repositories](./docs/en-US/article_pkgcache_repos.md) - Reuse source trees through repo cache when upstream access is unstable
+- [Cache Build Tools](./docs/en-US/article_pkgcache_downloads.md) - Speed up and stabilize the compilation environment by caching compilation tools
 - [Support CCache](./docs/en-US/article_ccache.md) - Speed up repeated compilation by reusing compiler outputs
 - [Expression Variables](./docs/en-US/article_expvars.md) - Review the dynamic variables available in TOML configuration
 - [Detect Version Conflicts and Circular Dependencies](./docs/en-US/article_detect_conflict_circular.md) - Catch invalid dependency relationships before builds start
