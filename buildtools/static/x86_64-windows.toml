@@ -86,4 +86,3 @@
   default = true
   url = "https://github.com/conda-forge/miniforge/releases/download/26.1.1-3/Miniforge3-26.1.1-3-Windows-x86_64.exe"
   archive = "Miniforge3-26.1.1-3-Windows-x86_64.exe"
-  paths = ["Miniforge3-26.1.1-3-Windows-x86_64"]

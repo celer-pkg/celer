@@ -180,25 +180,19 @@ func (b *BuildTool) validate() error {
 	}
 
 	// Set rootDir and paths based on tool type.
-	// Single-file tools (has archive, no paths) are placed in versioned subdirectories: {name}-{version}/
 	// Archive tools (has paths) are extracted to subdirectories.
 	if len(b.Paths) > 0 {
-		// Archive with paths specified: extract to subdirectory
+		// Archive with paths specified: extract to subdirectory.
 		folderName := strings.Split(b.Paths[0], "/")[0]
 		b.rootDir = filepath.Join(b.ctx.Downloads(), "tools", folderName)
 		for _, path := range b.Paths {
 			b.abspaths = append(b.abspaths, filepath.Join(b.ctx.Downloads(), "tools", path))
 		}
+		os.Setenv("PATH", env.JoinPaths("PATH", b.abspaths...))
 	} else {
-		// Single-file tool, place in subdirectory downloads/tools/{name}-{version}/
-		toolDir := fmt.Sprintf("%s-%s", b.Name, b.Version)
-		b.rootDir = filepath.Join(b.ctx.Downloads(), "tools", toolDir)
-		if !slices.Contains(b.abspaths, b.rootDir) {
-			b.abspaths = append(b.abspaths, b.rootDir)
-		}
+		// Single-file tool: use directly from /downloads/
+		b.rootDir = b.ctx.Downloads()
 	}
-
-	os.Setenv("PATH", env.JoinPaths("PATH", b.abspaths...))
 
 	// Check and fix tool.
 	if err := b.checkAndFix(); err != nil {
@@ -227,19 +221,18 @@ func (b *BuildTool) checkAndFix() error {
 			archiveName = b.Archive
 		}
 	} else {
-		// Single-file tool: place in subdirectory downloads/tools/{name}-{version}/
-		folderName = fmt.Sprintf("%s-%s", b.Name, b.Version)
-		location = filepath.Join(toolsDir, folderName)
-
-		// For single-file tools: download with original filename, but pass Archive for symlink creation.
-		archiveName = "" // Empty means use original URL filename for download
+		// Single-file tool: use directly from /downloads/
+		if b.Archive != "" {
+			archiveName = b.Archive
+			location = filepath.Join(b.ctx.Downloads(), b.Archive)
+		} else {
+			archiveName = filepath.Base(b.Url)
+			location = filepath.Join(b.ctx.Downloads(), filepath.Base(b.Url))
+		}
+		folderName = "" // Empty indicates single-file, no subdirectory needed.
 	}
 
 	// Check and repair resource.
-	// For single-file tools, use Archive as the archive name for target file naming
-	if len(b.Paths) == 0 && b.Archive != "" {
-		archiveName = b.Archive
-	}
 	repair := fileio.NewRepair(b.Url, b.ctx.Downloads(), archiveName, folderName, toolsDir)
 	if err := repair.CheckAndRepair(b.ctx); err != nil {
 		return err

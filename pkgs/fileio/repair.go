@@ -2,12 +2,13 @@ package fileio
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/expr"
 )
 
 func NewRepair(url, downloads, archive, folder, destDir string) *Repair {
@@ -38,7 +39,15 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 		// Use archive name if specified, otherwise use filename from URL
 		fileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(r.downloader.url))
 		downloaded := filepath.Join(ctx.Downloads(), fileName)
-		destDir := filepath.Join(r.destDir, r.folder)
+
+		// For single-file tools, destDir is tools directory,
+		// For archives, destDir is tools/{folder}
+		var destDir string
+		if r.folder == "" {
+			destDir = r.destDir
+		} else {
+			destDir = filepath.Join(r.destDir, r.folder)
+		}
 
 		// Check if need to download.
 		needToDownload, err := r.needToDownload(r.downloader.url, fileName)
@@ -55,50 +64,25 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 			downloaded = actualDownloaded
 		}
 
-		// Check if it's a single executable file (like .exe or standalone binaries).
-		isSingleFile := strings.HasSuffix(downloaded, ".exe") || !IsSupportedArchive(downloaded)
-
-		// Determine if repair is needed.
-		var needToRepair bool
-		if isSingleFile {
-			// For single files, check if the target file with the specified name exists,
-			// Use archive name if specified, otherwise use downloaded file name.
-			destFileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(downloaded))
-			destFile := filepath.Join(destDir, destFileName)
-			needToRepair = needToDownload || !PathExists(destFile)
-		} else {
-			// For archives, check if the destination directory exists.
-			needToRepair = needToDownload || !PathExists(destDir)
-		}
+		// Check if it's a single executable file (like .exe, .sh or standalone binaries).
+		isSingleFile := strings.HasSuffix(downloaded, ".sh") ||
+			strings.HasSuffix(downloaded, ".exe") ||
+			!IsSupportedArchive(downloaded)
 
 		// Repair resource.
-		if needToRepair {
-			// Remove for overwrite.
-			if err := os.RemoveAll(destDir); err != nil {
-				return err
-			}
-
+		if needToDownload {
 			if isSingleFile {
-				// Create directory: downloads/tools/{name}/
-				if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-					return fmt.Errorf("failed to mkdir %s\n %w", destDir, err)
-				}
-
-				// Determine the destination file name:
-				// Use archive name if specified, otherwise use downloaded file name.
-				destFileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(downloaded))
-				destFile := filepath.Join(destDir, destFileName)
-
-				// Copy file with the specified name.
-				if err := CopyFile(downloaded, destFile); err != nil {
-					return fmt.Errorf("failed to copy %s to %s\n %w", downloaded, destFile, err)
-				}
-
-				// Make sure the file is executable.
-				if err := os.Chmod(destFile, os.ModePerm); err != nil {
-					return fmt.Errorf("failed to chmod %s\n %w", destFile, err)
+				// For single-file tools, just ensure it's executable.
+				// (file is already downloaded to /downloads/)
+				if err := os.Chmod(downloaded, os.ModePerm); err != nil {
+					return fmt.Errorf("failed to chmod %s\n %w", downloaded, err)
 				}
 			} else {
+				// For archives: remove and extract.
+				if err := os.RemoveAll(destDir); err != nil {
+					return err
+				}
+
 				// Extract archive file.
 				if err := Extract(downloaded, destDir); err != nil {
 					return fmt.Errorf("failed to extract %s -> %w", downloaded, err)
