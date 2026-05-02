@@ -113,6 +113,7 @@ Celer 的优势在于它更关注**复杂工程环境里的交付效率和一致
 - [动态变量](./article_expvars.md) - 查看 TOML 配置中可用的动态变量
 - [库版本冲突与环形依赖检测](./article_detect_conflict_circular.md) - 在构建前提前发现冲突和错误依赖关系
 - [CUDA 环境自动识别](./article_cuda_support.md) - 为 GPU 工程自动对接 CUDA 工具链
+- [Python 版本管理](./article_python_management.md) - 为编译依赖配置和管理 Python 版本
 - [导出快照](./cmd_deploy_export.md) - 在部署完成后导出可回溯、可复现的工作区快照
 
 ## 📋 命令列表
