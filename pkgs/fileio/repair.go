@@ -53,7 +53,15 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 func (r *Repair) handleRemoteURL(ctx context.Context) error {
 	fileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(r.downloader.url))
 	downloaded := filepath.Join(ctx.Downloads(), fileName)
-	destDir := filepath.Join(r.destDir, r.folder)
+
+	// For single-file tools (folder is empty), destDir is not used
+	// For archive tools (folder is not empty), destDir is the target extraction directory
+	var destDir string
+	if r.folder == "" {
+		destDir = ctx.Downloads() // Not used for single-file tools
+	} else {
+		destDir = filepath.Join(r.destDir, r.folder)
+	}
 
 	cachedDownloadsDir := ""
 	pkgCache := ctx.PkgCache()
@@ -117,6 +125,11 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 
 // deployToDestination handles extraction or copying to the final destination.
 func (r *Repair) deployToDestination(downloaded, destDir string, needToDownload bool) error {
+	// Single-file tools (folder is empty) don't need deployment
+	if r.folder == "" {
+		return nil
+	}
+
 	isSingleFile := strings.HasSuffix(downloaded, ".exe") || !IsSupportedArchive(downloaded)
 
 	// Determine if deployment is needed
