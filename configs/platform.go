@@ -2,13 +2,14 @@ package configs
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
 )

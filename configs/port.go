@@ -174,7 +174,7 @@ func (p Port) Installed() (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		newMeta, err := p.buildMeta(p.Package.Checksum)
+		newMeta, err := p.buildMeta()
 		if err != nil {
 			// Repo not exist is not error.
 			if errors.Is(err, errors.ErrRepoNotExit) {

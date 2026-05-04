@@ -54,24 +54,25 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 	fileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(r.downloader.url))
 	downloaded := filepath.Join(ctx.Downloads(), fileName)
 
-	// For single-file tools (folder is empty), destDir is not used
-	// For archive tools (folder is not empty), destDir is the target extraction directory
+	// For single-file tools (folder is empty), destDir is not used.
+	// For archive tools (folder is not empty), destDir is the target extraction directory.
 	var destDir string
 	if r.folder == "" {
-		destDir = ctx.Downloads() // Not used for single-file tools
+		destDir = ctx.Downloads() // Not used for single-file tools.
 	} else {
 		destDir = filepath.Join(r.destDir, r.folder)
 	}
 
-	cachedDownloadsDir := ""
+	// Check if local file is valid. If not, try to restore from cache or download again.
 	pkgCache := ctx.PkgCache()
+	cachedDownloadsDir := ""
 	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCache != nil && pkgCache.IsWritable()
 	if canUseCache {
 		cachedDownloadsDir = pkgCache.GetDir(context.PkgCacheDirDownloads)
 	}
 
 	// Determine if download is needed.
-	needToDownload, err := r.needToDownload(r.downloader.url, fileName)
+	needToDownload, err := r.needToDownload(fileName, r.sha256)
 	if err != nil {
 		return err
 	}
@@ -205,7 +206,7 @@ func (r *Repair) handleLocalFile() error {
 	return r.deployArchive(localPath, destDir)
 }
 
-func (r Repair) needToDownload(url, archive string) (needToDownload bool, err error) {
+func (r Repair) needToDownload(archive, sha256 string) (needToDownload bool, err error) {
 	destFilePath := filepath.Join(r.ctx.Downloads(), archive)
 	if !PathExists(destFilePath) {
 		// Skip downloading in offline mode.
@@ -220,18 +221,12 @@ func (r Repair) needToDownload(url, archive string) (needToDownload bool, err er
 		return false, nil
 	}
 
-	// Need to download if remote file size and local file size not match.
-	fileSize, err := FileSize(r.httpClient, url)
+	// Verify sha256, not matches indicate file is corrupted or outdated, need to re-download.
+	computedSha256, err := ComputeSHA256(destFilePath)
 	if err != nil {
-		return false, fmt.Errorf("failed to get remote file size -> %w", err)
+		return false, fmt.Errorf("failed to compute sha256 for %s -> %w", archive, err)
 	}
-	info, err := os.Stat(destFilePath)
-	if err != nil {
-		return false, fmt.Errorf("failed to get local file size for %s -> %w", archive, err)
-	}
-
-	// Not all remote files have size, so we need to check if file size is greater than 0.
-	if fileSize > 0 && info.Size() != fileSize {
+	if computedSha256 != sha256 {
 		return true, nil
 	}
 

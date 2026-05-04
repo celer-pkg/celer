@@ -8,12 +8,12 @@ type Platform interface {
 	GetHostName() string
 	GetToolchain() Toolchain
 	GetRootFS() RootFS
-	GetArchiveChecksums() (toolchainChecksum, rootfsChecksum string, err error)
 	Setup() error
 }
 
 type Toolchain interface {
 	GetName() string
+	GetSHA256() string
 	GetAbsDir() string
 	GetRootDir() string
 	GetVersion() string
@@ -47,6 +47,7 @@ type Toolchain interface {
 
 type RootFS interface {
 	Validate() error
+	GetSHA256() string
 	CheckAndRepair() error
 	Generate(toolchain *strings.Builder) error
 	GetPkgConfigPath() []string

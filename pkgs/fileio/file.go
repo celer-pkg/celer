@@ -1,8 +1,6 @@
 package fileio
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -405,21 +403,6 @@ func ToCygpath(path string) string {
 	}
 
 	return path
-}
-
-func GetFileSha256(filePath string) (string, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	hash := sha256.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", err
-	}
-	checksum := hex.EncodeToString(hash.Sum(nil))
-	return checksum, nil
 }
 
 func CleanDir(dir string) error {
