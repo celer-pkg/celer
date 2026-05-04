@@ -91,7 +91,7 @@ func setupArchiveFile(t *testing.T, tmpWorkspace string) (archivePath string, ar
 		t.Fatal(err)
 	}
 
-	checksum, err := fileio.GetFileSha256(archivePath)
+	checksum, err := fileio.ComputeSHA256(archivePath)
 	if err != nil {
 		t.Fatal(err)
 	}

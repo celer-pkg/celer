@@ -52,24 +52,14 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 		return fmt.Errorf("failed to read %s -> %w", projectPath, err)
 	}
 
-	var needRewrite bool
-
 	// Default build_type.
 	if p.BuildType == "" {
 		p.BuildType = "Release"
-		needRewrite = true
 	}
 
 	// Default python version - dynamically determined based on platform
 	if p.PythonVersion == "" {
 		p.PythonVersion = buildtools.GetDefaultPythonVersion()
-	}
-
-	// Rewrite project with default values.
-	if needRewrite {
-		if err := p.Write(projectPath, true); err != nil {
-			return err
-		}
 	}
 
 	// Set values of internal fields.

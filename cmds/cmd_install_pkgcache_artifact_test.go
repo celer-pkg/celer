@@ -29,7 +29,7 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	}
 
 	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+	check(os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -47,7 +47,7 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
@@ -106,7 +106,7 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	}
 
 	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+	check(os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -124,7 +124,7 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
@@ -194,7 +194,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	}
 
 	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+	check(os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -210,7 +210,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
@@ -272,7 +272,7 @@ func TestInstall_PkgCache_DirNotDefined_ShouldSkipStoreCache(t *testing.T) {
 	}
 
 	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+	check(os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -309,7 +309,7 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	}
 
 	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+	check(os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -325,7 +325,7 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
@@ -372,7 +372,7 @@ func TestInstall_PkgCache_With_Commit_Failed(t *testing.T) {
 	}
 
 	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+	check(os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -388,7 +388,7 @@ func TestInstall_PkgCache_With_Commit_Failed(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 
@@ -430,7 +430,7 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	}
 
 	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
+	check(os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
 
 	// Init celer.
 	celer := configs.NewCeler()
@@ -453,7 +453,7 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	}
 	check(celer.SetBuildType("Release"))
 	check(celer.SetProject(project))
-	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 	check(celer.SetPlatform(platform))
 

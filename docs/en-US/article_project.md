@@ -10,7 +10,6 @@ Project configuration defines how Celer manages dependencies and build environme
 - 🔧 **Vars (CMake Variables)** - Global CMake build variables
 - 🌍 **Envs (Environment Variables)** - Environment variables needed during build
 - 🏷️ **Macros (Macro Definitions)** - C/C++ preprocessor macros
-- ⚙️ **Optimize (Optimization Flags)** - Per-build-type optimization settings
 
 **Why do we need project configuration?**
 
@@ -32,54 +31,26 @@ Let's look at a complete project configuration file `project_xxx.toml`:
 
 ```toml
 ports = [
-    "x264@stable",
-    "sqlite3@3.49.0",
-    "ffmpeg@3.4.13",
-    "zlib@1.3.1",
-    "opencv@4.5.1"
+  "x264@stable",
+  "sqlite3@3.49.0",
+  "ffmpeg@3.4.13",
+  "zlib@1.3.1",
+  "opencv@4.5.1"
 ]
 
 vars = [
-    "CMAKE_VAR1=value1",
-    "CMAKE_VAR2=value2"
+  "CMAKE_VAR1=value1",
+  "CMAKE_VAR2=value2"
 ]
 
 envs = [
-    "ENV_VAR1=001"
+  "ENV_VAR1=001"
 ]
 
 macros = [
-    "MICRO_VAR1=111",
-    "MICRO_VAR2"
+  "MICRO_VAR1=111",
+  "MICRO_VAR2"
 ]
-
-[optimize]
-    debug = "-O0 -g3 -fno-omit-frame-pointer"
-    release = "-O3 -DNDEBUG"
-    relwithdebinfo = "-O2 -g -DNDEBUG"
-    minsizerel = "-Os -DNDEBUG"
-```
-
-> The optimize section can configure multiple compiler scenarios at once, allowing a single project to share one toml configuration across multiple systems and compilers, as shown below:
-
-```toml
-[optimize_msvc]
-    debug = "/MDd /Zi /Od /Ob0 /RTC1"
-    release = "/MD /O2 /Ob2 /DNDEBUG"
-    relwithdebinfo = "/MD /Zi /O2 /Ob1 /DNDEBUG"
-    minsizerel = "/MD /O1 /Ob1 /DNDEBUG"
-
-[optimize_gcc]
-    debug = "-O0 -g3 -fno-omit-frame-pointer"
-    release = "-O3 -DNDEBUG"
-    relwithdebinfo = "-O2 -g -DNDEBUG"
-    minsizerel = "-Os -DNDEBUG"
-
-[optimize_clang]
-    debug = "-O0 -g3 -fno-omit-frame-pointer"
-    release = "-O3 -DNDEBUG"
-    relwithdebinfo = "-O2 -g -DNDEBUG"
-    minsizerel = "-Oz -DNDEBUG"
 ```
 
 ### Configuration Field Descriptions
@@ -90,10 +61,6 @@ macros = [
 | `vars` | ❌ | Define global CMake variables required by the current project. Format: `variable=value` | `["CMAKE_BUILD_TYPE=Release"]` |
 | `envs` | ❌ | Define global environment variables required by the current project. Format: `variable=value` | `["xorg_cv_malloc0_returns_null=yes"]` |
 | `macros` | ❌ | Define C/C++ macro definitions required by the current project. Format: `macro=value` or `macro` | `["DEBUG=1", "ENABLE_LOGGING"]` |
-| `optimize` | ❌ | Define compilation optimization options for a fixed compiler | See detailed description below |
-| `optimize_gcc` | ❌ | Define optimization options for GCC compiler | See detailed description below |
-| `optimize_clang` | ❌ | Define optimization options for Clang compiler | See detailed description below |
-| `optimize_msvc` | ❌ | Define optimization options for MSVC compiler | See detailed description below |
 
 > ⚠️ **Note**: All fields are optional. You can configure them selectively based on project needs.
 
@@ -106,10 +73,10 @@ Specify third-party libraries that the project depends on. Celer will automatica
 **Example:**
 ```toml
 ports = [
-    "zlib@1.3.1",           # Compression library
-    "openssl@3.0.0",        # Encryption library
-    "sqlite3@3.49.0",       # Database
-    "x264@stable"           # Video encoding (using stable version)
+  "zlib@1.3.1",           # Compression library
+  "openssl@3.0.0",        # Encryption library
+  "sqlite3@3.49.0",       # Database
+  "x264@stable"           # Video encoding (using stable version)
 ]
 ```
 
@@ -129,8 +96,8 @@ Define global CMake variables that will be passed to the build process of all de
 **Example:**
 ```toml
 vars = [
-    "PROJECT_NAME=telsa/model3",
-    "PROJECT_CODE=0033FF"
+  "PROJECT_NAME=telsa/model3",
+  "PROJECT_CODE=0033FF"
 ]
 ```
 
@@ -143,8 +110,8 @@ Define environment variables needed during build, affecting compilation behavior
 **Example:**
 ```toml
 envs = [
-    "PKG_CONFIG_PATH=/opt/sdk/pkgconfig",
-    "QNX_CONFIGURATION=/opt/qnx/.qnx"
+  "PKG_CONFIG_PATH=/opt/sdk/pkgconfig",
+  "QNX_CONFIGURATION=/opt/qnx/.qnx"
 ]
 ```
 
@@ -157,144 +124,12 @@ Define C/C++ preprocessor macros to be injected into code during compilation.
 **Example:**
 ```toml
 macros = [
-    "DEBUG=1",              # Enable debug mode (macro with value)
-    "ENABLE_LOGGING",       # Enable logging (value-less macro)
-    "MAX_BUFFER_SIZE=4096", # Define buffer size
-    "_GNU_SOURCE"           # Enable GNU extensions
+  "DEBUG=1",              # Enable debug mode (macro with value)
+  "ENABLE_LOGGING",       # Enable logging (value-less macro)
+  "MAX_BUFFER_SIZE=4096", # Define buffer size
+  "_GNU_SOURCE"           # Enable GNU extensions
 ]
 ```
-
-### 5. Optimize (Compilation Optimization Options)
-
-Define compiler optimization flags for different build types. Celer supports configuring independent optimization options for different compilers, achieving consistent build configuration across platforms and compilers.
-
-#### 🎯 Configuration Methods
-
-**Method 1: Generic Configuration (Applicable to All Compilers)**
-
-Use `[optimize]` to configure generic compilation optimization options:
-
-```toml
-[optimize]
-    debug = "-O0 -g3 -fno-omit-frame-pointer"
-    release = "-O3 -DNDEBUG"
-    relwithdebinfo = "-O2 -g -DNDEBUG"
-    minsizerel = "-Os -DNDEBUG"
-```
-
-**Method 2: Compiler-Specific Configuration (Recommended)**
-
-Configure independent optimization options for different compilers. A single project can share the same configuration file across multiple systems and compilers:
-
-```toml
-# GCC compiler optimization configuration
-[optimize_gcc]
-    debug = "-O0 -g3 -fno-omit-frame-pointer"
-    release = "-O3 -DNDEBUG"
-    relwithdebinfo = "-O2 -g -DNDEBUG"
-    minsizerel = "-Os -DNDEBUG"
-
-# Clang compiler optimization configuration
-[optimize_clang]
-    debug = "-O0 -g3 -fno-omit-frame-pointer"
-    release = "-O3 -DNDEBUG"
-    relwithdebinfo = "-O2 -g -DNDEBUG"
-    minsizerel = "-Oz -DNDEBUG"  # Clang uses -Oz for smaller size
-
-# MSVC compiler optimization configuration
-[optimize_msvc]
-    debug = "/MDd /Zi /Od /Ob0 /RTC1"
-    release = "/MD /O2 /Ob2 /DNDEBUG"
-    relwithdebinfo = "/MD /Zi /O2 /Ob1 /DNDEBUG"
-    minsizerel = "/MD /O1 /Ob1 /DNDEBUG"
-```
-
-> 💡 **Priority Rule**: Celer will prioritize using compiler-specific configurations (such as `optimize_gcc`). If undefined, it will use the generic configuration `optimize`.
-
-#### 📋 Build Type Descriptions
-
-| Build Type | Field Name | Purpose | Typical Scenarios |
-|---------|--------|------|----------|
-| Debug | `debug` | Debug build, no optimization, contains full debug information | Development, debugging, problem diagnosis |
-| Release | `release` | Release build, maximum optimization, no debug information | Production environment, performance testing |
-| RelWithDebInfo | `relwithdebinfo` | Release build + debug information | Performance profiling, production environment debugging |
-| MinSizeRel | `minsizerel` | Minimum size optimization | Embedded systems, storage-constrained environments |
-
-#### 🔧 GCC/Clang Common Optimization Options
-
-**Optimization Levels:**
-
-| Option | Description | Applicable Scenarios |
-|------|------|----------|
-| `-O0` | No optimization, fast compilation | Debug builds |
-| `-O1` | Basic optimization | Balance compilation speed and performance |
-| `-O2` | Medium optimization (recommended) | RelWithDebInfo builds |
-| `-O3` | Maximum optimization | Release builds |
-| `-Os` | Optimize code size | MinSizeRel builds (GCC) |
-| `-Oz` | More aggressive size optimization | MinSizeRel builds (Clang) |
-
-**Debug Options:**
-
-| Option | Description |
-|------|------|
-| `-g` | Generate basic debug information |
-| `-g3` | Generate most detailed debug information (including macro definitions) |
-| `-fno-omit-frame-pointer` | Preserve frame pointer for easier debugging and performance profiling |
-
-**Other Common Options:**
-
-| Option | Description |
-|------|------|
-| `-DNDEBUG` | Disable assertions (assert) |
-| `-Wall` | Enable all common warnings |
-| `-Wextra` | Enable extra warnings |
-| `-fPIC` | Generate position-independent code |
-| `-march=native` | Optimize for current CPU |
-| `-flto` | Enable Link-Time Optimization (LTO) |
-
-#### 🪟 MSVC Common Optimization Options
-
-**Optimization Levels:**
-
-| Option | Description | Applicable Scenarios |
-|------|------|----------|
-| `/Od` | Disable optimization | Debug builds |
-| `/O1` | Minimize code size | MinSizeRel builds |
-| `/O2` | Maximize speed | Release/RelWithDebInfo builds |
-
-**Debug Options:**
-
-| Option | Description |
-|------|------|
-| `/Zi` | Generate complete debug information (PDB file) |
-| `/Z7` | Embed debug information in .obj files |
-
-**Runtime Libraries:**
-
-| Option | Description |
-|------|------|
-| `/MD` | Multithreaded DLL runtime (Release) |
-| `/MDd` | Multithreaded DLL runtime (Debug) |
-| `/MT` | Multithreaded static runtime (Release) |
-| `/MTd` | Multithreaded static runtime (Debug) |
-
-**Inlining Options:**
-
-| Option | Description |
-|------|------|
-| `/Ob0` | Disable inlining |
-| `/Ob1` | Only inline functions marked as inline |
-| `/Ob2` | Compiler automatic inlining |
-
-**Other Options:**
-
-| Option | Description |
-|------|------|
-| `/RTC1` | Runtime checks (detect stack corruption, uninitialized variables) |
-| `/DNDEBUG` | Define NDEBUG macro (disable assertions) |
-| `/GL` | Whole program optimization |
-| `/std:c++17` | Use C++17 standard |
-
 ---
 
 ## Using Project Configuration

@@ -11,7 +11,6 @@ import (
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/envs"
 	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -83,8 +82,6 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 	versionMatches := normalizeVersion(systemPythonVer) == normalizeVersion(pythonVersion)
 	if systemPythonVer != "" && versionMatches {
 		useSystemPython = true
-		color.Printf(color.Hint, "- detected system python %s (matches required %s)",
-			normalizeVersion(systemPythonVer), normalizeVersion(pythonVersion))
 	}
 
 	var currentPython python.Python

@@ -305,6 +305,10 @@ func (t Toolchain) GetName() string {
 	return t.Name
 }
 
+func (t Toolchain) GetSHA256() string {
+	return t.SHA256
+}
+
 func (t Toolchain) GetHost() string {
 	return t.Host
 }

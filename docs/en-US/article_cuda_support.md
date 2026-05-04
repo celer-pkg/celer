@@ -174,8 +174,8 @@ To use a specific CUDA version, specify it in your project dependencies:
 ```toml
 [project]
 ports = [
-    "cuda_toolkit@12.9.1",  # Use CUDA 12.9.1
-    # ... other dependencies
+  "cuda_toolkit@12.9.1",  # Use CUDA 12.9.1
+  # ... other dependencies
 ]
 ```
 

@@ -135,7 +135,8 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 
 ```toml
 [rootfs]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-22.04-amd64.tar.gz"
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/ubuntu-base-22.04.5-base-amd64.tar.xz"
+  sha256 = "08442eca9ccf64fd307d8a92582902315a66dc075216812d454596b1208da3bb"
   path = "ubuntu-base-22.04-amd64"
   pkg_config_path = [
       "usr/lib/x86_64-linux-gnu/pkgconfig",
@@ -143,7 +144,8 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   ]
 
 [toolchain]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-11.3.0.tar.gz"
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-11.5.0.tar.xz"
+  sha256 = "511a7f2f2e3bece19187dc9c5a6ac3412eee12b7bbb88d9f2d2118f181403014"
   path = "gcc-11.3.0/bin"
   system_name = "Linux"
   system_processor = "x86_64"
@@ -166,13 +168,12 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   cxx = "clang++"
 ```
 
-### Embedded System Platform Configurations
-
 ### QNX Platform Configuration
 
 ```toml
 [toolchain]
   url = "https://github.com/celer-pkg/test-conf/releases/download/resource/qnx800.tar.xz"
+  sha256 = "3e64f39e6a4900efdc06187b48483f71f6ebba04878505c853b6df709c84a42f"
   path = "qnx800/host/linux/x86_64/usr/bin"
   name = "qcc"
   version = "12.2.0"
@@ -199,14 +200,15 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 
 > ⚠️ **Important**: QNX needs to provide some additional environment variables, such as: the path to the license, as defined above.
 
-#### ARM Cortex-M MCU Configuration
+### ARM Cortex-M MCU Configuration
 
 Embedded systems (like MCUs or bare-metal environments) require special configuration because they don't have a full operating system:
 
 ```toml
 [toolchain]
-  url = "https://developer.arm.com/-/media/Files/downloads/gnu-rm/gcc-arm-none-eabi-10.3.tar.bz2"
-  path = "gcc-arm-none-eabi-10.3/bin"
+  url = "https://developer.arm.com/-/media/files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-aarch64-linux.tar.bz2"
+  sha256 = "f605b5f23ca898e9b8b665be208510a54a6e9fdd0fa5bfc9592002f6e7431208"
+  path = "gcc-arm-none-eabi-10.3-2021.10-aarch64-linux/bin"
   system_name = "Generic"
   system_processor = "arm"
   host = "arm-none-eabi"

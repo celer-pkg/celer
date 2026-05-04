@@ -197,14 +197,14 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	if err := os.MkdirAll(dirs.TestCacheDir, os.ModePerm); err != nil {
+	if err := os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm); err != nil {
 		t.Fatal(err)
 	}
 
 	configCmd := configureCmd{}
 	celer := configs.NewCeler()
 	cmd := configCmd.Command(celer)
-	cmd.SetArgs([]string{"--pkgcache-dir", dirs.TestCacheDir, "--pkgcache-writable=true"})
+	cmd.SetArgs([]string{"--pkgcache-dir", dirs.TestPkgCacheDir, "--pkgcache-writable=true"})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("expected success when package-cache group flags are provided, got: %v", err)
@@ -215,8 +215,8 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if celer2.PkgCache().GetDir(context.PkgCacheDirRoot) != dirs.TestCacheDir {
-		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
+	if celer2.PkgCache().GetDir(context.PkgCacheDirRoot) != dirs.TestPkgCacheDir {
+		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
 	if !celer2.PkgCache().IsWritable() {
 		t.Fatal("cache writable should be `true`")
@@ -648,13 +648,13 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 
 	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
+	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
 
 	celer2 := configs.NewCeler()
 	check(celer2.Init())
-	if celer2.PkgCache().GetDir(context.PkgCacheDirRoot) != dirs.TestCacheDir {
-		t.Fatalf("cache dir should be `%s`", dirs.TestCacheDir)
+	if celer2.PkgCache().GetDir(context.PkgCacheDirRoot) != dirs.TestPkgCacheDir {
+		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
 }
 
@@ -677,8 +677,8 @@ func TestConfigure_PkgCacheWritable(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 
 	// Must create cache dir before setting cache dir.
-	check(os.MkdirAll(dirs.TestCacheDir, os.ModePerm))
-	check(celer.SetPkgCacheDir(dirs.TestCacheDir))
+	check(os.MkdirAll(dirs.TestPkgCacheDir, os.ModePerm))
+	check(celer.SetPkgCacheDir(dirs.TestPkgCacheDir))
 	check(celer.SetPkgCacheWritable(true))
 
 	celer2 := configs.NewCeler()
@@ -706,7 +706,7 @@ func TestConfigure_PkgCacheDir_DirNotExist(t *testing.T) {
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
 	check(celer.SetBuildType("Release"))
 
-	if err := celer.SetPkgCacheDir(dirs.TestCacheDir); !errors.Is(err, errors.ErrPkgCacheDirNotExist) {
+	if err := celer.SetPkgCacheDir(dirs.TestPkgCacheDir); !errors.Is(err, errors.ErrPkgCacheDirNotExist) {
 		t.Fatal("expected error for package cache dir not exist")
 	}
 }

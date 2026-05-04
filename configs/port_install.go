@@ -223,7 +223,7 @@ func (p Port) doInstallFromPackageCache(options InstallOptions, artifactCache co
 	}
 
 	// Calculate buildhash.
-	buildhash, err := p.buildhash(p.Package.Checksum)
+	buildhash, err := p.buildhash()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate buildhash -> %w", err)
 	}
@@ -311,7 +311,7 @@ func (p Port) doInstallFromSource() error {
 		}
 
 		// Write meta file with installed files and build environment.
-		metaData, err := p.buildMeta(p.Package.Checksum)
+		metaData, err := p.buildMeta()
 		if err != nil {
 			installFailed = true
 			return err
@@ -420,7 +420,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("failed to read package meta of %s -> %w", p.NameVersion(), err)
 	}
-	newMeta, err := p.buildMeta(p.Package.Checksum)
+	newMeta, err := p.buildMeta()
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate meta of %s -> %w", p.NameVersion(), err)
 	}

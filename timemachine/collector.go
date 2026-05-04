@@ -76,7 +76,7 @@ func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
 	if !strings.HasSuffix(port.Package.Url, ".git") {
 		archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
 		filePath := filepath.Join(c.ctx.Downloads(), archive)
-		sha256, err := fileio.GetFileSha256(filePath)
+		sha256, err := fileio.ComputeSHA256(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of port's archive %s -> %w", port.NameVersion(), err)
 		}

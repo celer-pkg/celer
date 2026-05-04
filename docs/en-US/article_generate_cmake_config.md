@@ -7,10 +7,10 @@
 Many excellent third-party libraries (like FFmpeg, x264) don't use CMake as their build system and don't generate CMake config files after installation. This creates integration challenges for projects using CMake:
 
 **Problems with Traditional Approaches:**
-- 🔍 **Hard to Find**: Need to manually write `FindXXX.cmake` modules
-- 🪟 **Platform Differences**: Using `pkg-config` on Windows is difficult
-- 🔗 **Complex Dependencies**: Hard to manage dependencies for multi-component libraries
-- ⚙️ **High Maintenance Cost**: Each library needs custom find scripts
+- **Hard to Find**: Need to manually write `FindXXX.cmake` modules
+- **Platform Differences**: Using `pkg-config` on Windows is difficult
+- **Complex Dependencies**: Hard to manage dependencies for multi-component libraries
+- **High Maintenance Cost**: Each library needs custom find scripts
 
 **Celer's Solution:**
 - Automatically generate standard CMake config files
@@ -24,9 +24,9 @@ Choose the appropriate configuration type based on your library's characteristic
 
 | Type | Use Case | Typical Examples | Complexity |
 |------|----------|------------------|------------|
-| **🎯 Single Target** | Single library file, no sub-modules | x264, zlib, sqlite | ⭐ Simple |
-| **📦 Multi-Component** | Multiple independent modules, can be used separately | FFmpeg, Boost, OpenCV | ⭐⭐⭐ Medium |
-| **🔗 Interface Library** | Pre-built libraries or header-only libraries | Pre-built SDK, header-only libs | ⭐⭐ Simple |
+| **Single Target** | Single library file, no sub-modules | x264, zlib, sqlite | ⭐ Simple |
+| **Multi-Component** | Multiple independent modules, can be used separately | FFmpeg, Boost, OpenCV | ⭐⭐⭐ Medium |
+| **Interface Library** | Pre-built libraries or header-only libraries | Pre-built SDK, header-only libs | ⭐⭐ Simple |
 
 ---
 

@@ -48,10 +48,7 @@ func (f fakePlatform) GetName() string                 { return f.name }
 func (f fakePlatform) GetHostName() string             { return f.name + "-host" }
 func (f fakePlatform) GetToolchain() context.Toolchain { return nil }
 func (f fakePlatform) GetRootFS() context.RootFS       { return nil }
-func (f fakePlatform) GetArchiveChecksums() (toolchainChecksum, rootfsChecksum string, err error) {
-	return "", "", nil
-}
-func (f fakePlatform) Setup() error { return nil }
+func (f fakePlatform) Setup() error                    { return nil }
 
 type fakeProject struct {
 	name string

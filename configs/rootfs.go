@@ -47,7 +47,7 @@ func (r *RootFS) Validate() error {
 }
 
 func (r *RootFS) CheckAndRepair() error {
-	// Default folder name is the first folder name of archive name.
+	// Default folder name is the first folder name of archive name，
 	// but it can be specified by archive name.
 	folderName := strings.Split(r.Path, string(filepath.Separator))[0]
 	if r.Archive != "" {
@@ -68,6 +68,10 @@ func (r *RootFS) CheckAndRepair() error {
 	color.PrintHint("Location: %s\n", location)
 
 	return nil
+}
+
+func (r RootFS) GetSHA256() string {
+	return r.SHA256
 }
 
 func (r RootFS) GetAbsDir() string {

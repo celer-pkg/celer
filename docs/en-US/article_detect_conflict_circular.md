@@ -13,7 +13,7 @@ These detection mechanisms ensure clear and consistent dependency relationships 
 
 ---
 
-## 📦 Version Conflict Detection
+## Version Conflict Detection
 
 ### What is a Version Conflict?
 

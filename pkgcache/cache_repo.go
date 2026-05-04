@@ -86,7 +86,7 @@ func (r Repo) Store(nameVersion, repoUrl, repoDir string) (string, error) {
 			return "", err
 		}
 
-		checksum, err := fileio.GetFileSha256(tempArchivePath)
+		checksum, err := fileio.ComputeSHA256(tempArchivePath)
 		if err != nil {
 			os.Remove(tempArchivePath)
 			return "", err
@@ -155,7 +155,7 @@ func (r Repo) Restore(nameVersion, repoUrl, repoDir, checksum string) (string, e
 			localChecksum = commitHash
 		}
 	} else {
-		checksum, err := fileio.GetFileSha256(archivePath)
+		checksum, err := fileio.ComputeSHA256(archivePath)
 		if err != nil {
 			_ = os.RemoveAll(repoDir)
 			return "", fmt.Errorf("invalid cached repo, read commit failed -> %w", err)

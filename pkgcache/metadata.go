@@ -3,12 +3,13 @@ package pkgcache
 import (
 	"bytes"
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 type portType int
@@ -22,7 +23,6 @@ const (
 type Callbacks interface {
 	GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	GenPlatformTomlString() (string, error)
-	GenPlatformChecksums() (toolchainChecksum, rootfsChecksum string, err error)
 	GenBuildToolsVersions(tools []string) (string, error)
 	GetCommitHash(nameVersion string, devDep bool) (string, error)
 	GetBuildConfig(nameVersion string, devDep bool) (*BuildConfig, error)
@@ -48,7 +48,7 @@ type Port struct {
 	Callbacks   Callbacks
 }
 
-func (p Port) BuildMeta(commit string) (string, error) {
+func (p Port) BuildMeta() (string, error) {
 	var buffer bytes.Buffer
 
 	// Collect buildtool infos.
@@ -68,7 +68,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 		}
 	}
 
-	content, err := p.buildMeta(commit)
+	content, err := p.buildMeta()
 	if err != nil {
 		return "", err
 	}
@@ -76,7 +76,7 @@ func (p Port) BuildMeta(commit string) (string, error) {
 	return buffer.String(), nil
 }
 
-func (p Port) buildMeta(commit string) (string, error) {
+func (p Port) buildMeta() (string, error) {
 	var buffer bytes.Buffer
 
 	// Write celer version and platform content for root port only.
@@ -88,20 +88,6 @@ func (p Port) buildMeta(commit string) (string, error) {
 			return "", err
 		}
 		fmt.Fprintf(&buffer, "%s\n", platform)
-
-		// Write content of platform archive's checksum.
-		toolchainChecksum, rootfsChecksum, err := p.Callbacks.GenPlatformChecksums()
-		if err != nil {
-			return "", fmt.Errorf("failed to get platform archive checksums -> %w", err)
-		}
-		if toolchainChecksum != "" {
-			buffer.WriteString(newDivider(nil, "toolchain checksum"))
-			fmt.Fprintf(&buffer, "%s\n\n", toolchainChecksum)
-		}
-		if rootfsChecksum != "" {
-			buffer.WriteString(newDivider(nil, "rootfs checksum"))
-			fmt.Fprintf(&buffer, "%s\n\n", rootfsChecksum)
-		}
 	}
 
 	// Write port content.
@@ -121,19 +107,6 @@ func (p Port) buildMeta(commit string) (string, error) {
 	}
 	p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "port")
 	buffer.WriteString(content + "\n")
-
-	// Write commit of port.
-	if commit != "" {
-		p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "commit")
-		buffer.WriteString(commit + "\n\n")
-	} else {
-		commit, err := p.Callbacks.GetCommitHash(p.NameVersion, p.DevDep)
-		if err != nil {
-			return "", fmt.Errorf("failed to get commit of port %s\n %w", p.NameVersion, err)
-		}
-		p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "commit")
-		buffer.WriteString(commit + "\n\n")
-	}
 
 	// Write content of patches.
 	for _, patch := range p.BuildConfig.Patches {
@@ -174,7 +147,7 @@ func (p Port) buildMeta(commit string) (string, error) {
 			Callbacks:   p.Callbacks,
 		}
 
-		content, err := port.buildMeta("")
+		content, err := port.buildMeta()
 		if err != nil {
 			return "", fmt.Errorf("fill content of dev_dependency %s -> %w", nameVersion, err)
 		}
@@ -200,7 +173,7 @@ func (p Port) buildMeta(commit string) (string, error) {
 			Callbacks:   p.Callbacks,
 		}
 
-		content, err := port.buildMeta("")
+		content, err := port.buildMeta()
 		if err != nil {
 			return "", fmt.Errorf("fill content of dependency %s -> %w", nameVersion, err)
 		}

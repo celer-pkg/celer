@@ -3,21 +3,22 @@ package configs
 import (
 	"crypto/sha256"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/BurntSushi/toml"
 )
 
-func (p Port) buildhash(commit string) (string, error) {
-	metaData, err := p.buildMeta(commit)
+func (p Port) buildhash() (string, error) {
+	metaData, err := p.buildMeta()
 	if err != nil {
 		return "", err
 	}
@@ -30,7 +31,7 @@ func (p Port) meta2hash(metaData string) string {
 	return fmt.Sprintf("%x", checksum)
 }
 
-func (p Port) buildMeta(commit string) (string, error) {
+func (p Port) buildMeta() (string, error) {
 	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
 
 	port := pkgcache.Port{
@@ -43,7 +44,7 @@ func (p Port) buildMeta(commit string) (string, error) {
 		Callbacks:   p,
 	}
 
-	return port.BuildMeta(commit)
+	return port.BuildMeta()
 }
 
 func (c Port) GenPlatformTomlString() (string, error) {
@@ -70,13 +71,6 @@ func (c Port) GenPlatformTomlString() (string, error) {
 	return string(bytes), nil
 }
 
-func (p Port) GenPlatformChecksums() (toolchainChecksum, rootfsChecksum string, err error) {
-	if p.DevDep || p.HostDep {
-		return "", "", nil
-	}
-	return p.ctx.Platform().GetArchiveChecksums()
-}
-
 func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error) {
 	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
@@ -91,6 +85,18 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	}
 	port.BuildConfigs = []buildsystems.BuildConfig{*matchedConfig}
 
+	// Populate the port's checksum field with commit hash or archive checksum.
+	if p.Package.Checksum == "" {
+		commit, err := p.GetCommitHash(nameVersion, devDep)
+		if err != nil {
+			return "", err
+		}
+		port.Package.Checksum = commit
+	} else {
+		port.Package.Checksum = p.Package.Checksum
+	}
+
+	// Only export the matched build config for current platform.
 	bytes, err := toml.Marshal(port)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal port %s -> %w", nameVersion, err)
@@ -148,11 +154,11 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 		}
 
 		// Calculate checksum of archive file.
-		commit, err := fileio.GetFileSha256(filePath)
+		commit, err := fileio.ComputeSHA256(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of part's archive %s -> %w", nameVersion, err)
 		}
-		return "file:" + commit, nil
+		return commit, nil
 	}
 }
 

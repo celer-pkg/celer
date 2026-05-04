@@ -52,8 +52,8 @@ ref = "3.4.0"
 [[build_configs]]
 build_system = "cmake"
 options = [
-    "-DEIGEN_TEST_NO_OPENGL=1", 
-    "-DBUILD_TESTING=OFF"，
+  "-DEIGEN_TEST_NO_OPENGL=1", 
+  "-DBUILD_TESTING=OFF"，
 ]
 ```
 
@@ -194,15 +194,15 @@ system_name = "windows"
 build_system = "makefiles"
 dev_dependencies = ["autoconf@2.72"]
 pre_install = [
-    "cmake -E rename ${BUILD_DIR}/.libs/libffi-8.lib ${BUILD_DIR}/.libs/libffi.lib",
+  "cmake -E rename ${BUILD_DIR}/.libs/libffi-8.lib ${BUILD_DIR}/.libs/libffi.lib",
 ]
 post_install = [
-    "cmake -E make_directory ${PACKAGE_DIR}/bin",
-    "cmake -E copy ${BUILD_DIR}/.libs/libffi.lib ${PACKAGE_DIR}/lib/libffi.lib",
-    "cmake -E rename ${PACKAGE_DIR}/lib/libffi-8.dll ${PACKAGE_DIR}/bin/libffi-8.dll",
+  "cmake -E make_directory ${PACKAGE_DIR}/bin",
+  "cmake -E copy ${BUILD_DIR}/.libs/libffi.lib ${PACKAGE_DIR}/lib/libffi.lib",
+  "cmake -E rename ${PACKAGE_DIR}/lib/libffi-8.dll ${PACKAGE_DIR}/bin/libffi-8.dll",
 ]
 options = [
-    "..."
+  "..."
 ]
 ```
 
