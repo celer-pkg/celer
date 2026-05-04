@@ -95,8 +95,6 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 
 	// Download if still needed.
 	if needToDownload {
-		color.Printf(color.Hint, "- downloading: %s\n", fileName)
-
 		actualDownloaded, err := r.downloader.Start(r.httpClient)
 		if err != nil {
 			return fmt.Errorf("failed to download %s -> %w", r.downloader.url, err)
@@ -116,7 +114,6 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 			}
 			downloaded = cachedPath
 		}
-		color.PrintInline(color.Success, "✔ download completed: %s\n", fileName)
 	}
 
 	// Extract/deploy to destination.

@@ -159,12 +159,6 @@ func (c *Celer) InitWithPlatform(platform string) error {
 			if err := c.project.Init(c, c.configData.Global.Project); err != nil {
 				return err
 			}
-		} else { // Set default project name.
-			if c.configData.Global.Project == "" {
-				c.configData.Global.Project = "unnamed"
-				c.project.Name = "unnamed"
-				c.project.PythonVersion = buildtools.GetDefaultPythonVersion()
-			}
 		}
 
 		// Validate package cache.
@@ -185,6 +179,13 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		// Save updated.
 		if err := c.save(); err != nil {
 			return err
+		}
+
+		// Assign default project and python version after saving celer.toml.
+		if c.configData.Global.Project == "" {
+			c.configData.Global.Project = "unnamed"
+			c.project.Name = "unnamed"
+			c.project.PythonVersion = buildtools.GetDefaultPythonVersion()
 		}
 	}
 
