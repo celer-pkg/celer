@@ -163,7 +163,7 @@ func (c *CondaPython) GetExecutable() (string, error) {
 		return "", fmt.Errorf("failed to create conda environment for Python %s -> %s -> %w",
 			minorVersion, string(output), err)
 	}
-	color.PrintInline(color.Hint, "✔ creating conda environment for Python %s (venv name: %s)", minorVersion, envName)
+	color.PrintInline(color.Hint, "✔ creating conda environment for Python %s (venv name: %s)\n", minorVersion, envName)
 
 	// Verify the new environment was created.
 	cmd = exec.Command(c.condaBinary, "run", "-n", envName, "python", "--version")
