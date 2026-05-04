@@ -22,7 +22,7 @@ var (
 	TmpDir           string // "tmp"
 	TmpFilesDir      string // "tmp/files"
 	TmpDepsDir       string // "tmp/deps"
-	TestCacheDir     string // "cachedir"
+	TestPkgCacheDir  string // "pkg-cache"
 )
 
 func init() {
@@ -47,7 +47,7 @@ func Init(workspaceDir string) {
 	TmpDir = filepath.Join(WorkspaceDir, "tmp")
 	TmpFilesDir = filepath.Join(WorkspaceDir, "tmp", "files")
 	TmpDepsDir = filepath.Join(WorkspaceDir, "tmp", "deps")
-	TestCacheDir = filepath.Join(WorkspaceDir, "cachedir")
+	TestPkgCacheDir = filepath.Join(WorkspaceDir, "pkg-cache")
 }
 
 // GetPortDir returns the port directory path with first-letter classification.
@@ -103,7 +103,7 @@ func CleanTmpFilesDir() error {
 func RemoveAllForTest() {
 	os.RemoveAll(filepath.Join(WorkspaceDir, "celer.toml"))
 	os.RemoveAll(TmpDir)
-	os.RemoveAll(TestCacheDir)
+	os.RemoveAll(TestPkgCacheDir)
 	os.RemoveAll(PackagesDir)
 	os.RemoveAll(InstalledDir)
 	os.RemoveAll(BuildtreesDir)
