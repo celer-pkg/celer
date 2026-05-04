@@ -2,10 +2,11 @@ package git
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"strings"
 	"time"
+
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/color"
 )
 
 const gitRetryMaxAttempts = 3

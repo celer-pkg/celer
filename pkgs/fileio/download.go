@@ -2,9 +2,6 @@ package fileio
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/color"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,6 +10,10 @@ import (
 	"path/filepath"
 	"regexp"
 	"time"
+
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
 )
 
 type downloader struct {
@@ -180,7 +181,7 @@ func (p *progressBar) Write(b []byte) (int, error) {
 	if progress > p.lastProgress {
 		p.lastProgress = progress
 
-		content := fmt.Sprintf("Downloading: %s -------- %d%% (%s/%s)",
+		content := fmt.Sprintf("- downloading: %s -------- %d%% (%s/%s)",
 			p.fileName,
 			progress,
 			expr.FormatSize(p.currentSize),
@@ -189,7 +190,7 @@ func (p *progressBar) Write(b []byte) (int, error) {
 
 		color.PrintInline(color.Hint, "%s", content)
 		if progress == 100 {
-			fmt.Println()
+			color.PrintInline(color.Hint, "✔ downloaded %s (%s)\n", p.fileName, expr.FormatSize(p.fileSize))
 		}
 	}
 

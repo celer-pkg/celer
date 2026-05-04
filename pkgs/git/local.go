@@ -2,12 +2,14 @@ package git
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/color"
 )
 
 // GetRepoUrl get git repo origin URL.
@@ -186,14 +188,14 @@ func CheckIfMatchesRef(ctx context.Context, nameVersion, repoDir, expectedRef st
 
 	expectedRef = strings.TrimSpace(expectedRef)
 	if expectedRef != "" {
-		expectedCommit, err := GitRevParse(ctx, nameVersion, repoDir, expectedRef)
+		expectedCommit, err := RevParseRepoRef(ctx, nameVersion, repoDir, expectedRef)
 		if err != nil {
 			return "", fmt.Errorf("resolve git ref %q: %w", expectedRef, err)
 		}
 		if currentCommit == expectedCommit {
 			return "", nil
 		}
-		return fmt.Sprintf("expect ref %q @ %s, got HEAD @ %s", expectedRef, expectedCommit, currentCommit), nil
+		return "", fmt.Errorf("expect ref %q @ %s, got HEAD @ %s", expectedRef, expectedCommit, currentCommit)
 	}
 
 	// No configured ref means "is my current branch still aligned with its upstream?".
@@ -202,12 +204,12 @@ func CheckIfMatchesRef(ctx context.Context, nameVersion, repoDir, expectedRef st
 		return "", err
 	}
 	if branch == "" || branch == "HEAD" {
-		return fmt.Sprintf("expect upstream, got detached HEAD @ %s", currentCommit), nil
+		return "", fmt.Errorf("expect upstream, got detached HEAD @ %s", currentCommit)
 	}
 
 	upstreamBranch, err := getUpstreamBranch(repoDir)
 	if err != nil {
-		return fmt.Sprintf("expect upstream for %q, got none (HEAD @ %s)", branch, currentCommit), nil
+		return "", fmt.Errorf("expect upstream for %q, got none (HEAD @ %s)", branch, currentCommit)
 	}
 
 	if !ctx.Offline() {
@@ -218,19 +220,19 @@ func CheckIfMatchesRef(ctx context.Context, nameVersion, repoDir, expectedRef st
 			remoteName = upstreamBranch[:index]
 		}
 
-		if _, err := runWithRetry("fetch upstream refs", repoDir, "fetch", "--tags", remoteName); err != nil {
+		if err := fetchRemoteTags(repoDir, remoteName); err != nil {
 			return "", fmt.Errorf("git fetch --tags %s failed for %s: %w", remoteName, repoDir, err)
 		}
 	}
 
-	upstreamCommit, err := gitRevParseCommit(repoDir, upstreamBranch)
+	upstreamCommit, err := revParseCommit(repoDir, upstreamBranch)
 	if err != nil {
 		return "", err
 	}
 	if currentCommit == upstreamCommit {
 		return "", nil
 	}
-	return fmt.Sprintf("expect upstream %q @ %s, got HEAD @ %s", upstreamBranch, upstreamCommit, currentCommit), nil
+	return "", fmt.Errorf("expect upstream %q @ %s, got HEAD @ %s", upstreamBranch, upstreamCommit, currentCommit)
 }
 
 func getRemoteNames(repoDir string) ([]string, error) {
@@ -321,9 +323,9 @@ func InitAsLocalRepo(repoDir, message string) error {
 	return nil
 }
 
-// GitRevParse return full commit hash with repo ref, if repo ref is not found in remote,
+// RevParseRepoRef return full commit hash with repo ref, if repo ref is not found in remote,
 // then find it in local repo, the ref can be any valid git revision (branch, tag, HEAD, commit hash, etc.).
-func GitRevParse(ctx context.Context, nameVersion, repoDir, repoRef string) (string, error) {
+func RevParseRepoRef(ctx context.Context, nameVersion, repoDir, repoRef string) (string, error) {
 	repoRef = strings.TrimSpace(repoRef)
 	if repoRef == "" {
 		return "", nil
@@ -336,35 +338,49 @@ func GitRevParse(ctx context.Context, nameVersion, repoDir, repoRef string) (str
 			return "", err
 		}
 		if remoteName != "" {
-			if _, err := runWithRetry("fetch refs revision for "+nameVersion, repoDir, "fetch", "--tags", remoteName); err != nil {
-				return "", fmt.Errorf("git fetch --tags %s failed for %s: %w", remoteName, repoDir, err)
+			// Fetch remote tags to ensure we can resolve refs that point at tags.
+			if err := fetchRemoteTags(repoDir, remoteName); err != nil {
+				return "", fmt.Errorf("git fetch --tags %s failed for %s -> %w", remoteName, repoDir, err)
 			}
-			if remoteCommit, err := gitRevParseCommit(repoDir, remoteName+"/"+repoRef); err == nil {
+			if remoteCommit, err := revParseCommit(repoDir, remoteName+"/"+repoRef); err == nil {
 				return remoteCommit, nil
 			}
 		}
 	}
 
 	// Fall back to any locally resolvable ref: commit hash, tag, branch, etc.
-	return gitRevParseCommit(repoDir, repoRef)
+	return revParseCommit(repoDir, repoRef)
 }
 
-func gitRevParseCommit(repoDir, repoRef string) (string, error) {
+// revParseCommit returns the full commit hash for the given repo ref.
+func revParseCommit(repoDir, repoRef string) (string, error) {
 	repoRef = strings.TrimSpace(repoRef)
 	if repoRef == "" {
 		return "", nil
 	}
 	// Force refs like annotated tags to resolve to the commit they point at.
-	return gitRevParse(repoDir, repoRef+"^{commit}")
+	return revParse(repoDir, repoRef+"^{commit}")
 }
 
-// gitRevParse returns the full commit hash for the given repo ref from local repo.
+// revParse returns the full commit hash for the given repo ref from local repo.
 // The ref can be any valid git revision (branch, tag, HEAD, commit hash, etc.).
-func gitRevParse(repoDir, repoRef string) (string, error) {
+func revParse(repoDir, repoRef string) (string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", repoRef)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("git rev-parse %q -> %s", repoRef, output)
 	}
 	return strings.TrimSpace(string(output)), nil
+}
+
+// fetchRemoteTags fetch remote tags.
+func fetchRemoteTags(repoDir, remoteName string) error {
+	executor := cmd.NewExecutor("[git fetch remote tags]", "git", "fetch", "--tags", remoteName)
+	executor.SetWorkDir(repoDir)
+	executor.SetMirrorOutput(true)
+	if err := executor.Execute(); err != nil {
+		return fmt.Errorf("git fetch --tags %s failed for %s: %w", remoteName, repoDir, err)
+	}
+
+	return nil
 }
