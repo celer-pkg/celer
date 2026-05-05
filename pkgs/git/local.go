@@ -176,11 +176,11 @@ func GetDefaultBranch(repoDir string) (string, error) {
 	return "", fmt.Errorf("default branch not found of %s", repoDir)
 }
 
-// CheckIfMatchesRef checks whether the local checkout matches the expected ref.
+// CheckIfRefMatches checks whether the local checkout matches the expected ref.
 // It returns an empty string on match, or a human-readable mismatch reason when
 // the checkout does not match. If expectedRef is empty, it falls back to
 // comparing the current branch HEAD with its upstream branch.
-func CheckIfMatchesRef(ctx context.Context, nameVersion, repoDir, expectedRef string) (string, error) {
+func CheckIfRefMatches(ctx context.Context, nameVersion, repoDir, expectedRef string) (string, error) {
 	currentCommit, err := GetCommitHash(repoDir)
 	if err != nil {
 		return "", err
@@ -214,14 +214,16 @@ func CheckIfMatchesRef(ctx context.Context, nameVersion, repoDir, expectedRef st
 
 	if !ctx.Offline() {
 		// Upstream branches are reported as <remote>/<branch>, so peel out the remote
-		// name before fetching the latest remote state.
+		// name and branch name before fetching the latest remote state.
 		remoteName := upstreamBranch
+		branchName := upstreamBranch
 		if index := strings.IndexByte(upstreamBranch, '/'); index > 0 {
 			remoteName = upstreamBranch[:index]
+			branchName = upstreamBranch[index+1:]
 		}
 
-		if err := fetchRemoteTags(nameVersion, repoDir, remoteName); err != nil {
-			return "", fmt.Errorf("git fetch --tags %s failed for %s: %w", remoteName, repoDir, err)
+		if err := fetchRemoteRef(nameVersion, repoDir, remoteName, branchName); err != nil {
+			return "", fmt.Errorf("git fetch branch %s failed for %s: %w", branchName, repoDir, err)
 		}
 	}
 
@@ -338,9 +340,9 @@ func RevParseRepoRef(ctx context.Context, nameVersion, repoDir, repoRef string) 
 			return "", err
 		}
 		if remoteName != "" {
-			// Fetch remote tags to ensure we can resolve refs that point at tags.
-			if err := fetchRemoteTags(nameVersion, repoDir, remoteName); err != nil {
-				return "", fmt.Errorf("git fetch --tags %s failed for %s -> %w", remoteName, repoDir, err)
+			// Fetch the specific remote ref to ensure we can resolve it.
+			if err := fetchRemoteRef(nameVersion, repoDir, remoteName, repoRef); err != nil {
+				return "", fmt.Errorf("git fetch ref %s failed for %s -> %w", repoRef, repoDir, err)
 			}
 			if remoteCommit, err := revParseCommit(repoDir, remoteName+"/"+repoRef); err == nil {
 				return remoteCommit, nil
@@ -373,14 +375,14 @@ func revParse(repoDir, repoRef string) (string, error) {
 	return strings.TrimSpace(string(output)), nil
 }
 
-// fetchRemoteTags fetch remote tags.
-func fetchRemoteTags(nameVersion, repoDir, remoteName string) error {
-	title := fmt.Sprintf("[git fetch remote tags: %s]", nameVersion)
-	executor := cmd.NewExecutor(title, "git", "fetch", "--tags", remoteName)
+// fetchRemoteRef fetch a specific remote ref (branch, tag, or commit).
+func fetchRemoteRef(nameVersion, repoDir, remoteName, refName string) error {
+	title := fmt.Sprintf("[git fetch remote ref: %s]", nameVersion)
+	executor := cmd.NewExecutor(title, "git", "fetch", remoteName, "tag", refName)
 	executor.SetWorkDir(repoDir)
 	executor.SetMirrorOutput(true)
 	if err := executor.Execute(); err != nil {
-		return fmt.Errorf("git fetch --tags %s failed for %s: %w", remoteName, repoDir, err)
+		return fmt.Errorf("git fetch ref %s failed for %s: %w", refName, repoDir, err)
 	}
 
 	return nil
