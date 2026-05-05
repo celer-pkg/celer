@@ -10,26 +10,26 @@ import (
 )
 
 type pkgCache struct {
-	Dir             string `toml:"dir"`
-	Writable        bool   `toml:"writable"`
-	CacheArtifiacts bool   `toml:"cache_artifiacts"`
-	CacheRepos      bool   `toml:"cache_repos"`
-	CacheDownloads  bool   `toml:"cache_downloads"`
+	Dir            string `toml:"dir"`
+	Writable       bool   `toml:"writable"`
+	CacheArtifacts bool   `toml:"cache_artifacts"`
+	CacheRepos     bool   `toml:"cache_repos"`
+	CacheDownloads bool   `toml:"cache_downloads"`
 
 	// Internal field.
 	ctx           context.Context
-	artifactCache *pkgcache.Aritifact
+	artifactCache *pkgcache.Artifacts
 	repoCache     *pkgcache.Repo
 }
 
 func NewPkgCache(ctx context.Context, dir string, writable bool) *pkgCache {
 	return &pkgCache{
-		ctx:             ctx,
-		Dir:             dir,
-		Writable:        writable,
-		CacheArtifiacts: true,
-		CacheRepos:      true,
-		CacheDownloads:  true,
+		ctx:            ctx,
+		Dir:            dir,
+		Writable:       writable,
+		CacheArtifacts: true,
+		CacheRepos:     true,
+		CacheDownloads: true,
 	}
 }
 

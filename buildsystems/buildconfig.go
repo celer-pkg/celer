@@ -377,7 +377,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		}
 
 		// Move extracted files to repo dir if it's not "include".
-		if len(entities) == 1 && entities[0].Name() != "include" {
+		if len(entities) == 1 && entities[0].IsDir() && entities[0].Name() != "include" {
 			srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
 			color.Printf(color.Hint, "- mv %s %s", srcDir, b.PortConfig.RepoDir)
 			if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
@@ -534,7 +534,7 @@ func (b BuildConfig) UpdateSubmodules() error {
 		return nil
 	}
 
-	title := fmt.Sprintf("[update submodules for %s]", b.PortConfig.nameVersion())
+	title := fmt.Sprintf("[update submodules: %s]", b.PortConfig.nameVersion())
 	return git.UpdateSubmodules(title, b.PortConfig.RepoDir)
 }
 
@@ -989,7 +989,8 @@ func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
 	// Read MSVC environment variables.
 	// TODO: the `x64` may be different depending on the platform.
 	command := fmt.Sprintf(`call "%s" x64 && set`, toolchain.GetMSVC().VCVars)
-	executor := cmd.NewExecutor("[read msvc envs]", command)
+	title := fmt.Sprintf("[read msvc envs: %s]", b.PortConfig.nameVersion())
+	executor := cmd.NewExecutor(title, command)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
 		return nil, err

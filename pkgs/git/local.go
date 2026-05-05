@@ -220,7 +220,7 @@ func CheckIfMatchesRef(ctx context.Context, nameVersion, repoDir, expectedRef st
 			remoteName = upstreamBranch[:index]
 		}
 
-		if err := fetchRemoteTags(repoDir, remoteName); err != nil {
+		if err := fetchRemoteTags(nameVersion, repoDir, remoteName); err != nil {
 			return "", fmt.Errorf("git fetch --tags %s failed for %s: %w", remoteName, repoDir, err)
 		}
 	}
@@ -339,7 +339,7 @@ func RevParseRepoRef(ctx context.Context, nameVersion, repoDir, repoRef string) 
 		}
 		if remoteName != "" {
 			// Fetch remote tags to ensure we can resolve refs that point at tags.
-			if err := fetchRemoteTags(repoDir, remoteName); err != nil {
+			if err := fetchRemoteTags(nameVersion, repoDir, remoteName); err != nil {
 				return "", fmt.Errorf("git fetch --tags %s failed for %s -> %w", remoteName, repoDir, err)
 			}
 			if remoteCommit, err := revParseCommit(repoDir, remoteName+"/"+repoRef); err == nil {
@@ -374,8 +374,9 @@ func revParse(repoDir, repoRef string) (string, error) {
 }
 
 // fetchRemoteTags fetch remote tags.
-func fetchRemoteTags(repoDir, remoteName string) error {
-	executor := cmd.NewExecutor("[git fetch remote tags]", "git", "fetch", "--tags", remoteName)
+func fetchRemoteTags(nameVersion, repoDir, remoteName string) error {
+	title := fmt.Sprintf("[git fetch remote tags: %s]", nameVersion)
+	executor := cmd.NewExecutor(title, "git", "fetch", "--tags", remoteName)
 	executor.SetWorkDir(repoDir)
 	executor.SetMirrorOutput(true)
 	if err := executor.Execute(); err != nil {
