@@ -2,9 +2,10 @@ package cmds
 
 import (
 	"fmt"
+	"path/filepath"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/color"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -29,7 +30,7 @@ func (v *versionCmd) version() {
 	toolchainPath, _ := filepath.Abs("toolchain_file.cmake")
 	toolchainPath = color.Sprintf(color.Important, "%s", toolchainPath)
 
-	content := fmt.Sprintf("%s - Welcome to celer\n"+
+	content := fmt.Sprintf("Welcome to Celer (%s)\n"+
 		"--------------------------------------------\n"+
 		"This is a lightweight pkg-manager for C/C++.\n\n"+
 		"How to apply it in your cmake project: \n"+

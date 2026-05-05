@@ -2,8 +2,13 @@
 
 export GOPROXY=https://goproxy.io,direct
 
-VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-go build -trimpath -ldflags "-s -w -X celer/configs.Version=${VERSION}"
+# Get the latest tag sorted by version (semver)
+# This works even when HEAD is not on a tag
+VERSION=$(git tag --sort=-version:refname --merged 2>/dev/null | head -1)
+VERSION=${VERSION:-v0.0.0}
+
+echo "Building celer with VERSION=$VERSION"
+go build -trimpath -ldflags "-s -w -X github.com/celer-pkg/celer/configs.Version=${VERSION}"
 
 upx=$(which upx)
 

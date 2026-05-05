@@ -52,7 +52,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
-          go build -trimpath -ldflags="-s -w -X celer/configs.Version=${{ github.ref_name }}" -o ${{ matrix.output }} .
+          go build -trimpath -ldflags="-s -w -X github.com/celer-pkg/celer/configs.Version=${{ github.ref_name }}" -o ${{ matrix.output }} .
           
           # Compress with UPX if available (same logic as build.sh)
           if command -v upx &> /dev/null; then
