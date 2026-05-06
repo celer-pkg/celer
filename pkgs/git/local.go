@@ -160,6 +160,7 @@ func GetCommitHash(repoDir string) (string, error) {
 func GetDefaultBranch(nameVersion, repoDir string) (string, error) {
 	title := fmt.Sprintf("[read default branch: %s]", nameVersion)
 	executor := cmd.NewExecutor(title, "git", "remote", "show", "origin")
+	executor.SetWorkDir(repoDir)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
 		return "", fmt.Errorf("read git default branch: %w", err)
