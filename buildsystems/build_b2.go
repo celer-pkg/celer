@@ -333,28 +333,6 @@ func (b b2) buildOptions() ([]string, error) {
 	return options, nil
 }
 
-func (b *b2) preBuild() error {
-	toolchain := b.Ctx.Platform().GetToolchain()
-
-	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
-	// This must be done in preBuild as well, in case the project is already configured
-	// (which would skip preConfigure) but needs to be rebuilt.
-	if runtime.GOOS == "windows" {
-		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
-			msvcEnvs, err := b.readMSVCEnvs()
-			if err != nil {
-				return err
-			}
-
-			b.envBackup.setenv("PATH", msvcEnvs["PATH"])
-			b.envBackup.setenv("INCLUDE", msvcEnvs["INCLUDE"])
-			b.envBackup.setenv("LIB", msvcEnvs["LIB"])
-		}
-	}
-
-	return nil
-}
-
 func (b b2) Build(options []string) error {
 	// Assemble command.
 	b2file := expr.If(runtime.GOOS == "windows", "b2.exe", "b2")
