@@ -18,12 +18,12 @@
 
 [[build_tools]]
   name = "cmake"
-  version = "3.31.7"
+  version = "4.3.2"
   default = true
-  url = "https://github.com/Kitware/CMake/releases/download/v3.31.7/cmake-3.31.7-windows-x86_64.zip"
-  sha256 = "ab1c7f46a1b1314f9fcb766c2573148679af599d94c5566bc12b8b35bb563362"
-  archive = "cmake-3.31.7-windows-x86_64.zip"
-  paths = ["cmake-3.31.7-windows-x86_64/bin"]
+  url = "https://github.com/Kitware/CMake/releases/download/v4.3.2/cmake-4.3.2-windows-x86_64.zip"
+  sha256 = "83d20c23f5c5f64b3b328785e35b23c532e33057a97ed6294acaca3781b78a01"
+  archive = "cmake-4.3.2-windows-x86_64.zip"
+  paths = ["cmake-4.3.2-windows-x86_64/bin"]
 
 [[build_tools]]
   name = "ninja"
