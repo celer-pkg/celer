@@ -97,7 +97,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 	// Clear the tmp/deps dir, then copy library files of dependencies into it.
 	// This ensures the folder contains exactly the libraries required by the current port.
 	if p.Parent == "" {
-		color.Printf(color.Title, "\n[clean tmps for %s]\n", p.NameVersion())
+		color.Printf(color.Title, "\n[clean tmps: %s]\n", p.NameVersion())
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
 			return "", err
 		}

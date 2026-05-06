@@ -157,8 +157,10 @@ func GetCommitHash(repoDir string) (string, error) {
 }
 
 // GetDefaultBranch read git default branch.
-func GetDefaultBranch(repoDir string) (string, error) {
-	output, err := runWithRetry("read default branch", repoDir, "remote", "show", "origin")
+func GetDefaultBranch(nameVersion, repoDir string) (string, error) {
+	title := fmt.Sprintf("[read default branch: %s]", nameVersion)
+	executor := cmd.NewExecutor(title, "git", "remote", "show", "origin")
+	output, err := executor.ExecuteOutput()
 	if err != nil {
 		return "", fmt.Errorf("read git default branch: %w", err)
 	}
@@ -380,7 +382,6 @@ func fetchRemoteRef(nameVersion, repoDir, remoteName, refName string) error {
 	title := fmt.Sprintf("[git fetch remote ref: %s]", nameVersion)
 	executor := cmd.NewExecutor(title, "git", "fetch", remoteName, "tag", refName)
 	executor.SetWorkDir(repoDir)
-	executor.SetMirrorOutput(true)
 	if err := executor.Execute(); err != nil {
 		return fmt.Errorf("git fetch ref %s failed for %s: %w", refName, repoDir, err)
 	}
