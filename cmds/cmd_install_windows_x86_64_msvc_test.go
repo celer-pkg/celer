@@ -4,13 +4,14 @@ package cmds
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 func TestInstall_x86_64_MSVC_Makefiles(t *testing.T) {
@@ -48,12 +49,12 @@ func TestInstall_x86_64_MSVC_CMake(t *testing.T) {
 
 func TestInstall_x86_64_MSVC_B2(t *testing.T) {
 	t.Run("detect_msvc", func(t *testing.T) {
-		buildWithAMD64MSVC(t, "", "boost@1.87.0", false)
+		buildWithAMD64MSVC(t, "", "boost@1.91.0", false)
 	})
 
 	t.Run("fixed_msvc", func(t *testing.T) {
 		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		buildWithAMD64MSVC(t, platform, "boost@1.87.0", false)
+		buildWithAMD64MSVC(t, platform, "boost@1.91.0", false)
 	})
 }
 

@@ -4,11 +4,12 @@ package cmds
 
 import (
 	"fmt"
+	"path/filepath"
+	"testing"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"path/filepath"
-	"testing"
 )
 
 const ubuntu_x86_64_gcc_11_5_0 = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
@@ -45,11 +46,11 @@ func TestInstall_x86_64_GCC_CMake(t *testing.T) {
 
 func TestInstall_x86_64_GCC_B2(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
-		buildWithAMD64GCC(t, "", "boost@1.87.0", false)
+		buildWithAMD64GCC(t, "", "boost@1.91.0", false)
 	})
 
 	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithAMD64GCC(t, ubuntu_x86_64_gcc_11_5_0, "boost@1.87.0", false)
+		buildWithAMD64GCC(t, ubuntu_x86_64_gcc_11_5_0, "boost@1.91.0", false)
 	})
 }
 

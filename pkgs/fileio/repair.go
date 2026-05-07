@@ -222,12 +222,14 @@ func (r Repair) needToDownload(archive, sha256 string) (needToDownload bool, err
 	}
 
 	// Verify sha256, not matches indicate file is corrupted or outdated, need to re-download.
-	computedSha256, err := ComputeSHA256(destFilePath)
-	if err != nil {
-		return false, fmt.Errorf("failed to compute sha256 for %s -> %w", archive, err)
-	}
-	if computedSha256 != sha256 {
-		return true, nil
+	if sha256 != "" {
+		computedSha256, err := ComputeSHA256(destFilePath)
+		if err != nil {
+			return false, fmt.Errorf("failed to compute sha256 for %s -> %w", archive, err)
+		}
+		if computedSha256 != sha256 {
+			return true, nil
+		}
 	}
 
 	return false, nil

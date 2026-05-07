@@ -88,7 +88,7 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 	if useSystemPython { // Use system Python if version matches.
 		currentPython = &python.SystemPython{}
 	} else { // Fallback to conda if system Python doesn't match or doesn't exist.
-		condaTool, err := findBuildTool("conda")
+		condaTool, err := FindBuildTool(ctx, "conda")
 		if err != nil {
 			return fmt.Errorf("failed to find conda tool for python setup -> %w", err)
 		}

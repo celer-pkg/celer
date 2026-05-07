@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	visualStudio_18_2026 = "Visual Studio 18 2026"
 	visualStudio_17_2022 = "Visual Studio 17 2022"
 	visualStudio_16_2019 = "Visual Studio 16 2019"
 	visualStudio_15_2017 = "Visual Studio 15 2017 Win64"
@@ -176,6 +177,13 @@ func (c cmake) configureOptions() ([]string, error) {
 		options = append(options, "-DCMAKE_VERBOSE_MAKEFILE=ON")
 	}
 
+	// Set minimum CMake policy version to support in old CMakeLists.txt.
+	cmakeTool, err := buildtools.FindBuildTool(c.Ctx, "cmake")
+	if err != nil {
+		return nil, fmt.Errorf("failed to find cmake tool -> %w", err)
+	}
+	options = append(options, "-DCMAKE_POLICY_VERSION_MINIMUM="+cmakeTool.Version)
+
 	// Replace placeholders.
 	for index, value := range options {
 		options[index] = c.expandVariables(value)
@@ -221,7 +229,7 @@ func (c cmake) configured() bool {
 			fileio.PathExists(cmakeCache) &&
 			fileio.PathExists(makefile)
 
-	case visualStudio_17_2022, visualStudio_16_2019, visualStudio_15_2017, visualStudio_14_2015:
+	case visualStudio_18_2026, visualStudio_17_2022, visualStudio_16_2019, visualStudio_15_2017, visualStudio_14_2015:
 		cmakeCache := filepath.Join(c.PortConfig.BuildDir, "CMakeCache.txt")
 		slnFile := filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".sln")
 		vcxprojFile := filepath.Join(c.PortConfig.BuildDir, c.PortConfig.LibName+".vcxproj")
@@ -403,7 +411,7 @@ func detectMSVCGenerator() (string, error) {
 		"-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
 		"-property", "installationPath",
 	}
-	exector := cmd.NewExecutor("", "vswhere", args...)
+	exector := cmd.NewExecutor("[detect msvc generator]", "vswhere", args...)
 	output, err := exector.ExecuteOutput()
 	if err != nil {
 		return "", err
@@ -417,10 +425,12 @@ func detectMSVCGenerator() (string, error) {
 
 	// return msvc name.
 	switch {
-	case strings.Contains(msvcDir, "2019"):
-		return visualStudio_16_2019, nil
+	case strings.Contains(msvcDir, "18"):
+		return visualStudio_18_2026, nil
 	case strings.Contains(msvcDir, "2022"):
 		return visualStudio_17_2022, nil
+	case strings.Contains(msvcDir, "2019"):
+		return visualStudio_16_2019, nil
 	case strings.Contains(msvcDir, "2017"):
 		return visualStudio_15_2017, nil
 	case strings.Contains(msvcDir, "2015"):
