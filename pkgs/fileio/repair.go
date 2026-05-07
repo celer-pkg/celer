@@ -108,11 +108,12 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 				return fmt.Errorf("sha-256 mismatch for %s: expected %s", fileName, r.sha256)
 			}
 
-			color.Printf(color.Hint, "- caching to pkgcache: %s\n", fileName)
+			color.Printf(color.Hint, "- caching %s to pkgcache", fileName)
 			cachedPath, err := SaveCachedFile(downloaded, cachedDownloadsDir, fileName, r.sha256)
 			if err != nil {
 				return fmt.Errorf("failed to cache downloaded file %s: %w", fileName, err)
 			}
+			color.PrintInline(color.Hint, "✔ cached %s to pkgcache\n", fileName)
 			downloaded = cachedPath
 		}
 	}

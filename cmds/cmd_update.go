@@ -2,15 +2,16 @@ package cmds
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -133,15 +134,13 @@ func (u *updateCmd) doUpdate(args []string) error {
 }
 
 func (u *updateCmd) updateConfRepo() error {
-	title := "[update conf repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "conf")
-	return git.UpdateRepo(title, "conf repo", "", repoDir, u.force)
+	return git.UpdateRepo("conf repo", "", repoDir, u.force)
 }
 
 func (u *updateCmd) updatePortsRepo() error {
-	title := "[update ports repo]"
 	repoDir := filepath.Join(dirs.WorkspaceDir, "ports")
-	return git.UpdateRepo(title, "ports repo", "", repoDir, u.force)
+	return git.UpdateRepo("ports repo", "", repoDir, u.force)
 }
 
 func (u *updateCmd) updateProjectRepos(nameVersions []string) error {
@@ -197,8 +196,7 @@ func (u *updateCmd) updatePortRepo(nameVersion string, visited map[string]bool) 
 	}
 
 	// Update port.
-	title := fmt.Sprintf("[update %s]", nameVersion)
-	if err := git.UpdateRepo(title, nameVersion, port.Package.Ref, srcDir, u.force); err != nil {
+	if err := git.UpdateRepo(nameVersion, port.Package.Ref, srcDir, u.force); err != nil {
 		return err
 	}
 

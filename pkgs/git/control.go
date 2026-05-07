@@ -30,6 +30,7 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 			args = append(args, "--branch", repoRef)
 		}
 		if depth > 0 {
+			args = append(args, "--single-branch")
 			args = append(args, "--depth", fmt.Sprint(depth))
 		}
 		args = append(args, repoUrl, repoDir)
@@ -38,9 +39,8 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 
 	cloneWithRetry := func(action string, args []string) error {
 		var lastErr error
-		var lastOutput string
 
-		for attempt := 1; attempt <= gitRetryMaxAttempts; attempt++ {
+		for attempt := 1; attempt <= retryMaxAttempts; attempt++ {
 			// Failed clones can leave a partial destination behind and poison the
 			// next attempt, so always retry from a clean target directory.
 			if err := os.RemoveAll(repoDir); err != nil {
@@ -48,24 +48,19 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 			}
 
 			executor := cmd.NewExecutor(title, "git", args...)
-			output, err := executor.ExecuteOutput()
+			err := executor.Execute()
 			if err == nil {
 				return nil
 			}
 
 			lastErr = err
-			lastOutput = output
-			color.Printf(color.Warning, "-- Git %s failed (attempt %d/%d): %v\n", action, attempt, gitRetryMaxAttempts, err)
-			if attempt < gitRetryMaxAttempts {
+			color.Printf(color.Warning, "-- Git %s failed (attempt %d/%d): %v\n", action, attempt, retryMaxAttempts, err)
+			if attempt < retryMaxAttempts {
 				retrySleep(attempt)
 			}
 		}
 
-		trimmedOutput := strings.TrimSpace(lastOutput)
-		if trimmedOutput == "" {
-			return fmt.Errorf("git %s failed after %d attempts -> %w", action, gitRetryMaxAttempts, lastErr)
-		}
-		return fmt.Errorf("git %s failed after %d attempts -> %w: %s", action, gitRetryMaxAttempts, lastErr, trimmedOutput)
+		return fmt.Errorf("git %s failed after %d attempts -> %w", action, retryMaxAttempts, lastErr)
 	}
 
 	cloneWithFallback := func(action string, repoRef string, depth int) error {
@@ -145,7 +140,7 @@ func UpdateSubmodules(title, repoDir string) error {
 }
 
 // UpdateRepo update git repo.
-func UpdateRepo(title, target, repoRef, repoDir string, force bool) error {
+func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 	if !fileio.PathExists(repoDir) {
 		return nil
 	}
@@ -166,7 +161,7 @@ func UpdateRepo(title, target, repoRef, repoDir string, force bool) error {
 
 	// Get default branch if repoRef is empty.
 	if repoRef == "" {
-		branch, err := GetDefaultBranch(repoDir)
+		branch, err := GetDefaultBranch(updateTarget, repoDir)
 		if err != nil {
 			return err
 		}
@@ -180,7 +175,7 @@ func UpdateRepo(title, target, repoRef, repoDir string, force bool) error {
 	}
 
 	// Update to branch.
-	isBranch, err := CheckIfRemoteBranch(target, repoUrl, repoRef)
+	isBranch, err := CheckIfRemoteBranch(updateTarget, repoUrl, repoRef)
 	if err != nil {
 		return err
 	}
@@ -193,7 +188,7 @@ func UpdateRepo(title, target, repoRef, repoDir string, force bool) error {
 			"git pull origin " + repoRef,
 		}
 		commandLine := strings.Join(commands, " && ")
-		executor := cmd.NewExecutor(title, commandLine)
+		executor := cmd.NewExecutor("[update "+updateTarget+"]", commandLine)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
 			return err
@@ -202,7 +197,7 @@ func UpdateRepo(title, target, repoRef, repoDir string, force bool) error {
 	}
 
 	// Update to tag.
-	isTag, err := CheckIfRemoteTag(target, repoUrl, repoRef)
+	isTag, err := CheckIfRemoteTag(updateTarget, repoUrl, repoRef)
 	if err != nil {
 		return err
 	}
@@ -217,12 +212,12 @@ func UpdateRepo(title, target, repoRef, repoDir string, force bool) error {
 		commands := []string{
 			"git reset --hard",
 			"git clean -ffdx",
-			"git fetch --tags origin",
+			"git fetch origin tag " + repoRef,
 			"git checkout " + repoRef,
 		}
 
 		commandLine := strings.Join(commands, " && ")
-		executor := cmd.NewExecutor(title, commandLine)
+		executor := cmd.NewExecutor("[update "+updateTarget+"]", commandLine)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
 			return err

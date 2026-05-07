@@ -97,7 +97,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 	// Clear the tmp/deps dir, then copy library files of dependencies into it.
 	// This ensures the folder contains exactly the libraries required by the current port.
 	if p.Parent == "" {
-		color.Printf(color.Title, "\n[clean tmps for %s]\n", p.NameVersion())
+		color.Printf(color.Title, "\n[clean tmps: %s]\n", p.NameVersion())
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
 			return "", err
 		}
@@ -284,7 +284,7 @@ func (p Port) doInstallFromSource() error {
 			// Only repos that match the configured source ref can store package cache.
 			if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
 				repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
-				mismatchDetails, err := git.CheckIfMatchesRef(p.ctx, p.NameVersion(), p.MatchedConfig.PortConfig.RepoDir, repoRef)
+				mismatchDetails, err := git.CheckIfRefMatches(p.ctx, p.NameVersion(), p.MatchedConfig.PortConfig.RepoDir, repoRef)
 				if err != nil {
 					skipStoreCacheReason = "skip storing package cache for %s: failed to verify source ref: " + err.Error() + "."
 				} else if mismatchDetails != "" {

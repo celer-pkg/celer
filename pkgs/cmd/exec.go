@@ -13,14 +13,13 @@ import (
 )
 
 type Executor struct {
-	msys2Env     bool
-	title        string
-	command      string
-	args         []string
-	msvcEnvs     string
-	workDir      string
-	logPath      string
-	mirrorOutput bool
+	msys2Env bool
+	title    string
+	command  string
+	args     []string
+	msvcEnvs string
+	workDir  string
+	logPath  string
 }
 
 func NewExecutor(title string, command string, args ...string) *Executor {
@@ -39,11 +38,6 @@ func (e *Executor) MSYS2Env(msys2Env bool) {
 
 func (e *Executor) SetMsvcEnvs(msvcEnvs string) {
 	e.msvcEnvs = msvcEnvs
-}
-
-func (e *Executor) SetMirrorOutput(mirrorOutput bool) *Executor {
-	e.mirrorOutput = mirrorOutput
-	return e
 }
 
 func (e *Executor) SetWorkDir(workDir string) *Executor {
@@ -92,10 +86,10 @@ func (e Executor) configureOutputs(cmd *exec.Cmd, logFile *os.File, output io.Wr
 	outWriters := make([]io.Writer, 0, 3)
 	errWriters := make([]io.Writer, 0, 3)
 
-	if output == nil {
-		outWriters = append(outWriters, os.Stdout)
-		errWriters = append(errWriters, os.Stderr)
-	}
+	// Always write execute log to std out.
+	outWriters = append(outWriters, os.Stdout)
+	errWriters = append(errWriters, os.Stderr)
+
 	if logFile != nil {
 		outWriters = append(outWriters, logFile)
 		errWriters = append(errWriters, logFile)
@@ -103,10 +97,6 @@ func (e Executor) configureOutputs(cmd *exec.Cmd, logFile *os.File, output io.Wr
 	if output != nil {
 		outWriters = append(outWriters, output)
 		errWriters = append(errWriters, output)
-	}
-	if output != nil && e.mirrorOutput {
-		outWriters = append(outWriters, os.Stdout)
-		errWriters = append(errWriters, os.Stderr)
 	}
 
 	cmd.Stdout = e.composeWriters(outWriters...)

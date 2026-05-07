@@ -99,9 +99,8 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 					portInProject.BuildConfigs[i].BuildType_Windows = strings.ToLower(portInProject.BuildConfigs[i].BuildType_Windows)
 					portInProject.BuildConfigs[i].BuildType_Linux = strings.ToLower(portInProject.BuildConfigs[i].BuildType_Linux)
 					portInProject.BuildConfigs[i].BuildType_Darwin = strings.ToLower(portInProject.BuildConfigs[i].BuildType_Darwin)
+					p.mergeFromProject(index, &portInProject.BuildConfigs[i])
 				}
-
-				p.mergeFromProject(index, portInProject.MatchedConfig)
 			}
 
 			p.BuildConfigs[index].Ctx = p.ctx
