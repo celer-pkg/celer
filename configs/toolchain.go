@@ -159,7 +159,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	switch runtime.GOOS {
 	case "windows":
 		if t.Name == "msvc" || t.Name == "clang-cl" || t.Name == "clang" {
-			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(t.abspath))
 		}
 
 	case "linux":

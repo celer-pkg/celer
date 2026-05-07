@@ -255,9 +255,9 @@ type BuildTools struct {
 }
 
 // findTool find matched tool with name and version.
-func (b BuildTools) findTool(ctx context.Context, name string) *BuildTool {
+func (b BuildTools) findTool(ctx context.Context, nameVersion string) *BuildTool {
 	// Read tool name and version.
-	toolName, toolVersion := b.parseNameVersion(name)
+	toolName, toolVersion := b.parseNameVersion(nameVersion)
 
 	// Find matched tool.
 	index := slices.IndexFunc(b.BuildTools, func(tool BuildTool) bool {
@@ -303,16 +303,16 @@ func (b BuildTools) merge(buildTools BuildTools) BuildTools {
 	return b
 }
 
-func (b BuildTools) parseNameVersion(buildtool string) (string, string) {
-	if name, version, ok := strings.Cut(buildtool, "@"); ok {
+func (b BuildTools) parseNameVersion(nameVersion string) (string, string) {
+	if name, version, ok := strings.Cut(nameVersion, "@"); ok {
 		return name, version
 	}
 
-	return buildtool, ""
+	return nameVersion, ""
 }
 
-// findBuildTool find build tool with tool name.
-func findBuildTool(toolName string) (*BuildTool, error) {
+// FindBuildTool find build tool with tool name.
+func FindBuildTool(ctx context.Context, nameVersion string) (*BuildTool, error) {
 	// Determine current architecture
 	arch := runtime.GOARCH
 	switch arch {
@@ -335,9 +335,9 @@ func findBuildTool(toolName string) (*BuildTool, error) {
 	}
 
 	// Find the tool entry.
-	condaTool := buildTools.findTool(nil, toolName)
+	condaTool := buildTools.findTool(ctx, nameVersion)
 	if condaTool == nil {
-		return nil, fmt.Errorf("%s tool not found in %s", toolName, staticFile)
+		return nil, fmt.Errorf("%s tool not found in %s", nameVersion, staticFile)
 	}
 
 	return condaTool, nil
