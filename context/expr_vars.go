@@ -2,12 +2,13 @@ package context
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
 )
 
 type ExprVars struct {
@@ -22,7 +23,9 @@ func (e ExprVars) Clone() ExprVars {
 
 // Init initialize Variables with values from the context.
 func (e *ExprVars) Init(ctx Context) {
-	e.vars = make(map[string]string)
+	if e.vars == nil {
+		e.vars = make(map[string]string)
+	}
 
 	e.vars["BUILDTREES_DIR"] = dirs.BuildtreesDir
 	e.vars["INSTALLED_DIR"] = e.toRelPath(ctx.InstalledDir())
@@ -31,11 +34,19 @@ func (e *ExprVars) Init(ctx Context) {
 
 // Put stores or updates an expression variable.
 func (e *ExprVars) Put(key, value string) {
+	if e.vars == nil {
+		e.vars = make(map[string]string)
+	}
+
 	e.vars[key] = value
 }
 
 // Expand replace express with values.
 func (e ExprVars) Expand(content string) string {
+	if e.vars == nil {
+		e.vars = make(map[string]string)
+	}
+
 	for key, value := range e.vars {
 		content = strings.ReplaceAll(content, fmt.Sprintf("${%s}", key), value)
 		content = strings.ReplaceAll(content, fmt.Sprintf("$%s", key), value)

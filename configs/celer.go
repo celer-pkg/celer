@@ -81,7 +81,6 @@ func (c *Celer) Init() error {
 
 // InitWithPlatform initializes celer with platform.
 func (c *Celer) InitWithPlatform(platform string) error {
-	c.exprVars.Init(c)
 	c.platform.ctx = c
 
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
@@ -264,6 +263,9 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		llvmConfigPath := filepath.Join(llvmRoot, "bin", llvmConfig)
 		c.exprVars.Put("LLVM_CONFIG", filepath.ToSlash(llvmConfigPath))
 	}
+
+	// Must init at the end of InitWithPlatform, because it depends on the celer fields.
+	c.exprVars.Init(c)
 
 	// Clone ports repo if empty.
 	if err := c.clonePorts(); err != nil {

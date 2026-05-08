@@ -2,17 +2,18 @@ package buildsystems
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"path/filepath"
-	"runtime"
-	"slices"
-	"strings"
 )
 
 type envsBackup struct {
@@ -96,21 +97,13 @@ func (b *BuildConfig) setupEnvs() {
 			b.envBackup.setenv("LDFLAGS", env.JoinSpace("-Wl,-rpath=\\$$ORIGIN/../lib", os.Getenv("LDFLAGS")))
 		}
 
-		// C/C++ standard.
-		b.setLanguageStandard()
-
-		// Set CFLGAGS/CXXFLAGS/LDFLAGS.
-		b.setEnvFlags()
-
-		// Setup pkg-config.
-		b.setupPkgConfig()
+		b.setLanguageStandard() // C/C++ standard.
+		b.setEnvFlags()         // Set CFLGAGS/CXXFLAGS/LDFLAGS.
+		b.setupPkgConfig()      // Setup pkg-config.
 	}
 
-	// Set CFLGAGS/CXXFLAGS/LDFLAGS.
-	b.setEnvFlags()
-
-	// Setup pkg-config.
-	b.setupPkgConfig()
+	b.setEnvFlags()    // Set CFLGAGS/CXXFLAGS/LDFLAGS.
+	b.setupPkgConfig() // Setup pkg-config.
 
 	tmpDevDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
 

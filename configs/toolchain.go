@@ -150,7 +150,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	}
 	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
 
-	fmt.Fprintf(toolchain, "\n# Target information for cross-compile.\n")
+	fmt.Fprintf(toolchain, "\n# Target platform for cross-compile.\n")
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", expr.UpperFirst(t.SystemName))
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
