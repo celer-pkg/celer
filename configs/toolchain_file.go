@@ -248,12 +248,14 @@ func (c *Celer) appendIncludeDirs(toolchain *strings.Builder) {
 			(c.platform.Toolchain.GetName() == "msvc" ||
 				c.platform.Toolchain.GetName() == "clang-cl") {
 			// Windows MSVC: use /I format
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_C_FLAGS_INIT " /I\"%s\"")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_CXX_FLAGS_INIT " /I\"%s\"")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
+			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " /I\"%s\"")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `endforeach()`+"\n")
 		} else {
 			// Unix/Linux: use -I format
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_C_FLAGS_INIT " -I%s")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_CXX_FLAGS_INIT " -I%s")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
+			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " -I%s")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `endforeach()`+"\n")
 		}
 	}
 }
@@ -274,14 +276,15 @@ func (c *Celer) appendLibDirs(toolchain *strings.Builder) {
 			(c.platform.Toolchain.GetName() == "msvc" ||
 				c.platform.Toolchain.GetName() == "clang-cl") {
 			// Windows MSVC: use /LIBPATH: format
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " /LIBPATH:\"%s\"")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " /LIBPATH:\"%s\"")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " /LIBPATH:\"%s\"")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
+			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " /LIBPATH:\"%s\"")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `endforeach()`+"\n")
 		} else {
 			// Unix/Linux: use -L format
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -L%s")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " -L%s")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -L%s")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
+			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " -L%s")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " -Wl,-rpath-link,%s")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `endforeach()`+"\n")
 		}
 	}
 }
