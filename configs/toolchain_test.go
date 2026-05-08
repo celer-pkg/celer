@@ -63,12 +63,14 @@ func TestToolchainGenerate_UsesDebugFlags(t *testing.T) {
 	}
 
 	output := buffer.String()
+	// When both cflags and cxxflags exist, they use foreach loop
 	expected := []string{
-		`string(APPEND CMAKE_C_FLAGS_INIT " -O0")`,
-		`string(APPEND CMAKE_C_FLAGS_INIT " -g3")`,
-		`string(APPEND CMAKE_CXX_FLAGS_INIT " -O0")`,
-		`string(APPEND CMAKE_CXX_FLAGS_INIT " -g3")`,
-		`string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -Wl,--export-dynamic")`,
+		`foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`,
+		`  string(APPEND ${flag_var} " -O0")`,
+		`  string(APPEND ${flag_var} " -g3")`,
+		`endforeach()`,
+		`foreach(flag_var CMAKE_EXE_LINKER_FLAGS_INIT CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT)`,
+		`  string(APPEND ${flag_var} " -Wl,--export-dynamic")`,
 	}
 
 	for _, item := range expected {

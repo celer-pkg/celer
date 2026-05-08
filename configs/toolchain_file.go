@@ -2,14 +2,15 @@ package configs
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 func (c *Celer) GenerateToolchainFile() error {
@@ -67,49 +68,11 @@ func (c *Celer) GenerateToolchainFile() error {
 	}
 
 	// Define global cmake vars, env vars and macros.
-	for index, item := range c.project.Vars {
-		if index == 0 {
-			fmt.Fprintf(&toolchain, "\n# Global cmake vars.\n")
-		}
-
-		parts := strings.Split(item, "=")
-		if len(parts) == 1 {
-			fmt.Fprintf(&toolchain, `set(%s CACHE INTERNAL "defined by celer globally.")`+"\n", item)
-		} else if len(parts) == 2 {
-			parts[1] = c.exprVars.Expand(parts[1])
-			fmt.Fprintf(&toolchain, `set(%s %s CACHE INTERNAL "defined by celer globally.")`+"\n", parts[0], parts[1])
-		} else {
-			return fmt.Errorf("invalid cmake var: %s", item)
-		}
-
-		// Define cmake var in project will make package cache not inaccurate.
-		if strings.HasPrefix(strings.ToLower(parts[0]), "cmake_") {
-			return fmt.Errorf("%q as cmake var should not be defined in project %q", item, c.project.Name)
-		}
-	}
-
-	for index, item := range c.project.Envs {
-		parts := strings.Split(item, "=")
-		if len(parts) != 2 {
-			return fmt.Errorf("invalid env var: %s", item)
-		}
-
-		if index == 0 {
-			fmt.Fprintf(&toolchain, "\n# Global envs.\n")
-		}
-
-		parts[1] = c.exprVars.Expand(parts[1])
-		fmt.Fprintf(&toolchain, `set(ENV{%s} "%s")`+"\n", parts[0], parts[1])
-	}
-
-	for index, item := range c.project.Macros {
-		if index == 0 {
-			fmt.Fprintf(&toolchain, "\n# Global macros.\n")
-		}
-
-		item = c.exprVars.Expand(item)
-		fmt.Fprintf(&toolchain, "add_compile_definitions(%s)\n", item)
-	}
+	c.appendIncludeDirs(&toolchain)
+	c.appendLibDirs(&toolchain)
+	c.appendVars(&toolchain)
+	c.appendEnvs(&toolchain)
+	c.appendMacros(&toolchain)
 
 	fmt.Fprintf(&toolchain, "\n")
 	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
@@ -267,4 +230,111 @@ func (c *Celer) writeCUDAConfig(toolchain *strings.Builder) {
 
 	fmt.Fprintf(toolchain, "set(CMAKE_CUDA_FLAGS_INIT %q CACHE STRING \"CUDA compiler flags.\" FORCE)\n",
 		"-Wno-deprecated-gpu-targets --forward-unknown-opts --forward-slash-prefix-opts")
+}
+
+func (c *Celer) appendIncludeDirs(toolchain *strings.Builder) {
+	for index, dir := range c.project.IncludeDirs {
+		if index == 0 {
+			fmt.Fprintf(toolchain, "\n# External include dirs.\n")
+		}
+
+		// Also add include path to compiler flags to ensure headers are found
+		// This is necessary because CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY may restrict include_directories()
+		dir = c.exprVars.Expand(dir)
+		escapedDir := filepath.ToSlash(dir)
+		systemName := c.platform.Toolchain.GetSystemName()
+
+		if strings.ToLower(systemName) == "windows" &&
+			(c.platform.Toolchain.GetName() == "msvc" ||
+				c.platform.Toolchain.GetName() == "clang-cl") {
+			// Windows MSVC: use /I format
+			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
+			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " /I\"%s\"")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `endforeach()`+"\n")
+		} else {
+			// Unix/Linux: use -I format
+			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
+			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " -I%s")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `endforeach()`+"\n")
+		}
+	}
+}
+
+func (c *Celer) appendLibDirs(toolchain *strings.Builder) {
+	for index, dir := range c.project.LibDirs {
+		if index == 0 {
+			fmt.Fprintf(toolchain, "\n# External library dirs.\n")
+		}
+
+		// Add library path to linker flags to ensure libraries are found,
+		// This is necessary because CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY may restrict link_directories()
+		dir = c.exprVars.Expand(dir)
+		escapedDir := filepath.ToSlash(dir)
+		systemName := c.platform.Toolchain.GetSystemName()
+
+		if strings.ToLower(systemName) == "windows" &&
+			(c.platform.Toolchain.GetName() == "msvc" ||
+				c.platform.Toolchain.GetName() == "clang-cl") {
+			// Windows MSVC: use /LIBPATH: format
+			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
+			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " /LIBPATH:\"%s\"")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `endforeach()`+"\n")
+		} else {
+			// Unix/Linux: use -L format
+			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
+			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " -L%s")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " -Wl,-rpath-link,%s")`+"\n", escapedDir)
+			fmt.Fprintf(toolchain, `endforeach()`+"\n")
+		}
+	}
+}
+
+func (c *Celer) appendVars(toolchain *strings.Builder) {
+	for index, item := range c.project.Vars {
+		if index == 0 {
+			fmt.Fprintf(toolchain, "\n# Global cmake vars.\n")
+		}
+
+		parts := strings.Split(item, "=")
+		if len(parts) == 1 {
+			fmt.Fprintf(toolchain, `set(%s CACHE INTERNAL "defined by celer globally.")`+"\n", item)
+		} else if len(parts) == 2 {
+			parts[1] = c.exprVars.Expand(parts[1])
+			fmt.Fprintf(toolchain, `set(%s %s CACHE INTERNAL "defined by celer globally.")`+"\n", parts[0], parts[1])
+		} else {
+			panic("invalid cmake var: " + item)
+		}
+
+		// Define cmake var in project will make package cache not inaccurate.
+		if strings.HasPrefix(strings.ToLower(parts[0]), "cmake_") {
+			panic(fmt.Sprintf("%q as cmake var should not be defined in project %q", item, c.project.Name))
+		}
+	}
+}
+
+func (c *Celer) appendEnvs(toolchain *strings.Builder) {
+	for index, item := range c.project.Envs {
+		parts := strings.Split(item, "=")
+		if len(parts) != 2 {
+			panic("invalid env var: " + item)
+		}
+
+		if index == 0 {
+			fmt.Fprintf(toolchain, "\n# Global envs.\n")
+		}
+
+		parts[1] = c.exprVars.Expand(parts[1])
+		fmt.Fprintf(toolchain, `set(ENV{%s} "%s")`+"\n", parts[0], parts[1])
+	}
+}
+
+func (c *Celer) appendMacros(toolchain *strings.Builder) {
+	for index, item := range c.project.Macros {
+		if index == 0 {
+			fmt.Fprintf(toolchain, "\n# Global macros.\n")
+		}
+
+		item = c.exprVars.Expand(item)
+		fmt.Fprintf(toolchain, "add_compile_definitions(%s)\n", item)
+	}
 }

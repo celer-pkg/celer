@@ -118,13 +118,14 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 
 	// Linker rpath-link section.
 	if len(r.LibDirs) > 0 {
-		fmt.Fprintf(&buffer, "\n# Linker needs rpath-link to resolve NEEDED dependencies from sysroot.\n")
+		fmt.Fprintf(&buffer, "\n# Linker needs -L and rpath-link to resolve NEEDED dependencies from sysroot.\n")
 		for _, libDir := range r.LibDirs {
 			libPath := filepath.Join("${CMAKE_SYSROOT}", libDir)
 			libPath = filepath.ToSlash(libPath)
-			fmt.Fprintf(&buffer, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -Wl,-rpath-link,%s")`+"\n", libPath)
-			fmt.Fprintf(&buffer, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " -Wl,-rpath-link,%s")`+"\n", libPath)
-			fmt.Fprintf(&buffer, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -Wl,-rpath-link,%s")`+"\n", libPath)
+			fmt.Fprintf(&buffer, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
+			fmt.Fprintf(&buffer, `  string(APPEND ${flag_var} " -L%s")`+"\n", libPath)
+			fmt.Fprintf(&buffer, `  string(APPEND ${flag_var} " -Wl,-rpath-link,%s")`+"\n", libPath)
+			fmt.Fprintf(&buffer, `endforeach()`+"\n")
 		}
 	}
 

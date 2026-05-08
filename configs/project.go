@@ -18,6 +18,8 @@ type Project struct {
 	TargetPlatform string   `toml:"target_platform,omitempty"`
 	BuildType      string   `toml:"build_type"`
 	PythonVersion  string   `toml:"python_version,omitempty"`
+	IncludeDirs    []string `toml:"include_dirs,omitempty"`
+	LibDirs        []string `toml:"lib_dirs,omitempty"`
 	Ports          []string `toml:"ports"`
 	Vars           []string `toml:"vars"`
 	Envs           []string `toml:"envs"`

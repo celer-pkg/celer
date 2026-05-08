@@ -4,13 +4,14 @@ package cmds
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"os"
-	"path/filepath"
-	"testing"
 )
 
 func TestInstall_x86_64_GCC_CUDA(t *testing.T) {

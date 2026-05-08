@@ -130,7 +130,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 			fmt.Fprintf(toolchain, "set(%s %q)\n", key, "${TOOLCHAIN_DIR}/"+value)
 		}
 	}
-	appendFlags := func(key string, flags []string) {
+	appendFlags := func(key string, flags []string, indent string) {
 		for _, item := range flags {
 			item = strings.TrimSpace(item)
 			if item == "" {
@@ -141,7 +141,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 					item = exprVars.Expand(item)
 				}
 			}
-			fmt.Fprintf(toolchain, "string(APPEND %s %q)\n", key, " "+item)
+			fmt.Fprintf(toolchain, "%sstring(APPEND %s %q)\n", indent, key, " "+item)
 		}
 	}
 	buildType := ""
@@ -150,7 +150,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	}
 	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
 
-	fmt.Fprintf(toolchain, "\n# Target information for cross-compile.\n")
+	fmt.Fprintf(toolchain, "\n# Target platform for cross-compile.\n")
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", expr.UpperFirst(t.SystemName))
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
@@ -255,12 +255,23 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	}
 
 	if len(cflags) > 0 || len(cxxflags) > 0 || len(linkflags) > 0 {
-		fmt.Fprint(toolchain, "\n# Override toolchain default flags.\n")
-		appendFlags("CMAKE_C_FLAGS_INIT", cflags)
-		appendFlags("CMAKE_CXX_FLAGS_INIT", cxxflags)
-		appendFlags("CMAKE_EXE_LINKER_FLAGS_INIT", linkflags)
-		appendFlags("CMAKE_SHARED_LINKER_FLAGS_INIT", linkflags)
-		appendFlags("CMAKE_MODULE_LINKER_FLAGS_INIT", linkflags)
+		fmt.Fprint(toolchain, "\n# Append extra build flags.\n")
+
+		// If both cflags and cxxflags exist, use foreach to avoid duplication
+		if len(cflags) > 0 && len(cxxflags) > 0 {
+			fmt.Fprint(toolchain, "foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)\n")
+			appendFlags("${flag_var}", cflags, "  ")
+			fmt.Fprint(toolchain, "endforeach()\n")
+		} else {
+			appendFlags("CMAKE_C_FLAGS_INIT", cflags, "")
+			appendFlags("CMAKE_CXX_FLAGS_INIT", cxxflags, "")
+		}
+
+		if len(linkflags) > 0 {
+			fmt.Fprint(toolchain, "foreach(flag_var CMAKE_EXE_LINKER_FLAGS_INIT CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT)\n")
+			appendFlags("${flag_var}", linkflags, "  ")
+			fmt.Fprint(toolchain, "endforeach()\n")
+		}
 	}
 
 	// Write C/C++ language standard.
