@@ -20,7 +20,7 @@ func CheckIfRemoteBranch(target, repoUrl, repoRef string) (bool, error) {
 	executor := cmd.NewExecutor(title, "git", "ls-remote", "--heads", repoUrl, repoRef)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
-		return false, fmt.Errorf("failed to query remote branch -> %w", err)
+		return false, fmt.Errorf("failed to query remote branch %s of %s -> %w", repoRef, repoUrl, err)
 	}
 
 	return strings.TrimSpace(string(output)) != "", nil
@@ -32,7 +32,7 @@ func CheckIfRemoteTag(target, repoUrl, repoRef string) (bool, error) {
 	executor := cmd.NewExecutor(title, "git", "ls-remote", "--tags", repoUrl, repoRef)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
-		return false, fmt.Errorf("failed to query remote tag -> %w", err)
+		return false, fmt.Errorf("failed to query remote tag %s of %s -> %w", repoRef, repoUrl, err)
 	}
 	return strings.TrimSpace(string(output)) != "", nil
 }

@@ -67,11 +67,35 @@ type Proxy struct {
 	Port int    `toml:"port"`
 }
 
+type Python struct {
+	Version        string   `toml:"version,omitempty"`
+	IndexUrl       string   `toml:"index_url,omitempty"`
+	ExtraIndexUrls []string `toml:"extra_index_urls,omitempty"`
+	TrustedHosts   []string `toml:"trusted_hosts,omitempty"`
+}
+
+func (p *Python) GetVersion() string {
+	return p.Version
+}
+
+func (p *Python) GetIndexUrl() string {
+	return p.IndexUrl
+}
+
+func (p *Python) GetExtraIndexUrls() []string {
+	return p.ExtraIndexUrls
+}
+
+func (p *Python) GetTrustedHosts() []string {
+	return p.TrustedHosts
+}
+
 type configData struct {
 	Global   global    `toml:"global"`
 	Proxy    *Proxy    `toml:"proxy,omitempty"`
 	PkgCache *pkgCache `toml:"pkgcache,omitempty"`
 	CCache   *CCache   `toml:"ccache,omitempty"`
+	Python   *Python   `toml:"python,omitempty"`
 }
 
 // Init initializes celer with existing platform.
@@ -184,7 +208,6 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		if c.configData.Global.Project == "" {
 			c.configData.Global.Project = "unnamed"
 			c.project.Name = "unnamed"
-			c.project.PythonVersion = buildtools.GetDefaultPythonVersion()
 		}
 	}
 
@@ -902,4 +925,11 @@ func (c *Celer) CCacheEnabled() bool {
 
 func (c *Celer) ExprVars() *context.ExprVars {
 	return &c.exprVars
+}
+
+func (c *Celer) PythonConfig() context.PythonConfig {
+	if c.configData.Python != nil {
+		return c.configData.Python
+	}
+	return nil
 }

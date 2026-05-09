@@ -20,11 +20,14 @@ import (
 
 var PythonTool *pythonTool
 
-func pip3Install(ctx context.Context, libraries *[]string) error {
-	var (
-		pythonVersion = ctx.Project().GetPythonVersion()
-		venvDir       = getVersionedVenvPath(pythonVersion)
-	)
+func pip3Install(ctx context.Context, pipConfig context.PythonConfig, libraries *[]string) error {
+	// Get python version from project config if available, otherwise use default version.
+	pythonVersion := GetDefaultPythonVersion()
+	pythonConfig := ctx.PythonConfig()
+	if pythonConfig != nil && pythonConfig.GetVersion() != "" {
+		pythonVersion = pythonConfig.GetVersion()
+	}
+	venvDir := getVersionedVenvPath(pythonVersion)
 
 	// Setup python3 using conda.
 	if err := setupPython(ctx, pythonVersion); err != nil {
@@ -47,9 +50,33 @@ func pip3Install(ctx context.Context, libraries *[]string) error {
 			continue
 		}
 
+		// Build pip install command with PyPI source configuration.
+		var builder strings.Builder
+		builder.WriteString(PythonTool.Path)
+		builder.WriteString(" -m pip install --ignore-installed")
+
+		// Add PyPI source configuration if available.
+		if pipConfig != nil {
+			if indexUrl := pipConfig.GetIndexUrl(); indexUrl != "" {
+				builder.WriteString(" -i ")
+				builder.WriteString(indexUrl)
+			}
+			for _, extraUrl := range pipConfig.GetExtraIndexUrls() {
+				builder.WriteString(" --extra-index-url ")
+				builder.WriteString(extraUrl)
+			}
+			for _, host := range pipConfig.GetTrustedHosts() {
+				builder.WriteString(" --trusted-host ")
+				builder.WriteString(host)
+			}
+		}
+
+		builder.WriteString(" ")
+		builder.WriteString(nameVersion)
+
 		// Install python3 library with path path.
 		title := fmt.Sprintf("[python3 install tool %s]", nameVersion)
-		command := fmt.Sprintf("%s -m pip install --ignore-installed %s", PythonTool.Path, nameVersion)
+		command := builder.String()
 		executor := cmd.NewExecutor(title, command)
 		if err := executor.Execute(); err != nil {
 			return fmt.Errorf("failed to install %s -> %w", nameVersion, err)
@@ -76,11 +103,11 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 		return nil
 	}
 
-	// Try to use system Python first if versions match.
+	// Try to use system Python first if versions match or empty.
 	useSystemPython := false
 	systemPythonVer := GetDefaultPythonVersion()
 	versionMatches := normalizeVersion(systemPythonVer) == normalizeVersion(pythonVersion)
-	if systemPythonVer != "" && versionMatches {
+	if pythonVersion == "" || versionMatches {
 		useSystemPython = true
 	}
 
@@ -177,6 +204,9 @@ func isPackageInstalled(packageName string, venvDir string) bool {
 		return false
 	}
 
+	// Get package name without version.
+	packageName = strings.Split(packageName, "==")[0]
+
 	var packageDirPattern, distInfoPattern string
 	switch runtime.GOOS {
 	case "windows":
@@ -237,9 +267,16 @@ func getWindowsDefaultPythonVersion() string {
 }
 
 func shouldUseConda(ctx context.Context) bool {
-	projectVersion := ctx.Project().GetPythonVersion()
+	// If no Python config or version is specified, use system Python.
+	pythonConfig := ctx.PythonConfig()
+	if pythonConfig == nil || pythonConfig.GetVersion() == "" {
+		return false
+	}
+
+	// Use conda if specified Python version doesn't match system
+	// default version to avoid potential version mismatch issues.
 	systemDefault := GetDefaultPythonVersion()
-	return normalizeVersion(projectVersion) != normalizeVersion(systemDefault)
+	return normalizeVersion(pythonConfig.GetVersion()) != normalizeVersion(systemDefault)
 }
 
 func normalizeVersion(fullVersion string) string {

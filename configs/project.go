@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -17,7 +16,6 @@ import (
 type Project struct {
 	TargetPlatform string   `toml:"target_platform,omitempty"`
 	BuildType      string   `toml:"build_type"`
-	PythonVersion  string   `toml:"python_version,omitempty"`
 	IncludeDirs    []string `toml:"include_dirs,omitempty"`
 	LibDirs        []string `toml:"lib_dirs,omitempty"`
 	Ports          []string `toml:"ports"`
@@ -59,11 +57,6 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 		p.BuildType = "Release"
 	}
 
-	// Default python version - dynamically determined based on platform
-	if p.PythonVersion == "" {
-		p.PythonVersion = buildtools.GetDefaultPythonVersion()
-	}
-
 	// Set values of internal fields.
 	p.Name = projectName
 
@@ -85,11 +78,6 @@ func (p Project) Write(platformPath string, override bool) error {
 	}
 	if len(p.Macros) == 0 {
 		p.Macros = []string{}
-	}
-
-	// Default python version - dynamically determined based on platform.
-	if p.PythonVersion == "" {
-		p.PythonVersion = buildtools.GetDefaultPythonVersion()
 	}
 
 	bytes, err := toml.Marshal(p)
@@ -121,10 +109,6 @@ func (p Project) GetTargetPlatform() string {
 
 func (p Project) GetPorts() []string {
 	return p.Ports
-}
-
-func (p Project) GetPythonVersion() string {
-	return p.PythonVersion
 }
 
 func (p Project) deploy(force bool) error {

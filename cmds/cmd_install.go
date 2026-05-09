@@ -2,15 +2,16 @@ package cmds
 
 import (
 	"fmt"
+	"io/fs"
+	"path/filepath"
+	"strings"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/depcheck"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"io/fs"
-	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -164,7 +165,7 @@ func (i *installCmd) install(nameVersion string) error {
 	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
 		err := fmt.Errorf("port %s is not yet available in the ports collection.\n 🚩 Welcome to contribute %s to the ports. 🚩",
 			nameVersion, nameVersion)
-		return color.PrintError(err, "failed to install %s.", nameVersion)
+		return color.PrintError(err, "failed to install %s", nameVersion)
 	}
 
 	// Install the port.
@@ -190,7 +191,7 @@ func (i *installCmd) install(nameVersion string) error {
 	}
 	fromWhere, err := port.Install(options)
 	if err != nil {
-		return color.PrintError(err, "failed to install %s.", nameVersion)
+		return color.PrintError(err, "failed to install %s", nameVersion)
 	}
 	if fromWhere != "" {
 		if port.DevDep {
