@@ -38,6 +38,7 @@ func (f fakeContext) ProxyHostPort() (host string, port int) { return "", 0 }
 func (f fakeContext) CCacheEnabled() bool                    { return false }
 func (f fakeContext) GenerateToolchainFile() error           { return nil }
 func (f fakeContext) ExprVars() *context.ExprVars            { return nil }
+func (f fakeContext) PythonConfig() context.PythonConfig     { return nil }
 
 type fakePlatform struct {
 	name string

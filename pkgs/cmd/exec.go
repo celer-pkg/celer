@@ -86,9 +86,10 @@ func (e Executor) configureOutputs(cmd *exec.Cmd, logFile *os.File, output io.Wr
 	outWriters := make([]io.Writer, 0, 3)
 	errWriters := make([]io.Writer, 0, 3)
 
-	// Always write execute log to std out.
-	outWriters = append(outWriters, os.Stdout)
-	errWriters = append(errWriters, os.Stderr)
+	if output == nil {
+		outWriters = append(outWriters, os.Stdout)
+		errWriters = append(errWriters, os.Stderr)
+	}
 
 	if logFile != nil {
 		outWriters = append(outWriters, logFile)

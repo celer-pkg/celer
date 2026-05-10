@@ -89,9 +89,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		}
 	}
 
-	var (
-		msys2Tool *BuildTool
-	)
+	var msys2Tool *BuildTool
 
 	// Find tool instances of python3 and msys2.
 	for _, tool := range uniqueTools {
@@ -134,7 +132,8 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	// Install python3 packages.
 	if python3Required {
-		if err := pip3Install(ctx, &uniqueTools); err != nil {
+		pythonConfig := ctx.PythonConfig()
+		if err := pip3Install(ctx, pythonConfig, &uniqueTools); err != nil {
 			return err
 		}
 	}

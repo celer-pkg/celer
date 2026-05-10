@@ -17,6 +17,7 @@ type Context interface {
 	CCacheEnabled() bool
 	GenerateToolchainFile() error
 	ExprVars() *ExprVars
+	PythonConfig() PythonConfig
 }
 
 type PkgCacheDirType uint8
@@ -43,4 +44,11 @@ type AritifactCache interface {
 type RepoCache interface {
 	Restore(nameVersion, repoUrl, repoDir, checksum string) (string, error)
 	Store(nameVersion, repoUrl, repoDir string) (string, error)
+}
+
+type PythonConfig interface {
+	GetVersion() string
+	GetIndexUrl() string
+	GetExtraIndexUrls() []string
+	GetTrustedHosts() []string
 }

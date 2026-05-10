@@ -2,18 +2,19 @@ package cmds
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/depcheck"
-	"github.com/celer-pkg/celer/pkgs/color"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/errors"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"io/fs"
 	"path/filepath"
 	"regexp"
 	"slices"
 	"sort"
 	"strings"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
 )
@@ -203,9 +204,9 @@ func (r *reverseCmd) hasDependency(port configs.Port, target string) bool {
 func (r *reverseCmd) displayResults(target string, libraries []string) {
 	var title string
 	if r.dev {
-		title = fmt.Sprintf("Reverse dependencies of %s as dev:", target)
+		title = fmt.Sprintf("Reverse dependencies of %s as dev", target)
 	} else {
-		title = fmt.Sprintf("Reverse dependencies of %s:", target)
+		title = fmt.Sprintf("Reverse dependencies of %s", target)
 	}
 	color.Println(color.Title, title)
 	color.Println(color.Title, strings.Repeat("-", len(title)))

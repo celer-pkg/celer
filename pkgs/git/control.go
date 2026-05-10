@@ -88,11 +88,11 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 	// ============ Clone specific branch ============
 	isBranch, err := CheckIfRemoteBranch(target, repoUrl, repoRef)
 	if err != nil {
-		return fmt.Errorf("failed to check if remote branch -> %w", err)
+		return fmt.Errorf("failed to check if remote branch %s of %s -> %w", repoRef, repoUrl, err)
 	}
 	if isBranch {
 		if err := cloneWithFallback("clone git branch", repoRef, depth); err != nil {
-			return fmt.Errorf("failed to clone git repo -> %w", err)
+			return fmt.Errorf("failed to clone git branch %s of %s -> %w", repoRef, repoUrl, err)
 		}
 		return nil
 	}
@@ -100,11 +100,11 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 	// ============ Clone specific tag ============
 	isTag, err := CheckIfRemoteTag(target, repoUrl, repoRef)
 	if err != nil {
-		return fmt.Errorf("failed to check if remote tag: %s -> %w", repoRef, err)
+		return fmt.Errorf("failed to check if remote tag: %s of %s -> %w", repoRef, repoUrl, err)
 	}
 	if isTag {
 		if err := cloneWithFallback("clone git tag", repoRef, depth); err != nil {
-			return fmt.Errorf("failed to clone git repo -> %w", err)
+			return fmt.Errorf("failed to clone git tag %s of %s -> %w", repoRef, repoUrl, err)
 		}
 		return nil
 	}
@@ -112,13 +112,13 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 	// ============ Clone and checkout commit ============
 	command := fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
 	if err := retryExecutor(title, command); err != nil {
-		return fmt.Errorf("failed to clone git repo -> %w", err)
+		return fmt.Errorf("failed to clone git repo %s -> %w", repoUrl, err)
 	}
 
 	// Checkout repo to commit.
 	command = fmt.Sprintf("git reset --hard %s", repoRef)
 	if err := retryExecutor(title+" (reset to commit)", command); err != nil {
-		return fmt.Errorf("failed to reset --hard -> %w", err)
+		return fmt.Errorf("failed to reset --hard to commit %s -> %w", repoRef, err)
 	}
 
 	return nil
@@ -338,7 +338,7 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 	}
 
 	if gitBatch {
-		title := fmt.Sprintf("[patch %s]", nameVersion)
+		title := fmt.Sprintf("[apply patch %s]", nameVersion)
 		args := []string{"apply", "--ignore-space-change", "--ignore-whitespace", "-v", patchFile}
 		executor := cmd.NewExecutor(title, "git", args...)
 		executor.SetWorkDir(repoDir)
@@ -347,7 +347,7 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 		}
 	} else {
 		// Others, assume it's a regular patch file.
-		title := fmt.Sprintf("[patch %s]", nameVersion)
+		title := fmt.Sprintf("[apply patch %s]", nameVersion)
 		executor := cmd.NewExecutor(title, "patch", "-Np1", "-i", patchFile)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
