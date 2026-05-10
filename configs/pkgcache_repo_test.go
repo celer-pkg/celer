@@ -21,14 +21,15 @@ import (
 // remote source again.
 
 type fakePkgCache struct {
-	dir      string
-	writable bool
+	dir               string
+	writable          bool
+	cacheThirdParties bool
 }
 
 func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string { return f.dir }
 func (f fakePkgCache) IsWritable() bool                              { return f.writable }
 func (f fakePkgCache) GetArtifactCache() context.AritifactCache      { return nil }
-func (f fakePkgCache) ShouldCacheRepo(nameVersion string) bool       { return false }
+func (f fakePkgCache) ShouldCacheRepo(nameVersion string) bool       { return f.cacheThirdParties }
 func (f fakePkgCache) GetRepoCache() context.RepoCache {
 	return pkgcache.NewRepoConfig(fakeContext{}, f.dir, f.writable)
 }
@@ -128,8 +129,9 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 			pkgCache: fakePkgCache{
-				dir:      pkgCacheDir,
-				writable: true,
+				dir:               pkgCacheDir,
+				writable:          true,
+				cacheThirdParties: true,
 			},
 		}
 
@@ -157,8 +159,9 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 			pkgCache: fakePkgCache{
-				dir:      pkgCacheDir,
-				writable: true,
+				dir:               pkgCacheDir,
+				writable:          true,
+				cacheThirdParties: true,
 			},
 		}
 		onlineBuildConfig := newBuildConfig(onlineCtx, repoDir)
@@ -191,8 +194,9 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 			pkgCache: fakePkgCache{
-				dir:      pkgCacheDir,
-				writable: false,
+				dir:               pkgCacheDir,
+				writable:          false,
+				cacheThirdParties: true,
 			},
 		}
 		restoreBuildConfig := newBuildConfig(restoreCtx, repoDir)
@@ -245,8 +249,9 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		build:     "release",
 		downloads: downloadsDir,
 		pkgCache: fakePkgCache{
-			dir:      pkgCacheDir,
-			writable: true,
+			dir:               pkgCacheDir,
+			writable:          true,
+			cacheThirdParties: true,
 		},
 	}
 	onlineBuildConfig := newBuildConfig(onlineCtx, repoDir)
@@ -282,8 +287,9 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		build:     "release",
 		downloads: downloadsDir,
 		pkgCache: fakePkgCache{
-			dir:      pkgCacheDir,
-			writable: false,
+			dir:               pkgCacheDir,
+			writable:          false,
+			cacheThirdParties: true,
 		},
 	}
 	restoreBuildConfig := newBuildConfig(restoreCtx, repoDir)
