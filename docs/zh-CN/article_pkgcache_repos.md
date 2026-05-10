@@ -37,7 +37,7 @@
 
 1. 检查当前源码目录是否已存在且非空
 2. 如果源码目录已经可用，直接复用，不再读 repo 缓存
-3. 如果源码目录不存在，并且端口启用了 `package.cache_repo=true`，则先尝试从 `pkgcache/repos` 恢复源码
+3. 如果源码目录不存在，并且全局 `cache_third_parties` 已启用且该库定义在 `ports/` 中，则先尝试从 `pkgcache/repos` 恢复源码
 4. 如果缓存未命中，再执行正常的 git clone 或压缩包下载/解压
 5. 当源码准备完成后，如果 `pkgcache.writable=true` 且当前不是 offline 模式，则把源码打包写入 repo 缓存
 
@@ -56,34 +56,25 @@
 [pkgcache]
 	dir = "/home/test/pkgcache"
 	writable = true
+	cache_third_parties = true
 ```
 
 说明：
 - `dir` 必须是一个已经存在的目录
 - `writable=true` 时，Celer 才会把新的源码缓存写入 `pkgcache/repos`
 - `writable=false` 时，仍然可以只读方式尝试恢复已有缓存
+- `cache_third_parties`（可选，默认 `false`）：启用后，会自动缓存在 `ports/` 中定义的所有第三方库。见下面的[第三方库自动缓存](#第三方库自动缓存)
 
-### 步骤2：在端口里启用 repo 缓存
+### 第三方库自动缓存（全局策略）
 
-在 `port.toml` 的 `[package]` 段里开启：
+`cache_third_parties` 为第三方库提供了一套**自动的、项目级别的缓存策略**：
 
 ```toml
-[package]
-	url = "https://gitlab.com/libeigen/eigen.git"
-	ref = "3.4.0"
-	checksum = "31e19f92f00c7003fa115047ce50978bc98c3a0d"
-	cache_repo = true
-
-[[build_configs]]
-	build_system = "cmake"
-	options = ["-DEIGEN_TEST_NO_OPENGL=1", "-DBUILD_TESTING=OFF"]
+[pkgcache]
+	dir = "/home/test/pkgcache"
+	writable = true
+	cache_third_parties = true
 ```
-
-**推荐做法：**
-- **`checksum=[commit-hash/sha256]`**：对于 git 仓库，建议固定为 git commit hash；对于压缩包，建议固定为文件的 `sha256`。只有 commit hash 和 `sha256` 能精确标识源码内容是否一致
-- **`cache_repo=true`**：默认是 `false`，只有访问困难或希望通过共享缓存分发源码的端口才需要开启它。
-
-这样 repo 缓存才能在新的工作空间里稳定命中。
 
 ## 🧭 两类源码的缓存键
 
@@ -132,7 +123,8 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 满足以下条件时，Celer 会在 clone/download 之前先尝试读取 repo 缓存：
 
 - 已配置 `pkgcache.dir`
-- 当前端口配置了 `package.cache_repo=true`
+- `cache_third_parties=true` 已全局启用
+- 当前库定义在 `ports/` 目录中
 - 当前源码目录不存在，或为空目录
 - 当前包不是虚拟端口（`url != "_"`）
 - 有可用于定位缓存的 `ref` 或 `checksum`
@@ -142,8 +134,9 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 满足以下条件时，Celer 会把准备好的源码树写入 `pkgcache/repos`：
 
 - 已配置 `pkgcache.dir`
+- `cache_third_parties=true` 已全局启用
 - `pkgcache.writable=true`
-- 当前端口配置了 `package.cache_repo=true`
+- 当前库定义在 `ports/` 目录中
 - 当前不是 offline 模式
 - clone / download / 解压已经成功完成
 
@@ -151,9 +144,9 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 
 常见情况包括：
 
-- 没有配置 `pkgcache`
+- 没有配置 `pkgcache` 或 `cache_third_parties=false`
 - `pkgcache.dir` 不存在
-- 端口没有设置 `package.cache_repo=true`
+- 当前库是项目在 `conf/projects/` 中的重载定义
 - 源码目录已经存在且非空，此时 Celer 会直接复用现有目录
 - 请求的 commit / checksum 对应缓存不存在
 - 开启了 offline 模式
@@ -201,15 +194,23 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 
 ## 建议配置
 
-如果你的项目同时支持 repo 缓存和构建产物缓存，推荐这样使用：
+如果你的项目同时支持 repo 缓存和构建产物缓存，推荐在 `celer.toml` 中这样配置：
 
-- 在 `celer.toml` 中统一配置共享的 `pkgcache.dir`
+```toml
+[pkgcache]
+	dir = "/path/to/shared/cache"  # 本地或网络共享目录
+	writable = true
+	cache_artifacts = true         # 启用构建产物缓存
+	cache_third_parties = true     # 启用第三方库源码缓存
+	cache_downloads = true         # 启用下载文件缓存
+```
+
+**最佳实践：**
 - 在网络较差或访问 GitHub 受限的团队环境里，把 `pkgcache.dir` 放到局域网共享目录
-- 对访问有困难的 port，在其 `port.toml` 里开启 `package.cache_repo=true`
-- 对稳定版本的 git 依赖使用固定 `commit hash`
-- 对压缩包源码提供明确的 `sha256` 作为 `checksum`
-- 对可复用的构建结果继续启用构建产物缓存
+- 在 `ports/` 中的第三方库 `port.toml` 里提供准确的 `checksum`（git commit hash 或 sha256）
+- 确保在你的工作空间中启用 `cache_third_parties=true`
+- 对可复用的构建结果继续启用 `cache_artifacts=true`
 
 这样可以同时减少：
-- 拉源码的时间
-- 重复编译的时间
+- 拉源码的时间（通过 repo 缓存）
+- 重复编译的时间（通过构建产物缓存）

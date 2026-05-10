@@ -37,7 +37,7 @@ When source code needs to be prepared, Celer follows this flow:
 
 1. Check whether the current source directory already exists and is non-empty
 2. If the source directory is already usable, reuse it directly and skip repo cache lookup
-3. If the source directory does not exist and the port enables `package.cache_repo=true`, try restoring from `pkgcache/repos` first
+3. If the source directory does not exist and global `cache_third_parties` is enabled and the library is defined in `ports/`, try restoring from `pkgcache/repos` first
 4. If there is no cache hit, fall back to the normal git clone or archive download/extract flow
 5. After the source is ready, if `pkgcache.writable=true` and the current run is not in offline mode, package that source into repo cache
 
@@ -56,34 +56,25 @@ Configure the cache directory in `celer.toml`:
 [pkgcache]
 	dir = "/home/test/pkgcache"
 	writable = true
+	cache_third_parties = true
 ```
 
 Notes:
 - `dir` must already exist
 - Celer writes new source cache entries into `pkgcache/repos` only when `writable=true`
 - With `writable=false`, Celer can still try to restore existing cache entries in read-only mode
+- `cache_third_parties` (optional, default `false`): When enabled, automatically cache all third-party libraries defined in `ports/`. See [Third-Party Library Caching](#third-party-library-caching) below.
 
-### Step 2: Enable repo cache in a port
+### Third-Party Library Caching (Global Policy)
 
-Enable it in the `[package]` section of `port.toml`:
+The `cache_third_parties` setting provides an **automatic, project-level caching policy** for third-party libraries:
 
 ```toml
-[package]
-	url = "https://gitlab.com/libeigen/eigen.git"
-	ref = "3.4.0"
-	checksum = "31e19f92f00c7003fa115047ce50978bc98c3a0d"
-	cache_repo = true
-
-[[build_configs]]
-	build_system = "cmake"
-	options = ["-DEIGEN_TEST_NO_OPENGL=1", "-DBUILD_TESTING=OFF"]
+[pkgcache]
+	dir = "/home/test/pkgcache"
+	writable = true
+	cache_third_parties = true
 ```
-
-**Recommended practice:**
-- **`checksum=[commit-hash/sha256]`**: For git repositories, prefer a fixed git commit hash. For source archives, prefer the file's `sha256` value. Only a commit hash or `sha256` can precisely identify identical source content.
-- **`cache_repo=true`**: This is `false` by default. Enable it for ports whose sources are difficult to access, or when you want to distribute source through a shared cache.
-
-This is what makes repo cache stable across different workspaces.
 
 ## Cache Keys for the Two Source Types
 
@@ -132,7 +123,8 @@ These scenarios are similar to git repositories. The real goal is the same: keep
 Celer tries repo cache before clone/download when all of these are true:
 
 - `pkgcache.dir` is configured
-- The current port enables `package.cache_repo=true`
+- Global `cache_third_parties=true` is enabled
+- The current library is defined in `ports/` directory
 - The current source directory does not exist, or it exists but is empty
 - The current package is not a virtual port (`url != "_"`)
 - There is a usable `ref` or `checksum` to locate the cache entry
@@ -142,8 +134,9 @@ Celer tries repo cache before clone/download when all of these are true:
 Celer writes the prepared source tree into `pkgcache/repos` when all of these are true:
 
 - `pkgcache.dir` is configured
+- Global `cache_third_parties=true` is enabled
 - `pkgcache.writable=true`
-- The current port enables `package.cache_repo=true`
+- The current library is defined in `ports/` directory
 - The current run is not in offline mode
 - Clone / download / extraction has completed successfully
 
@@ -151,9 +144,9 @@ Celer writes the prepared source tree into `pkgcache/repos` when all of these ar
 
 Common cases include:
 
-- `pkgcache` is not configured
+- `pkgcache` is not configured or `cache_third_parties=false`
 - `pkgcache.dir` does not exist
-- The port does not enable `package.cache_repo=true`
+- The current library is a project-specific override defined in `conf/projects/`
 - The source directory already exists and is non-empty, so Celer reuses it directly
 - No cache entry exists for the requested commit / checksum
 - Offline mode is enabled
@@ -194,20 +187,28 @@ These two mechanisms do not conflict. They complement each other:
 
 ## Current Notes
 
-- **Repo cache is not a full offline-source replacement**: In the current implementation, `offline=true` disables both reading and writing repo cache.
-- **Repo cache does not contain final install outputs**: A repo cache hit does not mean the build can be skipped.
-- **An existing source directory has higher priority**: If `buildtrees/.../src` already exists and is non-empty, Celer reuses it instead of restoring repo cache.
-- **Lock source versions for reliable hits**: To get stable repo cache hits across workspaces, prefer fixed commits or fixed checksums instead of floating branches.
+- **Repo cache requires global enablement**: When `cache_third_parties=false`, repo cache will not be used
+- **Repo cache does not contain final install outputs**: A repo cache hit does not mean the build can be skipped
+- **An existing source directory has higher priority**: If `buildtrees/.../src` already exists and is non-empty, Celer reuses it instead of restoring repo cache
+- **Lock source versions for reliable hits**: To get stable repo cache hits across workspaces, provide fixed commits or checksums in your third-party `port.toml`
 
 ## Recommended Setup
 
-If your project uses both repo cache and build artifact cache, a good setup is:
+For projects using both repo cache and build artifact cache, configure in `celer.toml`:
 
-- Configure a shared `pkgcache.dir` in `celer.toml`
-- In teams with poor network access or restricted GitHub connectivity, put `pkgcache.dir` on a LAN-shared directory
-- Enable `package.cache_repo=true` for ports that are repeatedly cloned or downloaded
-- Use fixed `commit hash` values for stable git dependencies
-- Provide explicit `checksum` values for archive sources
+```toml
+[pkgcache]
+	dir = "/path/to/shared/cache"  # Local or network-mounted directory
+	writable = true
+	cache_artifacts = true         # Enable build artifact caching
+	cache_third_parties = true     # Enable third-party library source caching
+	cache_downloads = true         # Enable download file caching
+```
+
+**Best practices:**
+- In teams with restricted network access, place `pkgcache.dir` on a LAN-shared directory
+- Provide accurate `checksum` values (git commit hash or sha256) for third-party libraries in `ports/`
+- Ensure `cache_third_parties=true` is enabled in your workspace configuration
 - Keep build artifact cache enabled for reusable build outputs
 
 This reduces both:

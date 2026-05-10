@@ -2,13 +2,14 @@ package cmds
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -139,20 +140,20 @@ Examples:
 				if err := c.celer.SetPlatform(c.platform); err != nil {
 					return color.PrintError(err, "failed to set platform.")
 				}
-				color.PrintSuccess("current platform: %s.", c.platform)
+				color.PrintSuccess("current platform: %s", c.platform)
 			}
 
 			if flags.Changed("project") {
 				if err := c.celer.SetProject(c.project); err != nil {
-					return color.PrintError(err, "failed to set project: %s.", c.project)
+					return color.PrintError(err, "failed to set project: %s", c.project)
 				}
-				color.PrintSuccess("current project: %s.", c.project)
+				color.PrintSuccess("current project: %s", c.project)
 
 				// Auto configure platform.
 				targetPlatform := c.celer.Project().GetTargetPlatform()
 				if targetPlatform != "" && c.celer.Global.Platform == "" {
 					if err := c.celer.SetPlatform(targetPlatform); err != nil {
-						return color.PrintError(err, "failed to set platform: %s.", targetPlatform)
+						return color.PrintError(err, "failed to set platform: %s", targetPlatform)
 					}
 					color.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Global.Platform)
 				}
@@ -160,16 +161,16 @@ Examples:
 
 			if flags.Changed("build-type") {
 				if err := c.celer.SetBuildType(c.buildType); err != nil {
-					return color.PrintError(err, "failed to set build type: %s.", c.buildType)
+					return color.PrintError(err, "failed to set build type: %s", c.buildType)
 				}
-				color.PrintSuccess("current build type: %s.", c.buildType)
+				color.PrintSuccess("current build type: %s", c.buildType)
 			}
 
 			if flags.Changed("downloads") {
 				if err := c.celer.SetDownloads(c.downloads); err != nil {
-					return color.PrintError(err, "failed to set downloads: %s.", c.downloads)
+					return color.PrintError(err, "failed to set downloads: %s", c.downloads)
 				}
-				color.PrintSuccess("current downloads: %s.", c.downloads)
+				color.PrintSuccess("current downloads: %s", c.downloads)
 			}
 
 			if flags.Changed("jobs") {
@@ -181,36 +182,36 @@ Examples:
 
 			if flags.Changed("offline") {
 				if err := c.celer.SetOffline(c.offline); err != nil {
-					return color.PrintError(err, "failed to set offline mode: %s.", expr.If(c.offline, "true", "false"))
+					return color.PrintError(err, "failed to set offline mode: %s", expr.If(c.offline, "true", "false"))
 				}
-				color.PrintSuccess("current offline mode: %s.", expr.If(c.offline, "true", "false"))
+				color.PrintSuccess("current offline mode: %s", expr.If(c.offline, "true", "false"))
 			}
 
 			if flags.Changed("verbose") {
 				if err := c.celer.SetVerbose(c.verbose); err != nil {
-					return color.PrintError(err, "failed to set verbose mode: %s.", expr.If(c.verbose, "true", "false"))
+					return color.PrintError(err, "failed to set verbose mode: %s", expr.If(c.verbose, "true", "false"))
 				}
-				color.PrintSuccess("current verbose mode: %s.", expr.If(c.verbose, "true", "false"))
+				color.PrintSuccess("current verbose mode: %s", expr.If(c.verbose, "true", "false"))
 			}
 
 			if flags.Changed("pkgcache-dir") {
 				if err := c.celer.SetPkgCacheDir(c.pkgCacheDir); err != nil {
-					return color.PrintError(err, "failed to set pkgcache dir: %s.", c.pkgCacheDir)
+					return color.PrintError(err, "failed to set pkgcache dir: %s", c.pkgCacheDir)
 				}
-				color.PrintSuccess("current pkgcache dir: %s.", expr.If(c.pkgCacheDir != "", c.pkgCacheDir, "empty"))
+				color.PrintSuccess("current pkgcache dir: %s", expr.If(c.pkgCacheDir != "", c.pkgCacheDir, "empty"))
 			}
 			if flags.Changed("pkgcache-writable") {
 				if err := c.celer.SetPkgCacheWritable(c.pkgCacheWritable); err != nil {
-					return color.PrintError(err, "failed to set pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
+					return color.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
 				}
-				color.PrintSuccess("current pkgcache writable: %s.", expr.If(c.pkgCacheWritable, "true", "false"))
+				color.PrintSuccess("current pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
 			}
 
 			if flags.Changed("proxy-host") {
 				if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
-					return color.PrintError(err, "failed to set proxy host: %s.", c.proxy.Host)
+					return color.PrintError(err, "failed to set proxy host: %s", c.proxy.Host)
 				}
-				color.PrintSuccess("current proxy host: %s.", c.proxy.Host)
+				color.PrintSuccess("current proxy host: %s", c.proxy.Host)
 			}
 
 			if flags.Changed("proxy-port") {
@@ -224,35 +225,35 @@ Examples:
 				if err := c.celer.SetCCacheEnabled(c.ccache.Enabled); err != nil {
 					return color.PrintError(err, "failed to update ccache enabled.")
 				}
-				color.PrintSuccess("current ccache enabled: %s.", expr.If(c.ccache.Enabled, "true", "false"))
+				color.PrintSuccess("current ccache enabled: %s", expr.If(c.ccache.Enabled, "true", "false"))
 			}
 
 			if flags.Changed("ccache-dir") {
 				if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
 					return color.PrintError(err, "failed to update ccache dir.")
 				}
-				color.PrintSuccess("current ccache dir: %s.", c.ccache.Dir)
+				color.PrintSuccess("current ccache dir: %s", c.ccache.Dir)
 			}
 
 			if flags.Changed("ccache-maxsize") {
 				if err := c.celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
 					return color.PrintError(err, "failed to update ccache.maxsize.")
 				}
-				color.PrintSuccess("current ccache maxsize: %s.", c.ccache.MaxSize)
+				color.PrintSuccess("current ccache maxsize: %s", c.ccache.MaxSize)
 			}
 
 			if flags.Changed("ccache-remote-storage") {
 				if err := c.celer.SetCCacheRemoteStorage(c.ccache.RemoteStorage); err != nil {
 					return color.PrintError(err, "failed to update ccache.remote_storage.")
 				}
-				color.PrintSuccess("current ccache remote storage: %s.", c.ccache.RemoteStorage)
+				color.PrintSuccess("current ccache remote storage: %s", c.ccache.RemoteStorage)
 			}
 
 			if flags.Changed("ccache-remote-only") {
 				if err := c.celer.SetCCacheRemoteOnly(c.ccache.RemoteOnly); err != nil {
 					return color.PrintError(err, "failed to update ccache.remote_only.")
 				}
-				color.PrintSuccess("current ccache remote only: %s.", expr.If(c.ccache.RemoteOnly, "true", "false"))
+				color.PrintSuccess("current ccache remote only: %s", expr.If(c.ccache.RemoteOnly, "true", "false"))
 			}
 
 			return nil

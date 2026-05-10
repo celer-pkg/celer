@@ -52,7 +52,6 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		Archive:         p.Package.Archive,
 		Url:             p.Package.Url,
 		Checksum:        p.Package.Checksum,
-		CacheRepo:       p.Package.CacheRepo,
 		IgnoreSubmodule: p.Package.IgnoreSubmodule,
 		ProjectName:     p.ctx.Project().GetName(),
 		HostName:        hostName,

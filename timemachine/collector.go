@@ -94,7 +94,7 @@ func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
 		return "", fmt.Errorf("failed to read local source checksum for %s -> %w", port.NameVersion(), err)
 	}
 	if commitHash != "" {
-		return commitHash, nil
+		return "git:" + commitHash, nil
 	}
 	return "", fmt.Errorf("source checksum not found for %s", port.NameVersion())
 }

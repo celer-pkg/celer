@@ -14,18 +14,18 @@ import (
 
 const RepoCacheDir = "repos"
 
-type Repo struct {
+type RepoConfig struct {
 	ctx          context.Context
 	repoCacheDir string
 	writable     bool
 }
 
-func NewRepo(ctx context.Context, pkgCacheDir string, writable bool) *Repo {
+func NewRepoConfig(ctx context.Context, pkgCacheDir string, writable bool) *RepoConfig {
 	if pkgCacheDir == "" {
 		return nil
 	}
 
-	return &Repo{
+	return &RepoConfig{
 		ctx:          ctx,
 		repoCacheDir: filepath.Join(pkgCacheDir, RepoCacheDir),
 		writable:     writable,
@@ -34,7 +34,7 @@ func NewRepo(ctx context.Context, pkgCacheDir string, writable bool) *Repo {
 
 // Store packs a source tree into repo cache.
 // For archive sources, repoRef is the original archive checksum used as the cache key.
-func (r Repo) Store(nameVersion, repoUrl, repoDir string) (string, error) {
+func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) {
 	// skip storing cache when offline.
 	if r.ctx.Offline() {
 		return "", nil
@@ -115,7 +115,7 @@ func (r Repo) Store(nameVersion, repoUrl, repoDir string) (string, error) {
 
 // Restore extract restored archive to destination and return the archive filepath that restored from.
 // the checksum maybe sha256 of a file or git commit hash.
-func (r Repo) Restore(nameVersion, repoUrl, repoDir, checksum string) (string, error) {
+func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (string, error) {
 	// skip restore cache when offline.
 	if r.ctx.Offline() {
 		return "", nil
@@ -171,10 +171,4 @@ func (r Repo) Restore(nameVersion, repoUrl, repoDir, checksum string) (string, e
 	}
 
 	return archivePath, nil
-}
-
-func (r Repo) gitRepoName(repoURL string) string {
-	repoURL = strings.TrimSuffix(strings.TrimSpace(repoURL), "/")
-	name := filepath.Base(repoURL)
-	return strings.TrimSuffix(name, ".git")
 }

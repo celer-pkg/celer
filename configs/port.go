@@ -35,7 +35,6 @@ type Package struct {
 	Url             string `toml:"url"`
 	Ref             string `toml:"ref"`
 	Checksum        string `toml:"checksum,omitempty"`
-	CacheRepo       bool   `toml:"cache_repo,omitempty"`
 	Depth           int    `toml:"depth,omitempty"`
 	Archive         string `toml:"archive,omitempty"`
 	SrcDir          string `toml:"src_dir,omitempty"`

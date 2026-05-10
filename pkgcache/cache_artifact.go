@@ -15,18 +15,18 @@ import (
 
 const ArtifactCacheDir = "artifacts"
 
-type Artifacts struct {
+type ArtifactConfig struct {
 	ctx              context.Context
 	artifactCacheDir string
 	writable         bool
 }
 
-func NewArtifact(ctx context.Context, pkgCacheDir string, writable bool) *Artifacts {
+func NewArtifactConfig(ctx context.Context, pkgCacheDir string, writable bool) *ArtifactConfig {
 	if pkgCacheDir == "" {
 		return nil
 	}
 
-	return &Artifacts{
+	return &ArtifactConfig{
 		ctx:              ctx,
 		artifactCacheDir: filepath.Join(pkgCacheDir, ArtifactCacheDir),
 		writable:         writable,
@@ -35,7 +35,7 @@ func NewArtifact(ctx context.Context, pkgCacheDir string, writable bool) *Artifa
 
 // Restore restores the cached package to package directory if cache hit, and return the archive path.
 // If cache miss, just return empty string without error.
-func (a Artifacts) Restore(nameVersion, buildHash, packageDir string) (string, error) {
+func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (string, error) {
 	// skip restore cache when offline.
 	if a.ctx.Offline() {
 		return "", nil
@@ -94,7 +94,7 @@ func (a Artifacts) Restore(nameVersion, buildHash, packageDir string) (string, e
 
 // Store compresses the package dir and store in cache,
 // the meta is expected to be a string and would be used to calculate the hash key for cache.
-func (a Artifacts) Store(packageDir, meta string) error {
+func (a ArtifactConfig) Store(packageDir, meta string) error {
 	// skip storing cache when offline.
 	if a.ctx.Offline() {
 		return nil
@@ -177,7 +177,7 @@ func (a Artifacts) Store(packageDir, meta string) error {
 }
 
 // Remove removes the cache for the specified platform, project, build type and name version.
-func (a Artifacts) Remove(nameVersion string) error {
+func (a ArtifactConfig) Remove(nameVersion string) error {
 	platformName := a.ctx.Platform().GetName()
 	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
@@ -192,7 +192,7 @@ func (a Artifacts) Remove(nameVersion string) error {
 }
 
 // Exist check both archive file and build desc file exist.
-func (a Artifacts) Exist(nameVersion, hash string) bool {
+func (a ArtifactConfig) Exist(nameVersion, hash string) bool {
 	platformName := a.ctx.Platform().GetName()
 	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
