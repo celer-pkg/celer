@@ -89,7 +89,7 @@ func (i *installCmd) runInstall(nameVersions []string) error {
 	for _, nameVersion := range nameVersions {
 		cleanedNameVersion, err := i.validateAndCleanInput(nameVersion)
 		if err != nil {
-			return color.PrintError(err, "invalid package specification: %s.", nameVersion)
+			return color.PrintError(err, "invalid package specification: %s", nameVersion)
 		}
 		cleanedNameVersions = append(cleanedNameVersions, cleanedNameVersion)
 	}
@@ -172,7 +172,7 @@ func (i *installCmd) install(nameVersion string) error {
 	var port configs.Port
 	port.DevDep = i.dev
 	if err := port.Init(i.celer, nameVersion); err != nil {
-		return color.PrintError(err, "failed to init %s.", nameVersion)
+		return color.PrintError(err, "failed to init %s", nameVersion)
 	}
 
 	// Check circular dependence and version conclict.

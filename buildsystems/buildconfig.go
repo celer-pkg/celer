@@ -31,7 +31,6 @@ type PortConfig struct {
 	Archive         string   // like: `ffmpeg-4.4.tar.xz`
 	Url             string   // like: `https://ffmpeg.org/releases/ffmpeg-4.4.tar.xz`
 	Checksum        string   // Checksum(sha-256) of the archive, used for verification and caching.
-	CacheRepo       bool     // If true, repo will be archived to pkgcache's repos folder.
 	IgnoreSubmodule bool     // whether ignore submodule during git clone.
 	HostName        string   // like: `x86_64-linux`, `x86_64-windows`
 	ProjectName     string   // toml filename in conf/projects.
@@ -342,11 +341,11 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	pkgCache := b.Ctx.PkgCache()
 	if repoUrl != "_" && pkgCache != nil {
 		repoCache = pkgCache.GetRepoCache()
-		if repoCache != nil && b.PortConfig.CacheRepo {
+		if repoCache != nil && pkgCache.ThirdPartiesCached() {
 			if fromWhere, err := repoCache.Restore(nameVersion, repoUrl, b.PortConfig.RepoDir, repoRef); err != nil {
 				color.PrintWarning("failed to restore %s with git repo cache: %s", nameVersion, err)
 			} else if fromWhere != "" {
-				color.PrintInfo("[%s] Repo is restored from pkgcache: %s\n", nameVersion, fromWhere)
+				color.PrintInfo("[%s] is restored from pkgcache: %s\n", nameVersion, fromWhere)
 				return nil
 			}
 		}
@@ -404,15 +403,14 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		}
 	}
 
-	// Store sources after any internal generated files are ready. Archive
-	// sources are cached before local git tracking is initialized so the cache
-	// stays keyed by the original archive ref and does not include the tracking
-	// .git directory.
-	if repoUrl != "_" && repoCache != nil && b.PortConfig.CacheRepo {
+	// Store sources after any internal generated files are ready. Archive sources
+	// are cached before local git tracking is initialized so the cache stays keyed
+	// by the original archive ref and does not include the tracking .git directory.
+	if repoUrl != "_" && repoCache != nil && pkgCache.ThirdPartiesCached() {
 		if whereStored, err := repoCache.Store(nameVersion, repoUrl, b.PortConfig.RepoDir); err != nil {
 			return fmt.Errorf("failed to store repo cache for %s -> %v\n", nameVersion, err)
 		} else if whereStored != "" {
-			color.PrintInfo("[%s]: repo is stored to %s\n", nameVersion, whereStored)
+			color.PrintInfo("%s is stored to %s\n", nameVersion, whereStored)
 		}
 	}
 

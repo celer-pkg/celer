@@ -124,9 +124,9 @@ func (u *updateCmd) doUpdate(args []string) error {
 			return color.PrintError(err, "failed to update port repository.")
 		}
 		if len(args) == 1 {
-			color.PrintSuccess("successfully updated %s.", args[0])
+			color.PrintSuccess("successfully updated %s", args[0])
 		} else {
-			color.PrintSuccess("successfully updated %d ports.", len(args))
+			color.PrintSuccess("successfully updated %d ports", len(args))
 		}
 	}
 

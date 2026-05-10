@@ -28,8 +28,9 @@ type fakePkgCache struct {
 func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string { return f.dir }
 func (f fakePkgCache) IsWritable() bool                              { return f.writable }
 func (f fakePkgCache) GetArtifactCache() context.AritifactCache      { return nil }
+func (f fakePkgCache) ThirdPartiesCached() bool                      { return false }
 func (f fakePkgCache) GetRepoCache() context.RepoCache {
-	return pkgcache.NewRepo(fakeContext{}, f.dir, f.writable)
+	return pkgcache.NewRepoConfig(fakeContext{}, f.dir, f.writable)
 }
 
 // creates a local bare repo that acts like remote origin.
@@ -68,7 +69,6 @@ func newBuildConfig(ctx context.Context, repoDir string) buildsystems.BuildConfi
 			LibVersion:  "stable",
 			ProjectName: "proj",
 			RepoDir:     repoDir,
-			CacheRepo:   true,
 		},
 	}
 }
