@@ -3,9 +3,11 @@ package configs
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -81,6 +83,15 @@ func (p pkgCache) GetRepoCache() context.RepoCache {
 	return p.repoConfig
 }
 
-func (p *pkgCache) ThirdPartiesCached() bool {
-	return p.CacheThirdParties
+func (p *pkgCache) ShouldCacheRepo(nameVersion string) bool {
+	parts := strings.Split(nameVersion, "@")
+	if len(parts) != 2 {
+		panic("invalid nameVersion: " + nameVersion)
+	}
+
+	// Only cache third-party repos that exists in ports dir.
+	portName := parts[0]
+	groupName := strings.ToLower(string([]rune(portName)[0]))
+	portPath := filepath.Join(dirs.PortsDir, groupName, portName)
+	return p.CacheThirdParties && fileio.PathExists(portPath)
 }

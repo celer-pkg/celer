@@ -32,7 +32,7 @@ const (
 type PkgCache interface {
 	GetDir(dirType PkgCacheDirType) string
 	IsWritable() bool
-	ThirdPartiesCached() bool
+	ShouldCacheRepo(nameVersion string) bool
 	GetArtifactCache() AritifactCache
 	GetRepoCache() RepoCache
 }
