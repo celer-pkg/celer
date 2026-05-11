@@ -296,18 +296,22 @@ func (c *Celer) appendVars(toolchain *strings.Builder) {
 		}
 
 		parts := strings.Split(item, "=")
-		if len(parts) == 1 {
-			fmt.Fprintf(toolchain, `set(%s CACHE INTERNAL "defined by celer globally.")`+"\n", item)
-		} else if len(parts) == 2 {
-			parts[1] = c.exprVars.Expand(parts[1])
-			fmt.Fprintf(toolchain, `set(%s %s CACHE INTERNAL "defined by celer globally.")`+"\n", parts[0], parts[1])
-		} else {
-			panic("invalid cmake var: " + item)
-		}
 
 		// Define cmake var in project will make package cache not inaccurate.
 		if strings.HasPrefix(strings.ToLower(parts[0]), "cmake_") {
 			panic(fmt.Sprintf("%q as cmake var should not be defined in project %q", item, c.project.Name))
+		}
+
+		// cmake var should be like 'aa=bb' or 'aa'
+		if len(parts) != 1 && len(parts) != 2 {
+			panic("invalid cmake var: " + item)
+		}
+
+		if len(parts) == 1 {
+			fmt.Fprintf(toolchain, `set(%s CACHE INTERNAL "global value")`+"\n", item)
+		} else if len(parts) == 2 {
+			parts[1] = c.exprVars.Expand(parts[1])
+			fmt.Fprintf(toolchain, `set(%s %s CACHE INTERNAL "global value")`+"\n", parts[0], parts[1])
 		}
 	}
 }

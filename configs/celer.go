@@ -290,6 +290,9 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	// Must init at the end of InitWithPlatform, because it depends on the celer fields.
 	c.exprVars.Init(c)
 
+	// Load project-level variables to exprVars.
+	c.loadProjectVars()
+
 	// Clone ports repo if empty.
 	if err := c.clonePorts(); err != nil {
 		return err
@@ -847,6 +850,26 @@ func (c *Celer) clonePorts() error {
 	}
 
 	return nil
+}
+
+// loadProjectVars loads project-level variables into global ExprVars.
+func (c *Celer) loadProjectVars() {
+	for _, item := range c.project.Vars {
+		parts := strings.Split(item, "=")
+		if len(parts) != 2 {
+			continue
+		}
+
+		key := strings.TrimSpace(parts[0])
+		if key == "" {
+			continue
+		}
+
+		value := strings.TrimSpace(parts[1])
+		value = strings.Trim(value, `"`)
+		value = c.exprVars.Expand(value)
+		c.exprVars.Put(key, value)
+	}
 }
 
 // ======================= celer context implementation ====================== //

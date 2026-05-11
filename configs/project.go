@@ -111,6 +111,10 @@ func (p Project) GetPorts() []string {
 	return p.Ports
 }
 
+func (p Project) GetVars() []string {
+	return p.Vars
+}
+
 func (p Project) deploy(force bool) error {
 	options := InstallOptions{
 		Force:     force,
