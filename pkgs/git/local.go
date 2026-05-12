@@ -193,7 +193,7 @@ func CheckIfRefMatches(ctx context.Context, nameVersion, repoDir, expectedRef st
 	if expectedRef != "" {
 		expectedCommit, err := RevParseRepoRef(ctx, nameVersion, repoDir, expectedRef)
 		if err != nil {
-			return "", fmt.Errorf("resolve git ref %q: %w", expectedRef, err)
+			return "", fmt.Errorf("failed to resolve git ref %q for %s -> %w", expectedRef, nameVersion, err)
 		}
 		if currentCommit == expectedCommit {
 			return "", nil
@@ -381,7 +381,7 @@ func revParse(repoDir, repoRef string) (string, error) {
 // fetchRemoteRef fetch a specific remote ref (branch, tag, or commit).
 func fetchRemoteRef(nameVersion, repoDir, remoteName, refName string) error {
 	title := fmt.Sprintf("[git fetch remote ref: %s]", nameVersion)
-	executor := cmd.NewExecutor(title, "git", "fetch", remoteName, "tag", refName)
+	executor := cmd.NewExecutor(title, "git", "fetch", remoteName, refName)
 	executor.SetWorkDir(repoDir)
 	if err := executor.Execute(); err != nil {
 		return fmt.Errorf("git fetch ref %s failed for %s: %w", refName, repoDir, err)

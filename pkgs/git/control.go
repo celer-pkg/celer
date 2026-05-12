@@ -88,11 +88,11 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 	// ============ Clone specific branch ============
 	isBranch, err := CheckIfRemoteBranch(target, repoUrl, repoRef)
 	if err != nil {
-		return fmt.Errorf("failed to check if remote branch %s of %s -> %w", repoRef, repoUrl, err)
+		return fmt.Errorf("failed to check if remote branch %s -> %w", repoRef, err)
 	}
 	if isBranch {
 		if err := cloneWithFallback("clone git branch", repoRef, depth); err != nil {
-			return fmt.Errorf("failed to clone git branch %s of %s -> %w", repoRef, repoUrl, err)
+			return fmt.Errorf("failed to clone git branch %s -> %w", repoRef, err)
 		}
 		return nil
 	}

@@ -9,7 +9,9 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
 
 	"github.com/spf13/cobra"
 )
@@ -69,17 +71,17 @@ func (a *autoremoveCmd) autoremove() error {
 	// Collect packages/devPackages that belongs to project.
 	for _, nameVersion := range a.celer.Project().GetPorts() {
 		if err := a.collectPackages(nameVersion); err != nil {
-			return err
+			return fmt.Errorf("failed to collect packages -> %w", err)
 		}
 		if err := a.collectDevPackages(nameVersion); err != nil {
-			return err
+			return fmt.Errorf("failed to collect dev packages -> %w", err)
 		}
 	}
 
 	// Query installed packages.
 	depPackages, devDepPackages, err := a.installedPackages()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to query installed packages -> %w", err)
 	}
 
 	// Remove packages that do not belongs to project.
@@ -88,7 +90,12 @@ func (a *autoremoveCmd) autoremove() error {
 			continue
 		}
 		if err := a.removePackage(nameVersion, false); err != nil {
-			return err
+			// Remove buildtrees for packages that are not found.
+			if errors.Is(err, errors.ErrPortNotFound) {
+				os.RemoveAll(filepath.Join(dirs.BuildtreesDir, nameVersion))
+			} else {
+				return fmt.Errorf("failed to autoremove %s -> %w", nameVersion, err)
+			}
 		}
 	}
 
@@ -98,10 +105,16 @@ func (a *autoremoveCmd) autoremove() error {
 			continue
 		}
 		if err := a.removePackage(nameVersion, true); err != nil {
-			return err
+			// Remove buildtrees for packages that are not found.
+			if errors.Is(err, errors.ErrPortNotFound) {
+				os.RemoveAll(filepath.Join(dirs.BuildtreesDir, nameVersion))
+			} else {
+				return fmt.Errorf("failed to autoremove %s -> %w", nameVersion, err)
+			}
 		}
 	}
 
+	color.PrintSuccess("autoremove successfully for %s", a.celer.Project().GetName())
 	return nil
 }
 
@@ -146,7 +159,7 @@ func (a *autoremoveCmd) collectPackages(nameVersion string) error {
 		if !slices.Contains(a.packages, nameVersion) {
 			a.packages = append(a.packages, nameVersion)
 			if err := a.collectPackages(nameVersion); err != nil {
-				return err
+				return fmt.Errorf("failed to collect package for %s -> %w", nameVersion, err)
 			}
 		}
 	}
