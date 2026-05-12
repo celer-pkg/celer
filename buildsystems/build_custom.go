@@ -2,11 +2,12 @@ package buildsystems
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"os"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/expr"
 )
 
 func NewCustom(config *BuildConfig) *custom {

@@ -2,10 +2,6 @@ package buildsystems
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -13,6 +9,11 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 func NewMakefiles(config *BuildConfig) *makefiles {
@@ -218,8 +219,7 @@ func (m makefiles) needHostAndBuild(options []string) bool {
 func (m makefiles) configured() bool {
 	buildDir := expr.If(m.BuildInSource, m.PortConfig.RepoDir, m.PortConfig.BuildDir)
 	makeFile := filepath.Join(buildDir, "Makefile")
-	return fileio.PathExists(m.PortConfig.RepoDir) &&
-		fileio.PathExists(makeFile)
+	return fileio.PathExists(m.PortConfig.RepoDir) && fileio.PathExists(makeFile)
 }
 
 func (m makefiles) Configure(options []string) error {

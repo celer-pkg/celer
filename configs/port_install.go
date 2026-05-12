@@ -96,8 +96,9 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 
 	// Clear the tmp/deps dir, then copy library files of dependencies into it.
 	// This ensures the folder contains exactly the libraries required by the current port.
-	if p.Parent == "" {
-		color.Printf(color.Title, "\n[clean tmps: %s]\n", p.NameVersion())
+	// Clean tmp/deps dir only when install with -f or still not configured yet.
+	if (options.Force || !p.MatchedConfig.Configured()) && p.Parent == "" {
+		color.Printf(color.Title, "\n[clean tmps/deps: %s]\n", p.NameVersion())
 		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
 			return "", err
 		}
@@ -279,7 +280,6 @@ func (p Port) doInstallFromSource() error {
 			if statusSummary != "" {
 				skipStoreCacheReason += ": " + statusSummary
 			}
-			skipStoreCacheReason += "."
 		} else {
 			// Only repos that match the configured source ref can store package cache.
 			if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
@@ -526,8 +526,9 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
-	// Prepare dependencies.
-	if len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0 {
+	// Prepare dependencies when force or not configured yet.
+	haveDeps := len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0
+	if (options.Force || !p.MatchedConfig.Configured()) && haveDeps {
 		color.Printf(color.Title, "\n[prepare dependencies: %s]\n", p.NameVersion())
 		preparedTmpDeps = []string{}
 		if err := p.prepareTmpDeps(); err != nil {

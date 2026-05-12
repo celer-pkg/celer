@@ -2,13 +2,14 @@ package buildsystems
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 func NewQMake(config *BuildConfig) *qmake {
