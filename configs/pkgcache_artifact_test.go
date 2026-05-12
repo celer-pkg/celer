@@ -61,6 +61,7 @@ func (f fakeProject) GetPorts() []string                                 { retur
 func (f fakeProject) GetTargetPlatform() string                          { return "" }
 func (f fakeProject) GetPythonVersion() string                           { return "" }
 func (f fakeProject) Write(platformPath string, override bool) error     { return nil }
+func (f fakeProject) GetVars() []string                                  { return nil }
 
 func TestArtifactCache_StoreAndFetch(t *testing.T) {
 	oldWorkspace := dirs.WorkspaceDir

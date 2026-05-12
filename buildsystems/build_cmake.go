@@ -79,7 +79,7 @@ func (c *cmake) preConfigure() error {
 		}
 	}
 
-	return nil
+	return c.BuildConfig.preConfigure()
 }
 
 func (c cmake) configureOptions() ([]string, error) {

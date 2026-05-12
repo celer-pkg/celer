@@ -204,9 +204,9 @@ func (r *reverseCmd) hasDependency(port configs.Port, target string) bool {
 func (r *reverseCmd) displayResults(target string, libraries []string) {
 	var title string
 	if r.dev {
-		title = fmt.Sprintf("Reverse dependencies of %s as dev", target)
+		title = fmt.Sprintf("reverse dependencies of %s as dev", target)
 	} else {
-		title = fmt.Sprintf("Reverse dependencies of %s", target)
+		title = fmt.Sprintf("reverse dependencies of %s", target)
 	}
 	color.Println(color.Title, title)
 	color.Println(color.Title, strings.Repeat("-", len(title)))
