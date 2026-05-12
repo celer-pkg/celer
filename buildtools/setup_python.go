@@ -27,7 +27,7 @@ func pip3Install(ctx context.Context, pipConfig context.PythonConfig, libraries 
 	if pythonConfig != nil && pythonConfig.GetVersion() != "" {
 		pythonVersion = pythonConfig.GetVersion()
 	}
-	venvDir := getVersionedVenvPath(pythonVersion)
+	venvDir := getVersionedVenvPath(pythonVersion, ctx.Project().GetName())
 
 	// Setup python3 using conda.
 	if err := setupPython(ctx, pythonVersion); err != nil {
@@ -98,7 +98,7 @@ func pip3Install(ctx context.Context, pipConfig context.PythonConfig, libraries 
 // Strategy: Try system Python first, fallback to conda if version mismatches.
 func setupPython(ctx context.Context, pythonVersion string) error {
 	// Quick return only if version hasn't changed AND venv still exists on disk.
-	envDir := getVersionedVenvPath(pythonVersion)
+	envDir := getVersionedVenvPath(pythonVersion, ctx.Project().GetName())
 	if PythonTool != nil && PythonTool.version == pythonVersion && fileio.PathExists(envDir) {
 		return nil
 	}
@@ -174,14 +174,14 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 	return nil
 }
 
-func getVersionedVenvPath(pythonVersion string) string {
+func getVersionedVenvPath(pythonVersion, projectName string) string {
 	// Normalize version to minor version format for directory name (e.g., 3.10.5 -> 3.10)
 	minorVersion := pythonVersion
 	if strings.Count(pythonVersion, ".") > 1 {
 		parts := strings.Split(pythonVersion, ".")
 		minorVersion = parts[0] + "." + parts[1]
 	}
-	return filepath.Join(dirs.WorkspaceDir, "installed", fmt.Sprintf("venv-%s", minorVersion))
+	return filepath.Join(dirs.WorkspaceDir, "installed", fmt.Sprintf("%s@venv-%s", projectName, minorVersion))
 }
 
 // GetDefaultPythonVersion returns the default Python version for the current platform.

@@ -179,6 +179,14 @@ func GetDefaultBranch(nameVersion, repoDir string) (string, error) {
 	return "", fmt.Errorf("default branch not found of %s", repoDir)
 }
 
+// shortHash returns a concise git hash format: first 7 chars...last 7 chars
+func shortHash(hash string) string {
+	if len(hash) <= 14 {
+		return hash
+	}
+	return hash[:7] + "..." + hash[len(hash)-7:]
+}
+
 // CheckIfRefMatches checks whether the local checkout matches the expected ref.
 // It returns an empty string on match, or a human-readable mismatch reason when
 // the checkout does not match. If expectedRef is empty, it falls back to
@@ -198,7 +206,7 @@ func CheckIfRefMatches(ctx context.Context, nameVersion, repoDir, expectedRef st
 		if currentCommit == expectedCommit {
 			return "", nil
 		}
-		return "", fmt.Errorf("expect ref %q @ %s, got HEAD @ %s", expectedRef, expectedCommit, currentCommit)
+		return fmt.Sprintf("hash mismatch (remote:%s vs local:%s)", shortHash(expectedCommit), shortHash(currentCommit)), nil
 	}
 
 	// No configured ref means "is my current branch still aligned with its upstream?".
@@ -237,7 +245,7 @@ func CheckIfRefMatches(ctx context.Context, nameVersion, repoDir, expectedRef st
 	if currentCommit == upstreamCommit {
 		return "", nil
 	}
-	return "", fmt.Errorf("expect upstream %q @ %s, got HEAD @ %s", upstreamBranch, upstreamCommit, currentCommit)
+	return fmt.Sprintf("hash mismatch on %q (remote:%s vs local:%s)", upstreamBranch, shortHash(upstreamCommit), shortHash(currentCommit)), nil
 }
 
 func getRemoteNames(repoDir string) ([]string, error) {
