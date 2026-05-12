@@ -1,10 +1,11 @@
 package buildsystems
 
 import (
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"slices"
+
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 func NewPrebuilt(config *BuildConfig) *prebuilt {

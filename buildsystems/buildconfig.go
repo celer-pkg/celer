@@ -721,6 +721,10 @@ func (b *BuildConfig) CheckTools() []string {
 	return b.buildSystem.CheckTools()
 }
 
+func (b *BuildConfig) Configured() bool {
+	return b.buildSystem.configured()
+}
+
 func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string) libraryType {
 	var (
 		enableShared, disableShared string

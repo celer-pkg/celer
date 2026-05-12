@@ -2,12 +2,13 @@ package buildsystems
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 func NewGyp(config *BuildConfig) *gyp {

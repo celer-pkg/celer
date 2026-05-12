@@ -2,10 +2,6 @@ package buildsystems
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -13,6 +9,11 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 func NewMakefiles(config *BuildConfig) *makefiles {
