@@ -27,7 +27,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	)
 	libraryFolder := expr.If(p.DevDep || p.HostDep,
 		hostName+"-dev",
-		fmt.Sprintf("%s@%s@%s", platformName, projectName, buildType),
+		filepath.Join(platformName, projectName, buildType),
 	)
 	packageFolder := expr.If(p.DevDep || p.HostDep,
 		filepath.Join(hostName+"-dev", nameVersion),

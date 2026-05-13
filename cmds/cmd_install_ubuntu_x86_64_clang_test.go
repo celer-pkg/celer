@@ -3,12 +3,12 @@
 package cmds
 
 import (
-	"fmt"
+	"path/filepath"
+	"testing"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"path/filepath"
-	"testing"
 )
 
 const ubuntu_x86_64_clang_21_1_4 = "x86_64-linux-ubuntu-22.04-clang-21.1.4"
@@ -62,7 +62,7 @@ func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild boo
 	check(celer.SetProject(project))
 
 	var (
-		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())
+		packageFolder = filepath.Join(platform, project, celer.BuildType(), nameVersion)
 		port          configs.Port
 		options       configs.InstallOptions
 	)

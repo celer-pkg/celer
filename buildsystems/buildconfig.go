@@ -37,7 +37,7 @@ type PortConfig struct {
 	SrcDir          string   // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
 	RepoDir         string   // for example: ${workspace}/buildtrees/icu@75.1/src
 	BuildDir        string   // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
-	PackageDir      string   // for example: ${workspace}/packages/ffmpeg-3.4.13-x86_64-linux-20.04-Release
+	PackageDir      string   // for example: ${workspace}/packages/x86_64-linux-20.04/project_01/Release/ffmpeg-3.4.13
 	LibraryFolder   string   // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
 	IncludeDirs     []string // headers not in standard include path.
 	LibDirs         []string // libs not in standard lib path.

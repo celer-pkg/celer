@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -568,7 +567,7 @@ func installForTestRemove(t *testing.T, nameVersion string, option configs.Remov
 	check(celer.SetProject(project))
 
 	var (
-		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())
+		packageFolder = filepath.Join(platform, project, celer.BuildType(), nameVersion)
 		port          configs.Port
 		options       configs.InstallOptions
 	)

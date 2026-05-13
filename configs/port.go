@@ -318,7 +318,7 @@ func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]stri
 		if p.DevDep || p.HostDep {
 			files = append(files, filepath.Join(p.ctx.Platform().GetHostName()+"-dev", relativePath))
 		} else {
-			platformProject := fmt.Sprintf("%s@%s@%s", platformName, projectName, p.ctx.BuildType())
+			platformProject := filepath.Join(platformName, projectName, p.ctx.BuildType())
 			files = append(files, filepath.Join(platformProject, relativePath))
 		}
 		return nil

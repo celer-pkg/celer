@@ -209,7 +209,7 @@ func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 
 func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []string, err error) {
 	// Collect installed packages and cached packages.
-	libraryFolder := fmt.Sprintf("%s@%s@%s",
+	libraryFolder := filepath.Join(
 		a.celer.Platform().GetName(),
 		a.celer.Project().GetName(),
 		a.celer.BuildType(),
@@ -239,18 +239,22 @@ func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []st
 }
 
 func (a *autoremoveCmd) readInstalledPackages(libraryFolder string) ([]string, error) {
-	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace")
-	pattern := filepath.Join(traceDir, "*@"+libraryFolder+".trace")
-	suffix := "@" + libraryFolder + ".trace"
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace", libraryFolder)
 
-	matches, err := filepath.Glob(pattern)
+	entries, err := os.ReadDir(traceDir)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
 	var packages []string
-	for _, match := range matches {
-		if cutted, ok := strings.CutSuffix(filepath.Base(match), suffix); ok {
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		if cutted, ok := strings.CutSuffix(entry.Name(), ".trace"); ok {
 			packages = append(packages, cutted)
 		}
 	}
@@ -259,7 +263,9 @@ func (a *autoremoveCmd) readInstalledPackages(libraryFolder string) ([]string, e
 }
 
 func (a *autoremoveCmd) readCachedPackages(libraryFolder string) ([]string, error) {
-	entries, err := os.ReadDir(dirs.PackagesDir)
+	cacheDir := filepath.Join(dirs.PackagesDir, libraryFolder)
+
+	entries, err := os.ReadDir(cacheDir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -267,18 +273,12 @@ func (a *autoremoveCmd) readCachedPackages(libraryFolder string) ([]string, erro
 		return nil, err
 	}
 
-	suffix := "@" + libraryFolder
 	var packages []string
-
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			continue
 		}
-
-		folder := entry.Name()
-		if cutted, ok := strings.CutSuffix(folder, suffix); ok {
-			packages = append(packages, cutted)
-		}
+		packages = append(packages, entry.Name())
 	}
 
 	return packages, nil

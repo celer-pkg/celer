@@ -3,7 +3,6 @@
 package cmds
 
 import (
-	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -118,7 +117,7 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 	check(celer.SetProject(project))
 
 	var (
-		packageFolder = fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())
+		packageFolder = filepath.Join(platform, project, celer.BuildType(), nameVersion)
 		port          configs.Port
 		options       configs.InstallOptions
 	)

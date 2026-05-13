@@ -360,7 +360,7 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	}
 
 	// Copy files from package to installed dir.
-	libraryFolder := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
+	libraryFolder := filepath.Join(p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
 	for _, file := range files {
 		if p.DevDep || p.HostDep {
 			file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))

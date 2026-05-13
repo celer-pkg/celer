@@ -133,7 +133,7 @@ func (p Port) doRemovePort() error {
 
 	// Remove generated cmake config if exist.
 	portName := strings.Split(p.NameVersion(), "@")[0]
-	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
+	platformProject := filepath.Join(p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
 	cmakeConfigDir := filepath.Join(dirs.InstalledDir, platformProject, "lib", "cmake", portName)
 	if err := os.RemoveAll(cmakeConfigDir); err != nil {
 		noError = false

@@ -191,7 +191,7 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 
 	var (
 		buildType  = celer.BuildType()
-		packageDir = fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, portNameVersion, platform, project, buildType)
+		packageDir = filepath.Join(dirs.PackagesDir, project, platform, buildType, portNameVersion)
 		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
 	)
 

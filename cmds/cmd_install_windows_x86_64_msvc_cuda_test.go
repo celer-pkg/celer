@@ -4,15 +4,16 @@ package cmds
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"testing"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
-	"os"
-	"path/filepath"
-	"runtime"
-	"testing"
 )
 
 func TestInstall_x86_64_MSVC_CUDA(t *testing.T) {
@@ -64,10 +65,9 @@ func TestInstall_x86_64_MSVC_CUDA(t *testing.T) {
 	}
 
 	installedDir := filepath.Join(dirs.InstalledDir,
-		fmt.Sprintf("%s@%s@%s",
-			celer.Platform().GetName(),
-			celer.Project().GetName(),
-			celer.BuildType()))
+		celer.Platform().GetName(),
+		celer.Project().GetName(),
+		celer.BuildType())
 
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("TMP_DEP_DIR=%s", installedDir),
