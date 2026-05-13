@@ -56,7 +56,7 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	check(port.InstallFromSource(installOptions))
 
 	// Check package.
-	packageDir := filepath.Join(dirs.PackagesDir, project, platform, celer.BuildType(), nameVersion)
+	packageDir := filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found")
 	}
@@ -129,7 +129,7 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	check(glogPort.InstallFromSource(options))
 
 	packageDir := func(nameVersion string) string {
-		return filepath.Join(dirs.PackagesDir, project, platform, celer.BuildType(), nameVersion)
+		return filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
 	}
 	glogPackageDir := packageDir("glog@0.6.0")
 	gflagsPackageDir := packageDir("gflags@2.2.2")
@@ -214,7 +214,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	check(port.InstallFromSource(options))
 
 	// Check package & repo.
-	packageDir := filepath.Join(dirs.PackagesDir, project, platform, celer.BuildType(), nameVersion)
+	packageDir := filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
 
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found: " + packageDir)

@@ -64,7 +64,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 	// ================= test autoremove ================= //
 	var (
 		buildType  = celer.BuildType()
-		packageDir = filepath.Join(dirs.PackagesDir, project, platform, buildType, portNameVersion)
+		packageDir = filepath.Join(dirs.PackagesDir, platform, project, buildType, portNameVersion)
 		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
 	)
 
@@ -191,7 +191,7 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 
 	var (
 		buildType  = celer.BuildType()
-		packageDir = filepath.Join(dirs.PackagesDir, project, platform, buildType, portNameVersion)
+		packageDir = filepath.Join(dirs.PackagesDir, platform, project, buildType, portNameVersion)
 		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
 	)
 

@@ -45,7 +45,7 @@ func TestInstall_BuildType(t *testing.T) {
 			nameVersion     = "eigen@3.4.0"
 			windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 			platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-			packageDir      = filepath.Join(dirs.PackagesDir, project, platform, celer.BuildType(), nameVersion)
+			packageDir      = filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
 		)
 
 		var port configs.Port
