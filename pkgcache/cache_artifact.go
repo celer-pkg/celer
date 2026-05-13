@@ -104,18 +104,28 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return fmt.Errorf("package dir does not exist: %s", packageDir)
 	}
 
-	// Validate packageDir format.
-	parts := strings.Split(filepath.Base(packageDir), "@")
-	if len(parts) != 5 {
+	// Validate packageDir format and extract metadata.
+	// Path format: packages/project/platform/buildType/nameVersion
+	parts := strings.Split(filepath.ToSlash(packageDir), "/")
+	if len(parts) < 5 {
+		return fmt.Errorf("invalid package dir: %s", packageDir)
+	}
+
+	// Extract from path components.
+	nameVersion := parts[len(parts)-1]
+	buildType := parts[len(parts)-2]
+	platformName := parts[len(parts)-3]
+	projectName := parts[len(parts)-4]
+
+	// Validate nameVersion format (should be name@version)
+	versionParts := strings.Split(nameVersion, "@")
+	if len(versionParts) != 2 {
 		return fmt.Errorf("invalid package dir: %s", packageDir)
 	}
 
 	var (
-		libName      = parts[0]
-		libVersion   = parts[1]
-		platformName = parts[2]
-		projectName  = parts[3]
-		buildType    = strings.ToLower(parts[4])
+		libName    = versionParts[0]
+		libVersion = versionParts[1]
 	)
 
 	// Extract tar.gz to a tmp dir.
@@ -135,7 +145,6 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	nameVersion := fmt.Sprintf("%s@%s", libName, libVersion)
 	destDir := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	metaDir := filepath.Join(destDir, "meta")
 

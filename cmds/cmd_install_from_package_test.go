@@ -1,14 +1,15 @@
 package cmds
 
 import (
-	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"testing"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"runtime"
-	"testing"
 )
 
 func TestInstall_FromPackage(t *testing.T) {
@@ -32,10 +33,7 @@ func TestInstall_FromPackage(t *testing.T) {
 		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_install"
-		packageDir      = fmt.Sprintf("%s/%s@%s@%s@%s",
-			dirs.PackagesDir, nameVersion, platform, project,
-			celer.BuildType(),
-		)
+		packageDir      = filepath.Join(dirs.PackagesDir, project, platform, celer.BuildType(), nameVersion)
 	)
 
 	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))

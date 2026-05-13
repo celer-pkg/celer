@@ -2,14 +2,16 @@ package cmds
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"testing"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"os"
-	"runtime"
-	"slices"
-	"testing"
 )
 
 func TestAutoRemove_With_Purge(t *testing.T) {
@@ -62,7 +64,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 	// ================= test autoremove ================= //
 	var (
 		buildType  = celer.BuildType()
-		packageDir = fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, portNameVersion, platform, project, buildType)
+		packageDir = filepath.Join(dirs.PackagesDir, project, platform, buildType, portNameVersion)
 		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
 	)
 

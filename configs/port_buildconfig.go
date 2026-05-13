@@ -18,27 +18,28 @@ import (
 func (p *Port) initBuildConfig(nameVersion string) error {
 	buildType := p.ctx.BuildType()
 	hostName := p.ctx.Platform().GetHostName()
-	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType)
+	platformName := p.ctx.Platform().GetName()
+	projectName := p.ctx.Project().GetName()
 
 	buildFolder := expr.If(p.DevDep || p.HostDep,
 		filepath.Join(nameVersion, hostName+"-dev"),
-		filepath.Join(nameVersion, fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType)),
+		filepath.Join(nameVersion, fmt.Sprintf("%s-%s-%s", platformName, projectName, buildType)),
 	)
 	libraryFolder := expr.If(p.DevDep || p.HostDep,
 		hostName+"-dev",
-		fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType),
+		fmt.Sprintf("%s@%s@%s", platformName, projectName, buildType),
 	)
 	packageFolder := expr.If(p.DevDep || p.HostDep,
-		nameVersion+"@"+hostName+"-dev",
-		fmt.Sprintf("%s@%s@%s@%s", nameVersion, p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType),
+		filepath.Join(hostName+"-dev", nameVersion),
+		filepath.Join(platformName, projectName, buildType, nameVersion),
 	)
 	p.traceFile = expr.If(p.DevDep || p.HostDep,
-		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+hostName+"-dev.trace"),
-		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+platformProject+".trace"),
+		filepath.Join(dirs.InstalledDir, "celer", "trace", hostName+"-dev", nameVersion+".trace"),
+		filepath.Join(dirs.InstalledDir, "celer", "trace", platformName, projectName, buildType, nameVersion+".trace"),
 	)
 	p.metaFile = expr.If(p.DevDep || p.HostDep,
-		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+hostName+"-dev.meta"),
-		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+platformProject+".meta"),
+		filepath.Join(dirs.InstalledDir, "celer", "meta", hostName+"-dev", nameVersion+".meta"),
+		filepath.Join(dirs.InstalledDir, "celer", "meta", platformName, projectName, buildType, nameVersion+".meta"),
 	)
 
 	p.PackageDir = filepath.Join(dirs.WorkspaceDir, "packages", packageFolder)
@@ -53,7 +54,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		Url:             p.Package.Url,
 		Checksum:        p.Package.Checksum,
 		IgnoreSubmodule: p.Package.IgnoreSubmodule,
-		ProjectName:     p.ctx.Project().GetName(),
+		ProjectName:     projectName,
 		HostName:        hostName,
 		SrcDir:          filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 		BuildDir:        filepath.Join(dirs.WorkspaceDir, "buildtrees", buildFolder),
