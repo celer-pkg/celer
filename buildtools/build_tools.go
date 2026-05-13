@@ -26,9 +26,9 @@ var (
 	LLVMPath string
 )
 
-// CheckTools checks if tools exist and repair them if necessary, finaly make sure tool paths are in PATH
+// CheckTools checks if tools exist and repair them if necessary, finally make sure tool paths are in PATH
 func CheckTools(ctx context.Context, tools ...string) error {
-	// Filter duplicated tools.
+	// Remove duplicated tools.
 	var uniqueTools []string
 	for _, tool := range tools {
 		if !slices.Contains(uniqueTools, tool) {
@@ -91,25 +91,32 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	var msys2Tool *BuildTool
 
-	// Find tool instances of python3 and msys2.
+	// Find tool instances of python3 and msys2 from buildTools.
 	for _, tool := range uniqueTools {
 		// Python: only use conda if version mismatch; otherwise use system Python
 		if strings.HasPrefix(tool, "python3") {
 			tool = expr.If(shouldUseConda(ctx), "conda", "python3")
 		}
 
-		if found := buildTools.findTool(ctx, tool); found != nil {
-			if err := found.validate(); err != nil {
-				return err
-			}
+		// Try to find tool instance in buildTools. Skip if not found - may be a system tool.
+		if !buildTools.contains(tool) {
+			continue
+		}
 
-			switch found.Name {
-			case "msys2":
-				msys2Tool = found
+		toolFound, err := buildTools.findTool(ctx, tool)
+		if err != nil {
+			return fmt.Errorf("cannot find specified tool %s -> %w", tool, err)
+		}
+		if err := toolFound.validate(); err != nil {
+			return fmt.Errorf("failed to validate tool %s -> %w", tool, err)
+		}
 
-			case "llvm":
-				LLVMPath = found.rootDir
-			}
+		switch toolFound.Name {
+		case "msys2":
+			msys2Tool = toolFound
+
+		case "llvm":
+			LLVMPath = toolFound.rootDir
 		}
 	}
 
@@ -254,26 +261,28 @@ type BuildTools struct {
 }
 
 // findTool find matched tool with name and version.
-func (b BuildTools) findTool(ctx context.Context, nameVersion string) *BuildTool {
-	// Read tool name and version.
+func (b BuildTools) findTool(ctx context.Context, nameVersion string) (*BuildTool, error) {
 	toolName, toolVersion := b.parseNameVersion(nameVersion)
 
-	// Find matched tool.
-	index := slices.IndexFunc(b.BuildTools, func(tool BuildTool) bool {
-		if toolVersion != "" {
-			return tool.Name == toolName && tool.Version == toolVersion
-		} else {
-			return tool.Name == toolName && tool.Default
+	for index, tool := range b.BuildTools {
+		if tool.Name != toolName {
+			continue
 		}
-	})
 
-	// Return matched tool.
-	if index >= 0 {
+		if toolVersion == "" {
+			if !tool.Default { // No version specified - must use default.
+				return nil, fmt.Errorf("%s is found, but no version specified", toolName)
+			}
+		} else if tool.Version != toolVersion {
+			continue
+		}
+
+		// Matched tool found.
 		b.BuildTools[index].ctx = ctx
-		return &b.BuildTools[index]
+		return &b.BuildTools[index], nil
 	}
 
-	return nil
+	return nil, fmt.Errorf("tool %s is not found", nameVersion)
 }
 
 func (b BuildTools) contains(name string) bool {
@@ -334,9 +343,9 @@ func FindBuildTool(ctx context.Context, nameVersion string) (*BuildTool, error) 
 	}
 
 	// Find the tool entry.
-	condaTool := buildTools.findTool(ctx, nameVersion)
-	if condaTool == nil {
-		return nil, fmt.Errorf("%s tool not found in %s", nameVersion, staticFile)
+	condaTool, err := buildTools.findTool(ctx, nameVersion)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find matched tool %s -> %w", nameVersion, err)
 	}
 
 	return condaTool, nil
