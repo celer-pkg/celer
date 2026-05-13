@@ -60,7 +60,7 @@ func (p Port) BuildMeta() (string, error) {
 
 		toolVersions, err := p.Callbacks.GenBuildToolsVersions(buildTools)
 		if err != nil {
-			return "", fmt.Errorf("failed to get build tools versions -> %w", err)
+			return "", err
 		}
 		if toolVersions != "" {
 			p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "build tools versions")

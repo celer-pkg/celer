@@ -258,8 +258,8 @@ func getWindowsDefaultPythonVersion() string {
 		panic(fmt.Sprintf("failed to decode %s: %s", staticFile, err))
 	}
 
-	pythonTool := buildTools.findTool(nil, "python3")
-	if pythonTool != nil && pythonTool.Version != "" {
+	pythonTool, err := buildTools.findTool(nil, "python3")
+	if err == nil && pythonTool != nil && pythonTool.Version != "" {
 		return pythonTool.Version
 	}
 

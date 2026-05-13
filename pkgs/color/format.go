@@ -28,12 +28,12 @@ func PrintSuccess(format string, args ...any) {
 }
 
 func SprintError(err error, format string, args ...any) string {
-	details := strings.ReplaceAll(err.Error(), " -> ", ":\n--> ")
+	details := strings.ReplaceAll(err.Error(), " -> ", "\n    └─ ")
 	return Sprintf(Error, "\n[✘] %s\n[☛] %s\n", fmt.Sprintf(format, args...), details)
 }
 
 func PrintError(err error, format string, args ...any) error {
-	details := strings.ReplaceAll(err.Error(), " -> ", ":\n--> ")
+	details := strings.ReplaceAll(err.Error(), " -> ", "\n    └─ ")
 	Fprintf(os.Stderr, Error, "\n[✘] %s\n[☛] %s\n", fmt.Sprintf(format, args...), details)
 	return ErrSilent
 }
