@@ -209,28 +209,28 @@ func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 
 func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []string, err error) {
 	// Collect installed packages and cached packages.
-	libraryFolder := filepath.Join(
+	libraryDir := filepath.Join(
 		a.celer.Platform().GetName(),
 		a.celer.Project().GetName(),
 		a.celer.BuildType(),
 	)
-	packages, err = a.readInstalledPackages(libraryFolder)
+	packages, err = a.readInstalledPackages(libraryDir)
 	if err != nil {
 		return nil, nil, err
 	}
-	cachedPackages, err := a.readCachedPackages(libraryFolder)
+	cachedPackages, err := a.readCachedPackages(libraryDir)
 	if err != nil {
 		return nil, nil, err
 	}
 	packages = mergePackages(packages, cachedPackages)
 
 	// Collect installed dev packages and cached dev packages.
-	devLibraryFolder := a.celer.Platform().GetHostName() + "-dev"
-	devPackages, err = a.readInstalledPackages(devLibraryFolder)
+	devLibraryDir := a.celer.Platform().GetHostName() + "-dev"
+	devPackages, err = a.readInstalledPackages(devLibraryDir)
 	if err != nil {
 		return nil, nil, err
 	}
-	cachedDevPackages, err := a.readCachedPackages(devLibraryFolder)
+	cachedDevPackages, err := a.readCachedPackages(devLibraryDir)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -238,8 +238,8 @@ func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []st
 	return
 }
 
-func (a *autoremoveCmd) readInstalledPackages(libraryFolder string) ([]string, error) {
-	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace", libraryFolder)
+func (a *autoremoveCmd) readInstalledPackages(libraryDir string) ([]string, error) {
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace", libraryDir)
 
 	entries, err := os.ReadDir(traceDir)
 	if err != nil {
@@ -262,8 +262,8 @@ func (a *autoremoveCmd) readInstalledPackages(libraryFolder string) ([]string, e
 	return packages, nil
 }
 
-func (a *autoremoveCmd) readCachedPackages(libraryFolder string) ([]string, error) {
-	cacheDir := filepath.Join(dirs.PackagesDir, libraryFolder)
+func (a *autoremoveCmd) readCachedPackages(libraryDir string) ([]string, error) {
+	cacheDir := filepath.Join(dirs.PackagesDir, libraryDir)
 
 	entries, err := os.ReadDir(cacheDir)
 	if err != nil {

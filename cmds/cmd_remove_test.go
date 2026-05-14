@@ -375,17 +375,17 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result := remove.getInstalledPackages(test.toComplete)
+			suggestions := remove.getSuggestions(test.toComplete)
 
-			if len(result) != len(test.expected) {
-				t.Errorf("Expected %d packages, got %d: %v", len(test.expected), len(result), result)
+			if len(suggestions) != len(test.expected) {
+				t.Errorf("Expected %d packages, got %d: %v", len(test.expected), len(suggestions), suggestions)
 				return
 			}
 
 			for _, expected := range test.expected {
-				found := slices.Contains(result, expected)
+				found := slices.Contains(suggestions, expected)
 				if !found {
-					t.Errorf("Expected to find %s in result %v", expected, result)
+					t.Errorf("Expected to find %s in result %v", expected, suggestions)
 				}
 			}
 		})
@@ -449,7 +449,7 @@ func TestRemoveCmd_GetInstalledPackages_NoTraceDir(t *testing.T) {
 	dirs.InstalledDir = "/nonexistent/directory"
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	result := remove.getInstalledPackages("any")
+	result := remove.getSuggestions("any")
 	if len(result) != 0 {
 		t.Errorf("Expected empty result when trace directory doesn't exist, got %v", result)
 	}

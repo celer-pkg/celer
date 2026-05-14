@@ -134,7 +134,7 @@ func (r *removeCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	var suggestions []string
 
 	// Add installed package suggestions.
-	suggestions = append(suggestions, r.getInstalledPackages(toComplete)...)
+	suggestions = append(suggestions, r.getSuggestions(toComplete)...)
 
 	// Add flag suggestions.
 	flags := []string{
@@ -164,41 +164,41 @@ func (r *removeCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	return unique, cobra.ShellCompDirectiveNoFileComp
 }
 
-// getInstalledPackages returns list of installed packages matching the completion prefix.
-func (r *removeCmd) getInstalledPackages(toComplete string) []string {
-	var packages []string
+// getSuggestions returns list of installed packages matching the completion prefix.
+func (r *removeCmd) getSuggestions(toComplete string) []string {
+	// Initialize celer to get current platform/project/buildType configuration.
+	if err := r.celer.Init(); err != nil {
+		return []string{} // Ignore error.
+	}
 
-	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace")
+	// Build the trace directory path for current platform/project/buildType configuration.
+	libraryDir := filepath.Join(
+		r.celer.Platform().GetName(),
+		r.celer.Project().GetName(),
+		r.celer.BuildType(),
+	)
+
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace", libraryDir)
 	if !fileio.PathExists(traceDir) {
-		return packages
+		return []string{} // Ignore error.
 	}
 
-	entities, err := os.ReadDir(traceDir)
+	var packages []string
+	entries, err := os.ReadDir(traceDir)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return []string{} // Ignore error.
+		}
 		return packages
 	}
 
-	for _, entity := range entities {
-		if entity.IsDir() {
+	for _, entry := range entries {
+		if entry.IsDir() {
 			continue
 		}
-
-		// Parse package name from trace file.
-		// Expected format: package@version@platform.trace.
-		fileName := entity.Name()
-		if !strings.HasSuffix(fileName, ".trace") {
-			continue
-		}
-
-		// Remove .trace extension.
-		baseeName := strings.TrimSuffix(fileName, ".trace")
-		parts := strings.Split(baseeName, "@")
-
-		// Need at least package@version.
-		if len(parts) >= 2 {
-			nameVersion := parts[0] + "@" + parts[1]
-			if strings.HasPrefix(nameVersion, toComplete) {
-				packages = append(packages, nameVersion)
+		if cutted, ok := strings.CutSuffix(entry.Name(), ".trace"); ok {
+			if strings.HasPrefix(cutted, toComplete) {
+				packages = append(packages, cutted)
 			}
 		}
 	}
