@@ -854,7 +854,7 @@ func (p Port) prepareTmpDeps() error {
 		// and this can also make sure system pc file can work right.
 		pkgConfigPrefix := expr.If(port.DevDep || port.HostDep,
 			port.tmpDepsDir,
-			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.MatchedConfig.PortConfig.LibraryFolder),
+			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.MatchedConfig.PortConfig.LibraryDir),
 		)
 		var pkgConfig pc.PkgConfig
 		if err := pkgConfig.Apply(port.tmpDepsDir, pkgConfigPrefix); err != nil {

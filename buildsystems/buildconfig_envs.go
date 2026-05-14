@@ -213,7 +213,7 @@ func (b BuildConfig) setupPkgConfig() {
 	)
 
 	rootfs := b.Ctx.Platform().GetRootFS()
-	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
 	hostBuild := b.DevDep || b.HostDev
 
 	switch runtime.GOOS {
@@ -251,7 +251,7 @@ func (b BuildConfig) setupPkgConfig() {
 			pathDivider = ":"
 
 			// Use actual tmpDepsDir path (not sysroot symlink) for pkgconfig to ensure correct library paths
-			tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+			tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
 
 			// Prepend pkgconfig with actual tmp/deps directory (not sysroot symlink) to prioritize it.
 			configPaths = append([]string{
@@ -324,7 +324,7 @@ func (b *BuildConfig) setLanguageStandard() {
 
 func (b *BuildConfig) setEnvFlags() {
 	rootfs := b.Ctx.Platform().GetRootFS()
-	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
 	hostBuild := b.DevDep || b.HostDev
 
 	// sysroot and tmp dir.
@@ -379,7 +379,7 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 		cxxflags := strings.Fields(os.Getenv("CXXFLAGS"))
 
 		// Check if this is a dependency include dir (tmpDeps/include) - if so, prepend it.
-		tmpDepsPrefix := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+		tmpDepsPrefix := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
 		isDepsIncludeDir := strings.Contains(includeDir, tmpDepsPrefix)
 
 		// Append include dir if not exists.
@@ -459,7 +459,7 @@ func (b *BuildConfig) appendLibDir(libDir string) {
 		rpathlinkFlag := "-Wl,-rpath-link," + libDir
 
 		// Check if this is a dependency lib dir (tmpDeps/lib) - if so, prepend it.
-		tmpDepsPrefix := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+		tmpDepsPrefix := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
 		isDepsLibDir := strings.Contains(libDir, tmpDepsPrefix)
 
 		// Prepend dependency lib dir flags to prioritize them.

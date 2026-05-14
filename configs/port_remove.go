@@ -133,8 +133,8 @@ func (p Port) doRemovePort() error {
 
 	// Remove generated cmake config if exist.
 	portName := strings.Split(p.NameVersion(), "@")[0]
-	platformProject := filepath.Join(p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
-	cmakeConfigDir := filepath.Join(dirs.InstalledDir, platformProject, "lib", "cmake", portName)
+	libraryDir := filepath.Join(p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
+	cmakeConfigDir := filepath.Join(dirs.InstalledDir, libraryDir, "lib", "cmake", portName)
 	if err := os.RemoveAll(cmakeConfigDir); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove cmake config folder: %s", err)
@@ -220,8 +220,8 @@ func (p Port) removeFiles(path string) error {
 }
 
 func (p Port) RemoveLogs() error {
-	platformProject := fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
-	logPathPrefix := filepath.Join(p.NameVersion(), expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName()+"-dev", platformProject))
+	libraryDir := fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
+	logPathPrefix := filepath.Join(p.NameVersion(), expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName()+"-dev", libraryDir))
 	matches, err := filepath.Glob(filepath.Join(dirs.BuildtreesDir, logPathPrefix+"-*.log"))
 	if err != nil {
 		return fmt.Errorf("glob syntax error -> %w", err)

@@ -2,15 +2,16 @@ package cmds
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"testing"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
-	"os"
-	"path/filepath"
-	"runtime"
-	"testing"
 )
 
 func TestInstall_Generate_CMake_Config_Single(t *testing.T) {

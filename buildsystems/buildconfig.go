@@ -36,9 +36,9 @@ type PortConfig struct {
 	ProjectName     string   // toml filename in conf/projects.
 	SrcDir          string   // for example: ${workspace}/buildtrees/icu@75.1/src/icu4c/source
 	RepoDir         string   // for example: ${workspace}/buildtrees/icu@75.1/src
-	BuildDir        string   // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-Release
-	PackageDir      string   // for example: ${workspace}/packages/x86_64-linux-20.04/project_01/Release/ffmpeg-3.4.13
-	LibraryFolder   string   // for example: aarch64-linux-gnu-gcc-9.2@project_01_standard@Release
+	BuildDir        string   // for example: ${workspace}/buildtrees/ffmpeg/x86_64-linux-20.04-release
+	PackageDir      string   // for example: ${workspace}/packages/x86_64-linux-20.04/project_01/release/ffmpeg-3.4.13
+	LibraryDir      string   // for example: aarch64-linux-gnu-gcc-9.2/project_01_standard/release
 	IncludeDirs     []string // headers not in standard include path.
 	LibDirs         []string // libs not in standard lib path.
 	Jobs            int      // number of jobs to run in parallel
@@ -673,7 +673,7 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	// 2. Use relative path for dependencies, this make installed pc files portable with workspace.
 	var prefix = expr.If(rootfs == nil || b.DevDep || b.HostDev,
 		filepath.Join(dirs.WorkspaceDir, "installed", b.PortConfig.HostName+"-dev"),
-		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.LibraryFolder),
+		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.LibraryDir),
 	)
 	var pkgConfig pc.PkgConfig
 	if err := pkgConfig.Apply(b.PortConfig.PackageDir, prefix); err != nil {
@@ -892,7 +892,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	var cflags, cxxflags, ldflags []string
 
 	// Set CFLAGS/CXXFLAGS/LDFLAGS.
-	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryFolder)
+	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
 	var appendIncludeDir = func(includeDir string) {
 		includeDir = fileio.ToCygpath(includeDir)
 		includeFlag := "-I" + includeDir
