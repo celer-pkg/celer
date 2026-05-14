@@ -105,7 +105,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	}
 
 	// Validate packageDir format and extract metadata.
-	// Path format: packages/project/platform/buildType/nameVersion
+	// Path format: packages/platform/project/buildType/nameVersion
 	parts := strings.Split(filepath.ToSlash(packageDir), "/")
 	if len(parts) < 5 {
 		return fmt.Errorf("invalid package dir: %s", packageDir)
@@ -114,8 +114,8 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	// Extract from path components.
 	nameVersion := parts[len(parts)-1]
 	buildType := parts[len(parts)-2]
-	platformName := parts[len(parts)-3]
-	projectName := parts[len(parts)-4]
+	projectName := parts[len(parts)-3]
+	platformName := parts[len(parts)-4]
 
 	// Validate nameVersion format (should be name@version)
 	versionParts := strings.Split(nameVersion, "@")
