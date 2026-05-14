@@ -93,7 +93,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 		metaHash := sha256.Sum256([]byte(meta))
 		hash = fmt.Sprintf("%x", metaHash)
 
-		packageDir = filepath.Join(tmpWorkspace, "packages", "proj", "x86_64-linux", "release", "demo@1.0.0")
+		packageDir = filepath.Join(tmpWorkspace, "packages", "x86_64-linux", "proj", "release", "demo@1.0.0")
 		if err := os.MkdirAll(packageDir, os.ModePerm); err != nil {
 			t.Fatal(err)
 		}
