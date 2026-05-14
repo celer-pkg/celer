@@ -62,7 +62,7 @@ Celer 使用智能决策树来选择使用哪个 Python：
 
 **虚拟环境存储位置：**
 ```
-{工作区}/installed/venv-{小版本号}/
+{工作区}/installed/venv-{小版本号}@{平台名称}/
 ├── Scripts/
 │   ├── python.exe
 │   ├── pip.exe
@@ -89,7 +89,7 @@ Celer 使用智能决策树来选择使用哪个 Python：
 
 **虚拟环境存储位置：**
 ```
-{工作区}/installed/venv-{小版本号}/
+{工作区}/installed/venv-{小版本号}@{平台名称}/
 ├── bin/
 │   ├── python3
 │   ├── pip
