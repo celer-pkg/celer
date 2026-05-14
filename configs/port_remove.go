@@ -144,18 +144,18 @@ func (p Port) doRemovePort() error {
 		return fmt.Errorf("cannot clean cmake config folder: %s", err)
 	}
 
-	// Remove info file and clean info dir.
+	// Remove trace file and remove trace dir if possible.
 	if err := os.Remove(p.traceFile); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove info file: %s", err)
 	}
-	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace")
+	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace", libraryDir)
 	if err := fileio.RemoveFolderRecursively(traceDir); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove info dir: %s", err)
 	}
 
-	// Remove meta file and clean meta dir.
+	// Remove meta file and remove meta dir if possible.
 	buildSystem := p.MatchedConfig.BuildSystem
 	if buildSystem != "nobuild" {
 		if fileio.PathExists(p.metaFile) {
@@ -165,14 +165,14 @@ func (p Port) doRemovePort() error {
 			}
 		}
 
-		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "meta")
+		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "meta", libraryDir)
 		if err := fileio.RemoveFolderRecursively(metaDir); err != nil {
 			noError = false
 			return fmt.Errorf("cannot remove meta dir -> %w", err)
 		}
 	}
 
-	// Remove report file and clean report dir.
+	// Remove report file and remove report dir if possible.
 	reportFileName := strings.ReplaceAll(p.NameVersion(), "@", "_") + ".html"
 	reportFilePath := filepath.Join(dirs.InstalledDir, "celer", "report", libraryDir, reportFileName)
 	if fileio.PathExists(reportFilePath) {
