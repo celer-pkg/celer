@@ -62,7 +62,7 @@ Is Python version specified in project config?
 
 **Virtual Environment Storage:**
 ```
-{workspace}/installed/venv-{minor_version}/
+{workspace}/installed/venv-{minor_version}@{project_name}/
 ├── Scripts/
 │   ├── python.exe
 │   ├── pip.exe
@@ -89,7 +89,7 @@ Is Python version specified in project config?
 
 **Virtual Environment Storage:**
 ```
-{workspace}/installed/venv-{minor_version}/
+{workspace}/installed/venv-{minor_version}@{project_name}/
 ├── bin/
 │   ├── python3
 │   ├── pip

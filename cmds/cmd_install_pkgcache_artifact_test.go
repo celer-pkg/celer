@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -57,11 +56,7 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	check(port.InstallFromSource(installOptions))
 
 	// Check package.
-	packageDir := fmt.Sprintf("%s/%s@%s@%s@%s",
-		dirs.PackagesDir, nameVersion,
-		platform, project,
-		celer.BuildType(),
-	)
+	packageDir := filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found")
 	}
@@ -134,8 +129,7 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	check(glogPort.InstallFromSource(options))
 
 	packageDir := func(nameVersion string) string {
-		return fmt.Sprintf("%s/%s@%s@%s@%s", dirs.PackagesDir, nameVersion,
-			platform, project, celer.BuildType())
+		return filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
 	}
 	glogPackageDir := packageDir("glog@0.6.0")
 	gflagsPackageDir := packageDir("gflags@2.2.2")
@@ -220,11 +214,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	check(port.InstallFromSource(options))
 
 	// Check package & repo.
-	packageDir := fmt.Sprintf("%s/%s@%s@%s@%s",
-		dirs.PackagesDir, nameVersion,
-		platform, project,
-		celer.BuildType(),
-	)
+	packageDir := filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
 
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found: " + packageDir)
@@ -476,8 +466,8 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	check(install.runInstall([]string{nameVersion}))
 
 	// Report should contain package cache source.
-	reportPath := filepath.Join(dirs.InstalledDir, "celer", "report",
-		fmt.Sprintf("eigen_3.4.0@%s@%s@%s.html", platform, project, celer.BuildType()))
+	reportPath := filepath.Join(dirs.InstalledDir, "celer", "report", platform, project, celer.BuildType(),
+		"eigen_3.4.0.html")
 	if !fileio.PathExists(reportPath) {
 		t.Fatalf("install report not found: %s", reportPath)
 	}

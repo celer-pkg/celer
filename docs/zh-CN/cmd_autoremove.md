@@ -41,8 +41,8 @@ celer autoremove --purge --build-cache
 
 ## 检测范围
 
-- 已安装追踪：`installed/celer/trace/*@<platform>@<project>@<build_type>.trace`
-- 缓存包目录：`packages/*@<platform>@<project>@<build_type>`
+- 已安装追踪：`installed/celer/trace/<platform>/<project>/<build_type>/<nameVersion>.trace`
+- 缓存包目录：`packages/<platform>/<project>/<build_type>/<nameVersion>`
 
 由于缓存包目录也在检测范围内，即使上一次运行已删除 trace，
 后续再执行 `celer autoremove --purge` 仍可清理残留的 package 文件。

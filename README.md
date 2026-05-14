@@ -16,9 +16,9 @@
 
 ## ✨ Why Celer?
 
-Celer is designed to lower the barrier to hosting, handoff, and reuse in C/C++ projects by hiding the implementation details behind **build**, **compile**, and **install** steps. At the same time, it separates **dependency management** and **build environments** from business code. This kind of multi-dimensional decoupling makes project boundaries clearer and engineering workflows easier to manage.
+Celer is designed to lower the barrier to hosting, handoff, and reuse in C/C++ projects by handling the complexity of build, compile, and install steps. At the same time, it separates **dependency management** and **build environments** from business code. This separation of concerns makes project boundaries clearer and engineering workflows easier to manage.
 
-In real C/C++ projects, the common pain points usually look like this:
+In real C/C++ projects, the common pain points usually look like these:
 
 - 🎯 **High integration cost**: existing projects often depend on specific build conventions, so taking over a project means touching code and build scripts.
 - 🚀 **Complex cross-compilation environments**: compilers, sysroots, ABIs, environment variables, and dependency sources are scattered, so switching platforms and reproducing environments is expensive.
@@ -51,7 +51,7 @@ celer install glog@0.6.0
 
 ![workflow](./docs/assets/workflow.svg)
 
-Celer generates a platform-aware `toolchain_file.cmake` from the selected platform and project configuration. That file connects your project to predefined toolchains, dependencies, environment variables, and build settings.
+Celer generates a `toolchain_file.cmake` based on your platform and project configuration. That file connects your project to predefined toolchains, dependencies, environment variables, and build settings.
 
 That means:
 
@@ -82,17 +82,17 @@ Celer is stronger where **delivery efficiency and consistency in complex enginee
 
 | Dimension | Conan / vcpkg / XMake common approach | ✅ Where Celer is stronger |
 | --- | --- | --- |
-| **Intrusion** | Often requires adapting recipes, ports, or ecosystem-specific integration | Integrates existing CMake projects through `toolchain_file.cmake` with low intrusion |
+| **Intrusion** | Often requires adapting recipes, ports, or ecosystem-specific integration | Integrates existing CMake projects through `toolchain_file.cmake` without intrusion |
 | **Cross-compile** | Toolchains, profiles, and triplets are often assembled separately | Platforms, toolchains, environment variables, and dependencies are described in one unified configuration |
-| **Project&nbsp;isolation** | Shared or global configuration often becomes a conflict source | Dependencies, variables, and build settings are maintained at project scope, with clearer boundaries |
+| **Project&nbsp;isolation** | Shared configuration often causes version conflicts | Dependencies, variables, and build settings are maintained at project scope, with clearer boundaries |
 | **Multi&nbsp;project&nbsp;coordination** | Frequently wired manually one project at a time | One configuration can coordinate multiple subprojects |
 | **Private&nbsp;binaries** | Usually needs extra packaging conventions and workflow glue | Better suited for internal artifact repositories, prebuilt packages, and custom delivery flows |
-| **Caching&nbsp;and&nbsp;rebuilds** | Caching exists, but is not usually centered on engineering-level artifact reuse | Hash-based artifact caching emphasizes team-wide reuse and build stability |
+| **Caching&nbsp;and&nbsp;rebuilds** | Less focused on team-wide artifact reuse | Hash-based artifact caching emphasizes team-wide reuse and build stability |
 | **Sharing&nbsp;and&nbsp;reproduction** | Users often need to understand the full local toolchain stack | Generated toolchain files and workspace snapshots are easier to share, reproduce, and hand off |
 
 In one sentence:
 
-> **Generic ecosystem size is not Celer's main selling point; engineering delivery, cross-compilation, private dependency governance, and team collaboration efficiency are.**
+> **Celer focuses on delivery efficiency, cross-compilation, and team collaboration—not on generic ecosystem size.**
 
 📖 [Learn more about the problems Celer is built to solve](./docs/en-US/why_celer.md)
 

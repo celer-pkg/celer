@@ -41,8 +41,8 @@ celer autoremove --purge --build-cache
 
 ## Detection Scope
 
-- Installed traces: `installed/celer/trace/*@<platform>@<project>@<build_type>.trace`
-- Cached package folders: `packages/*@<platform>@<project>@<build_type>`
+- Installed traces: `installed/celer/trace/<platform>/<project>/<build_type>/<nameVersion>.trace`
+- Cached package folders: `packages/<platform>/<project>/<build_type>/<nameVersion>`
 
 Because cached package folders are part of detection, running `celer autoremove --purge`
 later can still remove stale package files even if an earlier run already removed trace data.

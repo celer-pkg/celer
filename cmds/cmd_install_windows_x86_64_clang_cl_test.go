@@ -3,7 +3,6 @@
 package cmds
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -85,7 +84,7 @@ func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild boo
 		if platform == "clang-cl" || platform == "msvc" {
 			platform = "x86_64-windows"
 		}
-		packageFolder := fmt.Sprintf("%s@%s@%s@%s", nameVersion, platform, project, celer.BuildType())
+		packageFolder := filepath.Join(platform, project, celer.BuildType(), nameVersion)
 		packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
 		if !fileio.PathExists(packageDir) {
 			t.Fatalf("package dir cannot found, expect: %s", packageDir)

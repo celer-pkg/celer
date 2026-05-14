@@ -62,10 +62,9 @@ func TestInstall_x86_64_GCC_CUDA(t *testing.T) {
 	}
 
 	installedDir := filepath.Join(dirs.InstalledDir,
-		fmt.Sprintf("%s@%s@%s",
-			celer.Platform().GetName(),
-			celer.Project().GetName(),
-			celer.BuildType()))
+		celer.Platform().GetName(),
+		celer.Project().GetName(),
+		celer.BuildType())
 
 	executer := cmd.NewExecutor("configure test project", "cmake",
 		"-D", fmt.Sprintf("TMP_DEP_DIR=%s", installedDir),

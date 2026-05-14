@@ -317,7 +317,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		// Set CMAKE_PREFIX_PATH for CMake-based dependency detection,
 		// This prevents CMake from finding host system libraries.
 		cmakePrefixPaths := []string{
-			filepath.ToSlash(filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder)),
+			filepath.ToSlash(filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryDir)),
 		}
 		for _, libDir := range rootfs.GetLibDirs() {
 			cmakePrefixPaths = append(cmakePrefixPaths, filepath.ToSlash(filepath.Join(sysrootDir, libDir)))
@@ -352,7 +352,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	}
 
 	// Allow meson to locate libraries of dependencies FIRST (before sysroot).
-	depDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryFolder)
+	depDir := filepath.Join(dirs.TmpDepsDir, m.PortConfig.LibraryDir)
 	m.appendIncludeArgs(&includeArgs, filepath.Join(depDir, "include"))
 	m.appendLinkArgs(&linkArgs, filepath.Join(depDir, "lib"))
 

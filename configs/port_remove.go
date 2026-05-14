@@ -118,13 +118,13 @@ func (p Port) doRemovePort() error {
 		}
 		if err := p.removeFiles(fileToRemove); err != nil {
 			noError = false
-			return fmt.Errorf("cannot remove file: %s", err)
+			return fmt.Errorf("cannot remove file -> %w", err)
 		}
 
 		// Try remove parent folder if it's empty.
 		if err := fileio.RemoveFolderRecursively(filepath.Dir(fileToRemove)); err != nil {
 			noError = false
-			return fmt.Errorf("cannot remove parent folder: %s", err)
+			return fmt.Errorf("cannot remove parent folder -> %w", err)
 		}
 
 		fmt.Printf("-- remove: %s\n", fileToRemove)
@@ -133,8 +133,8 @@ func (p Port) doRemovePort() error {
 
 	// Remove generated cmake config if exist.
 	portName := strings.Split(p.NameVersion(), "@")[0]
-	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
-	cmakeConfigDir := filepath.Join(dirs.InstalledDir, platformProject, "lib", "cmake", portName)
+	libraryDir := filepath.Join(p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
+	cmakeConfigDir := filepath.Join(dirs.InstalledDir, libraryDir, "lib", "cmake", portName)
 	if err := os.RemoveAll(cmakeConfigDir); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove cmake config folder: %s", err)
@@ -144,32 +144,47 @@ func (p Port) doRemovePort() error {
 		return fmt.Errorf("cannot clean cmake config folder: %s", err)
 	}
 
-	// Remove info file and clean info dir.
+	// Remove trace file and remove trace dir if possible.
 	if err := os.Remove(p.traceFile); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove info file: %s", err)
 	}
-	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace")
+	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace", libraryDir)
 	if err := fileio.RemoveFolderRecursively(traceDir); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove info dir: %s", err)
 	}
 
-	// Remove meta file and clean meta dir.
+	// Remove meta file and remove meta dir if possible.
 	buildSystem := p.MatchedConfig.BuildSystem
 	if buildSystem != "nobuild" {
 		if fileio.PathExists(p.metaFile) {
 			if err := os.Remove(p.metaFile); err != nil {
 				noError = false
-				return fmt.Errorf("cannot remove meta file: %s", err)
+				return fmt.Errorf("cannot remove meta file -> %w", err)
 			}
 		}
 
-		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "meta")
+		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "meta", libraryDir)
 		if err := fileio.RemoveFolderRecursively(metaDir); err != nil {
 			noError = false
-			return fmt.Errorf("cannot remove meta dir: %s", err)
+			return fmt.Errorf("cannot remove meta dir -> %w", err)
 		}
+	}
+
+	// Remove report file and remove report dir if possible.
+	reportFileName := strings.ReplaceAll(p.NameVersion(), "@", "_") + ".html"
+	reportFilePath := filepath.Join(dirs.InstalledDir, "celer", "report", libraryDir, reportFileName)
+	if fileio.PathExists(reportFilePath) {
+		if err := os.Remove(reportFilePath); err != nil {
+			noError = false
+			return fmt.Errorf("cannot remove report file -> %w", err)
+		}
+	}
+	reportDir := filepath.Join(dirs.InstalledDir, "celer", "report", libraryDir)
+	if err := fileio.RemoveFolderRecursively(reportDir); err != nil {
+		noError = false
+		return fmt.Errorf("cannot remove report dir -> %w", err)
 	}
 
 	return nil
@@ -177,14 +192,13 @@ func (p Port) doRemovePort() error {
 
 func (p Port) removePackage() error {
 	// Remove port's package files.
-	// packageDir := filepath.Join(dirs.WorkspaceDir, "packages", p.NameVersion()+"@"+p.matchedConfig.PortConfig.LibraryFolder)
 	if err := os.RemoveAll(p.PackageDir); err != nil {
-		return fmt.Errorf("cannot remove package files: %s", err)
+		return fmt.Errorf("cannot remove package files -> %w", err)
 	}
 
 	// Try remove parent folder if it's empty.
 	if err := fileio.RemoveFolderRecursively(filepath.Dir(p.PackageDir)); err != nil {
-		return fmt.Errorf("cannot remove parent folder: %s", err)
+		return fmt.Errorf("cannot remove parent folder -> %w", err)
 	}
 
 	return nil
@@ -200,12 +214,12 @@ func (p Port) removeFiles(path string) error {
 		return os.Remove(path)
 	}
 
-	index := strings.Index(path, ".so")
-	if index == -1 {
+	before, _, ok := strings.Cut(path, ".so")
+	if !ok {
 		return os.Remove(path)
 	}
 
-	matches, err := filepath.Glob(path[:index] + ".so*")
+	matches, err := filepath.Glob(before + ".so*")
 	if err != nil {
 		return err
 	}
@@ -220,8 +234,8 @@ func (p Port) removeFiles(path string) error {
 }
 
 func (p Port) RemoveLogs() error {
-	platformProject := fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
-	logPathPrefix := filepath.Join(p.NameVersion(), expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName()+"-dev", platformProject))
+	libraryDir := fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
+	logPathPrefix := filepath.Join(p.NameVersion(), expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName()+"-dev", libraryDir))
 	matches, err := filepath.Glob(filepath.Join(dirs.BuildtreesDir, logPathPrefix+"-*.log"))
 	if err != nil {
 		return fmt.Errorf("glob syntax error -> %w", err)

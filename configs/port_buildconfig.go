@@ -18,32 +18,41 @@ import (
 func (p *Port) initBuildConfig(nameVersion string) error {
 	buildType := p.ctx.BuildType()
 	hostName := p.ctx.Platform().GetHostName()
-	platformProject := fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType)
+	platformName := p.ctx.Platform().GetName()
+	projectName := p.ctx.Project().GetName()
 
+	// host example: x86_64-linux-dev
+	// target example: aarch64-linux-ubuntu-22.04-gcc-11.5.0-test_project_001-release
 	buildFolder := expr.If(p.DevDep || p.HostDep,
 		filepath.Join(nameVersion, hostName+"-dev"),
-		filepath.Join(nameVersion, fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType)),
-	)
-	libraryFolder := expr.If(p.DevDep || p.HostDep,
-		hostName+"-dev",
-		fmt.Sprintf("%s@%s@%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType),
-	)
-	packageFolder := expr.If(p.DevDep || p.HostDep,
-		nameVersion+"@"+hostName+"-dev",
-		fmt.Sprintf("%s@%s@%s@%s", nameVersion, p.ctx.Platform().GetName(), p.ctx.Project().GetName(), buildType),
-	)
-	p.traceFile = expr.If(p.DevDep || p.HostDep,
-		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+hostName+"-dev.trace"),
-		filepath.Join(dirs.InstalledDir, "celer", "trace", nameVersion+"@"+platformProject+".trace"),
-	)
-	p.metaFile = expr.If(p.DevDep || p.HostDep,
-		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+hostName+"-dev.meta"),
-		filepath.Join(dirs.InstalledDir, "celer", "meta", nameVersion+"@"+platformProject+".meta"),
+		filepath.Join(nameVersion, fmt.Sprintf("%s-%s-%s", platformName, projectName, buildType)),
 	)
 
-	p.PackageDir = filepath.Join(dirs.WorkspaceDir, "packages", packageFolder)
-	p.InstalledDir = filepath.Join(dirs.InstalledDir, libraryFolder)
-	p.tmpDepsDir = filepath.Join(dirs.TmpDepsDir, libraryFolder)
+	// host example: x86_64-linux-dev
+	// target example: aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release
+	libraryDir := expr.If(p.DevDep || p.HostDep,
+		hostName+"-dev", filepath.Join(platformName, projectName, buildType),
+	)
+
+	// host example: installed/celer/x86_64-linux-dev/x264@stable.trace
+	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/x264@stable.trace
+	p.traceFile = filepath.Join(dirs.InstalledDir, "celer", "trace", libraryDir, nameVersion+".trace")
+
+	// host example: installed/celer/x86_64-linux-dev/x264@stable.meta
+	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/x264@stable.meta
+	p.metaFile = filepath.Join(dirs.InstalledDir, "celer", "meta", libraryDir, nameVersion+".meta")
+
+	// host example: installed/celer/x86_64-linux-dev/x264@stable
+	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/x264@stable
+	p.PackageDir = filepath.Join(dirs.WorkspaceDir, "packages", filepath.Join(libraryDir, nameVersion))
+
+	// host example: installed/celer/x86_64-linux-dev/x264@stable
+	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/x264@stable
+	p.InstalledDir = filepath.Join(dirs.InstalledDir, libraryDir)
+
+	// host example: installed/celer/x86_64-linux-dev/deps/x264@stable
+	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/deps/x264@stable
+	p.tmpDepsDir = filepath.Join(dirs.TmpDepsDir, libraryDir)
 
 	portConfig := buildsystems.PortConfig{
 		Ctx:             p.ctx,
@@ -53,12 +62,12 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		Url:             p.Package.Url,
 		Checksum:        p.Package.Checksum,
 		IgnoreSubmodule: p.Package.IgnoreSubmodule,
-		ProjectName:     p.ctx.Project().GetName(),
+		ProjectName:     projectName,
 		HostName:        hostName,
 		SrcDir:          filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 		BuildDir:        filepath.Join(dirs.WorkspaceDir, "buildtrees", buildFolder),
 		PackageDir:      p.PackageDir,
-		LibraryFolder:   libraryFolder,
+		LibraryDir:      libraryDir,
 		DevDep:          p.DevDep,
 		HostDev:         p.HostDep || p.DevDep,
 		Jobs:            p.ctx.Jobs(),

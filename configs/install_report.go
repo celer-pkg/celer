@@ -304,19 +304,21 @@ func (i *installReport) write(p *Port) (string, error) {
 		return "", nil
 	}
 
-	reportDir := filepath.Join(dirs.InstalledDir, "celer", "report")
+	var reportDir string
+	if p.DevDep || p.HostDep {
+		hostName := p.ctx.Platform().GetHostName()
+		reportDir = filepath.Join(dirs.InstalledDir, "celer", "report", hostName+"-dev")
+	} else {
+		projectName := p.ctx.Project().GetName()
+		platformName := p.ctx.Platform().GetName()
+		buildType := p.ctx.BuildType()
+		reportDir = filepath.Join(dirs.InstalledDir, "celer", "report", platformName, projectName, buildType)
+	}
 	if err := fileio.MkdirAll(reportDir, os.ModePerm); err != nil {
 		return "", err
 	}
 
-	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
-	fileBase := fmt.Sprintf("%s@%s@%s@%s",
-		strings.ReplaceAll(i.rootPort, "@", "_"),
-		platformName,
-		p.ctx.Project().GetName(),
-		p.ctx.BuildType(),
-	)
-
+	fileBase := strings.ReplaceAll(i.rootPort, "@", "_")
 	mdPath := filepath.Join(reportDir, fileBase+".md")
 	htmlPath := filepath.Join(reportDir, fileBase+".html")
 

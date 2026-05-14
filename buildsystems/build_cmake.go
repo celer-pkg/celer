@@ -157,7 +157,7 @@ func (c cmake) configureOptions() ([]string, error) {
 
 	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.
 	// For DevDep or HostDev (host tools), don't include rootfs to avoid finding target arch binaries.
-	tmpDepDir := filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryFolder)
+	tmpDepDir := filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryDir)
 	rootPaths := []string{filepath.ToSlash(tmpDepDir)}
 	if rootfs != nil && !c.BuildConfig.DevDep && !c.BuildConfig.HostDev {
 		rootPaths = append(rootPaths, rootfs.GetAbsDir())

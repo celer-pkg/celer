@@ -291,7 +291,7 @@ func (p *Port) putExprVars(config buildsystems.BuildConfig) {
 	if config.DevDep {
 		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
 	} else {
-		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.LibraryFolder))
+		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.LibraryDir))
 	}
 }
 
@@ -316,10 +316,12 @@ func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]stri
 		}
 
 		if p.DevDep || p.HostDep {
-			files = append(files, filepath.Join(p.ctx.Platform().GetHostName()+"-dev", relativePath))
+			file := filepath.Join(p.ctx.Platform().GetHostName()+"-dev", relativePath)
+			files = append(files, file)
 		} else {
-			platformProject := fmt.Sprintf("%s@%s@%s", platformName, projectName, p.ctx.BuildType())
-			files = append(files, filepath.Join(platformProject, relativePath))
+			libraryDir := filepath.Join(platformName, projectName, p.ctx.BuildType())
+			file := filepath.Join(libraryDir, relativePath)
+			files = append(files, file)
 		}
 		return nil
 	}); err != nil {

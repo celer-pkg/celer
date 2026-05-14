@@ -209,28 +209,28 @@ func (a *autoremoveCmd) collectDevPackages(nameVersion string) error {
 
 func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []string, err error) {
 	// Collect installed packages and cached packages.
-	libraryFolder := fmt.Sprintf("%s@%s@%s",
+	libraryDir := filepath.Join(
 		a.celer.Platform().GetName(),
 		a.celer.Project().GetName(),
 		a.celer.BuildType(),
 	)
-	packages, err = a.readInstalledPackages(libraryFolder)
+	packages, err = a.readInstalledPackages(libraryDir)
 	if err != nil {
 		return nil, nil, err
 	}
-	cachedPackages, err := a.readCachedPackages(libraryFolder)
+	cachedPackages, err := a.readCachedPackages(libraryDir)
 	if err != nil {
 		return nil, nil, err
 	}
 	packages = mergePackages(packages, cachedPackages)
 
 	// Collect installed dev packages and cached dev packages.
-	devLibraryFolder := a.celer.Platform().GetHostName() + "-dev"
-	devPackages, err = a.readInstalledPackages(devLibraryFolder)
+	devLibraryDir := a.celer.Platform().GetHostName() + "-dev"
+	devPackages, err = a.readInstalledPackages(devLibraryDir)
 	if err != nil {
 		return nil, nil, err
 	}
-	cachedDevPackages, err := a.readCachedPackages(devLibraryFolder)
+	cachedDevPackages, err := a.readCachedPackages(devLibraryDir)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -238,28 +238,10 @@ func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []st
 	return
 }
 
-func (a *autoremoveCmd) readInstalledPackages(libraryFolder string) ([]string, error) {
-	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace")
-	pattern := filepath.Join(traceDir, "*@"+libraryFolder+".trace")
-	suffix := "@" + libraryFolder + ".trace"
+func (a *autoremoveCmd) readInstalledPackages(libraryDir string) ([]string, error) {
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace", libraryDir)
 
-	matches, err := filepath.Glob(pattern)
-	if err != nil {
-		return nil, err
-	}
-
-	var packages []string
-	for _, match := range matches {
-		if cutted, ok := strings.CutSuffix(filepath.Base(match), suffix); ok {
-			packages = append(packages, cutted)
-		}
-	}
-
-	return packages, nil
-}
-
-func (a *autoremoveCmd) readCachedPackages(libraryFolder string) ([]string, error) {
-	entries, err := os.ReadDir(dirs.PackagesDir)
+	entries, err := os.ReadDir(traceDir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -267,18 +249,36 @@ func (a *autoremoveCmd) readCachedPackages(libraryFolder string) ([]string, erro
 		return nil, err
 	}
 
-	suffix := "@" + libraryFolder
 	var packages []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		if cutted, ok := strings.CutSuffix(entry.Name(), ".trace"); ok {
+			packages = append(packages, cutted)
+		}
+	}
 
+	return packages, nil
+}
+
+func (a *autoremoveCmd) readCachedPackages(libraryDir string) ([]string, error) {
+	cacheDir := filepath.Join(dirs.PackagesDir, libraryDir)
+
+	entries, err := os.ReadDir(cacheDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var packages []string
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			continue
 		}
-
-		folder := entry.Name()
-		if cutted, ok := strings.CutSuffix(folder, suffix); ok {
-			packages = append(packages, cutted)
-		}
+		packages = append(packages, entry.Name())
 	}
 
 	return packages, nil
