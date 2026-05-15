@@ -278,8 +278,7 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 	// Write Python virtual environment configuration
 	fmt.Fprintf(toolchain, "\n# ============== Python %s virtual environment ============== #\n", majorVersion)
 	fmt.Fprintf(toolchain, "# Python venv location.\n")
-	fmt.Fprintf(toolchain, "set(PYTHON_VENV_DIR %q)\n", venvDir)
-	fmt.Fprintf(toolchain, "\n")
+	fmt.Fprintf(toolchain, "set(PYTHON_VENV_DIR %q)\n\n", venvDir)
 
 	if majorVersion == "3" {
 		// Python3 configuration using modern Find(Python3)
@@ -288,8 +287,7 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 		fmt.Fprintf(toolchain, "set(Python3_INCLUDE_DIR \"${PYTHON_VENV_DIR}/include\" CACHE PATH \"Python3 include directory\")\n")
 		fmt.Fprintf(toolchain, "set(Python3_LIBRARY_DIR \"${PYTHON_VENV_DIR}/lib\" CACHE PATH \"Python3 library directory\")\n")
 		fmt.Fprintf(toolchain, "set(Python3_ROOT_DIR \"${PYTHON_VENV_DIR}\" CACHE PATH \"Python3 root directory\")\n")
-		fmt.Fprintf(toolchain, "\n")
-		fmt.Fprintf(toolchain, "# For CMake find_package(Python3) to correctly locate the venv Python.\n")
+		fmt.Fprintf(toolchain, "\n# For CMake find_package(Python3) to correctly locate the venv Python.\n")
 		fmt.Fprintf(toolchain, "list(APPEND CMAKE_PREFIX_PATH \"${PYTHON_VENV_DIR}\")\n")
 	} else {
 		// Python2 configuration using legacy Find(PythonLibs)
@@ -297,24 +295,22 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 		fmt.Fprintf(toolchain, "set(PYTHON_EXECUTABLE \"${PYTHON_VENV_DIR}/bin/python\" CACHE FILEPATH \"Python executable\")\n")
 		fmt.Fprintf(toolchain, "set(PYTHON_INCLUDE_DIR \"${PYTHON_VENV_DIR}/include/python%s\" CACHE PATH \"Python include directory\")\n", minorVersion)
 		fmt.Fprintf(toolchain, "set(PYTHON_LIBRARY_DIR \"${PYTHON_VENV_DIR}/lib\" CACHE PATH \"Python library directory\")\n")
-		fmt.Fprintf(toolchain, "\n")
-		fmt.Fprintf(toolchain, "# For CMake find_package(PythonLibs) to correctly locate the venv Python2.\n")
+		fmt.Fprintf(toolchain, "\n# For CMake find_package(PythonLibs) to correctly locate the venv Python2.\n")
 		fmt.Fprintf(toolchain, "set(PYTHONLIBS_FOUND TRUE CACHE BOOL \"Python libraries found\")\n")
 		fmt.Fprintf(toolchain, "list(APPEND CMAKE_PREFIX_PATH \"${PYTHON_VENV_DIR}\")\n")
 	}
 
-	fmt.Fprintf(toolchain, "\n")
-	fmt.Fprintf(toolchain, "# Set environment variables for Python package discovery.\n")
-	fmt.Fprintf(toolchain, "set(ENV{PYTHONPATH} \"${PYTHON_VENV_DIR}/lib/python%s/site-packages:$ENV{PYTHONPATH}\")\n", minorVersion)
-	fmt.Fprintf(toolchain, "\n")
+	fmt.Fprintf(toolchain, "\n# Set environment variables for Python package discovery.\n")
+	fmt.Fprintf(toolchain, "set(ENV{PYTHONPATH} \"${PYTHON_VENV_DIR}/lib/python%s/site-packages:$ENV{PYTHONPATH}\")\n\n", minorVersion)
 
-	fmt.Fprintf(toolchain, "# Add venv bin to PATH so tools like imoapp, zosidl, etc. are accessible.\n")
-	fmt.Fprintf(toolchain, "set(ENV{PATH} \"${PYTHON_VENV_DIR}/bin:$ENV{PATH}\")\n")
+	if runtime.GOOS != "windows" {
+		fmt.Fprintf(toolchain, "# Add venv bin to PATH so tools are accessible.\n")
+		fmt.Fprintf(toolchain, "set(ENV{PATH} \"${PYTHON_VENV_DIR}/bin:$ENV{PATH}\")\n")
+	}
 
 	// Add LD_LIBRARY_PATH for conda-based Python on Linux/macOS to find libpython and other dependencies
 	if buildtools.PythonTool != nil && buildtools.PythonTool.LdLibraryPath() != "" && runtime.GOOS != "windows" {
-		fmt.Fprintf(toolchain, "\n")
-		fmt.Fprintf(toolchain, "# Add conda lib directory to LD_LIBRARY_PATH for libpython and other shared libraries.\n")
+		fmt.Fprintf(toolchain, "\n# Add conda lib directory to LD_LIBRARY_PATH for libpython and other shared libraries.\n")
 		fmt.Fprintf(toolchain, "set(ENV{LD_LIBRARY_PATH} \"%s:$ENV{LD_LIBRARY_PATH}\")\n", buildtools.PythonTool.LdLibraryPath())
 	}
 
@@ -352,7 +348,7 @@ func (c *Celer) appendIncludeDirs(toolchain *strings.Builder) {
 func (c *Celer) appendLibDirs(toolchain *strings.Builder) {
 	for index, dir := range c.project.LibDirs {
 		if index == 0 {
-			fmt.Fprintf(toolchain, "\n# =============== External library directories =============== # \n")
+			fmt.Fprintf(toolchain, "\n# =============== External library directories =============== #\n")
 		}
 
 		// Add library path to linker flags to ensure libraries are found,
@@ -413,7 +409,7 @@ func (c *Celer) appendEnvs(toolchain *strings.Builder) {
 		}
 
 		if index == 0 {
-			fmt.Fprintf(toolchain, "\n# =============== Global environment variables =============== #s\n")
+			fmt.Fprintf(toolchain, "\n# =============== Global environment variables =============== #\n")
 		}
 
 		parts[1] = c.exprVars.Expand(parts[1])
