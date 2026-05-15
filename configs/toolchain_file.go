@@ -33,10 +33,20 @@ func (c *Celer) GenerateToolchainFile() error {
 	// CUDA compiler configuration - MUST be set before toolchain to ensure CMake picks it up during compiler detection.
 	c.writeCUDAConfig(&toolchain)
 
-	// Toolchain related.
+	// Write toolchain configuration.
 	if err := c.platform.Toolchain.generate(&toolchain); err != nil {
 		return err
 	}
+
+	// Let execuable binary locate dependency libraries from "../lib" automatically.
+	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
+		fmt.Fprintf(&toolchain, "\n# Let executable binary locate dependency libraries from \"../lib\" automatically.\n")
+		fmt.Fprintf(&toolchain, "set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`)
+	}
+
+	// Let CMake project generate compile_commands.json.
+	fmt.Fprintf(&toolchain, "\n# Let CMake project generate compile_commands.json.\n")
+	fmt.Fprintf(&toolchain, "set(%s %s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON")
 
 	// Rootfs related.
 	rootfs := c.RootFS()
@@ -44,14 +54,6 @@ func (c *Celer) GenerateToolchainFile() error {
 		if err := rootfs.Generate(&toolchain); err != nil {
 			return err
 		}
-	}
-
-	// Write pkg-config configuration.
-	c.writePkgConfig(&toolchain)
-
-	// Generate Python virtual environment configuration if available.
-	if err := c.writePythonVenvConfig(&toolchain); err != nil {
-		return err
 	}
 
 	// Set CMAKE_FIND_ROOT_PATH.
@@ -66,6 +68,14 @@ func (c *Celer) GenerateToolchainFile() error {
 	fmt.Fprintf(&toolchain, "  set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";"))
 	fmt.Fprintf(&toolchain, "endif()\n")
 
+	// Write pkg-config configuration.
+	c.writePkgConfig(&toolchain)
+
+	// Generate Python virtual environment configuration if available.
+	if err := c.writePythonVenvConfig(&toolchain); err != nil {
+		return err
+	}
+
 	// Set CCache only when enabled.
 	if c.configData.CCache != nil {
 		if err := c.configData.CCache.Generate(&toolchain); err != nil {
@@ -79,12 +89,6 @@ func (c *Celer) GenerateToolchainFile() error {
 	c.appendVars(&toolchain)
 	c.appendEnvs(&toolchain)
 	c.appendMacros(&toolchain)
-
-	fmt.Fprintf(&toolchain, "\n")
-	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
-		fmt.Fprintf(&toolchain, "set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`)
-	}
-	fmt.Fprintf(&toolchain, "set(%s %s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON")
 
 	// Write toolchain file.
 	toolchainPath := filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
@@ -164,7 +168,7 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 		}
 	}
 
-	fmt.Fprintf(toolchain, "\n# ============== pkg-config search paths ============== #\n")
+	fmt.Fprintf(toolchain, "\n# ============== PkgConfig search paths ============== #\n")
 	executablePath := fmt.Sprintf("${WORKSPACE_ROOT}/installed/%s-dev/bin/pkgconf", c.platform.GetHostName())
 	fmt.Fprintf(toolchain, "set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH FALSE)\n")
 	fmt.Fprintf(toolchain, "set(PKG_CONFIG_EXECUTABLE %q)\n", executablePath)
@@ -393,10 +397,10 @@ func (c *Celer) appendVars(toolchain *strings.Builder) {
 		}
 
 		if len(parts) == 1 {
-			fmt.Fprintf(toolchain, `set(%s CACHE INTERNAL "global value")`+"\n", item)
+			fmt.Fprintf(toolchain, `set(%s CACHE INTERNAL "")`+"\n", item)
 		} else if len(parts) == 2 {
 			parts[1] = c.exprVars.Expand(parts[1])
-			fmt.Fprintf(toolchain, `set(%s %s CACHE INTERNAL "global value")`+"\n", parts[0], parts[1])
+			fmt.Fprintf(toolchain, `set(%s %s CACHE INTERNAL "")`+"\n", parts[0], parts[1])
 		}
 	}
 }
