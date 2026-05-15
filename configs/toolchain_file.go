@@ -282,7 +282,7 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 	fmt.Fprintf(toolchain, "\n")
 
 	if majorVersion == "3" {
-		// Python 3 configuration using modern FindPython3 module
+		// Python3 configuration using modern Find(Python3)
 		fmt.Fprintf(toolchain, "# Python3 executable and libraries\n")
 		fmt.Fprintf(toolchain, "set(Python3_EXECUTABLE \"${PYTHON_VENV_DIR}/bin/python3\" CACHE FILEPATH \"Python3 executable\")\n")
 		fmt.Fprintf(toolchain, "set(Python3_INCLUDE_DIR \"${PYTHON_VENV_DIR}/include\" CACHE PATH \"Python3 include directory\")\n")
@@ -292,7 +292,7 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 		fmt.Fprintf(toolchain, "# For CMake find_package(Python3) to correctly locate the venv Python.\n")
 		fmt.Fprintf(toolchain, "list(APPEND CMAKE_PREFIX_PATH \"${PYTHON_VENV_DIR}\")\n")
 	} else {
-		// Python 2 configuration using legacy FindPythonLibs module
+		// Python2 configuration using legacy Find(PythonLibs)
 		fmt.Fprintf(toolchain, "# Python2 executable and libraries\n")
 		fmt.Fprintf(toolchain, "set(PYTHON_EXECUTABLE \"${PYTHON_VENV_DIR}/bin/python\" CACHE FILEPATH \"Python executable\")\n")
 		fmt.Fprintf(toolchain, "set(PYTHON_INCLUDE_DIR \"${PYTHON_VENV_DIR}/include/python%s\" CACHE PATH \"Python include directory\")\n", minorVersion)
@@ -310,6 +310,13 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 
 	fmt.Fprintf(toolchain, "# Add venv bin to PATH so tools like imoapp, zosidl, etc. are accessible.\n")
 	fmt.Fprintf(toolchain, "set(ENV{PATH} \"${PYTHON_VENV_DIR}/bin:$ENV{PATH}\")\n")
+
+	// Add LD_LIBRARY_PATH for conda-based Python on Linux/macOS to find libpython and other dependencies
+	if buildtools.PythonTool != nil && buildtools.PythonTool.LdLibraryPath() != "" && runtime.GOOS != "windows" {
+		fmt.Fprintf(toolchain, "\n")
+		fmt.Fprintf(toolchain, "# Add conda lib directory to LD_LIBRARY_PATH for libpython and other shared libraries.\n")
+		fmt.Fprintf(toolchain, "set(ENV{LD_LIBRARY_PATH} \"%s:$ENV{LD_LIBRARY_PATH}\")\n", buildtools.PythonTool.LdLibraryPath())
+	}
 
 	return nil
 }
