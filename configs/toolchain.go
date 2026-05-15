@@ -154,7 +154,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", expr.UpperFirst(t.SystemName))
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
-	fmt.Fprintf(toolchain, "\n# Toolchain for cross-compile.\n")
+	fmt.Fprintf(toolchain, "\n# ============== Cross-compile toolchain ============== #\n")
 
 	switch runtime.GOOS {
 	case "windows":

@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -45,8 +46,13 @@ func (c *Celer) GenerateToolchainFile() error {
 		}
 	}
 
-	// Write pkg config.
+	// Write pkg-config configuration.
 	c.writePkgConfig(&toolchain)
+
+	// Generate Python virtual environment configuration if available.
+	if err := c.writePythonVenvConfig(&toolchain); err != nil {
+		return err
+	}
 
 	// Set CMAKE_FIND_ROOT_PATH.
 	var rootpaths = []string{installedDir}
@@ -158,7 +164,7 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 		}
 	}
 
-	fmt.Fprintf(toolchain, "\n# pkg-config search paths.\n")
+	fmt.Fprintf(toolchain, "\n# ============== pkg-config search paths ============== #\n")
 	executablePath := fmt.Sprintf("${WORKSPACE_ROOT}/installed/%s-dev/bin/pkgconf", c.platform.GetHostName())
 	fmt.Fprintf(toolchain, "set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH FALSE)\n")
 	fmt.Fprintf(toolchain, "set(PKG_CONFIG_EXECUTABLE %q)\n", executablePath)
@@ -232,10 +238,86 @@ func (c *Celer) writeCUDAConfig(toolchain *strings.Builder) {
 		"-Wno-deprecated-gpu-targets --forward-unknown-opts --forward-slash-prefix-opts")
 }
 
+// writePythonVenvConfig generates Python virtual environment configuration if Python tool is available.
+func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
+	// Skip if no Python tool detected.
+	if buildtools.PythonTool == nil || buildtools.PythonTool.Path == "" {
+		return nil
+	}
+
+	// Get python version of current project.
+	pythonVersion := buildtools.GetDefaultPythonVersion()
+	pythonConfig := c.PythonConfig()
+	if pythonConfig != nil && pythonConfig.GetVersion() != "" {
+		pythonVersion = pythonConfig.GetVersion()
+	}
+
+	// Normalize version to minor version format (e.g., 3.10.5 -> 3.10)
+	minorVersion := pythonVersion
+	if strings.Count(pythonVersion, ".") > 1 {
+		parts := strings.Split(pythonVersion, ".")
+		minorVersion = parts[0] + "." + parts[1]
+	}
+
+	// Detect Python major version (2 or 3)
+	majorVersion := "3"
+	if strings.HasPrefix(pythonVersion, "2") {
+		majorVersion = "2"
+	}
+
+	venvFolder := fmt.Sprintf("venv-%s@%s", minorVersion, c.Project().GetName())
+	venvDirAbs := filepath.Join(dirs.WorkspaceDir, "installed", venvFolder)
+
+	// Check if venv directory exists
+	if !fileio.PathExists(venvDirAbs) {
+		return nil
+	}
+
+	venvDir := filepath.Join("${WORKSPACE_ROOT}", "installed", venvFolder)
+
+	// Write Python virtual environment configuration
+	fmt.Fprintf(toolchain, "\n# ============== Python %s virtual environment ============== #\n", majorVersion)
+	fmt.Fprintf(toolchain, "# Python venv location.\n")
+	fmt.Fprintf(toolchain, "set(PYTHON_VENV_DIR %q)\n", venvDir)
+	fmt.Fprintf(toolchain, "\n")
+
+	if majorVersion == "3" {
+		// Python 3 configuration using modern FindPython3 module
+		fmt.Fprintf(toolchain, "# Python3 executable and libraries\n")
+		fmt.Fprintf(toolchain, "set(Python3_EXECUTABLE \"${PYTHON_VENV_DIR}/bin/python3\" CACHE FILEPATH \"Python3 executable\")\n")
+		fmt.Fprintf(toolchain, "set(Python3_INCLUDE_DIR \"${PYTHON_VENV_DIR}/include\" CACHE PATH \"Python3 include directory\")\n")
+		fmt.Fprintf(toolchain, "set(Python3_LIBRARY_DIR \"${PYTHON_VENV_DIR}/lib\" CACHE PATH \"Python3 library directory\")\n")
+		fmt.Fprintf(toolchain, "set(Python3_ROOT_DIR \"${PYTHON_VENV_DIR}\" CACHE PATH \"Python3 root directory\")\n")
+		fmt.Fprintf(toolchain, "\n")
+		fmt.Fprintf(toolchain, "# For CMake find_package(Python3) to correctly locate the venv Python.\n")
+		fmt.Fprintf(toolchain, "list(APPEND CMAKE_PREFIX_PATH \"${PYTHON_VENV_DIR}\")\n")
+	} else {
+		// Python 2 configuration using legacy FindPythonLibs module
+		fmt.Fprintf(toolchain, "# Python2 executable and libraries\n")
+		fmt.Fprintf(toolchain, "set(PYTHON_EXECUTABLE \"${PYTHON_VENV_DIR}/bin/python\" CACHE FILEPATH \"Python executable\")\n")
+		fmt.Fprintf(toolchain, "set(PYTHON_INCLUDE_DIR \"${PYTHON_VENV_DIR}/include/python%s\" CACHE PATH \"Python include directory\")\n", minorVersion)
+		fmt.Fprintf(toolchain, "set(PYTHON_LIBRARY_DIR \"${PYTHON_VENV_DIR}/lib\" CACHE PATH \"Python library directory\")\n")
+		fmt.Fprintf(toolchain, "\n")
+		fmt.Fprintf(toolchain, "# For CMake find_package(PythonLibs) to correctly locate the venv Python2.\n")
+		fmt.Fprintf(toolchain, "set(PYTHONLIBS_FOUND TRUE CACHE BOOL \"Python libraries found\")\n")
+		fmt.Fprintf(toolchain, "list(APPEND CMAKE_PREFIX_PATH \"${PYTHON_VENV_DIR}\")\n")
+	}
+
+	fmt.Fprintf(toolchain, "\n")
+	fmt.Fprintf(toolchain, "# Set environment variables for Python package discovery.\n")
+	fmt.Fprintf(toolchain, "set(ENV{PYTHONPATH} \"${PYTHON_VENV_DIR}/lib/python%s/site-packages:$ENV{PYTHONPATH}\")\n", minorVersion)
+	fmt.Fprintf(toolchain, "\n")
+
+	fmt.Fprintf(toolchain, "# Add venv bin to PATH so tools like imoapp, zosidl, etc. are accessible.\n")
+	fmt.Fprintf(toolchain, "set(ENV{PATH} \"${PYTHON_VENV_DIR}/bin:$ENV{PATH}\")\n")
+
+	return nil
+}
+
 func (c *Celer) appendIncludeDirs(toolchain *strings.Builder) {
 	for index, dir := range c.project.IncludeDirs {
 		if index == 0 {
-			fmt.Fprintf(toolchain, "\n# External include dirs.\n")
+			fmt.Fprintf(toolchain, "\n# =============== External include directories =============== #\n")
 		}
 
 		// Also add include path to compiler flags to ensure headers are found
@@ -263,7 +345,7 @@ func (c *Celer) appendIncludeDirs(toolchain *strings.Builder) {
 func (c *Celer) appendLibDirs(toolchain *strings.Builder) {
 	for index, dir := range c.project.LibDirs {
 		if index == 0 {
-			fmt.Fprintf(toolchain, "\n# External library dirs.\n")
+			fmt.Fprintf(toolchain, "\n# =============== External library directories =============== # \n")
 		}
 
 		// Add library path to linker flags to ensure libraries are found,
@@ -292,7 +374,7 @@ func (c *Celer) appendLibDirs(toolchain *strings.Builder) {
 func (c *Celer) appendVars(toolchain *strings.Builder) {
 	for index, item := range c.project.Vars {
 		if index == 0 {
-			fmt.Fprintf(toolchain, "\n# Global cmake vars.\n")
+			fmt.Fprintf(toolchain, "\n# =============== Global CMake variables =============== #\n")
 		}
 
 		parts := strings.Split(item, "=")
@@ -324,7 +406,7 @@ func (c *Celer) appendEnvs(toolchain *strings.Builder) {
 		}
 
 		if index == 0 {
-			fmt.Fprintf(toolchain, "\n# Global envs.\n")
+			fmt.Fprintf(toolchain, "\n# =============== Global environment variables =============== #s\n")
 		}
 
 		parts[1] = c.exprVars.Expand(parts[1])
@@ -335,7 +417,7 @@ func (c *Celer) appendEnvs(toolchain *strings.Builder) {
 func (c *Celer) appendMacros(toolchain *strings.Builder) {
 	for index, item := range c.project.Macros {
 		if index == 0 {
-			fmt.Fprintf(toolchain, "\n# Global macros.\n")
+			fmt.Fprintf(toolchain, "\n# =============== Global C/C++ Macros =============== #\n")
 		}
 
 		item = c.exprVars.Expand(item)
