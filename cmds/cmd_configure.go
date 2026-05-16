@@ -151,11 +151,11 @@ Examples:
 
 				// Auto configure platform.
 				targetPlatform := c.celer.Project().GetTargetPlatform()
-				if targetPlatform != "" && c.celer.Global.Platform == "" {
+				if targetPlatform != "" && c.celer.Platform().GetName() == "" {
 					if err := c.celer.SetPlatform(targetPlatform); err != nil {
 						return color.PrintError(err, "failed to set platform: %s", targetPlatform)
 					}
-					color.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Global.Platform)
+					color.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Platform().GetName())
 				}
 			}
 
