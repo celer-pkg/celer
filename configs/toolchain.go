@@ -463,6 +463,11 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 	}
 	os.Setenv("HOST", t.GetHost())
 
+	// For CMake, compiler tools are defined in toolchain_file.cmake, skip environment variable setup.
+	if buildsystem == "cmake" {
+		return
+	}
+
 	if t.ctx.CCacheEnabled() {
 		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables,
 		// because MSYS2 shell cannot handle "ccache cl.exe" as a command.
