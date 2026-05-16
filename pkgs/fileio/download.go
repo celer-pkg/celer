@@ -163,13 +163,19 @@ type progressBar struct {
 	currentSize  int64
 	width        int
 	lastProgress int
+	startTime    time.Time
+	lastTime     time.Time
+	lastSize     int64
 }
 
 func NewProgressBar(fileName string, fileSize int64) *progressBar {
+	now := time.Now()
 	return &progressBar{
-		fileName: fileName,
-		fileSize: fileSize,
-		width:    50,
+		fileName:  fileName,
+		fileSize:  fileSize,
+		width:     50,
+		startTime: now,
+		lastTime:  now,
 	}
 }
 
@@ -181,18 +187,83 @@ func (p *progressBar) Write(b []byte) (int, error) {
 	if progress > p.lastProgress {
 		p.lastProgress = progress
 
-		content := fmt.Sprintf("- downloading: %s -------- %d%% (%s/%s)",
-			p.fileName,
-			progress,
-			expr.FormatSize(p.currentSize),
-			expr.FormatSize(p.fileSize),
-		)
+		// Calculate download speed
+		now := time.Now()
+		elapsedSec := now.Sub(p.startTime).Seconds()
+		speed := float64(0)
+		if elapsedSec > 0 {
+			speed = float64(p.currentSize) / elapsedSec
+		}
+
+		// Calculate ETA
+		eta := ""
+		if speed > 0 && p.currentSize < p.fileSize {
+			remainingBytes := float64(p.fileSize - p.currentSize)
+			remainingSec := remainingBytes / speed
+			eta = formatDuration(int64(remainingSec))
+		}
+
+		// Format speed with appropriate units
+		speedStr := expr.FormatSize(int64(speed)) + "/s"
+
+		// Build progress bar (20 characters width)
+		barWidth := 20
+		filledWidth := (progress * barWidth) / 100
+		progressBar := ""
+		for i := range barWidth {
+			if i < filledWidth {
+				progressBar += "█"
+			} else {
+				progressBar += "░"
+			}
+		}
+
+		// Build compact progress display
+		var content string
+		if eta != "" {
+			content = fmt.Sprintf("%s [%s] %d%% (%s ETA:%s)",
+				p.fileName,
+				progressBar,
+				progress,
+				speedStr,
+				eta,
+			)
+		} else {
+			content = fmt.Sprintf("%s [%s] %d%% (%s)",
+				p.fileName,
+				progressBar,
+				progress,
+				speedStr,
+			)
+		}
 
 		color.PrintInline(color.Hint, "%s", content)
 		if progress == 100 {
-			color.PrintInline(color.Hint, "✔ downloaded %s (%s)\n", p.fileName, expr.FormatSize(p.fileSize))
+			totalSec := time.Since(p.startTime).Seconds()
+			color.PrintInline(color.Hint, "✔ %s (%s) in %s\n",
+				p.fileName,
+				expr.FormatSize(p.fileSize),
+				formatDuration(int64(totalSec)),
+			)
 		}
 	}
 
 	return n, nil
+}
+
+// formatDuration converts seconds to a human-readable format (e.g., "2m 30s", "45s")
+func formatDuration(seconds int64) string {
+	if seconds < 60 {
+		return fmt.Sprintf("%ds", seconds)
+	}
+
+	minutes := seconds / 60
+	secs := seconds % 60
+	if minutes < 60 {
+		return fmt.Sprintf("%dm %ds", minutes, secs)
+	}
+
+	hours := minutes / 60
+	mins := minutes % 60
+	return fmt.Sprintf("%dh %dm %ds", hours, mins, secs)
 }
