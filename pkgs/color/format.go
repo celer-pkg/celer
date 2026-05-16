@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattn/go-runewidth"
 	"golang.org/x/term"
 )
 
@@ -64,8 +65,8 @@ func PrintInline(colorFmt *Style, format string, args ...any) {
 		content = strings.TrimSuffix(content, "\n")
 	}
 
-	// Calculate padding to fill the rest of the line
-	padding := terminalWidth() - len(content)
+	// Calculate padding to fill the rest of the line using display width.
+	padding := terminalWidth() - runewidth.StringWidth(content)
 	if padding > 0 {
 		content += strings.Repeat(" ", padding)
 	}

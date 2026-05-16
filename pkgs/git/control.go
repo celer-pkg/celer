@@ -338,7 +338,7 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 	}
 
 	if gitBatch {
-		title := fmt.Sprintf("[apply patch %s]", nameVersion)
+		title := fmt.Sprintf("[apply patch: %s]", nameVersion)
 		args := []string{"apply", "--ignore-space-change", "--ignore-whitespace", "-v", patchFile}
 		executor := cmd.NewExecutor(title, "git", args...)
 		executor.SetWorkDir(repoDir)
@@ -347,7 +347,7 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 		}
 	} else {
 		// Others, assume it's a regular patch file.
-		title := fmt.Sprintf("[apply patch %s]", nameVersion)
+		title := fmt.Sprintf("[apply patch: %s]", nameVersion)
 		executor := cmd.NewExecutor(title, "patch", "-Np1", "-i", patchFile)
 		executor.SetWorkDir(repoDir)
 		if err := executor.Execute(); err != nil {
