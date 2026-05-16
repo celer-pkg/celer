@@ -162,8 +162,10 @@ func (c cmake) configureOptions() ([]string, error) {
 	if rootfs != nil && !c.BuildConfig.DevDep && !c.BuildConfig.HostDev {
 		rootPaths = append(rootPaths, rootfs.GetAbsDir())
 	}
+	tmpDepDevDir := filepath.Join(dirs.TmpDepsDir, c.PortConfig.HostName+"-dev")
 	options = append(options, "-DCMAKE_FIND_ROOT_PATH="+strings.Join(rootPaths, ";"))
 	options = append(options, "-DTMP_DEP_DIR="+filepath.ToSlash(tmpDepDir))
+	options = append(options, "-DTMP_DEP_DEV_DIR="+filepath.ToSlash(tmpDepDevDir))
 
 	// Enable verbose makefile.
 	if c.Ctx.Verbose() {
