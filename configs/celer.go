@@ -34,7 +34,7 @@ func NewCeler() *Celer {
 
 	return &Celer{
 		configData: configData{
-			Global: global{
+			Main: main{
 				Jobs:      runtime.NumCPU() - 1,
 				BuildType: "Release",
 			},
@@ -51,7 +51,7 @@ type Celer struct {
 	exprVars context.ExprVars
 }
 
-type global struct {
+type main struct {
 	ConfRepo  string `toml:"conf_repo"`
 	Platform  string `toml:"platform"`
 	Project   string `toml:"project"`
@@ -91,7 +91,7 @@ func (p *Python) GetTrustedHosts() []string {
 }
 
 type configData struct {
-	Global   global    `toml:"global"`
+	Main     main      `toml:"main"`
 	Proxy    *Proxy    `toml:"proxy,omitempty"`
 	PkgCache *pkgCache `toml:"pkgcache,omitempty"`
 	CCache   *CCache   `toml:"ccache,omitempty"`
@@ -100,7 +100,7 @@ type configData struct {
 
 // Init initializes celer with existing platform.
 func (c *Celer) Init() error {
-	return c.InitWithPlatform(c.configData.Global.Platform)
+	return c.InitWithPlatform(c.configData.Main.Platform)
 }
 
 // InitWithPlatform initializes celer with platform.
@@ -124,7 +124,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		}
 
 		// Default global values.
-		c.configData.Global = global{
+		c.configData.Main = main{
 			BuildType: "release",
 			Downloads: filepath.Join(dirs.WorkspaceDir, "downloads"),
 			Jobs:      jobs,
@@ -140,8 +140,8 @@ func (c *Celer) InitWithPlatform(platform string) error {
 
 		// Set platform and init platform if specified.
 		if platform != "" {
-			c.configData.Global.Platform = platform
-			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
+			c.configData.Main.Platform = platform
+			if err := c.platform.Init(c.configData.Main.Platform); err != nil {
 				return err
 			}
 		}
@@ -160,26 +160,26 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		}
 
 		// Use lower case build type in celer as default.
-		c.Global.BuildType = strings.ToLower(c.Global.BuildType)
+		c.Main.BuildType = strings.ToLower(c.Main.BuildType)
 
 		// Set default downloads if missing.
-		if c.Global.Downloads == "" {
-			c.Global.Downloads = filepath.Join(dirs.WorkspaceDir, "downloads")
+		if c.Main.Downloads == "" {
+			c.Main.Downloads = filepath.Join(dirs.WorkspaceDir, "downloads")
 		}
 
 		// Set platform and init platform if specified.
 		if platform != "" {
-			c.configData.Global.Platform = platform
+			c.configData.Main.Platform = platform
 		}
-		if c.configData.Global.Platform != "" {
-			if err := c.platform.Init(c.configData.Global.Platform); err != nil {
+		if c.configData.Main.Platform != "" {
+			if err := c.platform.Init(c.configData.Main.Platform); err != nil {
 				return err
 			}
 		}
 
 		// Init project with project name.
-		if c.configData.Global.Project != "" {
-			if err := c.project.Init(c, c.configData.Global.Project); err != nil {
+		if c.configData.Main.Project != "" {
+			if err := c.project.Init(c, c.configData.Main.Project); err != nil {
 				return err
 			}
 		}
@@ -205,8 +205,8 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		}
 
 		// Assign default project and python version after saving celer.toml.
-		if c.configData.Global.Project == "" {
-			c.configData.Global.Project = "unnamed"
+		if c.configData.Main.Project == "" {
+			c.configData.Main.Project = "unnamed"
 			c.project.Name = "unnamed"
 		}
 	}
@@ -214,9 +214,9 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	// Celer support detect local toolchain, if platform name is not specified, use default toolchain:
 	// Windows: default is msvc,
 	// Linux: default is gcc.
-	if c.configData.Global.Platform == "" {
+	if c.configData.Main.Platform == "" {
 		var toolchain = Toolchain{ctx: c}
-		if err := toolchain.Detect(c.configData.Global.Platform); err != nil {
+		if err := toolchain.Detect(c.configData.Main.Platform); err != nil {
 			return fmt.Errorf("detect celer.toolchain -> %w", err)
 		}
 		c.platform.Toolchain = &toolchain
@@ -244,7 +244,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	}
 
 	// No platform name, detect default platform.
-	if c.configData.Global.Platform == "" {
+	if c.configData.Main.Platform == "" {
 		switch runtime.GOOS {
 		case "windows":
 			if c.platform.Toolchain.Name == "msvc" || c.platform.Toolchain.Name == "clang" || c.platform.Toolchain.Name == "clang-cl" {
@@ -272,7 +272,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		os.Unsetenv("all_proxy")
 	}
 
-	if c.Global.Offline {
+	if c.Main.Offline {
 		color.Printf(color.Warning, "\n================ WARNING: You're in offline mode currently! ================\n")
 	}
 
@@ -394,7 +394,7 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 			return err
 		}
 
-		c.Global.ConfRepo = url
+		c.Main.ConfRepo = url
 		if err := c.save(); err != nil {
 			return err
 		}
@@ -414,7 +414,7 @@ func (c *Celer) SetBuildType(buildtype string) error {
 		return err
 	}
 
-	c.configData.Global.BuildType = buildtype
+	c.configData.Main.BuildType = buildtype
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -431,7 +431,7 @@ func (c *Celer) SetDownloads(downloads string) error {
 		return err
 	}
 
-	c.configData.Global.Downloads = downloads
+	c.configData.Main.Downloads = downloads
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -448,7 +448,7 @@ func (c *Celer) SetJobs(jobs int) error {
 		return err
 	}
 
-	c.configData.Global.Jobs = jobs
+	c.configData.Main.Jobs = jobs
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -465,7 +465,7 @@ func (c *Celer) SetPlatform(platformName string) error {
 	if err := c.platform.Init(platformName); err != nil {
 		return err
 	}
-	c.Global.Platform = platformName
+	c.Main.Platform = platformName
 	c.platform.Name = platformName
 
 	if err := c.save(); err != nil {
@@ -484,7 +484,7 @@ func (c *Celer) SetProject(projectName string) error {
 	if err := c.project.Init(c, projectName); err != nil {
 		return err
 	}
-	c.Global.Project = projectName
+	c.Main.Project = projectName
 
 	if err := c.save(); err != nil {
 		return err
@@ -498,7 +498,7 @@ func (c *Celer) SetOffline(offline bool) error {
 		return err
 	}
 
-	c.Global.Offline = offline
+	c.Main.Offline = offline
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -511,7 +511,7 @@ func (c *Celer) SetVerbose(vebose bool) error {
 		return err
 	}
 
-	c.Global.Verbose = vebose
+	c.Main.Verbose = vebose
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -746,12 +746,12 @@ func (c *Celer) readOrCreate() error {
 			return err
 		}
 
-		if c.Global.Jobs == 0 {
-			c.Global.Jobs = runtime.NumCPU()
+		if c.Main.Jobs == 0 {
+			c.Main.Jobs = runtime.NumCPU()
 		}
 
-		if c.Global.BuildType == "" {
-			c.Global.BuildType = "release"
+		if c.Main.BuildType == "" {
+			c.Main.BuildType = "release"
 		}
 
 		bytes, err := toml.Marshal(c)
@@ -771,12 +771,12 @@ func (c *Celer) readOrCreate() error {
 			return err
 		}
 
-		if c.Global.Jobs == 0 {
-			c.Global.Jobs = runtime.NumCPU()
+		if c.Main.Jobs == 0 {
+			c.Main.Jobs = runtime.NumCPU()
 		}
 
-		if c.Global.BuildType == "" {
-			c.Global.BuildType = "release"
+		if c.Main.BuildType == "" {
+			c.Main.BuildType = "release"
 		}
 	}
 
@@ -830,7 +830,7 @@ func (c *Celer) clonePorts() error {
 		}
 
 		// Clone ports repo.
-		if c.Global.Offline {
+		if c.Main.Offline {
 			return fmt.Errorf("offline is on, cloning ports is aborted")
 		}
 
@@ -896,11 +896,11 @@ func (c *Celer) Project() context.Project {
 
 // BuildType returns lower case build type.
 func (c *Celer) BuildType() string {
-	return c.configData.Global.BuildType
+	return c.configData.Main.BuildType
 }
 
 func (c *Celer) Downloads() string {
-	return c.configData.Global.Downloads
+	return c.configData.Main.Downloads
 }
 
 func (c *Celer) RootFS() context.RootFS {
@@ -913,11 +913,11 @@ func (c *Celer) RootFS() context.RootFS {
 }
 
 func (c *Celer) Jobs() int {
-	return c.Global.Jobs
+	return c.Main.Jobs
 }
 
 func (c *Celer) Offline() bool {
-	return c.Global.Offline
+	return c.Main.Offline
 }
 
 func (c *Celer) PkgCache() context.PkgCache {
@@ -931,11 +931,11 @@ func (c *Celer) PkgCache() context.PkgCache {
 }
 
 func (c *Celer) Verbose() bool {
-	return c.configData.Global.Verbose
+	return c.configData.Main.Verbose
 }
 
 func (c *Celer) InstalledDir() string {
-	libraryDir := filepath.Join(c.Global.Platform, c.Global.Project, c.Global.BuildType)
+	libraryDir := filepath.Join(c.Main.Platform, c.Main.Project, c.Main.BuildType)
 	return filepath.Join(dirs.WorkspaceDir, "installed", libraryDir)
 }
 

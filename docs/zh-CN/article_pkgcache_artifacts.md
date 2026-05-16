@@ -28,7 +28,7 @@ Celer 使用**基于哈希的缓存**来存储和检索构建制品：
 在 `celer.toml` 中添加 `[pkgcache]` 部分以启用缓存检索：
 
 ```toml
-[global]
+[main]
 	conf_repo = "https://github.com/celer-pkg/test-conf.git"
 	platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0.5"
 	project = "project_01"

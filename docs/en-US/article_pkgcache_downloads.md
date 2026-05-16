@@ -28,7 +28,7 @@ Celer caches downloaded files using **SHA-256-based verification** to ensure int
 Add a `[pkgcache]` section to `celer.toml` to enable download caching:
 
 ```toml
-[global]
+[main]
 	conf_repo = "https://github.com/celer-pkg/test-conf.git"
 	platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
 	project = "project_01"

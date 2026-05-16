@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/depcheck"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
@@ -149,11 +150,13 @@ func (i *installCmd) validateAndCleanInput(nameVersion string) (string, error) {
 }
 
 func (i *installCmd) install(nameVersion string) error {
+	platformName := expr.If(i.celer.Platform().GetName() != "", i.celer.Platform().GetName(), "native")
+
 	// Display install header.
 	color.Println(color.Title, "=======================================================================")
 	color.Printf(color.Title, "🚀 start to install %s\n", nameVersion)
-	color.Printf(color.Title, "🔨 platform: %s\n", i.celer.Global.Platform)
-	color.Printf(color.Title, "🔨 product: %s\n", i.celer.Global.Project)
+	color.Printf(color.Title, "🔨 platform: %s\n", platformName)
+	color.Printf(color.Title, "🔨 product: %s\n", i.celer.Project().GetName())
 	color.Println(color.Title, "=======================================================================")
 
 	// Parse name and version (already validated)
@@ -215,11 +218,11 @@ func (i *installCmd) overrideFlags() error {
 		if i.jobs <= 0 {
 			return fmt.Errorf("--jobs must be greater than 0")
 		}
-		i.celer.Global.Jobs = i.jobs
+		i.celer.SetJobs(i.jobs)
 	}
 
 	if i.verboseChanged {
-		i.celer.Global.Verbose = i.verbose
+		i.celer.SetVerbose(i.verbose)
 	}
 
 	return nil

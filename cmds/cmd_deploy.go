@@ -2,12 +2,14 @@ package cmds
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/depcheck"
 	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/timemachine"
-	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -33,11 +35,14 @@ for reproducible builds using the --export flag.`,
 				return color.PrintError(err, "failed to init celer.")
 			}
 
+			platformName := expr.If(d.celer.Platform().GetName() != "", d.celer.Platform().GetName(), "native")
+			projectName := d.celer.Project().GetName()
+
 			// Display deployment header.
 			color.Println(color.Title, "=======================================================================")
 			color.Println(color.Title, "🚀 start to deploy with below configurations: ")
-			color.Printf(color.Title, "🛠️  platform: %s\n", d.celer.Global.Platform)
-			color.Printf(color.Title, "🛠️  project : %s\n", d.celer.Global.Project)
+			color.Printf(color.Title, "🛠️  platform: %s\n", platformName)
+			color.Printf(color.Title, "🛠️  project : %s\n", projectName)
 			color.Println(color.Title, "=======================================================================")
 
 			// Check circular dependency and version conflict.
@@ -49,7 +54,7 @@ for reproducible builds using the --export flag.`,
 				return color.PrintError(err, "failed to deploy celer.")
 			}
 
-			color.PrintSuccess("%s has been successfully deployed.", d.celer.Global.Project)
+			color.PrintSuccess("%s has been successfully deployed.", projectName)
 
 			// Export snapshot if requested.
 			if d.exportPath != "" {

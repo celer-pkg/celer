@@ -48,7 +48,7 @@ When source code needs to be prepared, Celer follows this flow:
 Configure the cache directory in `celer.toml`:
 
 ```toml
-[global]
+[main]
 	conf_repo = "https://github.com/celer-pkg/test-conf.git"
 	platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
 	project = "project_01"

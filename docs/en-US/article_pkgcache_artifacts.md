@@ -28,7 +28,7 @@ Celer uses **hash-based caching** to store and retrieve build artifacts:
 Add a `[pkgcache]` section to `celer.toml` to enable cache lookup:
 
 ```toml
-[global]
+[main]
 	conf_repo = "https://github.com/celer-pkg/test-conf.git"
 	platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0.5"
 	project = "project_01"
