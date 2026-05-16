@@ -33,15 +33,15 @@ CCache (Compiler Cache) is a compiler cache that speeds up recompilation by cach
 Add the `[ccache]` section to your `celer.toml`:
 
 ```toml
-[global]
-platform = "aarch64-linux-ubuntu-22.04-gcc-11.5.0"
-project = "my_project"
-jobs = 6
+[main]
+  platform = "aarch64-linux-ubuntu-22.04-gcc-11.5.0"
+  project = "my_project"
+  jobs = 6
 
 [ccache]
-enabled = true
-maxsize = "10G"
-dir = "/home/user/ccache"
+  enabled = true
+  maxsize = "10G"
+  dir = "/home/user/ccache"
 ```
 
 **What happens:**

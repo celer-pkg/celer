@@ -133,7 +133,7 @@ celer configure --proxy-host=127.0.0.1 --proxy-port=7890
 执行初始化命令后，会在工作目录中生成 `celer.toml` 配置文件：
 
 ```toml
-[global]
+[main]
   conf_repo = "https://github.com/celer-pkg/test-conf.git"
   platform = ""
   project = ""
@@ -177,7 +177,7 @@ celer configure --project=project_test_02
 配置完成后，`celer.toml` 文件会更新为以下内容：
 
 ```toml
-[global]
+[main]
   conf_repo = "https://github.com/celer-pkg/test-conf.git"
   platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
   project = "project_test_02"
