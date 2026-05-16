@@ -221,7 +221,7 @@ func (p *progressBar) Write(b []byte) (int, error) {
 		// Build compact progress display
 		var content string
 		if eta != "" {
-			content = fmt.Sprintf("%s [%s] %d%% (%s ETA:%s)",
+			content = fmt.Sprintf("- downloading: %s [%s] %d%% (%s ETA:%s)",
 				p.fileName,
 				progressBar,
 				progress,
@@ -229,7 +229,7 @@ func (p *progressBar) Write(b []byte) (int, error) {
 				eta,
 			)
 		} else {
-			content = fmt.Sprintf("%s [%s] %d%% (%s)",
+			content = fmt.Sprintf("- downloading: %s [%s] %d%% (%s)",
 				p.fileName,
 				progressBar,
 				progress,
@@ -240,7 +240,7 @@ func (p *progressBar) Write(b []byte) (int, error) {
 		color.PrintInline(color.Hint, "%s", content)
 		if progress == 100 {
 			totalSec := time.Since(p.startTime).Seconds()
-			color.PrintInline(color.Hint, "✔ %s (%s) in %s\n",
+			color.PrintInline(color.Hint, "✔ downloaded: %s (%s) in %s\n",
 				p.fileName,
 				expr.FormatSize(p.fileSize),
 				formatDuration(int64(totalSec)),
