@@ -52,6 +52,12 @@ func pip3Install(ctx context.Context, pipConfig context.PythonConfig, libraries 
 
 		// Build pip install command with PyPI source configuration.
 		var builder strings.Builder
+
+		// If Python needs LD_LIBRARY_PATH, prepend it to the command.
+		if PythonTool.ldLibraryPath != "" {
+			fmt.Fprintf(&builder, "LD_LIBRARY_PATH=%s ", PythonTool.ldLibraryPath)
+		}
+
 		builder.WriteString(PythonTool.Path)
 		builder.WriteString(" -m pip install --ignore-installed")
 
@@ -112,6 +118,7 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 	}
 
 	var currentPython python.Python
+	var isCondaPython bool = false
 	if useSystemPython { // Use system Python if version matches.
 		currentPython = &python.SystemPython{}
 	} else { // Fallback to conda if system Python doesn't match or doesn't exist.
@@ -120,10 +127,11 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 			return fmt.Errorf("failed to find conda tool for python setup -> %w", err)
 		}
 		currentPython = python.NewCondaPython(ctx, condaTool.Archive, condaTool.Version, pythonVersion)
+		isCondaPython = true
 	}
 
 	if err := currentPython.Setup(); err != nil {
-		return fmt.Errorf("failed to setup conda for Python %s -> %w", pythonVersion, err)
+		return fmt.Errorf("failed to setup Python %s -> %w", pythonVersion, err)
 	}
 
 	// Create version specific python environment if not exist.
@@ -132,9 +140,56 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 		return fmt.Errorf("failed to detect python executable for version %s -> %w", pythonVersion, err)
 	}
 
+	// For conda Python, compute the lib directory for LD_LIBRARY_PATH on Linux/macOS
+	var condaLibDir string
+	if isCondaPython && runtime.GOOS != "windows" {
+		// conda python executable is typically at {conda_env}/bin/python
+		// so its lib is at {conda_env}/lib
+		pythonDir := filepath.Dir(pythonExec) // get the bin directory.
+		condaLibDir = filepath.Join(filepath.Dir(pythonDir), "lib")
+	}
+
 	// Ensure virtual environment exists.
 	if !fileio.PathExists(envDir) {
-		command := fmt.Sprintf("%s -m venv %s", pythonExec, envDir)
+		// Detect Python major version to choose appropriate venv creation method
+		majorVersion := "3"
+		if strings.HasPrefix(pythonVersion, "2") {
+			majorVersion = "2"
+		}
+
+		var command string
+		if majorVersion == "2" {
+			// Python2 doesn't have built-in venv module, need to use virtualenv package.
+			// First, ensure virtualenv is installed.
+			var installBuilder strings.Builder
+			if condaLibDir != "" {
+				fmt.Fprintf(&installBuilder, "LD_LIBRARY_PATH=%s ", condaLibDir)
+			}
+			fmt.Fprintf(&installBuilder, "%s -m pip install --quiet virtualenv", pythonExec)
+			installCmd := installBuilder.String()
+
+			executor := cmd.NewExecutor("[install virtualenv for python2]", installCmd)
+			if err := executor.Execute(); err != nil {
+				return fmt.Errorf("failed to install virtualenv for Python2 -> %w", err)
+			}
+
+			// Create venv using virtualenv.
+			var cmdBuilder strings.Builder
+			if condaLibDir != "" {
+				fmt.Fprintf(&cmdBuilder, "LD_LIBRARY_PATH=%s ", condaLibDir)
+			}
+			fmt.Fprintf(&cmdBuilder, "%s -m virtualenv %s", pythonExec, envDir)
+			command = cmdBuilder.String()
+		} else {
+			// Python3 has built-in venv module.
+			var installBuilder strings.Builder
+			if condaLibDir != "" {
+				fmt.Fprintf(&installBuilder, "LD_LIBRARY_PATH=%s ", condaLibDir)
+			}
+			fmt.Fprintf(&installBuilder, "%s -m venv %s", pythonExec, envDir)
+			command = installBuilder.String()
+		}
+
 		executor := cmd.NewExecutor("[create python venv]", command)
 		if err := executor.Execute(); err != nil {
 			return fmt.Errorf("failed to create python venv -> %w", err)
@@ -142,13 +197,20 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 	}
 
 	// Use virtual environment python with platform-specific paths.
+	// Detect Python major version for correct executable name
+	majorVersion := "3"
+	if strings.HasPrefix(pythonVersion, "2") {
+		majorVersion = "2"
+	}
+
 	var venvPythonPath, venvPipPath, venvBinDir string
 	if runtime.GOOS == "windows" {
 		venvPythonPath = filepath.Join(envDir, "Scripts", "python.exe")
 		venvPipPath = filepath.Join(envDir, "Scripts", "pip.exe")
 		venvBinDir = filepath.Join(envDir, "Scripts")
 	} else {
-		venvPythonPath = filepath.Join(envDir, "bin", "python3")
+		pythonExeName := expr.If(majorVersion == "2", "python", "python3")
+		venvPythonPath = filepath.Join(envDir, "bin", pythonExeName)
 		venvPipPath = filepath.Join(envDir, "bin", "pip")
 		venvBinDir = filepath.Join(envDir, "bin")
 	}
@@ -167,9 +229,10 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 
 	// Save python info as global variable.
 	PythonTool = &pythonTool{
-		Path:    venvPythonPath,
-		rootDir: venvBinDir,
-		version: pythonVersion,
+		Path:          venvPythonPath,
+		rootDir:       venvBinDir,
+		version:       pythonVersion,
+		ldLibraryPath: condaLibDir,
 	}
 	return nil
 }
@@ -188,10 +251,10 @@ func getPythonVenvPath(pythonVersion, projectName string) string {
 // - Windows: reads from buildtools/static TOML python tool definition (via GetDefaultPythonVersion from build_tools.go)
 // - Linux/macOS: returns detected system python3 version.
 func GetDefaultPythonVersion() string {
-	// For Windows, delegate to build_tools implementation
+	// For Windows, delegate to build_tools implementation.
 	if runtime.GOOS == "windows" {
 		return getWindowsDefaultPythonVersion()
-	} else { // For Linux/macOS, detect system python3 version
+	} else { // For Linux/macOS, detect system python3 version.
 		return python.GetSystemPythonVersion()
 	}
 }
@@ -288,7 +351,15 @@ func normalizeVersion(fullVersion string) string {
 }
 
 type pythonTool struct {
-	Path    string
-	rootDir string
-	version string
+	Path          string
+	rootDir       string
+	version       string
+	ldLibraryPath string
+}
+
+func (p *pythonTool) LdLibraryPath() string {
+	if p == nil {
+		return ""
+	}
+	return p.ldLibraryPath
 }

@@ -94,7 +94,7 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 	var buffer bytes.Buffer
 
 	// SYSROOT section.
-	fmt.Fprintf(&buffer, "\n# SYSROOT for cross-compile.\n")
+	fmt.Fprintf(&buffer, "\n# =============== Cross-compile SYSROOT =============== #\n")
 	fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", fileio.ToRelPath(r.abspath))
 
 	// Append --sysroot to compiler flags.
@@ -128,14 +128,6 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 			fmt.Fprintf(&buffer, `endforeach()`+"\n")
 		}
 	}
-
-	// CMake search paths section.
-	fmt.Fprintf(&buffer, "\n# Search programs in the host environment.\n")
-	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)\n")
-	fmt.Fprintf(&buffer, "\n# Search libraries and headers in the target environment.\n")
-	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)\n")
-	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)\n")
-	fmt.Fprintf(&buffer, "set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)\n")
 
 	// Write all at once.
 	toolchain.WriteString(buffer.String())

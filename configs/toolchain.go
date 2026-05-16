@@ -150,11 +150,11 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	}
 	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
 
-	fmt.Fprintf(toolchain, "\n# Target platform for cross-compile.\n")
+	fmt.Fprintf(toolchain, "\n# ============== Cross-compile target system ============== #\n")
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", expr.UpperFirst(t.SystemName))
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
-	fmt.Fprintf(toolchain, "\n# Toolchain for cross-compile.\n")
+	fmt.Fprintf(toolchain, "\n# ============== Cross-compile toolchain ============== #\n")
 
 	switch runtime.GOOS {
 	case "windows":
@@ -254,25 +254,13 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		}
 	}
 
-	if len(cflags) > 0 || len(cxxflags) > 0 || len(linkflags) > 0 {
-		fmt.Fprint(toolchain, "\n# Append extra build flags.\n")
-
-		// If both cflags and cxxflags exist, use foreach to avoid duplication
-		if len(cflags) > 0 && len(cxxflags) > 0 {
-			fmt.Fprint(toolchain, "foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)\n")
-			appendFlags("${flag_var}", cflags, "  ")
-			fmt.Fprint(toolchain, "endforeach()\n")
-		} else {
-			appendFlags("CMAKE_C_FLAGS_INIT", cflags, "")
-			appendFlags("CMAKE_CXX_FLAGS_INIT", cxxflags, "")
-		}
-
-		if len(linkflags) > 0 {
-			fmt.Fprint(toolchain, "foreach(flag_var CMAKE_EXE_LINKER_FLAGS_INIT CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT)\n")
-			appendFlags("${flag_var}", linkflags, "  ")
-			fmt.Fprint(toolchain, "endforeach()\n")
-		}
-	}
+	// CMake search paths section.
+	fmt.Fprintf(toolchain, "\n# Search programs in the host environment.\n")
+	fmt.Fprintf(toolchain, "set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)\n")
+	fmt.Fprintf(toolchain, "\n# Search libraries and headers in the target environment.\n")
+	fmt.Fprintf(toolchain, "set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)\n")
+	fmt.Fprintf(toolchain, "set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)\n")
+	fmt.Fprintf(toolchain, "set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)\n")
 
 	// Write C/C++ language standard.
 	if t.CStandard != "" || t.CXXStandard != "" {
@@ -307,6 +295,26 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		fmt.Fprintf(toolchain, "set(CMAKE_ASM_USE_RESPONSE_FILE_FOR_INCLUDES %s)\n", "0")
 
 		fmt.Fprintf(toolchain, "set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS FALSE)\n")
+	}
+
+	if len(cflags) > 0 || len(cxxflags) > 0 || len(linkflags) > 0 {
+		fmt.Fprint(toolchain, "\n# Append extra build flags.\n")
+
+		// If both cflags and cxxflags exist, use foreach to avoid duplication
+		if len(cflags) > 0 && len(cxxflags) > 0 {
+			fmt.Fprint(toolchain, "foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)\n")
+			appendFlags("${flag_var}", cflags, "  ")
+			fmt.Fprint(toolchain, "endforeach()\n")
+		} else {
+			appendFlags("CMAKE_C_FLAGS_INIT", cflags, "")
+			appendFlags("CMAKE_CXX_FLAGS_INIT", cxxflags, "")
+		}
+
+		if len(linkflags) > 0 {
+			fmt.Fprint(toolchain, "foreach(flag_var CMAKE_EXE_LINKER_FLAGS_INIT CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT)\n")
+			appendFlags("${flag_var}", linkflags, "  ")
+			fmt.Fprint(toolchain, "endforeach()\n")
+		}
 	}
 
 	return nil
