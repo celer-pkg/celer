@@ -127,6 +127,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		c.Main = main{
 			BuildType: "release",
 			Downloads: filepath.Join(dirs.WorkspaceDir, "downloads"),
+			Jobs:      jobs,
 			Offline:   false,
 			Verbose:   false,
 		}
