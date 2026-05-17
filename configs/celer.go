@@ -100,7 +100,7 @@ type configData struct {
 
 // Init initializes celer with existing platform.
 func (c *Celer) Init() error {
-	return c.InitWithPlatform(c.configData.Main.Platform)
+	return c.InitWithPlatform(c.Main.Platform)
 }
 
 // InitWithPlatform initializes celer with platform.
@@ -124,7 +124,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		}
 
 		// Default global values.
-		c.configData.Main = main{
+		c.Main = main{
 			BuildType: "release",
 			Downloads: filepath.Join(dirs.WorkspaceDir, "downloads"),
 			Jobs:      jobs,
@@ -140,8 +140,8 @@ func (c *Celer) InitWithPlatform(platform string) error {
 
 		// Set platform and init platform if specified.
 		if platform != "" {
-			c.configData.Main.Platform = platform
-			if err := c.platform.Init(c.configData.Main.Platform); err != nil {
+			c.Main.Platform = platform
+			if err := c.platform.Init(c.Main.Platform); err != nil {
 				return err
 			}
 		}
@@ -169,17 +169,17 @@ func (c *Celer) InitWithPlatform(platform string) error {
 
 		// Set platform and init platform if specified.
 		if platform != "" {
-			c.configData.Main.Platform = platform
+			c.Main.Platform = platform
 		}
-		if c.configData.Main.Platform != "" {
-			if err := c.platform.Init(c.configData.Main.Platform); err != nil {
+		if c.Main.Platform != "" {
+			if err := c.platform.Init(c.Main.Platform); err != nil {
 				return err
 			}
 		}
 
 		// Init project with project name.
-		if c.configData.Main.Project != "" {
-			if err := c.project.Init(c, c.configData.Main.Project); err != nil {
+		if c.Main.Project != "" {
+			if err := c.project.Init(c, c.Main.Project); err != nil {
 				return err
 			}
 		}
@@ -205,8 +205,8 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		}
 
 		// Assign default project and python version after saving celer.toml.
-		if c.configData.Main.Project == "" {
-			c.configData.Main.Project = "unnamed"
+		if c.Main.Project == "" {
+			c.Main.Project = "unnamed"
 			c.project.Name = "unnamed"
 		}
 	}
@@ -214,9 +214,9 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	// Celer support detect local toolchain, if platform name is not specified, use default toolchain:
 	// Windows: default is msvc,
 	// Linux: default is gcc.
-	if c.configData.Main.Platform == "" {
+	if c.Main.Platform == "" {
 		var toolchain = Toolchain{ctx: c}
-		if err := toolchain.Detect(c.configData.Main.Platform); err != nil {
+		if err := toolchain.Detect(c.Main.Platform); err != nil {
 			return fmt.Errorf("detect celer.toolchain -> %w", err)
 		}
 		c.platform.Toolchain = &toolchain
@@ -244,7 +244,7 @@ func (c *Celer) InitWithPlatform(platform string) error {
 	}
 
 	// No platform name, detect default platform.
-	if c.configData.Main.Platform == "" {
+	if c.Main.Platform == "" {
 		switch runtime.GOOS {
 		case "windows":
 			if c.platform.Toolchain.Name == "msvc" || c.platform.Toolchain.Name == "clang" || c.platform.Toolchain.Name == "clang-cl" {
@@ -414,7 +414,7 @@ func (c *Celer) SetBuildType(buildtype string) error {
 		return err
 	}
 
-	c.configData.Main.BuildType = buildtype
+	c.Main.BuildType = buildtype
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -431,7 +431,7 @@ func (c *Celer) SetDownloads(downloads string) error {
 		return err
 	}
 
-	c.configData.Main.Downloads = downloads
+	c.Main.Downloads = downloads
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -448,7 +448,7 @@ func (c *Celer) SetJobs(jobs int) error {
 		return err
 	}
 
-	c.configData.Main.Jobs = jobs
+	c.Main.Jobs = jobs
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -896,11 +896,11 @@ func (c *Celer) Project() context.Project {
 
 // BuildType returns lower case build type.
 func (c *Celer) BuildType() string {
-	return c.configData.Main.BuildType
+	return c.Main.BuildType
 }
 
 func (c *Celer) Downloads() string {
-	return c.configData.Main.Downloads
+	return c.Main.Downloads
 }
 
 func (c *Celer) RootFS() context.RootFS {
@@ -931,7 +931,7 @@ func (c *Celer) PkgCache() context.PkgCache {
 }
 
 func (c *Celer) Verbose() bool {
-	return c.configData.Main.Verbose
+	return c.Main.Verbose
 }
 
 func (c *Celer) InstalledDir() string {
