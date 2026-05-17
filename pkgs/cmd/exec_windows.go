@@ -1,6 +1,5 @@
 //go:build windows
 
-// Windows specific implementation of command execution.
 package cmd
 
 import (
@@ -17,7 +16,7 @@ import (
 
 // doExecute implements Windows specific command execution.
 // It handles both native Windows commands and MSYS2/bash environments.
-func (e *Executor) doExecute(output io.Writer) error {
+func (e *executor) doExecute(output io.Writer) error {
 	var (
 		cmd        *exec.Cmd
 		displayCmd string
@@ -44,8 +43,7 @@ func (e *Executor) doExecute(output io.Writer) error {
 		cmd.Dir = e.workDir
 	}
 
-	// Set up environment and stdin.
-	cmd.Env = os.Environ()
+	// Set up stdin.
 	cmd.Stdin = os.Stdin
 
 	// Create and configure log file.
@@ -69,7 +67,7 @@ func (e *Executor) doExecute(output io.Writer) error {
 }
 
 // buildMSYS2Command constructs a command to run in MSYS2/bash environment.
-func (e *Executor) buildMSYS2Command(displayCmd *string) *exec.Cmd {
+func (e *executor) buildMSYS2Command(displayCmd *string) *exec.Cmd {
 	var args []string
 	if e.msvcEnvs != "" {
 		args = append(args, e.msvcEnvs)
@@ -93,7 +91,7 @@ func (e *Executor) buildMSYS2Command(displayCmd *string) *exec.Cmd {
 }
 
 // buildNativeCommand constructs a command to run in native Windows environment.
-func (e *Executor) buildNativeCommand(displayCmd *string) *exec.Cmd {
+func (e *executor) buildNativeCommand(displayCmd *string) *exec.Cmd {
 	*displayCmd = e.command
 	if len(e.args) > 0 {
 		*displayCmd += " " + strings.Join(e.args, " ")

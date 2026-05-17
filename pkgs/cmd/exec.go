@@ -1,6 +1,3 @@
-// Package cmd provides command execution utilities with support for multiple platforms
-// (Linux, Windows, macOS, etc.) and environments (MSYS2, MSVC, native shell).
-// It handles proper output routing, logging, and environment configuration.
 package cmd
 
 import (
@@ -15,8 +12,8 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-// Executor manages command execution with logging, environment configuration, and output routing.
-type Executor struct {
+// executor manages command execution with logging, environment configuration, and output routing.
+type executor struct {
 	msys2Env bool     // Whether to execute in MSYS2 environment (Windows only)
 	title    string   // Execution title for display output
 	command  string   // Command to execute
@@ -27,8 +24,8 @@ type Executor struct {
 }
 
 // NewExecutor creates a new Executor with the given title, command, and arguments.
-func NewExecutor(title string, command string, args ...string) *Executor {
-	return &Executor{
+func NewExecutor(title string, command string, args ...string) *executor {
+	return &executor{
 		title:    title,
 		command:  command,
 		args:     args,
@@ -40,43 +37,43 @@ func NewExecutor(title string, command string, args ...string) *Executor {
 }
 
 // MSYS2Env enables/disables MSYS2 environment mode (Windows only).
-func (e *Executor) MSYS2Env(msys2Env bool) *Executor {
+func (e *executor) MSYS2Env(msys2Env bool) *executor {
 	e.msys2Env = msys2Env
 	return e
 }
 
 // SetMsvcEnvs sets MSVC environment configuration string (Windows only).
-func (e *Executor) SetMsvcEnvs(msvcEnvs string) *Executor {
+func (e *executor) SetMsvcEnvs(msvcEnvs string) *executor {
 	e.msvcEnvs = msvcEnvs
 	return e
 }
 
 // SetWorkDir sets the working directory for command execution.
-func (e *Executor) SetWorkDir(workDir string) *Executor {
+func (e *executor) SetWorkDir(workDir string) *executor {
 	e.workDir = workDir
 	return e
 }
 
 // SetLogPath sets the file path for execution logs (environment variables, command line, output).
-func (e *Executor) SetLogPath(logPath string) *Executor {
+func (e *executor) SetLogPath(logPath string) *executor {
 	e.logPath = logPath
 	return e
 }
 
 // ExecuteOutput executes the command and returns its output as a string.
-func (e *Executor) ExecuteOutput() (string, error) {
+func (e *executor) ExecuteOutput() (string, error) {
 	var output fileio.LockedBuffer
 	err := e.doExecute(&output)
 	return output.String(), err
 }
 
 // Execute runs the command and routes output to stdout/stderr.
-func (e *Executor) Execute() error {
+func (e *executor) Execute() error {
 	return e.doExecute(nil)
 }
 
 // createLogFile creates and initializes a log file with environment variables and command info.
-func (e *Executor) createLogFile(cmd *exec.Cmd) (*os.File, error) {
+func (e *executor) createLogFile(cmd *exec.Cmd) (*os.File, error) {
 	if e.logPath == "" {
 		return nil, nil
 	}
@@ -119,7 +116,7 @@ func (e *Executor) createLogFile(cmd *exec.Cmd) (*os.File, error) {
 // - To stdout/stderr if output is nil
 // - To custom output if provided
 // - To log file if configured
-func (e *Executor) configureOutputs(cmd *exec.Cmd, logFile *os.File, output io.Writer) {
+func (e *executor) configureOutputs(cmd *exec.Cmd, logFile *os.File, output io.Writer) {
 	outWriters := make([]io.Writer, 0, 3)
 	errWriters := make([]io.Writer, 0, 3)
 
@@ -145,7 +142,7 @@ func (e *Executor) configureOutputs(cmd *exec.Cmd, logFile *os.File, output io.W
 
 // composeWriters combines multiple Writers into one using io.MultiWriter.
 // Returns the single writer directly if only one is provided.
-func (e *Executor) composeWriters(writers ...io.Writer) io.Writer {
+func (e *executor) composeWriters(writers ...io.Writer) io.Writer {
 	if len(writers) == 1 {
 		return writers[0]
 	}

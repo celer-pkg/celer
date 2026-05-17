@@ -1,6 +1,5 @@
 //go:build darwin || netbsd || freebsd || openbsd || dragonfly || linux
 
-// Unix/Linux/macOS specific implementation of command execution.
 package cmd
 
 import (
@@ -16,7 +15,7 @@ import (
 
 // doExecute implements Unix/Linux/macOS specific command execution.
 // It handles direct command execution with optional shell wrapping.
-func (e *Executor) doExecute(output io.Writer) error {
+func (e *executor) doExecute(output io.Writer) error {
 	var (
 		cmd        *exec.Cmd
 		displayCmd string
