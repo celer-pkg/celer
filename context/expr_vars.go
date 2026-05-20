@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"maps"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -68,12 +67,4 @@ func (e ExprVars) replaceEnvVars(content string) string {
 		}
 		return match
 	})
-}
-
-func (e ExprVars) toRelPath(absPath string) string {
-	relativePath, err := filepath.Rel(dirs.WorkspaceDir, absPath)
-	if err != nil {
-		return filepath.ToSlash(absPath)
-	}
-	return filepath.ToSlash(filepath.Join("${WORKSPACE_ROOT}", relativePath))
 }
