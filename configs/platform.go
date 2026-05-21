@@ -9,6 +9,7 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
@@ -35,7 +36,7 @@ func (p *Platform) Init(platformName string) error {
 	// Check if platform file exists.
 	platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
 	if !fileio.PathExists(platformPath) {
-		return fmt.Errorf("platform does not exist: %s", platformName)
+		return fmt.Errorf("%w: %s", errors.ErrPlatformNotExist, platformName)
 	}
 	p.Name = platformName
 

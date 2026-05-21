@@ -8,6 +8,7 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
@@ -40,7 +41,7 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 	// Check if project file exists.
 	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
 	if !fileio.PathExists(projectPath) {
-		return fmt.Errorf("project does not exist: %s", projectName)
+		return fmt.Errorf("%w: %s", errors.ErrProjectNotExist, projectName)
 	}
 
 	// Read conf/projects/<project_name>.toml.
