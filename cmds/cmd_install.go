@@ -155,8 +155,8 @@ func (i *installCmd) install(nameVersion string) error {
 	// Display install header.
 	color.Println(color.Title, "=======================================================================")
 	color.Printf(color.Title, "🚀 start to install %s\n", nameVersion)
-	color.Printf(color.Title, "🔨 platform: %s\n", platformName)
-	color.Printf(color.Title, "🔨 product: %s\n", i.celer.Project().GetName())
+	color.Printf(color.Title, "📌 platform: %s\n", platformName)
+	color.Printf(color.Title, "📌 product: %s\n", i.celer.Project().GetName())
 	color.Println(color.Title, "=======================================================================")
 
 	// Parse name and version (already validated)
