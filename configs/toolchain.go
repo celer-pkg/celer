@@ -200,16 +200,24 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 
 		// For clang, if using lld, add LLVM runtime library flags to linker.
 		if t.Name == "clang" && t.LD != "" && strings.Contains(t.LD, "lld") {
-			// Use LLVM's libc++ for C++ standard library.
 			fmt.Fprint(toolchain, "\n# Use LLVM lld linker, compiler-rt runtime and libc++ for clang.\n")
 			fmt.Fprintf(toolchain, `string(APPEND CMAKE_CXX_FLAGS_INIT " -stdlib=libc++")`+"\n")
 
-			// These flags are only needed during linking, if we set them in CMAKE_C_FLAGS_INIT,
-			// they may cause warnings during compilation.
 			fmt.Fprintf(toolchain, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind")`+"\n")
 			fmt.Fprintf(toolchain, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind")`+"\n")
 			fmt.Fprintf(toolchain, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind")`+"\n")
 		}
+
+	case "qcc":
+		writeIfNotEmpty("CMAKE_NM", t.NM)
+		writeIfNotEmpty("CMAKE_RANLIB", t.RANLIB)
+		writeIfNotEmpty("CMAKE_OBJDUMP", t.OBJDUMP)
+		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
+
+		fmt.Fprint(toolchain, "\n# QNX cross-compile settings.\n")
+		qnxTarget := fileio.ToRelPath(filepath.Join(t.GetRootDir(), "target/qnx"))
+		fmt.Fprintf(toolchain, "set(CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES %q)\n", filepath.Join(qnxTarget, "usr/include"))
+		fmt.Fprintf(toolchain, "set(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES %q)\n", filepath.Join(qnxTarget, "usr/include"))
 
 	case "msvc", "clang-cl":
 		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
