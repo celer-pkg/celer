@@ -288,8 +288,8 @@ func (b b2) buildOptions() ([]string, error) {
 		}
 	}
 
-	// Note: `threading=multi` will make boost link pthread in linux.
-	// In embedded system, `threading=multi` is not supported,
+	// Note: `threading=multi` is the default config for boost.
+	// In embedded system, if `threading=multi` is not supported,
 	// then you can set `threading=single` in port.toml.
 	if !slices.ContainsFunc(b.Options, func(opt string) bool {
 		return strings.HasPrefix(opt, "threading=")
