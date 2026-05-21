@@ -109,11 +109,19 @@ Examples:
   celer configure --ccache-maxsize=5G             # Set ccache max size to 5GB`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := c.celer.Init(); err != nil {
-				return fmt.Errorf("failed to init celer -> %w", err)
+			flags := cmd.Flags()
+
+			// Init celer with options, allow skip platform or project
+			// not found when configure platform or project.
+			var initOpt configs.InitOption
+			if flags.Changed("platform") || flags.Changed("project") {
+				initOpt.SkipPlatform = true
+				initOpt.SkipProject = true
 			}
 
-			flags := cmd.Flags()
+			if err := c.celer.InitWithOptions(initOpt); err != nil {
+				return fmt.Errorf("failed to init celer -> %w", err)
+			}
 
 			changedCount := 0
 			activeGroups := map[string]bool{}

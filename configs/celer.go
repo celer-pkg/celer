@@ -26,6 +26,12 @@ const (
 	defaultPortRepoBranch = ""
 )
 
+// InitOption is the option for InitWithOptions.
+type InitOption struct {
+	SkipPlatform bool
+	SkipProject  bool
+}
+
 var Version = "v0.0.0" // It would be set by build script.
 
 func NewCeler() *Celer {
@@ -98,13 +104,18 @@ type configData struct {
 	Python   *Python   `toml:"python,omitempty"`
 }
 
-// Init initializes celer with existing platform.
+// Init initializes celer with default options.
 func (c *Celer) Init() error {
-	return c.InitWithPlatform(c.Main.Platform)
+	return c.InitWithOptions(InitOption{})
+}
+
+// InitWithOptions initializes celer with options.
+func (c *Celer) InitWithOptions(opts InitOption) error {
+	return c.InitWithPlatform(c.Main.Platform, opts)
 }
 
 // InitWithPlatform initializes celer with platform.
-func (c *Celer) InitWithPlatform(platform string) error {
+func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 	c.platform.ctx = c
 
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
@@ -142,6 +153,11 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		if platform != "" {
 			c.Main.Platform = platform
 			if err := c.platform.Init(c.Main.Platform); err != nil {
+				// Skip platform init if platform not exist.
+				if errors.Is(err, errors.ErrPlatformNotExist) && opts.SkipPlatform {
+					c.Main.Platform = ""
+					return nil
+				}
 				return err
 			}
 		}
@@ -173,6 +189,11 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		}
 		if c.Main.Platform != "" {
 			if err := c.platform.Init(c.Main.Platform); err != nil {
+				// Skip platform init if platform not exist.
+				if errors.Is(err, errors.ErrPlatformNotExist) && opts.SkipPlatform {
+					c.Main.Platform = ""
+					return nil
+				}
 				return err
 			}
 		}
@@ -180,6 +201,11 @@ func (c *Celer) InitWithPlatform(platform string) error {
 		// Init project with project name.
 		if c.Main.Project != "" {
 			if err := c.project.Init(c, c.Main.Project); err != nil {
+				// Skip project init if project not exist.
+				if errors.Is(err, errors.ErrProjectNotExist) && opts.SkipProject {
+					c.Main.Project = ""
+					return nil
+				}
 				return err
 			}
 		}

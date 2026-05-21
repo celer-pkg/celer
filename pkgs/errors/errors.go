@@ -8,6 +8,8 @@ var (
 	ErrPortNotFound             = errors.New("port is not found")
 	ErrNoMatchedConfigFound     = errors.New("no matched config found")
 	ErrRepoNotExit              = errors.New("repo not exist")
+	ErrPlatformNotExist         = errors.New("platform not exist")
+	ErrProjectNotExist          = errors.New("project not exist")
 	ErrInvalidBuildType         = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
 	ErrPkgCacheDirEmpty         = errors.New("pkgcache dir is invalid")
 	ErrPkgCacheDirNotExist      = errors.New("pkgcache dir not exist")
