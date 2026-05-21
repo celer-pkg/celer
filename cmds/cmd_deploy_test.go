@@ -1,29 +1,29 @@
 package cmds
 
 import (
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"path/filepath"
 	"slices"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 
 	"github.com/spf13/cobra"
 )
 
 func TestDeployCmd_ArgsValidation(t *testing.T) {
-	// Cleanup.
 	dirs.RemoveAllForTest()
 
 	tests := []struct {
-		name               string
-		args               []string
-		setExport          bool
-		exportValue        string
-		expectError        bool
-		expectedExportPath string
+		name                 string
+		args                 []string
+		setSnapshot          bool
+		snapshotValue        string
+		expectError          bool
+		expectedSnapshotPath string
 	}{
 		{
-			name:        "default_no_export_should_succeed",
+			name:        "default_no_snapshot_should_succeed",
 			args:        []string{},
 			expectError: false,
 		},
@@ -33,45 +33,45 @@ func TestDeployCmd_ArgsValidation(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name:        "empty_export_should_fail",
-			setExport:   true,
-			exportValue: "",
-			expectError: true,
+			name:          "empty_snapshot_should_fail",
+			setSnapshot:   true,
+			snapshotValue: "",
+			expectError:   true,
 		},
 		{
-			name:               "dot_export_should_succeed",
-			setExport:          true,
-			exportValue:        ".",
-			expectError:        false,
-			expectedExportPath: filepath.Clean("."),
+			name:                 "dot_snapshot_should_succeed",
+			setSnapshot:          true,
+			snapshotValue:        ".",
+			expectError:          false,
+			expectedSnapshotPath: filepath.Clean("."),
 		},
 		{
-			name:               "parent_export_should_succeed",
-			setExport:          true,
-			exportValue:        "..",
-			expectError:        false,
-			expectedExportPath: filepath.Clean(".."),
+			name:                 "parent_snapshot_should_succeed",
+			setSnapshot:          true,
+			snapshotValue:        "..",
+			expectError:          false,
+			expectedSnapshotPath: filepath.Clean(".."),
 		},
 		{
-			name:               "escape_workspace_should_succeed",
-			setExport:          true,
-			exportValue:        "../snapshots/2026-02-21",
-			expectError:        false,
-			expectedExportPath: filepath.Clean("../snapshots/2026-02-21"),
+			name:                 "escape_workspace_should_succeed",
+			setSnapshot:          true,
+			snapshotValue:        "../snapshots/2026-02-21",
+			expectError:          false,
+			expectedSnapshotPath: filepath.Clean("../snapshots/2026-02-21"),
 		},
 		{
-			name:               "absolute_export_should_succeed",
-			setExport:          true,
-			exportValue:        filepath.Join(dirs.WorkspaceDir, "snapshots", "2026-02-21"),
-			expectError:        false,
-			expectedExportPath: filepath.Clean(filepath.Join(dirs.WorkspaceDir, "snapshots", "2026-02-21")),
+			name:                 "absolute_snapshot_should_succeed",
+			setSnapshot:          true,
+			snapshotValue:        filepath.Join(dirs.WorkspaceDir, "snapshots", "2026-02-21"),
+			expectError:          false,
+			expectedSnapshotPath: filepath.Clean(filepath.Join(dirs.WorkspaceDir, "snapshots", "2026-02-21")),
 		},
 		{
-			name:               "valid_relative_export_should_succeed",
-			setExport:          true,
-			exportValue:        "snapshots/../snapshots/2026-02-21",
-			expectError:        false,
-			expectedExportPath: filepath.Clean("snapshots/../snapshots/2026-02-21"),
+			name:                 "valid_relative_snapshot_should_succeed",
+			setSnapshot:          true,
+			snapshotValue:        "snapshots/../snapshots/2026-02-21",
+			expectError:          false,
+			expectedSnapshotPath: filepath.Clean("snapshots/../snapshots/2026-02-21"),
 		},
 	}
 
@@ -80,9 +80,9 @@ func TestDeployCmd_ArgsValidation(t *testing.T) {
 			deploy := &deployCmd{}
 			cmd := deploy.Command(configs.NewCeler())
 
-			if test.setExport {
-				if err := cmd.Flags().Set("export", test.exportValue); err != nil {
-					t.Fatalf("failed to set --export: %v", err)
+			if test.setSnapshot {
+				if err := cmd.Flags().Set("snapshot", test.snapshotValue); err != nil {
+					t.Fatalf("failed to set --snapshot: %v", err)
 				}
 			}
 
@@ -94,15 +94,14 @@ func TestDeployCmd_ArgsValidation(t *testing.T) {
 				t.Fatalf("expected args validation success, got: %v", err)
 			}
 
-			if test.expectedExportPath != "" && deploy.exportPath != test.expectedExportPath {
-				t.Fatalf("expected cleaned export path %s, got %s", test.expectedExportPath, deploy.exportPath)
+			if test.expectedSnapshotPath != "" && deploy.snapshotPath != test.expectedSnapshotPath {
+				t.Fatalf("expected cleaned snapshot path %s, got %s", test.expectedSnapshotPath, deploy.snapshotPath)
 			}
 		})
 	}
 }
 
 func TestDeployCmd_Completion(t *testing.T) {
-	// Cleanup.
 	dirs.RemoveAllForTest()
 
 	deploy := deployCmd{}
@@ -124,9 +123,9 @@ func TestDeployCmd_Completion(t *testing.T) {
 			expected:   []string{"-f"},
 		},
 		{
-			name:       "complete_export_flag",
-			toComplete: "--exp",
-			expected:   []string{"--export"},
+			name:       "complete_snapshot_flag",
+			toComplete: "--sna",
+			expected:   []string{"--snapshot"},
 		},
 	}
 

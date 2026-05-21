@@ -13,16 +13,16 @@ celer deploy [flags]
 - 执行部署前会检查项目端口的循环依赖和版本冲突。
 - 部署使用当前工作空间上下文（`platform`、`project`、`build_type`）。
 - `--force` 会以强制模式执行项目部署（重装逻辑）。
-- `--export=<path>` 仅在部署成功后触发快照导出。
-- `--export` 支持相对路径和绝对路径。
-- `--export` 不能为空路径。
+- `--snapshot=<path>` 仅在部署成功后触发快照导出。
+- `--snapshot` 支持相对路径和绝对路径。
+- `--snapshot` 不能为空路径。
 
 ## 命令选项
 
 | 选项     | 简写 | 类型   | 说明                         |
 |----------|------|--------|----------------------------|
 | --force  | -f   | 布尔   | 强制部署，忽略已安装状态      |
-| --export | -    | 字符串 | 部署成功后导出工作区快照      |
+| --snapshot | -    | 字符串 | 部署成功后导出工作区快照      |
 
 ## 常用示例
 
@@ -34,10 +34,10 @@ celer deploy
 celer deploy --force
 
 # 部署并导出快照
-celer deploy --export=snapshots/2026-02-21
+celer deploy --snapshot=snapshots/2026-02-21
 
 # 强制部署并导出
-celer deploy --force --export=snapshots/rebuild
+celer deploy --force --snapshot=snapshots/rebuild
 ```
 
 ## 说明

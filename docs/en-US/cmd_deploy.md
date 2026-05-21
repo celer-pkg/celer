@@ -13,16 +13,16 @@ celer deploy [flags]
 - Before deployment, Celer checks circular dependencies and version conflicts across project ports.
 - Deployment uses the current workspace context (`platform`, `project`, `build_type`).
 - `--force` passes force mode to project deployment (reinstall behavior).
-- `--export=<path>` triggers snapshot export only after deployment succeeds.
-- `--export` accepts both relative and absolute paths.
-- `--export` must be a non-empty path.
+- `--snapshot=<path>` triggers snapshot export only after deployment succeeds.
+- `--snapshot` accepts both relative and absolute paths.
+- `--snapshot` must be a non-empty path.
 
 ## Command Options
 
 | Option   | Short | Type    | Description                                       |
 |----------|-------|---------|---------------------------------------------------|
 | --force  | -f    | boolean | Force deployment, ignoring already installed libs |
-| --export | -     | string  | Export workspace snapshot after successful deploy |
+| --snapshot | -     | string  | Export workspace snapshot after successful deploy |
 
 ## Common Examples
 
@@ -34,10 +34,10 @@ celer deploy
 celer deploy --force
 
 # Deploy and export snapshot
-celer deploy --export=snapshots/2026-02-21
+celer deploy --snapshot=snapshots/2026-02-21
 
 # Force deploy and export snapshot
-celer deploy --force --export=snapshots/rebuild
+celer deploy --force --snapshot=snapshots/rebuild
 ```
 
 ## Notes

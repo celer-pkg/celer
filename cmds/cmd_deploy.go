@@ -9,15 +9,15 @@ import (
 	"github.com/celer-pkg/celer/depcheck"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/expr"
-	"github.com/celer-pkg/celer/timemachine"
+	"github.com/celer-pkg/celer/snapshot"
 
 	"github.com/spf13/cobra"
 )
 
 type deployCmd struct {
-	celer      *configs.Celer
-	force      bool
-	exportPath string
+	celer        *configs.Celer
+	force        bool
+	snapshotPath string
 }
 
 func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -28,7 +28,7 @@ func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
 		Long: `Deploy builds and installs all packages defined in the project.
 
 After successful deployment, you can optionally export a snapshot
-for reproducible builds using the --export flag.`,
+for reproducible builds using the --snapshot flag.`,
 		Args: d.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := d.celer.Init(); err != nil {
@@ -57,8 +57,8 @@ for reproducible builds using the --export flag.`,
 			color.PrintSuccess("%s has been successfully deployed.", projectName)
 
 			// Export snapshot if requested.
-			if d.exportPath != "" {
-				if err := timemachine.Export(d.celer, d.exportPath); err != nil {
+			if d.snapshotPath != "" {
+				if err := snapshot.Export(d.celer, d.snapshotPath); err != nil {
 					return fmt.Errorf("failed to export snapshot -> %w", err)
 				}
 			}
@@ -69,7 +69,7 @@ for reproducible builds using the --export flag.`,
 	}
 
 	flags := command.Flags()
-	flags.StringVar(&d.exportPath, "export", "", "Export workspace snapshot after successfully deployed.")
+	flags.StringVar(&d.snapshotPath, "snapshot", "", "Export workspace snapshot after successfully deployed.")
 	flags.BoolVarP(&d.force, "force", "f", false, "Force deployment, ignoring any installed packages.")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
@@ -83,21 +83,21 @@ func (d *deployCmd) validateArgs(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !cmd.Flags().Changed("export") {
+	if !cmd.Flags().Changed("snapshot") {
 		return nil
 	}
 
-	exportPath, err := cmd.Flags().GetString("export")
+	snapshotPath, err := cmd.Flags().GetString("snapshot")
 	if err != nil {
 		return err
 	}
 
-	exportPath = strings.TrimSpace(exportPath)
-	if exportPath == "" {
-		return fmt.Errorf("--export requires a non-empty path")
+	snapshotPath = strings.TrimSpace(snapshotPath)
+	if snapshotPath == "" {
+		return fmt.Errorf("--snapshot requires a non-empty path")
 	}
 
-	d.exportPath = filepath.Clean(exportPath)
+	d.snapshotPath = filepath.Clean(snapshotPath)
 	return nil
 }
 
@@ -129,7 +129,7 @@ func (d *deployCmd) checkProject() error {
 
 func (d *deployCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	for _, flag := range []string{"--export", "--force", "-f"} {
+	for _, flag := range []string{"--snapshot", "--force", "-f"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}

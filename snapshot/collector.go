@@ -1,4 +1,4 @@
-package timemachine
+package snapshot
 
 import (
 	"fmt"
@@ -89,7 +89,7 @@ func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
 	}
 
 	// For git repositories, read the actual commit from the cloned repo.
-	commitHash, err := git.GetCommitHash(port.Package.SrcDir)
+	commitHash, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to read local source checksum for %s -> %w", port.NameVersion(), err)
 	}

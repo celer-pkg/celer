@@ -113,7 +113,7 @@ In one sentence:
 - [Expression Variables](./docs/en-US/article_expvars.md) - Review the dynamic variables available in TOML configuration
 - [Detect Version Conflicts and Circular Dependencies](./docs/en-US/article_detect_conflict_circular.md) - Catch invalid dependency relationships before builds start
 - [CUDA Auto Detection](./docs/en-US/article_cuda_support.md) - Integrate CUDA toolchains for GPU-oriented projects
-- [Export Snapshots](./docs/en-US/cmd_deploy_export.md) - Export a reproducible workspace snapshot after deployment
+- [Export Snapshots](./docs/en-US/cmd_deploy_snapshot.md) - Export a reproducible workspace snapshot after deployment
 
 ## 📋 Commands
 
