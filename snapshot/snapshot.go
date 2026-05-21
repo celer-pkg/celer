@@ -1,4 +1,4 @@
-package timemachine
+package snapshot
 
 import (
 	"encoding/json"

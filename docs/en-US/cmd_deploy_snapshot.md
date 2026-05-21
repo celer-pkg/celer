@@ -1,17 +1,17 @@
-# Deploy Export (`deploy --export`)
+# Deploy snapshot (`deploy --snapshot`)
 
-`deploy --export` runs normal deployment, then exports a reproducible workspace snapshot.
+`deploy --snapshot` runs normal deployment, then exports a reproducible workspace snapshot.
 
 ## Command Syntax
 
 ```shell
-celer deploy --export=<export_dir>
+celer deploy --snapshot=<snapshot_dir>
 ```
 
 ## Important Behavior
 
-- Export starts only after deployment succeeds.
-- Existing export directory is removed and recreated.
+- Export snapshot starts only after deployment succeeds.
+- Existing snapshot directory is removed and recreated.
 - Snapshot contains fixed dependency checksums for reproducibility.
 
 ## Exported Content
@@ -33,16 +33,16 @@ celer deploy --export=<export_dir>
 
 ```shell
 # Deploy and export snapshot
-celer deploy --export=snapshots/2026-02-21
+celer deploy --snapshot=snapshots/2026-02-21
 
 # Deploy with force and export
-celer deploy --force --export=snapshots/rebuild
+celer deploy --force --snapshot=snapshots/rebuild
 ```
 
 ## Notes
 
-- Export requires `toolchain_file.cmake` to exist (normally produced by successful deploy).
-- If deployment fails, export is not executed.
+- Export snapshot requires `toolchain_file.cmake` to exist (normally produced by successful deploy).
+- If deployment fails, exporting snapshot is not executed.
 
 ## Sample Snapshot Output
 

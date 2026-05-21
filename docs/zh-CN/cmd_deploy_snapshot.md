@@ -1,11 +1,11 @@
-# Deploy 导出（`deploy --export`）
+# Deploy 导出快照（`deploy --snapshot`）
 
-`deploy --export` 会先执行正常部署，再导出可复现的工作区快照。
+`deploy --snapshot` 会先执行正常部署，再导出可复现的工作区快照。
 
 ## 命令语法
 
 ```shell
-celer deploy --export=<export_dir>
+celer deploy --snapshot=<snapshot_dir>
 ```
 
 ## 重要行为
@@ -33,10 +33,10 @@ celer deploy --export=<export_dir>
 
 ```shell
 # 部署并导出快照
-celer deploy --export=snapshots/2026-02-21
+celer deploy --snapshot=snapshots/2026-02-21
 
 # 强制部署并导出
-celer deploy --force --export=snapshots/rebuild
+celer deploy --force --snapshot=snapshots/rebuild
 ```
 
 ## 说明

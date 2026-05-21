@@ -114,7 +114,7 @@ In one sentence:
 - [Detect Version Conflicts and Circular Dependencies](./article_detect_conflict_circular.md) - Catch invalid dependency relationships before builds start
 - [CUDA Auto Detection](./article_cuda_support.md) - Integrate CUDA toolchains for GPU-oriented projects
 - [Python Version Management](./article_python_management.md) - Configure and manage Python versions for build dependencies
-- [Export Snapshots](./cmd_deploy_export.md) - Export a reproducible workspace snapshot after deployment
+- [Export Snapshots](./cmd_deploy_snapshot.md) - Export a reproducible workspace snapshot after deployment
 
 ## 📋 Commands
 
