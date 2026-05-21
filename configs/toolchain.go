@@ -592,6 +592,14 @@ func (t Toolchain) ClearEnvs() {
 	os.Unsetenv("LIBPATH")
 	os.Unsetenv("VSINSTALLDIR")
 	os.Unsetenv("VCINSTALLDIR")
+
+	// Clear toolchain-defined envs that must not leak into host-side dev builds.
+	for _, item := range t.Envs {
+		parts := strings.Split(item, "=")
+		if len(parts) >= 2 {
+			os.Unsetenv(parts[0])
+		}
+	}
 }
 
 type WindowsKit struct {

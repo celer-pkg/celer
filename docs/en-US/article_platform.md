@@ -194,7 +194,6 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   envs = [
     "QNX_CONFIGURATION=${TOOLCHAIN_DIR}/.qnx",
     "QNX_CONFIGURATION_EXCLUSIVE=${TOOLCHAIN_DIR}/.qnx",
-    "MAKEFLAGS=${TOOLCHAIN_DIR}/target/qnx/usr/include",
   ]
 ```
 

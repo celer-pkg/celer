@@ -193,7 +193,6 @@
   envs = [
     "QNX_CONFIGURATION=${TOOLCHAIN_DIR}/.qnx",
     "QNX_CONFIGURATION_EXCLUSIVE=${TOOLCHAIN_DIR}/.qnx",
-    "MAKEFLAGS=${TOOLCHAIN_DIR}/target/qnx/usr/include",
   ]
 ```
 
