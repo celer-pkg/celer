@@ -464,8 +464,11 @@ func (t Toolchain) GetCrosstoolPrefixPath() string {
 }
 
 func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
-	// crosstool prefix maybe empty for msvc in windows.
 	crosstoolPrefix := t.GetCrosstoolPrefix()
+	cc := t.GetCC()
+	cxx := t.GetCXX()
+
+	// cross tool prefix maybe empty for msvc in windows.
 	if crosstoolPrefix != "" {
 		os.Setenv("CROSSTOOL_PREFIX", crosstoolPrefix)
 	}
@@ -476,6 +479,7 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 		return
 	}
 
+	var ccFlags, cxxFlags []string
 	if t.ctx.CCacheEnabled() {
 		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables,
 		// because MSYS2 shell cannot handle "ccache cl.exe" as a command.
@@ -483,49 +487,50 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 			os.Setenv("CC", t.GetCC())
 			os.Setenv("CXX", t.GetCXX())
 		} else {
+			ccFlags = append(ccFlags, "ccache", cc)
+			cxxFlags = append(cxxFlags, "ccache", cxx)
+
 			if rootfs != nil {
-				sysrootDir := rootfs.GetAbsDir()
-				ccFlags := " --sysroot=" + sysrootDir
-				cxxFlags := ccFlags
+				ccFlags = append(ccFlags, "--sysroot="+rootfs.GetAbsDir())
+				cxxFlags = append(cxxFlags, "--sysroot="+rootfs.GetAbsDir())
 
 				// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
 				if t.GetName() == "clang" {
-					ccFlags += " --gcc-toolchain=/usr"
-					cxxFlags += " --gcc-toolchain=/usr"
+					ccFlags = append(ccFlags, "--gcc-toolchain=/usr")
+					cxxFlags = append(cxxFlags, "--gcc-toolchain=/usr")
 				}
 
 				// For clang with lld, add LLVM runtime library flags.
 				if t.GetName() == "clang" && strings.Contains(t.GetLD(), "lld") {
-					ccFlags += " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
-					cxxFlags += " -stdlib=libc++ -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
+					ccFlags = append(ccFlags, "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
+					cxxFlags = append(cxxFlags, "-stdlib=libc++", "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
 				}
-				os.Setenv("CC", "ccache "+t.GetCC()+ccFlags)
-				os.Setenv("CXX", "ccache "+t.GetCXX()+cxxFlags)
-			} else {
-				os.Setenv("CC", "ccache "+t.GetCC())
-				os.Setenv("CXX", "ccache "+t.GetCXX())
 			}
+			os.Setenv("CC", strings.Join(ccFlags, " "))
+			os.Setenv("CXX", strings.Join(cxxFlags, " "))
 		}
 	} else {
+		ccFlags = append(ccFlags, cc)
+		cxxFlags = append(cxxFlags, cxx)
+
 		if rootfs != nil {
-			sysrootDir := rootfs.GetAbsDir()
-			ccFlags := " --sysroot=" + sysrootDir
-			cxxFlags := ccFlags
+			ccFlags = append(ccFlags, "--sysroot="+rootfs.GetAbsDir())
+			cxxFlags = append(ccFlags, "--sysroot="+rootfs.GetAbsDir())
 
 			// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
 			if t.GetName() == "clang" {
-				ccFlags += " --gcc-toolchain=/usr"
-				cxxFlags += " --gcc-toolchain=/usr"
+				ccFlags = append(ccFlags, "--gcc-toolchain=/usr")
+				cxxFlags = append(cxxFlags, "--gcc-toolchain=/usr")
 			}
 
 			// For clang with lld, add LLVM runtime library flags.
 			if t.GetName() == "clang" && strings.Contains(t.GetLD(), "lld") {
-				ccFlags += " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
-				cxxFlags += " -stdlib=libc++ -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
+				ccFlags = append(ccFlags, "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
+				cxxFlags = append(cxxFlags, "-stdlib=libc++", "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
 			}
-			os.Setenv("CC", t.GetCC()+ccFlags)
-			os.Setenv("CXX", t.GetCXX()+cxxFlags)
 		}
+		os.Setenv("CC", strings.Join(ccFlags, " "))
+		os.Setenv("CXX", strings.Join(cxxFlags, " "))
 	}
 
 	if t.GetAS() != "" {
