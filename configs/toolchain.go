@@ -33,7 +33,9 @@ type Toolchain struct {
 	CC  string `toml:"cc"`  // C language compiler.
 	CXX string `toml:"cxx"` // C++ language compiler.
 
-	// Optional compiler target triplets for toolchains that require explicit target selection.
+	// Compiler target triplets for multi-target compiler drivers (e.g. qcc).
+	// CMake maps these to CMAKE_C/CXX_COMPILER_TARGET, which translates to -V flags.
+	// Required when the compiler driver defaults to a different architecture
 	CCompilerTarget   string `toml:"c_compiler_target,omitempty"`
 	CXXCompilerTarget string `toml:"cxx_compiler_target,omitempty"`
 
