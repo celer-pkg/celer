@@ -239,7 +239,7 @@ func (m makefiles) Configure(options []string) error {
 	if (m.DevDep || m.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, m.Name())
+		toolchain.SetEnvs(rootfs, m.Name(), m.Envs)
 	}
 
 	// If nasm is available in PATH (from dev_dependencies or system), use it instead of toolchain's AS.

@@ -9,7 +9,6 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/env"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -151,7 +150,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
 
 	fmt.Fprintf(toolchain, "\n# ============== Cross-compile target system ============== #\n")
-	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", expr.UpperFirst(t.SystemName))
+	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", t.cmakeSystemName())
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
 	fmt.Fprintf(toolchain, "\n# ============== Cross-compile toolchain ============== #\n")
@@ -174,8 +173,8 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		}
 	}
 
-	writeIfNotEmpty("CMAKE_C_COMPILER", t.CC)
-	writeIfNotEmpty("CMAKE_CXX_COMPILER", t.CXX)
+	writeIfNotEmpty("CMAKE_C_COMPILER", strings.Split(t.CC, " ")[0])
+	writeIfNotEmpty("CMAKE_CXX_COMPILER", strings.Split(t.CXX, " ")[0])
 	writeIfNotEmpty("CMAKE_AR", t.AR)
 	writeIfNotEmpty("CMAKE_LINKER", t.LD)
 
@@ -463,10 +462,37 @@ func (t Toolchain) GetCrosstoolPrefixPath() string {
 	return filepath.Join(t.abspath, t.CrosstoolPrefix)
 }
 
-func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
+func (t Toolchain) cmakeSystemName() string {
+	switch strings.ToLower(t.SystemName) {
+	case "windows":
+		return "Windows"
+	case "linux":
+		return "Linux"
+	case "android":
+		return "Android"
+	case "qnx":
+		return "QNX"
+	default:
+		panic("unsupported operation system: " + t.SystemName)
+	}
+}
+
+func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs []string) {
 	crosstoolPrefix := t.GetCrosstoolPrefix()
 	cc := t.GetCC()
 	cxx := t.GetCXX()
+
+	// Capture CC/CXX from portEnvs if they are set.
+	for _, env := range portEnvs {
+		if before, after, ok := strings.Cut(env, "="); ok {
+			switch strings.TrimSpace(before) {
+			case "CC":
+				cc = strings.TrimSpace(after)
+			case "CXX":
+				cxx = strings.TrimSpace(after)
+			}
+		}
+	}
 
 	// cross tool prefix maybe empty for msvc in windows.
 	if crosstoolPrefix != "" {
@@ -484,8 +510,8 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables,
 		// because MSYS2 shell cannot handle "ccache cl.exe" as a command.
 		if runtime.GOOS == "windows" && (t.GetName() == "msvc" || t.GetName() == "clang-cl") && buildsystem == "makefiles" {
-			os.Setenv("CC", t.GetCC())
-			os.Setenv("CXX", t.GetCXX())
+			os.Setenv("CC", cc)
+			os.Setenv("CXX", cxx)
 		} else {
 			ccFlags = append(ccFlags, "ccache", cc)
 			cxxFlags = append(cxxFlags, "ccache", cxx)

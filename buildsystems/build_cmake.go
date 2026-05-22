@@ -248,7 +248,7 @@ func (c cmake) Configure(options []string) error {
 	if (c.DevDep || c.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, c.Name())
+		toolchain.SetEnvs(rootfs, c.Name(), c.Envs)
 	}
 
 	// Remove build dir and create it for configure.

@@ -125,7 +125,7 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 	fmt.Fprintf(builder, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
 	switch runtime.GOOS {
 	case "linux":
-		if toolchainName == "gcc" || toolchainName == "clang" {
+		if toolchainName == "gcc" || toolchainName == "clang" || toolchainName == "qcc" {
 			fmt.Fprintf(builder, `  string(APPEND ${flag_var} " -I${INSTALLED_DIR}/include")`+"\n")
 		}
 	case "windows":
@@ -141,7 +141,7 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 	fmt.Fprintf(builder, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
 	switch runtime.GOOS {
 	case "linux":
-		if toolchainName == "gcc" || toolchainName == "clang" {
+		if toolchainName == "gcc" || toolchainName == "clang" || toolchainName == "qcc" {
 			fmt.Fprintf(builder, `  string(APPEND ${flag_var} " -L${INSTALLED_DIR}/lib")`+"\n")
 			fmt.Fprintf(builder, `  string(APPEND ${flag_var} " -Wl,-rpath-link,${INSTALLED_DIR}/lib")`+"\n")
 		}

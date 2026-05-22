@@ -46,7 +46,7 @@ func (c custom) Configure(options []string) error {
 		if (c.DevDep || c.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 			toolchain.ClearEnvs()
 		} else {
-			toolchain.SetEnvs(rootfs, c.Name())
+			toolchain.SetEnvs(rootfs, c.Name(), c.Envs)
 		}
 
 		// Create build dir if not exists.
@@ -77,7 +77,7 @@ func (c custom) Build(options []string) error {
 		if (c.DevDep || c.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 			toolchain.ClearEnvs()
 		} else {
-			toolchain.SetEnvs(rootfs, c.Name())
+			toolchain.SetEnvs(rootfs, c.Name(), c.Envs)
 		}
 
 		scripts := strings.Join(c.CustomBuild, " && ")
@@ -102,7 +102,7 @@ func (c custom) Install(options []string) error {
 		if (c.DevDep || c.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 			toolchain.ClearEnvs()
 		} else {
-			toolchain.SetEnvs(rootfs, c.Name())
+			toolchain.SetEnvs(rootfs, c.Name(), c.Envs)
 		}
 
 		scripts := strings.Join(c.CustomInstall, " && ")

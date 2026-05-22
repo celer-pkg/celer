@@ -109,7 +109,7 @@ func (q qmake) Configure(options []string) error {
 	if q.DevDep || toolchain.GetName() == "msvc" || toolchain.GetName() == "clang" {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, q.Name())
+		toolchain.SetEnvs(rootfs, q.Name(), q.Envs)
 	}
 
 	// Create build dir if not exists.

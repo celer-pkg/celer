@@ -52,7 +52,7 @@ func (g gyp) Configure(options []string) error {
 	if g.DevDep {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, g.Name())
+		toolchain.SetEnvs(rootfs, g.Name(), g.Envs)
 	}
 
 	return nil
