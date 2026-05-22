@@ -543,7 +543,7 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs [
 
 		if rootfs != nil {
 			ccFlags = append(ccFlags, "--sysroot="+rootfs.GetAbsDir())
-			cxxFlags = append(ccFlags, "--sysroot="+rootfs.GetAbsDir())
+			cxxFlags = append(cxxFlags, "--sysroot="+rootfs.GetAbsDir())
 
 			// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
 			if t.GetName() == "clang" {
