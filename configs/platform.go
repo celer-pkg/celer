@@ -57,7 +57,7 @@ func (p *Platform) Init(platformName string) error {
 		}
 
 		// Store toolchain releated express vars.
-		exrVars.Put("SYSROOT_DIR", p.RootFS.GetAbsDir())
+		exrVars.Put("SYSROOT", p.RootFS.GetAbsDir())
 	}
 	if p.Toolchain != nil {
 		p.Toolchain.ctx = p.ctx
@@ -70,7 +70,8 @@ func (p *Platform) Init(platformName string) error {
 		exrVars.Put("SYSTEM_NAME", strings.ToLower(p.Toolchain.GetHost()))
 		exrVars.Put("SYSTEM_PROCESSOR", p.Toolchain.GetSystemProcessor())
 		exrVars.Put("CROSSTOOL_PREFIX", p.Toolchain.GetCrosstoolPrefix())
-		exrVars.Put("TOOLCHAIN_DIR", p.Toolchain.rootDir)
+		exrVars.Put("TOOLCHAIN", p.Toolchain.rootDir)
+		exrVars.Put("BUILD_HOST", p.buildHost())
 
 		// Setup environments for toolchain if required.
 		p.Toolchain.setupEnvs()
@@ -177,4 +178,46 @@ func (p *Platform) Setup() error {
 
 	p.setupDone = true
 	return nil
+}
+
+// buildHost returns the build machine triplet (e.g., "x86_64-linux-gnu").
+// This is the machine where the compiler is running, not the target machine.
+func (p *Platform) buildHost() string {
+	// Get the processor architecture.
+	var processor string
+	switch runtime.GOARCH {
+	case "amd64":
+		processor = "x86_64"
+	case "arm64":
+		processor = "aarch64"
+	case "386":
+		processor = "i686"
+	case "arm":
+		processor = "arm"
+	default:
+		processor = runtime.GOARCH
+	}
+
+	// Get the OS.
+	var os string
+	switch runtime.GOOS {
+	case "linux":
+		os = "linux"
+	case "windows":
+		os = "windows"
+	case "darwin":
+		os = "apple"
+	default:
+		os = runtime.GOOS
+	}
+
+	// Return triplet format.
+	switch runtime.GOOS {
+	case "linux":
+		return fmt.Sprintf("%s-%s-gnu", processor, os)
+	case "darwin":
+		return fmt.Sprintf("%s-%s-darwin", processor, os)
+	default:
+		return fmt.Sprintf("%s-%s", processor, os)
+	}
 }

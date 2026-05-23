@@ -27,8 +27,8 @@
 | `${SYSTEM_NAME}` | 平台工具链元数据 | 用于配置匹配的系统选择变量。 |
 | `${SYSTEM_PROCESSOR}` | `toolchain.system_processor` | CPU 架构选择变量。 |
 | `${CROSSTOOL_PREFIX}` | `toolchain.crosstool_prefix` | 工具链可执行前缀。 |
-| `${TOOLCHAIN_DIR}` | 工具链根目录 | 用于平台表达式展开的工具链根目录。 |
-| `${SYSROOT_DIR}` | `rootfs` | 仅在配置了 rootfs 时可用。 |
+| `${TOOLCHAIN}` | 工具链根目录 | 用于平台表达式展开的工具链根目录。 |
+| `${SYSROOT}` | `rootfs` | 仅在配置了 rootfs 时可用。 |
 
 ## 可选全局变量
 

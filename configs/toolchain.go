@@ -128,7 +128,7 @@ func (t Toolchain) effectiveFlags(buildType string) (cflags, cxxflags, linkflags
 func (t Toolchain) generate(toolchain *strings.Builder) error {
 	writeIfNotEmpty := func(key, value string) {
 		if value != "" {
-			fmt.Fprintf(toolchain, "set(%s %q)\n", key, "${TOOLCHAIN_DIR}/"+value)
+			fmt.Fprintf(toolchain, "set(%s %q)\n", key, "${TOOLCHAIN}/"+value)
 		}
 	}
 	appendFlags := func(key string, flags []string, indent string) {
@@ -160,17 +160,17 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	switch runtime.GOOS {
 	case "windows":
 		if t.Name == "msvc" || t.Name == "clang-cl" || t.Name == "clang" {
-			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(t.abspath))
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", filepath.ToSlash(t.abspath))
 		}
 
 	case "linux":
 		if t.Path == "/usr/bin" {
-			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", "/usr/bin")
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", "/usr/bin")
 		} else {
 			if strings.HasPrefix(t.Url, "file:///") {
-				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", t.abspath)
+				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", t.abspath)
 			} else {
-				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
+				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", fileio.ToRelPath(t.abspath))
 			}
 		}
 	}
