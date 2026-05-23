@@ -199,9 +199,9 @@ func CheckIfRefMatches(ctx context.Context, nameVersion, repoDir, expectedRef st
 
 	expectedRef = strings.TrimSpace(expectedRef)
 	if expectedRef != "" {
-		expectedCommit, err := RevParseRepoRef(ctx, nameVersion, repoDir, expectedRef)
-		if err != nil {
-			return "", fmt.Errorf("failed to resolve git ref %q for %s -> %w", expectedRef, nameVersion, err)
+		expectedCommit, parseErr := RevParseRepoRef(ctx, nameVersion, repoDir, expectedRef)
+		if parseErr != nil {
+			return "", fmt.Errorf("failed to resolve git ref %q for %s -> %w", expectedRef, nameVersion, parseErr)
 		}
 		if currentCommit == expectedCommit {
 			return "", nil
