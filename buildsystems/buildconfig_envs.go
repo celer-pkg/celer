@@ -107,19 +107,22 @@ func (b *BuildConfig) setupEnvs() {
 
 	tmpDevDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
 
-	// Set ACLOCAL_PATH for ports that rely on macros.
-	if slices.ContainsFunc(b.DevDependencies, func(element string) bool {
-		return strings.HasPrefix(element, "macros@")
-	}) {
-		joined := env.JoinPaths("ACLOCAL_PATH", filepath.Join(tmpDevDir, "share", "aclocal"))
-		b.envBackup.setenv("ACLOCAL_PATH", joined)
+	// Set ACLOCAL_PATH for aclocal to find third-party m4 files
+	// (e.g. libtool.m4 from libtool, xorg-macros.m4 from macros).
+	aclocalDir := filepath.Join(tmpDevDir, "share", "aclocal")
+	if fileio.PathExists(aclocalDir) {
+		aclocalDirs := env.JoinPaths("ACLOCAL_PATH", aclocalDir)
+		b.envBackup.setenv("ACLOCAL_PATH", aclocalDirs)
 	}
 
-	if slices.ContainsFunc(b.DevDependencies, func(element string) bool {
-		return strings.HasPrefix(element, "libtool@")
-	}) {
-		joined := env.JoinPaths("ACLOCAL_PATH", filepath.Join(tmpDevDir, "share", "aclocal"))
-		b.envBackup.setenv("ACLOCAL_PATH", joined)
+	// Set AUTOCONF for automake's macro tracing.
+	// automake uses $ENV{AUTOCONF} || ':' to trace macros, and the default ':'
+	// produces no output, causing "no proper invocation of AM_INIT_AUTOMAKE" errors.
+	// Only set when not explicitly configured (e.g. AUTOCONF=: in port.toml to skip
+	// regenerating shipped files).
+	autoconfBin := filepath.Join(tmpDevDir, "bin", "autoconf")
+	if os.Getenv("AUTOCONF") == "" && fileio.PathExists(autoconfBin) {
+		b.envBackup.setenv("AUTOCONF", autoconfBin)
 	}
 
 	// Expose dev/bin and python venv bin to PATH.
