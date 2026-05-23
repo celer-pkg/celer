@@ -265,32 +265,36 @@ func (p Port) doInstallFromSource() error {
 		pkgCache             = p.ctx.PkgCache()
 	)
 	if !p.MatchedConfig.DevDep && !p.MatchedConfig.HostDev {
-		// Only write cache from a clean source tree before applying patches.
-		// This keeps patch-applied dirty repos eligible, but skips developer-modified repos.
-		modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
-		if err != nil {
-			return err
-		}
-		if modified {
-			statusSummary, err := git.StatusSummary(p.MatchedConfig.PortConfig.RepoDir, 3)
+		if p.ctx.Offline() {
+			skipStoreCacheReason = "skip storing package cache for %s: offline mode"
+		} else {
+			// Only write cache from a clean source tree before applying patches.
+			// This keeps patch-applied dirty repos eligible, but skips developer-modified repos.
+			modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
 			if err != nil {
 				return err
 			}
-			skipStoreCacheReason = "skip storing package cache for %s: source repo is dirty before build"
-			if statusSummary != "" {
-				skipStoreCacheReason += ": " + statusSummary
-			}
-		} else {
-			// Only repos that match the configured source ref can store package cache.
-			if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
-				repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
-				mismatchDetails, err := git.CheckIfRefMatches(p.ctx, p.NameVersion(), p.MatchedConfig.PortConfig.RepoDir, repoRef)
+			if modified {
+				statusSummary, err := git.StatusSummary(p.MatchedConfig.PortConfig.RepoDir, 3)
 				if err != nil {
-					return fmt.Errorf("failed to check if ref matches for %s -> %w", p.NameVersion(), err)
+					return err
 				}
+				skipStoreCacheReason = "skip storing package cache for %s: source repo is dirty before build"
+				if statusSummary != "" {
+					skipStoreCacheReason += ": " + statusSummary
+				}
+			} else {
+				// Only repos that match the configured source ref can store package cache.
+				if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
+					repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
+					mismatchDetails, err := git.CheckIfRefMatches(p.ctx, p.NameVersion(), p.MatchedConfig.PortConfig.RepoDir, repoRef)
+					if err != nil {
+						return fmt.Errorf("failed to check if ref matches for %s -> %w", p.NameVersion(), err)
+					}
 
-				if mismatchDetails != "" {
-					skipStoreCacheReason = "skip storing package cache for %s: " + mismatchDetails
+					if mismatchDetails != "" {
+						skipStoreCacheReason = "skip storing package cache for %s: " + mismatchDetails
+					}
 				}
 			}
 		}
