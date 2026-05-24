@@ -62,20 +62,20 @@ namespace = "x264"
 
 # Linux static library configuration
 [linux_static]
-filename = "libx264.a"  # Library filename
+  filename = "libx264.a"  # Library filename
 
 # Linux shared library configuration
 [linux_shared]
-filename = "libx264.so.164"  # Actual filename (with version)
-soname = "libx264.so"        # Symbol link name (SONAME)
+  filename = "libx264.so.164"  # Actual filename (with version)
+  soname = "libx264.so"        # Symbol link name (SONAME)
 
 [windows_static]
-filename = "x264.lib"
+  filename = "x264.lib"
 
 # Windows shared library configuration
 [windows_shared]
-filename = "libx264-164.dll"  # DLL filename
-impname = "libx264.lib"       # Import library name (.lib)
+  filename = "libx264-164.dll"  # DLL filename
+  impname = "libx264.lib"       # Import library name (.lib)  
 ```
 
 **Field Descriptions:**
@@ -142,20 +142,20 @@ namespace = "FFmpeg"
 [linux]
 # avutil component - Basic utility library (no dependencies)
 [[linux.components]]
-component = "avutil"                    # Component name
-filename = "libavutil.so.55"            # Lib filename
-dependencies = []                       # No dependencies
+  component = "avutil"                    # Component name
+  filename = "libavutil.so.55"            # Lib filename
+  dependencies = []                       # No dependencies
 
 # avcodec component - Codec library (depends on avutil)
 [[linux.components]]
-component = "avcodec"
-filename = "libavcodec.so.57"
-dependencies = ["avutil"]              # Depends on avutil
+  component = "avcodec"
+  filename = "libavcodec.so.57"
+  dependencies = ["avutil"]              # Depends on avutil
 
 [[linux.components]]
-component = "avdevice"
-filename = "libavdevice.so.57"
-dependencies = ["avformat", "avutil"]
+  component = "avdevice"
+  filename = "libavdevice.so.57"
+  dependencies = ["avformat", "avutil"]
 
 [[linux.components]]
 ...
@@ -183,14 +183,14 @@ Finally, you can use it in your cmake project as follows:
 ```cmake
 find_package(FFmpeg REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    FFmpeg::avutil
-    FFmpeg::avcodec
-    FFmpeg::avdevice
-    FFmpeg::avfilter
-    FFmpeg::avformat
-    FFmpeg::postproc
-    FFmpeg::swresample
-    FFmpeg::swscale
+  FFmpeg::avutil
+  FFmpeg::avcodec
+  FFmpeg::avdevice
+  FFmpeg::avfilter
+  FFmpeg::avformat
+  FFmpeg::postproc
+  FFmpeg::swresample
+  FFmpeg::swscale
 )
 ```
 
@@ -207,13 +207,13 @@ prebuilt-ffmpeg
 
 ```toml
 [package]
-ref = "5.1.6"
+  ref = "5.1.6"
 
 [[build_configs]]
-url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
-system_name = "linux"
-system_processor = "x86_64"
-build_system = "prebuilt"
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
+  system_name = "linux"
+  system_processor = "x86_64"
+  build_system = "prebuilt"
 ```
 
 ```toml
@@ -221,18 +221,18 @@ namespace = "FFmpeg"
 
 [linux]
 filenames = [
-    "libavutil.so.57",
-    "libavcodec.so.59",
-    "libavdevice.so.59",
-    "libavfilter.so.8",
-    "libavformat.so.59",
-    "libpostproc.so.56",
-    "libswresample.so.4",
-    "libswscale.so.6",
+  "libavutil.so.57",
+  "libavcodec.so.59",
+  "libavdevice.so.59",
+  "libavfilter.so.8",
+  "libavformat.so.59",
+  "libpostproc.so.56",
+  "libswresample.so.4",
+  "libswscale.so.6",
 ]
 
 [windows]
-filenames = [
+  filenames = [
     "avutil.lib",
     "avcodec.lib",
     "avdevice.lib",
@@ -241,7 +241,7 @@ filenames = [
     "postproc.lib",
     "swresample.lib",
     "swscale.lib",
-]
+  ]
 ```
 
 > 💡 **Tip**: For Interface type, just list all the libraries that need to be linked. No need to specify components or dependencies.

@@ -201,6 +201,7 @@ func (p Port) Write(portPath string) error {
 	p.BuildConfigs = []buildsystems.BuildConfig{}
 	p.BuildConfigs = append(p.BuildConfigs, buildsystems.BuildConfig{
 		SystemName:      "",
+		SystemNames:     []string{},
 		SystemProcessor: "",
 		BuildSystem:     "",
 		BuildTools:      []string{},
@@ -363,22 +364,32 @@ func (p Port) validate() error {
 }
 
 func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
-	systemName := strings.ToLower(strings.TrimSpace(config.SystemName))
-	systemProcessor := strings.ToLower(strings.TrimSpace(config.SystemProcessor))
+	// Merge SystemNames and SystemName into a single list.
+	var systemNames []string
+	if len(config.SystemNames) > 0 {
+		systemNames = config.SystemNames
+	} else {
+		systemNames = []string{config.SystemName}
+	}
 
+	// Trim whitespace from system names and processor.
+	systemProcessor := strings.ToLower(strings.TrimSpace(config.SystemProcessor))
 	currentName := strings.ToLower(p.currentSystemName())
 	currentProcessor := strings.ToLower(p.currentSystemProcessor())
 
-	// No system constraints means this config is global (all platforms).
-	if systemName == "" && systemProcessor == "" {
-		return true
-	}
-	if systemName != "" && systemName != currentName {
-		return false
-	}
+	// Compare system processor if specified.
 	if systemProcessor != "" && systemProcessor != currentProcessor {
 		return false
 	}
+
+	// Compare system names if specified.
+	for _, systemName := range systemNames {
+		systemName = strings.ToLower(strings.TrimSpace(systemName))
+		if systemName != "" && systemName != currentName {
+			return false
+		}
+	}
+
 	return true
 }
 
