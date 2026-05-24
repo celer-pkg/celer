@@ -365,32 +365,37 @@ func (p Port) validate() error {
 
 func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 	// Merge SystemNames and SystemName into a single list.
-	var systemNames []string
+	var targetSystemNames []string
 	if len(config.SystemNames) > 0 {
-		systemNames = config.SystemNames
-	} else {
-		systemNames = []string{config.SystemName}
+		targetSystemNames = config.SystemNames
+	} else if config.SystemName != "" {
+		targetSystemNames = []string{config.SystemName}
 	}
 
 	// Trim whitespace from system names and processor.
-	systemProcessor := strings.ToLower(strings.TrimSpace(config.SystemProcessor))
-	currentName := strings.ToLower(p.currentSystemName())
+	targetSystemProcessor := strings.ToLower(strings.TrimSpace(config.SystemProcessor))
+	currentSystemName := strings.ToLower(p.currentSystemName())
 	currentProcessor := strings.ToLower(p.currentSystemProcessor())
 
 	// Compare system processor if specified.
-	if systemProcessor != "" && systemProcessor != currentProcessor {
+	if targetSystemProcessor != "" && targetSystemProcessor != currentProcessor {
 		return false
 	}
 
-	// Compare system names if specified.
-	for _, systemName := range systemNames {
-		systemName = strings.ToLower(strings.TrimSpace(systemName))
-		if systemName != "" && systemName != currentName {
-			return false
+	// No target system name specified indicates that
+	// system name is not a factor for matching, so consider it a match.
+	if len(targetSystemNames) == 0 {
+		return true
+	} else {
+		// Compare system names if specified.
+		for _, targetSystemName := range targetSystemNames {
+			targetSystemName = strings.ToLower(strings.TrimSpace(targetSystemName))
+			if targetSystemName != "" && targetSystemName == currentSystemName {
+				return true
+			}
 		}
+		return false
 	}
-
-	return true
 }
 
 func (p Port) currentSystemName() string {
