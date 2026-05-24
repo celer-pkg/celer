@@ -27,8 +27,8 @@ These are injected after platform loading.
 | `${SYSTEM_NAME}` | platform toolchain metadata | System selector variable used by configs. |
 | `${SYSTEM_PROCESSOR}` | `toolchain.system_processor` | CPU architecture selector. |
 | `${CROSSTOOL_PREFIX}` | `toolchain.crosstool_prefix` | Prefix for toolchain executables. |
-| `${TOOLCHAIN_DIR}` | toolchain root dir | Toolchain root directory used by platform expression expansion. |
-| `${SYSROOT_DIR}` | `rootfs` | Available only when rootfs is configured. |
+| `${TOOLCHAIN}` | toolchain root dir | Toolchain root directory used by platform expression expansion. |
+| `${SYSROOT}` | `rootfs` | Available only when rootfs is configured. |
 
 ## Optional Global Variables
 

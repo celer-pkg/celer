@@ -125,32 +125,31 @@ func (b b2) Configure(options []string) error {
 		}
 
 		// Determine whether the toolchain is Clang.
+		// In windows, "clang-cl" is not a real clang toolchain, it's a wrapper of MSVC.
 		isClang := strings.Contains(toolchain.GetName(), "clang") && toolchain.GetName() != "clang-cl"
+		isQNX := toolchain.GetName() == "qcc"
 
 		var buffer bytes.Buffer
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			line := scanner.Text()
 			if strings.Contains(line, "using gcc ;") {
-				// For Clang, use "using clang" instead of "using gcc".
-				if isClang {
+				switch {
+				case isQNX:
+					buffer.WriteString(line + "\n")
+					buffer.WriteString(b.formatUsingToolset("qcc", toolchainVersion, cxx) + "\n")
+					continue
+				case isClang:
 					toolchainRoot := filepath.Dir(toolchain.GetAbsDir())
-
-					// Detect platform-specific subdirectory dynamically.
-					// LLVM distributes platform-specific files in subdirectories like:
-					// - include/<triple>/c++/v1/ (for __config_site)
-					// - lib/<triple>/ (for libc++.so)
-					// Common triples: x86_64-unknown-linux-gnu, aarch64-unknown-linux-gnu, etc.
 					platformTriple, err := b.detectPlatformTriple(toolchainRoot)
 					if err != nil {
-						return fmt.Errorf("failed to detect platform triple: %v", err)
+						return fmt.Errorf("failed to detect platform triple: %w", err)
 					}
 
 					libcxxInclude := filepath.Join(toolchainRoot, "include", "c++", "v1")
 					platformInclude := filepath.Join(toolchainRoot, "include", platformTriple, "c++", "v1")
 					platformLib := filepath.Join(toolchainRoot, "lib", platformTriple)
 
-					// Clang requires explicit libc++ configuration.
 					var compilerCmd string
 					if b.Ctx.CCacheEnabled() {
 						compilerCmd = fmt.Sprintf(`"ccache" "%s"`, filepath.ToSlash(cxx))
@@ -158,7 +157,6 @@ func (b b2) Configure(options []string) error {
 						compilerCmd = fmt.Sprintf(`"%s"`, filepath.ToSlash(cxx))
 					}
 
-					// Add both libc++ include paths and link flags with correct library path.
 					compilerOptions := fmt.Sprintf(`<cxxflags>"-stdlib=libc++ -isystem %s -isystem %s" <linkflags>"-stdlib=libc++ -L%s"`,
 						filepath.ToSlash(libcxxInclude), filepath.ToSlash(platformInclude), filepath.ToSlash(platformLib))
 					if toolchainVersion != "" {
@@ -166,38 +164,15 @@ func (b b2) Configure(options []string) error {
 					} else {
 						line = fmt.Sprintf(`using clang : : %s : %s ;`, compilerCmd, compilerOptions)
 					}
-				} else {
-					// For GCC, keep using "using gcc".
-					if toolchainVersion != "" {
-						if b.Ctx.CCacheEnabled() {
-							line = fmt.Sprintf(`using gcc : %s : "ccache" "%s" ;`, toolchainVersion, filepath.ToSlash(cxx))
-						} else {
-							line = fmt.Sprintf(`using gcc : %s : "%s" ;`, toolchainVersion, filepath.ToSlash(cxx))
-						}
-					} else {
-						if b.Ctx.CCacheEnabled() {
-							line = fmt.Sprintf(`using gcc : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
-						} else {
-							line = fmt.Sprintf(`using gcc : : "%s" ;`, filepath.ToSlash(cxx))
-						}
-					}
+				default:
+					line = b.formatUsingToolset("gcc", toolchainVersion, cxx)
 				}
 			} else if strings.Contains(line, "using msvc ;") || strings.Contains(line, "using clang-win") {
 				switch toolchain.GetName() {
 				case "clang-cl":
-					if b.Ctx.CCacheEnabled() {
-						line = fmt.Sprintf(`using clang-win : : "ccache" "%s" ;`, filepath.ToSlash(cxx))
-					} else {
-						line = fmt.Sprintf(`using clang-win : : "%s" ;`, filepath.ToSlash(cxx))
-					}
-
+					line = b.formatUsingToolset("clang-win", "", cxx)
 				case "msvc":
-					if b.Ctx.CCacheEnabled() {
-						line = fmt.Sprintf(`using msvc : %s : "ccache" "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
-					} else {
-						line = fmt.Sprintf(`using msvc : %s : "%s" ;`, b.msvcVersion(), filepath.ToSlash(cxx))
-					}
-
+					line = b.formatUsingToolset("msvc", b.msvcVersion(), cxx)
 				default:
 					return fmt.Errorf("unsupported toolchain: %s for b2", toolchain.GetName())
 				}
@@ -219,7 +194,7 @@ func (b b2) buildOptions() ([]string, error) {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	toolchainName := toolchain.GetName()
 
-	// Set build toolset.
+	// Set build toolset with version for cross-compilation.
 	var toolsetName string
 	switch toolchainName {
 	case "msvc":
@@ -235,8 +210,6 @@ func (b b2) buildOptions() ([]string, error) {
 	default:
 		return nil, fmt.Errorf("unsupported toolchain: %s for b2", toolchain.GetName())
 	}
-
-	// Set build toolset with version for cross-compilation.
 	rootfs := b.Ctx.RootFS()
 	if !b.DevDep && rootfs != nil {
 		options = append(options, "toolset="+toolsetName+"-"+toolchain.GetVersion())
@@ -244,13 +217,16 @@ func (b b2) buildOptions() ([]string, error) {
 		options = append(options, "toolset="+toolsetName)
 	}
 
+	// Set target-os and architecture for QNX.
+	isQNX := toolchainName == "qcc"
+	if isQNX {
+		options = append(options, "target-os=qnxnto")
+	}
+
 	// Set compiler and linker flags for cross-compilation.
 	if !b.DevDep && rootfs != nil {
 		sysroot := rootfs.GetAbsDir()
-		// Only use sysroot for GCC, not for Clang.
-		// Clang uses its own runtime libraries from the LLVM package.
-		if sysroot != "" && !strings.Contains(toolchain.GetName(), "clang") {
-			// Add sysroot to both C and C++ compiler flags, and linker flags.
+		if sysroot != "" && !strings.Contains(toolchain.GetName(), "clang") && !isQNX {
 			options = append(options, fmt.Sprintf(`cflags="--sysroot=%s"`, sysroot))
 			options = append(options, fmt.Sprintf(`cxxflags="--sysroot=%s"`, sysroot))
 			options = append(options, fmt.Sprintf(`linkflags="--sysroot=%s"`, sysroot))
@@ -312,8 +288,8 @@ func (b b2) buildOptions() ([]string, error) {
 		}
 	}
 
-	// Note: `threading=multi` will make boost link pthread in linux.
-	// In embedded system, `threading=multi` is not supported,
+	// Note: `threading=multi` is the default config for boost.
+	// In embedded system, if `threading=multi` is not supported,
 	// then you can set `threading=single` in port.toml.
 	if !slices.ContainsFunc(b.Options, func(opt string) bool {
 		return strings.HasPrefix(opt, "threading=")
@@ -391,7 +367,7 @@ func (b b2) detectPlatformTriple(toolchainRoot string) (string, error) {
 	includePath := filepath.Join(toolchainRoot, "include")
 	entries, err := os.ReadDir(includePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to read include directory: %v", err)
+		return "", fmt.Errorf("failed to read include directory: %w", err)
 	}
 
 	// Find the first subdirectory that contains c++/v1/__config_site
@@ -405,4 +381,17 @@ func (b b2) detectPlatformTriple(toolchainRoot string) (string, error) {
 	}
 
 	return "", fmt.Errorf("could not find platform-specific subdirectory with __config_site")
+}
+
+func (b b2) formatUsingToolset(toolset, version, cxx string) string {
+	var compilerCmd string
+	if b.Ctx.CCacheEnabled() {
+		compilerCmd = fmt.Sprintf(`"ccache" "%s"`, filepath.ToSlash(cxx))
+	} else {
+		compilerCmd = fmt.Sprintf(`"%s"`, filepath.ToSlash(cxx))
+	}
+	if version != "" {
+		return fmt.Sprintf(`using %s : %s : %s ;`, toolset, version, compilerCmd)
+	}
+	return fmt.Sprintf(`using %s : : %s ;`, toolset, compilerCmd)
 }

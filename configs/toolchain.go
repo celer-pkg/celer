@@ -9,7 +9,6 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/env"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -34,7 +33,9 @@ type Toolchain struct {
 	CC  string `toml:"cc"`  // C language compiler.
 	CXX string `toml:"cxx"` // C++ language compiler.
 
-	// Optional compiler target triplets for toolchains that require explicit target selection.
+	// Compiler target triplets for multi-target compiler drivers (e.g. qcc).
+	// CMake maps these to CMAKE_C/CXX_COMPILER_TARGET, which translates to -V flags.
+	// Required when the compiler driver defaults to a different architecture
 	CCompilerTarget   string `toml:"c_compiler_target,omitempty"`
 	CXXCompilerTarget string `toml:"cxx_compiler_target,omitempty"`
 
@@ -127,7 +128,7 @@ func (t Toolchain) effectiveFlags(buildType string) (cflags, cxxflags, linkflags
 func (t Toolchain) generate(toolchain *strings.Builder) error {
 	writeIfNotEmpty := func(key, value string) {
 		if value != "" {
-			fmt.Fprintf(toolchain, "set(%s %q)\n", key, "${TOOLCHAIN_DIR}/"+value)
+			fmt.Fprintf(toolchain, "set(%s %q)\n", key, "${TOOLCHAIN}/"+value)
 		}
 	}
 	appendFlags := func(key string, flags []string, indent string) {
@@ -151,7 +152,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
 
 	fmt.Fprintf(toolchain, "\n# ============== Cross-compile target system ============== #\n")
-	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", expr.UpperFirst(t.SystemName))
+	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", t.cmakeSystemName())
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
 
 	fmt.Fprintf(toolchain, "\n# ============== Cross-compile toolchain ============== #\n")
@@ -159,23 +160,23 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	switch runtime.GOOS {
 	case "windows":
 		if t.Name == "msvc" || t.Name == "clang-cl" || t.Name == "clang" {
-			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", filepath.ToSlash(t.abspath))
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", filepath.ToSlash(t.abspath))
 		}
 
 	case "linux":
 		if t.Path == "/usr/bin" {
-			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", "/usr/bin")
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", "/usr/bin")
 		} else {
 			if strings.HasPrefix(t.Url, "file:///") {
-				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", t.abspath)
+				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", t.abspath)
 			} else {
-				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN_DIR", fileio.ToRelPath(t.abspath))
+				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", fileio.ToRelPath(t.abspath))
 			}
 		}
 	}
 
-	writeIfNotEmpty("CMAKE_C_COMPILER", t.CC)
-	writeIfNotEmpty("CMAKE_CXX_COMPILER", t.CXX)
+	writeIfNotEmpty("CMAKE_C_COMPILER", strings.Split(t.CC, " ")[0])
+	writeIfNotEmpty("CMAKE_CXX_COMPILER", strings.Split(t.CXX, " ")[0])
 	writeIfNotEmpty("CMAKE_AR", t.AR)
 	writeIfNotEmpty("CMAKE_LINKER", t.LD)
 
@@ -200,16 +201,24 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 
 		// For clang, if using lld, add LLVM runtime library flags to linker.
 		if t.Name == "clang" && t.LD != "" && strings.Contains(t.LD, "lld") {
-			// Use LLVM's libc++ for C++ standard library.
 			fmt.Fprint(toolchain, "\n# Use LLVM lld linker, compiler-rt runtime and libc++ for clang.\n")
 			fmt.Fprintf(toolchain, `string(APPEND CMAKE_CXX_FLAGS_INIT " -stdlib=libc++")`+"\n")
 
-			// These flags are only needed during linking, if we set them in CMAKE_C_FLAGS_INIT,
-			// they may cause warnings during compilation.
 			fmt.Fprintf(toolchain, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind")`+"\n")
 			fmt.Fprintf(toolchain, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind")`+"\n")
 			fmt.Fprintf(toolchain, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind")`+"\n")
 		}
+
+	case "qcc":
+		writeIfNotEmpty("CMAKE_NM", t.NM)
+		writeIfNotEmpty("CMAKE_RANLIB", t.RANLIB)
+		writeIfNotEmpty("CMAKE_OBJDUMP", t.OBJDUMP)
+		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
+
+		fmt.Fprint(toolchain, "\n# QNX cross-compile settings.\n")
+		qnxTarget := fileio.ToRelPath(filepath.Join(t.GetRootDir(), "target/qnx"))
+		fmt.Fprintf(toolchain, "set(CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES %q)\n", filepath.Join(qnxTarget, "usr/include"))
+		fmt.Fprintf(toolchain, "set(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES %q)\n", filepath.Join(qnxTarget, "usr/include"))
 
 	case "msvc", "clang-cl":
 		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
@@ -455,9 +464,39 @@ func (t Toolchain) GetCrosstoolPrefixPath() string {
 	return filepath.Join(t.abspath, t.CrosstoolPrefix)
 }
 
-func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
-	// crosstool prefix maybe empty for msvc in windows.
+func (t Toolchain) cmakeSystemName() string {
+	switch strings.ToLower(t.SystemName) {
+	case "windows":
+		return "Windows"
+	case "linux":
+		return "Linux"
+	case "android":
+		return "Android"
+	case "qnx":
+		return "QNX"
+	default:
+		panic("unsupported operation system: " + t.SystemName)
+	}
+}
+
+func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs []string) {
 	crosstoolPrefix := t.GetCrosstoolPrefix()
+	cc := t.GetCC()
+	cxx := t.GetCXX()
+
+	// Capture CC/CXX from portEnvs if they are set.
+	for _, env := range portEnvs {
+		if before, after, ok := strings.Cut(env, "="); ok {
+			switch strings.TrimSpace(before) {
+			case "CC":
+				cc = strings.TrimSpace(after)
+			case "CXX":
+				cxx = strings.TrimSpace(after)
+			}
+		}
+	}
+
+	// cross tool prefix maybe empty for msvc in windows.
 	if crosstoolPrefix != "" {
 		os.Setenv("CROSSTOOL_PREFIX", crosstoolPrefix)
 	}
@@ -468,56 +507,58 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {
 		return
 	}
 
+	var ccFlags, cxxFlags []string
 	if t.ctx.CCacheEnabled() {
 		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables,
 		// because MSYS2 shell cannot handle "ccache cl.exe" as a command.
 		if runtime.GOOS == "windows" && (t.GetName() == "msvc" || t.GetName() == "clang-cl") && buildsystem == "makefiles" {
-			os.Setenv("CC", t.GetCC())
-			os.Setenv("CXX", t.GetCXX())
+			os.Setenv("CC", cc)
+			os.Setenv("CXX", cxx)
 		} else {
+			ccFlags = append(ccFlags, "ccache", cc)
+			cxxFlags = append(cxxFlags, "ccache", cxx)
+
 			if rootfs != nil {
-				sysrootDir := rootfs.GetAbsDir()
-				ccFlags := " --sysroot=" + sysrootDir
-				cxxFlags := ccFlags
+				ccFlags = append(ccFlags, "--sysroot="+rootfs.GetAbsDir())
+				cxxFlags = append(cxxFlags, "--sysroot="+rootfs.GetAbsDir())
 
 				// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
 				if t.GetName() == "clang" {
-					ccFlags += " --gcc-toolchain=/usr"
-					cxxFlags += " --gcc-toolchain=/usr"
+					ccFlags = append(ccFlags, "--gcc-toolchain=/usr")
+					cxxFlags = append(cxxFlags, "--gcc-toolchain=/usr")
 				}
 
 				// For clang with lld, add LLVM runtime library flags.
 				if t.GetName() == "clang" && strings.Contains(t.GetLD(), "lld") {
-					ccFlags += " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
-					cxxFlags += " -stdlib=libc++ -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
+					ccFlags = append(ccFlags, "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
+					cxxFlags = append(cxxFlags, "-stdlib=libc++", "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
 				}
-				os.Setenv("CC", "ccache "+t.GetCC()+ccFlags)
-				os.Setenv("CXX", "ccache "+t.GetCXX()+cxxFlags)
-			} else {
-				os.Setenv("CC", "ccache "+t.GetCC())
-				os.Setenv("CXX", "ccache "+t.GetCXX())
 			}
+			os.Setenv("CC", strings.Join(ccFlags, " "))
+			os.Setenv("CXX", strings.Join(cxxFlags, " "))
 		}
 	} else {
+		ccFlags = append(ccFlags, cc)
+		cxxFlags = append(cxxFlags, cxx)
+
 		if rootfs != nil {
-			sysrootDir := rootfs.GetAbsDir()
-			ccFlags := " --sysroot=" + sysrootDir
-			cxxFlags := ccFlags
+			ccFlags = append(ccFlags, "--sysroot="+rootfs.GetAbsDir())
+			cxxFlags = append(cxxFlags, "--sysroot="+rootfs.GetAbsDir())
 
 			// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
 			if t.GetName() == "clang" {
-				ccFlags += " --gcc-toolchain=/usr"
-				cxxFlags += " --gcc-toolchain=/usr"
+				ccFlags = append(ccFlags, "--gcc-toolchain=/usr")
+				cxxFlags = append(cxxFlags, "--gcc-toolchain=/usr")
 			}
 
 			// For clang with lld, add LLVM runtime library flags.
 			if t.GetName() == "clang" && strings.Contains(t.GetLD(), "lld") {
-				ccFlags += " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
-				cxxFlags += " -stdlib=libc++ -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind"
+				ccFlags = append(ccFlags, "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
+				cxxFlags = append(cxxFlags, "-stdlib=libc++", "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
 			}
-			os.Setenv("CC", t.GetCC()+ccFlags)
-			os.Setenv("CXX", t.GetCXX()+cxxFlags)
 		}
+		os.Setenv("CC", strings.Join(ccFlags, " "))
+		os.Setenv("CXX", strings.Join(cxxFlags, " "))
 	}
 
 	if t.GetAS() != "" {
@@ -584,6 +625,14 @@ func (t Toolchain) ClearEnvs() {
 	os.Unsetenv("LIBPATH")
 	os.Unsetenv("VSINSTALLDIR")
 	os.Unsetenv("VCINSTALLDIR")
+
+	// Clear toolchain-defined envs that must not leak into host-side dev builds.
+	for _, item := range t.Envs {
+		parts := strings.Split(item, "=")
+		if len(parts) >= 2 {
+			os.Unsetenv(parts[0])
+		}
+	}
 }
 
 type WindowsKit struct {

@@ -151,7 +151,7 @@ func (m meson) Configure(options []string) error {
 	if m.DevDep && (toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cli") {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, m.Name())
+		toolchain.SetEnvs(rootfs, m.Name(), m.Envs)
 	}
 
 	// Create build dir if not exists.

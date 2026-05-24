@@ -101,7 +101,7 @@
 | `c_compiler_target` | ❌ | 传递给 CMake 的 C 编译器 target 变体（`CMAKE_C_COMPILER_TARGET`） | `gcc_ntoaarch64le` |
 | `cxx_compiler_target` | ❌ | 传递给 CMake 的 C++ 编译器 target 变体（`CMAKE_CXX_COMPILER_TARGET`） | `gcc_ntoaarch64le_cxx` |
 | `envs` | ❌ | 工具链额外环境变量（适用于需要运行时环境的工具链，例如 QNX） | `["QNX_CONFIGURATION=/dir/of/qnx/license"]` |
-| `cflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_C_FLAGS_INIT` 的 C 编译参数 | `["-fPIC", "--sysroot=${SYSROOT_DIR}"]` |
+| `cflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_C_FLAGS_INIT` 的 C 编译参数 | `["-fPIC", "--sysroot=${SYSROOT}"]` |
 | `cxxflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_CXX_FLAGS_INIT` 的 C++ 编译参数 | `["-fPIC", "-stdlib=libc++"]` |
 | `linkflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_EXE/SHARED/MODULE_LINKER_FLAGS_INIT` 的链接参数 | `["-Wl,--as-needed"]` |
 | `cflags_debug` | ❌ | 当 `build_type=debug` 时优先使用的 C 编译参数；未配置时回退到 `cflags` | `["-O0", "-g3"]` |
@@ -191,9 +191,8 @@
   c_compiler_target = "gcc_ntoaarch64le"
   cxx_compiler_target = "gcc_ntoaarch64le_cxx"
   envs = [
-    "QNX_CONFIGURATION=${TOOLCHAIN_DIR}/.qnx",
-    "QNX_CONFIGURATION_EXCLUSIVE=${TOOLCHAIN_DIR}/.qnx",
-    "MAKEFLAGS=${TOOLCHAIN_DIR}/target/qnx/usr/include",
+    "QNX_CONFIGURATION=${TOOLCHAIN}/.qnx",
+    "QNX_CONFIGURATION_EXCLUSIVE=${TOOLCHAIN}/.qnx",
   ]
 ```
 

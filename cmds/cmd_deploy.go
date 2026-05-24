@@ -40,9 +40,9 @@ for reproducible builds using the --snapshot flag.`,
 
 			// Display deployment header.
 			color.Println(color.Title, "=======================================================================")
-			color.Println(color.Title, "🚀 start to deploy with below configurations: ")
-			color.Printf(color.Title, "🛠️  platform: %s\n", platformName)
-			color.Printf(color.Title, "🛠️  project : %s\n", projectName)
+			color.Printf(color.Title, "🚀 start to deploy:\n")
+			color.Printf(color.Title, "📌 platform: %s\n", platformName)
+			color.Printf(color.Title, "📌 project: %s\n", projectName)
 			color.Println(color.Title, "=======================================================================")
 
 			// Check circular dependency and version conflict.

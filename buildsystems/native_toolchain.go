@@ -1,9 +1,10 @@
 package buildsystems
 
 import (
+	"runtime"
+
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/expr"
-	"runtime"
 )
 
 type nativeToolchain struct {
@@ -88,5 +89,5 @@ func (n nativeToolchain) GetFC() string { return "" }
 func (n nativeToolchain) GetMSVC() *context.MSVC { return n.msvc }
 
 // Environment management.
-func (t nativeToolchain) SetEnvs(rootfs context.RootFS, buildsystem string) {}
-func (t nativeToolchain) ClearEnvs()                                        {}
+func (t nativeToolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs []string) {}
+func (t nativeToolchain) ClearEnvs()                                                           {}

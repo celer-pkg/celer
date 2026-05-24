@@ -101,7 +101,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `c_compiler_target` | ❌ | C compiler target variant passed to CMake (`CMAKE_C_COMPILER_TARGET`) | `gcc_ntoaarch64le` |
 | `cxx_compiler_target` | ❌ | C++ compiler target variant passed to CMake (`CMAKE_CXX_COMPILER_TARGET`) | `gcc_ntoaarch64le_cxx` |
 | `envs` | ❌ | Extra environment variables for toolchains that require runtime env setup (for example QNX) | `["QNX_CONFIGURATION=/dir/of/qnx/license"]` |
-| `cflags` | ❌ | Appended to `CMAKE_C_FLAGS_INIT` in `toolchain_file.cmake` | `["-fPIC", "--sysroot=${SYSROOT_DIR}"]` |
+| `cflags` | ❌ | Appended to `CMAKE_C_FLAGS_INIT` in `toolchain_file.cmake` | `["-fPIC", "--sysroot=${SYSROOT}"]` |
 | `cxxflags` | ❌ | Appended to `CMAKE_CXX_FLAGS_INIT` in `toolchain_file.cmake` | `["-fPIC", "-stdlib=libc++"]` |
 | `linkflags` | ❌ | Appended to `CMAKE_EXE/SHARED/MODULE_LINKER_FLAGS_INIT` in `toolchain_file.cmake` | `["-Wl,--as-needed"]` |
 | `cflags_debug` | ❌ | C compiler flags preferred when `build_type=debug`; falls back to `cflags` when unset | `["-O0", "-g3"]` |
@@ -192,9 +192,8 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   c_compiler_target = "gcc_ntoaarch64le"
   cxx_compiler_target = "gcc_ntoaarch64le_cxx"
   envs = [
-    "QNX_CONFIGURATION=${TOOLCHAIN_DIR}/.qnx",
-    "QNX_CONFIGURATION_EXCLUSIVE=${TOOLCHAIN_DIR}/.qnx",
-    "MAKEFLAGS=${TOOLCHAIN_DIR}/target/qnx/usr/include",
+    "QNX_CONFIGURATION=${TOOLCHAIN}/.qnx",
+    "QNX_CONFIGURATION_EXCLUSIVE=${TOOLCHAIN}/.qnx",
   ]
 ```
 
