@@ -201,7 +201,7 @@ func CheckIfRefMatches(ctx context.Context, nameVersion, repoDir, expectedRef st
 	if expectedRef != "" {
 		expectedCommit, parseErr := RevParseRepoRef(ctx, nameVersion, repoDir, expectedRef)
 		if parseErr != nil {
-			return "", fmt.Errorf("failed to resolve git ref %q for %s -> %w", expectedRef, nameVersion, parseErr)
+			return "", parseErr
 		}
 		if currentCommit == expectedCommit {
 			return "", nil
@@ -353,7 +353,7 @@ func RevParseRepoRef(ctx context.Context, nameVersion, repoDir, repoRef string) 
 		if remoteName != "" {
 			// Fetch the specific remote ref to ensure we can resolve it.
 			if err := fetchRemoteRef(nameVersion, repoDir, remoteName, repoRef); err != nil {
-				return "", fmt.Errorf("git fetch ref %s failed for %s -> %w", repoRef, repoDir, err)
+				return "", err
 			}
 			if remoteCommit, err := revParseCommit(repoDir, remoteName+"/"+repoRef); err == nil {
 				return remoteCommit, nil
@@ -381,7 +381,7 @@ func revParse(repoDir, repoRef string) (string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", repoRef)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("git rev-parse %q -> %s", repoRef, output)
+		return "", fmt.Errorf("failed to git rev-parse %q -> %s", repoRef, output)
 	}
 	return strings.TrimSpace(string(output)), nil
 }
@@ -392,7 +392,7 @@ func fetchRemoteRef(nameVersion, repoDir, remoteName, refName string) error {
 	executor := cmd.NewExecutor(title, "git", "fetch", remoteName, refName)
 	executor.SetWorkDir(repoDir)
 	if err := executor.Execute(); err != nil {
-		return fmt.Errorf("git fetch ref %s failed for %s: %w", refName, repoDir, err)
+		return fmt.Errorf("failed to git fetch remote ref %s for %s -> %w", refName, nameVersion, err)
 	}
 
 	return nil
