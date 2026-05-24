@@ -17,52 +17,53 @@
 
 ```toml
 [package]
-url = "https://github.com/google/glog.git"
-ref = "v0.6.0"
-archive = ""                    # 可选字段，仅当 url 不是 git 仓库时有效
-src_dir = "xxx"                 # 可选字段
-build_tool = true|false         # 可选字段
+  url = "https://github.com/google/glog.git"
+  ref = "v0.6.0"
+  archive = ""                    # 可选字段，仅当 url 不是 git 仓库时有效
+  src_dir = "xxx"                 # 可选字段
+  build_tool = true|false         # 可选字段
 
 [[build_configs]]
-system_name = "linux"           # 可选选择器
-system_processor = "x86_64"     # 可选选择器
-build_system = "cmake"          # 必填字段，可选值：cmake、makefiles、b2、meson 等
-cmake_generator = []            # 可选字段
-build_tools = []                # 可选字段
-library_type = "shared"         # 可选字段，默认 shared，可选 static
-build_shared = "--with-shared"  # 可选字段
-build_static = "--with-static"  # 可选字段
-c_standard = "c99"              # 可选字段
-cxx_standard = "cxx17"          # 可选字段
-envs = []                       # 可选字段
-patches = []                    # 可选字段
-build_in_source = false         # 可选字段，默认 false
-autogen_options = []            # 可选字段
-pre_configure = []              # 可选字段
-post_configure = []             # 可选字段
-pre_build = []                  # 可选字段
-options = []                    # 可选字段
-fix_build = []                  # 可选字段
-post_build = []                 # 可选字段
-pre_install = []                # 可选字段
-post_install = []               # 可选字段
-dependencies = []               # 可选字段
-dev_dependencies = []           # 可选字段
+  system_name = "linux"           # 可选选择器
+  system_names = ["linux", "windows"]  # 可选选择器
+  system_processor = "x86_64"     # 可选选择器
+  build_system = "cmake"          # 必填字段，可选值：cmake、makefiles、b2、meson 等
+  cmake_generator = []            # 可选字段
+  build_tools = []                # 可选字段
+  library_type = "shared"         # 可选字段，默认 shared，可选 static
+  build_shared = "--with-shared"  # 可选字段
+  build_static = "--with-static"  # 可选字段
+  c_standard = "c99"              # 可选字段
+  cxx_standard = "cxx17"          # 可选字段
+  envs = []                       # 可选字段
+  patches = []                    # 可选字段
+  build_in_source = false         # 可选字段，默认 false
+  autogen_options = []            # 可选字段
+  pre_configure = []              # 可选字段
+  post_configure = []             # 可选字段
+  pre_build = []                  # 可选字段
+  options = []                    # 可选字段
+  fix_build = []                  # 可选字段
+  post_build = []                 # 可选字段
+  pre_install = []                # 可选字段
+  post_install = []               # 可选字段
+  dependencies = []               # 可选字段
+  dev_dependencies = []           # 可选字段
 ```
 
 &emsp;&emsp;在 port.toml 中，只有少数字段是必填的，其他都是可选的。大多数情况下，管理一个第三方库都很简单，例如：
 
 ```toml
 [package]
-url = "https://gitlab.com/libeigen/eigen.git"
-ref = "3.4.0"
+  url = "https://gitlab.com/libeigen/eigen.git"
+  ref = "3.4.0"
 
 [[build_configs]]
-build_system = "cmake"
-options = [
+  build_system = "cmake"
+  options = [
     "-DEIGEN_TEST_NO_OPENGL=1",
     "-DBUILD_TESTING=OFF"
-]
+  ]
 ```
 
 ### 主要字段说明
@@ -82,9 +83,9 @@ options = [
 &emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **system_name/system_processor** 自动找到匹配的 **build_config** 来组装编译命令。  
 &emsp;&emsp;第三方库的编译配置通常在不同系统上会有差异。这些差异通常涉及平台特定的编译标志或甚至 entirely distinct build steps。一些库甚至需要特殊的预处理或后处理才能在 Windows 上正确编译。
 
-### 1.2.1 system_name, system_processor
+### 1.2.1 system_name, system_names, system_processor
 
-&emsp;&emsp;用于匹配 platform toolchain 中的选择器（`toolchain.system_name`、`toolchain.system_processor`）。匹配规则如下：
+&emsp;&emsp;用于匹配 platform toolchain 中的选择器（`toolchain.system_name`、`toolchain.system_names`、`toolchain.system_processor`）。匹配规则如下：
 
 | 选择器 | 描述 |
 | --- | --- |
@@ -94,6 +95,8 @@ options = [
 | `system_name = "linux"` + `system_processor = "x86_64"` | 匹配 x86_64 Linux 平台 |
 | `system_name = "linux"` + `system_processor = "aarch64"` | 匹配 aarch64 Linux 平台 |
 | `system_name = "windows"` + `system_processor = "x86_64"` | 匹配 x86_64 Windows 平台 |
+
+>Note: `system_names` 是一个数组，用于指定多个系统平台，例如：["linux", "windows"]，x264 在 Linux 和 Windows 上的配置是一样的，但 QNX 上的差别较大，因此可以通过 `system_names` 来合并 Linux 和 Windows。
 
 ### 1.2.2 build_system
 
@@ -194,23 +197,23 @@ options = [
 
 &emsp;&emsp;可选配置，默认为空，某些库可能存在代码问题导致编译失败时，可通过补丁修复源码。对于相对较小的问题（如输出文件名错误），可在 post_install 中添加修正命令；同理，若其他阶段出现文件相关问题，也可在对应步骤进行预处理或后处理调整。典型案例如 libffi 库在 Windows 上无法直接编译通过——必须通过多项预处理和后处理步骤才能使其正常工作。
 
-```
+```toml
 # =============== build for windows ============ #
 [[build_configs]]
-system_name = "windows"
-build_system = "makefiles"
-dev_dependencies = ["autoconf@2.72"]
-pre_install = [
+  system_name = "windows"
+  build_system = "makefiles"
+  dev_dependencies = ["autoconf@2.72"]
+  pre_install = [
     "cmake -E rename ${BUILD_DIR}/.libs/libffi-8.lib ${BUILD_DIR}/.libs/libffi.lib",
-]
-post_install = [
+  ]
+  post_install = [
     "cmake -E make_directory ${PACKAGE_DIR}/bin",
     "cmake -E copy ${BUILD_DIR}/.libs/libffi.lib ${PACKAGE_DIR}/lib/libffi.lib",
     "cmake -E rename ${PACKAGE_DIR}/lib/libffi-8.dll ${PACKAGE_DIR}/bin/libffi-8.dll",
-]
-options = [
+  ]
+  options = [
     "..."
-]
+  ]
 ```
 
 > 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。完整列表请参考 [动态变量](./article_expvars.md)。

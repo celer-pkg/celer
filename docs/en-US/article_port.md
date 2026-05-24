@@ -6,40 +6,41 @@
 
 Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
 
-```
+```toml
 [package]
-url                 = "https://github.com/google/glog.git"
-ref                 = "v0.6.0"
-archive             = ""                    # optional field, only works when url is not a git repo url.
-src_dir             = "xxx"                 # optional field
-build_tool          = true|false          # optional field
+  url                 = "https://github.com/google/glog.git"
+  ref                 = "v0.6.0"
+  archive             = ""                    # optional field, only works when url is not a git repo url.
+  src_dir             = "xxx"                 # optional field
+  build_tool          = true|false            # optional field
 
 [[build_configs]]
-system_name         = "linux"               # optional selector
-system_processor    = "x86_64"              # optional selector
-build_system        = "cmake"               # mandatory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
-cmake_generator     = []                    # optional field, should be "Ninja", "Unix Makefiles", "Visual Studio xxx"
-build_tools         = [...]                 # optional field
-library_type        = "shared"              # optional field, should be **shared**, **static**, and default is **shared**.
-build_shared        = "--with-shared"       # optional field
-build_static        = "--with-static"       # optional field
-c_standard          = "c99"                 # optional field
-cxx_standard        = "cxx17"               # optional field
-build_type          = "release"             # optional field, default is build_type in celer.toml
-envs                = [...]                 # optional field
-patches             = [...]                 # optional field
-build_in_source     = false                 # optional field, default is **false**
-autogen_options     = [...]                 # optional field
-pre_configure       = [...]                 # optional field
-post_configure      = [...]                 # optional field
-pre_build           = [...]                 # optional field
-options             = [...]                 # optional field
-fix_build           = [...]                 # optional field
-post_build          = [...]                 # optional field
-pre_install         = [...]                 # optional field
-post_install        = [...]                 # optional field
-dependencies        = [...]                 # optional field
-dev_dependencies    = [...]                 # optional field
+  system_name         = "linux"               # optional selector
+  system_names        = ["linux", "windows"]  # optional selector
+  system_processor    = "x86_64"              # optional selector
+  build_system        = "cmake"               # mandatory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
+  cmake_generator     = []                    # optional field, should be "Ninja", "Unix Makefiles", "Visual Studio xxx"
+  build_tools         = [...]                 # optional field
+  library_type        = "shared"              # optional field, should be **shared**, **static**, and default is **shared**.
+  build_shared        = "--with-shared"       # optional field
+  build_static        = "--with-static"       # optional field
+  c_standard          = "c99"                 # optional field
+  cxx_standard        = "cxx17"               # optional field
+  build_type          = "release"             # optional field, default is build_type in celer.toml
+  envs                = [...]                 # optional field
+  patches             = [...]                 # optional field
+  build_in_source     = false                 # optional field, default is **false**
+  autogen_options     = [...]                 # optional field
+  pre_configure       = [...]                 # optional field
+  post_configure      = [...]                 # optional field
+  pre_build           = [...]                 # optional field
+  options             = [...]                 # optional field
+  fix_build           = [...]                 # optional field
+  post_build          = [...]                 # optional field
+  pre_install         = [...]                 # optional field
+  post_install        = [...]                 # optional field
+  dependencies        = [...]                 # optional field
+  dev_dependencies    = [...]                 # optional field
 ```
 
 &emsp;&emsp;In a port.toml, there are many fields that can be configured, but actually only a few are mandatory, and the rest are optional. Most of the time, managing a third-party library is very simple, for example:
@@ -73,9 +74,9 @@ The following are fields and their descriptions:
 
 &emsp;&emsp;**build_configs** is an array to meet different compilation requirements on different platforms. Celer will automatically find the matching **build_config** according to **system_name/system_processor** to assemble the compilation command. Build configuration often varies across systems, involving platform-specific flags or distinct build steps. Some libraries require special pre-processing or post-processing to compile correctly on Windows.
 
-### 1.2.1 system_name, system_processor
+### 1.2.1 system_name, system_names, system_processor
 
-&emsp;&emsp;Used to match selectors in platform toolchain (`toolchain.system_name`, `toolchain.system_processor`). Matching rules are as follows:
+&emsp;&emsp;Used to match selectors in platform toolchain (`toolchain.system_name`, `toolchain.system_names`, `toolchain.system_processor`). Matching rules are as follows:
 
 | Selector | Description |
 | --- | --- |
@@ -85,6 +86,8 @@ The following are fields and their descriptions:
 | `system_name = "linux"` + `system_processor = "x86_64"` | Match x86_64 Linux platforms |
 | `system_name = "linux"` + `system_processor = "aarch64"` | Match aarch64 Linux platforms |
 | `system_name = "windows"` + `system_processor = "x86_64"` | Match x86_64 Windows platforms |
+
+>Note: `system_names` is an array, used to specify multiple system platforms, for example: ["linux", "windows"], x264 in Linux and Windows have the same configuration, but QNX has a significant difference, so you can use `system_names` to merge Linux and Windows.
 
 ### 1.2.2 build_system
 
@@ -187,23 +190,23 @@ When **library_type** is set to **shared**, Celer will try to read the value in 
 
 &emsp;&emsp;Optional, there are always libraries with problematic code. When compilation fails, we can provide patches to fix the source code. For relatively minor issues like incorrect output filenames, we can add corrective commands in **post_install**. Similarly, if file-related issues occur in other stages, we can apply pre-processing or post-processing adjustments at the corresponding steps. A typical example is the libffi library, which doesn't compile smoothly on Windows—various pre-and post-processing steps are required to make it work.
 
-```
+```toml
 # =============== build for windows ============ #
 [[build_configs]]
-system_name = "windows"
-build_system = "makefiles"
-dev_dependencies = ["autoconf@2.72"]
-pre_install = [
-  "cmake -E rename ${BUILD_DIR}/.libs/libffi-8.lib ${BUILD_DIR}/.libs/libffi.lib",
-]
-post_install = [
-  "cmake -E make_directory ${PACKAGE_DIR}/bin",
-  "cmake -E copy ${BUILD_DIR}/.libs/libffi.lib ${PACKAGE_DIR}/lib/libffi.lib",
-  "cmake -E rename ${PACKAGE_DIR}/lib/libffi-8.dll ${PACKAGE_DIR}/bin/libffi-8.dll",
-]
-options = [
-  "..."
-]
+  system_name = "windows"
+  build_system = "makefiles"
+  dev_dependencies = ["autoconf@2.72"]
+  pre_install = [
+    "cmake -E rename ${BUILD_DIR}/.libs/libffi-8.lib ${BUILD_DIR}/.libs/libffi.lib",
+  ]
+  post_install = [
+    "cmake -E make_directory ${PACKAGE_DIR}/bin",
+    "cmake -E copy ${BUILD_DIR}/.libs/libffi.lib ${PACKAGE_DIR}/lib/libffi.lib",
+    "cmake -E rename ${PACKAGE_DIR}/lib/libffi-8.dll ${PACKAGE_DIR}/bin/libffi-8.dll",
+  ]
+  options = [
+    "..."
+  ]
 ```
 
 > Celer provides dynamic variables that can be used in TOML files, such as **${BUILD_DIR}**, which will be replaced with the actual path during compilation. For the complete list, see [Expression Variables](./article_expvars.md).

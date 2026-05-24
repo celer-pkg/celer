@@ -98,9 +98,10 @@ type libraryType struct {
 }
 
 type BuildConfig struct {
-	Url             string `toml:"url,omitempty"` // Used to override url in package.
-	SystemName      string `toml:"system_name,omitempty"`
-	SystemProcessor string `toml:"system_processor,omitempty"`
+	Url             string   `toml:"url,omitempty"` // Used to override url in package.
+	SystemName      string   `toml:"system_name,omitempty"`
+	SystemNames     []string `toml:"system_names,omitempty"`
+	SystemProcessor string   `toml:"system_processor,omitempty"`
 
 	// Build System
 	BuildSystem         string `toml:"build_system"`

@@ -60,21 +60,21 @@ namespace = "x264"
 
 # Linux 静态库配置
 [linux_static]
-filename = "libx264.a"  # 库文件名
+  filename = "libx264.a"       # 库文件名
 
 # Linux 动态库配置
 [linux_shared]
-filename = "libx264.so.164"  # 实际文件名（带版本号）
-soname = "libx264.so"        # 符号链接名（SONAME）
+  filename = "libx264.so.164"  # 实际文件名（带版本号）
+  soname = "libx264.so"        # 符号链接名（SONAME）
 
 # Windows 静态库配置
 [windows_static]
-filename = "x264.lib"
+  filename = "x264.lib"
 
 # Windows 动态库配置
 [windows_shared]
-filename = "libx264-164.dll"  # DLL 文件名
-impname = "libx264.lib"       # 导入库名（.lib）
+  filename = "libx264-164.dll"  # DLL 文件名
+  impname = "libx264.lib"       # 导入库名（.lib）  
 ```
 
 **字段说明：**
@@ -142,20 +142,20 @@ namespace = "FFmpeg"
 [linux]
 # avutil 组件 - 基础工具库（无依赖）
 [[linux.components]]
-component = "avutil"                    # 组件名
-filename = "libavutil.so.55"            # 库文件名
-dependencies = []                       # 无依赖
+  component = "avutil"                    # 组件名
+  filename = "libavutil.so.55"            # 库文件名
+  dependencies = []                       # 无依赖
 
 # avcodec 组件 - 编解码器（依赖 avutil）
 [[linux.components]]
-component = "avcodec"
-filename = "libavcodec.so.57"
-dependencies = ["avutil"]              # 依赖 avutil
+  component = "avcodec"
+  filename = "libavcodec.so.57"
+  dependencies = ["avutil"]                # 依赖 avutil
 
 [[linux.components]]
-component = "avdevice"
-filename = "libavdevice.so.57"
-dependencies = ["avformat", "avutil"]
+  component = "avdevice"
+  filename = "libavdevice.so.57"
+  dependencies = ["avformat", "avutil"]
 
 [[linux.components]]
 ...
@@ -183,14 +183,14 @@ lib
 ```cmake
 find_package(FFmpeg REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    FFmpeg::avutil
-    FFmpeg::avcodec
-    FFmpeg::avdevice
-    FFmpeg::avfilter
-    FFmpeg::avformat
-    FFmpeg::postproc
-    FFmpeg::swresample
-    FFmpeg::swscale
+  FFmpeg::avutil
+  FFmpeg::avcodec
+  FFmpeg::avdevice
+  FFmpeg::avfilter
+  FFmpeg::avformat
+  FFmpeg::postproc
+  FFmpeg::swresample
+  FFmpeg::swscale
 )
 ```
 
@@ -209,20 +209,20 @@ prebuilt-ffmpeg
 
 ```toml
 [package]
-ref = "5.1.6"
+  ref = "5.1.6"
 
 [[build_configs]]
-url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
-system_name = "linux"
-system_processor = "x86_64"
-build_system = "prebuilt"
+  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
+  system_name = "linux"
+  system_processor = "x86_64"
+  build_system = "prebuilt"
 ```
 
 ```toml
 namespace = "FFmpeg"
 
 [linux]
-filenames = [
+  filenames = [
     "libavutil.so.57",
     "libavcodec.so.59",
     "libavdevice.so.59",
@@ -231,10 +231,10 @@ filenames = [
     "libpostproc.so.56",
     "libswresample.so.4",
     "libswscale.so.6",
-]
+  ]
 
 [windows]
-filenames = [
+  filenames = [
     "avutil.lib",
     "avcodec.lib",
     "avdevice.lib",
@@ -243,7 +243,7 @@ filenames = [
     "postproc.lib",
     "swresample.lib",
     "swscale.lib",
-]
+  ]
 ```
 
 > 💡 **提示**：对于 Interface 类型，只需列出所有需要链接的库文件名，无需指定组件或依赖关系。
