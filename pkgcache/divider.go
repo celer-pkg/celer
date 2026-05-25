@@ -14,7 +14,8 @@ func (d divider) string(parents []string, args ...string) string {
 		if index == 0 {
 			buffer.WriteString(parent)
 		} else {
-			buffer.WriteString(" <<< " + parent)
+			buffer.WriteString(" <<< ")
+			buffer.WriteString(parent)
 		}
 	}
 
@@ -26,7 +27,8 @@ func (d divider) string(parents []string, args ...string) string {
 		if buffer.Len() == 0 {
 			buffer.WriteString(arg)
 		} else {
-			buffer.WriteString(" <<< " + arg)
+			buffer.WriteString(" <<< ")
+			buffer.WriteString(arg)
 		}
 	}
 	return fmt.Sprintf("# -------- %s --------\n", buffer.String())

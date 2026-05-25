@@ -187,6 +187,21 @@ func shortHash(hash string) string {
 	return hash[:7] + "..." + hash[len(hash)-7:]
 }
 
+// isCommitHash checks if a string looks like a full git commit hash (40 hex chars)
+func isCommitHash(ref string) bool {
+	if len(ref) != 40 {
+		return false
+	}
+
+	for _, b := range []byte(ref) {
+		if !((b >= '0' && b <= '9') || (b >= 'a' && b <= 'f')) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // CheckIfRefMatches checks whether the local checkout matches the expected ref.
 // It returns an empty string on match, or a human-readable mismatch reason when
 // the checkout does not match. If expectedRef is empty, it falls back to
@@ -197,11 +212,19 @@ func CheckIfRefMatches(ctx context.Context, nameVersion, repoDir, expectedRef st
 		return "", err
 	}
 
+	// Fast path: if expectedRef is already a commit hash, do local comparison without git fetch
 	expectedRef = strings.TrimSpace(expectedRef)
+	if isCommitHash(expectedRef) {
+		if currentCommit != expectedRef {
+			return fmt.Sprintf("hash mismatch (local:%s vs expected:%s)", shortHash(currentCommit), shortHash(expectedRef)), nil
+		}
+		return "", nil // Match found, no need for git fetch.
+	}
+
 	if expectedRef != "" {
 		expectedCommit, parseErr := RevParseRepoRef(ctx, nameVersion, repoDir, expectedRef)
 		if parseErr != nil {
-			return "", fmt.Errorf("failed to resolve git ref %q for %s -> %w", expectedRef, nameVersion, parseErr)
+			return "", parseErr
 		}
 		if currentCommit == expectedCommit {
 			return "", nil
@@ -353,7 +376,7 @@ func RevParseRepoRef(ctx context.Context, nameVersion, repoDir, repoRef string) 
 		if remoteName != "" {
 			// Fetch the specific remote ref to ensure we can resolve it.
 			if err := fetchRemoteRef(nameVersion, repoDir, remoteName, repoRef); err != nil {
-				return "", fmt.Errorf("git fetch ref %s failed for %s -> %w", repoRef, repoDir, err)
+				return "", err
 			}
 			if remoteCommit, err := revParseCommit(repoDir, remoteName+"/"+repoRef); err == nil {
 				return remoteCommit, nil
@@ -381,7 +404,7 @@ func revParse(repoDir, repoRef string) (string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", repoRef)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("git rev-parse %q -> %s", repoRef, output)
+		return "", fmt.Errorf("failed to git rev-parse %q -> %s", repoRef, output)
 	}
 	return strings.TrimSpace(string(output)), nil
 }
@@ -392,7 +415,7 @@ func fetchRemoteRef(nameVersion, repoDir, remoteName, refName string) error {
 	executor := cmd.NewExecutor(title, "git", "fetch", remoteName, refName)
 	executor.SetWorkDir(repoDir)
 	if err := executor.Execute(); err != nil {
-		return fmt.Errorf("git fetch ref %s failed for %s: %w", refName, repoDir, err)
+		return fmt.Errorf("failed to git fetch remote ref %s for %s -> %w", refName, nameVersion, err)
 	}
 
 	return nil

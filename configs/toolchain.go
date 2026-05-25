@@ -9,6 +9,7 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/env"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -465,18 +466,12 @@ func (t Toolchain) GetCrosstoolPrefixPath() string {
 }
 
 func (t Toolchain) cmakeSystemName() string {
-	switch strings.ToLower(t.SystemName) {
-	case "windows":
-		return "Windows"
-	case "linux":
-		return "Linux"
-	case "android":
-		return "Android"
-	case "qnx":
+	systemName := strings.ToLower(t.SystemName)
+	if systemName == "qnx" {
 		return "QNX"
-	default:
-		panic("unsupported operation system: " + t.SystemName)
 	}
+
+	return expr.UpperFirst(t.SystemName)
 }
 
 func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs []string) {

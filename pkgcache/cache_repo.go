@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 )
@@ -40,7 +41,13 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 		return "", nil
 	}
 
+	// skip when pkgcache is not writable.
 	if !r.writable {
+		return "", nil
+	}
+
+	// Only third-party libraries can be cached.
+	if !r.shouldCacheRepo(nameVersion) {
 		return "", nil
 	}
 
@@ -126,6 +133,11 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 		return "", nil
 	}
 
+	// Only third-party libraries can be cached.
+	if !r.shouldCacheRepo(nameVersion) {
+		return "", nil
+	}
+
 	// Check if repo archive exist.
 	archivePath := filepath.Join(r.repoCacheDir, nameVersion, checksum+".tar.gz")
 	if !fileio.PathExists(archivePath) {
@@ -171,4 +183,18 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 	}
 
 	return archivePath, nil
+}
+
+// shouldCacheRepo default we cache all third-party library repos that defined in ports dir.
+func (r RepoConfig) shouldCacheRepo(nameVersion string) bool {
+	parts := strings.Split(nameVersion, "@")
+	if len(parts) != 2 {
+		panic("invalid nameVersion: " + nameVersion)
+	}
+
+	// Only cache third-party repos that defined in ports dir.
+	portName := parts[0]
+	groupName := strings.ToLower(string([]rune(portName)[0]))
+	portPath := filepath.Join(dirs.PortsDir, groupName, portName)
+	return fileio.PathExists(portPath)
 }

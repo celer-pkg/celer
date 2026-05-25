@@ -21,22 +21,23 @@ import (
 // remote source again.
 
 type fakePkgCache struct {
-	dir               string
-	writable          bool
-	cacheThirdParties bool
+	dir      string
+	writable bool
 }
 
 func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string { return f.dir }
 func (f fakePkgCache) IsWritable() bool                              { return f.writable }
 func (f fakePkgCache) GetArtifactCache() context.AritifactCache      { return nil }
-func (f fakePkgCache) ShouldCacheRepo(nameVersion string) bool       { return f.cacheThirdParties }
 func (f fakePkgCache) GetRepoCache() context.RepoCache {
 	return pkgcache.NewRepoConfig(fakeContext{}, f.dir, f.writable)
 }
 
 // creates a local bare repo that acts like remote origin.
 // Using a local origin keeps this test deterministic and network-independent.
-func setupGitOriginRepo(t *testing.T, tmpWorkspace string) string {
+// creates a local bare repo that acts like remote origin.
+// Using a local origin keeps this test deterministic and network-independent.
+// Returns: (originURL, commitHash)
+func setupGitOriginRepo(t *testing.T, tmpWorkspace string) (string, string) {
 	t.Helper()
 
 	// repo-src is the editable working repository that will contain one commit.
@@ -51,6 +52,12 @@ func setupGitOriginRepo(t *testing.T, tmpWorkspace string) string {
 		t.Fatal(err)
 	}
 
+	// Get the commit hash from the working repo before converting to bare.
+	commitHash, err := git.GetCommitHash(repoRoot)
+	if err != nil {
+		t.Fatalf("failed to get commit hash: %v", err)
+	}
+
 	// BuildConfig.Clone expects to clone from a remote-like URL. A local bare
 	// repository gives us that behavior without using the network.
 	originURL := filepath.Join(tmpWorkspace, "x264.git")
@@ -59,7 +66,7 @@ func setupGitOriginRepo(t *testing.T, tmpWorkspace string) string {
 		t.Fatalf("git clone --bare failed: %v, output: %s", err, string(out))
 	}
 
-	return originURL
+	return originURL, commitHash
 }
 
 func newBuildConfig(ctx context.Context, repoDir string) buildsystems.BuildConfig {
@@ -117,7 +124,13 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	originURL := setupGitOriginRepo(t, tmpWorkspace)
+	originURL, expectedCommit := setupGitOriginRepo(t, tmpWorkspace)
+
+	// Create fake ports/x/x264, so that repo can be cached.
+	portPath := filepath.Join(dirs.PortsDir, "x", "x264", "stable")
+	if err := os.MkdirAll(filepath.Dir(portPath), os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
 	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@stable", "src")
 
 	t.Run("store repo cache after clone", func(t *testing.T) {
@@ -129,13 +142,13 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 			pkgCache: fakePkgCache{
-				dir:               pkgCacheDir,
-				writable:          true,
-				cacheThirdParties: true,
+				dir:      pkgCacheDir,
+				writable: true,
 			},
 		}
 
 		buildConfig := newBuildConfig(ctx, repoDir)
+		buildConfig.PortConfig.Checksum = expectedCommit
 		if err := buildConfig.Clone(originURL, "", "", 0); err != nil {
 			t.Fatal(err)
 		}
@@ -159,12 +172,12 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 			pkgCache: fakePkgCache{
-				dir:               pkgCacheDir,
-				writable:          true,
-				cacheThirdParties: true,
+				dir:      pkgCacheDir,
+				writable: true,
 			},
 		}
 		onlineBuildConfig := newBuildConfig(onlineCtx, repoDir)
+		onlineBuildConfig.PortConfig.Checksum = expectedCommit
 		if err := onlineBuildConfig.Clone(originURL, "", "", 0); err != nil {
 			t.Fatal(err)
 		}
@@ -194,12 +207,12 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 			pkgCache: fakePkgCache{
-				dir:               pkgCacheDir,
-				writable:          false,
-				cacheThirdParties: true,
+				dir:      pkgCacheDir,
+				writable: false,
 			},
 		}
 		restoreBuildConfig := newBuildConfig(restoreCtx, repoDir)
+		restoreBuildConfig.PortConfig.Checksum = commit
 		if err := restoreBuildConfig.Clone(originURL, commit, "", 0); err != nil {
 			t.Fatal(err)
 		}
@@ -240,7 +253,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 
 	archivePath, checksum := setupArchiveFile(t, tmpWorkspace)
 	repoURL := fmt.Sprintf("file:///%s", archivePath)
-	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@archive", "src")
+	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@stable", "src")
 
 	// First pass: unpack the archive and populate repo pkgcache.
 	onlineCtx := fakeContext{
@@ -249,12 +262,19 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		build:     "release",
 		downloads: downloadsDir,
 		pkgCache: fakePkgCache{
-			dir:               pkgCacheDir,
-			writable:          true,
-			cacheThirdParties: true,
+			dir:      pkgCacheDir,
+			writable: true,
 		},
 	}
+
+	// Create fake ports/x264/archive, so that repo can be cached.
+	portPath := filepath.Join(dirs.PortsDir, "x", "x264", "stable")
+	if err := os.MkdirAll(filepath.Dir(portPath), os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
 	onlineBuildConfig := newBuildConfig(onlineCtx, repoDir)
+	onlineBuildConfig.PortConfig.Checksum = checksum
 	if err := onlineBuildConfig.Clone(repoURL, checksum, "", 0); err != nil {
 		t.Fatal(err)
 	}
@@ -287,12 +307,12 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		build:     "release",
 		downloads: downloadsDir,
 		pkgCache: fakePkgCache{
-			dir:               pkgCacheDir,
-			writable:          false,
-			cacheThirdParties: true,
+			dir:      pkgCacheDir,
+			writable: false,
 		},
 	}
 	restoreBuildConfig := newBuildConfig(restoreCtx, repoDir)
+	restoreBuildConfig.PortConfig.Checksum = checksum
 	if err := restoreBuildConfig.Clone(repoURL, checksum, "", 0); err != nil {
 		t.Fatal(err)
 	}

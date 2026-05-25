@@ -37,7 +37,7 @@
 
 1. 检查当前源码目录是否已存在且非空
 2. 如果源码目录已经可用，直接复用，不再读 repo 缓存
-3. 如果源码目录不存在，并且全局 `cache_third_parties` 已启用且该库定义在 `ports/` 中，则先尝试从 `pkgcache/repos` 恢复源码
+3. 如果源码目录不存在，并且 `port.toml` 的 `checksum`不为空，已启用且该库定义在 `ports/` 中，则先尝试从 `pkgcache/repos` 恢复源码
 4. 如果缓存未命中，再执行正常的 git clone 或压缩包下载/解压
 5. 当源码准备完成后，如果 `pkgcache.writable=true` 且当前不是 offline 模式，则把源码打包写入 repo 缓存
 
@@ -56,27 +56,18 @@
 [pkgcache]
 	dir = "/home/test/pkgcache"
 	writable = true
-	cache_third_parties = true
 ```
 
 说明：
 - `dir` 必须是一个已经存在的目录
 - `writable=true` 时，Celer 才会把新的源码缓存写入 `pkgcache/repos`
 - `writable=false` 时，仍然可以只读方式尝试恢复已有缓存
-- `cache_third_parties`（可选，默认 `false`）：启用后，会自动缓存在 `ports/` 中定义的所有第三方库。见下面的[第三方库自动缓存](#第三方库自动缓存)
 
 ### 第三方库自动缓存（全局策略）
 
-`cache_third_parties` 为第三方库提供了一套**自动的、项目级别的缓存策略**：
+Celer为第三方库提供了一套**自动的、项目级别的缓存策略**, 如果希望新的workspace从pkgcache快速索取代码，则需要在`port.toml`里填好合法的`checksum`.
 
-```toml
-[pkgcache]
-	dir = "/home/test/pkgcache"
-	writable = true
-	cache_third_parties = true
-```
-
-## 🧭 两类源码的缓存键
+## 两类源码的缓存键
 
 ### 1. Git 仓库
 
@@ -122,10 +113,11 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 
 满足以下条件时，Celer 会在 clone/download 之前先尝试读取 repo 缓存：
 
-- 已配置 `pkgcache.dir`
-- `cache_third_parties=true` 已全局启用
-- 当前库定义在 `ports/` 目录中
 - 当前源码目录不存在，或为空目录
+- 当前不是 offline 模式
+- 已配置 `pkgcache.dir`
+- 当前库定义在 `ports/` 目录中（通过 `shouldCacheRepo()` 检查）
+- `port.toml`里的`checksum`不为空且合法
 - 当前包不是虚拟端口（`url != "_"`）
 - 有可用于定位缓存的 `ref` 或 `checksum`
 
@@ -133,23 +125,21 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 
 满足以下条件时，Celer 会把准备好的源码树写入 `pkgcache/repos`：
 
-- 已配置 `pkgcache.dir`
-- `cache_third_parties=true` 已全局启用
-- `pkgcache.writable=true`
-- 当前库定义在 `ports/` 目录中
 - 当前不是 offline 模式
+- 已配置 `pkgcache.dir`
+- `pkgcache.writable=true`
+- 当前库定义在 `ports/` 目录中（通过 `shouldCacheRepo()` 检查）
 - clone / download / 解压已经成功完成
 
 ### 什么时候不会命中？
 
 常见情况包括：
 
-- 没有配置 `pkgcache` 或 `cache_third_parties=false`
-- `pkgcache.dir` 不存在
-- 当前库是项目在 `conf/projects/` 中的重载定义
-- 源码目录已经存在且非空，此时 Celer 会直接复用现有目录
-- 请求的 commit / checksum 对应缓存不存在
 - 开启了 offline 模式
+- `pkgcache.dir` 不存在
+- `port.toml`里的`checksum`为空或者checksum在pkgcache/repos里找不到
+- 当前库仅仅是项目在 `conf/projects/` 中的定义的
+- 请求的 commit / checksum 对应缓存不存在
 
 ## 目录结构
 
@@ -201,14 +191,12 @@ repo 缓存在 `pkgcache/repos` 下按 `name@version` 分类：
 	dir = "/path/to/shared/cache"  # 本地或网络共享目录
 	writable = true
 	cache_artifacts = true         # 启用构建产物缓存
-	cache_third_parties = true     # 启用第三方库源码缓存
 	cache_downloads = true         # 启用下载文件缓存
 ```
 
 **最佳实践：**
 - 在网络较差或访问 GitHub 受限的团队环境里，把 `pkgcache.dir` 放到局域网共享目录
 - 在 `ports/` 中的第三方库 `port.toml` 里提供准确的 `checksum`（git commit hash 或 sha256）
-- 确保在你的工作空间中启用 `cache_third_parties=true`
 - 对可复用的构建结果继续启用 `cache_artifacts=true`
 
 这样可以同时减少：
