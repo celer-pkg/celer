@@ -35,12 +35,8 @@ func NewRepoConfig(ctx context.Context, pkgCacheDir string, writable bool) *Repo
 // Store packs a source tree into repo cache.
 // For archive sources, repoRef is the original archive checksum used as the cache key.
 func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) {
-	// skip storing cache when offline.
-	if r.ctx.Offline() {
-		return "", nil
-	}
-
-	if !r.writable {
+	// skip storing cache when offline or pkgcache is not writable.
+	if r.ctx.Offline() || !r.writable {
 		return "", nil
 	}
 

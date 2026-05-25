@@ -37,7 +37,7 @@ When source code needs to be prepared, Celer follows this flow:
 
 1. Check whether the current source directory already exists and is non-empty
 2. If the source directory is already usable, reuse it directly and skip repo cache lookup
-3. If the source directory does not exist and global `cache_third_parties` is enabled and the library is defined in `ports/`, try restoring from `pkgcache/repos` first
+3. If the source directory does not exist and `checksum` in port.toml is not empty and the library is defined in `ports/`, try restoring from `pkgcache/repos` first
 4. If there is no cache hit, fall back to the normal git clone or archive download/extract flow
 5. After the source is ready, if `pkgcache.writable=true` and the current run is not in offline mode, package that source into repo cache
 
@@ -56,25 +56,16 @@ Configure the cache directory in `celer.toml`:
 [pkgcache]
 	dir = "/home/test/pkgcache"
 	writable = true
-	cache_third_parties = true
 ```
 
 Notes:
 - `dir` must already exist
 - Celer writes new source cache entries into `pkgcache/repos` only when `writable=true`
 - With `writable=false`, Celer can still try to restore existing cache entries in read-only mode
-- `cache_third_parties` (optional, default `false`): When enabled, automatically cache all third-party libraries defined in `ports/`. See [Third-Party Library Caching](#third-party-library-caching) below.
 
 ### Third-Party Library Caching (Global Policy)
 
-The `cache_third_parties` setting provides an **automatic, project-level caching policy** for third-party libraries:
-
-```toml
-[pkgcache]
-	dir = "/home/test/pkgcache"
-	writable = true
-	cache_third_parties = true
-```
+Celer provides an **automatic, project-level caching policy** for third-party libraries, if you want to get repo from pkgcache instead of git clone, you need to fill the `checksum` in port.toml.
 
 ## Cache Keys for the Two Source Types
 
@@ -123,7 +114,7 @@ These scenarios are similar to git repositories. The real goal is the same: keep
 Celer tries repo cache before clone/download when all of these are true:
 
 - `pkgcache.dir` is configured
-- Global `cache_third_parties=true` is enabled
+- `checksum` in port.toml is not empty
 - The current library is defined in `ports/` directory
 - The current source directory does not exist, or it exists but is empty
 - The current package is not a virtual port (`url != "_"`)
@@ -134,7 +125,6 @@ Celer tries repo cache before clone/download when all of these are true:
 Celer writes the prepared source tree into `pkgcache/repos` when all of these are true:
 
 - `pkgcache.dir` is configured
-- Global `cache_third_parties=true` is enabled
 - `pkgcache.writable=true`
 - The current library is defined in `ports/` directory
 - The current run is not in offline mode
@@ -144,7 +134,7 @@ Celer writes the prepared source tree into `pkgcache/repos` when all of these ar
 
 Common cases include:
 
-- `pkgcache` is not configured or `cache_third_parties=false`
+- `checksum` in port.toml is empty or not exist in `pkgcache/repos`
 - `pkgcache.dir` does not exist
 - The current library is a project-specific override defined in `conf/projects/`
 - The source directory already exists and is non-empty, so Celer reuses it directly
@@ -187,7 +177,6 @@ These two mechanisms do not conflict. They complement each other:
 
 ## Current Notes
 
-- **Repo cache requires global enablement**: When `cache_third_parties=false`, repo cache will not be used
 - **Repo cache does not contain final install outputs**: A repo cache hit does not mean the build can be skipped
 - **An existing source directory has higher priority**: If `buildtrees/.../src` already exists and is non-empty, Celer reuses it instead of restoring repo cache
 - **Lock source versions for reliable hits**: To get stable repo cache hits across workspaces, provide fixed commits or checksums in your third-party `port.toml`
@@ -201,14 +190,12 @@ For projects using both repo cache and build artifact cache, configure in `celer
 	dir = "/path/to/shared/cache"  # Local or network-mounted directory
 	writable = true
 	cache_artifacts = true         # Enable build artifact caching
-	cache_third_parties = true     # Enable third-party library source caching
 	cache_downloads = true         # Enable download file caching
 ```
 
 **Best practices:**
 - In teams with restricted network access, place `pkgcache.dir` on a LAN-shared directory
 - Provide accurate `checksum` values (git commit hash or sha256) for third-party libraries in `ports/`
-- Ensure `cache_third_parties=true` is enabled in your workspace configuration
 - Keep build artifact cache enabled for reusable build outputs
 
 This reduces both:

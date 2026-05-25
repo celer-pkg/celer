@@ -116,6 +116,12 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 	}
 
 	originURL := setupGitOriginRepo(t, tmpWorkspace)
+
+	// Create fake ports/x/x264, so that repo can be cached.
+	portPath := filepath.Join(dirs.PortsDir, "x", "x264", "stable")
+	if err := os.MkdirAll(filepath.Dir(portPath), os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
 	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@stable", "src")
 
 	t.Run("store repo cache after clone", func(t *testing.T) {
@@ -195,6 +201,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			},
 		}
 		restoreBuildConfig := newBuildConfig(restoreCtx, repoDir)
+		restoreBuildConfig.PortConfig.Checksum = commit
 		if err := restoreBuildConfig.Clone(originURL, commit, "", 0); err != nil {
 			t.Fatal(err)
 		}
@@ -235,7 +242,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 
 	archivePath, checksum := setupArchiveFile(t, tmpWorkspace)
 	repoURL := fmt.Sprintf("file:///%s", archivePath)
-	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@archive", "src")
+	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@stable", "src")
 
 	// First pass: unpack the archive and populate repo pkgcache.
 	onlineCtx := fakeContext{
@@ -248,7 +255,15 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 			writable: true,
 		},
 	}
+
+	// Create fake ports/x264/archive, so that repo can be cached.
+	portPath := filepath.Join(dirs.PortsDir, "x", "x264", "stable")
+	if err := os.MkdirAll(filepath.Dir(portPath), os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
 	onlineBuildConfig := newBuildConfig(onlineCtx, repoDir)
+	onlineBuildConfig.PortConfig.Checksum = checksum
 	if err := onlineBuildConfig.Clone(repoURL, checksum, "", 0); err != nil {
 		t.Fatal(err)
 	}
@@ -286,6 +301,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		},
 	}
 	restoreBuildConfig := newBuildConfig(restoreCtx, repoDir)
+	restoreBuildConfig.PortConfig.Checksum = checksum
 	if err := restoreBuildConfig.Clone(repoURL, checksum, "", 0); err != nil {
 		t.Fatal(err)
 	}
