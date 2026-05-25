@@ -67,7 +67,7 @@
 
 Celer为第三方库提供了一套**自动的、项目级别的缓存策略**, 如果希望新的workspace从pkgcache快速索取代码，则需要在`port.toml`里填好合法的`checksum`.
 
-## 🧭 两类源码的缓存键
+## 两类源码的缓存键
 
 ### 1. Git 仓库
 
@@ -113,10 +113,11 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 
 满足以下条件时，Celer 会在 clone/download 之前先尝试读取 repo 缓存：
 
-- 已配置 `pkgcache.dir`
-- `port.toml`里的`checksum`不为空且合法
-- 当前库定义在 `ports/` 目录中
 - 当前源码目录不存在，或为空目录
+- 当前不是 offline 模式
+- 已配置 `pkgcache.dir`
+- 当前库定义在 `ports/` 目录中（通过 `shouldCacheRepo()` 检查）
+- `port.toml`里的`checksum`不为空且合法
 - 当前包不是虚拟端口（`url != "_"`）
 - 有可用于定位缓存的 `ref` 或 `checksum`
 
@@ -124,22 +125,21 @@ pkgcache/repos/x264@stable/3147391d946bb4b6c68edd901f2add6ac1f31f8c.tar.gz
 
 满足以下条件时，Celer 会把准备好的源码树写入 `pkgcache/repos`：
 
+- 当前不是 offline 模式
 - 已配置 `pkgcache.dir`
 - `pkgcache.writable=true`
-- 当前库定义在 `ports/` 目录中
-- 当前不是 offline 模式
+- 当前库定义在 `ports/` 目录中（通过 `shouldCacheRepo()` 检查）
 - clone / download / 解压已经成功完成
 
 ### 什么时候不会命中？
 
 常见情况包括：
 
-- `port.toml`里的`checksum`为空或者checksum在pkgcache/repos里找不到
-- `pkgcache.dir` 不存在
-- 当前库是项目在 `conf/projects/` 中的重载定义
-- 源码目录已经存在且非空，此时 Celer 会直接复用现有目录
-- 请求的 commit / checksum 对应缓存不存在
 - 开启了 offline 模式
+- `pkgcache.dir` 不存在
+- `port.toml`里的`checksum`为空或者checksum在pkgcache/repos里找不到
+- 当前库仅仅是项目在 `conf/projects/` 中的定义的
+- 请求的 commit / checksum 对应缓存不存在
 
 ## 目录结构
 

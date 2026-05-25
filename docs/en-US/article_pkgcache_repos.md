@@ -115,7 +115,7 @@ Celer tries repo cache before clone/download when all of these are true:
 
 - `pkgcache.dir` is configured
 - `checksum` in port.toml is not empty
-- The current library is defined in `ports/` directory
+- The current library is defined in `ports/` directory (checked via `shouldCacheRepo()`)
 - The current source directory does not exist, or it exists but is empty
 - The current package is not a virtual port (`url != "_"`)
 - There is a usable `ref` or `checksum` to locate the cache entry
@@ -126,9 +126,29 @@ Celer writes the prepared source tree into `pkgcache/repos` when all of these ar
 
 - `pkgcache.dir` is configured
 - `pkgcache.writable=true`
-- The current library is defined in `ports/` directory
+- The current library is defined in `ports/` directory (checked via `shouldCacheRepo()`)
+- `checksum` in port.toml is not empty
 - The current run is not in offline mode
 - Clone / download / extraction has completed successfully
+
+### Cache Decision Logic
+
+Celer uses a built-in method `shouldCacheRepo()` to determine whether the current library should participate in repo caching. This method checks if the library is defined in the `ports/` directory structure:
+
+```
+ports/
+  └── <first_letter>/
+      └── <library_name>/
+          └── <version>/
+              └── port.toml
+```
+
+For example, `x264@stable` must exist as `ports/x/x264/stable/port.toml` to be eligible for caching. This automatic policy simplifies cache management - you don't need explicit configuration to enable caching for third-party libraries, they are automatically cached if:
+1. Defined in `ports/` directory
+2. Have a non-empty `checksum` in their port configuration
+3. Other conditions are met (writable cache, online mode, etc.)
+
+Project-specific overrides defined in `conf/projects/` are **excluded** from repo caching and will always perform fresh clones/downloads to ensure project customizations are respected.
 
 ### When will repo cache not hit?
 

@@ -34,7 +34,10 @@ func (f fakePkgCache) GetRepoCache() context.RepoCache {
 
 // creates a local bare repo that acts like remote origin.
 // Using a local origin keeps this test deterministic and network-independent.
-func setupGitOriginRepo(t *testing.T, tmpWorkspace string) string {
+// creates a local bare repo that acts like remote origin.
+// Using a local origin keeps this test deterministic and network-independent.
+// Returns: (originURL, commitHash)
+func setupGitOriginRepo(t *testing.T, tmpWorkspace string) (string, string) {
 	t.Helper()
 
 	// repo-src is the editable working repository that will contain one commit.
@@ -49,6 +52,12 @@ func setupGitOriginRepo(t *testing.T, tmpWorkspace string) string {
 		t.Fatal(err)
 	}
 
+	// Get the commit hash from the working repo before converting to bare.
+	commitHash, err := git.GetCommitHash(repoRoot)
+	if err != nil {
+		t.Fatalf("failed to get commit hash: %v", err)
+	}
+
 	// BuildConfig.Clone expects to clone from a remote-like URL. A local bare
 	// repository gives us that behavior without using the network.
 	originURL := filepath.Join(tmpWorkspace, "x264.git")
@@ -57,7 +66,7 @@ func setupGitOriginRepo(t *testing.T, tmpWorkspace string) string {
 		t.Fatalf("git clone --bare failed: %v, output: %s", err, string(out))
 	}
 
-	return originURL
+	return originURL, commitHash
 }
 
 func newBuildConfig(ctx context.Context, repoDir string) buildsystems.BuildConfig {
@@ -115,7 +124,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	originURL := setupGitOriginRepo(t, tmpWorkspace)
+	originURL, expectedCommit := setupGitOriginRepo(t, tmpWorkspace)
 
 	// Create fake ports/x/x264, so that repo can be cached.
 	portPath := filepath.Join(dirs.PortsDir, "x", "x264", "stable")
@@ -139,6 +148,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 		}
 
 		buildConfig := newBuildConfig(ctx, repoDir)
+		buildConfig.PortConfig.Checksum = expectedCommit
 		if err := buildConfig.Clone(originURL, "", "", 0); err != nil {
 			t.Fatal(err)
 		}
@@ -167,6 +177,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			},
 		}
 		onlineBuildConfig := newBuildConfig(onlineCtx, repoDir)
+		onlineBuildConfig.PortConfig.Checksum = expectedCommit
 		if err := onlineBuildConfig.Clone(originURL, "", "", 0); err != nil {
 			t.Fatal(err)
 		}
