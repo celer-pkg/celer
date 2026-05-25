@@ -47,7 +47,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 	}
 
 	// Only third-party libraries can be cached.
-	if r.shouldCacheRepo(nameVersion) {
+	if !r.shouldCacheRepo(nameVersion) {
 		return "", nil
 	}
 
@@ -134,7 +134,7 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 	}
 
 	// Only third-party libraries can be cached.
-	if r.shouldCacheRepo(nameVersion) {
+	if !r.shouldCacheRepo(nameVersion) {
 		return "", nil
 	}
 
