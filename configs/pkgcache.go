@@ -3,20 +3,17 @@ package configs
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 type pkgCache struct {
-	Dir               string `toml:"dir"`
-	Writable          bool   `toml:"writable"`
-	CacheArtifacts    bool   `toml:"cache_artifacts"`
-	CacheThirdParties bool   `toml:"cache_third_parties"`
-	CacheDownloads    bool   `toml:"cache_downloads"`
+	Dir            string `toml:"dir"`
+	Writable       bool   `toml:"writable"`
+	CacheArtifacts bool   `toml:"cache_artifacts"`
+	CacheDownloads bool   `toml:"cache_downloads"`
 
 	// Internal field.
 	ctx            context.Context
@@ -26,12 +23,11 @@ type pkgCache struct {
 
 func NewPkgCache(ctx context.Context, dir string, writable bool) *pkgCache {
 	return &pkgCache{
-		ctx:               ctx,
-		Dir:               dir,
-		Writable:          writable,
-		CacheArtifacts:    true,
-		CacheThirdParties: false,
-		CacheDownloads:    true,
+		ctx:            ctx,
+		Dir:            dir,
+		Writable:       writable,
+		CacheArtifacts: true,
+		CacheDownloads: true,
 	}
 }
 
@@ -81,17 +77,4 @@ func (p pkgCache) GetRepoCache() context.RepoCache {
 		return nil
 	}
 	return p.repoConfig
-}
-
-func (p *pkgCache) ShouldCacheRepo(nameVersion string) bool {
-	parts := strings.Split(nameVersion, "@")
-	if len(parts) != 2 {
-		panic("invalid nameVersion: " + nameVersion)
-	}
-
-	// Only cache third-party repos that exists in ports dir.
-	portName := parts[0]
-	groupName := strings.ToLower(string([]rune(portName)[0]))
-	portPath := filepath.Join(dirs.PortsDir, groupName, portName)
-	return p.CacheThirdParties && fileio.PathExists(portPath)
 }

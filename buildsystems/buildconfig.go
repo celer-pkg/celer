@@ -342,8 +342,8 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	pkgCache := b.Ctx.PkgCache()
 	if repoUrl != "_" && pkgCache != nil {
 		repoCache = pkgCache.GetRepoCache()
-		if repoCache != nil && pkgCache.ShouldCacheRepo(nameVersion) {
-			if fromWhere, err := repoCache.Restore(nameVersion, repoUrl, b.PortConfig.RepoDir, repoRef); err != nil {
+		if repoCache != nil && b.PortConfig.Checksum != "" {
+			if fromWhere, err := repoCache.Restore(nameVersion, repoUrl, b.PortConfig.RepoDir, b.PortConfig.Checksum); err != nil {
 				color.PrintWarning("failed to restore %s with git repo cache: %s", nameVersion, err)
 			} else if fromWhere != "" {
 				color.PrintInfo("[%s] is restored from pkgcache: %s\n", nameVersion, fromWhere)
@@ -407,7 +407,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// Store sources after any internal generated files are ready. Archive sources
 	// are cached before local git tracking is initialized so the cache stays keyed
 	// by the original archive ref and does not include the tracking .git directory.
-	if repoUrl != "_" && repoCache != nil && pkgCache.ShouldCacheRepo(nameVersion) {
+	if repoUrl != "_" && repoCache != nil && b.PortConfig.Checksum != "" {
 		if whereStored, err := repoCache.Store(nameVersion, repoUrl, b.PortConfig.RepoDir); err != nil {
 			return fmt.Errorf("failed to store repo cache for %s -> %v\n", nameVersion, err)
 		} else if whereStored != "" {

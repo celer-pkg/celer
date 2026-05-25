@@ -187,6 +187,21 @@ func shortHash(hash string) string {
 	return hash[:7] + "..." + hash[len(hash)-7:]
 }
 
+// isCommitHash checks if a string looks like a full git commit hash (40 hex chars)
+func isCommitHash(ref string) bool {
+	if len(ref) != 40 {
+		return false
+	}
+
+	for _, b := range []byte(ref) {
+		if !((b >= '0' && b <= '9') || (b >= 'a' && b <= 'f')) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // CheckIfRefMatches checks whether the local checkout matches the expected ref.
 // It returns an empty string on match, or a human-readable mismatch reason when
 // the checkout does not match. If expectedRef is empty, it falls back to
@@ -197,7 +212,15 @@ func CheckIfRefMatches(ctx context.Context, nameVersion, repoDir, expectedRef st
 		return "", err
 	}
 
+	// Fast path: if expectedRef is already a commit hash, do local comparison without git fetch
 	expectedRef = strings.TrimSpace(expectedRef)
+	if isCommitHash(expectedRef) {
+		if currentCommit != expectedRef {
+			return fmt.Sprintf("hash mismatch (local:%s vs expected:%s)", shortHash(currentCommit), shortHash(expectedRef)), nil
+		}
+		return "", nil // Match found, no need for git fetch.
+	}
+
 	if expectedRef != "" {
 		expectedCommit, parseErr := RevParseRepoRef(ctx, nameVersion, repoDir, expectedRef)
 		if parseErr != nil {
