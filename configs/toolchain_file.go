@@ -116,7 +116,7 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 	fmt.Fprintf(builder, "\n# Dev runtime path.\n")
 	fmt.Fprintf(builder, `set(ENV{PATH} "%s%s$ENV{PATH}")`+"\n", "${INSTALLED_DEV_DIR}/bin", string(os.PathListSeparator))
 
-	fmt.Fprintf(builder, "\n# Make sure installed directory has higher priority than SYSROOT.\n")
+	fmt.Fprintf(builder, "\n# Prefer installed libraries to SYSROOT when present.\n")
 	fmt.Fprintf(builder, "list(APPEND CMAKE_PREFIX_PATH %q)\n", "${INSTALLED_DIR}")
 
 	toolchainName := c.platform.Toolchain.GetName()
@@ -170,7 +170,7 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 			return
 		}
 
-		fmt.Fprintf(toolchain, "%sset(%s)\n", indent, name)
+		fmt.Fprintf(toolchain, "%sset(%s\n", indent, name)
 		for _, path := range paths {
 			fmt.Fprintf(toolchain, "%s  %q\n", indent, path)
 		}
