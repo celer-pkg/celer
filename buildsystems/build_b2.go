@@ -132,12 +132,16 @@ func (b b2) Configure(options []string) error {
 		var buffer bytes.Buffer
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
+			if err := scanner.Err(); err != nil {
+				return err
+			}
+
 			line := scanner.Text()
 			if strings.Contains(line, "using gcc ;") {
 				switch {
 				case isQNX:
-					buffer.WriteString(line + "\n")
-					buffer.WriteString(b.formatUsingToolset("qcc", toolchainVersion, cxx) + "\n")
+					fmt.Fprintf(&buffer, "%s\n", line)
+					fmt.Fprintf(&buffer, "%s\n", b.formatUsingToolset("qcc", toolchainVersion, cxx))
 					continue
 				case isClang:
 					toolchainRoot := filepath.Dir(toolchain.GetAbsDir())
@@ -177,7 +181,7 @@ func (b b2) Configure(options []string) error {
 					return fmt.Errorf("unsupported toolchain: %s for b2", toolchain.GetName())
 				}
 			}
-			buffer.WriteString(line + "\n")
+			fmt.Fprintf(&buffer, "%s\n", line)
 		}
 
 		// Write override `project-config.jam`.
