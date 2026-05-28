@@ -48,6 +48,12 @@ func (e *envsBackup) setenv(key, value string) {
 func (b *BuildConfig) setupEnvs() {
 	b.envBackup.backup()
 
+	// Setup environments if defined.
+	toolchain := b.Ctx.Platform().GetToolchain()
+	if toolchain != nil {
+		toolchain.SetupEnvs()
+	}
+
 	for _, env := range b.Envs {
 		env = strings.TrimSpace(env)
 
@@ -100,110 +106,106 @@ func (b *BuildConfig) setupEnvs() {
 		b.setLanguageStandard() // C/C++ standard.
 		b.setEnvFlags()         // Set CFLGAGS/CXXFLAGS/LDFLAGS.
 		b.setupPkgConfig()      // Setup pkg-config.
-	}
 
-	b.setEnvFlags()    // Set CFLGAGS/CXXFLAGS/LDFLAGS.
-	b.setupPkgConfig() // Setup pkg-config.
+		tmpDevDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
 
-	tmpDevDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
-
-	// Set ACLOCAL_PATH for aclocal to find third-party m4 files
-	// (e.g. libtool.m4 from libtool, xorg-macros.m4 from macros).
-	aclocalDir := filepath.Join(tmpDevDir, "share", "aclocal")
-	if fileio.PathExists(aclocalDir) {
-		aclocalDirs := env.JoinPaths("ACLOCAL_PATH", aclocalDir)
-		b.envBackup.setenv("ACLOCAL_PATH", aclocalDirs)
-	}
-
-	// Set AUTOCONF for automake's macro tracing.
-	// automake uses $ENV{AUTOCONF} || ':' to trace macros, and the default ':'
-	// produces no output, causing "no proper invocation of AM_INIT_AUTOMAKE" errors.
-	// Only set when not explicitly configured (e.g. AUTOCONF=: in port.toml to skip
-	// regenerating shipped files).
-	autoconfBin := filepath.Join(tmpDevDir, "bin", "autoconf")
-	if os.Getenv("AUTOCONF") == "" && fileio.PathExists(autoconfBin) {
-		b.envBackup.setenv("AUTOCONF", autoconfBin)
-	}
-
-	// Expose dev/bin and python venv bin to PATH.
-	venvBin := filepath.Join(dirs.PythonUserBase, "bin")
-	if fileio.PathExists(venvBin) {
-		b.envBackup.setenv("PATH", env.JoinPaths("PATH", venvBin))
-	}
-
-	// Expose host-side dev tools to PATH.
-	b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
-
-	// Keep host-side dev tool runtimes resolvable before any helper process starts.
-	// This is especially important for Python extensions and other host tools that
-	// link against libraries from tmp/deps/<host>-dev/lib.
-	for _, devLibDir := range []string{
-		filepath.Join(tmpDevDir, "lib"),
-		filepath.Join(tmpDevDir, "lib64"),
-	} {
-		if !fileio.PathExists(devLibDir) {
-			continue
+		// Set ACLOCAL_PATH for aclocal to find third-party m4 files
+		// (e.g. libtool.m4 from libtool, xorg-macros.m4 from macros).
+		aclocalDir := filepath.Join(tmpDevDir, "share", "aclocal")
+		if fileio.PathExists(aclocalDir) {
+			aclocalDirs := env.JoinPaths("ACLOCAL_PATH", aclocalDir)
+			b.envBackup.setenv("ACLOCAL_PATH", aclocalDirs)
 		}
 
-		switch runtime.GOOS {
-		case "linux":
-			b.envBackup.setenv("LD_LIBRARY_PATH", env.JoinPaths("LD_LIBRARY_PATH", devLibDir))
-		case "darwin":
-			b.envBackup.setenv("DYLD_LIBRARY_PATH", env.JoinPaths("DYLD_LIBRARY_PATH", devLibDir))
+		// Set AUTOCONF for automake's macro tracing.
+		// automake uses $ENV{AUTOCONF} || ':' to trace macros, and the default ':'
+		// produces no output, causing "no proper invocation of AM_INIT_AUTOMAKE" errors.
+		// Only set when not explicitly configured (e.g. AUTOCONF=: in port.toml to skip
+		// regenerating shipped files).
+		autoconfBin := filepath.Join(tmpDevDir, "bin", "autoconf")
+		if os.Getenv("AUTOCONF") == "" && fileio.PathExists(autoconfBin) {
+			b.envBackup.setenv("AUTOCONF", autoconfBin)
 		}
-	}
 
-	// Ensure PYTHONPATH for python.
-	b.envBackup.setenv("PYTHONUSERBASE", dirs.PythonUserBase)
+		// Expose dev/bin and python venv bin to PATH.
+		venvBin := filepath.Join(dirs.PythonUserBase, "bin")
+		if fileio.PathExists(venvBin) {
+			b.envBackup.setenv("PATH", env.JoinPaths("PATH", venvBin))
+		}
 
-	// Expose Python modules shipped by host-side dev dependencies.
-	// This keeps Python runtime dependencies inside the workspace instead of
-	// relying on system dist-packages.
-	devPythonDir := filepath.Join(tmpDevDir, "python")
-	if fileio.PathExists(devPythonDir) {
-		b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", devPythonDir))
-	}
+		// Expose host-side dev tools to PATH.
+		b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
 
-	// Expose LLVM_CONFIG for ports that rely on llvm-config.
-	if buildtools.LLVMPath != "" {
-		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
-		b.envBackup.setenv("LLVM_CONFIG", filepath.Join(buildtools.LLVMPath, "bin", llvmConfig))
-	}
+		// Keep host-side dev tool runtimes resolvable before any helper process starts.
+		// This is especially important for Python extensions and other host tools that
+		// link against libraries from tmp/deps/<host>-dev/lib.
+		for _, devLibDir := range []string{
+			filepath.Join(tmpDevDir, "lib"),
+			filepath.Join(tmpDevDir, "lib64"),
+		} {
+			if !fileio.PathExists(devLibDir) {
+				continue
+			}
 
-	// Find the actual site-packages directory and set PYTHONPATH's value with it.
-	// (Python installs to python3/lib/python3.X/site-packages).
-	libDir := filepath.Join(dirs.PythonUserBase, "lib")
-	if fileio.PathExists(libDir) {
-		entries, err := os.ReadDir(libDir)
-		if err == nil {
-			for _, entry := range entries {
-				if entry.IsDir() && strings.HasPrefix(entry.Name(), "python") {
-					sitePackages := filepath.Join(libDir, entry.Name(), "site-packages")
-					if fileio.PathExists(sitePackages) {
-						b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", sitePackages))
-						break
+			switch runtime.GOOS {
+			case "linux":
+				b.envBackup.setenv("LD_LIBRARY_PATH", env.JoinPaths("LD_LIBRARY_PATH", devLibDir))
+			case "darwin":
+				b.envBackup.setenv("DYLD_LIBRARY_PATH", env.JoinPaths("DYLD_LIBRARY_PATH", devLibDir))
+			}
+		}
+
+		// Ensure PYTHONPATH for python.
+		b.envBackup.setenv("PYTHONUSERBASE", dirs.PythonUserBase)
+
+		// Expose Python modules shipped by host-side dev dependencies.
+		// This keeps Python runtime dependencies inside the workspace instead of
+		// relying on system dist-packages.
+		devPythonDir := filepath.Join(tmpDevDir, "python")
+		if fileio.PathExists(devPythonDir) {
+			b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", devPythonDir))
+		}
+
+		// Expose LLVM_CONFIG for ports that rely on llvm-config.
+		if buildtools.LLVMPath != "" {
+			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
+			b.envBackup.setenv("LLVM_CONFIG", filepath.Join(buildtools.LLVMPath, "bin", llvmConfig))
+		}
+
+		// Find the actual site-packages directory and set PYTHONPATH's value with it.
+		// (Python installs to python3/lib/python3.X/site-packages).
+		libDir := filepath.Join(dirs.PythonUserBase, "lib")
+		if fileio.PathExists(libDir) {
+			entries, err := os.ReadDir(libDir)
+			if err == nil {
+				for _, entry := range entries {
+					if entry.IsDir() && strings.HasPrefix(entry.Name(), "python") {
+						sitePackages := filepath.Join(libDir, entry.Name(), "site-packages")
+						if fileio.PathExists(sitePackages) {
+							b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", sitePackages))
+							break
+						}
 					}
 				}
 			}
 		}
-	}
 
-	// Provider environment variables for QNX.
-	toolchain := b.Ctx.Platform().GetToolchain()
-	if toolchain.GetName() == "qcc" {
-		b.envBackup.setenv("CFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CFLAGS")))
-		b.envBackup.setenv("CXXFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CXXFLAGS")))
+		// Provider environment variables for QNX.
+		if toolchain.GetName() == "qcc" {
+			b.envBackup.setenv("CFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CFLAGS")))
+			b.envBackup.setenv("CXXFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CXXFLAGS")))
 
-		// QNX_HOST and QNX_TARGET is mandatory.
-		switch runtime.GOOS {
-		case "linux":
-			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/linux/x86_64"))
-		case "windows":
-			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/win64/x86_64/usr/bin"))
-		case "darwin":
-			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/darwin/x86_64/usr/bin"))
+			// QNX_HOST and QNX_TARGET is mandatory.
+			switch runtime.GOOS {
+			case "linux":
+				b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/linux/x86_64"))
+			case "windows":
+				b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/win64/x86_64/usr/bin"))
+			case "darwin":
+				b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/darwin/x86_64/usr/bin"))
+			}
+			b.envBackup.setenv("QNX_TARGET", filepath.Join(toolchain.GetRootDir(), "target/qnx"))
 		}
-		b.envBackup.setenv("QNX_TARGET", filepath.Join(toolchain.GetRootDir(), "target/qnx"))
 	}
 }
 

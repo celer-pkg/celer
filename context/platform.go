@@ -42,6 +42,7 @@ type Toolchain interface {
 	GetREADELF() string
 	GetMSVC() *MSVC
 	SetEnvs(rootfs RootFS, buildsystem string, portEnvs []string)
+	SetupEnvs()
 	ClearEnvs()
 }
 
