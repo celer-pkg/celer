@@ -67,14 +67,13 @@ func (p *Platform) Init(platformName string) error {
 
 		// Store toolchain releated express vars.
 		exrVars.Put("HOST", p.Toolchain.GetHost())
+		exrVars.Put("BUILD_HOST", p.buildHost())
 		exrVars.Put("SYSTEM_NAME", strings.ToLower(p.Toolchain.GetHost()))
 		exrVars.Put("SYSTEM_PROCESSOR", p.Toolchain.GetSystemProcessor())
 		exrVars.Put("CROSSTOOL_PREFIX", p.Toolchain.GetCrosstoolPrefix())
 		exrVars.Put("TOOLCHAIN", p.Toolchain.rootDir)
 		exrVars.Put("BUILD_HOST", p.buildHost())
 
-		// Setup environments for toolchain if required.
-		p.Toolchain.setupEnvs()
 	}
 
 	return nil

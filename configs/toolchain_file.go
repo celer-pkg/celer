@@ -116,7 +116,7 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 	fmt.Fprintf(builder, "\n# Dev runtime path.\n")
 	fmt.Fprintf(builder, `set(ENV{PATH} "%s%s$ENV{PATH}")`+"\n", "${INSTALLED_DEV_DIR}/bin", string(os.PathListSeparator))
 
-	fmt.Fprintf(builder, "\n# Make sure installed directory has higher priority than SYSROOT.\n")
+	fmt.Fprintf(builder, "\n# Prefer installed libraries to SYSROOT when present.\n")
 	fmt.Fprintf(builder, "list(APPEND CMAKE_PREFIX_PATH %q)\n", "${INSTALLED_DIR}")
 
 	toolchainName := c.platform.Toolchain.GetName()
@@ -170,12 +170,12 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 			return
 		}
 
-		toolchain.WriteString(indent + "set(" + name + "\n")
+		fmt.Fprintf(toolchain, "%sset(%s\n", indent, name)
 		for _, path := range paths {
-			toolchain.WriteString(fmt.Sprintf("%s  %q", indent, path) + "\n")
+			fmt.Fprintf(toolchain, "%s  %q\n", indent, path)
 		}
-		toolchain.WriteString(indent + ")\n")
-		toolchain.WriteString(fmt.Sprintf(`%slist(JOIN %s "%s" %s_STR)`, indent, name, string(os.PathListSeparator), name) + "\n")
+		fmt.Fprintf(toolchain, "%s)\n", indent)
+		fmt.Fprintf(toolchain, "%slist(JOIN %s %q %s_STR)\n", indent, name, string(os.PathListSeparator), name)
 		fmt.Fprintf(toolchain, "%sset(%s %q)\n", indent, "ENV{"+name+"}", "${"+name+"_STR}")
 	}
 

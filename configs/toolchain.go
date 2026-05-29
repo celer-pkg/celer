@@ -85,7 +85,7 @@ type Toolchain struct {
 	abspath     string
 }
 
-func (t Toolchain) setupEnvs() {
+func (t Toolchain) SetupEnvs() {
 	exrVars := t.ctx.ExprVars()
 	for _, item := range t.Envs {
 		parts := strings.Split(item, "=")
@@ -324,6 +324,21 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 			fmt.Fprint(toolchain, "foreach(flag_var CMAKE_EXE_LINKER_FLAGS_INIT CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT)\n")
 			appendFlags("${flag_var}", linkflags, "  ")
 			fmt.Fprint(toolchain, "endforeach()\n")
+		}
+	}
+
+	// Set build environments for toolchain if required.
+	if len(t.Envs) > 0 {
+		fmt.Fprint(toolchain, "\n# Cross-compile environment.\n")
+		for _, env := range t.Envs {
+			parts := strings.Split(env, "=")
+			if len(parts) != 2 {
+				return fmt.Errorf("invalid toolchain.env: %s", env)
+			}
+
+			envKey := parts[0]
+			envValue := t.ctx.ExprVars().Expand(parts[1])
+			fmt.Fprintf(toolchain, "set(ENV{%s} %q)\n", envKey, envValue)
 		}
 	}
 
