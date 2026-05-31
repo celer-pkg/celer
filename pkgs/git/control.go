@@ -297,6 +297,40 @@ func Clean(title, repoDir string) error {
 	return nil
 }
 
+// HardReset hard resets the repo to the given commit and cleans untracked files.
+// If the commit is not available locally, it fetches from origin first.
+func HardReset(repoDir, commit string) error {
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return fmt.Errorf("refuse to run git commands in non-repo dir: %s", repoDir)
+	}
+
+	nameVersion := filepath.Base(filepath.Dir(repoDir))
+	title := fmt.Sprintf("[reset %s]", nameVersion)
+
+	execute := func(args ...string) error {
+		executor := cmd.NewExecutor(title, "git", args...)
+		executor.SetWorkDir(repoDir)
+		return executor.Execute()
+	}
+
+	// Try reset directly — commit may already be local.
+	if err := execute("reset", "--hard", commit); err != nil {
+		// Commit not found locally, fetch and retry.
+		if err := execute("fetch", "origin"); err != nil {
+			return fmt.Errorf("failed to fetch origin for %s -> %w", nameVersion, err)
+		}
+		if err := execute("reset", "--hard", commit); err != nil {
+			return fmt.Errorf("failed to reset %s to %s -> %w", nameVersion, commit, err)
+		}
+	}
+
+	if err := execute("clean", "-ffdx"); err != nil {
+		return fmt.Errorf("failed to clean %s -> %w", nameVersion, err)
+	}
+
+	return nil
+}
+
 // ApplyPatch apply git patch.
 func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 	patchFileName := filepath.Base(patchFile)

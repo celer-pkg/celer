@@ -438,7 +438,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 
 		// Backup current installed meta file if it exists.
 		if fileio.PathExists(p.metaFile) {
-			metaFileBackup := filepath.Join(dirs.InstalledDir, "celer", "meta", "outdated", filepath.Base(p.metaFile))
+			metaFileBackup := filepath.Join(dirs.InstalledDir, "celer", "metas", "outdated", filepath.Base(p.metaFile))
 			if err := fileio.MkdirAll(filepath.Dir(metaFileBackup), os.ModePerm); err != nil {
 				return false, fmt.Errorf("failed to mkdir %s", filepath.Dir(metaFileBackup))
 			}

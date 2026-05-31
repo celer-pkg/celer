@@ -52,7 +52,7 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 	}
 
 	// The meta file hash should be the same as hash that calcuated dynamically.
-	metaPath := filepath.Join(archiveDir, "meta", buildHash+".meta")
+	metaPath := filepath.Join(archiveDir, "metas", buildHash+".meta")
 	metaBytes, err := os.ReadFile(metaPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -146,7 +146,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	}
 
 	destDir := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion)
-	metaDir := filepath.Join(destDir, "meta")
+	metaDir := filepath.Join(destDir, "metas")
 
 	// Calculate checksum of metadata (this would be the cache key).
 	data := sha256.Sum256([]byte(meta))
@@ -206,6 +206,6 @@ func (a ArtifactConfig) Exist(nameVersion, hash string) bool {
 	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
 	archivePath := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion, hash+".tar.gz")
-	metaFilePath := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion, "meta", hash+".meta")
+	metaFilePath := filepath.Join(a.artifactCacheDir, platformName, projectName, buildType, nameVersion, "metas", hash+".meta")
 	return fileio.PathExists(archivePath) && fileio.PathExists(metaFilePath)
 }

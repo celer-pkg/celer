@@ -2,13 +2,17 @@ package cmds
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/depcheck"
 	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/refs"
 	"github.com/celer-pkg/celer/snapshot"
 
 	"github.com/spf13/cobra"
@@ -48,6 +52,11 @@ for reproducible builds using the --snapshot flag.`,
 			// Check circular dependency and version conflict.
 			if err := d.checkProject(); err != nil {
 				return color.PrintError(err, "failed to check circular dependency and version conflict.")
+			}
+
+			// Resolve all dependency refs before any clone/download begins.
+			if err := d.resolveAllRefs(); err != nil {
+				return color.PrintError(err, "failed to resolve refs.")
 			}
 
 			if err := d.celer.Deploy(d.force); err != nil {
@@ -122,6 +131,95 @@ func (d *deployCmd) checkProject() error {
 	// Check if ports have conflict versions.
 	if err := depcheck.CheckConflict(d.celer, ports...); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (d *deployCmd) resolveAllRefs() error {
+	// Collect all ports (top-level + transitive dependencies) into []refs.PortInfo.
+	collected := make(map[string]refs.PortInfo)
+	var collect func(nameVersion string) error
+
+	collect = func(nameVersion string) error {
+		if _, exists := collected[nameVersion]; exists {
+			return nil
+		}
+
+		var port configs.Port
+		if err := port.Init(d.celer, nameVersion); err != nil {
+			return err
+		}
+		collected[nameVersion] = refs.PortInfo{
+			NameVersion: port.NameVersion(),
+			Url:         port.Package.Url,
+			Ref:         port.Package.Ref,
+			Checksum:    port.Package.Checksum,
+		}
+		for _, dep := range port.MatchedConfig.Dependencies {
+			if err := collect(dep); err != nil {
+				return err
+			}
+		}
+		for _, dep := range port.MatchedConfig.DevDependencies {
+			if err := collect(dep); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	for _, port := range d.celer.Project().GetPorts() {
+		if err := collect(port); err != nil {
+			return err
+		}
+	}
+
+	var portInfos []refs.PortInfo
+	for _, info := range collected {
+		portInfos = append(portInfos, info)
+	}
+
+	projectName := d.celer.Project().GetName()
+	resolvedRefs := refs.ResolvePorts(portInfos)
+
+	// Store resolved commits for use during clone/checkout.
+	commits := make(map[string]string, len(resolvedRefs))
+	for _, r := range resolvedRefs {
+		if r.ResolvedCommit != "" {
+			commits[r.NameVersion] = r.ResolvedCommit
+		}
+	}
+	refs.StoreResolvedCommits(commits)
+	refs.PrintResolvedRefs(projectName, resolvedRefs)
+
+	// Save to file in deployments.
+	timestamp := time.Now().Format(fmt.Sprintf("%s_20060102_150405", projectName))
+	filePath := filepath.Join(dirs.InstalledDir, "celer", "deployments", timestamp+".md")
+	if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
+		return err
+	}
+
+	env := snapshot.BuildEnv{
+		ExportedAt:   time.Now(),
+		CelerVersion: d.celer.Version(),
+		Platform:     d.celer.Platform().GetName(),
+		Project:      projectName,
+	}
+	if err := snapshot.SaveSnapshotMarkdown(filePath, env, resolvedRefs); err != nil {
+		return fmt.Errorf("failed to save snapshot -> %w", err)
+	}
+	color.Printf(color.Success, "Snapshot saved to: %s\n", filePath)
+
+	// Abort deploy if any ref resolution failed.
+	var failedPorts []string
+	for _, r := range resolvedRefs {
+		if r.Error != "" {
+			failedPorts = append(failedPorts, r.NameVersion)
+		}
+	}
+	if len(failedPorts) > 0 {
+		return fmt.Errorf("ref resolution failed for: %s", strings.Join(failedPorts, ", "))
 	}
 
 	return nil

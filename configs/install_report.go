@@ -1,9 +1,7 @@
 package configs
 
 import (
-	"bytes"
 	"fmt"
-	"html"
 	"os"
 	"path/filepath"
 	"sort"
@@ -13,9 +11,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/extension"
 )
 
 type installReportEntry struct {
@@ -57,55 +52,6 @@ func (i installReport) dependencyTypeRank(depType string) int {
 		return 99
 	}
 }
-
-const reportHTMLStyle = `<style>
-:root {
-  --bg: #f7f9fc;
-  --text: #1f2937;
-  --muted: #4b5563;
-  --card: #ffffff;
-  --line: #d9e1ec;
-  --head: #eef3fa;
-  --code-bg: #f3f6fb;
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  padding: 28px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Segoe UI", Tahoma, sans-serif;
-  line-height: 1.55;
-}
-h1, h2 { margin: 0 0 12px; }
-h1 { font-size: 26px; }
-h2 { margin-top: 24px; font-size: 18px; }
-p { margin: 10px 0; color: var(--muted); }
-ul { margin-top: 6px; }
-hr { border: 0; border-top: 1px solid var(--line); margin: 18px 0; }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--card);
-  border: 1px solid var(--line);
-}
-th, td {
-  border: 1px solid var(--line);
-  padding: 8px 10px;
-  text-align: left;
-  vertical-align: top;
-}
-th {
-  background: var(--head);
-  font-weight: 600;
-}
-tr:nth-child(even) td { background: #fbfdff; }
-code {
-  background: var(--code-bg);
-  padding: 1px 5px;
-  border-radius: 4px;
-}
-</style>`
 
 func newInstallReport(rootNameVersion string) *installReport {
 	return &installReport{
@@ -304,46 +250,28 @@ func (i *installReport) write(p *Port) (string, error) {
 		return "", nil
 	}
 
-	var reportDir string
+	var statisticDir string
 	if p.DevDep || p.HostDep {
 		hostName := p.ctx.Platform().GetHostName()
-		reportDir = filepath.Join(dirs.InstalledDir, "celer", "report", hostName+"-dev")
+		statisticDir = filepath.Join(dirs.InstalledDir, "celer", "statistics", hostName+"-dev")
 	} else {
 		projectName := p.ctx.Project().GetName()
 		platformName := p.ctx.Platform().GetName()
 		buildType := p.ctx.BuildType()
-		reportDir = filepath.Join(dirs.InstalledDir, "celer", "report", platformName, projectName, buildType)
+		statisticDir = filepath.Join(dirs.InstalledDir, "celer", "statistics", platformName, projectName, buildType)
 	}
-	if err := fileio.MkdirAll(reportDir, os.ModePerm); err != nil {
+	if err := fileio.MkdirAll(statisticDir, os.ModePerm); err != nil {
 		return "", err
 	}
 
 	fileBase := strings.ReplaceAll(i.rootPort, "@", "_")
-	mdPath := filepath.Join(reportDir, fileBase+".md")
-	htmlPath := filepath.Join(reportDir, fileBase+".html")
+	mdPath := filepath.Join(statisticDir, fileBase+".md")
 
 	// Generate markdown report.
 	markdown := i.renderMarkdown(p)
 	if err := os.WriteFile(mdPath, []byte(markdown), os.ModePerm); err != nil {
 		return "", err
 	}
-	defer os.Remove(mdPath)
 
-	// Convert to html report.
-	var htmlBuf bytes.Buffer
-	md := goldmark.New(goldmark.WithExtensions(extension.Table))
-	if err := md.Convert([]byte(markdown), &htmlBuf); err != nil {
-		return "", err
-	}
-
-	page := fmt.Sprintf("<!doctype html><html><head><meta charset=\"utf-8\"><title>%s</title>%s</head><body>%s</body></html>",
-		html.EscapeString("Install Report"),
-		reportHTMLStyle,
-		htmlBuf.String(),
-	)
-	if err := os.WriteFile(htmlPath, []byte(page), os.ModePerm); err != nil {
-		return "", err
-	}
-
-	return htmlPath, nil
+	return mdPath, nil
 }

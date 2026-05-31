@@ -152,7 +152,7 @@ func (p Port) doRemovePort() error {
 		noError = false
 		return fmt.Errorf("cannot remove info file: %s", err)
 	}
-	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "trace", libraryDir)
+	traceDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "traces", libraryDir)
 	if err := fileio.RemoveFolderRecursively(traceDir); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove info dir: %s", err)
@@ -168,7 +168,7 @@ func (p Port) doRemovePort() error {
 			}
 		}
 
-		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "meta", libraryDir)
+		metaDir := filepath.Join(dirs.WorkspaceDir, "installed", "celer", "metas", libraryDir)
 		if err := fileio.RemoveFolderRecursively(metaDir); err != nil {
 			noError = false
 			return fmt.Errorf("cannot remove meta dir -> %w", err)
@@ -176,16 +176,16 @@ func (p Port) doRemovePort() error {
 	}
 
 	// Remove report file and remove report dir if possible.
-	reportFileName := strings.ReplaceAll(p.NameVersion(), "@", "_") + ".html"
-	reportFilePath := filepath.Join(dirs.InstalledDir, "celer", "report", libraryDir, reportFileName)
-	if fileio.PathExists(reportFilePath) {
-		if err := os.Remove(reportFilePath); err != nil {
+	reportFileName := strings.ReplaceAll(p.NameVersion(), "@", "_") + ".md"
+	statisticPath := filepath.Join(dirs.InstalledDir, "celer", "statistics", libraryDir, reportFileName)
+	if fileio.PathExists(statisticPath) {
+		if err := os.Remove(statisticPath); err != nil {
 			noError = false
 			return fmt.Errorf("cannot remove report file -> %w", err)
 		}
 	}
-	reportDir := filepath.Join(dirs.InstalledDir, "celer", "report", libraryDir)
-	if err := fileio.RemoveFolderRecursively(reportDir); err != nil {
+	statisticDir := filepath.Join(dirs.InstalledDir, "celer", "statistics", libraryDir)
+	if err := fileio.RemoveFolderRecursively(statisticDir); err != nil {
 		noError = false
 		return fmt.Errorf("cannot remove report dir -> %w", err)
 	}

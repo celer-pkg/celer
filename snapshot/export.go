@@ -12,6 +12,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/refs"
 
 	"github.com/BurntSushi/toml"
 )
@@ -64,8 +65,7 @@ func (e *Exporter) Export() error {
 
 	// 2. Export ports with fixed source checksums.
 	color.Println(color.Hint, "✔ Exporting ports...")
-	portSnapshots, err := e.exportPorts()
-	if err != nil {
+	if err := e.exportPorts(); err != nil {
 		return fmt.Errorf("failed to export ports -> %w", err)
 	}
 
@@ -95,16 +95,15 @@ func (e *Exporter) Export() error {
 
 	// 7. Generate snapshot.
 	color.Println(color.Hint, "✔ Generating snapshot report...")
-	snapshot := &Snapshot{
+	buildEnv := BuildEnv{
 		ExportedAt:   time.Now(),
 		CelerVersion: e.celer.Version(),
 		Platform:     e.celer.Platform().GetName(),
 		Project:      e.celer.Project().GetName(),
-		Dependencies: portSnapshots,
-		Notes:        "Exported workspace for reproducible builds",
 	}
-
-	if err := snapshot.Save(e.exportDir); err != nil {
+	resolvedRefs := e.buildResolvedRefs()
+	snapshotPath := filepath.Join(e.exportDir, "snapshot.md")
+	if err := SaveSnapshotMarkdown(snapshotPath, buildEnv, resolvedRefs); err != nil {
 		return fmt.Errorf("failed to save snapshot -> %w", err)
 	}
 
@@ -112,14 +111,13 @@ func (e *Exporter) Export() error {
 	return nil
 }
 
-func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
+func (e *Exporter) exportPorts() error {
 	portsDir := filepath.Join(e.exportDir, "ports")
 	if err := os.MkdirAll(portsDir, os.ModePerm); err != nil {
-		return nil, err
+		return err
 	}
 
 	var (
-		snapshots       []PortSnapshot
 		systemName      string
 		systemProcessor string
 	)
@@ -134,13 +132,13 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 		// Get the reproducibility checksum for this port source.
 		checksum, err := e.collector.GetPortChecksum(port)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get checksum for %s -> %w", nameVersion, err)
+			return fmt.Errorf("failed to get checksum for %s -> %w", nameVersion, err)
 		}
 
 		// Create port directory.
 		portDir := filepath.Join(portsDir, nameVersion)
 		if err := os.MkdirAll(portDir, os.ModePerm); err != nil {
-			return nil, err
+			return err
 		}
 
 		// Create a copy of the port with a fixed checksum and only matched config.
@@ -149,7 +147,7 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 
 		// Only export the matched build config for current platform.
 		if port.MatchedConfig == nil {
-			return nil, fmt.Errorf("no matched build config for port %s", nameVersion)
+			return fmt.Errorf("no matched build config for port %s", nameVersion)
 		}
 		matchedConfig := *port.MatchedConfig
 		matchedConfig.SystemName = systemName
@@ -160,27 +158,19 @@ func (e *Exporter) exportPorts() ([]PortSnapshot, error) {
 		portTomlPath := filepath.Join(portDir, "port.toml")
 		file, err := os.Create(portTomlPath)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		encoder := toml.NewEncoder(file)
 		encoder.Indent = "  "
 		if err := encoder.Encode(exportedPort); err != nil {
 			file.Close()
-			return nil, err
+			return err
 		}
 		file.Close()
-
-		// Add to snapshots.
-		snapshots = append(snapshots, PortSnapshot{
-			Name:     port.Name,
-			Version:  port.Version,
-			Checksum: checksum,
-			URL:      port.Package.Url,
-		})
 	}
 
-	return snapshots, nil
+	return nil
 }
 
 func (e *Exporter) exportConf() error {
@@ -241,4 +231,32 @@ func (e *Exporter) exportCelerExecutable() error {
 	}
 
 	return nil
+}
+
+// buildResolvedRefs converts usedPorts to []refs.ResolvedRef for the snapshot markdown.
+// It reuses already-resolved commits from refs.StoreResolvedCommits() populated during deploy.
+func (e *Exporter) buildResolvedRefs() []refs.ResolvedRef {
+	var results []refs.ResolvedRef
+	for _, port := range e.usedPorts {
+		ref := refs.ResolvedRef{
+			NameVersion: port.NameVersion(),
+			Url:         port.Package.Url,
+			OriginalRef: port.Package.Ref,
+			Checksum:    port.Package.Checksum,
+		}
+		switch {
+		case port.Package.Url == "_":
+			ref.SourceType = refs.SourceVirtual
+			ref.Url, ref.OriginalRef = "-", "-"
+		case strings.HasSuffix(port.Package.Url, ".git"):
+			ref.SourceType = refs.SourceGit
+			if commit := refs.GetResolvedCommit(port.NameVersion()); commit != "" {
+				ref.ResolvedCommit = commit
+			}
+		default:
+			ref.SourceType = refs.SourceArchive
+		}
+		results = append(results, ref)
+	}
+	return results
 }
