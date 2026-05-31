@@ -4,6 +4,7 @@
 /conf
 /cmds/ports
 /cmds/conf
+/deploy-refs
 **/.venv
 **/packages
 **/tmp

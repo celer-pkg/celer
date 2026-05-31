@@ -17,6 +17,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/pc"
+	"github.com/celer-pkg/celer/pkgs/refs"
 )
 
 var (
@@ -325,6 +326,12 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			return fmt.Errorf("failed to check if empty -> %w", err)
 		}
 		if len(entities) > 0 {
+			// Pin to resolved commit if available (from pre-deploy ref resolution).
+			if commit := refs.GetResolvedCommit(b.PortConfig.nameVersion()); commit != "" {
+				if err := git.HardReset(b.PortConfig.RepoDir, commit); err != nil {
+					return err
+				}
+			}
 			return nil
 		}
 
@@ -366,6 +373,12 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		title := fmt.Sprintf("[clone %s]", nameVersion)
 		if err := git.CloneRepo(title, nameVersion, repoUrl, repoRef, depth, b.PortConfig.RepoDir); err != nil {
 			return err
+		}
+		// Pin to resolved commit if available (from pre-deploy ref resolution).
+		if commit := refs.GetResolvedCommit(b.PortConfig.nameVersion()); commit != "" {
+			if err := git.HardReset(b.PortConfig.RepoDir, commit); err != nil {
+				return err
+			}
 		}
 	} else if repoUrl != "_" {
 		color.Printf(color.Title, "\n[fetch repo %s]\n", b.PortConfig.nameVersion())

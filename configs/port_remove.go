@@ -176,7 +176,7 @@ func (p Port) doRemovePort() error {
 	}
 
 	// Remove report file and remove report dir if possible.
-	reportFileName := strings.ReplaceAll(p.NameVersion(), "@", "_") + ".html"
+	reportFileName := strings.ReplaceAll(p.NameVersion(), "@", "_") + ".md"
 	reportFilePath := filepath.Join(dirs.InstalledDir, "celer", "report", libraryDir, reportFileName)
 	if fileio.PathExists(reportFilePath) {
 		if err := os.Remove(reportFilePath); err != nil {

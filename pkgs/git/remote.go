@@ -37,8 +37,25 @@ func CheckIfRemoteTag(target, repoUrl, repoRef string) (bool, error) {
 	return strings.TrimSpace(string(output)) != "", nil
 }
 
-// GetRemoteCommit read git commit.
-func GetRemoteCommit(target, repoUrl, repoRef string) (string, error) {
+// GetRemoteHeadCommit resolves the HEAD commit of a remote repository.
+func GetRemoteHeadCommit(target, repoUrl string) (string, error) {
+	title := fmt.Sprintf("[resolve remote HEAD: %s]", target)
+	executor := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "HEAD")
+	output, err := executor.ExecuteOutput()
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve HEAD of %s -> %w", repoUrl, err)
+	}
+
+	fields := strings.Fields(string(output))
+	if len(fields) < 1 {
+		return "", fmt.Errorf("no HEAD commit found for %s", repoUrl)
+	}
+
+	return fields[0], nil
+}
+
+// GetRemoteRefCommit read remote git commit hash of specified ref.
+func GetRemoteRefCommit(target, repoUrl, repoRef string) (string, error) {
 	// Try to get latest commit of branch.
 	isBranch, err := CheckIfRemoteBranch(target, repoUrl, repoRef)
 	if err != nil {

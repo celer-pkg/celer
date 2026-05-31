@@ -1,12 +1,18 @@
 package cmds
 
 import (
+	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"testing"
 
+	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/refs"
 
 	"github.com/spf13/cobra"
 )
@@ -143,5 +149,237 @@ func TestDeployCmd_Completion(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// deployFakeContext is a minimal context.Context implementation for testing
+// BuildConfig.Clone() without pkgcache or remote network access.
+type deployFakeContext struct{}
+
+func (f deployFakeContext) Version() string                        { return "test" }
+func (f deployFakeContext) Platform() context.Platform             { return nil }
+func (f deployFakeContext) RootFS() context.RootFS                 { return nil }
+func (f deployFakeContext) Project() context.Project               { return nil }
+func (f deployFakeContext) BuildType() string                      { return "Release" }
+func (f deployFakeContext) Downloads() string                      { return "" }
+func (f deployFakeContext) Jobs() int                              { return 1 }
+func (f deployFakeContext) Offline() bool                          { return true }
+func (f deployFakeContext) Verbose() bool                          { return false }
+func (f deployFakeContext) InstalledDir() string                   { return "" }
+func (f deployFakeContext) InstalledDevDir() string                { return "" }
+func (f deployFakeContext) PkgCache() context.PkgCache             { return nil }
+func (f deployFakeContext) ProxyHostPort() (host string, port int) { return "", 0 }
+func (f deployFakeContext) CCacheEnabled() bool                    { return false }
+func (f deployFakeContext) GenerateToolchainFile() error           { return nil }
+func (f deployFakeContext) ExprVars() *context.ExprVars            { return nil }
+func (f deployFakeContext) PythonConfig() context.PythonConfig     { return nil }
+
+// setupTestRepo creates a bare git repo as clone source in a temp directory
+// and returns its path along with known commit hashes for testing.
+func setupTestRepo(t *testing.T) (repoUrl string, headCommit, olderCommit string) {
+	t.Helper()
+
+	// Use the existing testdata repo as source.
+	testdataDir := filepath.Join("..", "pkgs", "git", "testdata")
+	if _, err := os.Stat(testdataDir); err != nil {
+		t.Skip("git testdata repo not available")
+	}
+
+	// Create a bare clone as the "remote" source for test clones.
+	bareDir := filepath.Join(t.TempDir(), "source.git")
+	cmd := exec.Command("git", "clone", "--bare", testdataDir, bareDir)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("failed to create bare test repo: %v\n%s", err, output)
+	}
+
+	// Resolve two commits: HEAD and HEAD~3.
+	resolveCommit := func(ref string) string {
+		cmd := exec.Command("git", "--git-dir", bareDir, "rev-parse", ref)
+		output, err := cmd.Output()
+		if err != nil {
+			t.Fatalf("failed to resolve %s: %v", ref, err)
+		}
+		return string(output[:40])
+	}
+
+	headCommit = resolveCommit("HEAD")
+	olderCommit = resolveCommit("HEAD~3")
+	return bareDir, headCommit, olderCommit
+}
+
+func TestDeploy_Clone_ExistingRepo_ResetsToResolvedCommit(t *testing.T) {
+	dirs.RemoveAllForTest()
+	defer refs.StoreResolvedCommits(nil)
+
+	repoUrl, headCommit, olderCommit := setupTestRepo(t)
+
+	// Clone the repo first so it already exists in RepoDir.
+	repoDir := filepath.Join(t.TempDir(), "src")
+	if err := git.CloneRepo("[test]", "test@1.0", repoUrl, "master", 0, repoDir); err != nil {
+		t.Fatalf("initial clone failed: %v", err)
+	}
+
+	// Verify we're at HEAD.
+	currentCommit, err := git.GetCommitHash(repoDir)
+	if err != nil {
+		t.Fatalf("failed to get current commit: %v", err)
+	}
+	if currentCommit != headCommit {
+		t.Fatalf("expected initial commit %s, got %s", headCommit, currentCommit)
+	}
+
+	// Store a resolved commit that is different from HEAD (simulating deploy resolution).
+	refs.StoreResolvedCommits(map[string]string{
+		"test@1.0": olderCommit,
+	})
+
+	// Call Clone with the existing repo — it should HardReset to the resolved commit.
+	config := buildsystems.BuildConfig{
+		Ctx: deployFakeContext{},
+		PortConfig: buildsystems.PortConfig{
+			LibName:    "test",
+			LibVersion: "1.0",
+			RepoDir:    repoDir,
+		},
+	}
+
+	if err := config.Clone(repoUrl, "master", "", 0); err != nil {
+		t.Fatalf("Clone failed: %v", err)
+	}
+
+	// Verify HEAD is now at the resolved commit.
+	currentCommit, err = git.GetCommitHash(repoDir)
+	if err != nil {
+		t.Fatalf("failed to get commit after Clone: %v", err)
+	}
+	if currentCommit != olderCommit {
+		t.Fatalf("expected resolved commit %s, got %s", olderCommit, currentCommit)
+	}
+}
+
+func TestDeploy_Clone_ExistingRepo_NoResolvedCommit_NoReset(t *testing.T) {
+	dirs.RemoveAllForTest()
+	defer refs.StoreResolvedCommits(nil)
+
+	repoUrl, headCommit, _ := setupTestRepo(t)
+
+	// Clone the repo first.
+	repoDir := filepath.Join(t.TempDir(), "src")
+	if err := git.CloneRepo("[test]", "test@1.0", repoUrl, "master", 0, repoDir); err != nil {
+		t.Fatalf("initial clone failed: %v", err)
+	}
+
+	// No resolved commit stored — Clone should return without resetting.
+	refs.StoreResolvedCommits(nil)
+
+	config := buildsystems.BuildConfig{
+		Ctx: deployFakeContext{},
+		PortConfig: buildsystems.PortConfig{
+			LibName:    "test",
+			LibVersion: "1.0",
+			RepoDir:    repoDir,
+		},
+	}
+
+	if err := config.Clone(repoUrl, "master", "", 0); err != nil {
+		t.Fatalf("Clone failed: %v", err)
+	}
+
+	// Verify HEAD is unchanged.
+	currentCommit, err := git.GetCommitHash(repoDir)
+	if err != nil {
+		t.Fatalf("failed to get commit after Clone: %v", err)
+	}
+	if currentCommit != headCommit {
+		t.Fatalf("expected unchanged commit %s, got %s", headCommit, currentCommit)
+	}
+}
+
+func TestDeploy_Clone_FreshClone_ResetsToResolvedCommit(t *testing.T) {
+	dirs.RemoveAllForTest()
+	defer refs.StoreResolvedCommits(nil)
+
+	repoUrl, _, olderCommit := setupTestRepo(t)
+
+	// Store resolved commit before cloning.
+	refs.StoreResolvedCommits(map[string]string{
+		"test@1.0": olderCommit,
+	})
+
+	// RepoDir does not exist — this is a fresh clone.
+	repoDir := filepath.Join(t.TempDir(), "new-src")
+
+	cfg := buildsystems.BuildConfig{
+		Ctx: deployFakeContext{},
+		PortConfig: buildsystems.PortConfig{
+			LibName:    "test",
+			LibVersion: "1.0",
+			RepoDir:    repoDir,
+		},
+	}
+
+	if err := cfg.Clone(repoUrl, "master", "", 0); err != nil {
+		t.Fatalf("Clone failed: %v", err)
+	}
+
+	// Verify HEAD is at the resolved commit, not the branch HEAD.
+	currentCommit, err := git.GetCommitHash(repoDir)
+	if err != nil {
+		t.Fatalf("failed to get commit after Clone: %v", err)
+	}
+	if currentCommit != olderCommit {
+		t.Fatalf("expected resolved commit %s, got %s", olderCommit, currentCommit)
+	}
+
+	// Verify the branch name is preserved (not detached HEAD).
+	branch, err := git.GetCurrentBranch(repoDir)
+	if err != nil {
+		t.Fatalf("failed to get current branch: %v", err)
+	}
+	if branch != "master" {
+		t.Fatalf("expected branch 'master', got %q (detached HEAD)", branch)
+	}
+}
+
+func TestDeploy_Clone_FreshClone_NoResolvedCommit_StaysOnBranch(t *testing.T) {
+	dirs.RemoveAllForTest()
+	defer refs.StoreResolvedCommits(nil)
+
+	repoUrl, headCommit, _ := setupTestRepo(t)
+
+	// No resolved commit stored.
+	refs.StoreResolvedCommits(nil)
+
+	repoDir := filepath.Join(t.TempDir(), "new-src")
+
+	cfg := buildsystems.BuildConfig{
+		Ctx: deployFakeContext{},
+		PortConfig: buildsystems.PortConfig{
+			LibName:    "test",
+			LibVersion: "1.0",
+			RepoDir:    repoDir,
+		},
+	}
+
+	if err := cfg.Clone(repoUrl, "master", "", 0); err != nil {
+		t.Fatalf("Clone failed: %v", err)
+	}
+
+	// Verify HEAD is at the branch tip.
+	currentCommit, err := git.GetCommitHash(repoDir)
+	if err != nil {
+		t.Fatalf("failed to get commit after Clone: %v", err)
+	}
+	if currentCommit != headCommit {
+		t.Fatalf("expected branch HEAD commit %s, got %s", headCommit, currentCommit)
+	}
+
+	// Verify the branch name is preserved.
+	branch, err := git.GetCurrentBranch(repoDir)
+	if err != nil {
+		t.Fatalf("failed to get current branch: %v", err)
+	}
+	if branch != "master" {
+		t.Fatalf("expected branch 'master', got %q", branch)
 	}
 }

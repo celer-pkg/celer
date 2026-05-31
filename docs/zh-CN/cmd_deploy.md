@@ -16,6 +16,7 @@ celer deploy [flags]
 - `--snapshot=<path>` 仅在部署成功后触发快照导出。
 - `--snapshot` 支持相对路径和绝对路径。
 - `--snapshot` 不能为空路径。
+- 部署前会一次性解析所有端口的 ref 到具体 commit，确保代码版本一致（见下文）。
 
 ## 命令选项
 
@@ -45,3 +46,12 @@ celer deploy --force --snapshot=snapshots/rebuild
 - 运行前请先完成平台与项目配置。
 - 如果部署失败，不会执行导出。
 - 部署成功后可在 CMake 中通过 `-DCMAKE_TOOLCHAIN_FILE=...` 使用 `toolchain_file.cmake`。
+
+## 预解析 Ref 机制
+
+`deploy` 在克隆代码前，一次性将所有端口的 ref（分支名、标签名等）解析为 commit hash，再统一克隆。解析结果保存在 `<workspace>/deploy-refs/`。
+
+这样做的目的是避免逐个克隆时远程推送导致同一分支被解析到不同 commit，保证整次部署基于一致的代码快照。
+
+- **新克隆**：`git clone --branch <ref>` + `git reset --hard <commit>`，保留分支名。
+- **已有仓库**：直接 `git reset --hard <commit>`。
