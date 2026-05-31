@@ -126,7 +126,7 @@ func (i *installReport) renderMarkdown(p *Port) string {
 	}
 	freshInstallCount := len(orderedEntries) - preinstalledCount
 
-	lines = append(lines, "# Install Report")
+	lines = append(lines, "# Install report")
 	lines = append(lines, "")
 	lines = append(lines, fmt.Sprintf("Generated at `%s`", time.Now().Local().Format("2006-01-02 15:04:05")))
 	lines = append(lines, "")
@@ -138,7 +138,7 @@ func (i *installReport) renderMarkdown(p *Port) string {
 	lines = append(lines, fmt.Sprintf("- Buildtime dependencies: `%d`", buildtimeCount))
 	lines = append(lines, fmt.Sprintf("- Runtime dependencies: `%d`", runtimeCount))
 	lines = append(lines, "")
-	lines = append(lines, "### Installed From Distribution")
+	lines = append(lines, "### Installation source distribution")
 	lines = append(lines, "")
 	lines = append(lines, "| Installed From | Count | Percentage |")
 	lines = append(lines, "| --- | --- | --- |")
@@ -168,7 +168,7 @@ func (i *installReport) renderMarkdown(p *Port) string {
 	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
 
 	lines = append(lines, "")
-	lines = append(lines, "## Workspace Configuration")
+	lines = append(lines, "## Workspace configuration")
 	lines = append(lines, "")
 	lines = append(lines, "| Name | Value |")
 	lines = append(lines, "| --- | --- |")
@@ -176,7 +176,7 @@ func (i *installReport) renderMarkdown(p *Port) string {
 	lines = append(lines, fmt.Sprintf("| Project | `%s` |", normalize(p.ctx.Project().GetName())))
 	lines = append(lines, fmt.Sprintf("| Build Type | `%s` |", normalize(p.ctx.BuildType())))
 	lines = append(lines, "")
-	lines = append(lines, "## Dependencies List")
+	lines = append(lines, "## Dependencies list")
 	lines = append(lines, "")
 	lines = append(lines, "| Name Version | Parent | Dependency Type | Build System | Installed From |")
 	lines = append(lines, "| --- | --- | --- | --- | --- |")

@@ -24,8 +24,8 @@ func SaveSnapshotMarkdown(filePath string, env BuildEnv, resolvedRefs []refs.Res
 	fmt.Fprintf(&buffer, "# Build snapshot\n\n")
 
 	buffer.WriteString("## Build environment\n\n")
-	fmt.Fprintf(&buffer, "- exported_at: %s\n", env.ExportedAt.Format(time.RFC3339Nano))
-	fmt.Fprintf(&buffer, "- celer_version: %s\n", env.CelerVersion)
+	fmt.Fprintf(&buffer, "- deployed at: %s\n", env.ExportedAt.Format(time.RFC3339Nano))
+	fmt.Fprintf(&buffer, "- celer version: %s\n", env.CelerVersion)
 	fmt.Fprintf(&buffer, "- platform: %s\n", env.Platform)
 	fmt.Fprintf(&buffer, "- project: %s\n\n", env.Project)
 

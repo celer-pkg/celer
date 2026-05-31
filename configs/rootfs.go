@@ -95,7 +95,7 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 
 	// SYSROOT section.
 	fmt.Fprintf(&buffer, "\n# =============== Cross-compile SYSROOT =============== #\n")
-	fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", fileio.ToRelPath(r.abspath))
+	fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", "${WORKSPACE_ROOT}/downloads/tools/"+filepath.ToSlash(r.Path))
 
 	// Append --sysroot to compiler flags.
 	fmt.Fprintf(&buffer, `string(APPEND CMAKE_C_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")`+"\n")
