@@ -51,8 +51,8 @@ celer deploy --force --snapshot=snapshots/rebuild
 
 ## Build environment
 
-- exported_at: 2026-05-31T11:20:42.175732704+08:00
-- celer_version: v0.0.0
+- deployed at: 2026-05-31T11:20:42.175732704+08:00
+- celer version: v0.0.0
 - platform: aarch64-linux-ubuntu-22.04-gcc-11.5.0
 - project: project_test_01
 
