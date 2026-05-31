@@ -135,10 +135,41 @@ func (e *Exporter) exportPorts() error {
 			return fmt.Errorf("failed to get checksum for %s -> %w", nameVersion, err)
 		}
 
-		// Create port directory.
-		portDir := filepath.Join(portsDir, nameVersion)
+		// Create port directory with first-letter grouping (e.g. ports/g/glog/0.6.0).
+		parts := strings.SplitN(nameVersion, "@", 2)
+		if len(parts) != 2 {
+			return fmt.Errorf("invalid port name@version: %s", nameVersion)
+		}
+
+		portName := parts[0]
+		groupChar := strings.ToLower(string([]rune(portName)[0]))
+		portDir := filepath.Join(portsDir, groupChar, parts[0], parts[1])
 		if err := os.MkdirAll(portDir, os.ModePerm); err != nil {
 			return err
+		}
+
+		// Copy all supplementary files from the source port directory
+		// (patches, cmake_config.toml, CMakeLists.txt, etc.).
+		srcPortDir := dirs.GetPortDir(parts[0], parts[1])
+		if fileio.PathExists(srcPortDir) {
+			entries, err := os.ReadDir(srcPortDir)
+			if err != nil {
+				return fmt.Errorf("failed to read port dir %s -> %w", srcPortDir, err)
+			}
+			for _, entry := range entries {
+				if entry.Name() == "port.toml" {
+					continue // port.toml is written separately with modifications.
+				}
+				if entry.IsDir() {
+					continue // port version dirs contain only flat files.
+				}
+
+				srcPath := filepath.Join(srcPortDir, entry.Name())
+				dstPath := filepath.Join(portDir, entry.Name())
+				if err := fileio.CopyFile(srcPath, dstPath); err != nil {
+					return fmt.Errorf("failed to copy %s -> %w", srcPath, err)
+				}
+			}
 		}
 
 		// Create a copy of the port with a fixed checksum and only matched config.
@@ -244,11 +275,21 @@ func (e *Exporter) exportConf() error {
 	return nil
 }
 
-func (e *Exporter) exportCelerToml() error {
-	src := filepath.Join(dirs.WorkspaceDir, "celer.toml")
-	dst := filepath.Join(e.exportDir, "celer.toml")
+func (e Exporter) exportCelerToml() error {
+	// Clear so it defaults to <workspace>/downloads at runtime.
+	e.celer.Main.Downloads = ""
 
-	return fileio.CopyFile(src, dst)
+	bytes, err := toml.Marshal(e.celer)
+	if err != nil {
+		return fmt.Errorf("failed to marshal celer.toml -> %w", err)
+	}
+
+	dstFile := filepath.Join(e.exportDir, "celer.toml")
+	if err := os.WriteFile(dstFile, bytes, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to write celer.toml -> %w", err)
+	}
+
+	return nil
 }
 
 func (e *Exporter) exportToolchainFile() error {

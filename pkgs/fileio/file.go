@@ -457,7 +457,7 @@ func ToRelPath(absPath string) string {
 	if err != nil {
 		return filepath.ToSlash(absPath)
 	}
-	return filepath.ToSlash(filepath.Join("${WORKSPACE_ROOT}", relativePath))
+	return "${WORKSPACE_ROOT}/" + filepath.ToSlash(relativePath)
 }
 
 func IsSubPath(parent, child string) bool {

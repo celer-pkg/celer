@@ -169,9 +169,9 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", "/usr/bin")
 		} else {
 			if strings.HasPrefix(t.Url, "file:///") {
-				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", t.abspath)
+				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", filepath.ToSlash(t.abspath))
 			} else {
-				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", fileio.ToRelPath(t.abspath))
+				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", "${WORKSPACE_ROOT}/downloads/tools/"+filepath.ToSlash(t.Path))
 			}
 		}
 	}

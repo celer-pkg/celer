@@ -194,7 +194,7 @@ func (r RepoConfig) shouldCacheRepo(nameVersion string) bool {
 
 	// Only cache third-party repos that defined in ports dir.
 	portName := parts[0]
-	groupName := strings.ToLower(string([]rune(portName)[0]))
-	portPath := filepath.Join(dirs.PortsDir, groupName, portName)
+	groupChar := strings.ToLower(string([]rune(portName)[0]))
+	portPath := filepath.Join(dirs.PortsDir, groupChar, portName)
 	return fileio.PathExists(portPath)
 }
