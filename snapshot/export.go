@@ -174,31 +174,74 @@ func (e *Exporter) exportPorts() error {
 }
 
 func (e *Exporter) exportConf() error {
-	srcConf := dirs.ConfDir
 	dstConf := filepath.Join(e.exportDir, "conf")
 
-	return filepath.Walk(srcConf, func(srcPath string, info os.FileInfo, err error) error {
-		if err != nil {
+	// 1. Export only the current platform's .toml file.
+	platformName := e.celer.Platform().GetName()
+	srcPlatformFile := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
+	dstPlatformDir := filepath.Join(dstConf, "platforms")
+	if err := os.MkdirAll(dstPlatformDir, os.ModePerm); err != nil {
+		return err
+	}
+	if err := fileio.CopyFile(srcPlatformFile, filepath.Join(dstPlatformDir, platformName+".toml")); err != nil {
+		return fmt.Errorf("failed to copy platform file -> %w", err)
+	}
+
+	// 2. Export only the current project's .toml file and its subdirectory (port overrides).
+	projectName := e.celer.Project().GetName()
+	srcProjectFile := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
+	dstProjectDir := filepath.Join(dstConf, "projects")
+	if err := os.MkdirAll(dstProjectDir, os.ModePerm); err != nil {
+		return err
+	}
+	if err := fileio.CopyFile(srcProjectFile, filepath.Join(dstProjectDir, projectName+".toml")); err != nil {
+		return fmt.Errorf("failed to copy project file -> %w", err)
+	}
+
+	// Copy project-specific port overrides only for used ports.
+	srcProjectSubdir := filepath.Join(dirs.ConfProjectsDir, projectName)
+	for nameVersion := range e.usedPorts {
+		parts := strings.SplitN(nameVersion, "@", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		srcPortDir := filepath.Join(srcProjectSubdir, parts[0], parts[1])
+		if !fileio.PathExists(srcPortDir) {
+			continue
+		}
+		dstPortDir := filepath.Join(dstProjectDir, projectName, parts[0], parts[1])
+		if err := filepath.Walk(srcPortDir, func(srcPath string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			relPath, err := filepath.Rel(srcPortDir, srcPath)
+			if err != nil {
+				return err
+			}
+			dstPath := filepath.Join(dstPortDir, relPath)
+			if info.IsDir() {
+				return os.MkdirAll(dstPath, info.Mode())
+			}
+			return fileio.CopyFile(srcPath, dstPath)
+		}); err != nil {
+			return fmt.Errorf("failed to copy project overrides for %s -> %w", nameVersion, err)
+		}
+	}
+
+	// 3. Export only the host's buildtools .toml file.
+	hostName := e.celer.Platform().GetHostName()
+	srcBuildtoolsFile := filepath.Join(dirs.ConfDir, "buildtools", hostName+".toml")
+	dstBuildtoolsDir := filepath.Join(dstConf, "buildtools")
+	if fileio.PathExists(srcBuildtoolsFile) {
+		if err := os.MkdirAll(dstBuildtoolsDir, os.ModePerm); err != nil {
 			return err
 		}
-
-		// Skip .git directory.
-		if info.IsDir() && info.Name() == ".git" {
-			return filepath.SkipDir
+		if err := fileio.CopyFile(srcBuildtoolsFile, filepath.Join(dstBuildtoolsDir, hostName+".toml")); err != nil {
+			return fmt.Errorf("failed to copy buildtools file -> %w", err)
 		}
+	}
 
-		relPath, err := filepath.Rel(srcConf, srcPath)
-		if err != nil {
-			return err
-		}
-		dstPath := filepath.Join(dstConf, relPath)
-
-		if info.IsDir() {
-			return os.MkdirAll(dstPath, info.Mode())
-		}
-
-		return fileio.CopyFile(srcPath, dstPath)
-	})
+	return nil
 }
 
 func (e *Exporter) exportCelerToml() error {

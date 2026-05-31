@@ -70,7 +70,7 @@ func (c *Collector) collectRecursive(nameVersion string) error {
 
 // GetPortChecksum gets the reproducibility checksum from the downloaded source.
 // For git sources this is the checked-out commit hash. For archive sources this
-// is the archive sha-256 prefixed with "sha256:".
+// is the archive sha-256.
 func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
 	// For archive downloads (zip/tar), use the sha256 as checksum.
 	if !strings.HasSuffix(port.Package.Url, ".git") {
@@ -80,7 +80,7 @@ func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of port's archive %s -> %w", port.NameVersion(), err)
 		}
-		return "sha256:" + sha256, nil
+		return sha256, nil
 	}
 
 	// For private repositories with fixed checksum, just use the specified value.
@@ -94,7 +94,7 @@ func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
 		return "", fmt.Errorf("failed to read local source checksum for %s -> %w", port.NameVersion(), err)
 	}
 	if commitHash != "" {
-		return "git:" + commitHash, nil
+		return commitHash, nil
 	}
 	return "", fmt.Errorf("source checksum not found for %s", port.NameVersion())
 }
