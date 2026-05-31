@@ -27,7 +27,7 @@ celer deploy --snapshot=<snapshot_dir>
 
 - Git URL (`*.git`): read the actual local commit hash from cloned source as the checksum.
 - Private repo with fixed `package.checksum`: use that fixed checksum.
-- Archive URL (`.zip/.tar...`): use `sha256:<checksum>` as the checksum.
+- Archive URL (`.zip/.tar...`): use `sha256` as the checksum.
 
 ## Common Examples
 
@@ -46,10 +46,10 @@ celer deploy --force --snapshot=snapshots/rebuild
 
 ## Sample Snapshot Output
 
-```markdown
-# Snapshot for project_test_01
+```md
+# Build snapshot
 
-## Build Environment
+## Build environment
 
 - exported_at: 2026-05-31T11:20:42.175732704+08:00
 - celer_version: v0.0.0

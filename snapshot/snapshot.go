@@ -21,9 +21,9 @@ type BuildEnv struct {
 func SaveSnapshotMarkdown(filePath string, env BuildEnv, resolvedRefs []refs.ResolvedRef) error {
 	var buffer strings.Builder
 
-	fmt.Fprintf(&buffer, "# Snapshot for %s\n\n", env.Project)
+	fmt.Fprintf(&buffer, "# Build snapshot\n\n")
 
-	buffer.WriteString("## Build Environment\n\n")
+	buffer.WriteString("## Build environment\n\n")
 	fmt.Fprintf(&buffer, "- exported_at: %s\n", env.ExportedAt.Format(time.RFC3339Nano))
 	fmt.Fprintf(&buffer, "- celer_version: %s\n", env.CelerVersion)
 	fmt.Fprintf(&buffer, "- platform: %s\n", env.Platform)

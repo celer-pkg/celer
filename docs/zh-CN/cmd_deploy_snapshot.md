@@ -27,7 +27,7 @@ celer deploy --snapshot=<snapshot_dir>
 
 - Git URL（`*.git`）：读取本地源码仓库实际 commit 哈希作为 checksum。
 - 私有仓库且指定了 `package.checksum`：使用该固定 checksum。
-- 压缩包 URL（`.zip/.tar...`）：使用 `sha256:<checksum>` 作为 checksum。
+- 压缩包 URL（`.zip/.tar...`）：使用 `sha256` 作为 checksum。
 
 ## 常用示例
 
@@ -46,10 +46,10 @@ celer deploy --force --snapshot=snapshots/rebuild
 
 ## Snapshot 样例
 
-```markdown
-# Snapshot for project_test_01
+```md
+# Build snapshot
 
-## Build Environment
+## Build environment
 
 - exported_at: 2026-05-31T11:20:42.175732704+08:00
 - celer_version: v0.0.0
