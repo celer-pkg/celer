@@ -93,7 +93,7 @@ func TestRemoveCmd_Completion(t *testing.T) {
 	defer os.RemoveAll(testDir)
 	dirs.InstalledDir = testDir
 
-	traceDir := filepath.Join(testDir, "celer", "trace")
+	traceDir := filepath.Join(testDir, "celer", "traces")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
@@ -314,7 +314,7 @@ func TestRemoveCmd_GetInstalledPackages(t *testing.T) {
 	dirs.InstalledDir = testDir
 	defer func() { dirs.InstalledDir = originalInstalledDir }()
 
-	traceDir := filepath.Join(testDir, "celer", "trace")
+	traceDir := filepath.Join(testDir, "celer", "traces")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
@@ -406,7 +406,7 @@ func TestRemoveCmd_Completion_DeduplicateInstalledPackages(t *testing.T) {
 	defer os.RemoveAll(testDir)
 	dirs.InstalledDir = testDir
 
-	traceDir := filepath.Join(testDir, "celer", "trace")
+	traceDir := filepath.Join(testDir, "celer", "traces")
 	if err := os.MkdirAll(traceDir, 0755); err != nil {
 		t.Fatalf("failed to create trace dir: %v", err)
 	}

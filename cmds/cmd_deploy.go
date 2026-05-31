@@ -193,17 +193,23 @@ func (d *deployCmd) resolveAllRefs() error {
 	refs.StoreResolvedCommits(commits)
 	refs.PrintResolvedRefs(projectName, resolvedRefs)
 
-	// Save to file in deploy-refs.
+	// Save to file in deployments.
 	timestamp := time.Now().Format(fmt.Sprintf("%s_20060102_150405", projectName))
-	filePath := filepath.Join(dirs.WorkspaceDir, "deploy-refs", timestamp+".md")
+	filePath := filepath.Join(dirs.InstalledDir, "celer", "deployments", timestamp+".md")
 	if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
 		return err
 	}
 
-	if err := refs.SaveResolvedRefs(projectName, resolvedRefs, filePath); err != nil {
-		return fmt.Errorf("failed to save resolved refs -> %w", err)
+	env := snapshot.BuildEnv{
+		ExportedAt:   time.Now(),
+		CelerVersion: d.celer.Version(),
+		Platform:     d.celer.Platform().GetName(),
+		Project:      projectName,
 	}
-	color.Printf(color.Success, "Resolved refs saved to: %s\n", filePath)
+	if err := snapshot.SaveSnapshotMarkdown(filePath, env, resolvedRefs); err != nil {
+		return fmt.Errorf("failed to save snapshot -> %w", err)
+	}
+	color.Printf(color.Success, "Snapshot saved to: %s\n", filePath)
 
 	// Abort deploy if any ref resolution failed.
 	var failedPorts []string

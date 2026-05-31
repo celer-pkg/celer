@@ -49,7 +49,7 @@ celer deploy --force --snapshot=snapshots/rebuild
 
 ## 预解析 Ref 机制
 
-`deploy` 在克隆代码前，一次性将所有端口的 ref（分支名、标签名等）解析为 commit hash，再统一克隆。解析结果保存在 `<workspace>/deploy-refs/`。
+`deploy` 在克隆代码前，一次性将所有端口的 ref（分支名、标签名等）解析为 commit hash，再统一克隆。解析结果保存为 `snapshot.md`，位于 `<workspace>/installed/celer/deployments/`。
 
 这样做的目的是避免逐个克隆时远程推送导致同一分支被解析到不同 commit，保证整次部署基于一致的代码快照。
 

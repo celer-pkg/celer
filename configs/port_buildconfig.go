@@ -36,11 +36,11 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 
 	// host example: installed/celer/x86_64-linux-dev/x264@stable.trace
 	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/x264@stable.trace
-	p.traceFile = filepath.Join(dirs.InstalledDir, "celer", "trace", libraryDir, nameVersion+".trace")
+	p.traceFile = filepath.Join(dirs.InstalledDir, "celer", "traces", libraryDir, nameVersion+".trace")
 
 	// host example: installed/celer/x86_64-linux-dev/x264@stable.meta
 	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/x264@stable.meta
-	p.metaFile = filepath.Join(dirs.InstalledDir, "celer", "meta", libraryDir, nameVersion+".meta")
+	p.metaFile = filepath.Join(dirs.InstalledDir, "celer", "metas", libraryDir, nameVersion+".meta")
 
 	// host example: installed/celer/x86_64-linux-dev/x264@stable
 	// target example: installed/celer/aarch64-linux-ubuntu-22.04-gcc-11.5.0/test_project_001/release/x264@stable

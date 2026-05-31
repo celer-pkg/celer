@@ -250,22 +250,22 @@ func (i *installReport) write(p *Port) (string, error) {
 		return "", nil
 	}
 
-	var reportDir string
+	var statisticDir string
 	if p.DevDep || p.HostDep {
 		hostName := p.ctx.Platform().GetHostName()
-		reportDir = filepath.Join(dirs.InstalledDir, "celer", "report", hostName+"-dev")
+		statisticDir = filepath.Join(dirs.InstalledDir, "celer", "statistics", hostName+"-dev")
 	} else {
 		projectName := p.ctx.Project().GetName()
 		platformName := p.ctx.Platform().GetName()
 		buildType := p.ctx.BuildType()
-		reportDir = filepath.Join(dirs.InstalledDir, "celer", "report", platformName, projectName, buildType)
+		statisticDir = filepath.Join(dirs.InstalledDir, "celer", "statistics", platformName, projectName, buildType)
 	}
-	if err := fileio.MkdirAll(reportDir, os.ModePerm); err != nil {
+	if err := fileio.MkdirAll(statisticDir, os.ModePerm); err != nil {
 		return "", err
 	}
 
 	fileBase := strings.ReplaceAll(i.rootPort, "@", "_")
-	mdPath := filepath.Join(reportDir, fileBase+".md")
+	mdPath := filepath.Join(statisticDir, fileBase+".md")
 
 	// Generate markdown report.
 	markdown := i.renderMarkdown(p)

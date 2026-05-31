@@ -2,9 +2,6 @@ package refs
 
 import (
 	"fmt"
-	"os"
-	"strings"
-	"time"
 
 	"github.com/celer-pkg/celer/pkgs/color"
 )
@@ -90,37 +87,4 @@ func PrintResolvedRefs(projectName string, results []ResolvedRef) {
 	}
 
 	fmt.Println()
-}
-
-// SaveResolvedRefs writes resolved refs to a markdown file.
-func SaveResolvedRefs(projectName string, results []ResolvedRef, filePath string) error {
-	var buffer strings.Builder
-
-	fmt.Fprintf(&buffer, "# Resolved Refs for %s\n\n", projectName)
-	fmt.Fprintf(&buffer, "Generated at: %s\n\n", time.Now().Format("2006-01-02 15:04:05"))
-
-	buffer.WriteString("| Name@Version | Type | URL | Ref | Resolved |\n")
-	buffer.WriteString("|---|---|---|---|---|\n")
-
-	for _, r := range results {
-		resolved := "-"
-		if r.ResolvedCommit != "" {
-			resolved = r.ResolvedCommit
-		}
-
-		url := r.Url
-		ref := r.OriginalRef
-
-		line := fmt.Sprintf("| %s | %s | %s | %s | %s |",
-			r.NameVersion, r.SourceType, url, ref, resolved)
-
-		if r.Error != "" {
-			line += " error: " + r.Error
-		}
-
-		buffer.WriteString(line)
-		buffer.WriteString("\n")
-	}
-
-	return os.WriteFile(filePath, []byte(buffer.String()), 0644)
 }

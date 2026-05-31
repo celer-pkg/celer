@@ -20,7 +20,7 @@ celer deploy --snapshot=<snapshot_dir>
 - `conf/`: workspace conf directory (`.git` excluded)
 - `celer.toml`
 - `toolchain_file.cmake`
-- `snapshot.json`
+- `snapshot.md`
 - current `celer` executable
 
 ## Checksum Rules
@@ -46,19 +46,20 @@ celer deploy --force --snapshot=snapshots/rebuild
 
 ## Sample Snapshot Output
 
-```json
-{
-  "exported_at": "2025-12-14T16:51:10.290199679+08:00",
-  "celer_version": "0.1.0",
-  "platform": "aarch64-linux-ubuntu-22.04-gcc-11.5.0",
-  "project": "project_test_01",
-  "dependencies": [
-    {
-      "name": "opencv",
-      "version": "4.11.0",
-      "checksum": "0e5254ebf54d2aed6e7eaf6660bf3b797cf50a02",
-      "url": "https://github.com/opencv/opencv.git"
-    }
-  ]
-}
+```markdown
+# Snapshot for project_test_01
+
+## Build Environment
+
+- exported_at: 2026-05-31T11:20:42.175732704+08:00
+- celer_version: v0.0.0
+- platform: aarch64-linux-ubuntu-22.04-gcc-11.5.0
+- project: project_test_01
+
+## Resolved commits
+
+| Name@Version | Type | URL | Ref | Resolved |
+|---|---|---|---|---|
+| opencv@4.11.0 | git | https://github.com/opencv/opencv.git | 4.11.0 | 1d3b34ddd080bbf3e3d3cec58e11038fca21dcfe |
+| ffmpeg@5.1.6 | archive | https://ffmpeg.org/releases/ffmpeg-5.1.6.tar.xz | 5.1.6 | - |
 ```

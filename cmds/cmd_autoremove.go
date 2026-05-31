@@ -239,7 +239,7 @@ func (a *autoremoveCmd) installedPackages() (packages []string, devPackages []st
 }
 
 func (a *autoremoveCmd) readInstalledPackages(libraryDir string) ([]string, error) {
-	traceDir := filepath.Join(dirs.InstalledDir, "celer", "trace", libraryDir)
+	traceDir := filepath.Join(dirs.InstalledDir, "celer", "traces", libraryDir)
 
 	entries, err := os.ReadDir(traceDir)
 	if err != nil {

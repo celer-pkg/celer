@@ -1,38 +1,57 @@
 package snapshot
 
 import (
-	"encoding/json"
+	"fmt"
 	"os"
-	"path/filepath"
+	"strings"
 	"time"
+
+	"github.com/celer-pkg/celer/pkgs/refs"
 )
 
-// Snapshot represents the metadata of an exported workspace.
-type Snapshot struct {
-	ExportedAt   time.Time      `json:"exported_at"`
-	CelerVersion string         `json:"celer_version"`
-	Platform     string         `json:"platform"`
-	Project      string         `json:"project"`
-	Dependencies []PortSnapshot `json:"dependencies"`
-	Notes        string         `json:"notes,omitempty"`
+// BuildEnv holds the build environment metadata for a snapshot.
+type BuildEnv struct {
+	ExportedAt   time.Time
+	CelerVersion string
+	Platform     string
+	Project      string
 }
 
-// PortSnapshot represents a snapshot of a port with a fixed source checksum.
-type PortSnapshot struct {
-	Name     string `json:"name"`
-	Version  string `json:"version"`
-	Checksum string `json:"checksum"`
-	URL      string `json:"url"`
-}
+// SaveSnapshotMarkdown writes a snapshot markdown file.
+func SaveSnapshotMarkdown(filePath string, env BuildEnv, resolvedRefs []refs.ResolvedRef) error {
+	var buffer strings.Builder
 
-// Save saves the snapshot to a JSON file.
-func (s *Snapshot) Save(exportDir string) error {
-	snapshotPath := filepath.Join(exportDir, "snapshot.json")
+	fmt.Fprintf(&buffer, "# Snapshot for %s\n\n", env.Project)
 
-	data, err := json.MarshalIndent(s, "", "  ")
-	if err != nil {
-		return err
+	buffer.WriteString("## Build Environment\n\n")
+	fmt.Fprintf(&buffer, "- exported_at: %s\n", env.ExportedAt.Format(time.RFC3339Nano))
+	fmt.Fprintf(&buffer, "- celer_version: %s\n", env.CelerVersion)
+	fmt.Fprintf(&buffer, "- platform: %s\n", env.Platform)
+	fmt.Fprintf(&buffer, "- project: %s\n\n", env.Project)
+
+	buffer.WriteString("## Resolved commits\n\n")
+	buffer.WriteString("| Name@Version | Type | URL | Ref | Resolved |\n")
+	buffer.WriteString("|---|---|---|---|---|\n")
+
+	for _, r := range resolvedRefs {
+		resolved := "-"
+		if r.ResolvedCommit != "" {
+			resolved = r.ResolvedCommit
+		}
+
+		url := r.Url
+		ref := r.OriginalRef
+
+		line := fmt.Sprintf("| %s | %s | %s | %s | %s |",
+			r.NameVersion, r.SourceType, url, ref, resolved)
+
+		if r.Error != "" {
+			line += " error: " + r.Error
+		}
+
+		buffer.WriteString(line)
+		buffer.WriteString("\n")
 	}
 
-	return os.WriteFile(snapshotPath, data, 0644)
+	return os.WriteFile(filePath, []byte(buffer.String()), os.ModePerm)
 }

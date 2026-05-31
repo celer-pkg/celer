@@ -49,7 +49,7 @@ celer deploy --force --snapshot=snapshots/rebuild
 
 ## Pre-Resolution of Refs
 
-Before cloning, `deploy` resolves all ports' refs (branch/tag names) to commit hashes in a single pass, then clones uniformly. Results are saved under `<workspace>/deploy-refs/`.
+Before cloning, `deploy` resolves all ports' refs (branch/tag names) to commit hashes in a single pass, then clones uniformly. Results are saved as `snapshot.md` under `<workspace>/installed/celer/deployments/`.
 
 This avoids the risk of remote pushes causing inconsistent commits for the same branch when resolving one-by-one during cloning, ensuring the entire deployment is based on a consistent code snapshot.
 

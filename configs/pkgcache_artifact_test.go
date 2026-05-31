@@ -128,7 +128,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 		artifactCache, nameVersion, _, hash, _ := setupArtifactFixture(t)
 
 		// Remove meta file.
-		metaPath := filepath.Join(cacheDir, pkgcache.ArtifactCacheDir, "x86_64-linux", "proj", "release", nameVersion, "meta", hash+".meta")
+		metaPath := filepath.Join(cacheDir, pkgcache.ArtifactCacheDir, "x86_64-linux", "proj", "release", nameVersion, "metas", hash+".meta")
 		if err := os.Remove(metaPath); err != nil {
 			t.Fatal(err)
 		}
@@ -148,7 +148,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 		artifactCache, nameVersion, meta, hash, _ := setupArtifactFixture(t)
 
 		// Remove meta file.
-		metaPath := filepath.Join(cacheDir, pkgcache.ArtifactCacheDir, "x86_64-linux", "proj", "release", nameVersion, "meta", hash+".meta")
+		metaPath := filepath.Join(cacheDir, pkgcache.ArtifactCacheDir, "x86_64-linux", "proj", "release", nameVersion, "metas", hash+".meta")
 		if err := os.WriteFile(metaPath, []byte("tampered-meta"), os.ModePerm); err != nil {
 			t.Fatal(err)
 		}
