@@ -3,14 +3,17 @@ package fileio
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/color"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/celer-pkg/celer/pkgs/color"
 )
 
-// CheckAccessible checks if the given URL is accessible.
+// CheckAccessible checks if the given URL is accessible,
+// the url can be "http://", "https://" or "ssh@"
 func CheckAccessible(url string) error {
 	if after, ok := strings.CutPrefix(url, "file:///"); ok {
 		url = after
@@ -21,26 +24,16 @@ func CheckAccessible(url string) error {
 		return nil
 	}
 
-	client := http.Client{
-		Timeout: 3 * time.Second,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return nil
-		},
-	}
+	switch {
+	case strings.HasPrefix(url, "ssh://"):
+		return checkSSHAccessible(url)
 
-	// Check URL availability using HEAD request.
-	resp, err := client.Head(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+	case strings.HasPrefix(url, "http://"), strings.HasPrefix(url, "https://"):
+		return checkHTTPAccessible(url)
 
-	// Check if the status code is in the 2xx range.
-	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
-		return nil
+	default:
+		return fmt.Errorf("unsupported url format: %s", url)
 	}
-
-	return fmt.Errorf("status code: %d", resp.StatusCode)
 }
 
 // FileSize returns the size of the file at the given URL.
@@ -80,4 +73,41 @@ func httpClient(host string, port int) *http.Client {
 			},
 		},
 	}
+}
+
+func checkHTTPAccessible(httpUrl string) error {
+	client := http.Client{
+		Timeout: 3 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return nil
+		},
+	}
+
+	// Check URL availability using HEAD request.
+	resp, err := client.Head(httpUrl)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check if the status code is in the 2xx range.
+	if resp.StatusCode >= 200 && resp.StatusCode < 400 {
+		return nil
+	}
+
+	return fmt.Errorf("status code: %d", resp.StatusCode)
+}
+
+func checkSSHAccessible(sshURL string) error {
+	parts := strings.SplitN(strings.TrimPrefix(sshURL, "ssh://"), "/", 2)
+	hostPort := strings.SplitN(parts[0], "@", 2)
+
+	// Get address with format: "host@port"
+	hostAddr := hostPort[len(hostPort)-1]
+	conn, err := net.DialTimeout("tcp", hostAddr, 3*time.Second)
+	if err != nil {
+		return fmt.Errorf("SSH unreachable: %w", err)
+	}
+	conn.Close()
+	return nil
 }
