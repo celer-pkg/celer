@@ -31,6 +31,9 @@ func CheckAccessible(url string) error {
 	case strings.HasPrefix(url, "http://"), strings.HasPrefix(url, "https://"):
 		return checkHTTPAccessible(url)
 
+	case strings.HasPrefix(url, "ftp://"):
+		return checkFTPAccessible(url)
+
 	default:
 		return fmt.Errorf("unsupported url format: %s", url)
 	}
@@ -102,11 +105,35 @@ func checkSSHAccessible(sshURL string) error {
 	parts := strings.SplitN(strings.TrimPrefix(sshURL, "ssh://"), "/", 2)
 	hostPort := strings.SplitN(parts[0], "@", 2)
 
-	// Get address with format: "host@port"
-	hostAddr := hostPort[len(hostPort)-1]
-	conn, err := net.DialTimeout("tcp", hostAddr, 3*time.Second)
+	// Get address with format: "host:port"
+	addrPort := hostPort[len(hostPort)-1]
+	if !strings.Contains(addrPort, ":") {
+		addrPort += ":22" // default ssh port.
+	}
+
+	// Test availability.
+	conn, err := net.DialTimeout("tcp", addrPort, 3*time.Second)
 	if err != nil {
 		return fmt.Errorf("SSH unreachable: %w", err)
+	}
+	conn.Close()
+	return nil
+}
+
+func checkFTPAccessible(ftpURL string) error {
+	parts := strings.SplitN(strings.TrimPrefix(ftpURL, "ftp://"), "/", 2)
+	hostPort := strings.SplitN(parts[0], "@", 2)
+
+	// Get address with format: "host:port"
+	addrPort := hostPort[len(hostPort)-1]
+	if !strings.Contains(addrPort, ":") {
+		addrPort += ":21" // default ftp port.
+	}
+
+	// Test availability.
+	conn, err := net.DialTimeout("tcp", addrPort, 3*time.Second)
+	if err != nil {
+		return fmt.Errorf("FTP unreachable: %w", err)
 	}
 	conn.Close()
 	return nil
