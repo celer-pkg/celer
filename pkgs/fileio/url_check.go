@@ -13,7 +13,7 @@ import (
 )
 
 // CheckAccessible checks if the given URL is accessible,
-// the url can be "http://", "https://" or "ssh@"
+// the url can be "http://", "https://", "ssh@" and "ftp://".
 func CheckAccessible(url string) error {
 	if after, ok := strings.CutPrefix(url, "file:///"); ok {
 		url = after
