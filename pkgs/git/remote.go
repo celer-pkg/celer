@@ -8,7 +8,10 @@ import (
 	"github.com/celer-pkg/celer/pkgs/cmd"
 )
 
-const retryMaxAttempts = 3
+const (
+	retryMaxAttempts = 3
+	gitTimeout       = 10 * time.Second
+)
 
 func retrySleep(attempt int) {
 	time.Sleep(time.Duration(attempt) * time.Second)
@@ -18,6 +21,7 @@ func retrySleep(attempt int) {
 func CheckIfRemoteBranch(target, repoUrl, repoRef string) (bool, error) {
 	title := fmt.Sprintf("[query remote branch: %s]", target)
 	executor := cmd.NewExecutor(title, "git", "ls-remote", "--heads", repoUrl, repoRef)
+	executor.SetTimeout(gitTimeout)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
 		return false, fmt.Errorf("failed to query remote branch %s of %s -> %w", repoRef, repoUrl, err)
@@ -30,6 +34,7 @@ func CheckIfRemoteBranch(target, repoUrl, repoRef string) (bool, error) {
 func CheckIfRemoteTag(target, repoUrl, repoRef string) (bool, error) {
 	title := fmt.Sprintf("[query remote tag: %s]", target)
 	executor := cmd.NewExecutor(title, "git", "ls-remote", "--tags", repoUrl, repoRef)
+	executor.SetTimeout(gitTimeout)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
 		return false, fmt.Errorf("failed to query remote tag %s of %s -> %w", repoRef, repoUrl, err)
@@ -41,6 +46,7 @@ func CheckIfRemoteTag(target, repoUrl, repoRef string) (bool, error) {
 func GetRemoteHeadCommit(target, repoUrl string) (string, error) {
 	title := fmt.Sprintf("[resolve remote HEAD: %s]", target)
 	executor := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "HEAD")
+	executor.SetTimeout(gitTimeout)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve HEAD of %s -> %w", repoUrl, err)
@@ -64,6 +70,7 @@ func GetRemoteRefCommit(target, repoUrl, repoRef string) (string, error) {
 	if isBranch {
 		title := fmt.Sprintf("[read remote branch commit: %s]", target)
 		executor := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "refs/heads/"+repoRef)
+		executor.SetTimeout(gitTimeout)
 		output, err := executor.ExecuteOutput()
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
@@ -85,6 +92,7 @@ func GetRemoteRefCommit(target, repoUrl, repoRef string) (string, error) {
 	if isTag {
 		title := fmt.Sprintf("[read remote tag commit: %s]", target)
 		executor := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "refs/tags/"+repoRef)
+		executor.SetTimeout(gitTimeout)
 		output, err := executor.ExecuteOutput()
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %w", err)

@@ -3,6 +3,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -19,6 +20,8 @@ func (e *executor) doExecute(output io.Writer) error {
 	var (
 		cmd        *exec.Cmd
 		displayCmd string
+		ctx        context.Context
+		cancel     context.CancelFunc
 	)
 
 	// Build command and display string.
@@ -28,6 +31,16 @@ func (e *executor) doExecute(output io.Writer) error {
 	} else {
 		cmd = exec.Command(e.command, e.args...)
 		displayCmd = e.command + " " + strings.Join(e.args, " ")
+	}
+
+	// Apply timeout if set.
+	if e.timeout > 0 {
+		ctx, cancel = context.WithTimeout(context.Background(), e.timeout)
+		cmd = exec.CommandContext(ctx, e.command, e.args...)
+		if len(e.args) == 0 {
+			cmd = exec.CommandContext(ctx, "bash", "-c", e.command)
+		}
+		defer cancel()
 	}
 
 	// Display execution info.
@@ -62,6 +75,9 @@ func (e *executor) doExecute(output io.Writer) error {
 
 	// Execute command and return result.
 	if err := cmd.Run(); err != nil {
+		if ctx != nil && ctx.Err() == context.DeadlineExceeded {
+			return fmt.Errorf("command timed out after %s: %s", e.timeout, displayCmd)
+		}
 		return fmt.Errorf("command execution failed: %w", err)
 	}
 

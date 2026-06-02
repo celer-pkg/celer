@@ -8,19 +8,21 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 // executor manages command execution with logging, environment configuration, and output routing.
 type executor struct {
-	msys2Env bool     // Whether to execute in MSYS2 environment (Windows only)
-	title    string   // Execution title for display output
-	command  string   // Command to execute
-	args     []string // Command arguments
-	msvcEnvs string   // MSVC environment setup string (Windows only)
-	workDir  string   // Working directory for command execution
-	logPath  string   // File path for execution logs
+	msys2Env bool          // Whether to execute in MSYS2 environment (Windows only)
+	title    string        // Execution title for display output
+	command  string        // Command to execute
+	args     []string      // Command arguments
+	msvcEnvs string        // MSVC environment setup string (Windows only)
+	workDir  string        // Working directory for command execution
+	logPath  string        // File path for execution logs
+	timeout  time.Duration // Maximum duration for command execution, 0 means no timeout
 }
 
 // NewExecutor creates a new Executor with the given title, command, and arguments.
@@ -57,6 +59,13 @@ func (e *executor) SetWorkDir(workDir string) *executor {
 // SetLogPath sets the file path for execution logs (environment variables, command line, output).
 func (e *executor) SetLogPath(logPath string) *executor {
 	e.logPath = logPath
+	return e
+}
+
+// SetTimeout sets the maximum duration for command execution.
+// If the command exceeds this duration, it will be killed and a timeout error returned.
+func (e *executor) SetTimeout(timeout time.Duration) *executor {
+	e.timeout = timeout
 	return e
 }
 
