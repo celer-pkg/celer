@@ -4,32 +4,35 @@
 
 ## What is Project Configuration?
 
-Project configuration defines how Celer manages dependencies and build environments for a specific project. Each project configuration contains five core components:
+Project configuration defines how Celer manages dependencies and build environments for a specific project. Each project configuration contains six core components:
 
-- 📦 **Ports (Dependencies)** - Third-party libraries required by the project
-- 🔧 **Vars (CMake Variables)** - Global CMake build variables
-- 🌍 **Envs (Environment Variables)** - Environment variables needed during build
-- 🏷️ **Macros (Macro Definitions)** - C/C++ preprocessor macros
+- **target_platform** - Project target deployment platform. In a new workspace, when the platform is set via the configure command, it will be automatically configured.
+- **Ports (Dependencies)** - Sub-dependencies required by the project. It is recommended to configure sub-project dependencies, as third-party libraries are basically dependent on sub-projects.
+- **Vars (CMake Variables)** - Global CMake build variables needed during build
+- **Envs (Environment Variables)** - Global environment variables needed during build
+- **Macros (Macro Definitions)** - Global C/C++ preprocessor macros needed during build
 
 **Why do we need project configuration?**
 
 Each project has its unique configuration characteristics. Project configuration allows Celer to:
-- ✅ Manage project dependencies uniformly
-- ✅ Share consistent build environments across teams
-- ✅ Quickly switch between different project build configurations
-- ✅ Independently manage optimization strategy and macro definitions for each project
+- Manage project dependencies uniformly
+- Share consistent build environments across teams
+- Quickly switch between different project build configurations
+- Independently manage optimization strategy and macro definitions for each project
 
 **Project File Location:** All project configuration files are stored in the `conf/projects` directory.
 
 ---
 
-## 🛠️ Configuration Field Details
+## Configuration Field Details
 
 ### Complete Example Configuration
 
 Let's look at a complete project configuration file `project_xxx.toml`:
 
 ```toml
+target_platform = "aarch64-linux-ubuntu-22.04-gcc-11.5.0"
+
 ports = [
   "x264@stable",
   "sqlite3@3.49.0",
@@ -57,12 +60,13 @@ macros = [
 
 | Field | Required | Description | Example |
 |------|------|------|------|
+| `target_platform` | ❌ | Project target deployment platform, must be a platform that exists in conf/platform | `aarch64-linux-ubuntu-22.04-gcc-11.5.0` |
 | `ports` | ❌ | Define third-party libraries the current project depends on. Format: `package@version` | `["x264@stable", "zlib@1.3.1"]` |
 | `vars` | ❌ | Define global CMake variables required by the current project. Format: `variable=value` | `["CMAKE_BUILD_TYPE=Release"]` |
 | `envs` | ❌ | Define global environment variables required by the current project. Format: `variable=value` | `["xorg_cv_malloc0_returns_null=yes"]` |
 | `macros` | ❌ | Define C/C++ macro definitions required by the current project. Format: `macro=value` or `macro` | `["DEBUG=1", "ENABLE_LOGGING"]` |
 
-> ⚠️ **Note**: All fields are optional. You can configure them selectively based on project needs.
+> **Note**: All fields are optional. You can configure them selectively based on project needs.
 
 ### 1. Ports (Dependencies)
 
@@ -73,10 +77,10 @@ Specify third-party libraries that the project depends on. Celer will automatica
 **Example:**
 ```toml
 ports = [
-  "zlib@1.3.1",           # Compression library
-  "openssl@3.0.0",        # Encryption library
-  "sqlite3@3.49.0",       # Database
-  "x264@stable"           # Video encoding (using stable version)
+  "zlib@1.3.1",
+  "openssl@3.0.0",
+  "sqlite3@3.49.0",
+  "x264@stable"
 ]
 ```
 
@@ -85,7 +89,7 @@ ports = [
 - Use specific tag: `@stable`, `@latest`
 - Version format must match the versions defined in the `ports` directory
 
-> 💡 **Tip**: Use `celer search <package>` to view available version lists.
+> **Tip**: Use `celer search <package>` to view available version lists.
 
 ### 2. Vars (CMake Variables)
 
