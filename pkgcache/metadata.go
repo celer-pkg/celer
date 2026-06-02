@@ -64,7 +64,7 @@ func (p Port) BuildMeta() (string, error) {
 		}
 		if toolVersions != "" {
 			p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "build tools versions")
-			buffer.WriteString(toolVersions + "\n\n")
+			fmt.Fprintf(&buffer, "%s\n\n", toolVersions)
 		}
 	}
 
