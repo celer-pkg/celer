@@ -734,8 +734,6 @@ func (b *BuildConfig) InitBuildSystem() error {
 		return fmt.Errorf("unsupported build system for %s", b.BuildSystem)
 	}
 
-	// Merges the platform-specific fields into the BuildConfig struct.
-	b.mergeConfig()
 	return nil
 }
 

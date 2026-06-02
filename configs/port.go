@@ -95,7 +95,7 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	}
 
 	// Decode TOML.
-	portPath := expr.If(!fileio.PathExists(portInPorts), portInProject, portInPorts)
+	portPath := expr.If(fileio.PathExists(portInProject), portInProject, portInPorts)
 	bytes, err := os.ReadFile(portPath)
 	if err != nil {
 		return fmt.Errorf("failed to read %s -> %w", portPath, err)
