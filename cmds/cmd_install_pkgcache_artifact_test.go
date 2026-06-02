@@ -78,7 +78,7 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	}
 
 	// Install from cache should success.
-	installed, err = port.InstallFromPackageCache(installOptions)
+	installed, err = port.InstallFromPkgCache(installOptions)
 	check(err)
 	if !installed {
 		t.Fatal("should install successfully from cache")
@@ -155,7 +155,7 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	}
 
 	// Install from cache should success.
-	installed, err = glogPort.InstallFromPackageCache(options)
+	installed, err = glogPort.InstallFromPkgCache(options)
 	check(err)
 	if !installed {
 		t.Fatal("should install successfully from cache")
@@ -239,7 +239,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	}
 
 	// Install from cache should success.
-	installed, err = port.InstallFromPackageCache(options)
+	installed, err = port.InstallFromPkgCache(options)
 	check(err)
 	if !installed {
 		t.Fatal("should install successfully from cache")
@@ -339,7 +339,7 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 
 	// Install from cache with commit.
 	port.Package.Checksum = commit
-	installed, err := port.InstallFromPackageCache(options)
+	installed, err := port.InstallFromPkgCache(options)
 	check(err)
 	if !installed {
 		t.Fatal("should be installed from cache")
@@ -398,7 +398,7 @@ func TestInstall_PkgCache_With_Commit_Failed(t *testing.T) {
 
 	// Install from cache with not matched commit.
 	port.Package.Checksum = "not_matched_commit_xxxxxx"
-	installed, err := port.InstallFromPackageCache(options)
+	installed, err := port.InstallFromPkgCache(options)
 	if err == nil || !errors.Is(err, errors.ErrPkgCacheArtifactNotFound) {
 		t.Fatal("should return ErrArtifactCacheNotFound")
 	}

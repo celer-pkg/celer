@@ -138,7 +138,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 
 	// 2. Try to install from cache (only when not storing cache and not forcing).
 	if !options.Force {
-		if installed, err := p.InstallFromPackageCache(options); err != nil {
+		if installed, err := p.InstallFromPkgCache(options); err != nil {
 			return "", err
 		} else if installed {
 			installedFrom = "package cache"
@@ -201,7 +201,7 @@ func (p Port) Clone() error {
 	return nil
 }
 
-func (p Port) doInstallFromPackageCache(options InstallOptions, artifactCache context.AritifactCache) (bool, error) {
+func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache context.AritifactCache) (bool, error) {
 	// Try to install dependencies first.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
 		var port Port
@@ -474,14 +474,14 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 	return true, nil
 }
 
-func (p *Port) InstallFromPackageCache(options InstallOptions) (bool, error) {
-	// Check if has package pkgCache configure.
+func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
+	// Check if pkgCache has been configured.
 	pkgCache := p.ctx.PkgCache()
 	if pkgCache == nil || pkgCache.GetDir(context.PkgCacheDirRoot) == "" {
 		return false, nil
 	}
 
-	installed, err := p.doInstallFromPackageCache(options, pkgCache.GetArtifactCache())
+	installed, err := p.doInstallFromPkgCache(options, pkgCache.GetArtifactCache())
 	if err != nil {
 		// Repo not exist is not error.
 		if errors.Is(err, errors.ErrRepoNotExit) {

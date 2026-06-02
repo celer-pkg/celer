@@ -6,8 +6,6 @@ import (
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/pkgs/cmd"
-	"github.com/celer-pkg/celer/pkgs/errors"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 var toolVersionArgs = map[string][]string{
@@ -20,11 +18,6 @@ var toolVersionArgs = map[string][]string{
 }
 
 func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
-	// Check if repo cloned or downloaded.
-	if !fileio.PathExists(p.MatchedConfig.PortConfig.RepoDir) {
-		return "", errors.ErrRepoNotExit
-	}
-
 	// Ensure tools are validated and their paths are set in PATH,
 	if err := buildtools.CheckTools(p.ctx, tools...); err != nil {
 		return "", fmt.Errorf("failed to check tools -> %w", err)
