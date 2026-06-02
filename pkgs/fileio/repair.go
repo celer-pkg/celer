@@ -236,8 +236,8 @@ func (r Repair) needToDownload(archive, sha256 string) (needToDownload bool, err
 	return false, nil
 }
 
-// tryRestoreFromCache attempts to find and verify cached file by comparing with remote file size.
-// Returns cached file path if found and size matches remote, empty string otherwise.
+// tryRestoreFromCache attempts to find and verify cached file by comparing sha256.
+// Returns cached file path if found empty string otherwise.
 func (r *Repair) tryRestoreFromCache(cacheDir, fileName string) (string, error) {
 	if r.sha256 == "" {
 		return "", nil
@@ -256,28 +256,6 @@ func (r *Repair) tryRestoreFromCache(cacheDir, fileName string) (string, error) 
 		return "", nil
 	}
 
-	// Get remote file size to verify cache is complete and up-to-date.
-	remoteSize, err := FileSize(r.httpClient, r.downloader.url)
-	if err != nil {
-		return "", fmt.Errorf("failed to get remote file size -> %w", err)
-	}
-
-	// If remote size is 0 or unknown, we can't verify, so just use cached file anyway.
-	if remoteSize <= 0 {
-		return cachedFile, nil
-	}
-
-	// Get cached file size and compare.
-	info, err := os.Stat(cachedFile)
-	if err != nil {
-		return "", fmt.Errorf("failed to stat cached file -> %w", err)
-	}
-
-	// If sizes match, cached file is valid.
-	if info.Size() == remoteSize {
-		return cachedFile, nil
-	}
-
-	// Size mismatch: cached file is outdated or incomplete.
-	return "", nil
+	// Return cached file.
+	return cachedFile, nil
 }
