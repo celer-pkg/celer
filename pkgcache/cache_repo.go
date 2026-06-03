@@ -161,19 +161,23 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 	// Check if commit hash matches for git repo cache.
 	var localChecksum string
 	if strings.HasSuffix(repoUrl, ".git") {
-		if commitHash, err := git.GetCommitHash(repoDir); err != nil {
+		commitHash, err := git.GetCommitHash(repoDir)
+		if err != nil {
 			_ = os.RemoveAll(repoDir)
 			return "", fmt.Errorf("invalid cached repo, read commit failed -> %w", err)
-		} else {
-			localChecksum = commitHash
 		}
+		localChecksum = commitHash
 	} else {
 		checksum, err := fileio.ComputeSHA256(archivePath)
 		if err != nil {
 			_ = os.RemoveAll(repoDir)
 			return "", fmt.Errorf("invalid cached repo, read commit failed -> %w", err)
-		} else {
-			localChecksum = checksum
+		}
+		localChecksum = checksum
+
+		// Initialize archive source as local git repo, so they won't be treated as user local modifications.
+		if err := git.InitAsLocalRepo(repoDir, "init for tracking file change"); err != nil {
+			return "", err
 		}
 	}
 

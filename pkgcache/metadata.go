@@ -106,7 +106,7 @@ func (p Port) buildMeta() (string, error) {
 		return "", fmt.Errorf("generate toml content of port %s -> %w", p.NameVersion, err)
 	}
 	p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, "port")
-	buffer.WriteString(content + "\n")
+	fmt.Fprintf(&buffer, "%s\n", content)
 
 	// Write content of patches.
 	for _, patch := range p.BuildConfig.Patches {
@@ -115,7 +115,7 @@ func (p Port) buildMeta() (string, error) {
 			return "", fmt.Errorf("read patch %s -> %w", patch, err)
 		}
 		p.writeSectionTitle(&buffer, p.Parents, p.NameVersion, fmt.Sprintf("patch: %s", patch))
-		buffer.WriteString(content + "\n")
+		fmt.Fprintf(&buffer, "%s\n", content)
 	}
 
 	// Write content of dev_dependencies.
