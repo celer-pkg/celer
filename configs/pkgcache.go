@@ -40,7 +40,8 @@ func (p *pkgCache) Validate() error {
 	}
 
 	// Create valid aritifact and repo cache.
-	p.artifactConfig = pkgcache.NewArtifactConfig(p.ctx, p.Dir, p.Writable)
+	artifactCacheDir := p.GetDir(context.PkgCacheDirArtifacts)
+	p.artifactConfig = pkgcache.NewArtifactConfig(p.ctx, artifactCacheDir, p.Writable)
 	p.repoConfig = pkgcache.NewRepoConfig(p.ctx, p.Dir, p.Writable)
 	return nil
 }
@@ -48,7 +49,7 @@ func (p *pkgCache) Validate() error {
 func (p pkgCache) GetDir(dirType context.PkgCacheDirType) string {
 	switch dirType {
 	case context.PkgCacheDirArtifacts:
-		return filepath.Join(p.Dir, "artifacts")
+		return filepath.Join(p.Dir, "artifacts", "celer-"+Version)
 
 	case context.PkgCacheDirRepos:
 		return filepath.Join(p.Dir, "repos")
