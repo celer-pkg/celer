@@ -56,6 +56,11 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 		return "", err
 	}
 
+	// Ensure full permissions for shared directory.
+	if err := os.Chmod(r.repoCacheDir, os.ModePerm); err != nil {
+		return "", err
+	}
+
 	if strings.HasSuffix(repoUrl, ".git") {
 		commit, err := git.GetCommitHash(repoDir)
 		if err != nil {
@@ -74,6 +79,11 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 			return "", err
 		}
 
+		// Ensure full permissions for shared directory.
+		if err := os.Chmod(filepath.Dir(archivePath), 0777); err != nil {
+			return "", err
+		}
+
 		// Compress as a tmp tar.gz and mv to final repo archive.
 		millisecond := time.Now().UnixMilli()
 		tempArchivePath := archivePath + fmt.Sprintf(".tmp-%d", millisecond)
@@ -82,6 +92,11 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 		}
 		if err := os.Rename(tempArchivePath, archivePath); err != nil {
 			_ = os.Remove(tempArchivePath)
+			return "", err
+		}
+
+		// Ensure read/write permissions for archived file.
+		if err := os.Chmod(archivePath, 0666); err != nil {
 			return "", err
 		}
 		return archivePath, nil
@@ -113,8 +128,19 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 			return "", err
 		}
 
+		// Ensure full permissions for shared directory.
+		if err := os.Chmod(filepath.Dir(archivePath), 0777); err != nil {
+			_ = os.Remove(tempArchivePath)
+			return "", err
+		}
+
 		defer os.Remove(tempArchivePath)
 		if err := fileio.CopyFile(tempArchivePath, archivePath); err != nil {
+			return "", err
+		}
+
+		// Ensure read/write permissions for archived file.
+		if err := os.Chmod(archivePath, 0666); err != nil {
 			return "", err
 		}
 		return archivePath, nil
