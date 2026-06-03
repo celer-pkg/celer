@@ -112,8 +112,9 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 			_ = os.Remove(tempArchivePath)
 			return "", err
 		}
-		if err := os.Rename(tempArchivePath, archivePath); err != nil {
-			_ = os.Remove(tempArchivePath)
+
+		defer os.Remove(tempArchivePath)
+		if err := fileio.CopyFile(tempArchivePath, archivePath); err != nil {
 			return "", err
 		}
 		return archivePath, nil
