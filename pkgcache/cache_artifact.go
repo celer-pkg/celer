@@ -13,22 +13,20 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-const ArtifactCacheDir = "artifacts"
-
 type ArtifactConfig struct {
 	ctx              context.Context
 	artifactCacheDir string
 	writable         bool
 }
 
-func NewArtifactConfig(ctx context.Context, pkgCacheDir string, writable bool) *ArtifactConfig {
-	if pkgCacheDir == "" {
+func NewArtifactConfig(ctx context.Context, artifactCacheDir string, writable bool) *ArtifactConfig {
+	if artifactCacheDir == "" {
 		return nil
 	}
 
 	return &ArtifactConfig{
 		ctx:              ctx,
-		artifactCacheDir: filepath.Join(pkgCacheDir, ArtifactCacheDir),
+		artifactCacheDir: artifactCacheDir,
 		writable:         writable,
 	}
 }
