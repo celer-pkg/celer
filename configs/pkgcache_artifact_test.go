@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -70,6 +69,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 	t.Cleanup(func() { dirs.Init(oldWorkspace) })
 
 	cacheDir := filepath.Join(tmpWorkspace, "cache")
+	artifactCacheDir := filepath.Join(cacheDir, "artifacts", "celer-"+Version)
 	if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
 		t.Fatal(err)
 	}
@@ -128,7 +128,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 		artifactCache, nameVersion, _, hash, _ := setupArtifactFixture(t)
 
 		// Remove meta file.
-		metaPath := filepath.Join(cacheDir, pkgcache.ArtifactCacheDir, "x86_64-linux", "proj", "release", nameVersion, "metas", hash+".meta")
+		metaPath := filepath.Join(artifactCacheDir, "x86_64-linux", "proj", "release", nameVersion, "metas", hash+".meta")
 		if err := os.Remove(metaPath); err != nil {
 			t.Fatal(err)
 		}
@@ -148,7 +148,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 		artifactCache, nameVersion, meta, hash, _ := setupArtifactFixture(t)
 
 		// Remove meta file.
-		metaPath := filepath.Join(cacheDir, pkgcache.ArtifactCacheDir, "x86_64-linux", "proj", "release", nameVersion, "metas", hash+".meta")
+		metaPath := filepath.Join(artifactCacheDir, "x86_64-linux", "proj", "release", nameVersion, "metas", hash+".meta")
 		if err := os.WriteFile(metaPath, []byte("tampered-meta"), os.ModePerm); err != nil {
 			t.Fatal(err)
 		}
