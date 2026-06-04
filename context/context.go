@@ -50,7 +50,7 @@ type AritifactCache interface {
 
 type RepoCache interface {
 	Restore(nameVersion, repoUrl, repoDir, checksum string) (string, error)
-	Store(nameVersion, repoUrl, repoDir string) (string, error)
+	Store(nameVersion, repoUrl, repoDir, archiveFile string) (string, error)
 }
 
 type PythonConfig interface {

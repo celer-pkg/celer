@@ -33,8 +33,9 @@ func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
 }
 
 // Store packs a source tree into repo cache.
-// For archive sources, repoRef is the original archive checksum used as the cache key.
-func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) {
+// - for archive sources, repoDir is the source dir in buildtrees.
+// - for archive source, the archiveFile is the path to the original archive file.
+func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (string, error) {
 	// skip storing cache when offline.
 	if r.ctx.Offline() {
 		return "", nil
@@ -50,8 +51,13 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 		return "", nil
 	}
 
+	var (
+		cacheRootDir = r.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)
+		repoCacheDir = r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
+	)
+
 	// Create folder to store repo archive, setting permissions on all intermediate directories.
-	if err := r.permission.MkdirAll(r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos), r.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)); err != nil {
+	if err := r.permission.MkdirAll(repoCacheDir, cacheRootDir); err != nil {
 		return "", err
 	}
 
@@ -63,13 +69,13 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 
 		// Ignore when repo archive is stored before.
 		// Archive name will be like: x264@stable/472338e072b6a83fd47825cc91cef81dc848e564.tar.gz
-		archivePath := filepath.Join(r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos), nameVersion, commit+".tar.gz")
+		archivePath := filepath.Join(repoCacheDir, nameVersion, commit+".tar.gz")
 		if fileio.PathExists(archivePath) {
 			return "", nil
 		}
 
 		// Create repo name folder if not exist, setting permissions on all intermediate directories.
-		if err := r.permission.MkdirAll(filepath.Dir(archivePath), r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)); err != nil {
+		if err := r.permission.MkdirAll(filepath.Dir(archivePath), repoCacheDir); err != nil {
 			return "", err
 		}
 
@@ -90,40 +96,36 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 		}
 		return archivePath, nil
 	} else {
-		// Compress as a tmp tar.gz and mv to final repo archive.
-		millisecond := time.Now().UnixMilli()
-		tempArchivePath := fmt.Sprintf("%s/archive-%d.tmp", os.TempDir(), millisecond)
-		if err := fileio.Targz(tempArchivePath, repoDir, false); err != nil {
-			return "", err
-		}
-
-		checksum, err := fileio.ComputeSHA256(tempArchivePath)
-		if err != nil {
-			os.Remove(tempArchivePath)
-			return "", err
-		}
-
-		// Ignore when repo archive is stored before.
-		// Archive name will be like: x264@stable/472338e072b6a83fd47825cc91cef81dc848e564.tar.gz
-		reposCacheDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
-		archivePath := filepath.Join(reposCacheDir, nameVersion, checksum+".tar.gz")
-		if fileio.PathExists(archivePath) {
-			_ = os.Remove(tempArchivePath)
+		// Skip when original archive is not available (e.g. file:/// URLs).
+		if !fileio.PathExists(archiveFile) {
 			return "", nil
 		}
 
-		// Create repo name folder if not exist, setting permissions on all intermediate directories.
-		if err := r.permission.MkdirAll(filepath.Dir(archivePath), reposCacheDir); err != nil {
-			_ = os.Remove(tempArchivePath)
+		checksum, err := fileio.ComputeSHA256(archiveFile)
+		if err != nil {
 			return "", err
 		}
 
-		defer os.Remove(tempArchivePath)
-		if err := fileio.CopyFile(tempArchivePath, archivePath); err != nil {
+		// Preserve original archive extension so Extract dispatches correctly.
+		ext := fileio.Ext(filepath.Base(archiveFile))
+		repoCacheDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
+		archivePath := filepath.Join(repoCacheDir, nameVersion, checksum+ext)
+
+		// Skip if already cached.
+		if fileio.PathExists(archivePath) {
+			return "", nil
+		}
+
+		// Create repo name folder, setting permissions on all intermediate dirs.
+		if err := r.permission.MkdirAll(filepath.Dir(archivePath), repoCacheDir); err != nil {
 			return "", err
 		}
 
-		// Set permissions for archived file based on permission strategy.
+		// Copy original archive to repo cache dir.
+		if err := fileio.CopyFile(archiveFile, archivePath); err != nil {
+			return "", err
+		}
+
 		if err := r.permission.SetPermissions(archivePath); err != nil {
 			return "", err
 		}
@@ -149,9 +151,16 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 		return "", nil
 	}
 
-	// Check if repo archive exist.
+	// For git source repo, the storage archive archiveExt is ".tar.gz",
+	// For archive source repo, the storage archive archiveExt is same as original archive.
+	archiveExt := ".tar.gz"
+	if !strings.HasSuffix(repoUrl, ".git") {
+		archiveExt = fileio.Ext(filepath.Base(repoUrl))
+	}
+
+	// Locate cached archive by checksum.
 	reposCacheDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
-	archivePath := filepath.Join(reposCacheDir, nameVersion, checksum+".tar.gz")
+	archivePath := filepath.Join(reposCacheDir, nameVersion, checksum+archiveExt)
 	if !fileio.PathExists(archivePath) {
 		return "", nil
 	}
@@ -164,12 +173,20 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 		return "", err
 	}
 
-	// Extract archive to repor dir.
+	// Extract archive to repo dir.
 	if err := fileio.Extract(archivePath, repoDir); err != nil {
 		return "", err
 	}
 
-	// Check if commit hash matches for git repo cache.
+	// Flatten nested directory, many source archives contain a single wrapping dir like ffmpeg-4.4/.
+	if !strings.HasSuffix(repoUrl, ".git") {
+		if err := fileio.FlattenNestedDir(repoDir); err != nil {
+			_ = os.RemoveAll(repoDir)
+			return "", err
+		}
+	}
+
+	// Verify cached archive integrity.
 	var localChecksum string
 	if strings.HasSuffix(repoUrl, ".git") {
 		commitHash, err := git.GetCommitHash(repoDir)
@@ -179,20 +196,22 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 		}
 		localChecksum = commitHash
 	} else {
-		checksum, err := fileio.ComputeSHA256(archivePath)
+		cachedChecksum, err := fileio.ComputeSHA256(archivePath)
 		if err != nil {
 			_ = os.RemoveAll(repoDir)
-			return "", fmt.Errorf("invalid cached repo, read commit failed -> %w", err)
+			return "", fmt.Errorf("invalid cached repo, verify checksum failed: %w", err)
 		}
-		localChecksum = checksum
+		localChecksum = cachedChecksum
 
 		// Initialize archive source as local git repo, so they won't be treated as user local modifications.
+		// Clone returns early after successful Restore, so the git init that normally happens
+		// in the Clone archive branch is skipped. Restore must init the git repo itself.
 		if err := git.InitAsLocalRepo(repoDir, "init for tracking file change"); err != nil {
 			return "", err
 		}
 	}
 
-	// Check if stored repo was tampered.
+	// Check if stored repo was modified.
 	if localChecksum != checksum {
 		_ = os.RemoveAll(repoDir)
 		return "", fmt.Errorf("cached repo checksum mismatch, expect %s, got %s", checksum, localChecksum)
