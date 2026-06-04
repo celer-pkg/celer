@@ -359,9 +359,11 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// - checksum is not empty.
 	if repoUrl != "_" && pkgCache != nil && repoCache != nil {
 		if fromWhere, err := repoCache.Restore(nameVersion, repoUrl, b.PortConfig.RepoDir, b.PortConfig.Checksum); err != nil {
-			color.PrintWarning("failed to restore %s with git repo cache: %s", nameVersion, err)
+			color.PrintWarning("failed to restore %s from repo cache, because of %s", nameVersion, err)
+			color.PrintHint("Location: %s\n", fromWhere)
 		} else if fromWhere != "" {
-			color.PrintInfo("[%s] is restored from pkgcache: %s\n", nameVersion, fromWhere)
+			color.PrintPass("%s is restored from repo cache", nameVersion)
+			color.PrintHint("Location: %s\n", fromWhere)
 			return nil
 		}
 	}
@@ -433,7 +435,8 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		if whereStored, err := repoCache.Store(nameVersion, repoUrl, b.PortConfig.RepoDir, archiveFile); err != nil {
 			return fmt.Errorf("failed to store repo cache for %s -> %v\n", nameVersion, err)
 		} else if whereStored != "" {
-			color.PrintInfo("%s is stored to %s\n", nameVersion, whereStored)
+			color.PrintPass("%s is stored to repo cache", nameVersion)
+			color.PrintHint("Location: %s\n", whereStored)
 		}
 	}
 

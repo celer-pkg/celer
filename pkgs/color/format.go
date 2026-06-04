@@ -46,6 +46,7 @@ func PrintWarning(format string, args ...any) {
 
 func PrintPass(format string, args ...any) {
 	Printf(Pass, "\n[✔] -- %s", fmt.Sprintf(format, args...))
+	time.Sleep(time.Second) // Pause 1s to let user see the message.
 }
 
 func PrintInfo(format string, args ...any) {
