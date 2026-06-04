@@ -34,6 +34,13 @@ type PkgCache interface {
 	IsWritable() bool
 	GetArtifactCache() AritifactCache
 	GetRepoCache() RepoCache
+	GetPermission() Permission
+}
+
+type Permission interface {
+	SetPermissions(path string) error
+	MkdirAll(dir, baseDir string) error
+	GetName() string
 }
 
 type AritifactCache interface {

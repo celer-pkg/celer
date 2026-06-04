@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/celer-pkg/celer/context"
 )
 
 // ComputeSHA256 computes the SHA256 hash of a file.
@@ -58,14 +60,22 @@ func FindCachedFile(cacheDir, fileName, sha256 string) (string, error) {
 }
 
 // SaveCachedFile saves a downloaded file to the cache directory using SHA256 in the filename.
-func SaveCachedFile(sourceFile, cacheDir, fileName, sha256 string) (string, error) {
+func SaveCachedFile(ctx context.Context, sourceFile, cacheDir, fileName, sha256 string) (string, error) {
 	if sha256 == "" {
 		panic(fmt.Sprintf("no sha-256 provided when caching file to pkgcache for %s", fileName))
 	}
 
+	pkgCache := ctx.PkgCache()
 	if !PathExists(cacheDir) {
-		if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
-			return "", fmt.Errorf("failed to create cache dir -> %w", err)
+		if pkgCache != nil && pkgCache.GetPermission() != nil {
+			permission := pkgCache.GetPermission()
+			if err := permission.MkdirAll(cacheDir, filepath.Dir(cacheDir)); err != nil {
+				return "", fmt.Errorf("failed to create and set permissions for cache dir -> %w", err)
+			}
+		} else {
+			if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
+				return "", fmt.Errorf("failed to create cache dir -> %w", err)
+			}
 		}
 	}
 
@@ -86,6 +96,12 @@ func SaveCachedFile(sourceFile, cacheDir, fileName, sha256 string) (string, erro
 	// Copy file to cache.
 	if err := CopyFile(sourceFile, cachedFilePath); err != nil {
 		return "", fmt.Errorf("failed to copy file to cache: %w", err)
+	}
+
+	if pkgCache != nil && pkgCache.GetPermission() != nil {
+		if err := pkgCache.GetPermission().SetPermissions(cachedFilePath); err != nil {
+			return "", fmt.Errorf("failed to set permissions for cached file -> %w", err)
+		}
 	}
 
 	return cachedFilePath, nil

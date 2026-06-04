@@ -79,11 +79,14 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 	setupArtifactFixture := func(t *testing.T) (artifactCache context.AritifactCache, nameVersion, meta, hash, packageDir string) {
 		t.Helper()
 
-		pkgCache := NewPkgCache(fakeContext{
+		fakeCtx := fakeContext{
 			platform: "x86_64-linux",
 			project:  "proj",
 			build:    "release",
-		}, cacheDir, true)
+		}
+		pkgCache := NewPkgCache(fakeCtx, cacheDir, true)
+		fakeCtx.pkgCache = pkgCache
+		pkgCache.ctx = fakeCtx
 		if err := pkgCache.Validate(); err != nil {
 			t.Fatal(err)
 		}
