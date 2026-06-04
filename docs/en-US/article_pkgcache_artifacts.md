@@ -81,7 +81,7 @@ celer install eigen@3.4.0
 - Check whether `pkgcache` and `pkgcache.dir` are configured; if not, stop looking
 - Check whether the current repository has local modifications; if it does, stop looking
 - Read the current git commit hash and generate a cache hash from the current build configuration
-- Search under `pkgcache/artifacts` using that hash and the current build configuration
+- Search under `pkgcache/artifacts-{Version}` using that hash and the current build configuration
 - If a matching artifact archive is found, reuse it by simulating the normal post-build install flow
 
 ## Private Library Distribution
@@ -103,7 +103,7 @@ For private or proprietary libraries, you can distribute prebuilt artifacts with
 
 **How it works:**
 1. Celer calculates the cache key from the `checksum` in `port.toml` plus the full build configuration
-2. It searches for a matching artifact in `pkgcache.artifacts`
+2. It searches for a matching artifact in `pkgcache/artifacts-{Version}`
 3. If found, it extracts and uses the artifact **without cloning the repository**
 4. If not found, it falls back to building from source if the source is accessible
 
@@ -118,21 +118,21 @@ Celer organizes cached artifacts in a hierarchical layout that is easy to manage
 
 ```
 /home/test/pkgcache/
-    └── artifacts
-        └── x86_64-linux-ubuntu-22.04-gcc-11.5.0/     # Platform
-            └── project_01/                           # Project
-                └── release/                          # Build type (release/debug)
-                    ├── ffmpeg@3.4.13/                # Library name@version
-                    │   ├── d536728...09068.tar.gz    # Build artifact (compressed)
-                    │   ├── f466728...a0906.tar.gz    # Different configuration variant
-                    │   └── meta/                     # Metadata directory
-                    │       ├── d536728...09068.meta  # Hash key + build info
+    └── artifacts-v0.2.7                            # Versioned artifact cache
+        └── x86_64-linux-ubuntu-22.04-gcc-11.5.0/   # Platform
+            └── project_01/                         # Project
+                └── release/                        # Build type (release/debug)
+                    ├── ffmpeg@3.4.13/              # Library name@version
+                    │   ├── d536728...09068.tar.gz  # Build artifact (compressed)
+                    │   ├── f466728...a0906.tar.gz  # Different configuration variant
+                    │   └── metas/                   # Metadata directory
+                    │       ├── d536728...09068.meta # Hash key + build info
                     │       └── f466728...a0906.meta
                     │
                     ├── opencv@4.5.1/
                     │   ├── li98343...39a8.tar.gz
                     │   ├── 4324324...sfdf.tar.gz
-                    │   └── meta/
+                    │   └── metas/
                     │       ├── li98343...39a8.meta
                     │       └── 4324324...sfdf.meta
                     └── ...

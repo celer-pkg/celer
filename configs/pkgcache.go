@@ -50,7 +50,7 @@ func (p *pkgCache) Validate() error {
 func (p pkgCache) GetDir(dirType context.PkgCacheDirType) string {
 	switch dirType {
 	case context.PkgCacheDirArtifacts:
-		return filepath.Join(p.Dir, "artifacts", "celer-"+Version)
+		return filepath.Join(p.Dir, "artifacts-"+Version)
 
 	case context.PkgCacheDirRepos:
 		return filepath.Join(p.Dir, "repos")

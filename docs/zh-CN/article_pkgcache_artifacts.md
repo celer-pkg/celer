@@ -81,7 +81,7 @@ celer install eigen@3.4.0
 - 判断`pkgcache`和`pkgcache.dir`是否配置，如果没有配置则放弃寻找
 - 检查当前仓库是否已经被修改，如果有修改则放弃寻找
 - 读取当前仓库的git commit hash, 并根据当前的构建配置生成哈希
-- 带着哈希以及构建配置参数去pkgcache/artifacts目录寻找匹配的制品存储
+- 带着哈希以及构建配置参数去 `pkgcache/artifacts-{Version}` 目录寻找匹配的制品存储
 - 找到匹配的制品压缩包则直接模拟走编译成功后的安装过程
 
 ## 私有库分发
@@ -103,7 +103,7 @@ celer install eigen@3.4.0
 
 **工作原理：**
 1. Celer 使用 port.toml 中配置的`checksum` 和`众多的构建配置`计算缓存键
-2. 在 `pkgcache.artifacts` 中搜索匹配的制品
+2. 在 `pkgcache/artifacts-{Version}` 中搜索匹配的制品
 3. 如果找到，提取并使用，**无需克隆仓库**
 4. 如果未找到，则回退到从源码构建（如果可访问）
 
@@ -118,21 +118,21 @@ Celer 以层次结构组织缓存制品，便于管理：
 
 ```
 /home/test/pkgcache/
-    └── artifacts
-        └── x86_64-linux-ubuntu-22.04-gcc-11.5.0/     # 平台
-            └── project_01/                           # 项目
-                └── release/                          # 构建类型（release/debug）
-                    ├── ffmpeg@3.4.13/                # 库名@版本
-                    │   ├── d536728...09068.tar.gz    # 构建制品（压缩）
-                    │   ├── f466728...a0906.tar.gz    # 不同配置变体
-                    │   └── meta/                     # 元数据目录
-                    │       ├── d536728...09068.meta  # 哈希键 + 构建信息
+    └── artifacts-v0.2.7                            # 按版本隔离的制品缓存
+        └── x86_64-linux-ubuntu-22.04-gcc-11.5.0/   # 平台
+            └── project_01/                         # 项目
+                └── release/                        # 构建类型（release/debug）
+                    ├── ffmpeg@3.4.13/              # 库名@版本
+                    │   ├── d536728...09068.tar.gz  # 构建制品（压缩）
+                    │   ├── f466728...a0906.tar.gz  # 不同配置变体
+                    │   └── metas/                   # 元数据目录
+                    │       ├── d536728...09068.meta # 哈希键 + 构建信息
                     │       └── f466728...a0906.meta
                     │
                     ├── opencv@4.5.1/
                     │   ├── li98343...39a8.tar.gz
                     │   ├── 4324324...sfdf.tar.gz
-                    │   └── meta/
+                    │   └── metas/
                     │       ├── li98343...39a8.meta
                     │       └── 4324324...sfdf.meta
                     └── ...

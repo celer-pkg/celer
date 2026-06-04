@@ -30,7 +30,7 @@ func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string {
 	case context.PkgCacheDirRepos:
 		return filepath.Join(f.dir, "repos")
 	case context.PkgCacheDirArtifacts:
-		return filepath.Join(f.dir, "artifacts", "celer-test")
+		return filepath.Join(f.dir, "artifacts-test")
 	case context.PkgCacheDirDownloads:
 		return filepath.Join(f.dir, "downloads")
 	default:
