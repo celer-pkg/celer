@@ -25,7 +25,7 @@ When a project depends on many git repositories or source archives, repeated clo
 | Cached content | Source code | Installed / built artifacts |
 | Active stage | `Clone()` stage | `Install()` stage |
 | Problem solved | Avoid repeated clone / download | Avoid repeated configure / build / install |
-| Storage path | `pkgcache/repos` | `pkgcache/artifacts` |
+| Storage path | `pkgcache/repos` | `pkgcache/artifacts-{Version}` |
 
 In simple terms:
 - A **repo cache** hit may still lead to a normal build

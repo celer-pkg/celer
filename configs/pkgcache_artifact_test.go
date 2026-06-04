@@ -69,7 +69,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 	t.Cleanup(func() { dirs.Init(oldWorkspace) })
 
 	cacheDir := filepath.Join(tmpWorkspace, "cache")
-	artifactCacheDir := filepath.Join(cacheDir, "artifacts", "celer-"+Version)
+	artifactCacheDir := filepath.Join(cacheDir, "artifacts-"+Version)
 	if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
 		t.Fatal(err)
 	}

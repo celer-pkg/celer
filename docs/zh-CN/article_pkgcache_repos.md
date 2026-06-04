@@ -25,7 +25,7 @@
 | 缓存内容 | 源码 | 已安装/已编译产物 |
 | 生效阶段 | `Clone()` 阶段 | `Install()` 阶段 |
 | 解决问题 | 避免重复 clone / 下载 | 避免重复 configure / build / install |
-| 存储位置 | `pkgcache/repos` | `pkgcache/artifacts` |
+| 存储位置 | `pkgcache/repos` | `pkgcache/artifacts-{Version}` |
 
 简单理解：
 - **Repo 缓存** 命中后，仍可能需要继续编译
