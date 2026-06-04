@@ -109,7 +109,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 			}
 
 			color.Printf(color.Hint, "- caching %s to pkgcache", fileName)
-			cachedPath, err := SaveCachedFile(downloaded, cachedDownloadsDir, fileName, r.sha256)
+			cachedPath, err := SaveCachedFile(ctx, downloaded, cachedDownloadsDir, fileName, r.sha256)
 			if err != nil {
 				return fmt.Errorf("failed to cache downloaded file %s: %w", fileName, err)
 			}
@@ -170,7 +170,7 @@ func (r *Repair) deploySingleFile(downloaded, destDir string) error {
 		return fmt.Errorf("failed to copy %s to %s: %w", downloaded, destFile, err)
 	}
 
-	return os.Chmod(destFile, os.ModePerm)
+	return nil
 }
 
 // deployArchive extracts archive to destination.
@@ -182,6 +182,7 @@ func (r *Repair) deployArchive(downloaded, destDir string) error {
 	if err := moveNestedFolderIfExist(destDir); err != nil {
 		return fmt.Errorf("failed to move nested folder in %s: %w", destDir, err)
 	}
+
 	return nil
 }
 

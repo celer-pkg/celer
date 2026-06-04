@@ -19,6 +19,7 @@ type pkgCache struct {
 	ctx            context.Context
 	artifactConfig *pkgcache.ArtifactConfig
 	repoConfig     *pkgcache.RepoConfig
+	permission     context.Permission
 }
 
 func NewPkgCache(ctx context.Context, dir string, writable bool) *pkgCache {
@@ -28,6 +29,7 @@ func NewPkgCache(ctx context.Context, dir string, writable bool) *pkgCache {
 		Writable:       writable,
 		CacheArtifacts: true,
 		CacheDownloads: true,
+		permission:     pkgcache.NewPermission("nfs"),
 	}
 }
 
@@ -40,9 +42,8 @@ func (p *pkgCache) Validate() error {
 	}
 
 	// Create valid aritifact and repo cache.
-	artifactCacheDir := p.GetDir(context.PkgCacheDirArtifacts)
-	p.artifactConfig = pkgcache.NewArtifactConfig(p.ctx, artifactCacheDir, p.Writable)
-	p.repoConfig = pkgcache.NewRepoConfig(p.ctx, p.Dir, p.Writable)
+	p.artifactConfig = pkgcache.NewArtifactConfig(p.ctx, p.Writable)
+	p.repoConfig = pkgcache.NewRepoConfig(p.ctx, p.Writable)
 	return nil
 }
 
@@ -78,4 +79,8 @@ func (p pkgCache) GetRepoCache() context.RepoCache {
 		return nil
 	}
 	return p.repoConfig
+}
+
+func (p pkgCache) GetPermission() context.Permission {
+	return p.permission
 }

@@ -25,11 +25,25 @@ type fakePkgCache struct {
 	writable bool
 }
 
-func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string { return f.dir }
+func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string {
+	switch dirType {
+	case context.PkgCacheDirRepos:
+		return filepath.Join(f.dir, "repos")
+	case context.PkgCacheDirArtifacts:
+		return filepath.Join(f.dir, "artifacts", "celer-test")
+	case context.PkgCacheDirDownloads:
+		return filepath.Join(f.dir, "downloads")
+	default:
+		return f.dir
+	}
+}
 func (f fakePkgCache) IsWritable() bool                              { return f.writable }
 func (f fakePkgCache) GetArtifactCache() context.AritifactCache      { return nil }
 func (f fakePkgCache) GetRepoCache() context.RepoCache {
-	return pkgcache.NewRepoConfig(fakeContext{}, f.dir, f.writable)
+	return pkgcache.NewRepoConfig(fakeContext{pkgCache: f}, f.writable)
+}
+func (f fakePkgCache) GetPermission() context.Permission {
+	return &pkgcache.NFSPermission{}
 }
 
 // creates a local bare repo that acts like remote origin.
@@ -159,7 +173,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		archivePath := filepath.Join(pkgCacheDir, pkgcache.RepoCacheDir, "x264@stable", commit+".tar.gz")
+		archivePath := filepath.Join(pkgCacheDir, "repos", "x264@stable", commit+".tar.gz")
 		if !fileio.PathExists(archivePath) {
 			t.Fatalf("expected git repo cache archive: %s", archivePath)
 		}
@@ -285,7 +299,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 
 	// Archive sources use the archive checksum as the cache key, so the stored
 	// repo cache is expected to be <repo-name>/<sha>.tar.gz.
-	cacheArchivePath := filepath.Join(pkgCacheDir, pkgcache.RepoCacheDir, "x264@stable", checksum+".tar.gz")
+	cacheArchivePath := filepath.Join(pkgCacheDir, "repos", "x264@stable", checksum+".tar.gz")
 	if !fileio.PathExists(cacheArchivePath) {
 		t.Fatalf("expected archive repo cache exists: %s", cacheArchivePath)
 	}

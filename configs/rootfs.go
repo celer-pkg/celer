@@ -49,7 +49,7 @@ func (r *RootFS) Validate() error {
 func (r *RootFS) CheckAndRepair() error {
 	// Default folder name is the first folder name of archive name，
 	// but it can be specified by archive name.
-	folderName := strings.Split(r.Path, string(filepath.Separator))[0]
+	folderName, _, _ := strings.Cut(r.Path, string(filepath.Separator))
 	if r.Archive != "" {
 		folderName = fileio.Base(r.Archive)
 	}

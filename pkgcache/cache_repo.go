@@ -13,23 +13,22 @@ import (
 	"github.com/celer-pkg/celer/pkgs/git"
 )
 
-const RepoCacheDir = "repos"
-
 type RepoConfig struct {
-	ctx          context.Context
-	repoCacheDir string
-	writable     bool
+	ctx        context.Context
+	writable   bool
+	permission context.Permission
 }
 
-func NewRepoConfig(ctx context.Context, pkgCacheDir string, writable bool) *RepoConfig {
-	if pkgCacheDir == "" {
+func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
+	pkgCache := ctx.PkgCache()
+	if pkgCache == nil || pkgCache.GetDir(context.PkgCacheDirRoot) == "" {
 		return nil
 	}
 
 	return &RepoConfig{
-		ctx:          ctx,
-		repoCacheDir: filepath.Join(pkgCacheDir, RepoCacheDir),
-		writable:     writable,
+		ctx:        ctx,
+		writable:   writable,
+		permission: NewPermission("nfs"),
 	}
 }
 
@@ -51,13 +50,8 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 		return "", nil
 	}
 
-	// Create folder to store repo archive.
-	if err := os.MkdirAll(r.repoCacheDir, os.ModePerm); err != nil {
-		return "", err
-	}
-
-	// Ensure full permissions for shared directory.
-	if err := os.Chmod(r.repoCacheDir, os.ModePerm); err != nil {
+	// Create folder to store repo archive, setting permissions on all intermediate directories.
+	if err := r.permission.MkdirAll(r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos), r.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)); err != nil {
 		return "", err
 	}
 
@@ -69,18 +63,13 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 
 		// Ignore when repo archive is stored before.
 		// Archive name will be like: x264@stable/472338e072b6a83fd47825cc91cef81dc848e564.tar.gz
-		archivePath := filepath.Join(r.repoCacheDir, nameVersion, commit+".tar.gz")
+		archivePath := filepath.Join(r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos), nameVersion, commit+".tar.gz")
 		if fileio.PathExists(archivePath) {
 			return "", nil
 		}
 
-		// Create repo name folder if not exist.
-		if err := os.MkdirAll(filepath.Dir(archivePath), os.ModePerm); err != nil {
-			return "", err
-		}
-
-		// Ensure full permissions for shared directory.
-		if err := os.Chmod(filepath.Dir(archivePath), 0777); err != nil {
+		// Create repo name folder if not exist, setting permissions on all intermediate directories.
+		if err := r.permission.MkdirAll(filepath.Dir(archivePath), r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)); err != nil {
 			return "", err
 		}
 
@@ -96,7 +85,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 		}
 
 		// Ensure read/write permissions for archived file.
-		if err := os.Chmod(archivePath, 0666); err != nil {
+		if err := r.permission.SetPermissions(archivePath); err != nil {
 			return "", err
 		}
 		return archivePath, nil
@@ -116,20 +105,15 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 
 		// Ignore when repo archive is stored before.
 		// Archive name will be like: x264@stable/472338e072b6a83fd47825cc91cef81dc848e564.tar.gz
-		archivePath := filepath.Join(r.repoCacheDir, nameVersion, checksum+".tar.gz")
+		reposCacheDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
+		archivePath := filepath.Join(reposCacheDir, nameVersion, checksum+".tar.gz")
 		if fileio.PathExists(archivePath) {
 			_ = os.Remove(tempArchivePath)
 			return "", nil
 		}
 
-		// Create repo name folder if not exist.
-		if err := os.MkdirAll(filepath.Dir(archivePath), os.ModePerm); err != nil {
-			_ = os.Remove(tempArchivePath)
-			return "", err
-		}
-
-		// Ensure full permissions for shared directory.
-		if err := os.Chmod(filepath.Dir(archivePath), 0777); err != nil {
+		// Create repo name folder if not exist, setting permissions on all intermediate directories.
+		if err := r.permission.MkdirAll(filepath.Dir(archivePath), reposCacheDir); err != nil {
 			_ = os.Remove(tempArchivePath)
 			return "", err
 		}
@@ -139,8 +123,8 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir string) (string, error) 
 			return "", err
 		}
 
-		// Ensure read/write permissions for archived file.
-		if err := os.Chmod(archivePath, 0666); err != nil {
+		// Set permissions for archived file based on permission strategy.
+		if err := r.permission.SetPermissions(archivePath); err != nil {
 			return "", err
 		}
 		return archivePath, nil
@@ -166,7 +150,8 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 	}
 
 	// Check if repo archive exist.
-	archivePath := filepath.Join(r.repoCacheDir, nameVersion, checksum+".tar.gz")
+	reposCacheDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
+	archivePath := filepath.Join(reposCacheDir, nameVersion, checksum+".tar.gz")
 	if !fileio.PathExists(archivePath) {
 		return "", nil
 	}
