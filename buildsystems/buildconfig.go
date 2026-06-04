@@ -359,9 +359,11 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// - checksum is not empty.
 	if repoUrl != "_" && pkgCache != nil && repoCache != nil {
 		if fromWhere, err := repoCache.Restore(nameVersion, repoUrl, b.PortConfig.RepoDir, b.PortConfig.Checksum); err != nil {
-			color.PrintWarning("failed to restore %s with git repo cache: %s", nameVersion, err)
+			color.PrintWarning("failed to restore %s from repo cache, because of %s", nameVersion, err)
+			color.PrintHint("Location: %s\n", fromWhere)
 		} else if fromWhere != "" {
-			color.PrintInfo("[%s] is restored from pkgcache: %s\n", nameVersion, fromWhere)
+			color.PrintPass("%s is restored from repo cache", nameVersion)
+			color.PrintHint("Location: %s\n", fromWhere)
 			return nil
 		}
 	}
@@ -400,7 +402,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		if len(entities) == 1 && entities[0].IsDir() && entities[0].Name() != "include" {
 			srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
 			color.Printf(color.Hint, "- mv %s %s", srcDir, b.PortConfig.RepoDir)
-			if err := fileio.RenameDir(srcDir, b.PortConfig.RepoDir); err != nil {
+			if err := fileio.FlattenNestedDir(b.PortConfig.RepoDir); err != nil {
 				return err
 			}
 			color.PrintInline(color.Hint, "✔ mv %s %s\n", srcDir, b.PortConfig.RepoDir)
@@ -429,10 +431,12 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// stays keyed by the original archive checksum without the generated .git directory.
 	// Store repo even checksum is empty, then can fill checksum in port.toml, if you want restore it from pkgcache/repos.
 	if repoUrl != "_" && repoCache != nil {
-		if whereStored, err := repoCache.Store(nameVersion, repoUrl, b.PortConfig.RepoDir); err != nil {
+		archiveFile := filepath.Join(b.Ctx.Downloads(), archive)
+		if whereStored, err := repoCache.Store(nameVersion, repoUrl, b.PortConfig.RepoDir, archiveFile); err != nil {
 			return fmt.Errorf("failed to store repo cache for %s -> %v\n", nameVersion, err)
 		} else if whereStored != "" {
-			color.PrintInfo("%s is stored to %s\n", nameVersion, whereStored)
+			color.PrintPass("%s is stored to repo cache", nameVersion)
+			color.PrintHint("Location: %s\n", whereStored)
 		}
 	}
 

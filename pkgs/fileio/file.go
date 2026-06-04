@@ -156,6 +156,26 @@ func RenameDir(srcDir, dstDir string) error {
 	return os.RemoveAll(srcDir)
 }
 
+// FlattenNestedDir flattens a single wrapping directory into its parent.
+// Many source archives extract into a single subdirectory like ffmpeg-4.4/;
+// this moves the contents up into dir, removing the extra nesting level.
+// Directories named "include" are left as-is to preserve system include layouts.
+func FlattenNestedDir(dir string) error {
+	entities, err := os.ReadDir(dir)
+	if err != nil {
+		return fmt.Errorf("failed to read dir: %w", err)
+	}
+
+	if len(entities) == 1 && entities[0].IsDir() && entities[0].Name() != "include" {
+		srcDir := filepath.Join(dir, entities[0].Name())
+		if err := RenameDir(srcDir, dir); err != nil {
+			return fmt.Errorf("failed to flatten nested dir: %w", err)
+		}
+	}
+
+	return nil
+}
+
 // CopyFile copy file from src to dest.
 func CopyFile(src, dest string) error {
 	// Read file info.

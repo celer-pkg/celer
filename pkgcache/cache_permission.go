@@ -1,7 +1,6 @@
 package pkgcache
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,9 +31,8 @@ func (n *NFSPermission) SetPermissions(path string) error {
 		perm = 0o666 // 0666 for files
 	}
 
-	if err := os.Chmod(path, perm); err != nil {
-		return fmt.Errorf("chmod %s to %o: %w", path, perm, err)
-	}
+	// Best-effort: ignore chmod errors when current user is not the owner.
+	_ = os.Chmod(path, perm)
 
 	return nil
 }

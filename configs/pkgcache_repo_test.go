@@ -266,6 +266,16 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 	}
 
 	archivePath, checksum := setupArchiveFile(t, tmpWorkspace)
+
+	// Copy the archive into the downloads directory so Store can compute the
+	// SHA256 of the original archive file. For remote URLs Repair would have
+	// downloaded it there; for file:/// URLs Repair extracts directly without
+	// copying to downloads, so we do it explicitly for the test.
+	archiveBasename := filepath.Base(archivePath)
+	if err := fileio.CopyFile(archivePath, filepath.Join(downloadsDir, archiveBasename)); err != nil {
+		t.Fatal(err)
+	}
+
 	repoURL := fmt.Sprintf("file:///%s", archivePath)
 	repoDir := filepath.Join(tmpWorkspace, "buildtrees", "x264@stable", "src")
 
@@ -297,8 +307,9 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		t.Fatalf("expected archive extracted into %s", repoDir)
 	}
 
-	// Archive sources use the archive checksum as the cache key, so the stored
-	// repo cache is expected to be <repo-name>/<sha>.tar.gz.
+	// Archive sources use the archive checksum as the cache key, and the cached
+	// file preserves the original archive extension. Since setupArchiveFile
+	// creates a .tar.gz, the cached path is <repo-name>/<sha>.tar.gz.
 	cacheArchivePath := filepath.Join(pkgCacheDir, "repos", "x264@stable", checksum+".tar.gz")
 	if !fileio.PathExists(cacheArchivePath) {
 		t.Fatalf("expected archive repo cache exists: %s", cacheArchivePath)
