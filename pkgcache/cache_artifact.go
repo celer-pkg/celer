@@ -14,9 +14,8 @@ import (
 )
 
 type ArtifactConfig struct {
-	ctx        context.Context
-	writable   bool
-	permission context.Permission
+	ctx      context.Context
+	writable bool
 }
 
 func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
@@ -26,9 +25,8 @@ func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
 	}
 
 	return &ArtifactConfig{
-		ctx:        ctx,
-		writable:   writable,
-		permission: NewPermission("nfs"),
+		ctx:      ctx,
+		writable: writable,
 	}
 }
 
@@ -153,13 +151,12 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	data := sha256.Sum256([]byte(meta))
 	hash := fmt.Sprintf("%x", data)
 
-	// Create the dir if not exist, setting permissions on all intermediate directories.
-	if err := a.permission.MkdirAll(destDir, a.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)); err != nil {
+	// Create dirs.
+	cacheRootDir := a.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)
+	if err := mkdirAll(destDir, fileio.CacheDirPerm, cacheRootDir); err != nil {
 		return err
 	}
-
-	// Create the meta dir if not exist, setting permissions on all intermediate directories.
-	if err := a.permission.MkdirAll(metaDir, a.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)); err != nil {
+	if err := mkdirAll(metaDir, fileio.CacheDirPerm, cacheRootDir); err != nil {
 		return err
 	}
 
@@ -173,8 +170,8 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	// Ensure full permissions and correct ownership for archived file.
-	if err := a.permission.SetPermissions(archivePath); err != nil {
+	// Set file read-only.
+	if err := fileio.SetFileReadOnly(archivePath); err != nil {
 		return err
 	}
 
@@ -188,8 +185,8 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	// Ensure full permissions and correct ownership for meta file.
-	if err := a.permission.SetPermissions(metaPath); err != nil {
+	// Set meta file read-only.
+	if err := fileio.SetFileReadOnly(metaPath); err != nil {
 		return err
 	}
 

@@ -130,8 +130,9 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 	t.Run("meta missing", func(t *testing.T) {
 		artifactCache, nameVersion, _, hash, _ := setupArtifactFixture(t)
 
-		// Remove meta file.
+		// Unlock the meta file so we can remove it.
 		metaPath := filepath.Join(artifactCacheDir, "x86_64-linux", "proj", "release", nameVersion, "metas", hash+".meta")
+		_ = os.Chmod(metaPath, 0644)
 		if err := os.Remove(metaPath); err != nil {
 			t.Fatal(err)
 		}
@@ -150,8 +151,9 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 	t.Run("meta checksum mismatch", func(t *testing.T) {
 		artifactCache, nameVersion, meta, hash, _ := setupArtifactFixture(t)
 
-		// Remove meta file.
+		// Unlock the meta file so we can tamper with it.
 		metaPath := filepath.Join(artifactCacheDir, "x86_64-linux", "proj", "release", nameVersion, "metas", hash+".meta")
+		_ = os.Chmod(metaPath, 0644)
 		if err := os.WriteFile(metaPath, []byte("tampered-meta"), os.ModePerm); err != nil {
 			t.Fatal(err)
 		}
@@ -165,7 +167,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 			t.Fatal("expected not installed when metadata checksum mismatches")
 		}
 
-		if err := os.WriteFile(metaPath, []byte(meta), os.ModePerm); err != nil {
+		if err := os.WriteFile(metaPath, []byte(meta), 0644); err != nil {
 			t.Fatal(err)
 		}
 	})

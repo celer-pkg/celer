@@ -36,9 +36,6 @@ func (f fakePkgCache) GetArtifactCache() context.AritifactCache { return nil }
 func (f fakePkgCache) GetRepoCache() context.RepoCache {
 	return NewRepoConfig(fakeContext{pkgCache: f}, f.writable)
 }
-func (f fakePkgCache) GetPermission() context.Permission {
-	return &NFSPermission{}
-}
 
 type fakeContext struct {
 	pkgCache fakePkgCache
@@ -427,6 +424,9 @@ func TestRestore_TamperedCacheFails(t *testing.T) {
 	}
 
 	// Replace cached archive with a different valid archive (same format, different content/SHA256).
+	// Unlock the cached file so we can overwrite it.
+	_ = os.Chmod(stored, 0644)
+
 	differentSrc := filepath.Join(tmpDir, "tamper-src")
 	if err := os.MkdirAll(differentSrc, os.ModePerm); err != nil {
 		t.Fatal(err)

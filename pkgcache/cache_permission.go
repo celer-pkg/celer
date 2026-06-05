@@ -2,135 +2,74 @@ package pkgcache
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"sync"
 
-	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-// NFSPermission implements PermissionStrategy for NFS shared storage.
-type NFSPermission struct{}
+// chattrWarningOnce ensures the chattr +a failure warning is only printed once
+// per process, to avoid noisy repeated warnings when no sudoers rule is configured.
+var chattrWarningOnce sync.Once
 
-func (n *NFSPermission) GetName() string {
-	return "nfs"
+// mkdirAll creates a directory tree and applies chattr +a
+// to every newly created directory within the pkgcache root.
+// No-op on non-Linux or when cacheRootDir is empty.
+// chattr failures are logged as warnings but do not cause the function to fail.
+func mkdirAll(path string, perm os.FileMode, cacheRootDir string) error {
+	// Non-Linux: fallback to plain MkdirAll.
+	if runtime.GOOS != "linux" || cacheRootDir == "" {
+		return os.MkdirAll(path, perm)
+	}
+
+	// Only apply chattr for directories within pkgcache.
+	absPath, _ := filepath.Abs(path)
+	absRoot, _ := filepath.Abs(cacheRootDir)
+	if !fileio.IsSubPath(absRoot, absPath) {
+		return os.MkdirAll(path, perm)
+	}
+
+	// Find which directories within pkgCacheRoot will be new.
+	var newDirs []string
+	cur := absPath
+	for {
+		if fileio.PathExists(cur) {
+			break
+		}
+		newDirs = append(newDirs, cur)
+		parent := filepath.Dir(cur)
+		if parent == cur || parent == absRoot {
+			break
+		}
+		cur = parent
+	}
+
+	// Create the directory tree.
+	if err := os.MkdirAll(path, perm); err != nil {
+		return err
+	}
+
+	// Apply chattr +a to newly created directories (top-down).
+	for i := len(newDirs) - 1; i >= 0; i-- {
+		setDirAppendOnly(newDirs[i])
+	}
+	return nil
 }
 
-// SetPermissions sets permissions to 0777 for directories and 0666 for files.
-func (n *NFSPermission) SetPermissions(path string) error {
-	// Check if path is a directory.
-	isDir, err := fileio.IsDirectory(path)
+// setDirAppendOnly runs "sudo -n chattr +a" on a single directory.
+// Failures are logged only once per process to avoid noisy output
+// when no sudoers rule is configured (e.g. local dev without celer setup).
+func setDirAppendOnly(dir string) {
+	cmd := exec.Command("sudo", "-n", "/usr/bin/chattr", "+a", dir)
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return err
-	}
-
-	var perm os.FileMode
-	if isDir {
-		perm = os.ModePerm // 0777 for directories
-	} else {
-		perm = 0o666 // 0666 for files
-	}
-
-	// Best-effort: ignore chmod errors when current user is not the owner.
-	_ = os.Chmod(path, perm)
-
-	return nil
-}
-
-// MkdirAll creates a directory path (like os.MkdirAll),
-func (n *NFSPermission) MkdirAll(dir, baseDir string) error {
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		return err
-	}
-
-	// Walk from dir up to (but not including) baseDir, setting permissions on each.
-	currentDir := dir
-	for currentDir != baseDir && strings.HasPrefix(currentDir, baseDir) {
-		if err := n.SetPermissions(currentDir); err != nil {
-			return err
-		}
-		parent := filepath.Dir(currentDir)
-		if parent == currentDir {
-			break // reached root
-		}
-		currentDir = parent
-	}
-
-	return nil
-}
-
-// FTPPermission implements Permission for FTP shared storage.
-// It sets permissions using FTP SITE CHMOD command when available.
-// Note: FTP does not support ownership changes, only permissions.
-type FTPPermission struct{}
-
-func (f *FTPPermission) GetName() string {
-	return "ftp"
-}
-
-// SetPermissions FTP permission setting would be implemented at the FTP storage layer,
-// not at the file system level. This is a placeholder for the permission strategy.
-// The actual FTP SITE CHMOD command would be sent to the FTP server
-// during file upload/transfer operations.
-func (f *FTPPermission) SetPermissions(path string) error {
-	// Check if path is a dirctory.
-	isDir, err := fileio.IsDirectory(path)
-	if err != nil {
-		return err
-	}
-
-	// For now, we attempt local chmod as a fallback for local operations
-	var perm os.FileMode
-	if isDir {
-		perm = os.ModePerm // 0777 for directories
-	} else {
-		perm = 0o666 // 0666 for files
-	}
-
-	if err := os.Chmod(path, perm); err != nil {
-		// Don't fail on chmod error for FTP since permissions may be managed remotely
-		// Just log and continue
-		return nil
-	}
-
-	return nil
-}
-
-// MkdirAll creates a directory path (like os.MkdirAll),
-// then sets permissions on every newly created directory from dir to baseDir.
-// baseDir is the topmost directory that does NOT need permissions set.
-func (f *FTPPermission) MkdirAll(dir, baseDir string) error {
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		return err
-	}
-
-	// Walk from dir up to (but not including) baseDir, setting permissions on each.
-	currentDir := dir
-	for currentDir != baseDir && strings.HasPrefix(currentDir, baseDir) {
-		if err := f.SetPermissions(currentDir); err != nil {
-			return err
-		}
-
-		parent := filepath.Dir(currentDir)
-		if parent == currentDir {
-			break // reached root
-		}
-		currentDir = parent
-	}
-
-	return nil
-}
-
-// NewPermission creates a new Permission based on the storage type.
-func NewPermission(storageType string) context.Permission {
-	switch storageType {
-	case "nfs":
-		return &NFSPermission{}
-	case "ftp":
-		return &FTPPermission{}
-	// case "s3":
-	//	return &S3Permission{}
-	default:
-		panic("unsupported storage type: " + storageType)
+		chattrWarningOnce.Do(func() {
+			color.Printf(color.Warning, "  [!] failed to set chattr +a on %s: %s\n", dir, strings.TrimSpace(string(output)))
+			color.Printf(color.Warning, "  [!] further chattr +a failures will be suppressed (run 'sudo celer setup' to install the sudoers rule)\n")
+		})
 	}
 }

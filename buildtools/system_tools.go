@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-// checkSystemTools checks if the system tools are installed.
-func checkSystemTools(packageNames []string) error {
+// CheckSystemTools checks if the system tools are installed.
+func CheckSystemTools(packageNames []string) error {
 	osType, err := getOSType()
 	if err != nil {
 		return err
@@ -30,6 +30,18 @@ func checkSystemTools(packageNames []string) error {
 			strings.HasPrefix(packageName, "msys2") ||
 			strings.Contains(packageName, "@") {
 			continue
+		}
+
+		// Skip packages that don't match the current distro's prefix.
+		switch osType {
+		case "debian", "ubuntu":
+			if strings.HasPrefix(packageName, "yum:") {
+				continue
+			}
+		case "centos", "fedora", "rhel":
+			if strings.HasPrefix(packageName, "apt:") {
+				continue
+			}
 		}
 
 		var (

@@ -928,7 +928,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	}
 
 	// Print install trace.
-	color.PrintPass("package: %s is installed from %s", p.NameVersion(), installedFrom)
+	color.PrintPass("%s is installed from artifacts", p.NameVersion())
 	color.PrintHint("Location: %s\n", p.InstalledDir)
 	return nil
 }

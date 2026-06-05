@@ -14,9 +14,8 @@ import (
 )
 
 type RepoConfig struct {
-	ctx        context.Context
-	writable   bool
-	permission context.Permission
+	ctx      context.Context
+	writable bool
 }
 
 func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
@@ -26,9 +25,8 @@ func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
 	}
 
 	return &RepoConfig{
-		ctx:        ctx,
-		writable:   writable,
-		permission: NewPermission("nfs"),
+		ctx:      ctx,
+		writable: writable,
 	}
 }
 
@@ -51,13 +49,10 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		return "", nil
 	}
 
-	var (
-		cacheRootDir = r.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)
-		repoCacheDir = r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
-	)
-
-	// Create folder to store repo archive, setting permissions on all intermediate directories.
-	if err := r.permission.MkdirAll(repoCacheDir, cacheRootDir); err != nil {
+	// Create folder to store repo archive.
+	cacheRootDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)
+	cacheRepoDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
+	if err := mkdirAll(cacheRepoDir, fileio.CacheDirPerm, cacheRootDir); err != nil {
 		return "", err
 	}
 
@@ -69,13 +64,13 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 
 		// Ignore when repo archive is stored before.
 		// Archive name will be like: x264@stable/472338e072b6a83fd47825cc91cef81dc848e564.tar.gz
-		archivePath := filepath.Join(repoCacheDir, nameVersion, commit+".tar.gz")
+		archivePath := filepath.Join(cacheRepoDir, nameVersion, commit+".tar.gz")
 		if fileio.PathExists(archivePath) {
 			return "", nil
 		}
 
-		// Create repo name folder if not exist, setting permissions on all intermediate directories.
-		if err := r.permission.MkdirAll(filepath.Dir(archivePath), repoCacheDir); err != nil {
+		// Create repo name folder.
+		if err := mkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm, cacheRootDir); err != nil {
 			return "", err
 		}
 
@@ -90,8 +85,8 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 			return "", err
 		}
 
-		// Ensure read/write permissions for archived file.
-		if err := r.permission.SetPermissions(archivePath); err != nil {
+		// Set file read-only.
+		if err := fileio.SetFileReadOnly(archivePath); err != nil {
 			return "", err
 		}
 		return archivePath, nil
@@ -116,8 +111,8 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 			return "", nil
 		}
 
-		// Create repo name folder, setting permissions on all intermediate dirs.
-		if err := r.permission.MkdirAll(filepath.Dir(archivePath), repoCacheDir); err != nil {
+		// Create repo name folder.
+		if err := mkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm, cacheRootDir); err != nil {
 			return "", err
 		}
 
@@ -126,7 +121,8 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 			return "", err
 		}
 
-		if err := r.permission.SetPermissions(archivePath); err != nil {
+		// Set file read-only.
+		if err := fileio.SetFileReadOnly(archivePath); err != nil {
 			return "", err
 		}
 		return archivePath, nil

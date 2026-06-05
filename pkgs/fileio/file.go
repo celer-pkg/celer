@@ -12,6 +12,12 @@ import (
 	"github.com/celer-pkg/celer/pkgs/dirs"
 )
 
+// Permission modes for directory and file.
+const (
+	CacheDirPerm  os.FileMode = 0775 // rwxrwxr-x: group writable for multi-user cache access
+	CacheFilePerm os.FileMode = 0444 // r--r--r--: read-only to prevent modifying
+)
+
 // IsExecutable check if file was executable
 func IsExecutable(filepath string) bool {
 	info, err := os.Stat(filepath)
@@ -496,4 +502,18 @@ func IsDirectory(path string) (bool, error) {
 		return false, err
 	}
 	return fileInfo.IsDir(), nil
+}
+
+// SetFileReadOnly chmods the file at path to read-only (CacheFilePerm).
+// Directories are skipped — chattr +a (set by celer setup) protects them.
+func SetFileReadOnly(path string) error {
+	isDir, err := IsDirectory(path)
+	if err != nil {
+		return err
+	}
+	if isDir {
+		return nil
+	}
+	_ = os.Chmod(path, CacheFilePerm)
+	return nil
 }

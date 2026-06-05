@@ -127,7 +127,7 @@ func CheckTools(ctx context.Context, tools ...string) error {
 
 	// Check if package installed for linux.
 	if runtime.GOOS == "linux" && len(uniqueTools) > 0 {
-		if err := checkSystemTools(uniqueTools); err != nil {
+		if err := CheckSystemTools(uniqueTools); err != nil {
 			return err
 		}
 	}
