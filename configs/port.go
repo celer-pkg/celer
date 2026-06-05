@@ -341,6 +341,11 @@ func (p Port) IsHostSupported() bool {
 	return runtime.GOOS == "linux" || runtime.GOOS == "darwin"
 }
 
+func (p Port) IsThirdParty() bool {
+	portInPorts := dirs.GetPortPath(p.Name, p.Version)
+	return fileio.PathExists(portInPorts)
+}
+
 func (p Port) validate() error {
 	if p.Package.Url == "" {
 		return fmt.Errorf("url of %s is empty", p.Name)

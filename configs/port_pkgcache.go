@@ -86,14 +86,12 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	port.BuildConfigs = []buildsystems.BuildConfig{*matchedConfig}
 
 	// Populate the port's checksum field with commit hash or archive checksum.
-	if p.Package.Checksum == "" {
-		commit, err := p.GetCommitHash(nameVersion, devDep)
+	if port.Package.Checksum == "" {
+		commit, err := port.GetCommitHash(nameVersion, devDep)
 		if err != nil {
 			return "", err
 		}
 		port.Package.Checksum = commit
-	} else {
-		port.Package.Checksum = p.Package.Checksum
 	}
 
 	// Only export the matched build config for current platform.
