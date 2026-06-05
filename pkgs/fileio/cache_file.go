@@ -83,13 +83,9 @@ func SaveCachedFile(srcFile, cacheDir, fileName, sha256 string) (string, error) 
 		}
 	}
 
-	// Copy file to cache.
-	if err := CopyFile(srcFile, cachedFilePath); err != nil {
+	// Copy file to cache (overwrite in-place if it exists, compatible with chattr +a).
+	if err := CopyFileOverwrite(srcFile, cachedFilePath); err != nil {
 		return "", fmt.Errorf("failed to copy file to cache: %w", err)
-	}
-
-	if err := SetFileReadOnly(cachedFilePath); err != nil {
-		return "", fmt.Errorf("failed to set permissions for cached file -> %w", err)
 	}
 
 	return cachedFilePath, nil

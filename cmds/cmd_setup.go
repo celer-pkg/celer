@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
@@ -35,7 +36,7 @@ Server mode (--nfs-server-dir):
 
   1. Create "celer" system user/group if it does not exist.
   2. chown -R celer:celer <nfs-dir>
-  3. chmod 2775 on all directories (group writable + setgid), chmod 444 on all files.
+  3. chmod 2775 on all directories (group writable + setgid), chmod 664 on all files (group can overwrite in-place).
   4. chattr +a on all directories (append-only: allows new files, blocks deletion).
   5. Add current user to celer group.
   6. Add NFS export to /etc/exports and reload (exportfs -ra).
@@ -45,7 +46,7 @@ Client mode (--nfs-client-dir):
   It must be run as root on the client machine. It performs:
 
   1. Install NFS client packages.
-  2. Create the mount point directory.
+  2. Mount NFS on existing directory.
   3. Add entry to /etc/fstab for persistent mounting.
   4. Mount the NFS share.
 
@@ -78,10 +79,16 @@ func (s *setupCmd) doSetup() error {
 	}
 
 	if s.nfsServerDir != "" {
+		if runtime.GOOS != "linux" {
+			return fmt.Errorf("celer setup --nfs-server-dir is only supported on Linux")
+		}
 		if err := s.doServerSetup(); err != nil {
 			return err
 		}
 	} else if s.nfsClientDir != "" {
+		if runtime.GOOS != "linux" {
+			return fmt.Errorf("celer setup --nfs-client-dir is only supported on Linux")
+		}
 		if err := s.doClientSetup(); err != nil {
 			return err
 		}
@@ -124,14 +131,14 @@ func (s *setupCmd) doServerSetup() error {
 		return fmt.Errorf("chown failed -> %w\nHint: if this is an NFS mount, run this command on the NFS server", err)
 	}
 
-	// Step 3: chmod 2775 on directories (group writable + setgid), chmod 444 on files.
+	// Step 3: chmod 2775 on directories (group writable + setgid), chmod 664 on files (group can overwrite in-place).
 	// Setgid ensures new files/dirs inherit the celer group automatically.
 	title = "[set directory permissions (chmod 2775)]"
 	if err := cmd.NewExecutor(title, "find", s.nfsServerDir, "-type", "d", "-exec", "chmod", "2775", "{}", ";").Execute(); err != nil {
 		return fmt.Errorf("chmod directories failed -> %w", err)
 	}
-	title = "[set file permissions (chmod 444)]"
-	if err := cmd.NewExecutor(title, "find", s.nfsServerDir, "-type", "f", "-exec", "chmod", "444", "{}", ";").Execute(); err != nil {
+	title = "[set file permissions (chmod 664)]"
+	if err := cmd.NewExecutor(title, "find", s.nfsServerDir, "-type", "f", "-exec", "chmod", "664", "{}", ";").Execute(); err != nil {
 		return fmt.Errorf("chmod files failed -> %w", err)
 	}
 
@@ -192,6 +199,12 @@ func (s *setupCmd) doClientSetup() error {
 	if err := cmd.NewExecutor(title, "mount", mountPoint).Execute(); err != nil {
 		return fmt.Errorf("mount failed -> %w", err)
 	}
+
+	// Create celer group and add current user to it (needed for group write access to NFS cache).
+	if err := s.createCelerUser(); err != nil {
+		color.PrintWarning("failed to create celer user: %v", err)
+	}
+	s.addCurrentUserToCelerGroup()
 
 	color.PrintSuccess("NFS cache client setup complete: %s mounted from %s", mountPoint, serverExport)
 	return nil
@@ -254,7 +267,7 @@ func (s *setupCmd) addCurrentUserToCelerGroup() {
 		return
 	}
 
-	color.PrintHint("%s", fmt.Sprintf("✔ %s added to celer group (re-login to take effect)", username))
+	color.PrintHint("%s", fmt.Sprintf("✔ %s added to celer group (💡 please re-login to take effect 💡)", username))
 }
 
 // addNFSExport ensures the NFS export entry exists in /etc/exports, then reloads.

@@ -74,21 +74,20 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 			return "", err
 		}
 
-		// Compress as a tmp tar.gz and mv to final repo archive.
-		millisecond := time.Now().UnixMilli()
-		tempArchivePath := archivePath + fmt.Sprintf(".tmp-%d", millisecond)
+		// Compress to temp dir first (outside cache), then copy to final path.
+		// chattr +a allows creating new files but not renaming.
+		if err := dirs.CleanTmpFilesDir(); err != nil {
+			return "", fmt.Errorf("failed to clean tmp files dir -> %w", err)
+		}
+		tempArchivePath := filepath.Join(dirs.TmpFilesDir, fmt.Sprintf("%s-%d.tar.gz", nameVersion, time.Now().UnixMilli()))
 		if err := fileio.Targz(tempArchivePath, repoDir, false); err != nil {
 			return "", err
 		}
-		if err := os.Rename(tempArchivePath, archivePath); err != nil {
-			_ = os.Remove(tempArchivePath)
+		defer os.Remove(tempArchivePath)
+		if err := fileio.CopyFileOverwrite(tempArchivePath, archivePath); err != nil {
 			return "", err
 		}
 
-		// Set file read-only.
-		if err := fileio.SetFileReadOnly(archivePath); err != nil {
-			return "", err
-		}
 		return archivePath, nil
 	} else {
 		// Skip when original archive is not available (e.g. file:/// URLs).
@@ -117,14 +116,10 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		}
 
 		// Copy original archive to repo cache dir.
-		if err := fileio.CopyFile(archiveFile, archivePath); err != nil {
+		if err := fileio.CopyFileOverwrite(archiveFile, archivePath); err != nil {
 			return "", err
 		}
 
-		// Set file read-only.
-		if err := fileio.SetFileReadOnly(archivePath); err != nil {
-			return "", err
-		}
 		return archivePath, nil
 	}
 }

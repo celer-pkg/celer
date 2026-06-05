@@ -151,42 +151,24 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	data := sha256.Sum256([]byte(meta))
 	hash := fmt.Sprintf("%x", data)
 
-	// Create dirs.
-	cacheRootDir := a.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)
-	if err := mkdirAll(destDir, fileio.CacheDirPerm, cacheRootDir); err != nil {
+	// Create dirs (chattr +a is applied by mkdirAll).
+	if err := mkdirAll(destDir, fileio.CacheDirPerm, a.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)); err != nil {
 		return err
 	}
-	if err := mkdirAll(metaDir, fileio.CacheDirPerm, cacheRootDir); err != nil {
+	if err := mkdirAll(metaDir, fileio.CacheDirPerm, a.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)); err != nil {
 		return err
 	}
 
-	// Move tmp file to dest archive file.
+	// Copy archive directly to final path (chattr +a allows creating new files, but not renaming).
+	// Use CopyFileOverwrite to overwrite in-place if the file already exists (e.g. -f rebuild with same hash).
 	archivePath := filepath.Join(destDir, hash+".tar.gz")
-	archiveTempPath := archivePath + ".tmp"
-	if err := fileio.CopyFile(tempArchivePath, archiveTempPath); err != nil {
-		return err
-	}
-	if err := os.Rename(archiveTempPath, archivePath); err != nil {
+	if err := fileio.CopyFileOverwrite(tempArchivePath, archivePath); err != nil {
 		return err
 	}
 
-	// Set file read-only.
-	if err := fileio.SetFileReadOnly(archivePath); err != nil {
-		return err
-	}
-
-	// Write meta file to meta dir.
+	// Write meta file directly to final path.
 	metaPath := filepath.Join(metaDir, hash+".meta")
-	metaTempPath := metaPath + ".tmp"
-	if err := os.WriteFile(metaTempPath, []byte(meta), os.ModePerm); err != nil {
-		return err
-	}
-	if err := os.Rename(metaTempPath, metaPath); err != nil {
-		return err
-	}
-
-	// Set meta file read-only.
-	if err := fileio.SetFileReadOnly(metaPath); err != nil {
+	if err := fileio.OverwriteFile(metaPath, []byte(meta), fileio.CacheFilePerm); err != nil {
 		return err
 	}
 

@@ -15,7 +15,7 @@ import (
 // Permission modes for directory and file.
 const (
 	CacheDirPerm  os.FileMode = 0775 // rwxrwxr-x: group writable for multi-user cache access
-	CacheFilePerm os.FileMode = 0444 // r--r--r--: read-only to prevent modifying
+	CacheFilePerm os.FileMode = 0664 // rw-rw-r--: group can overwrite in-place, others read-only
 )
 
 // IsExecutable check if file was executable
@@ -233,6 +233,58 @@ func CopyFile(src, dest string) error {
 
 	// Set the same permissions as the source file.
 	if err := os.Chmod(dest, info.Mode()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CopyFileOverwrite copies src to dest, overwriting dest in-place if it exists.
+// Unlike CopyFile, it does not remove the destination first — it opens with O_WRONLY|O_CREATE|O_TRUNC.
+// This is compatible with chattr +a directories where deletion is blocked.
+func CopyFileOverwrite(src, dest string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	info, err := srcFile.Stat()
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
+		return err
+	}
+
+	// Open with O_WRONLY|O_CREATE|O_TRUNC — creates new or truncates existing.
+	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, info.Mode())
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	if _, err := io.Copy(destFile, srcFile); err != nil {
+		return err
+	}
+	return destFile.Sync()
+}
+
+// OverwriteFile writes data to path, creating or truncating in-place.
+// Unlike os.WriteFile, this sets explicit permissions.
+// Compatible with chattr +a directories.
+func OverwriteFile(path string, data []byte, perm os.FileMode) error {
+	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
+		return err
+	}
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+	if _, err := file.Write(data); err != nil {
 		return err
 	}
 
@@ -502,18 +554,4 @@ func IsDirectory(path string) (bool, error) {
 		return false, err
 	}
 	return fileInfo.IsDir(), nil
-}
-
-// SetFileReadOnly chmods the file at path to read-only (CacheFilePerm).
-// Directories are skipped — chattr +a (set by celer setup) protects them.
-func SetFileReadOnly(path string) error {
-	isDir, err := IsDirectory(path)
-	if err != nil {
-		return err
-	}
-	if isDir {
-		return nil
-	}
-	_ = os.Chmod(path, CacheFilePerm)
-	return nil
 }
