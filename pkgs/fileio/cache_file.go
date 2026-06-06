@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/color"
 )
 
 // ComputeSHA256 computes the SHA256 hash of a file.
@@ -47,35 +47,33 @@ func FindCachedFile(cacheDir, fileName, sha256 string) (string, error) {
 		return "", nil
 	}
 
+	color.Printf(color.Title, "\n%s\n", fmt.Sprintf("[validating file cache: %s]", fileName))
+	color.PrintInline(color.Hint, "- validating with sha256: %s", sha256)
+
 	// Verify file's sha256.
 	computedHash, err := ComputeSHA256(cachedFilePath)
 	if err != nil {
+		color.PrintInline(color.Hint, "✘ validate with sha256: %s\n", sha256)
 		return "", fmt.Errorf("failed to compute sha-256 for cached file -> %w", err)
 	}
 	if computedHash == sha256 {
+		color.PrintInline(color.Hint, "✔ validate with sha256: %s\n", sha256)
 		return cachedFilePath, nil
 	}
 
+	color.PrintInline(color.Hint, "✘ validate with sha256: %s\n", sha256)
 	return "", nil
 }
 
 // SaveCachedFile saves a downloaded file to the cache directory using SHA256 in the filename.
-func SaveCachedFile(ctx context.Context, sourceFile, cacheDir, fileName, sha256 string) (string, error) {
+func SaveCachedFile(srcFile, cacheDir, fileName, sha256 string, chattrFS *ChattrFS) (string, error) {
 	if sha256 == "" {
 		panic(fmt.Sprintf("no sha-256 provided when caching file to pkgcache for %s", fileName))
 	}
 
-	pkgCache := ctx.PkgCache()
 	if !PathExists(cacheDir) {
-		if pkgCache != nil && pkgCache.GetPermission() != nil {
-			permission := pkgCache.GetPermission()
-			if err := permission.MkdirAll(cacheDir, filepath.Dir(cacheDir)); err != nil {
-				return "", fmt.Errorf("failed to create and set permissions for cache dir -> %w", err)
-			}
-		} else {
-			if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
-				return "", fmt.Errorf("failed to create cache dir -> %w", err)
-			}
+		if err := chattrFS.MkdirAll(cacheDir, CacheDirPerm); err != nil {
+			return "", fmt.Errorf("failed to create cache dir -> %w", err)
 		}
 	}
 
@@ -93,15 +91,9 @@ func SaveCachedFile(ctx context.Context, sourceFile, cacheDir, fileName, sha256 
 		}
 	}
 
-	// Copy file to cache.
-	if err := CopyFile(sourceFile, cachedFilePath); err != nil {
+	// Copy file to cache (overwrite in-place if it exists, compatible with chattr +a).
+	if err := chattrFS.CopyFile(srcFile, cachedFilePath); err != nil {
 		return "", fmt.Errorf("failed to copy file to cache: %w", err)
-	}
-
-	if pkgCache != nil && pkgCache.GetPermission() != nil {
-		if err := pkgCache.GetPermission().SetPermissions(cachedFilePath); err != nil {
-			return "", fmt.Errorf("failed to set permissions for cached file -> %w", err)
-		}
 	}
 
 	return cachedFilePath, nil

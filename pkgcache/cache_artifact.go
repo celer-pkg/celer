@@ -14,9 +14,9 @@ import (
 )
 
 type ArtifactConfig struct {
-	ctx        context.Context
-	writable   bool
-	permission context.Permission
+	ctx      context.Context
+	writable bool
+	chattrFS *fileio.ChattrFS
 }
 
 func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
@@ -26,9 +26,9 @@ func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
 	}
 
 	return &ArtifactConfig{
-		ctx:        ctx,
-		writable:   writable,
-		permission: NewPermission("nfs"),
+		ctx:      ctx,
+		writable: writable,
+		chattrFS: fileio.NewChattrFS(pkgCache.GetDir(context.PkgCacheDirRoot)),
 	}
 }
 
@@ -153,43 +153,24 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	data := sha256.Sum256([]byte(meta))
 	hash := fmt.Sprintf("%x", data)
 
-	// Create the dir if not exist, setting permissions on all intermediate directories.
-	if err := a.permission.MkdirAll(destDir, a.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)); err != nil {
+	// Create dirs (chattr +a is applied by ChattrFS.MkdirAll).
+	if err := a.chattrFS.MkdirAll(destDir, fileio.CacheDirPerm); err != nil {
+		return err
+	}
+	if err := a.chattrFS.MkdirAll(metaDir, fileio.CacheDirPerm); err != nil {
 		return err
 	}
 
-	// Create the meta dir if not exist, setting permissions on all intermediate directories.
-	if err := a.permission.MkdirAll(metaDir, a.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)); err != nil {
-		return err
-	}
-
-	// Move tmp file to dest archive file.
+	// Copy archive directly to final path (chattr +a allows creating new files, but not renaming).
+	// Use CopyFile to overwrite in-place if the file already exists (e.g. -f rebuild with same hash).
 	archivePath := filepath.Join(destDir, hash+".tar.gz")
-	archiveTempPath := archivePath + ".tmp"
-	if err := fileio.CopyFile(tempArchivePath, archiveTempPath); err != nil {
-		return err
-	}
-	if err := os.Rename(archiveTempPath, archivePath); err != nil {
+	if err := a.chattrFS.CopyFile(tempArchivePath, archivePath); err != nil {
 		return err
 	}
 
-	// Ensure full permissions and correct ownership for archived file.
-	if err := a.permission.SetPermissions(archivePath); err != nil {
-		return err
-	}
-
-	// Write meta file to meta dir.
+	// Write meta file directly to final path.
 	metaPath := filepath.Join(metaDir, hash+".meta")
-	metaTempPath := metaPath + ".tmp"
-	if err := os.WriteFile(metaTempPath, []byte(meta), os.ModePerm); err != nil {
-		return err
-	}
-	if err := os.Rename(metaTempPath, metaPath); err != nil {
-		return err
-	}
-
-	// Ensure full permissions and correct ownership for meta file.
-	if err := a.permission.SetPermissions(metaPath); err != nil {
+	if err := a.chattrFS.WriteFile(metaPath, []byte(meta), fileio.CacheFilePerm); err != nil {
 		return err
 	}
 

@@ -106,6 +106,7 @@ In one sentence:
 
 **Advanced Topics:**
 - [Generate CMake Configs](./article_generate_cmake_config.md) - Auto-generate configuration for prebuilt binaries
+- [PkgCache Shared Cache and NFS Permissions](./article_pkgcache.md) - Share package caches across teams with NFS and append-only directory protection
 - [Cache Build Artifacts](./article_pkgcache_artifacts.md) - Reuse built artifacts to reduce repeated integration cost
 - [Cache Source Repositories](./article_pkgcache_repos.md) - Reuse source trees through repo cache when upstream access is unstable
 - [Cache Build Tools](./article_pkgcache_downloads.md) - Speed up and stabilize the compilation environment by caching compilation tools

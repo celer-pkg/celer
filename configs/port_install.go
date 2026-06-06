@@ -77,7 +77,13 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		}
 	}
 
-	if options.Force {
+	// Force clear conditions:
+	// 1. root port with --force
+	// 2. children port with --force and -recursive
+	forceClear := options.Force && (p.Parent == "" || (p.Parent != "" && options.Recursive))
+
+	// Remove build cache and clean source repo when forcing install,
+	if forceClear {
 		// Remove installed port with its build cache, logs.
 		options := RemoveOptions{
 			Purge:      true,
@@ -137,7 +143,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 	}
 
 	// 2. Try to install from cache (only when not storing cache and not forcing).
-	if !options.Force {
+	if !forceClear {
 		if installed, err := p.InstallFromPkgCache(options); err != nil {
 			return "", err
 		} else if installed {
@@ -159,32 +165,47 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 
 func (p Port) Clone() error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
-		var port = Port{DevDep: true}
+		var port = Port{
+			DevDep: true,
+			Parent: p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		if err := port.MatchedConfig.Clone(
-			port.Package.Url,
-			port.Package.Ref,
-			port.Package.Archive,
-			port.Package.Depth,
-		); err != nil {
-			return err
+
+		// Clone repo is allowed only for third-party ports and public ports of project.
+		if port.Package.Checksum == "" || port.IsThirdParty() {
+			if err := port.MatchedConfig.Clone(
+				port.Package.Url,
+				port.Package.Ref,
+				port.Package.Archive,
+				port.Package.Depth,
+			); err != nil {
+				return err
+			}
 		}
 	}
 
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
-		var port = Port{DevDep: false, HostDep: p.DevDep || p.HostDep}
+		var port = Port{
+			DevDep:  false,
+			HostDep: p.DevDep || p.HostDep,
+			Parent:  p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		if err := port.MatchedConfig.Clone(
-			port.Package.Url,
-			port.Package.Ref,
-			port.Package.Archive,
-			port.Package.Depth,
-		); err != nil {
-			return err
+
+		// Clone repo is allowed only for third-party ports and public ports of project.
+		if port.Package.Checksum == "" || port.IsThirdParty() {
+			if err := port.MatchedConfig.Clone(
+				port.Package.Url,
+				port.Package.Ref,
+				port.Package.Archive,
+				port.Package.Depth,
+			); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -556,21 +577,36 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 func (p Port) cloneAllRepos() error {
 	buildConfig := p.MatchedConfig
 	for _, nameVersion := range buildConfig.DevDependencies {
-		port := Port{DevDep: true}
+		port := Port{
+			DevDep: true,
+			Parent: p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		if err := port.Clone(); err != nil {
-			return err
+
+		// Clone repo is allowed only for third-party ports and public ports of project.
+		if port.Package.Checksum == "" || port.IsThirdParty() {
+			if err := port.Clone(); err != nil {
+				return err
+			}
 		}
 	}
 	for _, nameVersion := range buildConfig.Dependencies {
-		port := Port{DevDep: false, HostDep: p.DevDep || p.HostDep}
+		port := Port{
+			DevDep:  false,
+			HostDep: p.DevDep || p.HostDep,
+			Parent:  p.NameVersion(),
+		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
-		if err := port.Clone(); err != nil {
-			return err
+
+		// Clone repo is allowed only for third-party ports and public ports of project.
+		if port.Package.Checksum == "" || port.IsThirdParty() {
+			if err := port.Clone(); err != nil {
+				return err
+			}
 		}
 	}
 	if err := p.Clone(); err != nil {
@@ -892,7 +928,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	}
 
 	// Print install trace.
-	color.PrintPass("package: %s is installed from %s", p.NameVersion(), installedFrom)
+	color.PrintPass("%s is installed from artifacts", p.NameVersion())
 	color.PrintHint("Location: %s\n", p.InstalledDir)
 	return nil
 }

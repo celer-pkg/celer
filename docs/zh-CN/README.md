@@ -106,6 +106,7 @@ Celer 的优势在于它更关注**复杂工程环境里的交付效率和一致
 
 **高级功能：**
 - [生成 CMake 配置文件](./article_generate_cmake_config.md) - 为预编译二进制库自动生成配置
+- [PkgCache 共享缓存与 NFS 权限管理](./article_pkgcache.md) - 通过 NFS 和 append-only 目录保护在团队间共享包缓存
 - [缓存构建产物](./article_pkgcache_artifacts.md) - 复用已构建产物，降低重复集成成本
 - [缓存源码仓库](./article_pkgcache_repos.md) - 上游仓库不稳定时，通过 Repo Cache 复用源码树
 - [缓存编译工具](./article_pkgcache_downloads.md) - 通过缓存编译工具，加快编译环境的速度和稳定性

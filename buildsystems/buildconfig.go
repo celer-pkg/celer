@@ -362,7 +362,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			color.PrintWarning("failed to restore %s from repo cache, because of %s", nameVersion, err)
 			color.PrintHint("Location: %s\n", fromWhere)
 		} else if fromWhere != "" {
-			color.PrintPass("%s is restored from repo cache", nameVersion)
+			color.PrintPass("%s's source is restored from repo cache", nameVersion)
 			color.PrintHint("Location: %s\n", fromWhere)
 			return nil
 		}

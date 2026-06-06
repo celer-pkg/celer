@@ -14,9 +14,9 @@ import (
 )
 
 type RepoConfig struct {
-	ctx        context.Context
-	writable   bool
-	permission context.Permission
+	ctx      context.Context
+	writable bool
+	chattrFS *fileio.ChattrFS
 }
 
 func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
@@ -26,9 +26,9 @@ func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
 	}
 
 	return &RepoConfig{
-		ctx:        ctx,
-		writable:   writable,
-		permission: NewPermission("nfs"),
+		ctx:      ctx,
+		writable: writable,
+		chattrFS: fileio.NewChattrFS(pkgCache.GetDir(context.PkgCacheDirRoot)),
 	}
 }
 
@@ -51,13 +51,9 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		return "", nil
 	}
 
-	var (
-		cacheRootDir = r.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)
-		repoCacheDir = r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
-	)
-
-	// Create folder to store repo archive, setting permissions on all intermediate directories.
-	if err := r.permission.MkdirAll(repoCacheDir, cacheRootDir); err != nil {
+	// Create folder to store repo archive.
+	cacheRepoDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
+	if err := r.chattrFS.MkdirAll(cacheRepoDir, fileio.CacheDirPerm); err != nil {
 		return "", err
 	}
 
@@ -69,31 +65,30 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 
 		// Ignore when repo archive is stored before.
 		// Archive name will be like: x264@stable/472338e072b6a83fd47825cc91cef81dc848e564.tar.gz
-		archivePath := filepath.Join(repoCacheDir, nameVersion, commit+".tar.gz")
+		archivePath := filepath.Join(cacheRepoDir, nameVersion, commit+".tar.gz")
 		if fileio.PathExists(archivePath) {
 			return "", nil
 		}
 
-		// Create repo name folder if not exist, setting permissions on all intermediate directories.
-		if err := r.permission.MkdirAll(filepath.Dir(archivePath), repoCacheDir); err != nil {
+		// Create repo name folder.
+		if err := r.chattrFS.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
 			return "", err
 		}
 
-		// Compress as a tmp tar.gz and mv to final repo archive.
-		millisecond := time.Now().UnixMilli()
-		tempArchivePath := archivePath + fmt.Sprintf(".tmp-%d", millisecond)
+		// Compress to temp dir first (outside cache), then copy to final path.
+		// chattr +a allows creating new files but not renaming.
+		if err := dirs.CleanTmpFilesDir(); err != nil {
+			return "", fmt.Errorf("failed to clean tmp files dir -> %w", err)
+		}
+		tempArchivePath := filepath.Join(dirs.TmpFilesDir, fmt.Sprintf("%s-%d.tar.gz", nameVersion, time.Now().UnixMilli()))
 		if err := fileio.Targz(tempArchivePath, repoDir, false); err != nil {
 			return "", err
 		}
-		if err := os.Rename(tempArchivePath, archivePath); err != nil {
-			_ = os.Remove(tempArchivePath)
+		defer os.Remove(tempArchivePath)
+		if err := r.chattrFS.CopyFile(tempArchivePath, archivePath); err != nil {
 			return "", err
 		}
 
-		// Ensure read/write permissions for archived file.
-		if err := r.permission.SetPermissions(archivePath); err != nil {
-			return "", err
-		}
 		return archivePath, nil
 	} else {
 		// Skip when original archive is not available (e.g. file:/// URLs).
@@ -116,19 +111,16 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 			return "", nil
 		}
 
-		// Create repo name folder, setting permissions on all intermediate dirs.
-		if err := r.permission.MkdirAll(filepath.Dir(archivePath), repoCacheDir); err != nil {
+		// Create repo name folder.
+		if err := r.chattrFS.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
 			return "", err
 		}
 
 		// Copy original archive to repo cache dir.
-		if err := fileio.CopyFile(archiveFile, archivePath); err != nil {
+		if err := r.chattrFS.CopyFile(archiveFile, archivePath); err != nil {
 			return "", err
 		}
 
-		if err := r.permission.SetPermissions(archivePath); err != nil {
-			return "", err
-		}
 		return archivePath, nil
 	}
 }

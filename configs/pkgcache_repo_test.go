@@ -42,9 +42,6 @@ func (f fakePkgCache) GetArtifactCache() context.AritifactCache      { return ni
 func (f fakePkgCache) GetRepoCache() context.RepoCache {
 	return pkgcache.NewRepoConfig(fakeContext{pkgCache: f}, f.writable)
 }
-func (f fakePkgCache) GetPermission() context.Permission {
-	return &pkgcache.NFSPermission{}
-}
 
 // creates a local bare repo that acts like remote origin.
 // Using a local origin keeps this test deterministic and network-independent.

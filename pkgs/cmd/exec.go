@@ -90,7 +90,7 @@ func (e *executor) createLogFile(cmd *exec.Cmd) (*os.File, error) {
 	// Write environment variables.
 	var buffer bytes.Buffer
 	for _, envVar := range cmd.Env {
-		buffer.WriteString(envVar + "\n")
+		fmt.Fprintf(&buffer, "%s\n", envVar)
 	}
 
 	// Write headers to log file.
