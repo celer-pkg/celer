@@ -1,19 +1,15 @@
 package fileio
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"sync"
-
-	"github.com/celer-pkg/celer/pkgs/color"
 )
-
-// chattrWarningOnce ensures the chattr +a failure warning is only printed once
-var chattrWarningOnce sync.Once
 
 // ChattrFS encapsulates chattr +a compatible file operations bound to a specific cacheRootDir.
 type ChattrFS struct {
@@ -62,7 +58,14 @@ func (fs *ChattrFS) MkdirAll(path string, perm os.FileMode) error {
 
 	// Apply chattr +a to newly created directories (top-to-down).
 	for i := len(newDirs) - 1; i >= 0; i-- {
-		fs.setDirAppendOnly(newDirs[i])
+		if err := fs.setDirAppendOnly(newDirs[i]); err != nil {
+			return err
+		}
+	}
+
+	// Always apply chattr +a to the target directory, even if it already existed.
+	if err := fs.setDirAppendOnly(absPath); err != nil {
+		return err
 	}
 
 	return nil
@@ -119,20 +122,52 @@ func (fs *ChattrFS) WriteFile(path string, data []byte, perm os.FileMode) error 
 }
 
 // setDirAppendOnly sets chattr +a on a directory.
-func (fs *ChattrFS) setDirAppendOnly(dir string) {
-	var cmd *exec.Cmd
-	if os.Geteuid() == 0 {
-		cmd = exec.Command("/usr/bin/chattr", "+a", dir)
-	} else {
-		cmd = exec.Command("sudo", "-n", "/usr/bin/chattr", "+a", dir)
+//   - Root: run chattr directly; hard error on failure.
+//   - Non-root in celer group: run chattr; skip on NFS ("Operation not supported")
+//     and on insufficient privilege ("Operation not permitted", e.g. local dev),
+//     hard error on other failures.
+//   - Non-root not in celer group: skip (local dev environment, no NFS cache protection needed).
+func (fs *ChattrFS) setDirAppendOnly(dir string) error {
+	if os.Geteuid() != 0 {
+		inGroup, err := isInCelerGroup()
+		if err != nil || !inGroup {
+			return nil // Not in celer group — likely a local dev environment without NFS cache.
+		}
 	}
+
+	cmd := exec.Command("/usr/bin/chattr", "+a", dir)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		chattrWarningOnce.Do(func() {
-			color.PrintWarning("failed to set chattr +a on %s -> %s -> %s",
-				dir,
-				strings.TrimSpace(string(output)),
-				"further chattr +a failures will be suppressed (run 'sudo celer setup --nfs-client-dir=xxx' to install the sudoers rule)")
-		})
+		out := strings.TrimSpace(string(output))
+		if strings.Contains(out, "Operation not supported") {
+			return nil // NFS filesystem: protection is handled server-side by the cron job.
+		}
+		if strings.Contains(out, "Operation not permitted") {
+			return nil // Non-root on local filesystem: expected in dev/test environments.
+		}
+		return fmt.Errorf("failed to set chattr +a on %s: %s", dir, out)
 	}
+	return nil
+}
+
+// isInCelerGroup checks whether the current user belongs to the "celer" group.
+func isInCelerGroup() (bool, error) {
+	currentUser, err := user.Current()
+	if err != nil {
+		return false, err
+	}
+	groupIds, err := currentUser.GroupIds()
+	if err != nil {
+		return false, err
+	}
+	for _, gid := range groupIds {
+		group, err := user.LookupGroupId(gid)
+		if err != nil {
+			continue
+		}
+		if group.Name == "celer" {
+			return true, nil
+		}
+	}
+	return false, nil
 }

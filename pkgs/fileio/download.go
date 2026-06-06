@@ -166,6 +166,7 @@ type progressBar struct {
 	startTime    time.Time
 	lastTime     time.Time
 	lastSize     int64
+	started      bool
 }
 
 func NewProgressBar(fileName string, fileSize int64) *progressBar {
@@ -186,6 +187,12 @@ func (p *progressBar) Write(b []byte) (int, error) {
 
 	if progress > p.lastProgress {
 		p.lastProgress = progress
+
+		// Print a blank line before progress bar if it's the first time to print.
+		if !p.started {
+			fmt.Println()
+			p.started = true
+		}
 
 		// Calculate download speed
 		now := time.Now()

@@ -40,6 +40,7 @@ Server mode (--nfs-server-dir):
   4. chattr +a on all directories (append-only: allows new files, blocks deletion).
   5. Add current user to celer group.
   6. Add NFS export to /etc/exports and reload (exportfs -ra).
+  7. Install cron job to keep new directories append-only (chattr +a every minute).
 
 Client mode (--nfs-client-dir):
   Sets up an NFS client mount for the celer package cache.
@@ -145,11 +146,6 @@ func (s *setupCmd) doServerSetup() error {
 	// Step 5: Add the invoking user to the celer group.
 	s.addCurrentUserToCelerGroup()
 
-	// Step 5.5: Add sudoers rule so celer can run chattr +a without password.
-	if err := s.addSudoersRule(); err != nil {
-		color.PrintWarning("failed to add sudoers rule: %v\nceler will still work but new directories won't be append-only protected", err)
-	}
-
 	// Step 6: Add NFS export and reload.
 	if err := s.addNFSExport(); err != nil {
 		return fmt.Errorf("NFS export failed -> %w", err)
@@ -159,6 +155,11 @@ func (s *setupCmd) doServerSetup() error {
 	title = "[apply append-only attribute (chattr +a) to directories]"
 	if err := cmd.NewExecutor(title, "find", s.nfsServerDir, "-type", "d", "-exec", "chattr", "+a", "{}", ";").Execute(); err != nil {
 		return fmt.Errorf("chattr +a failed -> %w", err)
+	}
+
+	// Step 7: Install cron job to keep new directories append-only.
+	if err := s.addChattrCron(); err != nil {
+		color.PrintWarning("failed to install chattr cron job: %v\nnew directories won't be automatically protected", err)
 	}
 
 	color.PrintSuccess("NFS cache server setup complete for %q", s.nfsServerDir)
@@ -288,38 +289,16 @@ func (s *setupCmd) addNFSExport() error {
 	return cmd.NewExecutor(title, "exportfs", "-ra").Execute()
 }
 
-// addSudoersRule installs a sudoers rule that allows the celer group to run
-// "chattr +a" on directories under the NFS cache without a password.
-func (s *setupCmd) addSudoersRule() error {
-	// Multi-level wildcards cover artifacts-v1.2.3/platform/project/buildType/nameVersion/metas/ etc.
-	// %celer applies to all users in the celer group (not just the celer system user).
-	candicates := []string{
-		"/usr/bin/chattr +a %s/*",
-		"/usr/bin/chattr +a %s/*/*",
-		"/usr/bin/chattr +a %s/*/*/*",
-		"/usr/bin/chattr +a %s/*/*/*/*",
-		"/usr/bin/chattr +a %s/*/*/*/*/*",
-		"/usr/bin/chattr +a %s/*/*/*/*/*/*",
-	}
+// addChattrCron installs a cron job that runs "find <nfs-dir> -type d -exec chattr +a"
+// every minute, ensuring directories created by NFS clients are protected.
+func (s *setupCmd) addChattrCron() error {
+	// * * * * * 	- everytime
+	// 2>/dev/null 	- execute quietly
+	cronContent := fmt.Sprintf("* * * * * root /usr/bin/find %s -type d -exec /usr/bin/chattr +a {} + 2>/dev/null\n", s.nfsServerDir)
+	cronPath := "/etc/cron.d/celer-chattr"
 
-	content := fmt.Sprintf("%%celer ALL=(root) NOPASSWD: %s\n", strings.Join(candicates, ", "))
-	sudoersPath := "/etc/sudoers.d/celer-chattr"
-	tmpPath := sudoersPath + ".tmp"
-
-	if err := os.WriteFile(tmpPath, []byte(content), 0440); err != nil {
-		return fmt.Errorf("failed to write sudoers file -> %w", err)
-	}
-
-	title := "[check sudoers syntax]"
-	if _, err := cmd.NewExecutor(title, "visudo", "-cf", tmpPath).ExecuteOutput(); err != nil {
-		os.Remove(tmpPath)
-		return fmt.Errorf("sudoers syntax check failed -> %w", err)
-	}
-
-	title = "[install sudoers rule for chattr +a]"
-	if _, err := cmd.NewExecutor(title, "mv", tmpPath, sudoersPath).ExecuteOutput(); err != nil {
-		os.Remove(tmpPath)
-		return fmt.Errorf("failed to install sudoers file -> %w", err)
+	if err := os.WriteFile(cronPath, []byte(cronContent), 0644); err != nil {
+		return fmt.Errorf("failed to write cron file -> %w", err)
 	}
 
 	return nil

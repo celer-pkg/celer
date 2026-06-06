@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/celer-pkg/celer/pkgs/color"
 )
 
 // ComputeSHA256 computes the SHA256 hash of a file.
@@ -45,15 +47,20 @@ func FindCachedFile(cacheDir, fileName, sha256 string) (string, error) {
 		return "", nil
 	}
 
+	color.Printf(color.Title, "\n%s\n", fmt.Sprintf("[validating file cache: %s]", fileName))
+	color.Printf(color.Hint, "- validateing with sha256: %s", sha256)
+
 	// Verify file's sha256.
 	computedHash, err := ComputeSHA256(cachedFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to compute sha-256 for cached file -> %w", err)
 	}
 	if computedHash == sha256 {
+		color.PrintInline(color.Hint, "✔ validate with sha256: %s\n", sha256)
 		return cachedFilePath, nil
 	}
 
+	color.PrintInline(color.Hint, "✘ validate with sha256: %s\n", sha256)
 	return "", nil
 }
 
