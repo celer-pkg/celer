@@ -48,11 +48,12 @@ func FindCachedFile(cacheDir, fileName, sha256 string) (string, error) {
 	}
 
 	color.Printf(color.Title, "\n%s\n", fmt.Sprintf("[validating file cache: %s]", fileName))
-	color.Printf(color.Hint, "- validateing with sha256: %s", sha256)
+	color.PrintInline(color.Hint, "- validating with sha256: %s", sha256)
 
 	// Verify file's sha256.
 	computedHash, err := ComputeSHA256(cachedFilePath)
 	if err != nil {
+		color.PrintInline(color.Hint, "✘ validate with sha256: %s\n", sha256)
 		return "", fmt.Errorf("failed to compute sha-256 for cached file -> %w", err)
 	}
 	if computedHash == sha256 {

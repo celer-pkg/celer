@@ -1,14 +1,9 @@
 package fileio
 
 import (
-	"fmt"
 	"io"
 	"os"
-	"os/exec"
-	"os/user"
 	"path/filepath"
-	"runtime"
-	"strings"
 )
 
 // ChattrFS encapsulates chattr +a compatible file operations bound to a specific cacheRootDir.
@@ -20,55 +15,9 @@ func NewChattrFS(rootDir string) *ChattrFS {
 	return &ChattrFS{rootDir: rootDir}
 }
 
-// MkdirAll creates a directory tree and applies chattr +a
-// to every newly created directory within the pkgcache root.
+// MkdirAll creates a directory tree within append-only compatible workflows.
 func (fs *ChattrFS) MkdirAll(path string, perm os.FileMode) error {
-	// Non-Linux: fallback to plain MkdirAll.
-	if runtime.GOOS != "linux" || fs.rootDir == "" {
-		return os.MkdirAll(path, perm)
-	}
-
-	// Only apply chattr for directories within path.
-	absPath, _ := filepath.Abs(path)
-	absRoot, _ := filepath.Abs(fs.rootDir)
-	if !IsSubPath(absRoot, absPath) {
-		return os.MkdirAll(path, perm)
-	}
-
-	// Find which directories within path will be new.
-	var newDirs []string
-	cur := absPath
-	for {
-		if PathExists(cur) {
-			break
-		}
-
-		newDirs = append(newDirs, cur)
-		parent := filepath.Dir(cur)
-		if parent == cur || parent == absRoot {
-			break
-		}
-		cur = parent
-	}
-
-	// Create the directory tree.
-	if err := os.MkdirAll(path, perm); err != nil {
-		return err
-	}
-
-	// Apply chattr +a to newly created directories (top-to-down).
-	for i := len(newDirs) - 1; i >= 0; i-- {
-		if err := fs.setDirAppendOnly(newDirs[i]); err != nil {
-			return err
-		}
-	}
-
-	// Always apply chattr +a to the target directory, even if it already existed.
-	if err := fs.setDirAppendOnly(absPath); err != nil {
-		return err
-	}
-
-	return nil
+	return os.MkdirAll(path, perm)
 }
 
 // CopyFile it does not remove the destination. it opens with O_WRONLY|O_CREATE|O_TRUNC.
@@ -119,55 +68,4 @@ func (fs *ChattrFS) WriteFile(path string, data []byte, perm os.FileMode) error 
 	}
 
 	return nil
-}
-
-// setDirAppendOnly sets chattr +a on a directory.
-//   - Root: run chattr directly; hard error on failure.
-//   - Non-root in celer group: run chattr; skip on NFS ("Operation not supported")
-//     and on insufficient privilege ("Operation not permitted", e.g. local dev),
-//     hard error on other failures.
-//   - Non-root not in celer group: skip (local dev environment, no NFS cache protection needed).
-func (fs *ChattrFS) setDirAppendOnly(dir string) error {
-	if os.Geteuid() != 0 {
-		inGroup, err := isInCelerGroup()
-		if err != nil || !inGroup {
-			return nil // Not in celer group — likely a local dev environment without NFS cache.
-		}
-	}
-
-	cmd := exec.Command("/usr/bin/chattr", "+a", dir)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		out := strings.TrimSpace(string(output))
-		if strings.Contains(out, "Operation not supported") {
-			return nil // NFS filesystem: protection is handled server-side by the cron job.
-		}
-		if strings.Contains(out, "Operation not permitted") {
-			return nil // Non-root on local filesystem: expected in dev/test environments.
-		}
-		return fmt.Errorf("failed to set chattr +a on %s: %s", dir, out)
-	}
-	return nil
-}
-
-// isInCelerGroup checks whether the current user belongs to the "celer" group.
-func isInCelerGroup() (bool, error) {
-	currentUser, err := user.Current()
-	if err != nil {
-		return false, err
-	}
-	groupIds, err := currentUser.GroupIds()
-	if err != nil {
-		return false, err
-	}
-	for _, gid := range groupIds {
-		group, err := user.LookupGroupId(gid)
-		if err != nil {
-			continue
-		}
-		if group.Name == "celer" {
-			return true, nil
-		}
-	}
-	return false, nil
 }
