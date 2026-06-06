@@ -60,16 +60,25 @@ func mkdirAll(path string, perm os.FileMode, cacheRootDir string) error {
 	return nil
 }
 
-// setDirAppendOnly runs "sudo -n chattr +a" on a single directory.
+// setDirAppendOnly sets chattr +a on a directory.
+// If already running as root, runs chattr directly; otherwise uses sudo -n
+// (relies on the sudoers rule installed by "celer setup").
 // Failures are logged only once per process to avoid noisy output
 // when no sudoers rule is configured (e.g. local dev without celer setup).
 func setDirAppendOnly(dir string) {
-	cmd := exec.Command("sudo", "-n", "/usr/bin/chattr", "+a", dir)
+	var cmd *exec.Cmd
+	if os.Geteuid() == 0 {
+		cmd = exec.Command("/usr/bin/chattr", "+a", dir)
+	} else {
+		cmd = exec.Command("sudo", "-n", "/usr/bin/chattr", "+a", dir)
+	}
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		chattrWarningOnce.Do(func() {
-			color.Printf(color.Warning, "  [!] failed to set chattr +a on %s: %s\n", dir, strings.TrimSpace(string(output)))
-			color.Printf(color.Warning, "  [!] further chattr +a failures will be suppressed (run 'sudo celer setup' to install the sudoers rule)\n")
+			color.PrintWarning("failed to set chattr +a on %s -> %s -> %s",
+				dir,
+				strings.TrimSpace(string(output)),
+				"further chattr +a failures will be suppressed (run 'sudo celer setup --nfs-client-dir=xxx' to install the sudoers rule)")
 		})
 	}
 }
