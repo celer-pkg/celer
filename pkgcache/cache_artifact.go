@@ -16,6 +16,7 @@ import (
 type ArtifactConfig struct {
 	ctx      context.Context
 	writable bool
+	chattrFS *fileio.ChattrFS
 }
 
 func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
@@ -27,6 +28,7 @@ func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
 	return &ArtifactConfig{
 		ctx:      ctx,
 		writable: writable,
+		chattrFS: fileio.NewChattrFS(pkgCache.GetDir(context.PkgCacheDirRoot)),
 	}
 }
 
@@ -151,24 +153,24 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	data := sha256.Sum256([]byte(meta))
 	hash := fmt.Sprintf("%x", data)
 
-	// Create dirs (chattr +a is applied by mkdirAll).
-	if err := mkdirAll(destDir, fileio.CacheDirPerm, a.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)); err != nil {
+	// Create dirs (chattr +a is applied by ChattrFS.MkdirAll).
+	if err := a.chattrFS.MkdirAll(destDir, fileio.CacheDirPerm); err != nil {
 		return err
 	}
-	if err := mkdirAll(metaDir, fileio.CacheDirPerm, a.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)); err != nil {
+	if err := a.chattrFS.MkdirAll(metaDir, fileio.CacheDirPerm); err != nil {
 		return err
 	}
 
 	// Copy archive directly to final path (chattr +a allows creating new files, but not renaming).
-	// Use CopyFileOverwrite to overwrite in-place if the file already exists (e.g. -f rebuild with same hash).
+	// Use CopyFile to overwrite in-place if the file already exists (e.g. -f rebuild with same hash).
 	archivePath := filepath.Join(destDir, hash+".tar.gz")
-	if err := fileio.CopyFileOverwrite(tempArchivePath, archivePath); err != nil {
+	if err := a.chattrFS.CopyFile(tempArchivePath, archivePath); err != nil {
 		return err
 	}
 
 	// Write meta file directly to final path.
 	metaPath := filepath.Join(metaDir, hash+".meta")
-	if err := fileio.OverwriteFile(metaPath, []byte(meta), fileio.CacheFilePerm); err != nil {
+	if err := a.chattrFS.WriteFile(metaPath, []byte(meta), fileio.CacheFilePerm); err != nil {
 		return err
 	}
 

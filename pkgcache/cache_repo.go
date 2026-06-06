@@ -16,6 +16,7 @@ import (
 type RepoConfig struct {
 	ctx      context.Context
 	writable bool
+	chattrFS *fileio.ChattrFS
 }
 
 func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
@@ -27,6 +28,7 @@ func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
 	return &RepoConfig{
 		ctx:      ctx,
 		writable: writable,
+		chattrFS: fileio.NewChattrFS(pkgCache.GetDir(context.PkgCacheDirRoot)),
 	}
 }
 
@@ -50,9 +52,8 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 	}
 
 	// Create folder to store repo archive.
-	cacheRootDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRoot)
 	cacheRepoDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
-	if err := mkdirAll(cacheRepoDir, fileio.CacheDirPerm, cacheRootDir); err != nil {
+	if err := r.chattrFS.MkdirAll(cacheRepoDir, fileio.CacheDirPerm); err != nil {
 		return "", err
 	}
 
@@ -70,7 +71,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		}
 
 		// Create repo name folder.
-		if err := mkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm, cacheRootDir); err != nil {
+		if err := r.chattrFS.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
 			return "", err
 		}
 
@@ -84,7 +85,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 			return "", err
 		}
 		defer os.Remove(tempArchivePath)
-		if err := fileio.CopyFileOverwrite(tempArchivePath, archivePath); err != nil {
+		if err := r.chattrFS.CopyFile(tempArchivePath, archivePath); err != nil {
 			return "", err
 		}
 
@@ -111,12 +112,12 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		}
 
 		// Create repo name folder.
-		if err := mkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm, cacheRootDir); err != nil {
+		if err := r.chattrFS.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
 			return "", err
 		}
 
 		// Copy original archive to repo cache dir.
-		if err := fileio.CopyFileOverwrite(archiveFile, archivePath); err != nil {
+		if err := r.chattrFS.CopyFile(archiveFile, archivePath); err != nil {
 			return "", err
 		}
 

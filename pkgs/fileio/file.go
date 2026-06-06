@@ -239,58 +239,6 @@ func CopyFile(src, dest string) error {
 	return nil
 }
 
-// CopyFileOverwrite copies src to dest, overwriting dest in-place if it exists.
-// Unlike CopyFile, it does not remove the destination first — it opens with O_WRONLY|O_CREATE|O_TRUNC.
-// This is compatible with chattr +a directories where deletion is blocked.
-func CopyFileOverwrite(src, dest string) error {
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	info, err := srcFile.Stat()
-	if err != nil {
-		return err
-	}
-
-	if err := os.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
-		return err
-	}
-
-	// Open with O_WRONLY|O_CREATE|O_TRUNC — creates new or truncates existing.
-	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, info.Mode())
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	if _, err := io.Copy(destFile, srcFile); err != nil {
-		return err
-	}
-	return destFile.Sync()
-}
-
-// OverwriteFile writes data to path, creating or truncating in-place.
-// Unlike os.WriteFile, this sets explicit permissions.
-// Compatible with chattr +a directories.
-func OverwriteFile(path string, data []byte, perm os.FileMode) error {
-	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
-		return err
-	}
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
-	if err != nil {
-		return err
-	}
-
-	defer file.Close()
-	if _, err := file.Write(data); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func RenameFile(src, dst string) error {
 	info, err := os.Lstat(src)
 	if err != nil {
