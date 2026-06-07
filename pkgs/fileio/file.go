@@ -503,3 +503,62 @@ func IsDirectory(path string) (bool, error) {
 	}
 	return fileInfo.IsDir(), nil
 }
+
+// ReplaceContent replaces or appends a line in a config file based on the provided condition.
+func ReplaceContent(filePath, lineToAdd string, shouldRemove func(string) bool) error {
+	content, err := os.ReadFile(filePath)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	// If file does not exist or is empty, just write the new line.
+	text := strings.TrimRight(string(content), "\n")
+	if text == "" {
+		return os.WriteFile(filePath, []byte(lineToAdd+"\n"), 0644)
+	}
+
+	// Remove the old line if it exists to avoid duplicates,
+	// and preserve other lines and the overall file structure as much as possible.
+	filtered := make([]string, 0)
+	for existingLine := range strings.SplitSeq(text, "\n") {
+		if shouldRemove(existingLine) {
+			continue
+		}
+		filtered = append(filtered, existingLine)
+	}
+
+	// Append the new line at the end.
+	filtered = append(filtered, lineToAdd)
+	return os.WriteFile(filePath, []byte(strings.Join(filtered, "\n")+"\n"), 0644)
+}
+
+// RemoveContent removes lines in a config file based on the provided condition.
+func RemoveContent(filePath string, shouldRemove func(string) bool) error {
+	content, err := os.ReadFile(filePath)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	text := strings.TrimRight(string(content), "\n")
+	if text == "" {
+		return nil
+	}
+
+	// Remove the line if it exists, and preserve other lines
+	// and the overall file structure as much as possible.
+	filtered := make([]string, 0)
+	for existingLine := range strings.SplitSeq(text, "\n") {
+		if shouldRemove(existingLine) {
+			continue
+		}
+		filtered = append(filtered, existingLine)
+	}
+
+	if len(filtered) == 0 {
+		return os.WriteFile(filePath, nil, 0644)
+	}
+	return os.WriteFile(filePath, []byte(strings.Join(filtered, "\n")+"\n"), 0644)
+}

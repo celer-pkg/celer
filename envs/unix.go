@@ -15,6 +15,13 @@ import (
 func CleanEnv() {
 	home := os.Getenv("HOME")
 	shell := os.Getenv("SHELL")
+	user := os.Getenv("USER")
+	sudoUser := os.Getenv("SUDO_USER")
+	uid := os.Getenv("UID")
+	hostName := os.Getenv("HOSTNAME")
+	hostType := os.Getenv("HOSTTYPE ")
+	machType := os.Getenv("MACHTYPE")
+	osType := os.Getenv("OSTYPE")
 	portsRepo := os.Getenv("CELER_PORTS_REPO")
 	githubActions := os.Getenv("GITHUB_ACTIONS")
 
@@ -23,6 +30,13 @@ func CleanEnv() {
 
 	os.Setenv("SHELL", shell)
 	os.Setenv("HOME", home)
+	os.Setenv("USER", user)
+	os.Setenv("SUDO_USER", sudoUser)
+	os.Setenv("UDI", uid)
+	os.Setenv("HOSTNAME", hostName)
+	os.Setenv("HOSTTYPE", hostType)
+	os.Setenv("MACHTYPE", machType)
+	os.Setenv("OSTYPE", osType)
 	if portsRepo != "" {
 		os.Setenv("CELER_PORTS_REPO", portsRepo)
 	}
