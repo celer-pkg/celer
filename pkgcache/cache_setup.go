@@ -7,7 +7,9 @@ import (
 	"os/user"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/pkgs/cmd"
@@ -21,6 +23,10 @@ var (
 	nfsExportsPath = "/etc/exports"
 	nfsFSTabPath   = "/etc/fstab"
 	nfsCronDir     = "/etc/cron.d"
+
+	lookupUser    = user.Lookup
+	lookupGroup   = user.LookupGroup
+	lookupGroupID = user.LookupGroupId
 )
 
 type NFSServerSetup struct {
@@ -52,7 +58,7 @@ func (n *NFSServerSetup) Setup() error {
 	}
 
 	// Step 1: Create celer system user/group if not exists.
-	if err := createSystemGroupAndUser(nfsUser); err != nil {
+	if err := createSystemGroupAndUser(nfsUser, ""); err != nil {
 		return err
 	}
 
@@ -149,23 +155,30 @@ func (n *NFSClientSetup) Setup() error {
 		return err
 	}
 
-	// Mount NFS dir first to validate the server export before writing fstab.
+	// Mount NFS dir first to validate the server export and detect its numeric GID.
 	if err := n.mountNFSDir(serverExport, mountPoint); err != nil {
 		return err
 	}
 
-	// Manage fstab entry (remove old, append new).
-	if err := n.updateFSTabEntry(serverExport, mountPoint); err != nil {
+	// Read GID of mounted dir.
+	mountedGID, err := mountedDirGID(mountPoint)
+	if err != nil {
 		return err
 	}
 
-	// Create celer group and add current user to it (needed for group write access to NFS cache).
-	if err := createSystemGroupAndUser(nfsUser); err != nil {
+	// Create celer group/user with the mounted export's numeric GID.
+	// NFS sec=sys checks numeric IDs, not group names.
+	if err := createSystemGroupAndUser(nfsUser, mountedGID); err != nil {
 		return err
 	}
 
 	// Add the current user to the celer group.
 	if err := addCurrentUserToGroup(nfsUser); err != nil {
+		return err
+	}
+
+	// Manage fstab entry only after the mounted share is known to be usable.
+	if err := n.updateFSTabEntry(serverExport, mountPoint); err != nil {
 		return err
 	}
 
@@ -389,11 +402,28 @@ func checkClientTools() error {
 	})
 }
 
+// mountedDirGID read GID of mounted dir.
+func mountedDirGID(path string) (string, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to stat mounted NFS dir %q -> %w", path, err)
+	}
+
+	stat, ok := info.Sys().(*syscall.Stat_t)
+	if !ok {
+		return "", fmt.Errorf("failed to read numeric gid for mounted NFS dir %q", path)
+	}
+
+	return strconv.FormatUint(uint64(stat.Gid), 10), nil
+}
+
 // createSystemGroupAndUser creates the celer system user/group if it does not already exist.
-func createSystemGroupAndUser(username string) error {
+// If requiredGID is set, the group must use that numeric gid.
+func createSystemGroupAndUser(username, requiredGID string) error {
 	// Create system group if not exist.
 	groupExists := true
-	if _, err := user.LookupGroup(username); err != nil {
+	group, err := lookupGroup(username)
+	if err != nil {
 		var unknownGroupError user.UnknownGroupError
 		if !errors.As(err, &unknownGroupError) {
 			return fmt.Errorf("failed to lookup %s group -> %w", username, err)
@@ -401,10 +431,25 @@ func createSystemGroupAndUser(username string) error {
 		groupExists = false
 	}
 	if groupExists {
-		color.PrintHint("✔ system group exists: %s", username)
+		if requiredGID != "" && group.Gid != requiredGID {
+			if err := changeGroupGID(username, group.Gid, requiredGID); err != nil {
+				return err
+			}
+		} else {
+			color.PrintHint("✔ system group exists: %s", username)
+		}
 	}
 	if !groupExists {
-		if output, err := cmd.NewExecutor("", "groupadd", "--system", username).ExecuteOutput(); err != nil {
+		args := []string{"--system"}
+		if requiredGID != "" {
+			if err := ensureGroupIDUnused(requiredGID, username); err != nil {
+				return err
+			}
+			args = append(args, "--gid", requiredGID)
+		}
+
+		args = append(args, username)
+		if output, err := cmd.NewExecutor("", "groupadd", args...).ExecuteOutput(); err != nil {
 			return fmt.Errorf("failed to create %s group -> %s -> %w", username, output, err)
 		}
 		color.PrintHint("✔ create system group: %s", username)
@@ -412,7 +457,7 @@ func createSystemGroupAndUser(username string) error {
 
 	// Check if celer user is created.
 	userExists := true
-	if _, err := user.Lookup(username); err != nil {
+	if _, err := lookupUser(username); err != nil {
 		var unknownUserError user.UnknownUserError
 		if !errors.As(err, &unknownUserError) {
 			return fmt.Errorf("failed to lookup %s user -> %w", username, err)
@@ -434,6 +479,33 @@ func createSystemGroupAndUser(username string) error {
 	return nil
 }
 
+func ensureGroupIDUnused(requiredGID, allowedGroupName string) error {
+	if existingGroup, err := lookupGroupID(requiredGID); err == nil {
+		if existingGroup.Name == allowedGroupName {
+			return nil
+		}
+		return fmt.Errorf("NFS cache group id mismatch: mounted export uses gid %s, but local group %q already uses that gid. NFS sec=sys checks numeric gids, not group names. Choose one shared gid for the server/client celer group, then rerun setup", requiredGID, existingGroup.Name)
+	} else {
+		var unknownGroupIDError user.UnknownGroupIdError
+		var unknownGroupError user.UnknownGroupError
+		if !errors.As(err, &unknownGroupIDError) && !errors.As(err, &unknownGroupError) {
+			return fmt.Errorf("failed to lookup group id %s -> %w", requiredGID, err)
+		}
+	}
+	return nil
+}
+
+func changeGroupGID(groupName, oldGID, requiredGID string) error {
+	if err := ensureGroupIDUnused(requiredGID, groupName); err != nil {
+		return err
+	}
+	if output, err := cmd.NewExecutor("", "groupmod", "-g", requiredGID, groupName).ExecuteOutput(); err != nil {
+		return fmt.Errorf("failed to change %s group gid from %s to %s -> %s -> %w", groupName, oldGID, requiredGID, output, err)
+	}
+	color.PrintHint("✔ change system group %s gid from %s to %s", groupName, oldGID, requiredGID)
+	return nil
+}
+
 func removeSystemGroupAndUser(username string) error {
 	// If the user is still in the group, groupdel may fail or leave the system in an inconsistent state.
 	if err := removeCurrentUserFromGroup(username); err != nil {
@@ -442,7 +514,7 @@ func removeSystemGroupAndUser(username string) error {
 
 	// Remove system user.
 	userExists := true
-	if _, err := user.Lookup(username); err != nil {
+	if _, err := lookupUser(username); err != nil {
 		var unknownUserError user.UnknownUserError
 		if !errors.As(err, &unknownUserError) {
 			return fmt.Errorf("failed to lookup %s user -> %w", username, err)
@@ -458,7 +530,7 @@ func removeSystemGroupAndUser(username string) error {
 
 	// Remove system group.
 	groupExists := true
-	if _, err := user.LookupGroup(username); err != nil {
+	if _, err := lookupGroup(username); err != nil {
 		var unknownGroupError user.UnknownGroupError
 		if !errors.As(err, &unknownGroupError) {
 			return fmt.Errorf("failed to lookup %s group -> %w", username, err)
@@ -476,13 +548,13 @@ func removeSystemGroupAndUser(username string) error {
 }
 
 func removeCurrentUserFromGroup(groupName string) error {
-	currentUser := os.Getenv("USER")
-	if currentUser == "" {
-		return fmt.Errorf("cannot read current user from environment")
+	currentUser, err := currentUserForGroup()
+	if err != nil {
+		return err
 	}
 
 	groupExists := true
-	if _, err := user.LookupGroup(groupName); err != nil {
+	if _, err := lookupGroup(groupName); err != nil {
 		var unknownGroupError user.UnknownGroupError
 		if !errors.As(err, &unknownGroupError) {
 			return fmt.Errorf("failed to lookup %s group -> %w", groupName, err)
@@ -509,19 +581,32 @@ func removeCurrentUserFromGroup(groupName string) error {
 	return nil
 }
 
-// addCurrentUserToGroup adds the invoking user (USER) to the celer group.
+func currentUserForGroup() (string, error) {
+	if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" {
+		return sudoUser, nil
+	}
+
+	if currentUser := os.Getenv("USER"); currentUser != "" {
+		return currentUser, nil
+	}
+
+	return "", fmt.Errorf("cannot read current user from environment")
+}
+
+// addCurrentUserToGroup adds the invoking user to the celer group.
+// Under sudo this is SUDO_USER; otherwise it falls back to USER.
 // usermod -aG is idempotent: adding an already-member user is a no-op.
 func addCurrentUserToGroup(groupName string) error {
-	currentUser := os.Getenv("USER")
-	if currentUser == "" {
-		return fmt.Errorf("cannot read current user from environment")
+	currentUser, err := currentUserForGroup()
+	if err != nil {
+		return err
 	}
 
 	if _, err := cmd.NewExecutor("", "usermod", "-aG", groupName, currentUser).ExecuteOutput(); err != nil {
 		return fmt.Errorf("failed to add %q to %q group -> %w", currentUser, groupName, err)
 	}
 
-	color.PrintHint("✔ %s is added to group %s.💡 please re-login to take effect.", currentUser, groupName)
+	color.PrintHint("✔ %s is added to group %s. 💡 run `newgrp %s` or re-login to take effect.", currentUser, groupName, groupName)
 	return nil
 }
 

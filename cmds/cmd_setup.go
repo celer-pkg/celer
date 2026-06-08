@@ -31,7 +31,7 @@ Server mode (--nfs-server-dir):
   2. chown -R celer:celer <nfs-dir>
   3. chmod 2775 on all directories (group writable + setgid), chmod 664 on all files (group can overwrite in-place).
   4. chattr +a on all directories (append-only: allows new files, blocks deletion).
-  5. Add current user to celer group.
+  5. Add the invoking non-root user to celer group (uses SUDO_USER when run via sudo).
   6. Add NFS export to /etc/exports and reload (exportfs -ra).
   7. Install cron job to keep new directories append-only (chattr +a every minute).
 
@@ -40,8 +40,10 @@ Client mode (--nfs-client-dir):
   It must be run as root on the client machine. It performs:
 
   1. Install NFS client packages.
-  2. Add entry to /etc/fstab for persistent mounting.
-  3. Mount the NFS share on the existing local directory.
+  2. Mount the NFS share on the existing local directory.
+  3. Validate that local celer group gid matches the mounted export gid (NFS sec=sys checks numeric gids).
+  4. Add the invoking non-root user to celer group (uses SUDO_USER when run via sudo).
+  5. Add entry to /etc/fstab for persistent mounting.
 
 Note: group membership takes effect after re-login or running: newgrp celer
 
