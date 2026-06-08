@@ -7,9 +7,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"slices"
-	"strconv"
 	"strings"
-	"syscall"
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/pkgs/cmd"
@@ -400,21 +398,6 @@ func checkClientTools() error {
 		"apt:nfs-common",
 		"yum:nfs-utils",
 	})
-}
-
-// mountedDirGID read GID of mounted dir.
-func mountedDirGID(path string) (string, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		return "", fmt.Errorf("failed to stat mounted NFS dir %q -> %w", path, err)
-	}
-
-	stat, ok := info.Sys().(*syscall.Stat_t)
-	if !ok {
-		return "", fmt.Errorf("failed to read numeric gid for mounted NFS dir %q", path)
-	}
-
-	return strconv.FormatUint(uint64(stat.Gid), 10), nil
 }
 
 // createSystemGroupAndUser creates the celer system user/group if it does not already exist.
