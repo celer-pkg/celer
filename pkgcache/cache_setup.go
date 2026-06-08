@@ -61,7 +61,7 @@ func (n *NFSServerSetup) Setup() error {
 		return err
 	}
 
-	// Step 3: Chmod 2775 on directories (group writable + setgid), chmod 664 on files.
+	// Step 3: Chmod 02775 on directories (group writable + setgid), chmod 0664 on files.
 	if err := n.changeModeForDirsFiles(); err != nil {
 		return err
 	}
@@ -227,20 +227,23 @@ func (n *NFSServerSetup) changeDirOwnership(username string) error {
 }
 
 func (n *NFSServerSetup) changeModeForDirsFiles() error {
-	// - chmod 2775 on directories (group writable + setgid)
+	dirPerm := fmt.Sprintf("%o", fileio.CacheDirPerm)
+	filePerm := fmt.Sprintf("%o", fileio.CacheFilePerm)
+
+	// - chmod 02775 on directories (group writable + setgid)
 	// - the first "2" is to setgid, it ensures new files/dirs inherit the user group automatically.
-	args := []string{n.nfsDir, "-type", "d", "-exec", "chmod", "2775", "{}", ";"}
+	args := []string{n.nfsDir, "-type", "d", "-exec", "chmod", dirPerm, "{}", ";"}
 	if _, err := cmd.NewExecutor("", "find", args...).ExecuteOutput(); err != nil {
 		return fmt.Errorf("failed to chmod directories %q -> %w", n.nfsDir, err)
 	}
-	color.PrintHint("✔ set permissions of %q to 2775", n.nfsDir)
+	color.PrintHint("✔ set permissions of %q to %s", n.nfsDir, dirPerm)
 
-	// chmod 664 on files (group can overwrite in-place)
-	args = []string{n.nfsDir, "-type", "f", "-exec", "chmod", "664", "{}", ";"}
+	// chmod 0664 on files (group can overwrite in-place)
+	args = []string{n.nfsDir, "-type", "f", "-exec", "chmod", filePerm, "{}", ";"}
 	if _, err := cmd.NewExecutor("", "find", args...).ExecuteOutput(); err != nil {
 		return fmt.Errorf("failed to chmod files %q -> %w", n.nfsDir, err)
 	}
-	color.PrintHint("✔ set file permissions (chmod 664): %q", n.nfsDir)
+	color.PrintHint("✔ set file permissions (chmod %s): %q", filePerm, n.nfsDir)
 	return nil
 }
 
