@@ -29,17 +29,12 @@ func (fs *ChattrFS) CopyFile(src, dest string) error {
 	}
 	defer srcFile.Close()
 
-	info, err := srcFile.Stat()
-	if err != nil {
-		return err
-	}
-
-	if err := fs.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
+	if err := fs.MkdirAll(filepath.Dir(dest), CacheDirPerm); err != nil {
 		return err
 	}
 
 	// Open with O_WRONLY|O_CREATE|O_TRUNC — creates new or truncates existing.
-	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, info.Mode())
+	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, CacheFilePerm)
 	if err != nil {
 		return err
 	}
@@ -54,7 +49,7 @@ func (fs *ChattrFS) CopyFile(src, dest string) error {
 // WriteFile writes data to path, creating or truncating in-place.
 // Unlike os.WriteFile, this sets explicit permissions, compatible with chattr +a directories.
 func (fs *ChattrFS) WriteFile(path string, data []byte, perm os.FileMode) error {
-	if err := fs.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
+	if err := fs.MkdirAll(filepath.Dir(path), CacheDirPerm); err != nil {
 		return err
 	}
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
