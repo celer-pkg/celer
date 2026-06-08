@@ -427,7 +427,7 @@ func createSystemGroupAndUser(username string) error {
 		return fmt.Errorf("failed to create %s user -> %s -> %w", username, output, err)
 	}
 
-	color.PrintHint("✔ create system user  %s", username)
+	color.PrintHint("✔ create system user: %s", username)
 	return nil
 }
 
@@ -473,9 +473,9 @@ func removeSystemGroupAndUser(username string) error {
 }
 
 func removeCurrentUserFromGroup(groupName string) error {
-	sudoUser := os.Getenv("SUDO_USER")
-	if sudoUser == "" {
-		return nil
+	currentUser := os.Getenv("USER")
+	if currentUser == "" {
+		return fmt.Errorf("cannot read current user from environment")
 	}
 
 	groupExists := true
@@ -490,35 +490,35 @@ func removeCurrentUserFromGroup(groupName string) error {
 		return nil
 	}
 
-	groups, err := cmd.NewExecutor("", "id", "-nG", sudoUser).ExecuteOutput()
+	groups, err := cmd.NewExecutor("", "id", "-nG", currentUser).ExecuteOutput()
 	if err != nil {
-		return fmt.Errorf("failed to get groups for %q -> %w", sudoUser, err)
+		return fmt.Errorf("failed to get groups for %q -> %w", currentUser, err)
 	}
 	userInGroup := slices.Contains(strings.Fields(groups), groupName)
 	if !userInGroup {
 		return nil
 	}
 
-	if output, err := cmd.NewExecutor("", "gpasswd", "-d", sudoUser, groupName).ExecuteOutput(); err != nil {
-		return fmt.Errorf("failed to remove %q from %q group -> %s -> %w", sudoUser, groupName, output, err)
+	if output, err := cmd.NewExecutor("", "gpasswd", "-d", currentUser, groupName).ExecuteOutput(); err != nil {
+		return fmt.Errorf("failed to remove %q from %q group -> %s -> %w", currentUser, groupName, output, err)
 	}
-	color.PrintHint("✔ remove %s from group %s", sudoUser, groupName)
+	color.PrintHint("✔ remove %s from group %s", currentUser, groupName)
 	return nil
 }
 
-// addCurrentUserToGroup adds the invoking user (SUDO_USER) to the celer group.
+// addCurrentUserToGroup adds the invoking user (USER) to the celer group.
 // usermod -aG is idempotent: adding an already-member user is a no-op.
 func addCurrentUserToGroup(groupName string) error {
-	sudoUser := os.Getenv("SUDO_USER")
-	if sudoUser == "" {
-		return nil
+	currentUser := os.Getenv("USER")
+	if currentUser == "" {
+		return fmt.Errorf("cannot read current user from environment")
 	}
 
-	if _, err := cmd.NewExecutor("", "usermod", "-aG", groupName, sudoUser).ExecuteOutput(); err != nil {
-		return fmt.Errorf("failed to add %q to %q group -> %w", sudoUser, groupName, err)
+	if _, err := cmd.NewExecutor("", "usermod", "-aG", groupName, currentUser).ExecuteOutput(); err != nil {
+		return fmt.Errorf("failed to add %q to %q group -> %w", currentUser, groupName, err)
 	}
 
-	color.PrintHint("✔ %s is added to group %s.💡 please re-login to take effect.", sudoUser, groupName)
+	color.PrintHint("✔ %s is added to group %s.💡 please re-login to take effect.", currentUser, groupName)
 	return nil
 }
 
