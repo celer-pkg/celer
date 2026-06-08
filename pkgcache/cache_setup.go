@@ -7,9 +7,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"slices"
-	"strconv"
 	"strings"
-	"syscall"
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/pkgs/cmd"
@@ -402,21 +400,6 @@ func checkClientTools() error {
 	})
 }
 
-// mountedDirGID read GID of mounted dir.
-func mountedDirGID(path string) (string, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		return "", fmt.Errorf("failed to stat mounted NFS dir %q -> %w", path, err)
-	}
-
-	stat, ok := info.Sys().(*syscall.Stat_t)
-	if !ok {
-		return "", fmt.Errorf("failed to read numeric gid for mounted NFS dir %q", path)
-	}
-
-	return strconv.FormatUint(uint64(stat.Gid), 10), nil
-}
-
 // createSystemGroupAndUser creates the celer system user/group if it does not already exist.
 // If requiredGID is set, the group must use that numeric gid.
 func createSystemGroupAndUser(username, requiredGID string) error {
@@ -430,6 +413,8 @@ func createSystemGroupAndUser(username, requiredGID string) error {
 		}
 		groupExists = false
 	}
+
+	// Change local GID as the same of remote GID.
 	if groupExists {
 		if requiredGID != "" && group.Gid != requiredGID {
 			if err := changeGroupGID(username, group.Gid, requiredGID); err != nil {
@@ -438,18 +423,19 @@ func createSystemGroupAndUser(username, requiredGID string) error {
 		} else {
 			color.PrintHint("✔ system group exists: %s", username)
 		}
-	}
-	if !groupExists {
-		args := []string{"--system"}
+	} else {
+		var output string
+		var err error
+
 		if requiredGID != "" {
 			if err := ensureGroupIDUnused(requiredGID, username); err != nil {
 				return err
 			}
-			args = append(args, "--gid", requiredGID)
+			output, err = cmd.NewExecutor("", "groupadd", "--system", "--gid", requiredGID, username).ExecuteOutput()
+		} else {
+			output, err = cmd.NewExecutor("", "groupadd", "--system", username).ExecuteOutput()
 		}
-
-		args = append(args, username)
-		if output, err := cmd.NewExecutor("", "groupadd", args...).ExecuteOutput(); err != nil {
+		if err != nil {
 			return fmt.Errorf("failed to create %s group -> %s -> %w", username, output, err)
 		}
 		color.PrintHint("✔ create system group: %s", username)
@@ -480,28 +466,32 @@ func createSystemGroupAndUser(username, requiredGID string) error {
 }
 
 func ensureGroupIDUnused(requiredGID, allowedGroupName string) error {
-	if existingGroup, err := lookupGroupID(requiredGID); err == nil {
-		if existingGroup.Name == allowedGroupName {
-			return nil
-		}
-		return fmt.Errorf("NFS cache group id mismatch: mounted export uses gid %s, but local group %q already uses that gid. NFS sec=sys checks numeric gids, not group names. Choose one shared gid for the server/client celer group, then rerun setup", requiredGID, existingGroup.Name)
-	} else {
+	existingGroup, err := lookupGroupID(requiredGID)
+	if err != nil {
 		var unknownGroupIDError user.UnknownGroupIdError
 		var unknownGroupError user.UnknownGroupError
 		if !errors.As(err, &unknownGroupIDError) && !errors.As(err, &unknownGroupError) {
 			return fmt.Errorf("failed to lookup group id %s -> %w", requiredGID, err)
 		}
+		return nil
 	}
-	return nil
+
+	if existingGroup.Name == allowedGroupName {
+		return nil
+	}
+
+	return fmt.Errorf("gid %s is already used by local group %q", requiredGID, existingGroup.Name)
 }
 
 func changeGroupGID(groupName, oldGID, requiredGID string) error {
 	if err := ensureGroupIDUnused(requiredGID, groupName); err != nil {
 		return err
 	}
+
 	if output, err := cmd.NewExecutor("", "groupmod", "-g", requiredGID, groupName).ExecuteOutput(); err != nil {
 		return fmt.Errorf("failed to change %s group gid from %s to %s -> %s -> %w", groupName, oldGID, requiredGID, output, err)
 	}
+
 	color.PrintHint("✔ change system group %s gid from %s to %s", groupName, oldGID, requiredGID)
 	return nil
 }
