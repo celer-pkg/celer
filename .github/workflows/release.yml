@@ -52,24 +52,29 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
-          go build -trimpath -ldflags="-s -w -X github.com/celer-pkg/celer/configs.Version=${{ github.ref_name }}" -o ${{ matrix.output }} .
-          
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            BINARY_NAME=celer.exe
+          else
+            BINARY_NAME=celer
+          fi
+          echo "BINARY_NAME=${BINARY_NAME}" >> "$GITHUB_ENV"
+
+          go build -trimpath -ldflags="-s -w -X github.com/celer-pkg/celer/configs.Version=${{ github.ref_name }}" -o "${BINARY_NAME}" .
+
           # Compress with UPX if available (same logic as build.sh)
           if command -v upx &> /dev/null; then
-            upx --best ${{ matrix.output }}
+            upx --best "${BINARY_NAME}"
           fi
-          
+
       - name: Create archive (Unix)
         if: matrix.goos != 'windows'
         run: |
-          tar -czf ${{ matrix.output }}.tar.gz ${{ matrix.output }}
-          sha256sum ${{ matrix.output }}.tar.gz > ${{ matrix.output }}.tar.gz.sha256
-          
+          tar -czf ${{ matrix.output }}.tar.gz "$BINARY_NAME"
+
       - name: Create archive (Windows)
         if: matrix.goos == 'windows'
         run: |
-          zip ${{ matrix.output }}.zip ${{ matrix.output }}
-          sha256sum ${{ matrix.output }}.zip > ${{ matrix.output }}.zip.sha256
+          zip ${{ matrix.output }}.zip "$BINARY_NAME"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -116,7 +121,7 @@ jobs:
       - name: Organize artifacts
         run: |
           mkdir -p release
-          find dist -type f \( -name "*.tar.gz" -o -name "*.zip" -o -name "*.sha256" \) -exec mv {} release/ \;
+          find dist -type f \( -name "*.tar.gz" -o -name "*.zip" \) -exec mv {} release/ \;
           ls -lah release/
 
       - name: Create Release
