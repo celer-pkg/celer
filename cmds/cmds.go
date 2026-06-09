@@ -20,9 +20,13 @@ type Command interface {
 
 var rootCmd = &cobra.Command{
 	Use:   "celer",
-	Short: "A super lightweight package manager for C/C++.",
+	Short: "A lightweight C/C++ package manager driven by TOML.",
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Println("welcome to celer.")
+		cmd.Println("┌─────────────────────────────────────────────────────────────┐")
+		cmd.Println("│ Celer: A lightweight C/C++ package manager driven by TOML.  │")
+		cmd.Println("│ Manage C/C++ libraries with simple, declarative port files. │")
+		cmd.Println("└─────────────────────────────────────────────────────────────┘")
+		cmd.Println("Run `celer --help` to see available commands.")
 	},
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		var commands = []string{"version", "init", "create", "configure", "install", "remove", "integrate", "update"}
