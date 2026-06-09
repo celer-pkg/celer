@@ -327,18 +327,33 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			return fmt.Errorf("failed to check if empty -> %w", err)
 		}
 		if len(entities) > 0 {
-			// Pin to resolved commit if available (from pre-deploy ref resolution).
-			if commit := refs.GetResolvedCommit(b.PortConfig.nameVersion()); commit != "" {
-				if err := git.HardReset(b.PortConfig.RepoDir, commit); err != nil {
-					return err
+			if b.PortConfig.Checksum != "" {
+				// Hard reset to specified git commit hash.
+				if strings.HasSuffix(repoUrl, ".git") {
+					if err := git.HardReset(b.PortConfig.RepoDir, b.PortConfig.Checksum); err != nil {
+						return err
+					}
+					return nil
 				}
-			}
-			return nil
-		}
 
-		// Remove empty folder to let download or clone again.
-		if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
-			return fmt.Errorf("failed to remove empty src dir -> %w", err)
+				// For the archive repository: extract again, restore from pkgcache again, or download again.
+				if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
+					return fmt.Errorf("failed to remove local repo src dir -> %w", err)
+				}
+			} else {
+				// Pin to resolved commit if available (from pre-deploy ref resolution).
+				if commit := refs.GetResolvedCommit(b.PortConfig.nameVersion()); commit != "" {
+					if err := git.HardReset(b.PortConfig.RepoDir, commit); err != nil {
+						return err
+					}
+				}
+				return nil
+			}
+		} else {
+			// Remove empty folder to let download or clone again.
+			if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
+				return fmt.Errorf("failed to remove empty src dir -> %w", err)
+			}
 		}
 	}
 
