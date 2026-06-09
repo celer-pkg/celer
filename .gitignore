@@ -16,6 +16,7 @@
 **/token
 **/ccache
 **/snapshot-*
+**/pkg-cache
 *.exe
 celer
 celer.toml
