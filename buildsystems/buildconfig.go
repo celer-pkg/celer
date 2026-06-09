@@ -364,6 +364,18 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		} else if fromWhere != "" {
 			color.PrintPass("%s's source is restored from repo cache", nameVersion)
 			color.PrintHint("Location: %s\n", fromWhere)
+
+			// Restore to downloads also, it's required to compute meta when build.
+			if !strings.HasSuffix(repoUrl, ".git") {
+				archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
+				downloadsArchive := filepath.Join(b.Ctx.Downloads(), archive)
+				if err := os.MkdirAll(b.Ctx.Downloads(), os.ModePerm); err != nil {
+					return fmt.Errorf("failed to create downloads dir -> %w", err)
+				}
+				if err := fileio.CopyFile(fromWhere, downloadsArchive); err != nil {
+					return fmt.Errorf("failed to restore archive to downloads -> %w", err)
+				}
+			}
 			return nil
 		}
 	}
