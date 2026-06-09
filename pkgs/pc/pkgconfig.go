@@ -3,10 +3,12 @@ package pc
 import (
 	"bufio"
 	"bytes"
-	"github.com/celer-pkg/celer/pkgs/fileio"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 type PkgConfig struct{}
@@ -55,9 +57,12 @@ func (p PkgConfig) apply(pkgPath, prefix string) error {
 	var buffer bytes.Buffer
 	scanner := bufio.NewScanner(pkgFile)
 	for scanner.Scan() {
-		line := scanner.Text()
+		if err := scanner.Err(); err != nil {
+			return err
+		}
 
 		// Remove space before `=`
+		line := scanner.Text()
 		line = strings.ReplaceAll(line, "prefix =", "prefix=")
 		line = strings.ReplaceAll(line, "exec_prefix =", "exec_prefix=")
 		line = strings.ReplaceAll(line, "libdir =", "libdir=")
@@ -67,37 +72,37 @@ func (p PkgConfig) apply(pkgPath, prefix string) error {
 		switch {
 		case strings.HasPrefix(line, "prefix="):
 			if line != "prefix=" {
-				buffer.WriteString("prefix=" + prefix + "\n")
+				fmt.Fprintf(&buffer, "prefix=%s\n", prefix)
 			} else {
-				buffer.WriteString(line + "\n")
+				fmt.Fprintf(&buffer, "%s\n", line)
 			}
 
 		case strings.HasPrefix(line, "exec_prefix="):
 			if line != "exec_prefix=${prefix}" {
-				buffer.WriteString("exec_prefix=${prefix}" + "\n")
+				fmt.Fprintf(&buffer, "exec_prefix=${prefix}\n")
 			} else {
-				buffer.WriteString(line + "\n")
+				fmt.Fprintf(&buffer, "%s\n", line)
 			}
 
 		case strings.HasPrefix(line, "libdir="):
 			if line != "libdir=${prefix}/lib" {
-				buffer.WriteString("libdir=${prefix}/lib" + "\n")
+				fmt.Fprintf(&buffer, "libdir=${prefix}/lib\n")
 			} else {
-				buffer.WriteString(line + "\n")
+				fmt.Fprintf(&buffer, "%s\n", line)
 			}
 
 		case strings.HasPrefix(line, "sharedlibdir="):
 			if line != "sharedlibdir=${prefix}/lib" {
-				buffer.WriteString("sharedlibdir=${prefix}/lib" + "\n")
+				fmt.Fprintf(&buffer, "sharedlibdir=${prefix}/lib\n")
 			} else {
-				buffer.WriteString(line + "\n")
+				fmt.Fprintf(&buffer, "%s\n", line)
 			}
 
 		case strings.HasPrefix(line, "includedir="):
 			if line != "includedir=${prefix}/include" {
-				buffer.WriteString("includedir=${prefix}/include" + "\n")
+				fmt.Fprintf(&buffer, "includedir=${prefix}/include\n")
 			} else {
-				buffer.WriteString(line + "\n")
+				fmt.Fprintf(&buffer, "%s\n", line)
 			}
 
 		case strings.HasPrefix(line, "pkgdatadir="),
@@ -105,7 +110,7 @@ func (p PkgConfig) apply(pkgPath, prefix string) error {
 			strings.HasPrefix(line, "pythondir="):
 			line = strings.ReplaceAll(line, "${pc_sysrootdir}", "")
 			line = strings.ReplaceAll(line, "${pc_sys_root_dir}", "")
-			buffer.WriteString(line + "\n")
+			fmt.Fprintf(&buffer, "%s\n", line)
 
 		case strings.HasPrefix(line, "Libs:"):
 			lineOrigin := strings.ReplaceAll(line, "  ", " ")
@@ -119,7 +124,7 @@ func (p PkgConfig) apply(pkgPath, prefix string) error {
 					lineOrigin = strings.ReplaceAll(lineOrigin, part, "-L${libdir}")
 				}
 			}
-			buffer.WriteString(lineOrigin + "\n")
+			fmt.Fprintf(&buffer, "%s\n", lineOrigin)
 
 		case strings.HasPrefix(line, "Libs.private:"):
 			lineOrigin := strings.ReplaceAll(line, "  ", " ")
@@ -134,10 +139,10 @@ func (p PkgConfig) apply(pkgPath, prefix string) error {
 					lineOrigin = strings.ReplaceAll(lineOrigin, part, "-L${libdir}")
 				}
 			}
-			buffer.WriteString(lineOrigin + "\n")
+			fmt.Fprintf(&buffer, "%s\n", lineOrigin)
 
 		default:
-			buffer.WriteString(line + "\n")
+			fmt.Fprintf(&buffer, "%s\n", line)
 		}
 	}
 

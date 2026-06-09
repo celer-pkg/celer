@@ -35,7 +35,7 @@ type Package struct {
 	Url             string `toml:"url"`
 	Ref             string `toml:"ref"`
 	Checksum        string `toml:"checksum,omitempty"`
-	Depth           int    `toml:"depth,omitempty"`
+	Depth           int    `toml:"depth,omitempty,omitzero"`
 	Archive         string `toml:"archive,omitempty"`
 	SrcDir          string `toml:"src_dir,omitempty"`
 	IgnoreSubmodule bool   `toml:"ignore_submodule,omitempty"`

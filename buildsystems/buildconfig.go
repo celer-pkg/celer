@@ -171,6 +171,7 @@ type BuildConfig struct {
 	Patches_Darwin  []string `toml:"patches_darwin,omitempty"`
 
 	// BuildInSource
+	// Here use *bool is distinguish `not configured`` and `configured false``
 	BuildInSource         bool  `toml:"build_in_source,omitempty"`
 	BuildInSource_Windows *bool `toml:"build_in_source_windows,omitempty"`
 	BuildInSource_Linux   *bool `toml:"build_in_source_linux,omitempty"`
@@ -750,6 +751,8 @@ func (b *BuildConfig) InitBuildSystem() error {
 		return fmt.Errorf("unsupported build system for %s", b.BuildSystem)
 	}
 
+	// Merges the platform-specific fields into the BuildConfig struct.
+	b.mergeConfig()
 	return nil
 }
 

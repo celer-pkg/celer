@@ -37,8 +37,8 @@ func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string {
 		return f.dir
 	}
 }
-func (f fakePkgCache) IsWritable() bool                              { return f.writable }
-func (f fakePkgCache) GetArtifactCache() context.AritifactCache      { return nil }
+func (f fakePkgCache) IsWritable() bool                         { return f.writable }
+func (f fakePkgCache) GetArtifactCache() context.AritifactCache { return nil }
 func (f fakePkgCache) GetRepoCache() context.RepoCache {
 	return pkgcache.NewRepoConfig(fakeContext{pkgCache: f}, f.writable)
 }
@@ -313,11 +313,16 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 	}
 
 	// Make sure restore is truly from repo cache:
-	// 1) remove extracted repo dir, 2) remove original local archive file.
+	// 1) remove extracted repo dir, 2) remove original local archive file,
+	// 3) remove downloads archive copy.
 	if err := os.RemoveAll(repoDir); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.Remove(archivePath); err != nil {
+		t.Fatal(err)
+	}
+	downloadsArchivePath := filepath.Join(downloadsDir, archiveBasename)
+	if err := os.Remove(downloadsArchivePath); err != nil {
 		t.Fatal(err)
 	}
 
@@ -346,5 +351,16 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 	}
 	if string(content) != "hello-from-archive" {
 		t.Fatalf("unexpected restored content: %q", string(content))
+	}
+
+	if !fileio.PathExists(downloadsArchivePath) {
+		t.Fatalf("expected restored downloads archive exists: %s", downloadsArchivePath)
+	}
+	restoredChecksum, err := fileio.ComputeSHA256(downloadsArchivePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if restoredChecksum != checksum {
+		t.Fatalf("expected restored downloads archive checksum %s, got %s", checksum, restoredChecksum)
 	}
 }
