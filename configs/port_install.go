@@ -142,8 +142,8 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		return
 	}
 
-	// 2. Try to install from cache (only when not storing cache and not forcing).
-	if !forceClear {
+	// 2. Try to install from artifact package cache for target packages only.
+	if !forceClear && !p.shouldSkipArtifactPkgCache() {
 		if installed, err := p.InstallFromPkgCache(options); err != nil {
 			return "", err
 		} else if installed {
@@ -161,6 +161,10 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 	installedFrom = "source"
 	retErr = nil
 	return
+}
+
+func (p Port) shouldSkipArtifactPkgCache() bool {
+	return p.DevDep || p.HostDep
 }
 
 func (p Port) Clone() error {
@@ -355,7 +359,7 @@ func (p Port) doInstallFromSource() error {
 
 		// Store package cache with meta file inside.
 		// For dev port, artifacts are built with local toolchains that may differ in different devcies.
-		if pkgCache != nil && pkgCache.IsWritable() && !p.DevDep && !p.HostDep {
+		if pkgCache != nil && pkgCache.IsWritable() && !p.shouldSkipArtifactPkgCache() {
 			if skipStoreCacheReason != "" {
 				color.PrintWarning(skipStoreCacheReason, p.NameVersion())
 				return nil
@@ -496,6 +500,11 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 }
 
 func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
+	// dev and host should be skipped.
+	if p.shouldSkipArtifactPkgCache() {
+		return false, nil
+	}
+
 	// Check if pkgCache has been configured.
 	pkgCache := p.ctx.PkgCache()
 	if pkgCache == nil || pkgCache.GetDir(context.PkgCacheDirRoot) == "" {
