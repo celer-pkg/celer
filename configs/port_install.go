@@ -552,9 +552,13 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
-	// Prepare dependencies when force or not configured yet.
-	haveDeps := len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0
-	if (options.Force || !p.MatchedConfig.Configured()) && haveDeps {
+	// Prepare dependencies to tmp/deps before build it, below are conditions:
+	// 1. It's a dependency project and it has its own dependencies.
+	// 2. It's a top project, build with --force, and it has its own dependencies.
+	// 3. It's a top project, it has its own dependencies but is not configured yet, even not build with --force.
+	haveDependencies := len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0
+	isTopProject := p.Parent == ""
+	if haveDependencies && (!isTopProject || (isTopProject && (options.Force || !p.MatchedConfig.Configured()))) {
 		color.Printf(color.Title, "\n[prepare dependencies: %s]\n", p.NameVersion())
 		preparedTmpDeps = []string{}
 		if err := p.prepareTmpDeps(); err != nil {
