@@ -13,7 +13,7 @@ var (
 	ErrInvalidBuildType         = errors.New("invalid build type, must be Release, Debug, RelWithDebInfo or MinSizeRel")
 	ErrPkgCacheDirEmpty         = errors.New("pkgcache dir is invalid")
 	ErrPkgCacheDirNotExist      = errors.New("pkgcache dir not exist")
-	ErrPkgCacheArtifactNotFound = errors.New("artifact cache not found with commit hash")
+	ErrPkgCacheArtifactNotFound = errors.New("artifact cache missing with commit")
 )
 
 // Is same as errors.Is
