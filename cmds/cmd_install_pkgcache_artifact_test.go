@@ -9,7 +9,6 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
@@ -349,7 +348,7 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	check(port.Remove(removeOptions))
 }
 
-func TestInstall_PkgCache_With_Commit_Failed(t *testing.T) {
+func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
@@ -387,24 +386,41 @@ func TestInstall_PkgCache_With_Commit_Failed(t *testing.T) {
 	check(port.Init(celer, nameVersion))
 	check(port.InstallFromSource(options))
 
-	// Remove installed and src dir.
+	commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
+	check(err)
+
+	// Remove installed package and artifact cache, but keep source available for fallback.
 	removeOptions := configs.RemoveOptions{
 		Purge:      true,
 		Recursive:  true,
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))
-	check(port.MatchedConfig.Clean())
+	check(celer.PkgCache().GetArtifactCache().(interface{ Remove(string) error }).Remove(nameVersion))
 
-	// Install from cache with not matched commit.
-	port.Package.Checksum = "not_matched_commit_xxxxxx"
+	port.Package.Checksum = commit
+	port.MatchedConfig.PortConfig.Checksum = commit
+
 	installed, err := port.InstallFromPkgCache(options)
-	if err == nil || !errors.Is(err, errors.ErrPkgCacheArtifactNotFound) {
-		t.Fatal("should return ErrArtifactCacheNotFound")
-	}
+	check(err)
 	if installed {
-		t.Fatal("should not be installed from cache")
+		t.Fatal("should not be installed from missing artifact cache")
 	}
+
+	installedFrom, err := port.Install(options)
+	check(err)
+	if installedFrom != "source" {
+		t.Fatalf("expected install from source, got %q", installedFrom)
+	}
+
+	actualCommit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
+	check(err)
+	if actualCommit != commit {
+		t.Fatalf("expected checkout %s, got %s", commit, actualCommit)
+	}
+
+	// Clean up.
+	check(port.Remove(removeOptions))
 }
 
 func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {

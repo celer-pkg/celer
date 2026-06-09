@@ -532,9 +532,6 @@ func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 
 		fromDir := pkgCache.GetDir(context.PkgCacheDirRoot)
 		return true, p.writeTraceFile(fmt.Sprintf("pkgcache: %q", fromDir))
-	} else if p.Package.Checksum != "" {
-		return false, fmt.Errorf("%w %s for %s, you can re-install it to create cache entry.",
-			errors.ErrPkgCacheArtifactNotFound, p.Package.Checksum, p.NameVersion())
 	}
 
 	return false, nil
