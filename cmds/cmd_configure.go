@@ -3,6 +3,7 @@ package cmds
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/celer-pkg/celer/configs"
@@ -110,6 +111,11 @@ Examples:
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			flags := cmd.Flags()
+
+			// Init must be done before configure any.
+			if err := c.ensureWorkspaceInitialized(); err != nil {
+				return color.PrintError(err, "please run `celer init` first.")
+			}
 
 			// Init celer with options, allow skip platform or project
 			// not found when configure platform or project.
@@ -350,6 +356,16 @@ func (c *configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cob
 	}
 
 	return nil, cobra.ShellCompDirectiveNoFileComp
+}
+
+func (c configureCmd) ensureWorkspaceInitialized() error {
+	if !fileio.PathExists(filepath.Join(dirs.WorkspaceDir, "celer.toml")) {
+		return fmt.Errorf("celer.toml not found")
+	}
+	if !fileio.PathExists(dirs.PortsDir) {
+		return fmt.Errorf("ports directory not found")
+	}
+	return nil
 }
 
 func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
