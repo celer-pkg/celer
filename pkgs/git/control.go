@@ -213,7 +213,7 @@ func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 			"git reset --hard",
 			"git clean -ffdx",
 			"git fetch origin tag " + repoRef,
-			"git checkout " + repoRef,
+			"git checkout -f " + repoRef,
 		}
 
 		commandLine := strings.Join(commands, " && ")
