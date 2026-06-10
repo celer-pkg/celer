@@ -145,7 +145,7 @@ func (t *Toolchain) Validate() error {
 func (t *Toolchain) CheckAndRepair(silent bool) error {
 	// Default folder name is the first folder name of archive name.
 	// but it can be specified by archive name.
-	folderName := strings.Split(t.Path, string(filepath.Separator))[0]
+	folderName, _, _ := strings.Cut(t.Path, string(filepath.Separator))
 	if t.Archive != "" {
 		folderName = fileio.Base(t.Archive)
 	}
