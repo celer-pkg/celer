@@ -57,10 +57,6 @@ func (p PkgConfig) apply(pkgPath, prefix string) error {
 	var buffer bytes.Buffer
 	scanner := bufio.NewScanner(pkgFile)
 	for scanner.Scan() {
-		if err := scanner.Err(); err != nil {
-			return err
-		}
-
 		// Remove space before `=`
 		line := scanner.Text()
 		line = strings.ReplaceAll(line, "prefix =", "prefix=")
@@ -144,6 +140,10 @@ func (p PkgConfig) apply(pkgPath, prefix string) error {
 		default:
 			fmt.Fprintf(&buffer, "%s\n", line)
 		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
 	}
 
 	if buffer.Len() > 0 {

@@ -132,10 +132,6 @@ func (b b2) Configure(options []string) error {
 		var buffer bytes.Buffer
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
-			if err := scanner.Err(); err != nil {
-				return err
-			}
-
 			line := scanner.Text()
 			if strings.Contains(line, "using gcc ;") {
 				switch {
@@ -182,6 +178,9 @@ func (b b2) Configure(options []string) error {
 				}
 			}
 			fmt.Fprintf(&buffer, "%s\n", line)
+		}
+		if err := scanner.Err(); err != nil {
+			return err
 		}
 
 		// Write override `project-config.jam`.

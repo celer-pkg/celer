@@ -107,10 +107,6 @@ func (p Port) doRemovePort() error {
 	// Read line by line to remove installed file.
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		if err := scanner.Err(); err != nil {
-			return err
-		}
-
 		// CMake project may generate a checksum file after install,
 		// it would be like "/home/phil/.cmake/packages/gflags/4fbe0d242b1c0f095b87a43a7aeaf0d6",
 		// We'll try to remove it also.
@@ -131,6 +127,9 @@ func (p Port) doRemovePort() error {
 		}
 
 		fmt.Printf("-- remove: %s\n", fileToRemove)
+	}
+	if err := scanner.Err(); err != nil {
+		return err
 	}
 	file.Close()
 

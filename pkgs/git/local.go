@@ -414,8 +414,8 @@ func fetchRemoteRef(nameVersion, repoDir, remoteName, refName string) error {
 	title := fmt.Sprintf("[git fetch remote ref: %s]", nameVersion)
 	executor := cmd.NewExecutor(title, "git", "fetch", remoteName, refName)
 	executor.SetWorkDir(repoDir)
-	if err := executor.Execute(); err != nil {
-		return fmt.Errorf("failed to git fetch remote ref %s for %s -> %w", refName, nameVersion, err)
+	if output, err := executor.ExecuteOutput(); err != nil {
+		return fmt.Errorf("failed to git fetch remote ref %s for %s: %s -> %w", refName, nameVersion, output, err)
 	}
 
 	return nil

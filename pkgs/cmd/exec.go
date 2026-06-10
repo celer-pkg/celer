@@ -60,10 +60,10 @@ func (e *executor) SetLogPath(logPath string) *executor {
 	return e
 }
 
-// ExecuteOutput executes the command and returns its output as a string.
+// ExecuteOutput executes the command with live terminal output and returns its combined output as a string.
 func (e *executor) ExecuteOutput() (string, error) {
 	var output fileio.LockedBuffer
-	err := e.doExecute(&output)
+	err := e.doExecute(outputCapture{output: &output})
 	return output.String(), err
 }
 
@@ -121,7 +121,12 @@ func (e *executor) configureOutputs(cmd *exec.Cmd, logFile *os.File, output io.W
 	errWriters := make([]io.Writer, 0, 3)
 
 	if output != nil {
-		// Custom output provided: route to it
+		// Custom output provided: route to it.
+		// outputCapture also keeps live terminal output while capturing combined output.
+		if _, ok := output.(outputCapture); ok {
+			outWriters = append(outWriters, os.Stdout)
+			errWriters = append(errWriters, os.Stderr)
+		}
 		outWriters = append(outWriters, output)
 		errWriters = append(errWriters, output)
 	} else {
@@ -147,4 +152,14 @@ func (e *executor) composeWriters(writers ...io.Writer) io.Writer {
 		return writers[0]
 	}
 	return io.MultiWriter(writers...)
+}
+
+// outputCapture this is a output that keeps live
+// terminal output while capturing combined output.
+type outputCapture struct {
+	output io.Writer
+}
+
+func (t outputCapture) Write(p []byte) (int, error) {
+	return t.output.Write(p)
 }
