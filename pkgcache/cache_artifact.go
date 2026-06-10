@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -48,6 +49,7 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 	archiveDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	archivePath := filepath.Join(archiveDir, buildHash+".tar.gz")
 	if !fileio.PathExists(archivePath) {
+		color.PrintWarning("no artifact found with hash %s for %s\n", buildHash, nameVersion)
 		return "", nil // not an error even not exist.
 	}
 
