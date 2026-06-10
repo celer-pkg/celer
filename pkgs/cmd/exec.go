@@ -60,14 +60,21 @@ func (e *executor) SetLogPath(logPath string) *executor {
 	return e
 }
 
-// ExecuteOutput executes the command with live terminal output and returns its combined output as a string.
+// ExecuteOutput executes the command quietly and returns its combined stdout/stderr as a string.
 func (e *executor) ExecuteOutput() (string, error) {
+	var output fileio.LockedBuffer
+	err := e.doExecute(&output)
+	return output.String(), err
+}
+
+// ExecuteOutputLive executes the command with live terminal output and returns its combined stdout/stderr as a string.
+func (e *executor) ExecuteOutputLive() (string, error) {
 	var output fileio.LockedBuffer
 	err := e.doExecute(outputCapture{output: &output})
 	return output.String(), err
 }
 
-// Execute runs the command and routes output to stdout/stderr.
+// Execute runs the command with live terminal output and no returned output.
 func (e *executor) Execute() error {
 	return e.doExecute(nil)
 }
@@ -113,8 +120,9 @@ func (e *executor) createLogFile(cmd *exec.Cmd) (*os.File, error) {
 }
 
 // configureOutputs routes command output to appropriate destinations:
-// - To stdout/stderr if output is nil
-// - To custom output if provided
+// - To stdout/stderr if output is nil (Execute)
+// - To custom output only if provided (ExecuteOutput)
+// - To stdout/stderr and custom output if outputCapture is provided (ExecuteOutputLive)
 // - To log file if configured
 func (e *executor) configureOutputs(cmd *exec.Cmd, logFile *os.File, output io.Writer) {
 	outWriters := make([]io.Writer, 0, 3)
