@@ -87,7 +87,7 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 
 	// Resolve the source to an immutable value for metadata.
 	// If the caller's checksum differs from Init (e.g. tampered for cache miss test), use the caller's value.
-	if p.Package.Checksum != "" && p.NameVersion() == nameVersion {
+	if p.Package.Checksum != "" {
 		port.Package.Ref = p.Package.Checksum
 	} else {
 		commit, err := port.GetCommitHash(nameVersion, devDep)
