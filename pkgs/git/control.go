@@ -133,7 +133,7 @@ func UpdateSubmodules(title, repoDir string) error {
 	command := "git submodule update --init --recursive"
 	executor := cmd.NewExecutor(title, command)
 	executor.SetWorkDir(repoDir)
-	if output, err := executor.ExecuteOutput(); err != nil {
+	if output, err := executor.ExecuteOutputLive(); err != nil {
 		return fmt.Errorf("failed to update submodules: %s -> %w", output, err)
 	}
 	return nil
@@ -190,7 +190,7 @@ func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 		commandLine := strings.Join(commands, " && ")
 		executor := cmd.NewExecutor("[update "+updateTarget+"]", commandLine)
 		executor.SetWorkDir(repoDir)
-		if output, err := executor.ExecuteOutput(); err != nil {
+		if output, err := executor.ExecuteOutputLive(); err != nil {
 			return fmt.Errorf("%s -> %w", output, err)
 		}
 		return nil
@@ -219,7 +219,7 @@ func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 		commandLine := strings.Join(commands, " && ")
 		executor := cmd.NewExecutor("[update "+updateTarget+"]", commandLine)
 		executor.SetWorkDir(repoDir)
-		if output, err := executor.ExecuteOutput(); err != nil {
+		if output, err := executor.ExecuteOutputLive(); err != nil {
 			return fmt.Errorf("%s -> %w", output, err)
 		}
 		return nil
@@ -245,7 +245,7 @@ func CherryPick(title, srcDir string, patches []string) error {
 	commandLine := strings.Join(commands, " && ")
 	executor := cmd.NewExecutor(title, commandLine)
 	executor.SetWorkDir(srcDir)
-	if output, err := executor.ExecuteOutput(); err != nil {
+	if output, err := executor.ExecuteOutputLive(); err != nil {
 		return fmt.Errorf("%s -> %w", output, err)
 	}
 
@@ -270,7 +270,7 @@ func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 	commandLine := strings.Join(commands, " && ")
 	executor := cmd.NewExecutor(title, commandLine)
 	executor.SetWorkDir(srcDir)
-	if output, err := executor.ExecuteOutput(); err != nil {
+	if output, err := executor.ExecuteOutputLive(); err != nil {
 		return fmt.Errorf("%s -> %w", output, err)
 	}
 
@@ -290,7 +290,7 @@ func Clean(title, repoDir string) error {
 	commandLine := strings.Join(commands, " && ")
 	executor := cmd.NewExecutor(title, commandLine)
 	executor.SetWorkDir(repoDir)
-	if output, err := executor.ExecuteOutput(); err != nil {
+	if output, err := executor.ExecuteOutputLive(); err != nil {
 		return fmt.Errorf("%s -> %w", output, err)
 	}
 
@@ -310,7 +310,7 @@ func HardReset(repoDir, commit string) error {
 	execute := func(args ...string) error {
 		executor := cmd.NewExecutor(title, "git", args...)
 		executor.SetWorkDir(repoDir)
-		if output, err := executor.ExecuteOutput(); err != nil {
+		if output, err := executor.ExecuteOutputLive(); err != nil {
 			return fmt.Errorf("%s -> %w", output, err)
 		}
 		return nil
@@ -382,7 +382,7 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 		args := []string{"apply", "--ignore-space-change", "--ignore-whitespace", "-v", patchFile}
 		executor := cmd.NewExecutor(title, "git", args...)
 		executor.SetWorkDir(repoDir)
-		if output, err := executor.ExecuteOutput(); err != nil {
+		if output, err := executor.ExecuteOutputLive(); err != nil {
 			return fmt.Errorf("%s -> %w", output, err)
 		}
 	} else {
@@ -390,7 +390,7 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 		title := fmt.Sprintf("[apply patch: %s]", nameVersion)
 		executor := cmd.NewExecutor(title, "patch", "-Np1", "-i", patchFile)
 		executor.SetWorkDir(repoDir)
-		if output, err := executor.ExecuteOutput(); err != nil {
+		if output, err := executor.ExecuteOutputLive(); err != nil {
 			return fmt.Errorf("%s -> %w", output, err)
 		}
 	}
