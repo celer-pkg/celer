@@ -102,14 +102,8 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 	fmt.Fprintf(&buffer, `string(APPEND CMAKE_CXX_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")`+"\n")
 
 	// Include directories section,
-	// Note: for default include dirs like `/usr/include`, we must don't need to add them here.
 	if len(r.IncludeDirs) > 0 {
 		for _, incDir := range r.IncludeDirs {
-			if strings.Contains(incDir, "usr/include") {
-				return fmt.Errorf("usr/include should not be added to rootfs.include_dirs, " +
-					"it'll cause system headers cannot be found error")
-			}
-
 			incPath := filepath.ToSlash(filepath.Join("${CMAKE_SYSROOT}", incDir))
 			fmt.Fprintf(&buffer, `string(APPEND CMAKE_C_FLAGS_INIT " -isystem %s")`+"\n", incPath)
 			fmt.Fprintf(&buffer, `string(APPEND CMAKE_CXX_FLAGS_INIT " -isystem %s")`+"\n", incPath)
