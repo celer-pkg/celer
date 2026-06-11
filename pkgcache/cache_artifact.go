@@ -49,7 +49,7 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 	archiveDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	archivePath := filepath.Join(archiveDir, buildHash+".tar.gz")
 	if !fileio.PathExists(archivePath) {
-		color.PrintWarning("no artifact found with hash %s for %s\n", buildHash, nameVersion)
+		color.PrintWarning("======== no artifact found for %s and it'll build from source ========", nameVersion)
 		return "", nil // not an error even not exist.
 	}
 

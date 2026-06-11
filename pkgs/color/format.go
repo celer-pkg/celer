@@ -40,13 +40,13 @@ func PrintError(err error, format string, args ...any) error {
 }
 
 func PrintWarning(format string, args ...any) {
-	Printf(Warning, "\n[!] -- %s", fmt.Sprintf(format, args...))
-	time.Sleep(time.Second) // Pause 1s to let user see the message.
+	Printf(Warning, "\n[!] %s", fmt.Sprintf(format, args...))
+	time.Sleep(time.Millisecond * 300) // Pause 1s to let user see the message.
 }
 
 func PrintPass(format string, args ...any) {
-	Printf(Pass, "\n[✔] -- %s", fmt.Sprintf(format, args...))
-	time.Sleep(time.Second) // Pause 1s to let user see the message.
+	Printf(Pass, "\n[✔] %s", fmt.Sprintf(format, args...))
+	time.Sleep(time.Millisecond * 300) // Pause 1s to let user see the message.
 }
 
 func PrintInfo(format string, args ...any) {
