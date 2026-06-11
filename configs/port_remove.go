@@ -88,7 +88,7 @@ func (p Port) doRemovePort() error {
 
 		defer func() {
 			if noError {
-				color.Printf(color.Hint, "✔ rm -rf %s\n", p.InstalledDir)
+				color.Printf(color.Hint, "✔ %s is removed from %s\n", p.NameVersion(), p.InstalledDir)
 			}
 		}()
 	}
@@ -134,7 +134,7 @@ func (p Port) doRemovePort() error {
 	file.Close()
 
 	// Remove generated cmake config if exist.
-	portName := strings.Split(p.NameVersion(), "@")[0]
+	portName, _, _ := strings.Cut(p.NameVersion(), "@")
 	libraryDir := filepath.Join(p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
 	cmakeConfigDir := filepath.Join(dirs.InstalledDir, libraryDir, "lib", "cmake", portName)
 	if err := os.RemoveAll(cmakeConfigDir); err != nil {
