@@ -177,6 +177,11 @@ func (p Port) Clone() error {
 			return err
 		}
 
+		// Skip clone/reset for already-installed dependencies.
+		if installed, _ := port.Installed(); installed {
+			continue
+		}
+
 		// Clone repo is allowed only for third-party ports and public ports of project.
 		if port.Package.Checksum == "" || port.IsThirdParty() {
 			if err := port.MatchedConfig.Clone(
@@ -198,6 +203,11 @@ func (p Port) Clone() error {
 		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
+		}
+
+		// Skip clone/reset for already-installed dependencies.
+		if installed, _ := port.Installed(); installed {
+			continue
 		}
 
 		// Clone repo is allowed only for third-party ports and public ports of project.
@@ -590,6 +600,11 @@ func (p Port) cloneAllRepos() error {
 			return err
 		}
 
+		// Skip clone/reset for already-installed dependencies.
+		if installed, _ := port.Installed(); installed {
+			continue
+		}
+
 		// Clone repo is allowed only for third-party ports and public ports of project.
 		if port.Package.Checksum == "" || port.IsThirdParty() {
 			if err := port.Clone(); err != nil {
@@ -605,6 +620,11 @@ func (p Port) cloneAllRepos() error {
 		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
+		}
+
+		// Skip clone/reset for already-installed dependencies.
+		if installed, _ := port.Installed(); installed {
+			continue
 		}
 
 		// Clone repo is allowed only for third-party ports and public ports of project.
