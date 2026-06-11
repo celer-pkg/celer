@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/pkgs/cmd"
@@ -150,6 +151,12 @@ func (n *NFSClientSetup) Setup() error {
 
 	// Unmount if already mounted.
 	if err := n.unmountExisting(mountPoint); err != nil {
+		return err
+	}
+
+	// Probe server reachability before mount(8). mount.nfs has built-in retries
+	// (default ~2 minutes) that make the command look hung.
+	if err := n.probeNFSServer(serverExport); err != nil {
 		return err
 	}
 
@@ -382,6 +389,22 @@ func (n *NFSClientSetup) mountNFSDir(serverExport, mountPoint string) error {
 	return nil
 }
 
+// probeNFSServer checks the NFS server's reachability before the mount call.
+func (n *NFSClientSetup) probeNFSServer(serverExport string) error {
+	host, _, ok := strings.Cut(serverExport, ":")
+	if !ok || host == "" {
+		return fmt.Errorf("invalid server export %q (expected <server>:<path>)", serverExport)
+	}
+
+	// Ping to test if ip/hostname is reachable.
+	pingStart := time.Now()
+	if _, err := cmd.NewExecutor("", "ping", "-c", "1", "-W", "3", host).ExecuteOutput(); err != nil {
+		return fmt.Errorf("NFS server %q is not reachable (ping failed in %s); check the IP/hostname and the network -> %w", host, time.Since(pingStart).Truncate(time.Millisecond), err)
+	}
+
+	return nil
+}
+
 // checkServerTools verifies that all system packages needed by server setup are installed.
 func checkServerTools() error {
 	return buildtools.CheckSystemTools([]string{
@@ -572,15 +595,22 @@ func removeCurrentUserFromGroup(groupName string) error {
 }
 
 func currentUserForGroup() (string, error) {
-	if sudoUser := os.Getenv("SUDO_USER"); sudoUser != "" {
-		return sudoUser, nil
+	candidate := os.Getenv("SUDO_USER")
+	if candidate == "" {
+		candidate = os.Getenv("USER")
+	}
+	if candidate == "" {
+		return "", fmt.Errorf("cannot read current user from environment")
 	}
 
-	if currentUser := os.Getenv("USER"); currentUser != "" {
-		return currentUser, nil
+	// Reject root: happens with `sudo su -` (SUDO_USER is cleared) or when the
+	// command is run directly as root. Adding root to the celer group is useless
+	// (root already bypasses group checks) and hides the real misuse from the user.
+	if candidate == "root" {
+		return "", fmt.Errorf("cannot determine the invoking non-root user (SUDO_USER and USER both point to root); re-run as: sudo ./celer setup ...")
 	}
 
-	return "", fmt.Errorf("cannot read current user from environment")
+	return candidate, nil
 }
 
 // addCurrentUserToGroup adds the invoking user to the celer group.
@@ -592,11 +622,22 @@ func addCurrentUserToGroup(groupName string) error {
 		return err
 	}
 
-	if _, err := cmd.NewExecutor("", "usermod", "-aG", groupName, currentUser).ExecuteOutput(); err != nil {
-		return fmt.Errorf("failed to add %q to %q group -> %w", currentUser, groupName, err)
+	if output, err := cmd.NewExecutor("", "usermod", "-aG", groupName, currentUser).ExecuteOutput(); err != nil {
+		return fmt.Errorf("failed to add %q to %q group -> %s -> %w", currentUser, groupName, output, err)
 	}
 
-	color.PrintHint("✔ %s is added to group %s. 💡 run `newgrp %s` or re-login to take effect.", currentUser, groupName, groupName)
+	// Verify the membership actually took effect. usermod can return 0 without
+	// writing to /etc/group when the user record comes from a non-files NSS
+	// source (LDAP/SSSD/etc.), in which case the group add is silently a no-op.
+	groups, err := cmd.NewExecutor("", "id", "-nG", currentUser).ExecuteOutput()
+	if err != nil {
+		return fmt.Errorf("failed to verify groups for %q after usermod -> %w", currentUser, err)
+	}
+	if !slices.Contains(strings.Fields(groups), groupName) {
+		return fmt.Errorf("usermod succeeded but %q is not in group %q (user likely from LDAP/SSSD, not /etc/group)", currentUser, groupName)
+	}
+
+	color.PrintHint("✔ %s is added to group %s. 💡 run `newgrp %s` or log out and log back in to take effect (opening a new terminal in the same session is NOT enough).", currentUser, groupName, groupName)
 	return nil
 }
 

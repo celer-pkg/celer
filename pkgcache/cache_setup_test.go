@@ -124,7 +124,7 @@ func TestNFSServerSetupRemoveChattrCronJob(t *testing.T) {
 
 func TestNFSClientSetupRemoveFSTabEntry(t *testing.T) {
 	fstabPath := filepath.Join(t.TempDir(), "fstab")
-	if err := os.WriteFile(fstabPath, []byte("server:/exports/cache /mnt/cache nfs rw,_netdev,noatime 0 0\nserver:/exports/other /mnt/other nfs rw,_netdev 0 0\n"), 0644); err != nil {
+	if err := os.WriteFile(fstabPath, []byte("server:/exports/cache /mnt/cache nfs rw,_netdev,noatime,rsize=1048576,wsize=1048576 0 0\nserver:/exports/other /mnt/other nfs rw,_netdev 0 0\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -146,6 +146,11 @@ func TestNFSClientSetupMountNFSDirIncludesMountStderr(t *testing.T) {
 	if err := os.WriteFile(mountPath, []byte("#!/bin/sh\nprintf '%s\n' 'mount.nfs: mounting server:/missing failed, reason given by server: No such file or directory' >&2\nexit 32\n"), 0755); err != nil {
 		t.Fatal(err)
 	}
+	// probeNFSServer runs "ping -c 1 -W 3 <host>" before mount; provide a fake.
+	pingPath := filepath.Join(binDir, "ping")
+	if err := os.WriteFile(pingPath, []byte("#!/bin/sh\nexit 0\n"), 0755); err != nil {
+		t.Fatal(err)
+	}
 	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
 
 	setup := NewNFSClientSetup("/mnt/cache@server:/missing")
@@ -164,6 +169,64 @@ func TestNFSClientSetupMountNFSDirIncludesMountStderr(t *testing.T) {
 		if !strings.Contains(got, want) {
 			t.Fatalf("mountNFSDir() error = %q, want to contain %q", got, want)
 		}
+	}
+}
+
+func TestCurrentUserForGroup(t *testing.T) {
+	tests := []struct {
+		name     string
+		sudoUser string
+		user     string
+		want     string
+		wantErr  string
+	}{
+		{
+			name:     "prefers SUDO_USER",
+			sudoUser: "alice",
+			user:     "root",
+			want:     "alice",
+		},
+		{
+			name: "falls back to USER",
+			user: "bob",
+			want: "bob",
+		},
+		{
+			name:    "rejects root from SUDO_USER",
+			sudoUser: "root",
+			user:    "ignored",
+			wantErr: "cannot determine the invoking non-root user",
+		},
+		{
+			name:    "rejects root from USER",
+			user:    "root",
+			wantErr: "cannot determine the invoking non-root user",
+		},
+		{
+			name:    "rejects empty environment",
+			wantErr: "cannot read current user from environment",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Setenv("SUDO_USER", test.sudoUser)
+			t.Setenv("USER", test.user)
+
+			got, err := currentUserForGroup()
+			if test.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), test.wantErr) {
+					t.Fatalf("currentUserForGroup() error = %v, want to contain %q", err, test.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("currentUserForGroup() error = %v", err)
+			}
+			if got != test.want {
+				t.Fatalf("currentUserForGroup() = %q, want %q", got, test.want)
+			}
+		})
 	}
 }
 
