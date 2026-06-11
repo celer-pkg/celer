@@ -48,7 +48,7 @@ func (d downloader) Start(httpClient *http.Client) (downloaded string, err error
 		}
 
 		lastErr = err
-		color.Printf(color.Warning, "-- Download failed (attempt %d/%d): %v\n", attempt, d.maxRetries, err)
+		color.Printf(color.Warning, "Download failed (attempt %d/%d): %v\n", attempt, d.maxRetries, err)
 		if attempt < d.maxRetries {
 			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
 		}

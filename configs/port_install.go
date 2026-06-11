@@ -242,12 +242,6 @@ func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache contex
 		}
 	}
 
-	// Init port with name version.
-	var port Port
-	if err := port.Init(p.ctx, p.NameVersion()); err != nil {
-		return false, err
-	}
-
 	// Calculate buildhash.
 	buildhash, err := p.buildhash()
 	if err != nil {

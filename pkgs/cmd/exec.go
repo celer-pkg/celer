@@ -8,31 +8,35 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 // executor manages command execution with logging, environment configuration, and output routing.
 type executor struct {
-	msys2Env bool     // Whether to execute in MSYS2 environment (Windows only)
-	title    string   // Execution title for display output
-	command  string   // Command to execute
-	args     []string // Command arguments
-	msvcEnvs string   // MSVC environment setup string (Windows only)
-	workDir  string   // Working directory for command execution
-	logPath  string   // File path for execution logs
+	msys2Env         bool     // Whether to execute in MSYS2 environment (Windows only)
+	title            string   // Execution title for display output
+	command          string   // Command to execute
+	args             []string // Command arguments
+	msvcEnvs         string   // MSVC environment setup string (Windows only)
+	workDir          string   // Working directory for command execution
+	logPath          string   // File path for execution logs
+	retryMaxAttempts int      // 0 = no retry (default)
 }
 
 // NewExecutor creates a new Executor with the given title, command, and arguments.
 func NewExecutor(title string, command string, args ...string) *executor {
 	return &executor{
-		title:    title,
-		command:  command,
-		args:     args,
-		msys2Env: false, // Default: no MSYS2
-		msvcEnvs: "",    // Default: no MSVC setup
-		workDir:  "",    // Default: inherit parent working directory
-		logPath:  "",    // Default: no logging
+		title:            title,
+		command:          command,
+		args:             args,
+		msys2Env:         false, // Default: no MSYS2
+		msvcEnvs:         "",    // Default: no MSVC setup
+		workDir:          "",    // Default: inherit parent working directory
+		logPath:          "",    // Default: no logging
+		retryMaxAttempts: 0,     // Default: no retry
 	}
 }
 
@@ -60,23 +64,59 @@ func (e *executor) SetLogPath(logPath string) *executor {
 	return e
 }
 
+// WithRetry enables automatic retry on command failure.
+// maxAttempts controls how many times the command will be executed total (1 initial + N retries).
+// A retry sleep of attempt * time.Second is applied between attempts.
+func (e *executor) WithRetry(maxAttempts int) *executor {
+	e.retryMaxAttempts = maxAttempts
+	return e
+}
+
 // ExecuteOutput executes the command quietly and returns its combined stdout/stderr as a string.
 func (e *executor) ExecuteOutput() (string, error) {
 	var output fileio.LockedBuffer
-	err := e.doExecute(&output)
+	err := e.executeWithRetry(&output)
 	return output.String(), err
 }
 
 // ExecuteOutputLive executes the command with live terminal output and returns its combined stdout/stderr as a string.
 func (e *executor) ExecuteOutputLive() (string, error) {
 	var output fileio.LockedBuffer
-	err := e.doExecute(outputCapture{output: &output})
+	err := e.executeWithRetry(outputCapture{output: &output})
 	return output.String(), err
 }
 
 // Execute runs the command with live terminal output and no returned output.
 func (e *executor) Execute() error {
-	return e.doExecute(nil)
+	return e.executeWithRetry(nil)
+}
+
+// executeWithRetry calls doExecute, retrying up to retryMaxAttempts times on failure.
+func (e *executor) executeWithRetry(output io.Writer) error {
+	if e.retryMaxAttempts <= 1 {
+		return e.doExecute(output)
+	}
+
+	var lastErr error
+	for attempt := 1; attempt <= e.retryMaxAttempts; attempt++ {
+		if attempt > 1 {
+			// Reset buffer, to make sure the output buffer is clean after new retry.
+			if r, ok := output.(resetable); ok {
+				r.Reset()
+			}
+		}
+		lastErr = e.doExecute(output)
+		if lastErr == nil {
+			return nil
+		}
+
+		color.Printf(color.Warning, "Attempted (%d/%d): %v\n", attempt, e.retryMaxAttempts, lastErr)
+		if attempt < e.retryMaxAttempts {
+			time.Sleep(time.Duration(attempt) * time.Second)
+		}
+	}
+
+	return fmt.Errorf("%s failed after %d attempts -> %w", e.title, e.retryMaxAttempts, lastErr)
 }
 
 // createLogFile creates and initializes a log file with environment variables and command info.
@@ -170,4 +210,16 @@ type outputCapture struct {
 
 func (t outputCapture) Write(p []byte) (int, error) {
 	return t.output.Write(p)
+}
+
+// Reset delegates to the wrapped output if it supports resetting,
+// so retry loops can clear captured data between attempts.
+func (t outputCapture) Reset() {
+	if r, ok := t.output.(resetable); ok {
+		r.Reset()
+	}
+}
+
+type resetable interface {
+	Reset()
 }
