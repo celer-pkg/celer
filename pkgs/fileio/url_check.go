@@ -51,7 +51,7 @@ func FileSize(httpClient *http.Client, downloadUrl string) (int64, error) {
 		}
 
 		lastErr = err
-		color.Printf(color.Warning, "-- Get filesize failed (attempt %d/%d): %v\n", attempt, maxRetries, err)
+		color.Printf(color.Warning, "Get filesize failed (attempt %d/%d): %v\n", attempt, maxRetries, err)
 		if attempt < maxRetries {
 			time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff.
 		}

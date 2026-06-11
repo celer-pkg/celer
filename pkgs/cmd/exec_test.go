@@ -190,3 +190,39 @@ func TestExecutor_ComposeWriters_Multiple(t *testing.T) {
 		t.Error("expected non-nil multi-writer")
 	}
 }
+
+func TestExecutor_WithRetry(t *testing.T) {
+	executor := NewExecutor("title", "cmd").WithRetry(3)
+	if executor.retryMaxAttempts != 3 {
+		t.Errorf("retryMaxAttempts = %d, want 3", executor.retryMaxAttempts)
+	}
+}
+
+func TestExecutor_WithRetry_Default(t *testing.T) {
+	executor := NewExecutor("title", "cmd")
+	if executor.retryMaxAttempts != 0 {
+		t.Errorf("retryMaxAttempts = %d, want 0", executor.retryMaxAttempts)
+	}
+}
+
+func TestExecutor_WithRetry_RetriesOnFailure(t *testing.T) {
+	executor := NewExecutor("[test retry]", "false").WithRetry(3)
+	err := executor.Execute()
+	if err == nil {
+		t.Fatal("expected error from failing command")
+	}
+	if !strings.Contains(err.Error(), "failed after 3 attempts") {
+		t.Errorf("error should mention 'failed after 3 attempts', got: %v", err)
+	}
+}
+
+func TestExecutor_WithRetry_NoRetryWhenZero(t *testing.T) {
+	executor := NewExecutor("[test]", "false") // no WithRetry
+	err := executor.Execute()
+	if err == nil {
+		t.Fatal("expected error from failing command")
+	}
+	if strings.Contains(err.Error(), "failed after") {
+		t.Errorf("error should not mention retry when WithRetry not set, got: %v", err)
+	}
+}

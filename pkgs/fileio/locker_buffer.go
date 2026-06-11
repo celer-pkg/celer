@@ -20,6 +20,13 @@ func (l *LockedBuffer) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
+func (l *LockedBuffer) Reset() {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+
+	l.buffer.Reset()
+}
+
 func (l *LockedBuffer) String() string {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()

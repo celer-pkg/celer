@@ -17,36 +17,36 @@ func retrySleep(attempt int) {
 // CheckIfRemoteBranch check if repoRef is a branch.
 func CheckIfRemoteBranch(target, repoUrl, repoRef string) (bool, error) {
 	title := fmt.Sprintf("[query remote branch: %s]", target)
-	executor := cmd.NewExecutor(title, "git", "ls-remote", "--heads", repoUrl, repoRef)
-	output, err := executor.ExecuteOutput()
+	output, err := cmd.NewExecutor(title, "git", "ls-remote", "--heads", repoUrl, repoRef).
+		WithRetry(retryMaxAttempts).ExecuteOutput()
 	if err != nil {
 		return false, fmt.Errorf("failed to query remote branch %s of %s -> %w", repoRef, repoUrl, err)
 	}
 
-	return strings.TrimSpace(string(output)) != "", nil
+	return strings.TrimSpace(output) != "", nil
 }
 
 // CheckIfRemoteTag check if repoRef is a tag.
 func CheckIfRemoteTag(target, repoUrl, repoRef string) (bool, error) {
 	title := fmt.Sprintf("[query remote tag: %s]", target)
-	executor := cmd.NewExecutor(title, "git", "ls-remote", "--tags", repoUrl, repoRef)
-	output, err := executor.ExecuteOutput()
+	output, err := cmd.NewExecutor(title, "git", "ls-remote", "--tags", repoUrl, repoRef).
+		WithRetry(retryMaxAttempts).ExecuteOutput()
 	if err != nil {
 		return false, fmt.Errorf("failed to query remote tag %s of %s -> %w", repoRef, repoUrl, err)
 	}
-	return strings.TrimSpace(string(output)) != "", nil
+	return strings.TrimSpace(output) != "", nil
 }
 
 // GetRemoteHeadCommit resolves the HEAD commit of a remote repository.
 func GetRemoteHeadCommit(target, repoUrl string) (string, error) {
 	title := fmt.Sprintf("[resolve remote HEAD: %s]", target)
-	executor := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "HEAD")
-	output, err := executor.ExecuteOutput()
+	output, err := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "HEAD").
+		WithRetry(retryMaxAttempts).ExecuteOutput()
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve HEAD of %s -> %w", repoUrl, err)
 	}
 
-	fields := strings.Fields(string(output))
+	fields := strings.Fields(output)
 	if len(fields) < 1 {
 		return "", fmt.Errorf("no HEAD commit found for %s", repoUrl)
 	}
@@ -63,15 +63,15 @@ func GetRemoteRefCommit(target, repoUrl, repoRef string) (string, error) {
 	}
 	if isBranch {
 		title := fmt.Sprintf("[read remote branch commit: %s]", target)
-		executor := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "refs/heads/"+repoRef)
-		output, err := executor.ExecuteOutput()
+		output, err := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "refs/heads/"+repoRef).
+			WithRetry(retryMaxAttempts).ExecuteOutput()
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
 		}
 
-		fields := strings.Fields(string(output))
+		fields := strings.Fields(output)
 		if len(fields) < 1 {
-			return "", fmt.Errorf("invalid git commit hash: %s", string(output))
+			return "", fmt.Errorf("invalid git commit hash: %s", output)
 		}
 
 		return fields[0], nil
@@ -84,15 +84,15 @@ func GetRemoteRefCommit(target, repoUrl, repoRef string) (string, error) {
 	}
 	if isTag {
 		title := fmt.Sprintf("[read remote tag commit: %s]", target)
-		executor := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "refs/tags/"+repoRef)
-		output, err := executor.ExecuteOutput()
+		output, err := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "refs/tags/"+repoRef).
+			WithRetry(retryMaxAttempts).ExecuteOutput()
 		if err != nil {
 			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
 		}
 
-		fields := strings.Fields(string(output))
+		fields := strings.Fields(output)
 		if len(fields) < 1 {
-			return "", fmt.Errorf("invalid git commit hash: %s", string(output))
+			return "", fmt.Errorf("invalid git commit hash: %s", output)
 		}
 
 		return fields[0], nil
