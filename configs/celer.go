@@ -994,5 +994,9 @@ func (c *Celer) PythonConfig() context.PythonConfig {
 }
 
 func (c *Celer) Experiment() context.Experiment {
-	return c.configData.Experiment
+	if c.configData.Experiment != nil {
+		return c.configData.Experiment
+	}
+
+	return nil
 }
