@@ -73,6 +73,14 @@ type Proxy struct {
 	Port int    `toml:"port"`
 }
 
+type experiment struct {
+	CheckCMakeAbolutePath bool `toml:"check_cmake_abolute_path"`
+}
+
+func (e experiment) GetCheckCMakeAbolutePath() bool {
+	return e.CheckCMakeAbolutePath
+}
+
 type Python struct {
 	Version        string   `toml:"version,omitempty"`
 	IndexUrl       string   `toml:"index_url,omitempty"`
@@ -97,11 +105,12 @@ func (p *Python) GetTrustedHosts() []string {
 }
 
 type configData struct {
-	Main     main      `toml:"main"`
-	Proxy    *Proxy    `toml:"proxy,omitempty"`
-	PkgCache *pkgCache `toml:"pkgcache,omitempty"`
-	CCache   *CCache   `toml:"ccache,omitempty"`
-	Python   *Python   `toml:"python,omitempty"`
+	Main       main        `toml:"main"`
+	Proxy      *Proxy      `toml:"proxy,omitempty"`
+	PkgCache   *pkgCache   `toml:"pkgcache,omitempty"`
+	CCache     *CCache     `toml:"ccache,omitempty"`
+	Python     *Python     `toml:"python,omitempty"`
+	Experiment *experiment `toml:"experiment,omitempty"`
 }
 
 // Init initializes celer with default options.
@@ -981,5 +990,13 @@ func (c *Celer) PythonConfig() context.PythonConfig {
 	if c.configData.Python != nil {
 		return c.configData.Python
 	}
+	return nil
+}
+
+func (c *Celer) Experiment() context.Experiment {
+	if c.configData.Experiment != nil {
+		return c.configData.Experiment
+	}
+
 	return nil
 }

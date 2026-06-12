@@ -173,6 +173,7 @@ func (f deployFakeContext) CCacheEnabled() bool                    { return fals
 func (f deployFakeContext) GenerateToolchainFile() error           { return nil }
 func (f deployFakeContext) ExprVars() *context.ExprVars            { return nil }
 func (f deployFakeContext) PythonConfig() context.PythonConfig     { return nil }
+func (f deployFakeContext) Experiment() context.Experiment         { return nil }
 
 // setupTestRepo creates a bare git repo as clone source in a temp directory
 // and returns its path along with known commit hashes for testing.

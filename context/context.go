@@ -18,6 +18,7 @@ type Context interface {
 	GenerateToolchainFile() error
 	ExprVars() *ExprVars
 	PythonConfig() PythonConfig
+	Experiment() Experiment
 }
 
 type PkgCacheDirType uint8
@@ -51,4 +52,8 @@ type PythonConfig interface {
 	GetIndexUrl() string
 	GetExtraIndexUrls() []string
 	GetTrustedHosts() []string
+}
+
+type Experiment interface {
+	GetCheckCMakeAbolutePath() bool
 }
