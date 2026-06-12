@@ -10,6 +10,7 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/generator"
+	pkgcmake "github.com/celer-pkg/celer/pkgs/cmake"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -732,6 +733,15 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	var pkgConfig pc.PkgConfig
 	if err := pkgConfig.Apply(b.PortConfig.PackageDir, prefix); err != nil {
 		return fmt.Errorf("fixup pkg-config\n %w", err)
+	}
+
+	// Check cmake config files for absolute workspace paths that make the
+	// installed package non-relocatable (breaks builds when workspace moves).
+	experiment := b.Ctx.Experiment()
+	if experiment != nil && experiment.GetCheckCMakeAbolutePath() {
+		if err := pkgcmake.CheckAbsPaths(b.PortConfig.PackageDir, dirs.WorkspaceDir); err != nil {
+			return fmt.Errorf("cmake config files contain absolute workspace paths (non-relocatable): %w", err)
+		}
 	}
 
 	return nil
