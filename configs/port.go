@@ -164,11 +164,13 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	}
 
 	// Check if source modified.
-	modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
-	if err != nil {
-		return err
+	if fileio.PathExists(p.MatchedConfig.PortConfig.RepoDir) {
+		modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
+		if err != nil {
+			return err
+		}
+		p.sourceModified = modified
 	}
-	p.sourceModified = modified
 
 	return nil
 }
