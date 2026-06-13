@@ -26,11 +26,20 @@ func (p Port) Remove(options RemoveOptions) error {
 
 			// Check and validate dependency.
 			var port = Port{
-				DevDep: devDep,
-				Parent: p.NameVersion(),
+				DevDep:  devDep,
+				HostDep: hostDev,
+				Parent:  p.NameVersion(),
 			}
 			if err := port.Init(p.ctx, nameVersion); err != nil {
 				return fmt.Errorf("failed to init dependency %s -> %w", nameVersion, err)
+			}
+
+			// Skip deps that have already been (re)installed in the current
+			// top-level command. Cascade-removing them here would force a
+			// rebuild later when prepareTmpDeps needs the package — every
+			// shared dep would otherwise be rebuilt once per parent.
+			if _, alreadyProcessed := processedInstalls[port.processedKey()]; alreadyProcessed {
+				return nil
 			}
 
 			// Remove dependency.

@@ -24,6 +24,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 	// Initialize report collector at top-level install.
 	if p.Parent == "" && p.installReport == nil {
 		p.installReport = newInstallReport(p.NameVersion())
+		processedInstalls = map[string]bool{}
 	}
 	defer func() {
 		if retErr != nil || p.installReport == nil {
@@ -705,7 +706,7 @@ func (p Port) installAllDependencies(options InstallOptions) error {
 
 func (p Port) installDependencies(options InstallOptions) error {
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
-		name := strings.Split(nameVersion, "@")[0]
+		name, _, _ := strings.Cut(nameVersion, "@")
 		if name == p.Name {
 			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), name)
 		}
@@ -725,7 +726,13 @@ func (p Port) installDependencies(options InstallOptions) error {
 		if err != nil {
 			return err
 		}
-		if !installed || (options.Force && options.Recursive) {
+
+		// With --force --recursive, ports get reinstalled even if already
+		// present, but each port still only needs to be reinstalled once per
+		// top-level command — guard against the same port appearing under many parents.
+		key := port.processedKey()
+		_, alreadyProcessed := processedInstalls[key]
+		if !installed || (options.Force && options.Recursive && !alreadyProcessed) {
 			// Always ensure sub-dependencies are installed first.
 			// This ensures transitive dependencies are always available before installing the dependency.
 			if err := port.installAllDependencies(options); err != nil {
@@ -735,6 +742,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
+			processedInstalls[key] = true
 		} else if p.installReport != nil {
 			p.installReport.add(&port, "preinstalled")
 			if err := port.collectInstalledDepsForReport(); err != nil {
@@ -769,7 +777,13 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 		if err != nil {
 			return err
 		}
-		if !installed || (options.Force && options.Recursive) {
+
+		// With --force --recursive, ports get reinstalled even if already
+		// present, but each port still only needs to be reinstalled once per
+		// top-level command — guard against the same port appearing under many parents.
+		key := port.processedKey()
+		_, alreadyProcessed := processedInstalls[key]
+		if !installed || (options.Force && options.Recursive && !alreadyProcessed) {
 			// Always ensure sub-dependencies are installed first, even if the dependency itself is preinstalled.
 			// This ensures transitive dependencies are always available before installing the dependency.
 			if err := port.installAllDependencies(options); err != nil {
@@ -779,6 +793,7 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
+			processedInstalls[key] = true
 		} else if p.installReport != nil {
 			p.installReport.add(&port, "preinstalled")
 			if err := port.collectInstalledDepsForReport(); err != nil {
