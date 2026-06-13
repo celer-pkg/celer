@@ -25,6 +25,9 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 	if p.Parent == "" && p.installReport == nil {
 		p.installReport = newInstallReport(p.NameVersion())
 		processedInstalls = map[string]bool{}
+		if p.installReport == nil {
+			p.installReport = newInstallReport(p.NameVersion())
+		}
 	}
 	defer func() {
 		if retErr != nil || p.installReport == nil {
