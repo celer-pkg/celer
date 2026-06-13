@@ -21,13 +21,10 @@ import (
 
 // Install install a port and tell me where it was installed from.
 func (p *Port) Install(options InstallOptions) (installedFrom string, retErr error) {
-	// Initialize report collector at top-level install.
-	if p.Parent == "" && p.installReport == nil {
-		p.installReport = newInstallReport(p.NameVersion())
+	// At the top-level entry, reset the processedInstalls and installReport.
+	if p.Parent == "" {
 		processedInstalls = map[string]bool{}
-		if p.installReport == nil {
-			p.installReport = newInstallReport(p.NameVersion())
-		}
+		p.installReport = newInstallReport(p.NameVersion())
 	}
 	defer func() {
 		if retErr != nil || p.installReport == nil {
