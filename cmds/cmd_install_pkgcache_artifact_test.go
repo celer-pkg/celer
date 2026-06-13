@@ -490,7 +490,7 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 
 	report, err := os.ReadFile(statisticPath)
 	check(err)
-	if !strings.Contains(string(report), "package cache") {
+	if !strings.Contains(string(report), "pkgcache") {
 		t.Fatalf("expected report to contain package cache source, report: %s", statisticPath)
 	}
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/git"
 
 	"github.com/BurntSushi/toml"
 )
@@ -61,12 +62,14 @@ type Port struct {
 	PackageDir    string                    `toml:"-"`
 	InstalledDir  string                    `toml:"-"`
 
-	ctx           context.Context
-	traceFile     string
-	metaFile      string
-	tmpDepsDir    string
-	installReport *installReport
-	exprVars      context.ExprVars
+	ctx                        context.Context
+	traceFile                  string
+	metaFile                   string
+	tmpDepsDir                 string
+	installReport              *installReport
+	exprVars                   context.ExprVars
+	sourceModified             bool
+	pkgCacheStoreSkippedReason string
 }
 
 func (p Port) NameVersion() string {
@@ -160,6 +163,15 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 		return fmt.Errorf("failed to validate %s -> %w", portPath, err)
 	}
 
+	// Check if source modified.
+	if fileio.PathExists(p.MatchedConfig.PortConfig.RepoDir) {
+		modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
+		if err != nil {
+			return err
+		}
+		p.sourceModified = modified
+	}
+
 	return nil
 }
 
@@ -174,32 +186,42 @@ func (p Port) Installed() (bool, error) {
 		return false, nil
 	}
 
-	// For buildsystem other than nobuild, check if meta file outdated.
-	if p.MatchedConfig.BuildSystem != "nobuild" {
-		// Check if meta file exists.
-		if !fileio.PathExists(p.metaFile) {
+	// nobuild is already regard as installed.
+	if p.MatchedConfig.BuildSystem == "nobuild" {
+		return true, nil
+	}
+
+	// Check if meta file exists.
+	if !fileio.PathExists(p.metaFile) {
+		return false, nil
+	}
+
+	// Check if meta data matches.
+	metaBytes, err := os.ReadFile(p.metaFile)
+	if err != nil {
+		return false, err
+	}
+	newMeta, err := p.buildMeta()
+	if err != nil {
+		// Repo not exist is not error.
+		if errors.Is(err, errors.ErrRepoNotExit) {
 			return false, nil
 		}
+		return false, err
+	}
 
-		// Check if build desc matches.
-		metaBytes, err := os.ReadFile(p.metaFile)
-		if err != nil {
-			return false, err
+	// Remove installed package if build config changed.
+	localMeta := string(metaBytes)
+	if localMeta != newMeta {
+		options := RemoveOptions{
+			Purge:      true,
+			Recursive:  false,
+			BuildCache: false,
 		}
-		newMeta, err := p.buildMeta()
-		if err != nil {
-			// Repo not exist is not error.
-			if errors.Is(err, errors.ErrRepoNotExit) {
-				return false, nil
-			}
-			return false, err
+		if err := p.Remove(options); err != nil {
+			return false, fmt.Errorf("failed to remove installed package -> %w", err)
 		}
-
-		// Remove installed package if build config changed.
-		localMeta := string(metaBytes)
-		if localMeta != newMeta {
-			return false, nil
-		}
+		return false, nil
 	}
 
 	return true, nil

@@ -73,8 +73,8 @@ func TestInstall_With_Force(t *testing.T) {
 	newGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 	newGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 
-	if newGlogModTime.Equal(lastGlogModTime) {
-		t.Fatal("package was not re-installed with --force")
+	if !newGlogModTime.After(lastGlogModTime) {
+		t.Fatalf("package was not re-installed with --force (mtime %v, want > %v)", newGlogModTime, lastGlogModTime)
 	}
 
 	if !newGflagsModTime.Equal(lastGflagsModTime) {
@@ -145,11 +145,11 @@ func TestInstall_With_Force_Recursive(t *testing.T) {
 	newGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 	newGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 
-	if newGlogModTime.Equal(lastGlogModTime) {
-		t.Fatal("package should be re-installed with --force")
+	if !newGlogModTime.After(lastGlogModTime) {
+		t.Fatalf("package should be re-installed with --force (mtime %v, want > %v)", newGlogModTime, lastGlogModTime)
 	}
 
-	if newGflagsModTime.Equal(lastGflagsModTime) {
-		t.Fatal("dependency package shoud be re-installed")
+	if !newGflagsModTime.After(lastGflagsModTime) {
+		t.Fatalf("dependency package shoud be re-installed (mtime %v, want > %v)", newGflagsModTime, lastGflagsModTime)
 	}
 }
