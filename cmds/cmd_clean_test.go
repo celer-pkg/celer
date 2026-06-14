@@ -2,6 +2,12 @@ package cmds
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"testing"
+
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/color"
@@ -9,11 +15,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
-	"os"
-	"path/filepath"
-	"runtime"
-	"slices"
-	"testing"
 
 	"github.com/spf13/cobra"
 )
@@ -452,7 +453,7 @@ func TestClean(t *testing.T) {
 	check(celer.SetBuildType("Release"))
 	check(celer.SetPlatform(platform))
 	check(celer.SetProject(project))
-	check(celer.Deploy(true))
+	check(celer.Deploy(true, false))
 
 	cleanCmd := cleanCmd{celer: celer}
 
@@ -514,7 +515,7 @@ func TestClean(t *testing.T) {
 		check(os.RemoveAll(dirs.InstalledDir))
 		check(os.RemoveAll(dirs.PackagesDir))
 
-		check(celer.Deploy(true))
+		check(celer.Deploy(true, false))
 		check(cleanCmd.cleanAll())
 
 		checkList := map[string]bool{

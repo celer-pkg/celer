@@ -22,6 +22,7 @@ type deployCmd struct {
 	celer        *configs.Celer
 	force        bool
 	snapshotPath string
+	strip        bool
 }
 
 func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -29,10 +30,16 @@ func (d *deployCmd) Command(celer *configs.Celer) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy with selected platform and project.",
-		Long: `Deploy builds and installs all packages defined in the project.
+		Long: `Deploy builds and installs all packages defined in the current project.
 
 After successful deployment, you can optionally export a snapshot
-for reproducible builds using the --snapshot flag.`,
+for reproducible builds using the --snapshot flag, and you can also
+strip installed binaries and libraies with --strip.
+
+Examples:
+  celer deploy --force                  # Force deploy and ignore installed
+  celer deploy --snapshot=${filepath}   # Initialize with conf repo
+  celer deploy --strip                  # Strip installed binaries and libraries`,
 		Args: d.validateArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := d.celer.Init(); err != nil {
@@ -59,7 +66,7 @@ for reproducible builds using the --snapshot flag.`,
 				return color.PrintError(err, "failed to resolve refs.")
 			}
 
-			if err := d.celer.Deploy(d.force); err != nil {
+			if err := d.celer.Deploy(d.force, d.strip); err != nil {
 				return color.PrintError(err, "failed to deploy celer.")
 			}
 
@@ -79,7 +86,8 @@ for reproducible builds using the --snapshot flag.`,
 
 	flags := command.Flags()
 	flags.StringVar(&d.snapshotPath, "snapshot", "", "Export workspace snapshot after successfully deployed.")
-	flags.BoolVarP(&d.force, "force", "f", false, "Force deployment, ignoring any installed packages.")
+	flags.BoolVarP(&d.force, "force", "", false, "Force deployment, ignoring any installed packages.")
+	flags.BoolVarP(&d.strip, "strip", "", false, "Strip installed binaries and libraries.")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
@@ -227,7 +235,7 @@ func (d *deployCmd) resolveAllRefs() error {
 
 func (d *deployCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var suggestions []string
-	for _, flag := range []string{"--snapshot", "--force", "-f"} {
+	for _, flag := range []string{"--snapshot", "--force", "--strip"} {
 		if strings.HasPrefix(flag, toComplete) {
 			suggestions = append(suggestions, flag)
 		}

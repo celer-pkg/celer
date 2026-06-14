@@ -20,10 +20,11 @@ celer deploy [flags]
 
 ## 命令选项
 
-| 选项     | 简写 | 类型   | 说明                         |
-|----------|------|--------|----------------------------|
-| --force  | -f   | 布尔   | 强制部署，忽略已安装状态      |
-| --snapshot | -    | 字符串 | 部署成功后导出工作区快照      |
+| 选项       | 简写 | 类型   | 默认值    | 说明                       |
+|------------|------|-------|----------|----------------------------|
+| --force    | -    | 布尔   | false   | 强制部署，忽略已安装状态      |
+| --snapshot | -    | 字符串 | 空字符串 | 部署成功后导出工作区快照      |
+| --strip    | -    | 布尔   | false   | 部署成功后Strip库文件和可执行文件  |
 
 ## 常用示例
 
@@ -37,8 +38,11 @@ celer deploy --force
 # 部署并导出快照
 celer deploy --snapshot=snapshots/2026-02-21
 
-# 强制部署并导出
-celer deploy --force --snapshot=snapshots/rebuild
+# 部署并strip
+celer deploy --strip
+
+# 强制部署并导出, 并strip
+celer deploy --force --snapshot=snapshots/rebuild --strip
 ```
 
 ## 说明

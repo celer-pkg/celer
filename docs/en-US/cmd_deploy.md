@@ -20,10 +20,11 @@ celer deploy [flags]
 
 ## Command Options
 
-| Option   | Short | Type    | Description                                       |
-|----------|-------|---------|---------------------------------------------------|
-| --force  | -f    | boolean | Force deployment, ignoring already installed libs |
-| --snapshot | -     | string  | Export workspace snapshot after successful deploy |
+| Option     | Short | Type    | Default Value | Description                                       |
+|------------|-------|---------|---------------|---------------------------------------------------|
+| --force    | -     | boolean | false         | Force deployment, ignoring already installed libs |
+| --snapshot | -     | string  | empty string  | Export workspace snapshot after successful deploy |
+| --strip    | -     | string  | false         | Export and strip libraries and binaries           |
 
 ## Common Examples
 
@@ -37,8 +38,11 @@ celer deploy --force
 # Deploy and export snapshot
 celer deploy --snapshot=snapshots/2026-02-21
 
-# Force deploy and export snapshot
-celer deploy --force --snapshot=snapshots/rebuild
+# Deploy and strip
+celer deploy --strip
+
+# Force deploy and export snapshot and strip
+celer deploy --force --snapshot=snapshots/rebuild --strip
 ```
 
 ## Notes
