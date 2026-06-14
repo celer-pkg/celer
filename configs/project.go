@@ -2,11 +2,14 @@ package configs
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/cmd"
+	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -116,7 +119,7 @@ func (p Project) GetVars() []string {
 	return p.Vars
 }
 
-func (p Project) deploy(force bool) error {
+func (p Project) deploy(force, strip bool) error {
 	options := InstallOptions{
 		Force:     force,
 		Recursive: true,
@@ -136,5 +139,63 @@ func (p Project) deploy(force bool) error {
 			return fmt.Errorf("failed to install %s -> %w", nameVersion, err)
 		}
 	}
+
+	// Strip ELF binaries and shared libraries to deduce the file size.
+	if strip {
+		if err := p.stripDeployed(); err != nil {
+			return fmt.Errorf("failed to strip deployed binaries -> %w", err)
+		}
+	}
+
+	return nil
+}
+
+// stripDeployed walks the per-platform installed tree and runs strip on every
+// ELF file found. Static archives (.a) are intentionally skipped — stripping
+// them removes symbols downstream linking against this deploy still needs.
+func (p Project) stripDeployed() error {
+	// Check if strip executable file has been configured.
+	toolchain := p.ctx.Platform().GetToolchain()
+	stripBin := toolchain.GetSTRIP()
+	if stripBin == "" {
+		return fmt.Errorf("strip executable file path is not configured in platform: %s.toml", p.ctx.Platform().GetName())
+	}
+
+	// Resolve target tree: installed/<platform>/<project>/<buildType>/.
+	// Dev/host trees are not stripped — those binaries run on the build host
+	// and people often want their symbols for debugging build issues.
+	installedDir := p.ctx.InstalledDir()
+	if !fileio.PathExists(installedDir) {
+		return nil
+	}
+
+	color.Printf(color.Title, "\n[strip deployed binaries: %s]\n", installedDir)
+	err := filepath.WalkDir(installedDir, func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		// Skip anything that is obviously not an ELF binary we want to strip.
+		// Static archives are special: stripping breaks them for downstream linking.
+		if strings.HasSuffix(path, ".a") {
+			return nil
+		}
+		if !fileio.IsELFFile(path) {
+			return nil
+		}
+
+		if _, err := cmd.NewExecutor("", stripBin, path).ExecuteOutput(); err != nil {
+			return nil
+		}
+		color.PrintHint("✔ strip %s", path)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -59,7 +59,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 		check(autoremoveCmd.collectDevPackages(nameVersion))
 	}
 
-	check(celer.Deploy(true))
+	check(celer.Deploy(true, false))
 
 	// ================= test autoremove ================= //
 	var (
@@ -157,7 +157,7 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 		check(autoremoveCmd.collectDevPackages(nameVersion))
 	}
 
-	check(celer.Deploy(true))
+	check(celer.Deploy(true, false))
 
 	validatePackages := func(packages, devPackages []string) error {
 		// Check packages.

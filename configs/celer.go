@@ -336,9 +336,9 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 	return nil
 }
 
-func (c *Celer) Deploy(force bool) error {
-	if err := c.project.deploy(force); err != nil {
-		return err
+func (c *Celer) Deploy(force, strip bool) error {
+	if err := c.project.deploy(force, strip); err != nil {
+		return fmt.Errorf("failed to deploy -> %w", err)
 	}
 
 	return nil

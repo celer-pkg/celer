@@ -562,3 +562,20 @@ func RemoveContent(filePath string, shouldRemove func(string) bool) error {
 	}
 	return os.WriteFile(filePath, []byte(strings.Join(filtered, "\n")+"\n"), 0644)
 }
+
+// isELF tell whether path is a regular file whose first 4 bytes are the
+// ELF magic (\x7fELF). Cheaper and more accurate than checking extensions
+// or the executable mode bit (which would mis-classify shell scripts).
+func IsELFFile(path string) bool {
+	f, err := os.Open(path)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+
+	var magic [4]byte
+	if _, err := f.Read(magic[:]); err != nil {
+		return false
+	}
+	return magic[0] == 0x7f && magic[1] == 'E' && magic[2] == 'L' && magic[3] == 'F'
+}
