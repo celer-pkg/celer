@@ -340,8 +340,12 @@ func (p *Port) doInstallFromSource() error {
 		return fmt.Errorf("failed to clean package dir %s -> %w", p.PackageDir, err)
 	}
 
-	// Validate cache dir before building to avoid wasting build time.
-	pkgCache := p.ctx.PkgCache()
+	// Check if need to store pkgcache and remember the skip reason.
+	skipReason, err := p.pkgCacheStoreSkipReason()
+	if err != nil {
+		return err
+	}
+	p.pkgCacheStoreSkippedReason = skipReason
 
 	// Call matched buildsystem to configure, build and install.
 	if err := p.MatchedConfig.Install(p.Package.Url, p.Package.Ref, p.Package.Archive); err != nil {
@@ -376,13 +380,8 @@ func (p *Port) doInstallFromSource() error {
 		}
 
 		// Store package cache with meta file inside.
+		pkgCache := p.ctx.PkgCache()
 		if pkgCache != nil && pkgCache.IsWritable() {
-			skipReason, err := p.pkgCacheStoreSkipReason()
-			if err != nil {
-				return err
-			}
-
-			p.pkgCacheStoreSkippedReason = skipReason
 			if p.pkgCacheStoreSkippedReason == "" {
 				artifactCache := pkgCache.GetArtifactCache()
 				if artifactCache != nil {
@@ -915,7 +914,7 @@ func (p Port) prepareTmpDeps() error {
 	}
 
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
-		name := strings.Split(nameVersion, "@")[0]
+		name, _, _ := strings.Cut(nameVersion, "@")
 		if name == p.Name {
 			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), nameVersion)
 		}

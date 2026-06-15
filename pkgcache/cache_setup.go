@@ -210,6 +210,7 @@ func (n *NFSClientSetup) Remove() error {
 		return err
 	}
 
+	fmt.Println() // Just a blank line.
 	color.PrintSuccess("NFS cache client setup removed: %q unmounted from %q", mountPoint, serverExport)
 	return nil
 }
