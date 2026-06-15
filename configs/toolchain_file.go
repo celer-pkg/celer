@@ -80,8 +80,6 @@ func (c *Celer) GenerateToolchainFile() error {
 	}
 
 	// Define global cmake vars, env vars and macros.
-	c.appendIncludeDirs(&builder)
-	c.appendLibDirs(&builder)
 	c.appendVars(&builder)
 	c.appendEnvs(&builder)
 	c.appendMacros(&builder)
@@ -360,63 +358,6 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 	}
 
 	return nil
-}
-
-func (c *Celer) appendIncludeDirs(toolchain *strings.Builder) {
-	for index, dir := range c.project.IncludeDirs {
-		if index == 0 {
-			fmt.Fprintf(toolchain, "\n# =============== External include directories =============== #\n")
-		}
-
-		// Also add include path to compiler flags to ensure headers are found
-		// This is necessary because CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY may restrict include_directories()
-		dir = c.exprVars.Expand(dir)
-		escapedDir := filepath.ToSlash(dir)
-		systemName := c.platform.Toolchain.GetSystemName()
-
-		if strings.ToLower(systemName) == "windows" &&
-			(c.platform.Toolchain.GetName() == "msvc" ||
-				c.platform.Toolchain.GetName() == "clang-cl") {
-			// Windows MSVC: use /I format
-			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
-			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " /I\"%s\"")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `endforeach()`+"\n")
-		} else {
-			// Unix/Linux: use -I format
-			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
-			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " -I%s")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `endforeach()`+"\n")
-		}
-	}
-}
-
-func (c *Celer) appendLibDirs(toolchain *strings.Builder) {
-	for index, dir := range c.project.LibDirs {
-		if index == 0 {
-			fmt.Fprintf(toolchain, "\n# =============== External library directories =============== #\n")
-		}
-
-		// Add library path to linker flags to ensure libraries are found,
-		// This is necessary because CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY may restrict link_directories()
-		dir = c.exprVars.Expand(dir)
-		escapedDir := filepath.ToSlash(dir)
-		systemName := c.platform.Toolchain.GetSystemName()
-
-		if strings.ToLower(systemName) == "windows" &&
-			(c.platform.Toolchain.GetName() == "msvc" ||
-				c.platform.Toolchain.GetName() == "clang-cl") {
-			// Windows MSVC: use /LIBPATH: format
-			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
-			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " /LIBPATH:\"%s\"")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `endforeach()`+"\n")
-		} else {
-			// Unix/Linux: use -L format
-			fmt.Fprintf(toolchain, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
-			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " -L%s")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `  string(APPEND ${flag_var} " -Wl,-rpath-link,%s")`+"\n", escapedDir)
-			fmt.Fprintf(toolchain, `endforeach()`+"\n")
-		}
-	}
 }
 
 func (c *Celer) appendVars(toolchain *strings.Builder) {
