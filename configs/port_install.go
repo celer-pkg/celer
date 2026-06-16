@@ -192,18 +192,20 @@ func (p Port) shouldSkipArtifactPkgCache() bool {
 // pkgCacheStoreSkipReason returns the reason the artifact pkgcache upload
 // should be skipped after a source build. Empty string means upload is OK.
 func (p *Port) pkgCacheStoreSkipReason() (string, error) {
-	if p.MatchedConfig.DevDep || p.MatchedConfig.HostDev {
-		return "host/dev port", nil
-	}
-
 	if p.ctx.Offline() {
 		return "offline mode", nil
 	}
 
-	// Only write cache from a clean source tree before applying patches.
-	// This keeps patch-applied dirty repos eligible, but skips developer-modified repos.
-	if p.sourceModified {
-		return "source repo is modified", nil
+	// Check if source modified.
+	if fileio.PathExists(p.MatchedConfig.PortConfig.RepoDir) {
+		modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
+		if err != nil {
+			return "", err
+		}
+		p.sourceModified = modified
+		if p.sourceModified {
+			return "source repo is modified", nil
+		}
 	}
 
 	// Only repos that match the configured source ref can store package cache.
@@ -382,7 +384,7 @@ func (p *Port) doInstallFromSource() error {
 		// Store package cache with meta file inside.
 		pkgCache := p.ctx.PkgCache()
 		if pkgCache != nil && pkgCache.IsWritable() {
-			if p.pkgCacheStoreSkippedReason == "" {
+			if p.pkgCacheStoreSkippedReason == "" && !p.shouldSkipArtifactPkgCache() {
 				artifactCache := pkgCache.GetArtifactCache()
 				if artifactCache != nil {
 					if err := artifactCache.Store(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {

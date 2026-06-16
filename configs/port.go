@@ -13,7 +13,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"github.com/celer-pkg/celer/pkgs/git"
 
 	"github.com/BurntSushi/toml"
 )
@@ -161,15 +160,6 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	// Validate port.
 	if err := p.validate(); err != nil {
 		return fmt.Errorf("failed to validate %s -> %w", portPath, err)
-	}
-
-	// Check if source modified.
-	if fileio.PathExists(p.MatchedConfig.PortConfig.RepoDir) {
-		modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
-		if err != nil {
-			return err
-		}
-		p.sourceModified = modified
 	}
 
 	return nil
