@@ -55,8 +55,9 @@ func TestInstall_With_Force(t *testing.T) {
 	// glog@0.6.0
 	var glogPort configs.Port
 	check(glogPort.Init(celer, nameVersion))
-	_, err := glogPort.Install(options)
-	check(err)
+	if _, err := glogPort.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 	lastGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 
 	// gflags@2.2.2 (dependency of glog@0.6.0)
@@ -126,8 +127,9 @@ func TestInstall_With_Force_Recursive(t *testing.T) {
 	// glog@0.6.0
 	var glogPort configs.Port
 	check(glogPort.Init(celer, nameVersion))
-	_, err := glogPort.Install(options)
-	check(err)
+	if _, err := glogPort.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 	lastGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 
 	// gflags@2.2.2 (dependency of glog@0.6.0)

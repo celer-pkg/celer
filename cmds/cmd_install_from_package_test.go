@@ -45,7 +45,9 @@ func TestInstall_FromPackage(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
 		check(port.Init(celer, nameVersion))
-		check(port.InstallFromSource(options))
+		if _, err := port.Install(options); err != nil {
+			t.Fatal("install failed: %w", err)
+		}
 
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package cannot found")
@@ -79,7 +81,9 @@ func TestInstall_FromPackage(t *testing.T) {
 		var port configs.Port
 		var options configs.InstallOptions
 		check(port.Init(celer, nameVersion))
-		check(port.InstallFromSource(options))
+		if _, err := port.Install(options); err != nil {
+			t.Fatal("install failed: %w", err)
+		}
 
 		if !fileio.PathExists(packageDir) {
 			t.Fatal("package cannot found")

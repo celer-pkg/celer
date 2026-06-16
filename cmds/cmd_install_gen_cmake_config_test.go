@@ -45,8 +45,9 @@ func TestInstall_Generate_CMake_Config_Single(t *testing.T) {
 	var port configs.Port
 	var options configs.InstallOptions
 	check(port.Init(celer, nameVersion))
-	_, err := port.Install(options)
-	check(err)
+	if _, err := port.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	// Clear build dir.
 	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
@@ -110,8 +111,9 @@ func TestInstall_Generate_CMake_Config_Interface(t *testing.T) {
 	var port configs.Port
 	var options configs.InstallOptions
 	check(port.Init(celer, nameVersion))
-	_, err := port.Install(options)
-	check(err)
+	if _, err := port.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	// Build test project.
 	buildDir := filepath.Join(dirs.TmpFilesDir, "build_cmake_test")
@@ -171,8 +173,9 @@ func TestInstall_Generate_CMake_Config_Components(t *testing.T) {
 	var port configs.Port
 	var options configs.InstallOptions
 	check(port.Init(celer, nameVersion))
-	_, err := port.Install(options)
-	check(err)
+	if _, err := port.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	// Clear build dir.
 	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")
@@ -232,8 +235,9 @@ func TestInstall_Generate_CMake_Interface_Head_Only(t *testing.T) {
 	var port configs.Port
 	var options configs.InstallOptions
 	check(port.Init(celer, nameVersion))
-	_, err := port.Install(options)
-	check(err)
+	if _, err := port.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	// Clear build dir.
 	buildDir := filepath.Join(os.TempDir(), "build_cmake_test")

@@ -123,7 +123,9 @@ func buildWithAMD64GCC(t *testing.T, platform, nameVersion string, nobuild bool)
 	)
 
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	// Check if package dir exists.
 	if !nobuild {

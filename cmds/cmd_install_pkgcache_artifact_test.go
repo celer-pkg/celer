@@ -52,7 +52,9 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	var port configs.Port
 	var installOptions = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(installOptions))
+	if _, err := port.Install(installOptions); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	// Check package.
 	packageDir := filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
@@ -125,7 +127,9 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	var glogPort configs.Port
 	var options = configs.InstallOptions{}
 	check(glogPort.Init(celer, nameVersion))
-	check(glogPort.InstallFromSource(options))
+	if _, err := glogPort.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	packageDir := func(nameVersion string) string {
 		return filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
@@ -210,7 +214,9 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	var port configs.Port
 	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	// Check package & repo.
 	packageDir := filepath.Join(dirs.PackagesDir, platform, project, celer.BuildType(), nameVersion)
@@ -282,7 +288,9 @@ func TestInstall_PkgCache_DirNotDefined_ShouldSkipStoreCache(t *testing.T) {
 	var port configs.Port
 	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 }
 
 func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
@@ -321,7 +329,9 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	var port configs.Port
 	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	// Read commit hash.
 	commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
@@ -384,7 +394,9 @@ func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 	var port configs.Port
 	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
 	check(err)
@@ -466,7 +478,9 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	// Prepare cache by installing from source once.
 	var port configs.Port
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(configs.InstallOptions{}))
+	if _, err := port.Install(configs.InstallOptions{}); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	// Remove installed and source to force package-cache path.
 	removeOptions := configs.RemoveOptions{

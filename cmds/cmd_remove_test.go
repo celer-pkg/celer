@@ -573,7 +573,9 @@ func installForTestRemove(t *testing.T, nameVersion string, option configs.Remov
 	)
 
 	check(port.Init(celer, nameVersion))
-	check(port.InstallFromSource(options))
+	if _, err := port.Install(options); err != nil {
+		t.Fatal("install failed: %w", err)
+	}
 
 	// Check if package dir exists.
 	packageDir := filepath.Join(dirs.PackagesDir, packageFolder)
