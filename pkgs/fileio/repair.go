@@ -6,11 +6,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/expr"
 )
+
+// checkedFiles tracks files that have already passed CheckAndRepair,
+// keyed by downloaded file path, to avoid repeated SHA256 verification.
+var checkedFiles sync.Map
 
 type Repair struct {
 	ctx        context.Context
@@ -34,6 +39,12 @@ func NewRepair(url, downloads, archive, folder, destDir, sha256 string) *Repair 
 }
 
 func (r *Repair) CheckAndRepair(ctx context.Context) error {
+	// Skip if this file has already been checked and repaired.
+	checkedKey := r.fileCheckedKey()
+	if _, loaded := checkedFiles.LoadOrStore(checkedKey, true); loaded {
+		return nil
+	}
+
 	r.ctx = ctx
 	r.httpClient = httpClient(r.ctx.ProxyHostPort())
 
@@ -207,6 +218,12 @@ func (r *Repair) handleLocalFile() error {
 	}
 
 	return r.deployArchive(localPath, destDir)
+}
+
+// fileCheckedKey returns a unique key for file checked based on the download URL and destination.
+func (r Repair) fileCheckedKey() string {
+	fileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(r.downloader.url))
+	return r.downloader.url + "|" + r.destDir + "|" + fileName
 }
 
 func (r Repair) needToDownload(archive, sha256 string) (needToDownload bool, err error) {
