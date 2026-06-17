@@ -23,8 +23,9 @@ type installReportEntry struct {
 }
 
 type installReport struct {
-	rootPort string
-	entries  map[string]installReportEntry
+	rootPort     string
+	entries      map[string]installReportEntry
+	visitedPorts map[string]bool
 }
 
 func (i installReport) dependencyTypeOf(entry installReportEntry) string {
@@ -55,8 +56,9 @@ func (i installReport) dependencyTypeRank(depType string) int {
 
 func newInstallReport(rootNameVersion string) *installReport {
 	return &installReport{
-		rootPort: rootNameVersion,
-		entries:  make(map[string]installReportEntry),
+		rootPort:     rootNameVersion,
+		entries:      make(map[string]installReportEntry),
+		visitedPorts: make(map[string]bool),
 	}
 }
 

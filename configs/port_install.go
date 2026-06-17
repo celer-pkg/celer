@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
@@ -21,11 +20,9 @@ import (
 
 // Install install a port and tell me where it was installed from.
 func (p *Port) Install(options InstallOptions) (installedFrom string, retErr error) {
-	// At the top-level entry, reset the processedInstalls and installReport.
+	// At the top-level entry, reset the installReport.
 	if p.Parent == "" {
-		processedInstalls = map[string]bool{}
 		p.installReport = newInstallReport(p.NameVersion())
-		processedInstalls = map[string]bool{}
 	}
 	defer func() {
 		if retErr != nil || p.installReport == nil {
@@ -223,6 +220,13 @@ func (p *Port) pkgCacheStoreSkipReason() (string, error) {
 }
 
 func (p Port) Clone() error {
+	// Skip if this port was already cloned in the current cloneAllRepos run.
+	key := p.visitedKey()
+	if clonedPorts[key] {
+		return nil
+	}
+	clonedPorts[key] = true
+
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		var port = Port{
 			DevDep: true,
@@ -294,6 +298,12 @@ func (p Port) Clone() error {
 func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache context.AritifactCache) (bool, error) {
 	// Try to install dependencies first.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
+		// Skip Init() for already-processed ports.
+		key := expr.If(p.DevDep || p.HostDep, nameVersion+"[dev]", nameVersion)
+		if visitedPorts[key] {
+			continue
+		}
+
 		var port Port
 		port.DevDep = false
 		port.HostDep = p.HostDep
@@ -305,6 +315,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache contex
 		if _, err := port.Install(options); err != nil {
 			return false, err
 		}
+		visitedPorts[key] = true
 	}
 
 	// Calculate buildhash.
@@ -554,6 +565,11 @@ func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 }
 
 func (p *Port) InstallFromSource(options InstallOptions) error {
+	// Reset at top-level entry.
+	if p.Parent == "" {
+		visitedPorts = map[string]bool{}
+	}
+
 	// Clone or download source of all repos.
 	if err := p.cloneAllRepos(); err != nil {
 		return err
@@ -582,7 +598,7 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 	isTopProject := p.Parent == ""
 	if haveDependencies && (!isTopProject || (isTopProject && (options.Force || !p.MatchedConfig.Configured()))) {
 		color.Printf(color.Title, "\n[prepare dependencies: %s]\n", p.NameVersion())
-		preparedTmpDeps = []string{}
+		preparedTmpDeps = map[string]bool{}
 		if err := p.prepareTmpDeps(); err != nil {
 			return err
 		}
@@ -602,8 +618,16 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 }
 
 func (p Port) cloneAllRepos() error {
+	clonedPorts = map[string]bool{}
+
 	buildConfig := p.MatchedConfig
 	for _, nameVersion := range buildConfig.DevDependencies {
+		// Skip Init() for already-cloned ports.
+		key := nameVersion + "[dev]"
+		if clonedPorts[key] {
+			continue
+		}
+
 		port := Port{
 			DevDep: true,
 			Parent: p.NameVersion(),
@@ -614,6 +638,7 @@ func (p Port) cloneAllRepos() error {
 
 		// Skip clone/reset for already-installed dependencies.
 		if installed, _ := port.Installed(); installed {
+			clonedPorts[key] = true
 			continue
 		}
 
@@ -623,8 +648,15 @@ func (p Port) cloneAllRepos() error {
 				return err
 			}
 		}
+		clonedPorts[key] = true
 	}
 	for _, nameVersion := range buildConfig.Dependencies {
+		// Skip Init() for already-cloned ports.
+		key := nameVersion
+		if clonedPorts[key] {
+			continue
+		}
+
 		port := Port{
 			DevDep:  false,
 			HostDep: p.DevDep || p.HostDep,
@@ -636,6 +668,7 @@ func (p Port) cloneAllRepos() error {
 
 		// Skip clone/reset for already-installed dependencies.
 		if installed, _ := port.Installed(); installed {
+			clonedPorts[key] = true
 			continue
 		}
 
@@ -645,6 +678,7 @@ func (p Port) cloneAllRepos() error {
 				return err
 			}
 		}
+		clonedPorts[key] = true
 	}
 	if err := p.Clone(); err != nil {
 		return err
@@ -722,6 +756,12 @@ func (p Port) installDependencies(options InstallOptions) error {
 			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), name)
 		}
 
+		// Compute key early to skip Init() for already-processed ports.
+		key := expr.If(p.DevDep, nameVersion+"[dev]", nameVersion)
+		if _, alreadyProcessed := visitedPorts[key]; alreadyProcessed {
+			continue
+		}
+
 		// Init port.
 		var port = Port{
 			DevDep:        p.DevDep,
@@ -741,9 +781,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 		// With --force --recursive, ports get reinstalled even if already
 		// present, but each port still only needs to be reinstalled once per
 		// top-level command — guard against the same port appearing under many parents.
-		key := port.processedKey()
-		_, alreadyProcessed := processedInstalls[key]
-		if !installed || (options.Force && options.Recursive && !alreadyProcessed) {
+		if !installed || (options.Force && options.Recursive) {
 			// Always ensure sub-dependencies are installed first.
 			// This ensures transitive dependencies are always available before installing the dependency.
 			if err := port.installAllDependencies(options); err != nil {
@@ -753,11 +791,14 @@ func (p Port) installDependencies(options InstallOptions) error {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
-			processedInstalls[key] = true
-		} else if p.installReport != nil {
-			p.installReport.add(&port, "preinstalled")
-			if err := port.collectInstalledDepsForReport(); err != nil {
-				return err
+			visitedPorts[key] = true
+		} else {
+			visitedPorts[key] = true
+			if p.installReport != nil {
+				p.installReport.add(&port, "preinstalled")
+				if err := port.collectInstalledDepsForReport(); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -769,6 +810,12 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 	for _, nameVersion := range p.MatchedConfig.DevDependencies {
 		// Same name, version as parent and they are booth build with native toolchain, so skip.
 		if (p.DevDep || p.HostDep) && p.NameVersion() == nameVersion {
+			continue
+		}
+
+		// Compute key early to skip Init() for already-processed ports.
+		key := nameVersion + "[dev]"
+		if _, alreadyProcessed := visitedPorts[key]; alreadyProcessed {
 			continue
 		}
 
@@ -792,9 +839,7 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 		// With --force --recursive, ports get reinstalled even if already
 		// present, but each port still only needs to be reinstalled once per
 		// top-level command — guard against the same port appearing under many parents.
-		key := port.processedKey()
-		_, alreadyProcessed := processedInstalls[key]
-		if !installed || (options.Force && options.Recursive && !alreadyProcessed) {
+		if !installed || (options.Force && options.Recursive) {
 			// Always ensure sub-dependencies are installed first, even if the dependency itself is preinstalled.
 			// This ensures transitive dependencies are always available before installing the dependency.
 			if err := port.installAllDependencies(options); err != nil {
@@ -804,11 +849,14 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
-			processedInstalls[key] = true
-		} else if p.installReport != nil {
-			p.installReport.add(&port, "preinstalled")
-			if err := port.collectInstalledDepsForReport(); err != nil {
-				return err
+			visitedPorts[key] = true
+		} else {
+			visitedPorts[key] = true
+			if p.installReport != nil {
+				p.installReport.add(&port, "preinstalled")
+				if err := port.collectInstalledDepsForReport(); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -829,6 +877,13 @@ func (p Port) collectInstalledDepsForReport() error {
 		if (p.DevDep || p.HostDep) && p.NameVersion() == nameVersion {
 			continue
 		}
+
+		// Skip Init() for already-visited ports.
+		key := nameVersion + "[dev]"
+		if p.installReport.visitedPorts[key] {
+			continue
+		}
+		p.installReport.visitedPorts[key] = true
 
 		port := Port{
 			DevDep:        true,
@@ -852,6 +907,13 @@ func (p Port) collectInstalledDepsForReport() error {
 		if name == p.Name {
 			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), name)
 		}
+
+		// Skip Init() for already-visited ports.
+		key := nameVersion
+		if p.installReport.visitedPorts[key] {
+			continue
+		}
+		p.installReport.visitedPorts[key] = true
 
 		port := Port{
 			DevDep:        p.DevDep,
@@ -879,7 +941,7 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Ignore duplicated.
-		if slices.Contains(preparedTmpDeps, nameVersion+" [dev]") {
+		if preparedTmpDeps[nameVersion+"[dev]"] {
 			continue
 		}
 
@@ -907,7 +969,7 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Provider tmp deps recursively.
-		preparedTmpDeps = append(preparedTmpDeps, nameVersion+" [dev]")
+		preparedTmpDeps[nameVersion+"[dev]"] = true
 		if err := port.prepareTmpDeps(); err != nil {
 			return err
 		}
@@ -922,7 +984,8 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Ignore duplicated.
-		if slices.Contains(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.HostDep, " [dev]", "")) {
+		devSuffix := expr.If(p.DevDep || p.HostDep, "[dev]", "")
+		if preparedTmpDeps[nameVersion+devSuffix] {
 			continue
 		}
 
@@ -953,7 +1016,8 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Provider tmp deps recursively.
-		preparedTmpDeps = append(preparedTmpDeps, nameVersion+expr.If(p.DevDep || p.HostDep, " [dev]", ""))
+		devSuffix = expr.If(p.DevDep || p.HostDep, "[dev]", "")
+		preparedTmpDeps[nameVersion+devSuffix] = true
 		if err := port.prepareTmpDeps(); err != nil {
 			return err
 		}

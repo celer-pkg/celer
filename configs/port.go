@@ -17,13 +17,18 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// preparedTmpDeps is used to store prepared deps.
-var preparedTmpDeps []string
+var (
+	// preparedTmpDeps tracks deps already prepared for tmp, to avoid redundant Init().
+	preparedTmpDeps = map[string]bool{}
 
-// processedInstalls tracks ports already installed in the current top-level
-// install command, so that `--force --recursive` reinstalls each port at most
-// once even when it appears under many parents.
-var processedInstalls = map[string]bool{}
+	// visitedPorts tracks ports visited during dependency-tree traversal so
+	// each port is processed at most once even when it appears under many parents.
+	visitedPorts = map[string]bool{}
+
+	// clonedPorts tracks which ports have already been cloned during a single
+	// cloneAllRepos invocation, to avoid redundant Init() + Clone() calls.
+	clonedPorts = map[string]bool{}
+)
 
 type InstallOptions struct {
 	Force     bool
@@ -75,8 +80,8 @@ func (p Port) NameVersion() string {
 	return p.Name + "@" + p.Version
 }
 
-// processedKey is the key used in processedInstalls to dedupe per-command reinstalls.
-func (p Port) processedKey() string {
+// visitedKey is the key used in visitedPorts to dedupe per-command processing.
+func (p Port) visitedKey() string {
 	if p.DevDep || p.HostDep {
 		return p.NameVersion() + " [dev]"
 	}

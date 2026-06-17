@@ -34,11 +34,11 @@ func (p Port) Remove(options RemoveOptions) error {
 				return fmt.Errorf("failed to init dependency %s -> %w", nameVersion, err)
 			}
 
-			// Skip deps that have already been (re)installed in the current
+			// Skip deps that have already been visited in the current
 			// top-level command. Cascade-removing them here would force a
 			// rebuild later when prepareTmpDeps needs the package — every
 			// shared dep would otherwise be rebuilt once per parent.
-			if _, alreadyProcessed := processedInstalls[port.processedKey()]; alreadyProcessed {
+			if _, alreadyVisited := visitedPorts[port.visitedKey()]; alreadyVisited {
 				return nil
 			}
 
