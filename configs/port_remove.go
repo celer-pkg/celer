@@ -38,7 +38,7 @@ func (p Port) Remove(options RemoveOptions) error {
 			// top-level command. Cascade-removing them here would force a
 			// rebuild later when prepareTmpDeps needs the package — every
 			// shared dep would otherwise be rebuilt once per parent.
-			if _, alreadyProcessed := processedInstalls[port.processedKey()]; alreadyProcessed {
+			if _, alreadyProcessed := processedPorts[port.processedKey()]; alreadyProcessed {
 				return nil
 			}
 

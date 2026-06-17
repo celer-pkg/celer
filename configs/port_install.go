@@ -21,11 +21,11 @@ import (
 
 // Install install a port and tell me where it was installed from.
 func (p *Port) Install(options InstallOptions) (installedFrom string, retErr error) {
-	// At the top-level entry, reset the processedInstalls and installReport.
+	// At the top-level entry, reset the processedPorts and installReport.
 	if p.Parent == "" {
-		processedInstalls = map[string]bool{}
+		processedPorts = map[string]bool{}
 		p.installReport = newInstallReport(p.NameVersion())
-		processedInstalls = map[string]bool{}
+		processedPorts = map[string]bool{}
 	}
 	defer func() {
 		if retErr != nil || p.installReport == nil {
@@ -742,7 +742,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 		// present, but each port still only needs to be reinstalled once per
 		// top-level command — guard against the same port appearing under many parents.
 		key := port.processedKey()
-		_, alreadyProcessed := processedInstalls[key]
+		_, alreadyProcessed := processedPorts[key]
 		if !installed || (options.Force && options.Recursive && !alreadyProcessed) {
 			// Always ensure sub-dependencies are installed first.
 			// This ensures transitive dependencies are always available before installing the dependency.
@@ -753,7 +753,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
-			processedInstalls[key] = true
+			processedPorts[key] = true
 		} else if p.installReport != nil {
 			p.installReport.add(&port, "preinstalled")
 			if err := port.collectInstalledDepsForReport(); err != nil {
@@ -793,7 +793,7 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 		// present, but each port still only needs to be reinstalled once per
 		// top-level command — guard against the same port appearing under many parents.
 		key := port.processedKey()
-		_, alreadyProcessed := processedInstalls[key]
+		_, alreadyProcessed := processedPorts[key]
 		if !installed || (options.Force && options.Recursive && !alreadyProcessed) {
 			// Always ensure sub-dependencies are installed first, even if the dependency itself is preinstalled.
 			// This ensures transitive dependencies are always available before installing the dependency.
@@ -804,7 +804,7 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
-			processedInstalls[key] = true
+			processedPorts[key] = true
 		} else if p.installReport != nil {
 			p.installReport.add(&port, "preinstalled")
 			if err := port.collectInstalledDepsForReport(); err != nil {

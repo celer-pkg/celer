@@ -20,10 +20,10 @@ import (
 // preparedTmpDeps is used to store prepared deps.
 var preparedTmpDeps []string
 
-// processedInstalls tracks ports already installed in the current top-level
+// processedPorts tracks ports already installed in the current top-level
 // install command, so that `--force --recursive` reinstalls each port at most
 // once even when it appears under many parents.
-var processedInstalls = map[string]bool{}
+var processedPorts = map[string]bool{}
 
 type InstallOptions struct {
 	Force     bool
@@ -75,7 +75,7 @@ func (p Port) NameVersion() string {
 	return p.Name + "@" + p.Version
 }
 
-// processedKey is the key used in processedInstalls to dedupe per-command reinstalls.
+// processedKey is the key used in processedPorts to dedupe per-command reinstalls.
 func (p Port) processedKey() string {
 	if p.DevDep || p.HostDep {
 		return p.NameVersion() + " [dev]"
