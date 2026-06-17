@@ -42,7 +42,15 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 	// Skip if this file has already been checked and repaired.
 	checkedKey := r.fileCheckedKey()
 	if _, loaded := checkedFiles.LoadOrStore(checkedKey, true); loaded {
-		return nil
+		// Even if cached, verify destination exists (it may have been removed externally).
+		if r.folder == "" {
+			return nil
+		}
+		destDir := filepath.Join(r.destDir, r.folder)
+		if PathExists(destDir) {
+			return nil
+		}
+		checkedFiles.Delete(checkedKey)
 	}
 
 	r.ctx = ctx
