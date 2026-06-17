@@ -34,7 +34,7 @@ These are injected after platform loading.
 
 | Variable | Source | Notes |
 | --- | --- | --- |
-| `${PYTHON3_PATH}` | detected Python3 | Available when Python3 is detected. |
+| `${PYTHON_PATH}` | detected Python3 | Available when Python3 is detected. |
 | `${LLVM_CONFIG}` | detected LLVM | Available when LLVM is detected. |
 
 ## Port Build Variables

@@ -161,8 +161,7 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 		tmpDepSysroot string
 	)
 
-	libraryFolder := filepath.Join(c.Platform().GetName(), c.Project().GetName(), c.BuildType())
-	installedDir := filepath.Join("${WORKSPACE_ROOT}/installed", libraryFolder)
+	installedDir := filepath.Join("${WORKSPACE_ROOT}/installed", c.LibraryFolder())
 	writePathList := func(indent, name string, paths []string) {
 		if len(paths) == 0 {
 			return

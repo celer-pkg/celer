@@ -26,7 +26,27 @@ func (c custom) CheckTools() []string {
 
 	// Add default tools
 	tools = append(tools, "cmake")
+
+	// Auto-detect Python usage from custom commands to ensure the venv is set up.
+	if c.needsPython() && !slices.Contains(tools, "python3") {
+		tools = append(tools, "python3")
+	}
 	return tools
+}
+
+// needsPython checks if any custom command references Python placeholders.
+func (c custom) needsPython() bool {
+	commands := append(c.CustomConfigure, c.CustomBuild...)
+	commands = append(commands, c.CustomInstall...)
+
+	for _, command := range commands {
+		if strings.Contains(command, "${PYTHON_VENV_EXE}") ||
+			strings.Contains(command, "${PYTHON_VENV_DIR}") ||
+			strings.Contains(command, "${PYTHON_PATH}") {
+			return true
+		}
+	}
+	return false
 }
 
 func (c custom) Name() string {
@@ -57,6 +77,7 @@ func (c custom) Configure(options []string) error {
 		}
 
 		scripts := strings.Join(c.CustomConfigure, " && ")
+		scripts = c.expandVariables(scripts)
 		title := fmt.Sprintf("[configure %s]", c.PortConfig.nameVersion())
 		executor := cmd.NewExecutor(title, scripts)
 		executor.SetLogPath(c.getLogPath("configure"))

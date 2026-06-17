@@ -162,6 +162,7 @@ func (f deployFakeContext) RootFS() context.RootFS                 { return nil 
 func (f deployFakeContext) Project() context.Project               { return nil }
 func (f deployFakeContext) BuildType() string                      { return "Release" }
 func (f deployFakeContext) Downloads() string                      { return "" }
+func (f deployFakeContext) LibraryFolder() string                  { return "" }
 func (f deployFakeContext) Jobs() int                              { return 1 }
 func (f deployFakeContext) Offline() bool                          { return true }
 func (f deployFakeContext) Verbose() bool                          { return false }

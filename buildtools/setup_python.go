@@ -231,6 +231,7 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 	PythonTool = &pythonTool{
 		Path:          venvPythonPath,
 		rootDir:       venvBinDir,
+		venvDir:       envDir,
 		version:       pythonVersion,
 		ldLibraryPath: condaLibDir,
 	}
@@ -353,13 +354,15 @@ func normalizeVersion(fullVersion string) string {
 type pythonTool struct {
 	Path          string
 	rootDir       string
+	venvDir       string
 	version       string
 	ldLibraryPath string
 }
 
-func (p *pythonTool) LdLibraryPath() string {
-	if p == nil {
-		return ""
-	}
+func (p pythonTool) LdLibraryPath() string {
 	return p.ldLibraryPath
+}
+
+func (p pythonTool) VenvDir() string {
+	return p.venvDir
 }

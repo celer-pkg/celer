@@ -6,6 +6,7 @@ type Context interface {
 	RootFS() RootFS
 	Project() Project
 	BuildType() string
+	LibraryFolder() string
 	Downloads() string
 	Jobs() int
 	Offline() bool

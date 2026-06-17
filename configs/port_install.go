@@ -421,12 +421,11 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	}
 
 	// Copy files from package to installed dir.
-	libraryFolder := filepath.Join(p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
 	for _, file := range files {
 		if p.DevDep || p.HostDep {
 			file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
 		} else {
-			file = strings.TrimPrefix(file, filepath.Join(libraryFolder, string(os.PathSeparator)))
+			file = strings.TrimPrefix(file, filepath.Join(p.ctx.LibraryFolder(), string(os.PathSeparator)))
 		}
 
 		src := filepath.Join(p.PackageDir, file)
@@ -609,8 +608,12 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
-	// Secondly, copy to installed dir.
-	if err := p.doInstallFromPackage(p.InstalledDir); err != nil {
+	// Python packages: copy from PACKAGE_DIR to venv. C++ packages: copy to InstalledDir.
+	destDir := p.InstalledDir
+	if p.MatchedConfig.IsPythonPackage() && buildtools.PythonTool != nil {
+		destDir = buildtools.PythonTool.VenvDir()
+	}
+	if err := p.doInstallFromPackage(destDir); err != nil {
 		return err
 	}
 
@@ -722,7 +725,9 @@ func (p *Port) checkAllTools() error {
 	// ports rely on build_tools-provided paths during option expansion.
 	if exprVars := p.ctx.ExprVars(); exprVars != nil {
 		if buildtools.PythonTool != nil && buildtools.PythonTool.Path != "" {
-			exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.PythonTool.Path))
+			exprVars.Put("PYTHON_PATH", fileio.ToRelPath(buildtools.PythonTool.Path))
+			exprVars.Put("PYTHON_VENV_DIR", buildtools.PythonTool.VenvDir())
+			exprVars.Put("PYTHON_VENV_EXE", buildtools.PythonTool.Path)
 		}
 		if buildtools.LLVMPath != "" {
 			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
@@ -1038,13 +1043,34 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get package files -> %w", err)
 	}
+
+	// For Python packages, transform paths to be relative to installed/.
+	// PackageFiles returns "libraryDir/relative/path", we need "venv-x.y@project/relative/path".
+	if p.MatchedConfig.IsPythonPackage() && buildtools.PythonTool != nil {
+		venvDir := buildtools.PythonTool.VenvDir()
+		venvFolder, _ := filepath.Rel(dirs.InstalledDir, venvDir) // "venv-3.10@ros2"
+		for i, file := range packageFiles {
+			// Strip libraryDir prefix (same as doInstallFromPackage).
+			if p.DevDep || p.HostDep {
+				file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
+			} else {
+				file = strings.TrimPrefix(file, filepath.Join(p.ctx.LibraryFolder(), string(os.PathSeparator)))
+			}
+			packageFiles[i] = filepath.Join(venvFolder, file)
+		}
+	}
+
 	if err := os.WriteFile(p.traceFile, []byte(strings.Join(packageFiles, "\n")), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to write trace file -> %w", err)
 	}
 
 	// Print install trace.
 	color.PrintPass("%s is installed from %s", p.NameVersion(), installedFrom)
-	color.PrintHint("Location: %s\n", p.InstalledDir)
+	if p.MatchedConfig.IsPythonPackage() && buildtools.PythonTool != nil {
+		color.PrintHint("Location: %s\n", buildtools.PythonTool.VenvDir())
+	} else {
+		color.PrintHint("Location: %s\n", p.InstalledDir)
+	}
 
 	// Print reason why skip store artifact to pkgcache.
 	if p.pkgCacheStoreSkippedReason != "" {

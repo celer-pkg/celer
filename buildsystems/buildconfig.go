@@ -937,6 +937,20 @@ func (b BuildConfig) expandVariables(content string) string {
 	return content
 }
 
+// IsPythonPackage returns true if the build config references Python placeholders
+// in its custom commands, indicating it's a Python package that should be installed
+// to the virtual environment.
+func (b BuildConfig) IsPythonPackage() bool {
+	commands := append(b.CustomConfigure, b.CustomBuild...)
+	commands = append(commands, b.CustomInstall...)
+	for _, command := range commands {
+		if strings.Contains(command, "${PYTHON_VENV_EXE}") || strings.Contains(command, "${PYTHON_VENV_DIR}") {
+			return true
+		}
+	}
+	return false
+}
+
 func (b BuildConfig) getLogPath(suffix string) string {
 	parentDir := filepath.Dir(b.PortConfig.BuildDir)
 	fileName := filepath.Base(b.PortConfig.BuildDir) + fmt.Sprintf("-%s.log", suffix)

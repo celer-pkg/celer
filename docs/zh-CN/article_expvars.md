@@ -34,7 +34,7 @@
 
 | 变量 | 来源 | 说明 |
 | --- | --- | --- |
-| `${PYTHON3_PATH}` | 自动识别 Python3 | 检测到 Python3 时可用。 |
+| `${PYTHON_PATH}` | 自动识别 Python3 | 检测到 Python3 时可用。 |
 | `${LLVM_CONFIG}` | 自动识别 LLVM | 检测到 LLVM 时可用。 |
 
 ## 端口构建变量
