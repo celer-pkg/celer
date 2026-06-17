@@ -39,17 +39,10 @@ func NewRepair(url, downloads, archive, folder, destDir, sha256 string) *Repair 
 }
 
 func (r *Repair) CheckAndRepair(ctx context.Context) error {
-	// Skip if this file has already been checked and repaired,
-	// but only if the destination still exists (it may have been cleaned up).
+	// Skip if this file has already been checked and repaired.
 	checkedKey := r.fileCheckedKey()
 	if _, loaded := checkedFiles.LoadOrStore(checkedKey, true); loaded {
-		if r.folder == "" || PathExists(filepath.Join(r.destDir, r.folder)) {
-			return nil
-		}
-
-		// Destination was deleted (e.g. test cleanup) — re-check.
-		checkedFiles.Delete(checkedKey)
-		checkedFiles.Store(checkedKey, true)
+		return nil
 	}
 
 	r.ctx = ctx
