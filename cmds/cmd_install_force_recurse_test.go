@@ -1,15 +1,16 @@
 package cmds
 
 import (
-	"github.com/celer-pkg/celer/buildtools"
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
 )
 
 func TestInstall_With_Force(t *testing.T) {
@@ -56,7 +57,7 @@ func TestInstall_With_Force(t *testing.T) {
 	var glogPort configs.Port
 	check(glogPort.Init(celer, nameVersion))
 	if _, err := glogPort.Install(options); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 	lastGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 
@@ -69,8 +70,9 @@ func TestInstall_With_Force(t *testing.T) {
 	// Re-install with --force.
 	options.Force = true
 	check(glogPort.Init(celer, nameVersion))
-	_, err = glogPort.Install(options)
-	check(err)
+	if _, err := glogPort.Install(options); err != nil {
+		t.Fatalf("install failed %v", err)
+	}
 	newGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 	newGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 
@@ -128,7 +130,7 @@ func TestInstall_With_Force_Recursive(t *testing.T) {
 	var glogPort configs.Port
 	check(glogPort.Init(celer, nameVersion))
 	if _, err := glogPort.Install(options); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 	lastGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 
@@ -142,8 +144,10 @@ func TestInstall_With_Force_Recursive(t *testing.T) {
 	options.Force = true
 	options.Recursive = true
 	check(glogPort.Init(celer, nameVersion))
-	_, err = glogPort.Install(options)
-	check(err)
+	if _, err := glogPort.Install(options); err != nil {
+		t.Fatalf("install failed %v", err)
+	}
+
 	newGlogModTime := modTime(filepath.Join(glogPort.InstalledDir, "lib", glogLibName))
 	newGflagsModTime := modTime(filepath.Join(gflagsPort.InstalledDir, "lib", gflagsLibName))
 

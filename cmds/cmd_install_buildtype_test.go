@@ -52,7 +52,7 @@ func TestInstall_BuildType(t *testing.T) {
 		var options configs.InstallOptions
 		check(port.Init(celer, nameVersion))
 		if _, err := port.Install(options); err != nil {
-			t.Fatal("install failed: %w", err)
+			t.Fatalf("install failed: %v", err)
 		}
 
 		// Check if package dir exists.
@@ -91,7 +91,7 @@ func TestInstall_BuildType(t *testing.T) {
 		var options configs.InstallOptions
 		check(port.Init(celer, nameVersion))
 		if _, err := port.Install(options); err != nil {
-			t.Fatal("install failed: %w", err)
+			t.Fatalf("install failed: %v", err)
 		}
 
 		// Check if package dir exists.

@@ -48,7 +48,7 @@ func TestInstall_x86_64_MSVC_CUDA(t *testing.T) {
 	var options configs.InstallOptions
 	check(port.Init(celer, nameVersion))
 	if _, err := port.Install(options); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 
 	// Regenerate toolchain file after CUDA installation so it can detect installed CUDA files.

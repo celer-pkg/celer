@@ -53,7 +53,7 @@ func TestInstall_PkgCache_Artifact_Success(t *testing.T) {
 	var installOptions = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	if _, err := port.Install(installOptions); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 
 	// Check package.
@@ -128,7 +128,7 @@ func TestInstall_PkgCache_Artifact_With_Deps_Success(t *testing.T) {
 	var options = configs.InstallOptions{}
 	check(glogPort.Init(celer, nameVersion))
 	if _, err := glogPort.Install(options); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 
 	packageDir := func(nameVersion string) string {
@@ -215,7 +215,7 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	if _, err := port.Install(options); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 
 	// Check package & repo.
@@ -289,7 +289,7 @@ func TestInstall_PkgCache_DirNotDefined_ShouldSkipStoreCache(t *testing.T) {
 	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	if _, err := port.Install(options); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 }
 
@@ -330,7 +330,7 @@ func TestInstall_PkgCache_With_Commit_Success(t *testing.T) {
 	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	if _, err := port.Install(options); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 
 	// Read commit hash.
@@ -395,7 +395,7 @@ func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 	var options = configs.InstallOptions{}
 	check(port.Init(celer, nameVersion))
 	if _, err := port.Install(options); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 
 	commit, err := git.GetCommitHash(port.MatchedConfig.PortConfig.RepoDir)
@@ -479,7 +479,7 @@ func TestInstall_Command_ReportContainsPkgCacheSource(t *testing.T) {
 	var port configs.Port
 	check(port.Init(celer, nameVersion))
 	if _, err := port.Install(configs.InstallOptions{}); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 
 	// Remove installed and source to force package-cache path.

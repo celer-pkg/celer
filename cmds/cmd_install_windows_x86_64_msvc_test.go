@@ -111,7 +111,7 @@ func buildWithAMD64MSVC(t *testing.T, platform, nameVersion string, nobuild bool
 
 	check(port.Init(celer, nameVersion))
 	if _, err := port.Install(options); err != nil {
-		t.Fatal("install failed: %w", err)
+		t.Fatalf("install failed: %v", err)
 	}
 
 	// Check if installed.
