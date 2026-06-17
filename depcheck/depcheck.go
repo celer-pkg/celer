@@ -231,15 +231,16 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 			if !contains {
 				d.versionInfos[devPort.Name] = append(d.versionInfos[devPort.Name], newVersionInfo)
 				d.log("add dependency %s", nameVersion)
+				if err := d.checkCircular(devPort); err != nil {
+					return err
+				}
 			}
 		} else {
 			d.versionInfos[devPort.Name] = []versionInfo{newVersionInfo}
 			d.log("add dependency %s", nameVersion)
-		}
-
-		// Recursively check dependencies.
-		if err := d.checkCircular(devPort); err != nil {
-			return err
+			if err := d.checkCircular(devPort); err != nil {
+				return err
+			}
 		}
 	}
 
