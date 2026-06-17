@@ -72,7 +72,7 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 	var options configs.InstallOptions
 	check(port.Init(celer, portNameVersion))
 	if _, err := port.Install(options); err != nil {
-		t.Fatal("install failed: %v", err)
+		t.Fatalf("install failed: %v", err)
 	}
 
 	autoremoveCmd.purge = true
@@ -201,7 +201,7 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 	var options configs.InstallOptions
 	check(port.Init(celer, portNameVersion))
 	if _, err := port.Install(options); err != nil {
-		t.Fatal("install failed: %v", err)
+		t.Fatalf("install failed: %v", err)
 	}
 
 	autoremoveCmd.purge = false
