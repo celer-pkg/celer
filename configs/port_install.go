@@ -20,9 +20,8 @@ import (
 
 // Install install a port and tell me where it was installed from.
 func (p *Port) Install(options InstallOptions) (installedFrom string, retErr error) {
-	// At the top-level entry, reset the visitedPorts and installReport.
+	// At the top-level entry, reset the installReport.
 	if p.Parent == "" {
-		visitedPorts = map[string]bool{}
 		p.installReport = newInstallReport(p.NameVersion())
 	}
 	defer func() {
@@ -566,6 +565,11 @@ func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 }
 
 func (p *Port) InstallFromSource(options InstallOptions) error {
+	// Reset at top-level entry.
+	if p.Parent == "" {
+		visitedPorts = map[string]bool{}
+	}
+
 	// Clone or download source of all repos.
 	if err := p.cloneAllRepos(); err != nil {
 		return err
