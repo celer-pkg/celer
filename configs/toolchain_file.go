@@ -343,17 +343,20 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 	}
 
 	fmt.Fprintf(toolchain, "\n# Set environment variables for Python package discovery.\n")
-	fmt.Fprintf(toolchain, "set(ENV{PYTHONPATH} \"${PYTHON_VENV_DIR}/lib/python%s/site-packages:$ENV{PYTHONPATH}\")\n\n", minorVersion)
+	siteRel := fmt.Sprintf("lib/python%s/site-packages", minorVersion)
+	sep := string(os.PathListSeparator)
+	fmt.Fprintf(toolchain, "set(ENV{PYTHONPATH} \"${INSTALLED_DIR}/%s%s${PYTHON_VENV_DIR}/%s%s$ENV{PYTHONPATH}\")\n\n", siteRel, sep, siteRel, sep)
 
 	if runtime.GOOS != "windows" {
 		fmt.Fprintf(toolchain, "# Add venv bin to PATH so tools are accessible.\n")
-		fmt.Fprintf(toolchain, "set(ENV{PATH} \"${PYTHON_VENV_DIR}/bin:$ENV{PATH}\")\n")
+		fmt.Fprintf(toolchain, "set(ENV{PATH} \"${PYTHON_VENV_DIR}/bin%s$ENV{PATH}\")\n", string(os.PathListSeparator))
 	}
 
 	// Add LD_LIBRARY_PATH for conda-based Python on Linux/macOS to find libpython and other dependencies
 	if buildtools.PythonTool != nil && buildtools.PythonTool.LdLibraryPath() != "" && runtime.GOOS != "windows" {
 		fmt.Fprintf(toolchain, "\n# Add conda lib directory to LD_LIBRARY_PATH for libpython and other shared libraries.\n")
-		fmt.Fprintf(toolchain, "set(ENV{LD_LIBRARY_PATH} \"%s:$ENV{LD_LIBRARY_PATH}\")\n", buildtools.PythonTool.LdLibraryPath())
+		fmt.Fprintf(toolchain, "set(ENV{LD_LIBRARY_PATH} \"%s%s$ENV{LD_LIBRARY_PATH}\")\n",
+			buildtools.PythonTool.LdLibraryPath(), string(os.PathListSeparator))
 	}
 
 	return nil
@@ -398,7 +401,7 @@ func (c *Celer) appendEnvs(toolchain *strings.Builder) {
 		}
 
 		parts[1] = c.exprVars.Expand(parts[1])
-		fmt.Fprintf(toolchain, `set(ENV{%s} "%s")`+"\n", parts[0], parts[1])
+		fmt.Fprintf(toolchain, `set(ENV{%s} "%s%s$ENV{%s}")`+"\n", parts[0], parts[1], string(os.PathListSeparator), parts[0])
 	}
 }
 

@@ -391,5 +391,4 @@ func (p pythonTool) RegisterExprVars(exprVars *context.ExprVars) {
 	exprVars.Put("PYTHON_PATH", fileio.ToRelPath(p.Path))
 	exprVars.Put("PYTHON_VENV_DIR", p.venvDir)
 	exprVars.Put("PYTHON_VENV_EXE", p.Path)
-	exprVars.Put("PYTHON_SITE_PACKAGES", filepath.Join(dirs.InstalledDir, p.SitePackagesDir()))
 }
