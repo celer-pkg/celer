@@ -724,10 +724,8 @@ func (p *Port) checkAllTools() error {
 	// Refresh dynamic expression variables after tool detection because some
 	// ports rely on build_tools-provided paths during option expansion.
 	if exprVars := p.ctx.ExprVars(); exprVars != nil {
-		if buildtools.PythonTool != nil && buildtools.PythonTool.Path != "" {
-			exprVars.Put("PYTHON_PATH", fileio.ToRelPath(buildtools.PythonTool.Path))
-			exprVars.Put("PYTHON_VENV_DIR", buildtools.PythonTool.VenvDir())
-			exprVars.Put("PYTHON_VENV_EXE", buildtools.PythonTool.Path)
+		if buildtools.PythonTool != nil {
+			buildtools.PythonTool.RegisterExprVars(exprVars)
 		}
 		if buildtools.LLVMPath != "" {
 			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")

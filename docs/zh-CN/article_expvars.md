@@ -34,7 +34,9 @@
 
 | 变量 | 来源 | 说明 |
 | --- | --- | --- |
-| `${PYTHON_PATH}` | 自动识别 Python3 | 检测到 Python3 时可用。 |
+| `${PYTHON_PATH}` | 自动识别 Python3 | Python3 可执行文件路径（相对于工作区）。 |
+| `${PYTHON_VENV_EXE}` | 自动识别 Python3 | 虚拟环境 Python 可执行文件的绝对路径。 |
+| `${PYTHON_VENV_DIR}` | 自动识别 Python3 | 虚拟环境根目录的绝对路径。 |
 | `${LLVM_CONFIG}` | 自动识别 LLVM | 检测到 LLVM 时可用。 |
 
 ## 端口构建变量

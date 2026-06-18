@@ -34,7 +34,9 @@ These are injected after platform loading.
 
 | Variable | Source | Notes |
 | --- | --- | --- |
-| `${PYTHON_PATH}` | detected Python3 | Available when Python3 is detected. |
+| `${PYTHON_PATH}` | detected Python3 | Python3 executable path (relative to workspace). |
+| `${PYTHON_VENV_EXE}` | detected Python3 | Absolute path to the venv Python executable. |
+| `${PYTHON_VENV_DIR}` | detected Python3 | Absolute path to the venv root directory. |
 | `${LLVM_CONFIG}` | detected LLVM | Available when LLVM is detected. |
 
 ## Port Build Variables

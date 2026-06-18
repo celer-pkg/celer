@@ -311,12 +311,7 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		color.Printf(color.Warning, "\n================ WARNING: You're in offline mode currently! ================\n")
 	}
 
-	// Store global express vars if exist(maybe can delete later?)
-	if buildtools.PythonTool != nil {
-		c.exprVars.Put("PYTHON_PATH", fileio.ToRelPath(buildtools.PythonTool.Path))
-		c.exprVars.Put("PYTHON_VENV_DIR", buildtools.PythonTool.VenvDir())
-		c.exprVars.Put("PYTHON_VENV_EXE", buildtools.PythonTool.Path)
-	}
+	// Store global express vars if exist.
 	if buildtools.LLVMPath != "" {
 		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
 		llvmRoot := fileio.ToRelPath(buildtools.LLVMPath)

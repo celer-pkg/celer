@@ -59,7 +59,7 @@ func pip3Install(ctx context.Context, pipConfig context.PythonConfig, libraries 
 		}
 
 		builder.WriteString(PythonTool.Path)
-		builder.WriteString(" -m pip install --ignore-installed")
+		builder.WriteString(" -m pip install")
 
 		// Add PyPI source configuration if available.
 		if pipConfig != nil {
@@ -365,4 +365,31 @@ func (p pythonTool) LdLibraryPath() string {
 
 func (p pythonTool) VenvDir() string {
 	return p.venvDir
+}
+
+// SitePackagesDir returns the relative path from prefix to site-packages.
+// e.g. "lib/python3.10/site-packages" on Linux, "Lib/site-packages" on Windows.
+func (p pythonTool) SitePackagesDir() string {
+	if runtime.GOOS == "windows" {
+		return filepath.Join("Lib", "site-packages")
+	}
+
+	minorVersion := p.version
+	if strings.Count(p.version, ".") > 1 {
+		parts := strings.Split(p.version, ".")
+		minorVersion = parts[0] + "." + parts[1]
+	}
+
+	return filepath.Join("lib", "python"+minorVersion, "site-packages")
+}
+
+// RegisterExprVars registers all Python-related expression variables.
+func (p pythonTool) RegisterExprVars(exprVars *context.ExprVars) {
+	if p.Path == "" {
+		return
+	}
+	exprVars.Put("PYTHON_PATH", fileio.ToRelPath(p.Path))
+	exprVars.Put("PYTHON_VENV_DIR", p.venvDir)
+	exprVars.Put("PYTHON_VENV_EXE", p.Path)
+	exprVars.Put("PYTHON_SITE_PACKAGES", filepath.Join(dirs.InstalledDir, p.SitePackagesDir()))
 }
