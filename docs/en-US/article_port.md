@@ -170,15 +170,19 @@ When **library_type** is set to **shared**, Celer will try to read the value in 
 &emsp;&emsp;Optional, a few third-party libraries (e.g., NASM, Boost) require in-source configure and build. Note: This **build_in_source** option primarily serves makefiles projects.   
 >Please note that: b2 builds are already encapsulated as a dedicated buildsystem (i.e., buildsystem = "b2").
 
-### 1.2.12 autogen_options
+### 1.2.12 apply_envs
+
+&emsp;&emsp;Optional, default **false**. CMake builds normally skip port `envs` (compiler tools are defined in toolchain_file.cmake). Set **apply_envs = true** to apply port `envs` to the build environment. Useful for Rust/Cargo cross-compilation that needs `CC`/`CXX` env vars.
+
+### 1.2.13 autogen_options
 
 &emsp;&emsp;Optional, a few third-party libraries (e.g., NASM, Boost) require running **./autogen.sh** before configure. This field is used to specify the options to be passed to **./autogen.sh**.
 
-### 1.2.13 dependencies
+### 1.2.14 dependencies
 
 &emsp;&emsp; Optional, if your third-party library depends on other third-party libraries during compilation, you need to define them here. These libraries will be compiled and installed before the current library. Note that the format is **name@version**, and we must explicitly specify the version of the current library.
 
-### 1.2.14 dev_dependencies
+### 1.2.15 dev_dependencies
 
 &emsp;&emsp;Optional, similar to **dependencies**, but here the third-party library dependencies are tools required during compilation, such as: many makefiles projects require **autoconf**, **nasm**, etc. tools before configure. Any library defined in **dev_dependencies** will be compiled and installed using the local tooolchain compiler. They will be installed to a specific directory, such as: **installed/x86_64-linux-dev**, and the **installed/x86_64-linux-dev/bin** path will be automatically added to the **PATH** environment variable, enabling access to these tools during compilation.
 
@@ -186,7 +190,7 @@ When **library_type** is set to **shared**, Celer will try to read the value in 
 >- To avoid manually installing some local tools using **sudo apt install xxx**.  
 >- When compiling a third-party library that is a newer version, even if you install these tools using **apt**, you may still encounter errors such as **autoconf** version too low. In this case, you need to manually download the tool source code, compile it locally, and install it to the system directory. This is not only time-consuming but also pollutes the system environment.
 
-### 1.2.15 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
+### 1.2.16 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
 
 &emsp;&emsp;Optional, there are always libraries with problematic code. When compilation fails, we can provide patches to fix the source code. For relatively minor issues like incorrect output filenames, we can add corrective commands in **post_install**. Similarly, if file-related issues occur in other stages, we can apply pre-processing or post-processing adjustments at the corresponding steps. A typical example is the libffi library, which doesn't compile smoothly on Windows—various pre-and post-processing steps are required to make it work.
 

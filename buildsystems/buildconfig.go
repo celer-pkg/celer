@@ -178,6 +178,10 @@ type BuildConfig struct {
 	BuildInSource_Linux   *bool `toml:"build_in_source_linux,omitempty"`
 	BuildInSource_Darwin  *bool `toml:"build_in_source_darwin,omitempty"`
 
+	// ApplyEnvs: pass port envs to CMake builds (normally skipped for CMake).
+	// Useful for Rust/Cargo cross-compilation that needs CC/CXX env vars.
+	ApplyEnvs bool `toml:"apply_envs,omitempty"`
+
 	// Autogen Options
 	AutogenOptions         []string `toml:"autogen_options,omitempty"`
 	AutogenOptions_Windows []string `toml:"autogen_options_windows,omitempty"`

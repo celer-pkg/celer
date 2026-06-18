@@ -245,10 +245,14 @@ func (c cmake) Configure(options []string) error {
 	// CC/CXX/AR/... from previously built cross packages. Otherwise CMake
 	// may lock onto a target compiler (for example aarch64-linux-gnu-g++) and
 	// produce an un-runnable host tool inside x86_64-linux-dev.
+	systemName := c.Name()
+	if c.ApplyEnvs {
+		systemName = systemName + "_apply_envs"
+	}
 	if (c.DevDep || c.HostDev) && toolchain.GetName() != "msvc" && toolchain.GetName() != "clang-cl" {
 		toolchain.ClearEnvs()
 	} else {
-		toolchain.SetEnvs(rootfs, c.Name(), c.Envs)
+		toolchain.SetEnvs(rootfs, systemName, c.Envs)
 	}
 
 	// Remove build dir and create it for configure.
