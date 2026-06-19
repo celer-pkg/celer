@@ -59,7 +59,7 @@ func pip3Install(ctx context.Context, pipConfig context.PythonConfig, libraries 
 		}
 
 		builder.WriteString(PythonTool.Path)
-		builder.WriteString(" -m pip install --ignore-installed")
+		builder.WriteString(" -m pip install")
 
 		// Add PyPI source configuration if available.
 		if pipConfig != nil {
@@ -231,6 +231,7 @@ func setupPython(ctx context.Context, pythonVersion string) error {
 	PythonTool = &pythonTool{
 		Path:          venvPythonPath,
 		rootDir:       venvBinDir,
+		venvDir:       envDir,
 		version:       pythonVersion,
 		ldLibraryPath: condaLibDir,
 	}
@@ -270,17 +271,19 @@ func isPackageInstalled(packageName string, venvDir string) bool {
 	// Get package name without version.
 	packageName = strings.Split(packageName, "==")[0]
 
-	var packageDirPattern, distInfoPattern string
+	var packageDirPattern, distInfoPattern, eggInfoPattern string
 	switch runtime.GOOS {
 	case "windows":
 		// Windows: Lib/site-packages/{packageName} and Lib/site-packages/{packageName}-*.dist-info.
 		packageDirPattern = filepath.Join(libDir, "site-packages", packageName)
 		distInfoPattern = filepath.Join(libDir, "site-packages", packageName+"-*.dist-info")
+		eggInfoPattern = filepath.Join(libDir, "site-packages", packageName+"-*.egg-info")
 
 	case "linux", "darwin":
 		// Linux/Darwin: lib/python*/site-packages/{packageName} and lib/python*/site-packages/{packageName}-*.dist-info.
 		packageDirPattern = filepath.Join(libDir, "python*", "site-packages", packageName)
 		distInfoPattern = filepath.Join(libDir, "python*", "site-packages", packageName+"-*.dist-info")
+		eggInfoPattern = filepath.Join(libDir, "python*", "site-packages", packageName+"-*.egg-info")
 
 	default:
 		panic("unsupported os: " + runtime.GOOS)
@@ -292,6 +295,11 @@ func isPackageInstalled(packageName string, venvDir string) bool {
 	}
 
 	matches, err = filepath.Glob(distInfoPattern)
+	if err == nil && len(matches) > 0 {
+		return true
+	}
+
+	matches, err = filepath.Glob(eggInfoPattern)
 	if err == nil && len(matches) > 0 {
 		return true
 	}
@@ -353,13 +361,41 @@ func normalizeVersion(fullVersion string) string {
 type pythonTool struct {
 	Path          string
 	rootDir       string
+	venvDir       string
 	version       string
 	ldLibraryPath string
 }
 
-func (p *pythonTool) LdLibraryPath() string {
-	if p == nil {
-		return ""
-	}
+func (p pythonTool) LdLibraryPath() string {
 	return p.ldLibraryPath
+}
+
+func (p pythonTool) VenvDir() string {
+	return p.venvDir
+}
+
+// SitePackagesDir returns the relative path from prefix to site-packages.
+// e.g. "lib/python3.10/site-packages" on Linux, "Lib/site-packages" on Windows.
+func (p pythonTool) SitePackagesDir() string {
+	if runtime.GOOS == "windows" {
+		return filepath.Join("Lib", "site-packages")
+	}
+
+	minorVersion := p.version
+	if strings.Count(p.version, ".") > 1 {
+		parts := strings.Split(p.version, ".")
+		minorVersion = parts[0] + "." + parts[1]
+	}
+
+	return filepath.Join("lib", "python"+minorVersion, "site-packages")
+}
+
+// RegisterExprVars registers all Python-related expression variables.
+func (p pythonTool) RegisterExprVars(exprVars *context.ExprVars) {
+	if p.Path == "" {
+		return
+	}
+	exprVars.Put("PYTHON_PATH", fileio.ToRelPath(p.Path))
+	exprVars.Put("PYTHON_VENV_DIR", p.venvDir)
+	exprVars.Put("PYTHON_VENV_EXE", p.Path)
 }

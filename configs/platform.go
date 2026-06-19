@@ -73,7 +73,24 @@ func (p *Platform) Init(platformName string) error {
 		exrVars.Put("CROSSTOOL_PREFIX", p.Toolchain.GetCrosstoolPrefix())
 		exrVars.Put("TOOLCHAIN", p.Toolchain.rootDir)
 		exrVars.Put("BUILD_HOST", p.buildHost())
-
+		exrVars.Put("CC", p.Toolchain.CC)
+		exrVars.Put("CXX", p.Toolchain.CXX)
+		exrVars.Put("CPP", p.Toolchain.CPP)
+		exrVars.Put("AR", p.Toolchain.AR)
+		exrVars.Put("LD", p.Toolchain.LD)
+		exrVars.Put("AS", p.Toolchain.AS)
+		exrVars.Put("OBJCOPY", p.Toolchain.OBJCOPY)
+		exrVars.Put("OBJDUMP", p.Toolchain.OBJDUMP)
+		exrVars.Put("STRIP", p.Toolchain.STRIP)
+		exrVars.Put("READELF", p.Toolchain.READELF)
+		exrVars.Put("SIZE", p.Toolchain.SIZE)
+		exrVars.Put("STRINGS", p.Toolchain.STRINGS)
+		exrVars.Put("NM", p.Toolchain.NM)
+		exrVars.Put("RANLIB", p.Toolchain.RANLIB)
+		exrVars.Put("GCOV", p.Toolchain.GCOV)
+		exrVars.Put("ADDR2LINE", p.Toolchain.ADDR2LINE)
+		exrVars.Put("CXXFILT", p.Toolchain.CXXFILT)
+		exrVars.Put("FC", p.Toolchain.FC)
 	}
 
 	return nil

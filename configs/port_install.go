@@ -54,10 +54,16 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 			p.ctx.Platform().GetName()+"@"+p.ctx.Project().GetName()+"@"+p.ctx.BuildType()),
 	)
 
-	// Check if installed already.
-	installed, err := p.Installed()
-	if err != nil {
-		return "", err
+	// There is no need to read p.Installed() if build with --force, this API may time-consuming.
+	var installed bool
+	if options.Force {
+		installed = false
+	} else {
+		if result, err := p.Installed(); err != nil {
+			return "", err
+		} else {
+			installed = result
+		}
 	}
 
 	// Remvoe installed port when repo source changed.
@@ -236,11 +242,6 @@ func (p Port) Clone() error {
 			return err
 		}
 
-		// Skip clone/reset for already-installed dependencies.
-		if installed, _ := port.Installed(); installed {
-			continue
-		}
-
 		// Clone repo is allowed only for third-party ports and public ports of project.
 		if port.Package.Checksum == "" || port.IsThirdParty() {
 			if err := port.MatchedConfig.Clone(
@@ -262,11 +263,6 @@ func (p Port) Clone() error {
 		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
-		}
-
-		// Skip clone/reset for already-installed dependencies.
-		if installed, _ := port.Installed(); installed {
-			continue
 		}
 
 		// Clone repo is allowed only for third-party ports and public ports of project.
@@ -421,12 +417,11 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	}
 
 	// Copy files from package to installed dir.
-	libraryFolder := filepath.Join(p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
 	for _, file := range files {
 		if p.DevDep || p.HostDep {
 			file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
 		} else {
-			file = strings.TrimPrefix(file, filepath.Join(libraryFolder, string(os.PathSeparator)))
+			file = strings.TrimPrefix(file, filepath.Join(p.ctx.LibraryFolder(), string(os.PathSeparator)))
 		}
 
 		src := filepath.Join(p.PackageDir, file)
@@ -609,8 +604,12 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
-	// Secondly, copy to installed dir.
-	if err := p.doInstallFromPackage(p.InstalledDir); err != nil {
+	// Python packages: copy from PACKAGE_DIR to venv. C++ packages: copy to InstalledDir.
+	destDir := p.InstalledDir
+	if p.MatchedConfig.IsPythonPackage() && buildtools.PythonTool != nil {
+		destDir = buildtools.PythonTool.VenvDir()
+	}
+	if err := p.doInstallFromPackage(destDir); err != nil {
 		return err
 	}
 
@@ -618,8 +617,12 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 }
 
 func (p Port) cloneAllRepos() error {
-	clonedPorts = map[string]bool{}
+	if p.Parent == "" {
+		title := fmt.Sprintf("[check clone status of all repos: %s]", p.NameVersion())
+		color.Printf(color.Title, "\n%s\n", title)
+	}
 
+	clonedPorts = map[string]bool{}
 	buildConfig := p.MatchedConfig
 	for _, nameVersion := range buildConfig.DevDependencies {
 		// Skip Init() for already-cloned ports.
@@ -636,12 +639,6 @@ func (p Port) cloneAllRepos() error {
 			return err
 		}
 
-		// Skip clone/reset for already-installed dependencies.
-		if installed, _ := port.Installed(); installed {
-			clonedPorts[key] = true
-			continue
-		}
-
 		// Clone repo is allowed only for third-party ports and public ports of project.
 		if port.Package.Checksum == "" || port.IsThirdParty() {
 			if err := port.Clone(); err != nil {
@@ -649,6 +646,7 @@ func (p Port) cloneAllRepos() error {
 			}
 		}
 		clonedPorts[key] = true
+		color.Printf(color.Hint, "✔ %s\n", nameVersion)
 	}
 	for _, nameVersion := range buildConfig.Dependencies {
 		// Skip Init() for already-cloned ports.
@@ -666,12 +664,6 @@ func (p Port) cloneAllRepos() error {
 			return err
 		}
 
-		// Skip clone/reset for already-installed dependencies.
-		if installed, _ := port.Installed(); installed {
-			clonedPorts[key] = true
-			continue
-		}
-
 		// Clone repo is allowed only for third-party ports and public ports of project.
 		if port.Package.Checksum == "" || port.IsThirdParty() {
 			if err := port.Clone(); err != nil {
@@ -679,6 +671,7 @@ func (p Port) cloneAllRepos() error {
 			}
 		}
 		clonedPorts[key] = true
+		color.Printf(color.Hint, "✔ %s\n", nameVersion)
 	}
 	if err := p.Clone(); err != nil {
 		return err
@@ -689,7 +682,6 @@ func (p Port) cloneAllRepos() error {
 
 func (p *Port) checkAllTools() error {
 	var allTools []string
-
 	buildConfig := p.MatchedConfig
 	for _, nameVersion := range buildConfig.DevDependencies {
 		port := Port{DevDep: true}
@@ -721,8 +713,8 @@ func (p *Port) checkAllTools() error {
 	// Refresh dynamic expression variables after tool detection because some
 	// ports rely on build_tools-provided paths during option expansion.
 	if exprVars := p.ctx.ExprVars(); exprVars != nil {
-		if buildtools.PythonTool != nil && buildtools.PythonTool.Path != "" {
-			exprVars.Put("PYTHON3_PATH", fileio.ToRelPath(buildtools.PythonTool.Path))
+		if buildtools.PythonTool != nil {
+			buildtools.PythonTool.RegisterExprVars(exprVars)
 		}
 		if buildtools.LLVMPath != "" {
 			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
@@ -740,6 +732,11 @@ func (p *Port) checkAllTools() error {
 }
 
 func (p Port) installAllDependencies(options InstallOptions) error {
+	if p.Parent == "" {
+		title := fmt.Sprintf("[validate all dependencies: %s]", p.NameVersion())
+		color.Printf(color.Title, "\n%s\n", title)
+	}
+
 	if err := p.installDevDependencies(options); err != nil {
 		return err
 	}
@@ -801,6 +798,8 @@ func (p Port) installDependencies(options InstallOptions) error {
 				}
 			}
 		}
+
+		color.Printf(color.Hint, "✔ %s\n", nameVersion)
 	}
 
 	return nil
@@ -859,6 +858,8 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 				}
 			}
 		}
+
+		color.Printf(color.Hint, "✔ %s\n", nameVersion)
 	}
 
 	return nil
@@ -1038,13 +1039,34 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get package files -> %w", err)
 	}
+
+	// For Python packages, transform paths to be relative to installed/.
+	// PackageFiles returns "libraryDir/relative/path", we need "venv-x.y@project/relative/path".
+	if p.MatchedConfig.IsPythonPackage() && buildtools.PythonTool != nil {
+		venvDir := buildtools.PythonTool.VenvDir()
+		venvFolder, _ := filepath.Rel(dirs.InstalledDir, venvDir) // "venv-3.10@ros2"
+		for i, file := range packageFiles {
+			// Strip libraryDir prefix (same as doInstallFromPackage).
+			if p.DevDep || p.HostDep {
+				file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
+			} else {
+				file = strings.TrimPrefix(file, filepath.Join(p.ctx.LibraryFolder(), string(os.PathSeparator)))
+			}
+			packageFiles[i] = filepath.Join(venvFolder, file)
+		}
+	}
+
 	if err := os.WriteFile(p.traceFile, []byte(strings.Join(packageFiles, "\n")), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to write trace file -> %w", err)
 	}
 
 	// Print install trace.
 	color.PrintPass("%s is installed from %s", p.NameVersion(), installedFrom)
-	color.PrintHint("Location: %s\n", p.InstalledDir)
+	if p.MatchedConfig.IsPythonPackage() && buildtools.PythonTool != nil {
+		color.PrintHint("Location: %s\n", buildtools.PythonTool.VenvDir())
+	} else {
+		color.PrintHint("Location: %s\n", p.InstalledDir)
+	}
 
 	// Print reason why skip store artifact to pkgcache.
 	if p.pkgCacheStoreSkippedReason != "" {

@@ -26,6 +26,7 @@ func (f fakeContext) Platform() context.Platform             { return fakePlatfo
 func (f fakeContext) RootFS() context.RootFS                 { return nil }
 func (f fakeContext) Project() context.Project               { return fakeProject{name: f.project} }
 func (f fakeContext) BuildType() string                      { return f.build }
+func (f fakeContext) LibraryFolder() string                  { return "" }
 func (f fakeContext) Downloads() string                      { return f.downloads }
 func (f fakeContext) Jobs() int                              { return 1 }
 func (f fakeContext) Offline() bool                          { return f.offline }

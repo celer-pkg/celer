@@ -178,22 +178,26 @@
 &emsp;&emsp;可选配置，默认值为空，用于指定一些库需要在源代码目录中进行配置和构建，例如：**NASM**、**Boost** 等库。注意：此 **build_in_source** 选项主要适用于 makefiles 项目。  
 >需注意：b2 构建已经被封装为专用的构建系统（即 buildsystem = "b2"）。
 
-### 1.2.12 autogen_options
+### 1.2.12 apply_envs
+
+&emsp;&emsp;可选配置，默认 **false**。CMake 构建默认跳过 port 的 envs（编译器工具由 toolchain_file.cmake 定义）。设置 **apply_envs = true** 可将 port 的 envs 应用到构建环境。适用于 Rust/Cargo 交叉编译等需要 `CC`/`CXX` 环境变量的场景。
+
+### 1.2.13 autogen_options
 
 &emsp;&emsp;可选配置，默认值为空，用于指定一些库需要在源代码目录中运行 **./autogen.sh** 脚本，例如：**NASM**、**Boost** 等库。注意：此 **autogen_options** 选项主要适用于 makefiles 项目。
 
-### 1.2.13 dependencies
+### 1.2.14 dependencies
 
 &emsp;&emsp; 可选配置，默认为空，若当前第三方库在编译时依赖其他第三方库，需在此处定义。这些依赖库将在当前库之前完成编译安装。需注意格式必须为 name@version，且必须显式指定依赖库的版本号。
 
-### 1.2.14 dev_dependencies
+### 1.2.15 dev_dependencies
 &emsp;&emsp;可选配置，默认为空，与 dependencies 类似，但此处定义的第三方库依赖项是编译期间所需的工具。例如：许多 makefiles 项目在配置前需要 autoconf、nasm 等工具。所有在 dev_dependencies 中定义的库都将使用本地工具链编译器进行编译安装，它们会被安装到特定目录（如 installed/x86_64-linux-dev），且 installed/x86_64-linux-dev/bin 路径将自动加入 PATH 环境变量，确保编译期间可访问这些工具。
 
 >为什么需要 **dev_dependencies**:   
 >- 避免手动使用 **sudo apt install xxx** 安装一些本地工具。  
 >- 当编译一个第三方库的新版本时，即使你使用 **apt** 安装了这些工具，仍然可能遇到 **autoconf** 版本过低的错误。在这种情况下，你需要手动下载工具的源代码，本地编译安装，而不是污染系统环境。
 
-### 1.2.15 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
+### 1.2.16 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
 
 &emsp;&emsp;可选配置，默认为空，某些库可能存在代码问题导致编译失败时，可通过补丁修复源码。对于相对较小的问题（如输出文件名错误），可在 post_install 中添加修正命令；同理，若其他阶段出现文件相关问题，也可在对应步骤进行预处理或后处理调整。典型案例如 libffi 库在 Windows 上无法直接编译通过——必须通过多项预处理和后处理步骤才能使其正常工作。
 
@@ -218,6 +222,6 @@
 
 > 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。完整列表请参考 [动态变量](./article_expvars.md)。
 
-### 1.2.16 options
+### 1.2.17 options
 
 &emsp;&emsp;可选配置，默认值为空，当编译第三方库时，通常会有许多选项需要启用或禁用。我们可以在这里定义它们，例如 **-DBUILD_TESTING=OFF**；

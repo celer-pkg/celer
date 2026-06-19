@@ -103,10 +103,6 @@ func (b *BuildConfig) setupEnvs() {
 			b.envBackup.setenv("LDFLAGS", env.JoinSpace("-Wl,-rpath=\\$$ORIGIN/../lib", os.Getenv("LDFLAGS")))
 		}
 
-		b.setLanguageStandard() // C/C++ standard.
-		b.setEnvFlags()         // Set CFLGAGS/CXXFLAGS/LDFLAGS.
-		b.setupPkgConfig()      // Setup pkg-config.
-
 		tmpDevDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
 
 		// Set ACLOCAL_PATH for aclocal to find third-party m4 files
@@ -127,6 +123,12 @@ func (b *BuildConfig) setupEnvs() {
 			b.envBackup.setenv("AUTOCONF", autoconfBin)
 		}
 
+		// Expose LLVM_CONFIG for ports that rely on llvm-config.
+		if buildtools.LLVMPath != "" {
+			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
+			b.envBackup.setenv("LLVM_CONFIG", filepath.Join(buildtools.LLVMPath, "bin", llvmConfig))
+		}
+
 		// Expose dev/bin and python venv bin to PATH.
 		venvBin := filepath.Join(dirs.PythonUserBase, "bin")
 		if fileio.PathExists(venvBin) {
@@ -136,76 +138,15 @@ func (b *BuildConfig) setupEnvs() {
 		// Expose host-side dev tools to PATH.
 		b.envBackup.setenv("PATH", env.JoinPaths("PATH", filepath.Join(tmpDevDir, "bin")))
 
-		// Keep host-side dev tool runtimes resolvable before any helper process starts.
-		// This is especially important for Python extensions and other host tools that
-		// link against libraries from tmp/deps/<host>-dev/lib.
-		for _, devLibDir := range []string{
-			filepath.Join(tmpDevDir, "lib"),
-			filepath.Join(tmpDevDir, "lib64"),
-		} {
-			if !fileio.PathExists(devLibDir) {
-				continue
-			}
-
-			switch runtime.GOOS {
-			case "linux":
-				b.envBackup.setenv("LD_LIBRARY_PATH", env.JoinPaths("LD_LIBRARY_PATH", devLibDir))
-			case "darwin":
-				b.envBackup.setenv("DYLD_LIBRARY_PATH", env.JoinPaths("DYLD_LIBRARY_PATH", devLibDir))
-			}
-		}
-
-		// Ensure PYTHONPATH for python.
-		b.envBackup.setenv("PYTHONUSERBASE", dirs.PythonUserBase)
-
-		// Expose Python modules shipped by host-side dev dependencies.
-		// This keeps Python runtime dependencies inside the workspace instead of
-		// relying on system dist-packages.
-		devPythonDir := filepath.Join(tmpDevDir, "python")
-		if fileio.PathExists(devPythonDir) {
-			b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", devPythonDir))
-		}
-
-		// Expose LLVM_CONFIG for ports that rely on llvm-config.
-		if buildtools.LLVMPath != "" {
-			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
-			b.envBackup.setenv("LLVM_CONFIG", filepath.Join(buildtools.LLVMPath, "bin", llvmConfig))
-		}
-
-		// Find the actual site-packages directory and set PYTHONPATH's value with it.
-		// (Python installs to python3/lib/python3.X/site-packages).
-		libDir := filepath.Join(dirs.PythonUserBase, "lib")
-		if fileio.PathExists(libDir) {
-			entries, err := os.ReadDir(libDir)
-			if err == nil {
-				for _, entry := range entries {
-					if entry.IsDir() && strings.HasPrefix(entry.Name(), "python") {
-						sitePackages := filepath.Join(libDir, entry.Name(), "site-packages")
-						if fileio.PathExists(sitePackages) {
-							b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", sitePackages))
-							break
-						}
-					}
-				}
-			}
-		}
-
-		// Provider environment variables for QNX.
-		if toolchain.GetName() == "qcc" {
-			b.envBackup.setenv("CFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CFLAGS")))
-			b.envBackup.setenv("CXXFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CXXFLAGS")))
-
-			// QNX_HOST and QNX_TARGET is mandatory.
-			switch runtime.GOOS {
-			case "linux":
-				b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/linux/x86_64"))
-			case "windows":
-				b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/win64/x86_64/usr/bin"))
-			case "darwin":
-				b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/darwin/x86_64/usr/bin"))
-			}
-			b.envBackup.setenv("QNX_TARGET", filepath.Join(toolchain.GetRootDir(), "target/qnx"))
-		}
+		b.setLanguageStandard() // C/C++ standard.
+		b.setEnvFlags()         // Set CFLGAGS/CXXFLAGS/LDFLAGS.
+		b.setupPkgConfig()      // Setup pkg-config.
+		b.setupRuntimePath()    // Some python extensions tool can not build with $ORIGIN/../lib
+		b.setupPythonEnvs()     // Expost PYTHONUSERBASE and PYTHONPATH for Python.
+		b.setupQNXEnvs()        // Set environments only when toolchain is qcc
+	} else if b.ApplyEnvs {
+		b.setupPythonEnvs() // Expost PYTHONUSERBASE and PYTHONPATH for Python.
+		b.setupQNXEnvs()    // Set environments only when toolchain is qcc
 	}
 }
 
@@ -285,6 +226,65 @@ func (b BuildConfig) setupPkgConfig() {
 	// Host-side builds use absolute dependency paths and should not inherit target sysroot.
 	// PKG_CONFIG_SYSROOT_DIR is only needed for cross-compilation when .pc files use relative paths.
 	b.envBackup.setenv("PKG_CONFIG_SYSROOT_DIR", expr.If(hostBuild, "", sysrootDir))
+}
+
+// setupLDLibraryPath Keep host-side dev tool runtimes resolvable before any helper process starts.
+// This is especially important for Python extensions and other host tools that
+// link against libraries from tmp/deps/<host>-dev/lib.
+func (b BuildConfig) setupRuntimePath() {
+	tmpDevDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
+	for _, devLibDir := range []string{
+		filepath.Join(tmpDevDir, "lib"),
+		filepath.Join(tmpDevDir, "lib64"),
+	} {
+		if !fileio.PathExists(devLibDir) {
+			continue
+		}
+
+		switch runtime.GOOS {
+		case "linux":
+			b.envBackup.setenv("LD_LIBRARY_PATH", env.JoinPaths("LD_LIBRARY_PATH", devLibDir))
+		case "darwin":
+			b.envBackup.setenv("DYLD_LIBRARY_PATH", env.JoinPaths("DYLD_LIBRARY_PATH", devLibDir))
+		}
+	}
+}
+
+func (b BuildConfig) setupPythonEnvs() {
+	// Ensure PYTHONUSERBASE for pip.
+	b.envBackup.setenv("PYTHONUSERBASE", dirs.PythonUserBase)
+
+	// Set PYTHONPATH so build-time Python scripts can
+	// find packages in INSTALLED_DIR (tmp/deps) and the venv.
+	if buildtools.PythonTool != nil {
+		sitePackage := buildtools.PythonTool.SitePackagesDir()
+		installedDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
+		venvDir := buildtools.PythonTool.VenvDir()
+		paths := []string{
+			filepath.Join(installedDir, sitePackage),
+			filepath.Join(venvDir, sitePackage),
+		}
+		b.envBackup.setenv("PYTHONPATH", env.JoinPaths("PYTHONPATH", paths...))
+	}
+}
+
+func (b BuildConfig) setupQNXEnvs() {
+	toolchain := b.Ctx.Platform().GetToolchain()
+	if toolchain.GetName() == "qcc" {
+		b.envBackup.setenv("CFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CFLAGS")))
+		b.envBackup.setenv("CXXFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CXXFLAGS")))
+
+		// QNX_HOST and QNX_TARGET is mandatory.
+		switch runtime.GOOS {
+		case "linux":
+			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/linux/x86_64"))
+		case "windows":
+			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/win64/x86_64/usr/bin"))
+		case "darwin":
+			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/darwin/x86_64/usr/bin"))
+		}
+		b.envBackup.setenv("QNX_TARGET", filepath.Join(toolchain.GetRootDir(), "target/qnx"))
+	}
 }
 
 func (b *BuildConfig) setLanguageStandard() {

@@ -2,13 +2,14 @@ package depcheck
 
 import (
 	"fmt"
+	"log"
+	"slices"
+	"strings"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
-	"log"
-	"slices"
-	"strings"
 )
 
 func NewDepCheck() *depcheck {

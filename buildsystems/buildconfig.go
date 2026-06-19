@@ -178,6 +178,10 @@ type BuildConfig struct {
 	BuildInSource_Linux   *bool `toml:"build_in_source_linux,omitempty"`
 	BuildInSource_Darwin  *bool `toml:"build_in_source_darwin,omitempty"`
 
+	// ApplyEnvs: pass port envs to CMake builds (normally skipped for CMake).
+	// Useful for Rust/Cargo cross-compilation that needs CC/CXX env vars.
+	ApplyEnvs bool `toml:"apply_envs,omitempty"`
+
 	// Autogen Options
 	AutogenOptions         []string `toml:"autogen_options,omitempty"`
 	AutogenOptions_Windows []string `toml:"autogen_options_windows,omitempty"`
@@ -921,7 +925,6 @@ func (b *BuildConfig) expandOptions() {
 func (b BuildConfig) expandVariables(content string) string {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
-	content = b.ExprVars.Expand(content)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
 	// For Clang with sysroot, add --gcc-toolchain to find GCC runtime files.
@@ -934,7 +937,22 @@ func (b BuildConfig) expandVariables(content string) string {
 	content = strings.ReplaceAll(content, "${CC}", ccValue)
 	content = strings.ReplaceAll(content, "${CXX}", cxxValue)
 
+	content = b.ExprVars.Expand(content)
 	return content
+}
+
+// IsPythonPackage returns true if the build config references Python placeholders
+// in its custom commands, indicating it's a Python package that should be installed
+// to the virtual environment.
+func (b BuildConfig) IsPythonPackage() bool {
+	commands := append(b.CustomConfigure, b.CustomBuild...)
+	commands = append(commands, b.CustomInstall...)
+	for _, command := range commands {
+		if strings.Contains(command, "${PYTHON_VENV_EXE}") || strings.Contains(command, "${PYTHON_VENV_DIR}") {
+			return true
+		}
+	}
+	return false
 }
 
 func (b BuildConfig) getLogPath(suffix string) string {

@@ -151,4 +151,70 @@ python_version = "3.12"        # 小版本号
 - 尝试使用检测到的系统 Python3
 - 如果系统 Python 无法检测，回退到 conda
 
+---
+
+## 📦 安装 Python 包
+
+Celer 支持通过 `build_system = "custom"` 将纯 Python 包安装到虚拟环境中。流程与 C++ 包一致：**暂存 → venv → trace → 移除**。
+
+### port.toml 模板
+
+```toml
+[package]
+  url = "https://example.com/my_python_pkg.git"
+  ref = "v1.0.0"
+
+[[build_configs]]
+  build_system = "custom"
+  build_in_source = true
+  build = ["${PYTHON_VENV_EXE} setup.py build"]
+  install = [
+    "cmake -E make_directory ${PACKAGE_DIR}",
+    "${PYTHON_VENV_EXE} setup.py install --prefix=${PACKAGE_DIR} --single-version-externally-managed --record=${PACKAGE_DIR}/install.log",
+  ]
+```
+
+### 可用占位符
+
+| 占位符 | 说明 |
+| --- | --- |
+| `${PYTHON_VENV_EXE}` | 虚拟环境 `python3` 可执行文件的绝对路径。 |
+| `${PYTHON_VENV_DIR}` | 虚拟环境根目录的绝对路径。 |
+| `${PACKAGE_DIR}` | 包的暂存目录（与 C++ 包相同）。 |
+
+### 工作流程
+
+1. **构建**：在源码目录执行 `${PYTHON_VENV_EXE} setup.py build`。
+2. **安装**：执行 `setup.py install --prefix=${PACKAGE_DIR}`，将文件暂存到包目录。
+3. **复制**：Celer 将暂存文件从 `${PACKAGE_DIR}` 复制到虚拟环境。
+4. **记录**：写入 trace 文件，记录所有安装的文件（相对于 `installed/`）。
+5. **移除**：`celer remove` 读取 trace 文件并从 venv 中删除对应文件。
+
+### 自动检测
+
+当 `build_system = "custom"` 的端口在命令中引用了 `${PYTHON_VENV_EXE}` 或 `${PYTHON_VENV_DIR}` 时，Celer 会自动：
+
+- 触发 Python 虚拟环境初始化（无需在 `build_tools` 中声明 `python3`）。
+- 将安装的文件复制到 venv 而非 `InstalledDir`。
+- 写入 venv 感知的 trace 文件，支持后续移除。
+
+### 示例：ament_package
+
+```toml
+[package]
+  url = "https://github.com/ament/ament_package.git"
+  ref = "humble"
+
+[[build_configs]]
+  build_system = "custom"
+  build_in_source = true
+  build = ["${PYTHON_VENV_EXE} setup.py build"]
+  install = [
+    "cmake -E make_directory ${PACKAGE_DIR}",
+    "${PYTHON_VENV_EXE} setup.py install --prefix=${PACKAGE_DIR} --single-version-externally-managed --record=${PACKAGE_DIR}/install.log",
+  ]
+```
+
+安装后，包会出现在 venv 的 `site-packages` 中，可通过 `celer remove ament_package@humble` 移除。
+
 

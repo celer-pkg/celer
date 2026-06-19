@@ -47,6 +47,7 @@ func (fakeContext) Platform() context.Platform         { return nil }
 func (fakeContext) RootFS() context.RootFS             { return nil }
 func (fakeContext) Project() context.Project           { return nil }
 func (fakeContext) BuildType() string                  { return "release" }
+func (fakeContext) LibraryFolder() string              { return "" }
 func (fakeContext) Downloads() string                  { return "" }
 func (fakeContext) Jobs() int                          { return 1 }
 func (f fakeContext) Offline() bool                    { return f.offline }
