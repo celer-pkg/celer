@@ -925,7 +925,6 @@ func (b *BuildConfig) expandOptions() {
 func (b BuildConfig) expandVariables(content string) string {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
-	content = b.ExprVars.Expand(content)
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
 	// For Clang with sysroot, add --gcc-toolchain to find GCC runtime files.
@@ -938,6 +937,7 @@ func (b BuildConfig) expandVariables(content string) string {
 	content = strings.ReplaceAll(content, "${CC}", ccValue)
 	content = strings.ReplaceAll(content, "${CXX}", cxxValue)
 
+	content = b.ExprVars.Expand(content)
 	return content
 }
 

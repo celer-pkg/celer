@@ -37,7 +37,9 @@ func (e *ExprVars) Put(key, value string) {
 		e.vars = make(map[string]string)
 	}
 
-	e.vars[key] = value
+	if value != "" {
+		e.vars[key] = value
+	}
 }
 
 // Expand replace express with values.

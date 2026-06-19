@@ -631,7 +631,6 @@ func (p Port) cloneAllRepos() error {
 			continue
 		}
 
-		color.Printf(color.Hint, "- checking repo clone status: %s", nameVersion)
 		port := Port{
 			DevDep: true,
 			Parent: p.NameVersion(),
@@ -647,7 +646,7 @@ func (p Port) cloneAllRepos() error {
 			}
 		}
 		clonedPorts[key] = true
-		color.PrintInline(color.Hint, "✔ %s\n", nameVersion)
+		color.Printf(color.Hint, "✔ %s\n", nameVersion)
 	}
 	for _, nameVersion := range buildConfig.Dependencies {
 		// Skip Init() for already-cloned ports.
@@ -656,7 +655,6 @@ func (p Port) cloneAllRepos() error {
 			continue
 		}
 
-		color.Printf(color.Hint, "- checking repo clone status: %s", nameVersion)
 		port := Port{
 			DevDep:  false,
 			HostDep: p.DevDep || p.HostDep,
@@ -673,7 +671,7 @@ func (p Port) cloneAllRepos() error {
 			}
 		}
 		clonedPorts[key] = true
-		color.PrintInline(color.Hint, "✔ %s\n", nameVersion)
+		color.Printf(color.Hint, "✔ %s\n", nameVersion)
 	}
 	if err := p.Clone(); err != nil {
 		return err
@@ -735,7 +733,7 @@ func (p *Port) checkAllTools() error {
 
 func (p Port) installAllDependencies(options InstallOptions) error {
 	if p.Parent == "" {
-		title := fmt.Sprintf("[install all dependencies for %s]", p.NameVersion())
+		title := fmt.Sprintf("[validate all dependencies: %s]", p.NameVersion())
 		color.Printf(color.Title, "\n%s\n", title)
 	}
 
@@ -760,8 +758,6 @@ func (p Port) installDependencies(options InstallOptions) error {
 		if _, alreadyProcessed := visitedPorts[key]; alreadyProcessed {
 			continue
 		}
-
-		color.Printf(color.Hint, "- %s", nameVersion)
 
 		// Init port.
 		var port = Port{
@@ -803,7 +799,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 			}
 		}
 
-		color.PrintInline(color.Hint, "✔ %s\n", nameVersion)
+		color.Printf(color.Hint, "✔ %s\n", nameVersion)
 	}
 
 	return nil
@@ -821,8 +817,6 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 		if _, alreadyProcessed := visitedPorts[key]; alreadyProcessed {
 			continue
 		}
-
-		color.Printf(color.Hint, "- check install state for dev_dependencies: %s", nameVersion)
 
 		// Init port.
 		var port = Port{
@@ -865,7 +859,7 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 			}
 		}
 
-		color.PrintInline(color.Hint, "✔ check install state for dev_dependencies: %s\n", nameVersion)
+		color.Printf(color.Hint, "✔ %s\n", nameVersion)
 	}
 
 	return nil

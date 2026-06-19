@@ -13,9 +13,9 @@
 
 | Variable | Source | Notes |
 | --- | --- | --- |
-| `${BUILDTREES_DIR}` | Celer context | Buildtrees root directory. |
-| `${INSTALLED_DIR}` | Celer context | Installed directory for current platform/project/build type. |
-| `${INSTALLED_DEV_DIR}` | Celer context | Installed dev directory for host tools. |
+| `${BUILDTREES_DIR}` | Celer context | Buildtrees root directory |
+| `${INSTALLED_DIR}` | Celer context | Installed directory for current platform/project/build type |
+| `${INSTALLED_DEV_DIR}` | Celer context | Installed dev directory for host tools |
 
 ## Platform Variables
 
@@ -23,21 +23,39 @@ These are injected after platform loading.
 
 | Variable | Source | Notes |
 | --- | --- | --- |
-| `${HOST}` | `toolchain.host` | Target host triple. |
-| `${SYSTEM_NAME}` | platform toolchain metadata | System selector variable used by configs. |
-| `${SYSTEM_PROCESSOR}` | `toolchain.system_processor` | CPU architecture selector. |
-| `${CROSSTOOL_PREFIX}` | `toolchain.crosstool_prefix` | Prefix for toolchain executables. |
-| `${TOOLCHAIN}` | toolchain root dir | Toolchain root directory used by platform expression expansion. |
-| `${SYSROOT}` | `rootfs` | Available only when rootfs is configured. |
+| `${HOST}` | `toolchain.host` | Target host triple |
+| `${SYSTEM_NAME}` | platform toolchain metadata | System selector variable used by configs |
+| `${SYSTEM_PROCESSOR}` | `toolchain.system_processor` | CPU architecture selector |
+| `${CROSSTOOL_PREFIX}` | `toolchain.crosstool_prefix` | Prefix for toolchain executables |
+| `${TOOLCHAIN}` | toolchain root dir | Toolchain root directory used by platform expression expansion |
+| `${SYSROOT}` | `rootfs` | Available only when rootfs is configured |
+| `${CC}` | `toolchain.cc` | C compiler. Useful for Rust cross-compilation, e.g. `CC_aarch64_unknown_linux_gnu=${CC}` |
+| `${CXX}` | `toolchain.cxx` | C++ compiler |
+| `${CPP}` | `toolchain.cpp` | C preprocessor |
+| `${AR}` | `toolchain.ar` | Static library archiver |
+| `${LD}` | `toolchain.ld` | Linker |
+| `${AS}` | `toolchain.as` | Assembler |
+| `${OBJCOPY}` | `toolchain.objcopy` | Object file copy |
+| `${OBJDUMP}` | `toolchain.objdump` | Object file dump |
+| `${STRIP}` | `toolchain.strip` | Strip symbols |
+| `${READELF}` | `toolchain.readelf` | ELF reader |
+| `${SIZE}` | `toolchain.size` | Section sizes |
+| `${STRINGS}` | `toolchain.strings` | Printable strings |
+| `${NM}` | `toolchain.nm` | Symbol table |
+| `${RANLIB}` | `toolchain.ranlib` | Archive index |
+| `${GCOV}` | `toolchain.gcov` | Coverage tool |
+| `${ADDR2LINE}` | `toolchain.addr2line` | Address to line |
+| `${CXXFILT}` | `toolchain.cxxfilt` | Demangler |
+| `${FC}` | `toolchain.fc` | Fortran compiler |
 
 ## Optional Global Variables
 
 | Variable | Source | Notes |
 | --- | --- | --- |
-| `${PYTHON_PATH}` | detected Python3 | Python3 executable path (relative to workspace). |
-| `${PYTHON_VENV_EXE}` | detected Python3 | Absolute path to the venv Python executable. |
-| `${PYTHON_VENV_DIR}` | detected Python3 | Absolute path to the venv root directory. |
-| `${LLVM_CONFIG}` | detected LLVM | Available when LLVM is detected. |
+| `${PYTHON_PATH}` | detected Python3 | Python3 executable path (relative to workspace) |
+| `${PYTHON_VENV_EXE}` | detected Python3 | Absolute path to the venv Python executable |
+| `${PYTHON_VENV_DIR}` | detected Python3 | Absolute path to the venv root directory |
+| `${LLVM_CONFIG}` | detected LLVM | Available when LLVM is detected |
 
 ## Port Build Variables
 
@@ -45,12 +63,12 @@ These are injected per matched `build_config` before build execution.
 
 | Variable | Source | Notes |
 | --- | --- | --- |
-| `${REPO_DIR}` | current port | Port source repo path. |
-| `${SRC_DIR}` | current port | Port source extraction path. |
-| `${BUILD_DIR}` | current port | Port build directory. |
-| `${PACKAGE_DIR}` | current port | Port package output directory. |
-| `${DEPS_DEV_DIR}` | workspace tmp deps | Host dev dependency directory. |
-| `${DEPS_DIR}` | workspace tmp deps | Dependency directory for current mode (dev or target). |
+| `${REPO_DIR}` | current port | Port source repo path |
+| `${SRC_DIR}` | current port | Port source extraction path |
+| `${BUILD_DIR}` | current port | Port build directory |
+| `${PACKAGE_DIR}` | current port | Port package output directory |
+| `${DEPS_DEV_DIR}` | workspace tmp deps | Host dev dependency directory |
+| `${DEPS_DIR}` | workspace tmp deps | Dependency directory for current mode (dev or target) |
 
 ## Where Replacement Happens
 
