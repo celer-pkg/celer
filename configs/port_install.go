@@ -54,10 +54,16 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 			p.ctx.Platform().GetName()+"@"+p.ctx.Project().GetName()+"@"+p.ctx.BuildType()),
 	)
 
-	// Check if installed already.
-	installed, err := p.Installed()
-	if err != nil {
-		return "", err
+	// There is no need to read p.Installed() if build with --force, this API may time-consuming.
+	var installed bool
+	if options.Force {
+		installed = false
+	} else {
+		if result, err := p.Installed(); err != nil {
+			return "", err
+		} else {
+			installed = result
+		}
 	}
 
 	// Remvoe installed port when repo source changed.
@@ -236,11 +242,6 @@ func (p Port) Clone() error {
 			return err
 		}
 
-		// Skip clone/reset for already-installed dependencies.
-		if installed, _ := port.Installed(); installed {
-			continue
-		}
-
 		// Clone repo is allowed only for third-party ports and public ports of project.
 		if port.Package.Checksum == "" || port.IsThirdParty() {
 			if err := port.MatchedConfig.Clone(
@@ -262,11 +263,6 @@ func (p Port) Clone() error {
 		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
-		}
-
-		// Skip clone/reset for already-installed dependencies.
-		if installed, _ := port.Installed(); installed {
-			continue
 		}
 
 		// Clone repo is allowed only for third-party ports and public ports of project.
@@ -621,8 +617,12 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 }
 
 func (p Port) cloneAllRepos() error {
-	clonedPorts = map[string]bool{}
+	if p.Parent == "" {
+		title := fmt.Sprintf("[check clone status of all repos: %s]", p.NameVersion())
+		color.Printf(color.Title, "\n%s\n", title)
+	}
 
+	clonedPorts = map[string]bool{}
 	buildConfig := p.MatchedConfig
 	for _, nameVersion := range buildConfig.DevDependencies {
 		// Skip Init() for already-cloned ports.
@@ -631,18 +631,13 @@ func (p Port) cloneAllRepos() error {
 			continue
 		}
 
+		color.Printf(color.Hint, "- checking repo clone status: %s", nameVersion)
 		port := Port{
 			DevDep: true,
 			Parent: p.NameVersion(),
 		}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
-		}
-
-		// Skip clone/reset for already-installed dependencies.
-		if installed, _ := port.Installed(); installed {
-			clonedPorts[key] = true
-			continue
 		}
 
 		// Clone repo is allowed only for third-party ports and public ports of project.
@@ -652,6 +647,7 @@ func (p Port) cloneAllRepos() error {
 			}
 		}
 		clonedPorts[key] = true
+		color.PrintInline(color.Hint, "✔ %s\n", nameVersion)
 	}
 	for _, nameVersion := range buildConfig.Dependencies {
 		// Skip Init() for already-cloned ports.
@@ -660,6 +656,7 @@ func (p Port) cloneAllRepos() error {
 			continue
 		}
 
+		color.Printf(color.Hint, "- checking repo clone status: %s", nameVersion)
 		port := Port{
 			DevDep:  false,
 			HostDep: p.DevDep || p.HostDep,
@@ -669,12 +666,6 @@ func (p Port) cloneAllRepos() error {
 			return err
 		}
 
-		// Skip clone/reset for already-installed dependencies.
-		if installed, _ := port.Installed(); installed {
-			clonedPorts[key] = true
-			continue
-		}
-
 		// Clone repo is allowed only for third-party ports and public ports of project.
 		if port.Package.Checksum == "" || port.IsThirdParty() {
 			if err := port.Clone(); err != nil {
@@ -682,6 +673,7 @@ func (p Port) cloneAllRepos() error {
 			}
 		}
 		clonedPorts[key] = true
+		color.PrintInline(color.Hint, "✔ %s\n", nameVersion)
 	}
 	if err := p.Clone(); err != nil {
 		return err
@@ -692,7 +684,6 @@ func (p Port) cloneAllRepos() error {
 
 func (p *Port) checkAllTools() error {
 	var allTools []string
-
 	buildConfig := p.MatchedConfig
 	for _, nameVersion := range buildConfig.DevDependencies {
 		port := Port{DevDep: true}
@@ -743,6 +734,11 @@ func (p *Port) checkAllTools() error {
 }
 
 func (p Port) installAllDependencies(options InstallOptions) error {
+	if p.Parent == "" {
+		title := fmt.Sprintf("[install all dependencies for %s]", p.NameVersion())
+		color.Printf(color.Title, "\n%s\n", title)
+	}
+
 	if err := p.installDevDependencies(options); err != nil {
 		return err
 	}
@@ -764,6 +760,8 @@ func (p Port) installDependencies(options InstallOptions) error {
 		if _, alreadyProcessed := visitedPorts[key]; alreadyProcessed {
 			continue
 		}
+
+		color.Printf(color.Hint, "- %s", nameVersion)
 
 		// Init port.
 		var port = Port{
@@ -804,6 +802,8 @@ func (p Port) installDependencies(options InstallOptions) error {
 				}
 			}
 		}
+
+		color.PrintInline(color.Hint, "✔ %s\n", nameVersion)
 	}
 
 	return nil
@@ -821,6 +821,8 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 		if _, alreadyProcessed := visitedPorts[key]; alreadyProcessed {
 			continue
 		}
+
+		color.Printf(color.Hint, "- check install state for dev_dependencies: %s", nameVersion)
 
 		// Init port.
 		var port = Port{
@@ -862,6 +864,8 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 				}
 			}
 		}
+
+		color.PrintInline(color.Hint, "✔ check install state for dev_dependencies: %s\n", nameVersion)
 	}
 
 	return nil

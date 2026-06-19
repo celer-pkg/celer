@@ -271,17 +271,19 @@ func isPackageInstalled(packageName string, venvDir string) bool {
 	// Get package name without version.
 	packageName = strings.Split(packageName, "==")[0]
 
-	var packageDirPattern, distInfoPattern string
+	var packageDirPattern, distInfoPattern, eggInfoPattern string
 	switch runtime.GOOS {
 	case "windows":
 		// Windows: Lib/site-packages/{packageName} and Lib/site-packages/{packageName}-*.dist-info.
 		packageDirPattern = filepath.Join(libDir, "site-packages", packageName)
 		distInfoPattern = filepath.Join(libDir, "site-packages", packageName+"-*.dist-info")
+		eggInfoPattern = filepath.Join(libDir, "site-packages", packageName+"-*.egg-info")
 
 	case "linux", "darwin":
 		// Linux/Darwin: lib/python*/site-packages/{packageName} and lib/python*/site-packages/{packageName}-*.dist-info.
 		packageDirPattern = filepath.Join(libDir, "python*", "site-packages", packageName)
 		distInfoPattern = filepath.Join(libDir, "python*", "site-packages", packageName+"-*.dist-info")
+		eggInfoPattern = filepath.Join(libDir, "python*", "site-packages", packageName+"-*.egg-info")
 
 	default:
 		panic("unsupported os: " + runtime.GOOS)
@@ -293,6 +295,11 @@ func isPackageInstalled(packageName string, venvDir string) bool {
 	}
 
 	matches, err = filepath.Glob(distInfoPattern)
+	if err == nil && len(matches) > 0 {
+		return true
+	}
+
+	matches, err = filepath.Glob(eggInfoPattern)
 	if err == nil && len(matches) > 0 {
 		return true
 	}
