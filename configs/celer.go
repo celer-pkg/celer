@@ -38,6 +38,9 @@ func NewCeler() *Celer {
 	// Make sure build env is clean.
 	envs.CleanEnv()
 
+	// Clear metadata caches from previous invocations.
+	ResetMetaCache()
+
 	return &Celer{
 		configData: configData{
 			Main: main{
