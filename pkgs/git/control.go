@@ -11,6 +11,7 @@ import (
 
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -126,6 +127,13 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 
 // UpdateSubmodules update git submodules.
 func UpdateSubmodules(title, repoDir string) error {
+	if !fileio.PathExists(repoDir) {
+		return errors.ErrDirNotExist
+	}
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return errors.ErrNotGitDir
+	}
+
 	if !fileio.PathExists(filepath.Join(repoDir, ".gitmodules")) {
 		return nil
 	}
@@ -142,10 +150,10 @@ func UpdateSubmodules(title, repoDir string) error {
 // UpdateRepo update git repo.
 func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 	if !fileio.PathExists(repoDir) {
-		return nil
+		return errors.ErrDirNotExist
 	}
 	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
-		return fmt.Errorf("refuse to run git commands in non-repo dir: %s", repoDir)
+		return errors.ErrNotGitDir
 	}
 
 	// Check if repo is modified.
@@ -229,9 +237,16 @@ func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 }
 
 // CherryPick cherry-pick patches.
-func CherryPick(title, srcDir string, patches []string) error {
+func CherryPick(title, repoDir string, patches []string) error {
+	if !fileio.PathExists(repoDir) {
+		return errors.ErrDirNotExist
+	}
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return errors.ErrNotGitDir
+	}
+
 	// Change to source dir to execute git command.
-	if err := os.Chdir(srcDir); err != nil {
+	if err := os.Chdir(repoDir); err != nil {
 		return err
 	}
 
@@ -244,7 +259,7 @@ func CherryPick(title, srcDir string, patches []string) error {
 
 	commandLine := strings.Join(commands, " && ")
 	executor := cmd.NewExecutor(title, commandLine)
-	executor.SetWorkDir(srcDir)
+	executor.SetWorkDir(repoDir)
 	if output, err := executor.ExecuteOutputLive(); err != nil {
 		return fmt.Errorf("%s -> %w", output, err)
 	}
@@ -253,9 +268,16 @@ func CherryPick(title, srcDir string, patches []string) error {
 }
 
 // Rebase rebase patches.
-func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
+func Rebase(title, repoRef, repoDir string, rebaseRefs []string) error {
+	if !fileio.PathExists(repoDir) {
+		return errors.ErrDirNotExist
+	}
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return errors.ErrNotGitDir
+	}
+
 	// Change to source dir to execute git command.
-	if err := os.Chdir(srcDir); err != nil {
+	if err := os.Chdir(repoDir); err != nil {
 		return err
 	}
 
@@ -269,7 +291,7 @@ func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 
 	commandLine := strings.Join(commands, " && ")
 	executor := cmd.NewExecutor(title, commandLine)
-	executor.SetWorkDir(srcDir)
+	executor.SetWorkDir(repoDir)
 	if output, err := executor.ExecuteOutputLive(); err != nil {
 		return fmt.Errorf("%s -> %w", output, err)
 	}
@@ -279,8 +301,11 @@ func Rebase(title, repoRef, srcDir string, rebaseRefs []string) error {
 
 // Clean clean git repo.
 func Clean(title, repoDir string) error {
+	if !fileio.PathExists(repoDir) {
+		return errors.ErrDirNotExist
+	}
 	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
-		return fmt.Errorf("refuse to run git commands in non-repo dir: %s", repoDir)
+		return errors.ErrNotGitDir
 	}
 
 	var commands []string
@@ -300,8 +325,11 @@ func Clean(title, repoDir string) error {
 // HardReset hard resets the repo to the given commit and cleans untracked files.
 // If the commit is not available locally, it fetches from origin first.
 func HardReset(repoDir, commit string) error {
+	if !fileio.PathExists(repoDir) {
+		return errors.ErrDirNotExist
+	}
 	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
-		return fmt.Errorf("refuse to run git commands in non-repo dir: %s", repoDir)
+		return errors.ErrNotGitDir
 	}
 
 	nameVersion := filepath.Base(filepath.Dir(repoDir))
@@ -336,6 +364,13 @@ func HardReset(repoDir, commit string) error {
 
 // ApplyPatch apply git patch.
 func ApplyPatch(nameVersion, repoDir, patchFile string) error {
+	if !fileio.PathExists(repoDir) {
+		return errors.ErrDirNotExist
+	}
+	if !fileio.PathExists(filepath.Join(repoDir, ".git")) {
+		return errors.ErrNotGitDir
+	}
+
 	patchFileName := filepath.Base(patchFile)
 
 	// Check if patched already.

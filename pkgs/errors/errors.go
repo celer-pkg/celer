@@ -14,6 +14,8 @@ var (
 	ErrPkgCacheDirEmpty         = errors.New("pkgcache dir is invalid")
 	ErrPkgCacheDirNotExist      = errors.New("pkgcache dir not exist")
 	ErrPkgCacheArtifactNotFound = errors.New("artifact cache missing with commit")
+	ErrNotGitDir                = errors.New("refuse to run git commands in non-repo dir")
+	ErrDirNotExist              = errors.New("dir not exist")
 )
 
 // Is same as errors.Is

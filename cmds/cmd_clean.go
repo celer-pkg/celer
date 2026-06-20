@@ -222,6 +222,10 @@ func (c *cleanCmd) cleanAll() error {
 				return err
 			}
 			if err := port.MatchedConfig.Clean(); err != nil {
+				// Do not clean non-git repo.
+				if errors.Is(errors.ErrNotGitDir, err) {
+					return nil
+				}
 				return err
 			}
 			cleaned = true
