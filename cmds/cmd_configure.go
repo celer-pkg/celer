@@ -13,6 +13,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type configureCmd struct {
@@ -24,6 +25,11 @@ type configureCmd struct {
 	jobs      int
 	offline   bool
 	verbose   bool
+
+	// Support port url and ref.
+	port    string
+	portUrl string
+	portRef string
 
 	// Package cache options.
 	pkgCacheDir      string
@@ -50,6 +56,9 @@ var flagGroup = map[string]string{
 	"ccache-maxsize":        "ccache",
 	"ccache-remote-storage": "ccache",
 	"ccache-remote-only":    "ccache",
+	"port":                  "port",
+	"port-url":              "port",
+	"port-ref":              "port",
 }
 
 func (c *configureCmd) Command(celer *configs.Celer) *cobra.Command {
@@ -113,7 +122,7 @@ Examples:
 			flags := cmd.Flags()
 
 			// Init must be done before configure any.
-			if err := c.ensureWorkspaceInitialized(); err != nil {
+			if err := c.checkIfInitialized(); err != nil {
 				return color.PrintError(err, "please run `celer init` first.")
 			}
 
@@ -270,6 +279,12 @@ Examples:
 				color.PrintSuccess("current ccache remote only: %s", expr.If(c.ccache.RemoteOnly, "true", "false"))
 			}
 
+			if flags.Changed("port") {
+				if err := c.configurePort(flags); err != nil {
+					return color.PrintError(err, "failed to configure port.")
+				}
+			}
+
 			return nil
 		},
 		ValidArgsFunction: c.completion,
@@ -299,6 +314,11 @@ Examples:
 	flags.StringVar(&c.ccache.MaxSize, "ccache-maxsize", "", "configure ccache maxsize.")
 	flags.StringVar(&c.ccache.RemoteStorage, "ccache-remote-storage", "", "configure ccache remote storage.")
 	flags.BoolVar(&c.ccache.RemoteOnly, "ccache-remote-only", false, "configure ccache remote only.")
+
+	// Port override flags.
+	flags.StringVar(&c.port, "port", "", "port name@version to configure (e.g. rmw_zenoh_cpp@humble)")
+	flags.StringVar(&c.portUrl, "port-url", "", "override port url")
+	flags.StringVar(&c.portRef, "port-ref", "", "override port ref (branch/tag/commit)")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -358,13 +378,49 @@ func (c *configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cob
 	return nil, cobra.ShellCompDirectiveNoFileComp
 }
 
-func (c configureCmd) ensureWorkspaceInitialized() error {
+func (c configureCmd) checkIfInitialized() error {
 	if !fileio.PathExists(filepath.Join(dirs.WorkspaceDir, "celer.toml")) {
 		return fmt.Errorf("celer.toml not found")
 	}
 	if !fileio.PathExists(dirs.PortsDir) {
 		return fmt.Errorf("ports directory not found")
 	}
+	return nil
+}
+
+func (c *configureCmd) configurePort(flags *pflag.FlagSet) error {
+	if c.port == "" {
+		return fmt.Errorf("--port is required when using --port-url or --port-ref")
+	}
+	if !flags.Changed("port-url") && !flags.Changed("port-ref") {
+		return fmt.Errorf("at least one of --port-url or --port-ref is required")
+	}
+
+	// Init port and update it with url and ref.
+	var port configs.Port
+	if err := port.Init(c.celer, c.port); err != nil {
+		return err
+	}
+	portPath, err := port.Update(c.portUrl, c.portRef)
+	if err != nil {
+		return err
+	}
+
+	// Print configure result.
+	var builder strings.Builder
+	fmt.Fprintf(&builder, "%s is updated with", portPath)
+	if flags.Changed("port-url") {
+		fmt.Fprintf(&builder, ` "url = %s"`, c.portUrl)
+	}
+	if flags.Changed("port-ref") {
+		if flags.Changed("port-url") {
+			fmt.Fprintf(&builder, ` and "ref = %s"`, c.portRef)
+		} else {
+			fmt.Fprintf(&builder, ` "ref = %s"`, c.portRef)
+		}
+	}
+	color.PrintSuccess("%s", builder.String())
+
 	return nil
 }
 

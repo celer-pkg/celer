@@ -149,7 +149,7 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		// Default global values.
 		c.Main = main{
 			BuildType: "release",
-			Downloads: filepath.Join(dirs.WorkspaceDir, "downloads"),
+			Downloads: "",
 			Jobs:      jobs,
 			Offline:   false,
 			Verbose:   false,
@@ -189,11 +189,6 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 
 		// Use lower case build type in celer as default.
 		c.Main.BuildType = strings.ToLower(c.Main.BuildType)
-
-		// Set default downloads if missing.
-		if c.Main.Downloads == "" {
-			c.Main.Downloads = filepath.Join(dirs.WorkspaceDir, "downloads")
-		}
 
 		// Set platform and init platform if specified.
 		if platform != "" {
@@ -939,7 +934,7 @@ func (c *Celer) LibraryFolder() string {
 }
 
 func (c *Celer) Downloads() string {
-	return c.Main.Downloads
+	return expr.If(c.Main.Downloads != "", c.Main.Downloads, dirs.DownloadsDir)
 }
 
 func (c *Celer) RootFS() context.RootFS {
