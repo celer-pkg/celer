@@ -3,14 +3,14 @@ package cmds
 import (
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"regexp"
-	"slices"
 	"sort"
 	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/depcheck"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -38,7 +38,7 @@ Examples:
   # Find all packages that depend on Eigen
   celer reverse eigen@3.4.0
   
-  # Include development dependencies in search
+  # Include dev dependencies in search
   celer reverse nasm@2.16.03 --dev
   
   # Check reverse dependencies before removing a package
@@ -51,7 +51,7 @@ Examples:
 	}
 
 	// Register flags.
-	command.Flags().BoolVarP(&r.dev, "dev", "d", false, "include development dependencies in reverse lookup.")
+	command.Flags().BoolVarP(&r.dev, "dev", "d", false, "include dev dependencies in reverse lookup.")
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
@@ -80,83 +80,129 @@ func (r *reverseCmd) doExecute(args []string) error {
 
 func (r *reverseCmd) query(target string) ([]string, error) {
 	var libraries []string
-	if !fileio.PathExists(dirs.PortsDir) {
-		return libraries, nil
-	}
+	visited := map[string]bool{}
 
-	if err := filepath.WalkDir(dirs.PortsDir, func(path string, entity fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
+	walkPorts := func(root string) error {
+		return filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return nil
+			}
+			if d.IsDir() && strings.HasPrefix(d.Name(), ".") {
+				return filepath.SkipDir
+			}
+			if d.IsDir() || d.Name() != "port.toml" {
+				return nil
+			}
 
-		if !entity.IsDir() && entity.Name() == "port.toml" {
-			// for example: ports/t/testlib/1.0.0/port.toml
-			portDir := filepath.Dir(path)                   // ports/t/testlib/1.0.0
-			libVersion := filepath.Base(portDir)            // 1.0.0
-			libName := filepath.Base(filepath.Dir(portDir)) // testlib
+			portDir := filepath.Dir(path)
+			libVersion := filepath.Base(portDir)
+			libName := filepath.Base(filepath.Dir(portDir))
 			nameVersion := libName + "@" + libVersion
 
-			var port configs.Port
-			if err := port.Init(r.celer, nameVersion); err != nil {
-				if errors.Is(err, errors.ErrNoMatchedConfigFound) {
-					return nil
-				}
-				return err
+			if visited[nameVersion] {
+				return nil
 			}
+			visited[nameVersion] = true
 
-			// Check circular dependence and version conflict.
-			depcheck := depcheck.NewDepCheck()
-			if err := depcheck.CheckCircular(r.celer, port); err != nil {
-				return fmt.Errorf("found circular dependence -> %w", err)
-			}
-			if err := depcheck.CheckConflict(r.celer, port); err != nil {
-				return fmt.Errorf("found version conflict -> %w", err)
-			}
-
-			// Check dependencies based on mode
-			if r.hasDependency(port, target) {
+			if r.tomlHasDependency(path, target) {
 				libraries = append(libraries, nameVersion)
 			}
-		}
-
-		return nil
-	}); err != nil {
-		return nil, err
+			return nil
+		})
 	}
 
-	// Sort results for consistent output.
+	if fileio.PathExists(dirs.PortsDir) {
+		walkPorts(dirs.PortsDir)
+	}
+	if r.celer.Project().GetName() != "" {
+		projectDir := filepath.Join(dirs.ConfProjectsDir, r.celer.Project().GetName())
+		if fileio.PathExists(projectDir) {
+			walkPorts(projectDir)
+		}
+	}
+
 	sort.Strings(libraries)
 	return libraries, nil
 }
 
-func (r *reverseCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	var suggestions []string
-	if fileio.PathExists(dirs.PortsDir) {
-		filepath.WalkDir(dirs.PortsDir, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
+// tomlDeps is a minimal struct for extracting dependencies from port.toml
+// without the overhead of a full Port.Init().
+type tomlDeps struct {
+	BuildConfigs []struct {
+		Dependencies    []string `toml:"dependencies"`
+		DevDependencies []string `toml:"dev_dependencies"`
+	} `toml:"build_configs"`
+}
+
+// tomlHasDependency reads port.toml and checks if target appears in any
+// build_config's dependencies or dev_dependencies. Much faster than Port.Init().
+func (r *reverseCmd) tomlHasDependency(portTomlPath, target string) bool {
+	data, err := os.ReadFile(portTomlPath)
+	if err != nil {
+		return false
+	}
+
+	var deps tomlDeps
+	if err := toml.Unmarshal(data, &deps); err != nil {
+		return false
+	}
+	for _, config := range deps.BuildConfigs {
+		for _, dependency := range config.Dependencies {
+			if dependency == target {
+				return true
 			}
-
-			if !d.IsDir() && d.Name() == "port.toml" {
-				// With first-letter classification: ports/t/testlib/1.0.0/port.toml
-				portDir := filepath.Dir(path)                   // ports/t/testlib/1.0.0
-				libVersion := filepath.Base(portDir)            // 1.0.0
-				libName := filepath.Base(filepath.Dir(portDir)) // testlib
-				nameVersion := libName + "@" + libVersion
-
-				if strings.HasPrefix(nameVersion, toComplete) {
-					suggestions = append(suggestions, nameVersion)
+		}
+		if r.dev {
+			for _, dependency := range config.DevDependencies {
+				if dependency == target {
+					return true
 				}
 			}
+		}
+	}
+	return false
+}
 
+func (r *reverseCmd) completion(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	suggestions := make([]string, 0)
+	visited := map[string]bool{}
+
+	walkPorts := func(root string) {
+		filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return nil
+			}
+			if d.IsDir() && strings.HasPrefix(d.Name(), ".") {
+				return filepath.SkipDir
+			}
+			if d.IsDir() || d.Name() != "port.toml" {
+				return nil
+			}
+			portDir := filepath.Dir(path)
+			libVersion := filepath.Base(portDir)
+			libName := filepath.Base(filepath.Dir(portDir))
+			nameVersion := libName + "@" + libVersion
+			if !visited[nameVersion] && strings.HasPrefix(nameVersion, toComplete) {
+				visited[nameVersion] = true
+				suggestions = append(suggestions, nameVersion)
+			}
 			return nil
 		})
+	}
 
-		// Support flags completion.
-		for _, flag := range []string{"--dev", "-d"} {
-			if strings.HasPrefix(flag, toComplete) {
-				suggestions = append(suggestions, flag)
-			}
+	if fileio.PathExists(dirs.PortsDir) {
+		walkPorts(dirs.PortsDir)
+	}
+	if r.celer != nil && r.celer.Project().GetName() != "" {
+		projectDir := filepath.Join(dirs.ConfProjectsDir, r.celer.Project().GetName())
+		if fileio.PathExists(projectDir) {
+			walkPorts(projectDir)
+		}
+	}
+
+	for _, flag := range []string{"--dev", "-d"} {
+		if strings.HasPrefix(flag, toComplete) {
+			suggestions = append(suggestions, flag)
 		}
 	}
 
@@ -183,23 +229,6 @@ func (r *reverseCmd) validatePackageName(packageName string) error {
 	return nil
 }
 
-// hasDependency checks if a port has the target package as dependency
-func (r *reverseCmd) hasDependency(port configs.Port, target string) bool {
-	// Check regular dependencies
-	if slices.Contains(port.MatchedConfig.Dependencies, target) {
-		return true
-	}
-
-	// Check dev dependencies if dev mode is enabled
-	if r.dev {
-		if slices.Contains(port.MatchedConfig.DevDependencies, target) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // displayResults shows the reverse dependency results
 func (r *reverseCmd) displayResults(target string, libraries []string) {
 	var title string
@@ -210,6 +239,7 @@ func (r *reverseCmd) displayResults(target string, libraries []string) {
 	}
 	color.Println(color.Title, title)
 	color.Println(color.Title, strings.Repeat("-", len(title)))
+
 	if len(libraries) > 0 {
 		for _, lib := range libraries {
 			fmt.Println(lib)

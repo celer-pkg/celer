@@ -159,130 +159,21 @@ Examples:
 					"please configure only one setting or one related group at a time.",
 				)
 			}
-			if flags.Changed("platform") {
-				if err := c.celer.SetPlatform(c.platform); err != nil {
-					return color.PrintError(err, "failed to set platform.")
-				}
-				color.PrintSuccess("current platform: %s", c.platform)
-			}
 
-			if flags.Changed("project") {
-				if err := c.celer.SetProject(c.project); err != nil {
-					return color.PrintError(err, "failed to set project: %s", c.project)
-				}
-				color.PrintSuccess("current project: %s", c.project)
-
-				// Auto configure platform.
-				targetPlatform := c.celer.Project().GetTargetPlatform()
-				if targetPlatform != "" && c.celer.Platform().GetName() == "" {
-					if err := c.celer.SetPlatform(targetPlatform); err != nil {
-						return color.PrintError(err, "failed to set platform: %s", targetPlatform)
-					}
-					color.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Platform().GetName())
-				}
+			if err := c.configureMain(flags); err != nil {
+				return err
 			}
-
-			if flags.Changed("build-type") {
-				if err := c.celer.SetBuildType(c.buildType); err != nil {
-					return color.PrintError(err, "failed to set build type: %s", c.buildType)
-				}
-				color.PrintSuccess("current build type: %s", c.buildType)
+			if err := c.configureCCache(flags); err != nil {
+				return err
 			}
-
-			if flags.Changed("downloads") {
-				if err := c.celer.SetDownloads(c.downloads); err != nil {
-					return color.PrintError(err, "failed to set downloads: %s", c.downloads)
-				}
-				color.PrintSuccess("current downloads: %s", c.downloads)
+			if err := c.configureProxy(flags); err != nil {
+				return err
 			}
-
-			if flags.Changed("jobs") {
-				if err := c.celer.SetJobs(c.jobs); err != nil {
-					return color.PrintError(err, "failed to set job num: %d.", c.jobs)
-				}
-				color.PrintSuccess("current job num: %d.", c.jobs)
+			if err := c.configurePkgCache(flags); err != nil {
+				return err
 			}
-
-			if flags.Changed("offline") {
-				if err := c.celer.SetOffline(c.offline); err != nil {
-					return color.PrintError(err, "failed to set offline mode: %s", expr.If(c.offline, "true", "false"))
-				}
-				color.PrintSuccess("current offline mode: %s", expr.If(c.offline, "true", "false"))
-			}
-
-			if flags.Changed("verbose") {
-				if err := c.celer.SetVerbose(c.verbose); err != nil {
-					return color.PrintError(err, "failed to set verbose mode: %s", expr.If(c.verbose, "true", "false"))
-				}
-				color.PrintSuccess("current verbose mode: %s", expr.If(c.verbose, "true", "false"))
-			}
-
-			if flags.Changed("pkgcache-dir") {
-				if err := c.celer.SetPkgCacheDir(c.pkgCacheDir); err != nil {
-					return color.PrintError(err, "failed to set pkgcache dir: %s", c.pkgCacheDir)
-				}
-				color.PrintSuccess("current pkgcache dir: %s", expr.If(c.pkgCacheDir != "", c.pkgCacheDir, "empty"))
-			}
-			if flags.Changed("pkgcache-writable") {
-				if err := c.celer.SetPkgCacheWritable(c.pkgCacheWritable); err != nil {
-					return color.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
-				}
-				color.PrintSuccess("current pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
-			}
-
-			if flags.Changed("proxy-host") {
-				if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
-					return color.PrintError(err, "failed to set proxy host: %s", c.proxy.Host)
-				}
-				color.PrintSuccess("current proxy host: %s", c.proxy.Host)
-			}
-
-			if flags.Changed("proxy-port") {
-				if err := c.celer.SetProxyPort(c.proxy.Port); err != nil {
-					return color.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
-				}
-				color.PrintSuccess("current proxy port: %d.", c.proxy.Port)
-			}
-
-			if flags.Changed("ccache-enabled") {
-				if err := c.celer.SetCCacheEnabled(c.ccache.Enabled); err != nil {
-					return color.PrintError(err, "failed to update ccache enabled.")
-				}
-				color.PrintSuccess("current ccache enabled: %s", expr.If(c.ccache.Enabled, "true", "false"))
-			}
-
-			if flags.Changed("ccache-dir") {
-				if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
-					return color.PrintError(err, "failed to update ccache dir.")
-				}
-				color.PrintSuccess("current ccache dir: %s", c.ccache.Dir)
-			}
-
-			if flags.Changed("ccache-maxsize") {
-				if err := c.celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
-					return color.PrintError(err, "failed to update ccache.maxsize.")
-				}
-				color.PrintSuccess("current ccache maxsize: %s", c.ccache.MaxSize)
-			}
-
-			if flags.Changed("ccache-remote-storage") {
-				if err := c.celer.SetCCacheRemoteStorage(c.ccache.RemoteStorage); err != nil {
-					return color.PrintError(err, "failed to update ccache.remote_storage.")
-				}
-				color.PrintSuccess("current ccache remote storage: %s", c.ccache.RemoteStorage)
-			}
-
-			if flags.Changed("ccache-remote-only") {
-				if err := c.celer.SetCCacheRemoteOnly(c.ccache.RemoteOnly); err != nil {
-					return color.PrintError(err, "failed to update ccache.remote_only.")
-				}
-				color.PrintSuccess("current ccache remote only: %s", expr.If(c.ccache.RemoteOnly, "true", "false"))
-			}
-
-			if flags.Changed("port") {
-				if err := c.configurePort(flags); err != nil {
-					return color.PrintError(err, "failed to configure port.")
-				}
+			if err := c.configurePort(flags); err != nil {
+				return err
 			}
 
 			return nil
@@ -315,10 +206,10 @@ Examples:
 	flags.StringVar(&c.ccache.RemoteStorage, "ccache-remote-storage", "", "configure ccache remote storage.")
 	flags.BoolVar(&c.ccache.RemoteOnly, "ccache-remote-only", false, "configure ccache remote only.")
 
-	// Port override flags.
+	// Port flags.
 	flags.StringVar(&c.port, "port", "", "port name@version to configure (e.g. rmw_zenoh_cpp@humble)")
-	flags.StringVar(&c.portUrl, "port-url", "", "override port url")
-	flags.StringVar(&c.portRef, "port-ref", "", "override port ref (branch/tag/commit)")
+	flags.StringVar(&c.portUrl, "port-url", "", "configure port url")
+	flags.StringVar(&c.portRef, "port-ref", "", "configure port ref (branch/tag/commit)")
 
 	// Support complete available platforms and projects.
 	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -336,6 +227,8 @@ Examples:
 	command.RegisterFlagCompletionFunc("verbose", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
+
+	// PkgCache flag completions.
 	command.RegisterFlagCompletionFunc("pkgcache-writable", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
 	})
@@ -388,7 +281,147 @@ func (c configureCmd) checkIfInitialized() error {
 	return nil
 }
 
+func (c *configureCmd) configureMain(flags *pflag.FlagSet) error {
+	if flags.Changed("platform") {
+		if err := c.celer.SetPlatform(c.platform); err != nil {
+			return color.PrintError(err, "failed to set platform.")
+		}
+		color.PrintSuccess("current platform: %s", c.platform)
+	}
+
+	if flags.Changed("project") {
+		if err := c.celer.SetProject(c.project); err != nil {
+			return color.PrintError(err, "failed to set project: %s", c.project)
+		}
+		color.PrintSuccess("current project: %s", c.project)
+
+		// Auto configure platform.
+		targetPlatform := c.celer.Project().GetTargetPlatform()
+		if targetPlatform != "" && c.celer.Platform().GetName() == "" {
+			if err := c.celer.SetPlatform(targetPlatform); err != nil {
+				return color.PrintError(err, "failed to set platform: %s", targetPlatform)
+			}
+			color.PrintSuccess("current platform: %s => Default target platform defined in project", c.celer.Platform().GetName())
+		}
+	}
+
+	if flags.Changed("build-type") {
+		if err := c.celer.SetBuildType(c.buildType); err != nil {
+			return color.PrintError(err, "failed to set build type: %s", c.buildType)
+		}
+		color.PrintSuccess("current build type: %s", c.buildType)
+	}
+
+	if flags.Changed("downloads") {
+		if err := c.celer.SetDownloads(c.downloads); err != nil {
+			return color.PrintError(err, "failed to set downloads: %s", c.downloads)
+		}
+		color.PrintSuccess("current downloads: %s", c.downloads)
+	}
+
+	if flags.Changed("jobs") {
+		if err := c.celer.SetJobs(c.jobs); err != nil {
+			return color.PrintError(err, "failed to set job num: %d.", c.jobs)
+		}
+		color.PrintSuccess("current job num: %d.", c.jobs)
+	}
+
+	if flags.Changed("offline") {
+		if err := c.celer.SetOffline(c.offline); err != nil {
+			return color.PrintError(err, "failed to set offline mode: %s", expr.If(c.offline, "true", "false"))
+		}
+		color.PrintSuccess("current offline mode: %s", expr.If(c.offline, "true", "false"))
+	}
+
+	if flags.Changed("verbose") {
+		if err := c.celer.SetVerbose(c.verbose); err != nil {
+			return color.PrintError(err, "failed to set verbose mode: %s", expr.If(c.verbose, "true", "false"))
+		}
+		color.PrintSuccess("current verbose mode: %s", expr.If(c.verbose, "true", "false"))
+	}
+
+	return nil
+}
+
+func (c *configureCmd) configureCCache(flags *pflag.FlagSet) error {
+	if flags.Changed("ccache-enabled") {
+		if err := c.celer.SetCCacheEnabled(c.ccache.Enabled); err != nil {
+			return color.PrintError(err, "failed to update ccache enabled.")
+		}
+		color.PrintSuccess("current ccache enabled: %s", expr.If(c.ccache.Enabled, "true", "false"))
+	}
+
+	if flags.Changed("ccache-dir") {
+		if err := c.celer.SetCCacheDir(c.ccache.Dir); err != nil {
+			return color.PrintError(err, "failed to update ccache dir.")
+		}
+		color.PrintSuccess("current ccache dir: %s", c.ccache.Dir)
+	}
+
+	if flags.Changed("ccache-maxsize") {
+		if err := c.celer.SetCCacheMaxSize(c.ccache.MaxSize); err != nil {
+			return color.PrintError(err, "failed to update ccache.maxsize.")
+		}
+		color.PrintSuccess("current ccache maxsize: %s", c.ccache.MaxSize)
+	}
+
+	if flags.Changed("ccache-remote-storage") {
+		if err := c.celer.SetCCacheRemoteStorage(c.ccache.RemoteStorage); err != nil {
+			return color.PrintError(err, "failed to update ccache.remote_storage.")
+		}
+		color.PrintSuccess("current ccache remote storage: %s", c.ccache.RemoteStorage)
+	}
+
+	if flags.Changed("ccache-remote-only") {
+		if err := c.celer.SetCCacheRemoteOnly(c.ccache.RemoteOnly); err != nil {
+			return color.PrintError(err, "failed to update ccache.remote_only.")
+		}
+		color.PrintSuccess("current ccache remote only: %s", expr.If(c.ccache.RemoteOnly, "true", "false"))
+	}
+
+	return nil
+}
+
+func (c *configureCmd) configureProxy(flags *pflag.FlagSet) error {
+	if flags.Changed("proxy-host") {
+		if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
+			return color.PrintError(err, "failed to configure proxy host: %s", c.proxy.Host)
+		}
+		color.PrintSuccess("current proxy host: %s", c.proxy.Host)
+	}
+
+	if flags.Changed("proxy-port") {
+		if err := c.celer.SetProxyPort(c.proxy.Port); err != nil {
+			return color.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
+		}
+		color.PrintSuccess("current proxy port: %d.", c.proxy.Port)
+	}
+
+	return nil
+}
+
+func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
+	if flags.Changed("pkgcache-dir") {
+		if err := c.celer.SetPkgCacheDir(c.pkgCacheDir); err != nil {
+			return color.PrintError(err, "failed to set pkgcache dir: %s", c.pkgCacheDir)
+		}
+		color.PrintSuccess("current pkgcache dir: %s", expr.If(c.pkgCacheDir != "", c.pkgCacheDir, "empty"))
+	}
+	if flags.Changed("pkgcache-writable") {
+		if err := c.celer.SetPkgCacheWritable(c.pkgCacheWritable); err != nil {
+			return color.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
+		}
+		color.PrintSuccess("current pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
+	}
+
+	return nil
+}
+
 func (c *configureCmd) configurePort(flags *pflag.FlagSet) error {
+	if !flags.Changed("port") {
+		return nil
+	}
+
 	if c.port == "" {
 		return fmt.Errorf("--port is required when using --port-url or --port-ref")
 	}
