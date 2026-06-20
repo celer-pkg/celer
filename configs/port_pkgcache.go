@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/pkgcache"
@@ -16,6 +17,39 @@ import (
 
 	"github.com/BurntSushi/toml"
 )
+
+// metaResult caches the result of buildMeta for a given port identity.
+type metaResult struct {
+	meta string
+	err  error
+}
+
+// Caches keyed by "nameVersion|devDep|hostDev". These are process-lifetime:
+// within a single celer invocation, port.toml content and git commits don't
+// change, so buildMeta/GenPortTomlString/GetCommitHash are pure functions of
+// their arguments.
+var (
+	buildMetaCache  sync.Map // key: string -> metaResult
+	portTomlCache   sync.Map // key: string -> metaResult
+	commitHashCache sync.Map // key: string -> metaResult
+)
+
+// ResetMetaCache clears all metadata caches. Called at the start of each celer
+// command to avoid stale data across invocations.
+func ResetMetaCache() {
+	buildMetaCache.Range(func(k, v any) bool {
+		buildMetaCache.Delete(k)
+		return true
+	})
+	portTomlCache.Range(func(k, v any) bool {
+		portTomlCache.Delete(k)
+		return true
+	})
+	commitHashCache.Range(func(k, v any) bool {
+		commitHashCache.Delete(k)
+		return true
+	})
+}
 
 func (p Port) buildhash() (string, error) {
 	metaData, err := p.buildMeta()
@@ -32,8 +66,15 @@ func (p Port) meta2hash(metaData string) string {
 }
 
 func (p Port) buildMeta() (string, error) {
-	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
+	// Try find prebuilt meta from cache first.
+	key := fmt.Sprintf("%s|%t|%t", p.NameVersion(), p.DevDep, p.HostDep)
+	if v, ok := buildMetaCache.Load(key); ok {
+		r := v.(metaResult)
+		return r.meta, r.err
+	}
 
+	// Computer meta and save into cache.
+	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
 	port := pkgcache.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    platformName,
@@ -44,7 +85,12 @@ func (p Port) buildMeta() (string, error) {
 		Callbacks:   p,
 	}
 
-	return port.BuildMeta()
+	// Don't cache ErrRepoNotExit — the repo may be cloned later in the same run.
+	result, err := port.BuildMeta()
+	if err == nil || !errors.Is(err, errors.ErrRepoNotExit) {
+		buildMetaCache.Store(key, metaResult{meta: result, err: err})
+	}
+	return result, err
 }
 
 func (c Port) GenPlatformTomlString() (string, error) {
@@ -72,14 +118,22 @@ func (c Port) GenPlatformTomlString() (string, error) {
 }
 
 func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error) {
+	// Checksum from caller affects the result, so include it in the cache key.
+	key := fmt.Sprintf("%s|%t|%s", nameVersion, devDep, p.Package.Checksum)
+	if v, ok := portTomlCache.Load(key); ok {
+		r := v.(metaResult)
+		return r.meta, r.err
+	}
+
+	// Store err if init port failed.
 	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
+		portTomlCache.Store(key, metaResult{err: err})
 		return "", err
 	}
 
-	matchedConfig := port.MatchedConfig
-
 	// The build type is one of the key fields to identify a build config.
+	matchedConfig := port.MatchedConfig
 	if matchedConfig.BuildType == "" {
 		matchedConfig.BuildType = p.ctx.BuildType()
 	}
@@ -92,6 +146,10 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	} else {
 		commit, err := port.GetCommitHash(nameVersion, devDep)
 		if err != nil {
+			// Don't cache ErrRepoNotExit — the repo may be cloned later.
+			if !errors.Is(err, errors.ErrRepoNotExit) {
+				portTomlCache.Store(key, metaResult{err: err})
+			}
 			return "", err
 		}
 		if commit != "" {
@@ -104,12 +162,30 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	// Only export the matched build config for current platform.
 	bytes, err := toml.Marshal(port)
 	if err != nil {
+		portTomlCache.Store(key, metaResult{err: err})
 		return "", fmt.Errorf("failed to marshal port %s -> %w", nameVersion, err)
 	}
-	return string(bytes), nil
+	result := string(bytes)
+	portTomlCache.Store(key, metaResult{meta: result})
+	return result, nil
 }
 
 func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
+	key := nameVersion
+	if v, ok := commitHashCache.Load(key); ok {
+		r := v.(metaResult)
+		return r.meta, r.err
+	}
+
+	// Don't cache ErrRepoNotExit — the repo may be cloned later in the same run.
+	result, err := p.getCommitHashUncached(nameVersion, devDep)
+	if err == nil || !errors.Is(err, errors.ErrRepoNotExit) {
+		commitHashCache.Store(key, metaResult{meta: result, err: err})
+	}
+	return result, err
+}
+
+func (p Port) getCommitHashUncached(nameVersion string, devDep bool) (string, error) {
 	var port = Port{DevDep: devDep}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return "", err
