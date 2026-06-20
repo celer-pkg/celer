@@ -67,6 +67,7 @@ type Port struct {
 	InstalledDir  string                    `toml:"-"`
 
 	ctx                        context.Context
+	portFile                   string
 	traceFile                  string
 	metaFile                   string
 	tmpDepsDir                 string
@@ -115,13 +116,13 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	}
 
 	// Decode TOML.
-	portPath := expr.If(fileio.PathExists(portInProject), portInProject, portInPorts)
-	bytes, err := os.ReadFile(portPath)
+	p.portFile = expr.If(fileio.PathExists(portInProject), portInProject, portInPorts)
+	bytes, err := os.ReadFile(p.portFile)
 	if err != nil {
-		return fmt.Errorf("failed to read %s -> %w", portPath, err)
+		return fmt.Errorf("failed to read %s -> %w", p.portFile, err)
 	}
 	if err := toml.Unmarshal(bytes, p); err != nil {
-		return fmt.Errorf("failed to unmarshal %s -> %w", portPath, err)
+		return fmt.Errorf("failed to unmarshal %s -> %w", p.portFile, err)
 	}
 
 	// Propagate build_tool flag from package to port.
@@ -164,7 +165,7 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 
 	// Validate port.
 	if err := p.validate(); err != nil {
-		return fmt.Errorf("failed to validate %s -> %w", portPath, err)
+		return fmt.Errorf("failed to validate %s -> %w", p.portFile, err)
 	}
 
 	return nil

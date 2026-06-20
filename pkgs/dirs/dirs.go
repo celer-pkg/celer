@@ -17,6 +17,7 @@ var (
 	PackagesDir      string // "packages"
 	InstalledDir     string // "installed"
 	BuildtreesDir    string // "buildtrees"
+	DownloadsDir     string // "downloads"
 	PythonUserBase   string // "PYTHONUSERBASE"
 	TmpDir           string // "tmp"
 	TmpFilesDir      string // "tmp/files"
@@ -42,6 +43,7 @@ func Init(workspaceDir string) {
 	PackagesDir = filepath.Join(WorkspaceDir, "packages")
 	InstalledDir = filepath.Join(WorkspaceDir, "installed")
 	BuildtreesDir = filepath.Join(WorkspaceDir, "buildtrees")
+	DownloadsDir = filepath.Join(WorkspaceDir, "downloads")
 	PythonUserBase = filepath.Join(WorkspaceDir, ".venv")
 	TmpDir = filepath.Join(WorkspaceDir, "tmp")
 	TmpFilesDir = filepath.Join(WorkspaceDir, "tmp", "files")
