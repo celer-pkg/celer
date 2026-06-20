@@ -219,6 +219,46 @@ func (p Port) Installed() (bool, error) {
 		return false, nil
 	}
 
+	// Verify that all dependencies are also installed.
+	// If a dependency was removed the parent's trace/meta still exist but the artifact is gone.
+	depsInstalled, err := p.checkDepsInstalled()
+	if err != nil {
+		return false, fmt.Errorf("failed to check depts installed for %s -> %w", p.NameVersion(), err)
+	}
+
+	return depsInstalled, nil
+}
+
+func (p Port) checkDepsInstalled() (bool, error) {
+	for _, nameVersion := range p.MatchedConfig.Dependencies {
+		var port = Port{
+			DevDep:  p.DevDep,
+			HostDep: p.HostDep,
+		}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return false, err
+		}
+		if installed, _ := port.Installed(); !installed {
+			return false, nil
+		}
+	}
+	for _, nameVersion := range p.MatchedConfig.DevDependencies {
+		if (p.DevDep || p.HostDep) && p.NameVersion() == nameVersion {
+			continue
+		}
+
+		var port = Port{
+			DevDep:  true,
+			HostDep: p.HostDep,
+		}
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return false, err
+		}
+		if installed, _ := port.Installed(); !installed {
+			return false, nil
+		}
+	}
+
 	return true, nil
 }
 
