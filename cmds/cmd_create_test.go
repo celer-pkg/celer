@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
@@ -210,53 +211,41 @@ func TestCreateCmd_Validation(t *testing.T) {
 }
 
 func TestCreateCmd_CommandExecutionValidation(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
 	t.Run("empty project value should fail", func(t *testing.T) {
-		celer := configs.NewCeler()
-		create := createCmd{}
-		cmd := create.Command(celer)
-		cmd.SetArgs([]string{"--project="})
+		celer := newInitializedCeler(t)
+		cmd := &createCmd{}
 
-		if err := cmd.Execute(); err == nil {
+		stderr, err := runCommand(t, cmd.Command(celer), "--project=")
+		if err == nil {
 			t.Fatal("expected error when --project is set with empty value")
+		}
+		if !strings.Contains(stderr, "cannot be empty") {
+			t.Fatalf("stderr should report empty value, got:\n%s", stderr)
 		}
 	})
 
 	t.Run("positional args should fail", func(t *testing.T) {
-		celer := configs.NewCeler()
-		create := createCmd{}
-		cmd := create.Command(celer)
-		cmd.SetArgs([]string{"unexpected-arg", "--project=test_project"})
+		celer := newInitializedCeler(t)
+		cmd := &createCmd{}
 
-		if err := cmd.Execute(); err == nil {
+		// cobra.NoArgs handles this — error comes from cobra, not from RunE.
+		_, err := runCommand(t, cmd.Command(celer), "unexpected-arg", "--project=test_project")
+		if err == nil {
 			t.Fatal("expected error when positional args are provided")
 		}
 	})
 }
 
 func TestCreateCmd(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Init celer.
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+	celer := newInitializedCeler(t)
 
 	// ============= Create platform ============= //
 	t.Run("CreatePlatformSuccess", func(t *testing.T) {
 		const platformName = "x86_64-linux-ubuntu-test"
-		check(celer.CreatePlatform(platformName))
+		cmd := &createCmd{}
+		if _, err := runCommand(t, cmd.Command(celer), "--platform="+platformName); err != nil {
+			t.Fatal(err)
+		}
 
 		// Check if platform really created.
 		platformPath := filepath.Join(dirs.ConfPlatformsDir, platformName+".toml")
@@ -264,22 +253,29 @@ func TestCreateCmd(t *testing.T) {
 			t.Errorf("platform file does not exist: %s", platformPath)
 		}
 
-		check(os.RemoveAll(platformPath))
+		t.Cleanup(func() {
+			_ = os.RemoveAll(platformPath)
+		})
 	})
 
 	t.Run("CreatePlatformFailed_emptyName", func(t *testing.T) {
-		if err := celer.CreatePlatform(""); err == nil {
-			t.Errorf("it should be failed")
+		cmd := &createCmd{}
+		stderr, err := runCommand(t, cmd.Command(celer), "--platform=")
+		if err == nil {
+			t.Fatal("expected error when --platform is empty")
 		}
-
-		check(os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml")))
+		if !strings.Contains(stderr, "cannot be empty") {
+			t.Fatalf("stderr should report empty name, got:\n%s", stderr)
+		}
 	})
-	check(celer.SetBuildType("Release"))
 
 	// ============= Create project ============= //
 	t.Run("CreateProjectSuccess", func(t *testing.T) {
 		const projectName = "project_test_create"
-		check(celer.CreateProject(projectName))
+		cmd := &createCmd{}
+		if _, err := runCommand(t, cmd.Command(celer), "--project="+projectName); err != nil {
+			t.Fatal(err)
+		}
 
 		projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
 		if !fileio.PathExists(projectPath) {
@@ -287,13 +283,18 @@ func TestCreateCmd(t *testing.T) {
 		}
 
 		t.Cleanup(func() {
-			check(os.Remove(projectPath))
+			_ = os.Remove(projectPath)
 		})
 	})
 
-	t.Run("Create project failed: empyt name", func(t *testing.T) {
-		if err := celer.CreateProject(""); err == nil {
-			t.Errorf("it should be failed")
+	t.Run("CreateProjectFailed_emptyName", func(t *testing.T) {
+		cmd := &createCmd{}
+		stderr, err := runCommand(t, cmd.Command(celer), "--project=")
+		if err == nil {
+			t.Fatal("expected error when --project is empty")
+		}
+		if !strings.Contains(stderr, "cannot be empty") {
+			t.Fatalf("stderr should report empty name, got:\n%s", stderr)
 		}
 	})
 
@@ -301,7 +302,10 @@ func TestCreateCmd(t *testing.T) {
 	t.Run("CreatePortSuccess", func(t *testing.T) {
 		const portName = "test_port_test"
 		const portVersion = "1.0.0"
-		check(celer.CreatePort(portName + "@" + portVersion))
+		cmd := &createCmd{}
+		if _, err := runCommand(t, cmd.Command(celer), "--port="+portName+"@"+portVersion); err != nil {
+			t.Fatal(err)
+		}
 
 		portPath := dirs.GetPortPath(portName, portVersion)
 		if !fileio.PathExists(portPath) {
@@ -309,19 +313,29 @@ func TestCreateCmd(t *testing.T) {
 		}
 
 		t.Cleanup(func() {
-			check(os.Remove(portPath))
+			_ = os.Remove(portPath)
 		})
 	})
 
 	t.Run("CreatePortFailed_emptyName", func(t *testing.T) {
-		if err := celer.CreatePort(""); err == nil {
-			t.Errorf("it should be failed")
+		cmd := &createCmd{}
+		stderr, err := runCommand(t, cmd.Command(celer), "--port=")
+		if err == nil {
+			t.Fatal("expected error when --port is empty")
+		}
+		if !strings.Contains(stderr, "cannot be empty") {
+			t.Fatalf("stderr should report empty port name, got:\n%s", stderr)
 		}
 	})
 
 	t.Run("CreatePortFailed_invalidPortName", func(t *testing.T) {
-		if err := celer.CreatePort("libxxx"); err == nil {
-			t.Errorf("it should be failed")
+		cmd := &createCmd{}
+		stderr, err := runCommand(t, cmd.Command(celer), "--port=libxxx")
+		if err == nil {
+			t.Fatal("expected error when --port is not in name@version form")
+		}
+		if !strings.Contains(stderr, "name@version") {
+			t.Fatalf("stderr should report invalid format, got:\n%s", stderr)
 		}
 	})
 }

@@ -2,9 +2,10 @@ package cmds
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/color"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -131,7 +132,7 @@ func (c *createCmd) doCreate(cmd *cobra.Command) error {
 	return nil
 }
 
-func validateInput(value, field string, allowSpace bool) error {
+func (c *createCmd) validateInput(value, field string, allowSpace bool) error {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
 		return fmt.Errorf("%s cannot be empty", field)
@@ -155,12 +156,12 @@ func validateInput(value, field string, allowSpace bool) error {
 
 // validatePlatformName validates platform name format
 func (c *createCmd) validatePlatformName(name string) error {
-	return validateInput(name, "platform name", false)
+	return c.validateInput(name, "platform name", false)
 }
 
 // validateProjectName validates project name format
 func (c *createCmd) validateProjectName(name string) error {
-	return validateInput(name, "project name", true)
+	return c.validateInput(name, "project name", true)
 }
 
 // validatePortName validates port name@version format
@@ -182,10 +183,10 @@ func (c *createCmd) validatePortName(nameVersion string) error {
 		return fmt.Errorf("invalid port format, expected name@version")
 	}
 
-	if err := validateInput(name, "port name", false); err != nil {
+	if err := c.validateInput(name, "port name", false); err != nil {
 		return err
 	}
-	if err := validateInput(version, "port version", false); err != nil {
+	if err := c.validateInput(version, "port version", false); err != nil {
 		return err
 	}
 
