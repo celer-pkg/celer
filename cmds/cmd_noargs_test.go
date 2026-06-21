@@ -1,8 +1,9 @@
 package cmds
 
 import (
-	"github.com/celer-pkg/celer/configs"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
 
 	"github.com/spf13/cobra"
 )

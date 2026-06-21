@@ -2,12 +2,13 @@ package cmds
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/completion"
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"os"
 	"runtime"
 	"strings"
+
+	"github.com/celer-pkg/celer/completion"
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/color"
 
 	"github.com/spf13/cobra"
 )

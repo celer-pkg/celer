@@ -1,13 +1,14 @@
 package cmds
 
 import (
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 
 	"github.com/spf13/cobra"
 )
@@ -21,10 +22,6 @@ func TestSearchCmd_CommandStructure(t *testing.T) {
 	celer := &configs.Celer{}
 
 	cmd := search.Command(celer)
-	if cmd == nil {
-		t.Fatal("Command should not be nil")
-	}
-
 	if cmd.Use != "search" {
 		t.Errorf("Expected Use to be 'search', got %s", cmd.Use)
 	}

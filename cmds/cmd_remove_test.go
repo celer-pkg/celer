@@ -25,10 +25,6 @@ func TestRemoveCmd_CommandStructure(t *testing.T) {
 	celer := &configs.Celer{}
 
 	cmd := remove.Command(celer)
-	if cmd == nil {
-		t.Fatal("Command should not be nil")
-	}
-
 	if cmd.Use != "remove" {
 		t.Errorf("Expected Use to be 'remove', got %s", cmd.Use)
 	}
