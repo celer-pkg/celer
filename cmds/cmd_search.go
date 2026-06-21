@@ -2,13 +2,14 @@ package cmds
 
 import (
 	"fmt"
+	"io/fs"
+	"path/filepath"
+	"strings"
+
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
-	"io/fs"
-	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 )

@@ -9,7 +9,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-type pkgCache struct {
+type PkgCache struct {
 	Dir            string `toml:"dir"`
 	Writable       bool   `toml:"writable"`
 	CacheArtifacts bool   `toml:"cache_artifacts"`
@@ -21,8 +21,8 @@ type pkgCache struct {
 	repoConfig     *pkgcache.RepoConfig
 }
 
-func NewPkgCache(ctx context.Context, dir string, writable bool) *pkgCache {
-	return &pkgCache{
+func NewPkgCache(ctx context.Context, dir string, writable bool) *PkgCache {
+	return &PkgCache{
 		ctx:            ctx,
 		Dir:            dir,
 		Writable:       writable,
@@ -31,7 +31,7 @@ func NewPkgCache(ctx context.Context, dir string, writable bool) *pkgCache {
 	}
 }
 
-func (p *pkgCache) Validate() error {
+func (p *PkgCache) Refresh() error {
 	if p.Dir == "" {
 		return fmt.Errorf("pkgcache dir is empty")
 	}
@@ -39,13 +39,14 @@ func (p *pkgCache) Validate() error {
 		return fmt.Errorf("pkgcache dir does not exist: %s", p.Dir)
 	}
 
-	// Create valid aritifact and repo cache.
+	// Create valid artifact config and repo config.
 	p.artifactConfig = pkgcache.NewArtifactConfig(p.ctx, p.Writable)
 	p.repoConfig = pkgcache.NewRepoConfig(p.ctx, p.Writable)
+
 	return nil
 }
 
-func (p pkgCache) GetDir(dirType context.PkgCacheDirType) string {
+func (p PkgCache) GetDir(dirType context.PkgCacheDirType) string {
 	switch dirType {
 	case context.PkgCacheDirArtifacts:
 		return filepath.Join(p.Dir, "artifacts-"+Version)
@@ -61,18 +62,26 @@ func (p pkgCache) GetDir(dirType context.PkgCacheDirType) string {
 	}
 }
 
-func (p pkgCache) IsWritable() bool {
+func (p PkgCache) IsWritable() bool {
 	return p.Writable
 }
 
-func (p pkgCache) GetArtifactCache() context.AritifactCache {
+func (p PkgCache) GetCacheArtifacts() bool {
+	return p.CacheArtifacts
+}
+
+func (p PkgCache) GetCacheDownloads() bool {
+	return p.CacheDownloads
+}
+
+func (p PkgCache) GetArtifactCache() context.AritifactCache {
 	if p.artifactConfig == nil {
 		return nil
 	}
 	return p.artifactConfig
 }
 
-func (p pkgCache) GetRepoCache() context.RepoCache {
+func (p PkgCache) GetRepoCache() context.RepoCache {
 	if p.repoConfig == nil {
 		return nil
 	}

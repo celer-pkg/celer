@@ -1,10 +1,8 @@
 package cmds
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
@@ -113,31 +111,31 @@ func TestInitCmd_Completion(t *testing.T) {
 	}
 }
 
-func TestInitCmd_Command(t *testing.T) {
-	// Cleanup function
-	cleanup := func() {
-		dirs.RemoveAllForTest()
-	}
-	t.Cleanup(cleanup)
+func runInit(t *testing.T, args ...string) (string, error) {
+	t.Helper()
+	dirs.RemoveAllForTest()
+	_ = os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf"))
 
+	cmd := &initCmd{}
+	return runCommand(t, cmd.Command(configs.NewCeler()), args...)
+}
+
+func TestInitCmd_Command(t *testing.T) {
 	tests := []struct {
 		name        string
-		url         string
-		branch      string
+		args        []string
 		expectError bool
 		description string
 	}{
 		{
 			name:        "valid_git_repo",
-			url:         test_conf_repo_url,
-			branch:      "",
+			args:        []string{"--url=" + test_conf_repo_url},
 			expectError: false,
 			description: "Should succeed with valid git repository",
 		},
 		{
 			name:        "valid_git_repo_with_branch",
-			url:         test_conf_repo_url,
-			branch:      "master", // Use master branch which likely exists
+			args:        []string{"--url=" + test_conf_repo_url, "--branch=master"},
 			expectError: false,
 			description: "Should succeed with valid git repository and specific branch",
 		},
@@ -145,74 +143,46 @@ func TestInitCmd_Command(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			// Clean up before each test
-			cleanup()
-
-			// Create a new celer instance
-			celer := configs.NewCeler()
-
-			// Create init command
-			initCmd := initCmd{}
-			cmd := initCmd.Command(celer)
-
-			// Set up the command arguments
-			if test.url != "" {
-				cmd.Flags().Set("url", test.url)
-			}
-			if test.branch != "" {
-				cmd.Flags().Set("branch", test.branch)
-			}
-
-			// Execute the command in a way that doesn't call os.Exit
-			err := executeCommandForTest(celer, test.url, test.branch)
+			stderr, err := runInit(t, test.args...)
 
 			if test.expectError && err == nil {
 				t.Errorf("Expected error but got none")
 			} else if !test.expectError && err != nil {
-				t.Errorf("Expected no error but got: %v", err)
+				t.Errorf("Expected no error but got: %v\nstderr:\n%s", err, stderr)
 			}
 
-			// Verify that celer.toml was created
+			// Verify that celer.toml was created.
 			celerPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 			if !fileio.PathExists(celerPath) {
 				t.Error("celer.toml should be created after init")
 			}
 
-			// If URL was provided, verify conf repo was cloned.
-			if test.url != "" {
-				confDir := filepath.Join(dirs.WorkspaceDir, "conf")
-				if !fileio.PathExists(confDir) {
-					t.Error("conf directory should be created when URL is provided")
-				}
+			// Verify conf repo was cloned.
+			confDir := filepath.Join(dirs.WorkspaceDir, "conf")
+			if !fileio.PathExists(confDir) {
+				t.Error("conf directory should be created when URL is provided")
 			}
 		})
 	}
 }
 
 func TestInitCmd_Initialize(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
-	// Test init without URL (should fail).
+	// `celer init` without --url must fail at cobra's required-flag check,
+	// long before RunE.
 	t.Run("init_without_url", func(t *testing.T) {
-		celer := configs.NewCeler()
-		if err := executeCommandForTest(celer, "", ""); err == nil {
-			t.Fatalf("Init without URL should fail, but got no error")
+		stderr, err := runInit(t)
+		if err == nil {
+			t.Fatalf("Init without --url should fail, but got no error")
 		}
+		// cobra's required-flag check writes to stderr/err, depending on
+		// version. Either signal is fine — we just require an error.
+		_ = stderr
 	})
 
-	// Test init with URL.
 	t.Run("init_with_url", func(t *testing.T) {
-		// Remove existing config for fresh test.
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-		os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf"))
-
-		celer := configs.NewCeler()
-		url := "https://github.com/celer-pkg/test-conf.git"
-
-		err := executeCommandForTest(celer, url, "")
+		stderr, err := runInit(t, "--url="+test_conf_repo_url)
 		if err != nil {
-			t.Fatalf("Init with URL should succeed: %v", err)
+			t.Fatalf("Init with --url should succeed: %v\nstderr:\n%s", err, stderr)
 		}
 
 		// Verify both celer.toml and conf directory exist.
@@ -226,85 +196,71 @@ func TestInitCmd_Initialize(t *testing.T) {
 			t.Error("conf directory should be created")
 		}
 
-		// Verify the URL is saved in config
+		// Re-init from disk should round-trip without error.
 		celer2 := configs.NewCeler()
-		err = celer2.Init()
-		if err != nil {
+		if err := celer2.Init(); err != nil {
 			t.Fatalf("Failed to re-init celer: %v", err)
 		}
-		// Note: Would need access to internal config to verify URL was saved
-		// This could be added by exposing a getter method in configs.Celer
 	})
 }
 
-func executeCommandForTest(celer *configs.Celer, url, branch string) error {
-	// Set up initCmd instance
-	initCmd := &initCmd{
-		url:    url,
-		branch: branch,
-	}
-
-	// Clean and validate inputs first.
-	initCmd.url = strings.TrimSpace(initCmd.url)
-	initCmd.branch = strings.TrimSpace(initCmd.branch)
-
-	if initCmd.url == "" {
-		return fmt.Errorf("no url provided when init")
-	}
-
-	if err := celer.Init(); err != nil {
-		return err
-	}
-
-	if err := celer.CloneConf(initCmd.url, initCmd.branch, initCmd.force); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func TestInitCmd_EdgeCases(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
-
 	tests := []struct {
 		name        string
-		url         string
-		branch      string
+		args        []string
+		expectError bool
 		description string
 	}{
 		{
-			name:        "url_with_spaces",
-			url:         "   https://github.com/celer-pkg/test-conf.git   ",
-			branch:      "",
-			description: "Should handle URLs with leading/trailing spaces",
+			name:        "branch_with_master",
+			args:        []string{"--url=" + test_conf_repo_url, "--branch=master"},
+			expectError: false,
+			description: "Should succeed with existing branch",
 		},
 		{
-			name:        "branch_with_special_chars",
-			url:         "https://github.com/celer-pkg/test-conf.git",
-			branch:      "master", // Use existing branch instead of non-existent one
-			description: "Should handle branch names with special characters",
+			name:        "branch_nonexistent",
+			args:        []string{"--url=" + test_conf_repo_url, "--branch=does-not-exist-9999"},
+			expectError: true,
+			description: "Should fail when branch does not exist on remote",
+		},
+		{
+			name:        "url_not_a_git_repo",
+			args:        []string{"--url=https://example.com/not-a-repo.git"},
+			expectError: true,
+			description: "Should fail when URL is not a real git repository",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			// Clean up before each test.
-			os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "celer.toml"))
-			os.RemoveAll(filepath.Join(dirs.WorkspaceDir, "conf"))
-
-			celer := configs.NewCeler()
-
-			// For URLs with spaces, we might want to trim them.
-			url := strings.TrimSpace(test.url)
-
-			err := executeCommandForTest(celer, url, test.branch)
-
-			// These tests mainly verify that the command doesn't crash,
-			// The actual validation of URLs/branches would happen in CloneConf.
-			if err != nil {
-				t.Logf("Expected behavior: %s resulted in error: %v", test.description, err)
+			stderr, err := runInit(t, test.args...)
+			if test.expectError && err == nil {
+				t.Errorf("%s: expected error, got none\nstderr:\n%s", test.description, stderr)
+			}
+			if !test.expectError && err != nil {
+				t.Errorf("%s: unexpected error: %v\nstderr:\n%s", test.description, err, stderr)
 			}
 		})
+	}
+}
+
+// Verify trim behavior: leading/trailing spaces in --url should still be
+// handled by RunE's strings.TrimSpace before reaching CloneConf.
+func TestInitCmd_TrimsUrlAndBranch(t *testing.T) {
+	stderr, err := runInit(t,
+		"--url=  "+test_conf_repo_url+"  ",
+		"--branch=  master  ",
+	)
+	if err != nil {
+		t.Fatalf("init should trim whitespace and succeed: %v\nstderr:\n%s", err, stderr)
+	}
+
+	// Verify both celer.toml and conf directory exist after trimmed values
+	// land in the same code path.
+	if !fileio.PathExists(filepath.Join(dirs.WorkspaceDir, "celer.toml")) {
+		t.Error("celer.toml should be created after init")
+	}
+	if !fileio.PathExists(filepath.Join(dirs.WorkspaceDir, "conf")) {
+		t.Error("conf directory should be created after init")
 	}
 }

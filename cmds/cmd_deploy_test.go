@@ -1,9 +1,11 @@
 package cmds
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"testing"
 
@@ -11,6 +13,8 @@ import (
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/expr"
+	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/refs"
 
@@ -383,5 +387,64 @@ func TestDeploy_Clone_FreshClone_NoResolvedCommit_StaysOnBranch(t *testing.T) {
 	}
 	if branch != "master" {
 		t.Fatalf("expected branch 'master', got %q", branch)
+	}
+}
+
+func TestDeployCmd_Success(t *testing.T) {
+	celer := newInitializedCeler(t)
+
+	var (
+		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
+		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
+		project         = "project_test_clean"
+	)
+
+	configBuildType := &configureCmd{}
+	if _, err := runCommand(t, configBuildType.Command(celer), "--build-type=Release"); err != nil {
+		t.Fatal(err)
+	}
+	configPlatform := &configureCmd{}
+	if _, err := runCommand(t, configPlatform.Command(celer), "--platform="+platform); err != nil {
+		t.Fatal(err)
+	}
+	configProject := &configureCmd{}
+	if _, err := runCommand(t, configProject.Command(celer), "--project="+project); err != nil {
+		t.Fatal(err)
+	}
+
+	// Snapshot file lives under the workspace so it's covered by t.Cleanup
+	// when the test removes the workspace state next run.
+	snapshotPath := filepath.Join(t.TempDir(), "deploy-e2e.md")
+
+	cmd := &deployCmd{}
+	stderr, err := runCommand(t, cmd.Command(celer),
+		"--force",
+		"--snapshot="+snapshotPath,
+	)
+	if err != nil {
+		// stderr carries the real cause (color.PrintError pipes the message
+		// there, returns ErrSilent). Print it so transient git/network
+		// failures are debuggable without re-running.
+		t.Fatalf("deploy should succeed for project %s: %v\nstderr:\n%s", project, err, stderr)
+	}
+
+	// Successful deploy must produce x264's buildtree (project_test_clean
+	// has only x264@stable in its ports list).
+	buildDir := fmt.Sprintf("%s/x264@stable/%s-%s-%s",
+		dirs.BuildtreesDir, platform, project, celer.BuildType())
+	if !fileio.PathExists(buildDir) {
+		t.Fatalf("x264@stable build dir should exist after deploy: %s", buildDir)
+	}
+
+	// `--snapshot` must export a markdown file at the given path.
+	if !fileio.PathExists(snapshotPath) {
+		t.Fatalf("snapshot file should exist at %s", snapshotPath)
+	}
+
+	// `resolveAllRefs` always writes a deployment markdown under
+	// installed/celer/deployments regardless of --snapshot.
+	deploymentsDir := filepath.Join(dirs.InstalledDir, "celer", "deployments")
+	if !fileio.PathExists(deploymentsDir) {
+		t.Fatalf("deployments dir should exist after deploy: %s", deploymentsDir)
 	}
 }

@@ -1,13 +1,14 @@
 package cmds
 
 import (
-	"github.com/celer-pkg/celer/buildsystems"
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/dirs"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 )
 
 func TestReverseCmd_CommandStructure(t *testing.T) {
@@ -99,7 +100,8 @@ func TestReverseCmd_EmptyPorts(t *testing.T) {
 	}()
 	dirs.PortsDir = filepath.Join(tempDir, "nonexistent")
 
-	cmd := reverseCmd{}
+	celer := configs.NewCeler()
+	cmd := reverseCmd{celer: celer}
 
 	// Test with non-existent ports directory
 	results, err := cmd.query("nonexistent@1.0.0")
@@ -148,9 +150,9 @@ func TestReverseCmd_Without_Dev(t *testing.T) {
 
 	expected := []string{
 		"ceres-solver@2.1.0",
-		"gstreamer@1.26.0",
 		"gtsam@4.2.0",
 		"lbfgspp@0.3.0",
+		"pcl@1.14.1",
 	}
 
 	if !equals(dependencies, expected) {
@@ -214,6 +216,7 @@ func TestReverseCmd_With_Dev(t *testing.T) {
 		"ffmpeg@5.1.6",
 		"openssl@3.5.0",
 		"x264@stable",
+		"x265@4.1",
 	}
 	if !equals(dependencies, expected) {
 		t.Fatalf("expected %s, but got %s", expected, dependencies)
@@ -228,41 +231,47 @@ func TestReverseCmd_With_Dev(t *testing.T) {
 	}
 }
 
-func TestReverseCmd_HasDependency(t *testing.T) {
+func TestReverseCmd_TomlHasDependency(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
+	// Create a temporary port.toml with dependencies.
+	tempDir := t.TempDir()
+	portToml := filepath.Join(tempDir, "port.toml")
+	content := `[package]
+  name = "testlib"
+  version = "1.0.0"
+
+[[build_configs]]
+  build_system = "cmake"
+  dependencies = ["dep1@1.0.0", "dep2@2.0.0"]
+  dev_dependencies = ["devdep1@1.0.0", "devdep2@2.0.0"]
+`
+	if err := os.WriteFile(portToml, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
 	cmd := reverseCmd{}
 
-	// Mock port with dependencies
-	port := configs.Port{
-		MatchedConfig: &buildsystems.BuildConfig{
-			Dependencies:    []string{"dep1@1.0.0", "dep2@2.0.0"},
-			DevDependencies: []string{"devdep1@1.0.0", "devdep2@2.0.0"},
-		},
-	}
-
-	// Test regular dependencies
-	if !cmd.hasDependency(port, "dep1@1.0.0") {
+	// Test regular dependencies.
+	if !cmd.tomlHasDependency(portToml, "dep1@1.0.0") {
 		t.Error("expected to find regular dependency")
 	}
-
-	if cmd.hasDependency(port, "nonexistent@1.0.0") {
+	if cmd.tomlHasDependency(portToml, "nonexistent@1.0.0") {
 		t.Error("expected not to find nonexistent dependency")
 	}
 
-	// Test dev dependencies (should not be found in non-dev mode)
-	if cmd.hasDependency(port, "devdep1@1.0.0") {
+	// Test dev dependencies (should not be found in non-dev mode).
+	if cmd.tomlHasDependency(portToml, "devdep1@1.0.0") {
 		t.Error("expected not to find dev dependency in regular mode")
 	}
 
-	// Test dev dependencies in dev mode
+	// Test dev dependencies in dev mode.
 	cmd.dev = true
-	if !cmd.hasDependency(port, "devdep1@1.0.0") {
+	if !cmd.tomlHasDependency(portToml, "devdep1@1.0.0") {
 		t.Error("expected to find dev dependency in dev mode")
 	}
-
-	if !cmd.hasDependency(port, "dep1@1.0.0") {
+	if !cmd.tomlHasDependency(portToml, "dep1@1.0.0") {
 		t.Error("expected to find regular dependency in dev mode")
 	}
 }
