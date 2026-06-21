@@ -3,6 +3,7 @@ package cmds
 import (
 	"io"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
@@ -59,4 +60,17 @@ func runCommand(t *testing.T, cmd *cobra.Command, args ...string) (string, error
 	_ = writer.Close()
 	os.Stderr = stdErr
 	return <-done, execErr
+}
+
+// equals reports whether list1 and list2 contain the same elements, ignoring order.
+func equals(list1, list2 []string) bool {
+	if len(list1) != len(list2) {
+		return false
+	}
+	for _, item := range list1 {
+		if !slices.Contains(list2, item) {
+			return false
+		}
+	}
+	return true
 }

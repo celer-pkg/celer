@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
@@ -14,76 +13,62 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-func TestAutoRemove_With_Purge(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
+func setupWorkspaceForAutoremove(t *testing.T) (*configs.Celer, string, string, string) {
+	t.Helper()
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	var equals = func(list1, list2 []string) bool {
-		if len(list1) != len(list2) {
-			return false
-		}
-		for _, item := range list1 {
-			if !slices.Contains(list2, item) {
-				return false
-			}
-		}
-		return true
-	}
-
-	// Init celer.
 	var (
 		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_autoremove"
 		portNameVersion = "sqlite3@3.49.0"
 	)
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
 
-	autoremoveCmd := autoremoveCmd{celer: celer}
-
-	for _, nameVersion := range celer.Project().GetPorts() {
-		check(autoremoveCmd.collectPackages(nameVersion))
-		check(autoremoveCmd.collectDevPackages(nameVersion))
+	celer := newInitializedCeler(t)
+	if _, err := runCommand(t, (&configureCmd{}).Command(celer), "--build-type=Release"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, (&configureCmd{}).Command(celer), "--platform="+platform); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runCommand(t, (&configureCmd{}).Command(celer), "--project="+project); err != nil {
+		t.Fatal(err)
 	}
 
-	check(celer.Deploy(true, false))
+	return celer, platform, project, portNameVersion
+}
 
-	// ================= test autoremove ================= //
+func TestAutoRemove_With_Purge(t *testing.T) {
+	celer, platform, project, portNameVersion := setupWorkspaceForAutoremove(t)
+
 	var (
 		buildType  = celer.BuildType()
 		packageDir = filepath.Join(dirs.PackagesDir, platform, project, buildType, portNameVersion)
 		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
 	)
 
+	// Install sqlite3 from source so there is something for autoremove to
+	// scan (and so we can assert the package dir is removed afterwards).
 	var port configs.Port
-	var options configs.InstallOptions
-	check(port.Init(celer, portNameVersion))
-	check(port.InstallFromSource(options))
+	if err := port.Init(celer, portNameVersion); err != nil {
+		t.Fatal(err)
+	}
+	if err := port.InstallFromSource(configs.InstallOptions{}); err != nil {
+		t.Fatal(err)
+	}
 
-	autoremoveCmd.purge = true
-	autoremoveCmd.buildCache = false
-	check(autoremoveCmd.autoremove())
+	// Run `celer autoremove --purge` exactly as a user would.
+	cmd := &autoremoveCmd{}
+	if _, err := runCommand(t, cmd.Command(celer), "--purge"); err != nil {
+		t.Fatal(err)
+	}
 
 	// Check packages.
 	expectedPackages := []string{
 		"gflags@2.2.2",
 		"x264@stable",
 	}
-	if !equals(expectedPackages, autoremoveCmd.packages) {
-		t.Fatalf("expected %v, got %v", expectedPackages, autoremoveCmd.packages)
+	if !equals(expectedPackages, cmd.packages) {
+		t.Fatalf("expected %v, got %v", expectedPackages, cmd.packages)
 	}
 
 	// Check dev packages.
@@ -96,11 +81,12 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 			"automake@1.18",
 			"autoconf@2.72",
 			"m4@1.4.19",
+			"help2man@1.49.3",
 			"libtool@2.5.4",
 		}
 	}
-	if !equals(expectedDevPackages, autoremoveCmd.devPackages) {
-		t.Fatalf("expected %v, got %v", expectedDevPackages, autoremoveCmd.devPackages)
+	if !equals(expectedDevPackages, cmd.devPackages) {
+		t.Fatalf("expected %v, got %v", expectedDevPackages, cmd.devPackages)
 	}
 
 	if fileio.PathExists(packageDir) {
@@ -113,51 +99,21 @@ func TestAutoRemove_With_Purge(t *testing.T) {
 }
 
 func TestAutoRemove_With_BuildCache(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
+	celer, platform, project, portNameVersion := setupWorkspaceForAutoremove(t)
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	var equals = func(list1, list2 []string) bool {
-		if len(list1) != len(list2) {
-			return false
-		}
-		for _, item := range list1 {
-			if !slices.Contains(list2, item) {
-				return false
-			}
-		}
-		return true
-	}
-
-	// Init celer.
 	var (
-		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
-		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
-		project         = "project_test_autoremove"
-		portNameVersion = "sqlite3@3.49.0"
+		buildType  = celer.BuildType()
+		packageDir = filepath.Join(dirs.PackagesDir, platform, project, buildType, portNameVersion)
+		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
 	)
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
 
-	autoremoveCmd := autoremoveCmd{celer: celer}
-
-	for _, nameVersion := range celer.Project().GetPorts() {
-		check(autoremoveCmd.collectPackages(nameVersion))
-		check(autoremoveCmd.collectDevPackages(nameVersion))
+	var port configs.Port
+	if err := port.Init(celer, portNameVersion); err != nil {
+		t.Fatal(err)
 	}
-
-	check(celer.Deploy(true, false))
+	if err := port.InstallFromSource(configs.InstallOptions{}); err != nil {
+		t.Fatal(err)
+	}
 
 	validatePackages := func(packages, devPackages []string) error {
 		// Check packages.
@@ -179,6 +135,7 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 				"automake@1.18",
 				"autoconf@2.72",
 				"m4@1.4.19",
+				"help2man@1.49.3",
 				"libtool@2.5.4",
 			}
 		}
@@ -189,29 +146,24 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 		return nil
 	}
 
-	var (
-		buildType  = celer.BuildType()
-		packageDir = filepath.Join(dirs.PackagesDir, platform, project, buildType, portNameVersion)
-		buildDir   = fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, portNameVersion, platform, project, buildType)
-	)
-
-	var port configs.Port
-	var options configs.InstallOptions
-	check(port.Init(celer, portNameVersion))
-	check(port.InstallFromSource(options))
-
-	autoremoveCmd.purge = false
-	autoremoveCmd.buildCache = true
-	check(autoremoveCmd.autoremove())
-	check(validatePackages(autoremoveCmd.packages, autoremoveCmd.devPackages))
+	// First run: `celer autoremove --build-cache` — buildtrees gone, package kept.
+	cmd1 := &autoremoveCmd{}
+	if _, err := runCommand(t, cmd1.Command(celer), "--build-cache"); err != nil {
+		t.Fatal(err)
+	}
+	if err := validatePackages(cmd1.packages, cmd1.devPackages); err != nil {
+		t.Fatal(err)
+	}
 
 	t.Cleanup(func() {
-		remoteOptions := configs.RemoveOptions{
+		removeOptions := configs.RemoveOptions{
 			Purge:      true,
 			Recursive:  true,
 			BuildCache: true,
 		}
-		check(port.Remove(remoteOptions))
+		if err := port.Remove(removeOptions); err != nil {
+			t.Fatal(err)
+		}
 	})
 
 	if !fileio.PathExists(packageDir) {
@@ -222,11 +174,12 @@ func TestAutoRemove_With_BuildCache(t *testing.T) {
 		t.Fatal("sqlite3 build cache should be removed.")
 	}
 
-	// Run autoremove again with purge enabled.
-	// Even if trace/meta were removed in previous run, package dir should still be removable.
-	autoremoveCmd.purge = true
-	autoremoveCmd.buildCache = false
-	check(autoremoveCmd.autoremove())
+	// Second run: `celer autoremove --purge` — even if trace/meta were removed
+	// in the previous run, the package dir should still be removable.
+	cmd2 := &autoremoveCmd{}
+	if _, err := runCommand(t, cmd2.Command(celer), "--purge"); err != nil {
+		t.Fatal(err)
+	}
 
 	if fileio.PathExists(packageDir) {
 		t.Fatal("sqlite3 package should be removed by second autoremove with purge.")
