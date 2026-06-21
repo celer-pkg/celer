@@ -76,7 +76,7 @@ func (c *cleanCmd) validateArgs(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(args) == 0 {
-		return fmt.Errorf("requires at least one package or project argument (or use --all)")
+		return errors.ErrNoCleanFlagProvided
 	}
 
 	return nil

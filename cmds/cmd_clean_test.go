@@ -1,7 +1,6 @@
 package cmds
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,10 +8,9 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
@@ -247,13 +245,7 @@ func TestCleanCmd_Completion(t *testing.T) {
 			}
 
 			for _, expected := range test.expectContain {
-				found := false
-				for _, suggestion := range suggestions {
-					if suggestion == expected {
-						found = true
-						break
-					}
-				}
+				found := slices.Contains(suggestions, expected)
 				if !found {
 					t.Errorf("Expected to find '%s' in suggestions %v", expected, suggestions)
 				}
@@ -380,120 +372,89 @@ func TestCleanCmd_CleanAll_PortNotFound_RemovesNonSrcAndKeepsSrc(t *testing.T) {
 }
 
 func TestCleanCmd_Execute_ValidateTargetsError(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
+	celer := newInitializedCeler(t)
+	cmd := &cleanCmd{}
 
-	// Avoid ports cloning in celer.Init by making ports dir non-empty.
-	if err := os.MkdirAll(filepath.Join(dirs.PortsDir, "dummy"), os.ModePerm); err != nil {
-		t.Fatal(err)
-	}
-
-	clean := cleanCmd{
-		celer: configs.NewCeler(),
-		all:   false,
-	}
-
-	if err := clean.celer.Init(); err != nil {
-		t.Fatalf("init celer: %v", err)
-	}
-
-	if err := buildtools.CheckTools(clean.celer, "git"); err != nil {
-		t.Fatalf("failed to check git: %v", err)
-	}
-
-	err := clean.execute([]string{})
+	// `celer clean` without any target and without --all must fail at cobra's
+	// Args validator (validateArgs requires at least one argument unless --all).
+	stderr, err := runCommand(t, cmd.Command(celer))
 	if err == nil {
 		t.Fatal("expected validation error for empty targets")
 	}
-	if !errors.Is(err, color.ErrSilent) {
-		t.Fatalf("expected ErrSilent, got: %#v", err)
+	if !errors.Is(errors.ErrNoCleanFlagProvided, err) {
+		t.Fatalf("error should mention missing argument, got: %v (stderr=%s)", err, stderr)
 	}
 }
 
 func TestCleanCmd_Execute_AllWithoutTargets(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
+	celer := newInitializedCeler(t)
+	cmd := &cleanCmd{}
 
-	// Avoid ports cloning in celer.Init by making ports dir non-empty.
-	if err := os.MkdirAll(filepath.Join(dirs.PortsDir, "dummy"), os.ModePerm); err != nil {
-		t.Fatal(err)
-	}
-
-	clean := cleanCmd{
-		celer: configs.NewCeler(),
-		all:   true,
-	}
-
-	if err := clean.execute([]string{}); err != nil {
+	if _, err := runCommand(t, cmd.Command(celer), "--all"); err != nil {
 		t.Fatalf("execute should succeed when --all is set with empty targets: %v", err)
 	}
 }
 
 func TestClean(t *testing.T) {
-	// Cleanup.
-	dirs.RemoveAllForTest()
+	celer := newInitializedCeler(t)
 
-	// Check error.
-	var check = func(err error) {
-		t.Helper()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	// Init celer.
 	var (
 		windowsPlatform = expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 		platform        = expr.If(runtime.GOOS == "windows", windowsPlatform, "x86_64-linux-ubuntu-22.04-gcc-11.5.0")
 		project         = "project_test_clean"
 	)
 
-	celer := configs.NewCeler()
-	check(celer.Init())
-	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
-	check(celer.SetBuildType("Release"))
-	check(celer.SetPlatform(platform))
-	check(celer.SetProject(project))
-	check(celer.Deploy(true, false))
+	// Configure platform/project/build-type via `celer configure`, exactly as
+	// a user would. Each flag is its own command to obey configure's
+	// one-flag-group rule.
+	configBuildType := &configureCmd{}
+	if _, err := runCommand(t, configBuildType.Command(celer), "--build-type=Release"); err != nil {
+		t.Fatal(err)
+	}
+	configPlatform := &configureCmd{}
+	if _, err := runCommand(t, configPlatform.Command(celer), "--platform="+platform); err != nil {
+		t.Fatal(err)
+	}
+	configProject := &configureCmd{}
+	if _, err := runCommand(t, configProject.Command(celer), "--project="+project); err != nil {
+		t.Fatal(err)
+	}
 
-	cleanCmd := cleanCmd{celer: celer}
+	check(t, celer.Deploy(true, false))
 
-	var (
-		buildDir = func(nameVersion string, dev bool) string {
-			if dev {
-				hostPlatform := celer.Platform().GetHostName() + "-dev"
-				return fmt.Sprintf("%s/%s/%s", dirs.BuildtreesDir, nameVersion, hostPlatform)
-			} else {
-				return fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, nameVersion, platform, project, celer.BuildType())
-			}
+	buildDir := func(nameVersion string, dev bool) string {
+		if dev {
+			hostPlatform := celer.Platform().GetHostName() + "-dev"
+			return fmt.Sprintf("%s/%s/%s", dirs.BuildtreesDir, nameVersion, hostPlatform)
 		}
-	)
+		return fmt.Sprintf("%s/%s/%s-%s-%s", dirs.BuildtreesDir, nameVersion, platform, project, celer.BuildType())
+	}
 
 	t.Run("clean port", func(t *testing.T) {
-		cleanCmd.dev = false
-		cleanCmd.recursive = false
-		cleanCmd.all = false
-		check(cleanCmd.clean("x264@stable"))
+		cmd := &cleanCmd{}
+		if _, err := runCommand(t, cmd.Command(celer), "x264@stable"); err != nil {
+			t.Fatal(err)
+		}
 		if fileio.PathExists(buildDir("x264@stable", false)) {
 			t.Fatal("x264@stable build dir should be removed")
 		}
 	})
 
 	t.Run("clean port for dev", func(t *testing.T) {
-		cleanCmd.dev = true
-		cleanCmd.recursive = false
-		cleanCmd.all = false
-		check(cleanCmd.clean("m4@1.4.19"))
+		cmd := &cleanCmd{}
+		if _, err := runCommand(t, cmd.Command(celer), "m4@1.4.19", "--dev"); err != nil {
+			t.Fatal(err)
+		}
 		if fileio.PathExists(buildDir("m4@1.4.19", true)) {
 			t.Fatal("m4@1.4.19 build dir should be removed")
 		}
 	})
 
 	t.Run("clean recursive", func(t *testing.T) {
-		cleanCmd.dev = true
-		cleanCmd.recursive = true
-		cleanCmd.all = false
-		check(cleanCmd.clean("automake@1.18"))
+		cmd := &cleanCmd{}
+		if _, err := runCommand(t, cmd.Command(celer), "automake@1.18", "--dev", "--recursive"); err != nil {
+			t.Fatal(err)
+		}
 
 		checkList := map[string]bool{
 			"nasm@2.16.03":  true,
@@ -509,15 +470,22 @@ func TestClean(t *testing.T) {
 	})
 
 	t.Run("clean all", func(t *testing.T) {
-		cleanCmd.dev = true
-		cleanCmd.recursive = true
-		cleanCmd.all = true
+		// Re-deploy so there is something to clean: previous subtests removed
+		// buildtrees subdirs.
+		if err := os.RemoveAll(dirs.InstalledDir); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.RemoveAll(dirs.PackagesDir); err != nil {
+			t.Fatal(err)
+		}
+		if err := celer.Deploy(true, false); err != nil {
+			t.Fatal(err)
+		}
 
-		check(os.RemoveAll(dirs.InstalledDir))
-		check(os.RemoveAll(dirs.PackagesDir))
-
-		check(celer.Deploy(true, false))
-		check(cleanCmd.cleanAll())
+		cmd := &cleanCmd{}
+		if _, err := runCommand(t, cmd.Command(celer), "--all"); err != nil {
+			t.Fatal(err)
+		}
 
 		checkList := map[string]bool{
 			"x264@stable":   false,
@@ -535,7 +503,9 @@ func TestClean(t *testing.T) {
 		if runtime.GOOS != "windows" {
 			// nasm is build in source, it should not be cleaned.
 			modified, err := git.IsModified(filepath.Join(dirs.BuildtreesDir, "nasm@2.16.03", "src"))
-			check(err)
+			if err != nil {
+				t.Fatal(err)
+			}
 			if modified {
 				t.Fatal("nasm@2.16.03 src dir should be cleaned")
 			}

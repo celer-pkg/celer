@@ -74,3 +74,10 @@ func equals(list1, list2 []string) bool {
 	}
 	return true
 }
+
+func check(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
