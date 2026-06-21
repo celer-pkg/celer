@@ -66,6 +66,14 @@ func (p PkgCache) IsWritable() bool {
 	return p.Writable
 }
 
+func (p PkgCache) GetCacheArtifacts() bool {
+	return p.CacheArtifacts
+}
+
+func (p PkgCache) GetCacheDownloads() bool {
+	return p.CacheDownloads
+}
+
 func (p PkgCache) GetArtifactCache() context.AritifactCache {
 	if p.artifactConfig == nil {
 		return nil

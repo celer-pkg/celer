@@ -224,17 +224,17 @@ func (c *Celer) SetPkgCacheWritable(writable bool) error {
 		return err
 	}
 
-	// Update package cache wriable.
-	if c.configData.PkgCache == nil {
-		c.configData.PkgCache = NewPkgCache(c, c.CCache.Dir, writable)
+	if c.configData.PkgCache == nil || strings.TrimSpace(c.configData.PkgCache.Dir) == "" {
+		return errors.ErrPkgCacheDirEmpty
 	}
-	c.configData.PkgCache.Writable = writable
+	if !fileio.PathExists(c.configData.PkgCache.Dir) {
+		return errors.ErrPkgCacheDirNotExist
+	}
 
-	// Rebuild internal handlers if dir is already configured.
-	if c.configData.PkgCache.Dir != "" {
-		if err := c.configData.PkgCache.Refresh(); err != nil {
-			return err
-		}
+	// Update pkgcache wriatable.
+	c.configData.PkgCache.Writable = writable
+	if err := c.configData.PkgCache.Refresh(); err != nil {
+		return err
 	}
 	if err := c.save(); err != nil {
 		return err
@@ -248,25 +248,17 @@ func (c *Celer) CacheArtifacts(cacheArtifacts bool) error {
 		return err
 	}
 
-	// Check dir empty and exist.
-	if strings.TrimSpace(c.configData.PkgCache.Dir) == "" {
+	if c.configData.PkgCache == nil || strings.TrimSpace(c.configData.PkgCache.Dir) == "" {
 		return errors.ErrPkgCacheDirEmpty
 	}
 	if !fileio.PathExists(c.configData.PkgCache.Dir) {
 		return errors.ErrPkgCacheDirNotExist
 	}
 
-	// Update package cache wriable.
-	if c.configData.PkgCache == nil {
-		c.configData.PkgCache = NewPkgCache(c, c.CCache.Dir, false)
-	}
+	// Update cacheArtifacts.
 	c.configData.PkgCache.CacheArtifacts = cacheArtifacts
-
-	// Rebuild internal handlers if dir is already configured.
-	if c.configData.PkgCache.Dir != "" {
-		if err := c.configData.PkgCache.Refresh(); err != nil {
-			return err
-		}
+	if err := c.configData.PkgCache.Refresh(); err != nil {
+		return err
 	}
 	if err := c.save(); err != nil {
 		return err
@@ -280,25 +272,17 @@ func (c *Celer) CacheDownloads(cacheDownloads bool) error {
 		return err
 	}
 
-	// Check dir empty and exist.
-	if strings.TrimSpace(c.configData.PkgCache.Dir) == "" {
+	if c.configData.PkgCache == nil || strings.TrimSpace(c.configData.PkgCache.Dir) == "" {
 		return errors.ErrPkgCacheDirEmpty
 	}
 	if !fileio.PathExists(c.configData.PkgCache.Dir) {
 		return errors.ErrPkgCacheDirNotExist
 	}
 
-	// Update package cache wriable.
-	if c.configData.PkgCache == nil {
-		c.configData.PkgCache = NewPkgCache(c, c.CCache.Dir, false)
-	}
+	// Update cachedownloads.
 	c.configData.PkgCache.CacheDownloads = cacheDownloads
-
-	// Rebuild internal handlers if dir is already configured.
-	if c.configData.PkgCache.Dir != "" {
-		if err := c.configData.PkgCache.Refresh(); err != nil {
-			return err
-		}
+	if err := c.configData.PkgCache.Refresh(); err != nil {
+		return err
 	}
 
 	if err := c.save(); err != nil {

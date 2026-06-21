@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -404,7 +405,7 @@ func TestCleanCmd_Execute_ValidateTargetsError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected validation error for empty targets")
 	}
-	if err != color.ErrSilent {
+	if !errors.Is(err, color.ErrSilent) {
 		t.Fatalf("expected ErrSilent, got: %#v", err)
 	}
 }

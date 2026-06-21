@@ -32,6 +32,8 @@ func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string {
 	}
 }
 func (f fakePkgCache) IsWritable() bool                         { return f.writable }
+func (f fakePkgCache) GetCacheArtifacts() bool                  { return true }
+func (f fakePkgCache) GetCacheDownloads() bool                  { return true }
 func (f fakePkgCache) GetArtifactCache() context.AritifactCache { return nil }
 func (f fakePkgCache) GetRepoCache() context.RepoCache {
 	return NewRepoConfig(fakeContext{pkgCache: f}, f.writable)

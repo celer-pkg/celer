@@ -34,6 +34,8 @@ const (
 type PkgCache interface {
 	GetDir(dirType PkgCacheDirType) string
 	IsWritable() bool
+	GetCacheArtifacts() bool
+	GetCacheDownloads() bool
 	GetArtifactCache() AritifactCache
 	GetRepoCache() RepoCache
 }

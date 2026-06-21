@@ -11,13 +11,16 @@ import (
 
 const ClearScreen = "\033[2J"
 
-// silentError is an error type that won't be printed by cobra
-type silentError struct{}
+type silentError struct{ inner error }
 
-func (silentError) Error() string { return "" }
+func (s silentError) Error() string { return "" }
+func (s silentError) Unwrap() error { return s.inner }
+func (silentError) Is(target error) bool {
+	_, ok := target.(silentError)
+	return ok
+}
 
-// ErrSilent is a error should not be printed.
-var ErrSilent error = silentError{}
+var ErrSilent = silentError{}
 
 func SprintSuccess(format string, args ...any) string {
 	return Sprintf(Important, "\n[✔] ======== %s ========\n", fmt.Sprintf(format, args...))
@@ -35,7 +38,7 @@ func SprintError(err error, format string, args ...any) string {
 func PrintError(err error, format string, args ...any) error {
 	details := strings.ReplaceAll(err.Error(), " -> ", "\n    └─ ")
 	Fprintf(os.Stderr, Error, "\n[✘] %s\n[☛] %s\n", fmt.Sprintf(format, args...), details)
-	return ErrSilent
+	return silentError{inner: err}
 }
 
 func PrintWarning(format string, args ...any) {

@@ -5,6 +5,7 @@ import (
 )
 
 var (
+	ErrNoConfigFlagProvided     = errors.New("no configuration flag provided")
 	ErrPortNotFound             = errors.New("port is not found")
 	ErrNoMatchedConfigFound     = errors.New("no matched config found")
 	ErrRepoNotExit              = errors.New("repo not exist")
