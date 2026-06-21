@@ -109,7 +109,7 @@ func (p *Python) GetTrustedHosts() []string {
 type configData struct {
 	Main       main        `toml:"main"`
 	Proxy      *Proxy      `toml:"proxy,omitempty"`
-	PkgCache   *pkgCache   `toml:"pkgcache,omitempty"`
+	PkgCache   *PkgCache   `toml:"pkgcache,omitempty"`
 	CCache     *CCache     `toml:"ccache,omitempty"`
 	Python     *Python     `toml:"python,omitempty"`
 	Experiment *experiment `toml:"experiment,omitempty"`
@@ -219,7 +219,7 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		// Validate package cache.
 		if c.configData.PkgCache != nil {
 			c.configData.PkgCache.ctx = c
-			if err := c.configData.PkgCache.Validate(); err != nil {
+			if err := c.configData.PkgCache.Refresh(); err != nil {
 				return err
 			}
 		}

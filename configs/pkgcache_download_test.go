@@ -31,7 +31,7 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 	pkgCache := NewPkgCache(fakeCtx, cacheDir, true)
 	fakeCtx.pkgCache = pkgCache
 	pkgCache.ctx = fakeCtx
-	if err := pkgCache.Validate(); err != nil {
+	if err := pkgCache.Refresh(); err != nil {
 		t.Fatal(err)
 	}
 

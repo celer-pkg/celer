@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
@@ -43,8 +44,11 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"jobs", ""},
 		{"offline", ""},
 		{"verbose", ""},
+		{"downloads", ""},
 		{"pkgcache-dir", ""},
 		{"pkgcache-writable", ""},
+		{"pkgcache-cache-artifacts", ""},
+		{"pkgcache-cache-downloads", ""},
 		{"proxy-host", ""},
 		{"proxy-port", ""},
 		{"ccache-enabled", ""},
@@ -52,6 +56,9 @@ func TestConfigureCmd_CommandStructure(t *testing.T) {
 		{"ccache-maxsize", ""},
 		{"ccache-remote-storage", ""},
 		{"ccache-remote-only", ""},
+		{"port", ""},
+		{"port-url", ""},
+		{"port-ref", ""},
 	}
 
 	for _, ef := range expectedFlags {
@@ -106,6 +113,11 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--verbose"},
 		},
 		{
+			name:       "complete_downloads_flag",
+			toComplete: "--down",
+			expected:   []string{"--downloads"},
+		},
+		{
 			name:       "complete_pkgcache_dir_flag",
 			toComplete: "--pkgcache-d",
 			expected:   []string{"--pkgcache-dir"},
@@ -114,6 +126,16 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			name:       "complete_pkgcache_writable_flag",
 			toComplete: "--pkgcache-w",
 			expected:   []string{"--pkgcache-writable"},
+		},
+		{
+			name:       "complete_pkgcache_cache_artifacts_flag",
+			toComplete: "--pkgcache-cache-a",
+			expected:   []string{"--pkgcache-cache-artifacts"},
+		},
+		{
+			name:       "complete_pkgcache_cache_downloads_flag",
+			toComplete: "--pkgcache-cache-d",
+			expected:   []string{"--pkgcache-cache-downloads"},
 		},
 		{
 			name:       "complete_proxy_host_flag",
@@ -151,6 +173,21 @@ func TestConfigureCmd_Completion(t *testing.T) {
 			expected:   []string{"--ccache-remote-only"},
 		},
 		{
+			name:       "complete_port_flag",
+			toComplete: "--port",
+			expected:   []string{"--port", "--port-url", "--port-ref"},
+		},
+		{
+			name:       "complete_port_url_flag",
+			toComplete: "--port-u",
+			expected:   []string{"--port-url"},
+		},
+		{
+			name:       "complete_port_ref_flag",
+			toComplete: "--port-r",
+			expected:   []string{"--port-ref"},
+		},
+		{
 			name:       "no_completion_for_random",
 			toComplete: "--random",
 			expected:   []string{},
@@ -183,8 +220,17 @@ func TestConfigureCmd_NoFlagShouldFail(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	configCmd := configureCmd{}
+	// Init celer so that checkIfInitialized passes — otherwise the command
+	// fails for the wrong reason (uninitialized) instead of no-flag.
 	celer := configs.NewCeler()
+	if err := celer.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
+		t.Fatal(err)
+	}
+
+	configCmd := configureCmd{}
 	cmd := configCmd.Command(celer)
 	cmd.SetArgs([]string{})
 
@@ -201,8 +247,16 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	configCmd := configureCmd{}
+	// Init celer so that checkIfInitialized passes.
 	celer := configs.NewCeler()
+	if err := celer.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
+		t.Fatal(err)
+	}
+
+	configCmd := configureCmd{}
 	cmd := configCmd.Command(celer)
 	cmd.SetArgs([]string{"--pkgcache-dir", dirs.TestPkgCacheDir, "--pkgcache-writable=true"})
 
@@ -227,8 +281,17 @@ func TestConfigureCmd_CrossGroupFlagsShouldFail(t *testing.T) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 
-	configCmd := configureCmd{}
+	// Init celer so that checkIfInitialized passes — otherwise the command
+	// fails for the wrong reason (uninitialized) instead of cross-group flags.
 	celer := configs.NewCeler()
+	if err := celer.Init(); err != nil {
+		t.Fatal(err)
+	}
+	if err := celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true); err != nil {
+		t.Fatal(err)
+	}
+
+	configCmd := configureCmd{}
 	cmd := configCmd.Command(celer)
 	cmd.SetArgs([]string{"--proxy-host=127.0.0.1", "--ccache-enabled=true"})
 
@@ -1069,4 +1132,224 @@ func TestConfigure_CCacheRemoteStorage_Empty(t *testing.T) {
 
 	// Empty string should be allowed (to clear the setting)
 	check(celer.SetCCacheRemoteStorage(""))
+}
+
+func TestConfigure_Downloads(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+	check(celer.SetBuildType("Release"))
+
+	downloads := filepath.Join(dirs.TmpDir, "downloads")
+	check(os.MkdirAll(downloads, os.ModePerm))
+	check(celer.SetDownloads(downloads))
+
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+	if celer2.Downloads() != downloads {
+		t.Fatalf("downloads dir should be `%s`, got `%s`", downloads, celer2.Downloads())
+	}
+}
+
+func TestConfigure_Downloads_NotExist(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+	check(celer.SetBuildType("Release"))
+
+	if err := celer.SetDownloads(filepath.Join(dirs.TmpDir, "downloads-does-not-exist")); err == nil {
+		t.Fatal("expected error when downloads dir does not exist")
+	}
+}
+
+func TestConfigure_CCacheRemoteOnly_ON(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+	check(celer.SetBuildType("Release"))
+
+	check(celer.SetCCacheRemoteOnly(true))
+
+	// Verify by reloading config.
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+
+	if !celer2.CCache.RemoteOnly {
+		t.Fatal("ccache remote-only should be `true`")
+	}
+}
+
+func TestConfigure_CCacheRemoteOnly_OFF(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+	check(celer.SetBuildType("Release"))
+
+	// Flip it on then off so the assertion is meaningful.
+	check(celer.SetCCacheRemoteOnly(true))
+	check(celer.SetCCacheRemoteOnly(false))
+
+	// Verify by reloading config.
+	celer2 := configs.NewCeler()
+	check(celer2.Init())
+
+	if celer2.CCache.RemoteOnly {
+		t.Fatal("ccache remote-only should be `false`")
+	}
+}
+
+func TestConfigureCmd_Port_UpdatesUrlAndRef(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer so that the configure command's checkIfInitialized passes
+	// and ports/ is populated.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+
+	const (
+		nameVersion = "eigen@3.4.0"
+		newURL      = "https://example.com/eigen.git"
+		newRef      = "test-branch"
+	)
+	portFile := dirs.GetPortPath("eigen", "3.4.0")
+	original, err := os.ReadFile(portFile)
+	check(err)
+	t.Cleanup(func() {
+		_ = os.WriteFile(portFile, original, os.ModePerm)
+	})
+
+	configCmd := configureCmd{}
+	cmd := configCmd.Command(celer)
+	cmd.SetArgs([]string{
+		"--port=" + nameVersion,
+		"--port-url=" + newURL,
+		"--port-ref=" + newRef,
+	})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("expected success when configuring port url/ref, got: %v", err)
+	}
+
+	updated, err := os.ReadFile(portFile)
+	check(err)
+	got := string(updated)
+	if !strings.Contains(got, newURL) {
+		t.Fatalf("port file should contain url %q, got:\n%s", newURL, got)
+	}
+	if !strings.Contains(got, newRef) {
+		t.Fatalf("port file should contain ref %q, got:\n%s", newRef, got)
+	}
+}
+
+func TestConfigureCmd_Port_MissingUrlAndRefShouldFail(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer so that checkIfInitialized passes.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+
+	configCmd := configureCmd{}
+	cmd := configCmd.Command(celer)
+	cmd.SetArgs([]string{"--port=eigen@3.4.0"})
+
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("expected error when --port is provided without --port-url or --port-ref")
+	}
+}
+
+func TestConfigureCmd_Port_UnknownPortShouldFail(t *testing.T) {
+	// Cleanup.
+	dirs.RemoveAllForTest()
+
+	// Check error.
+	var check = func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Init celer so that checkIfInitialized passes.
+	celer := configs.NewCeler()
+	check(celer.Init())
+	check(celer.CloneConf(test_conf_repo_url, test_conf_repo_branch, true))
+
+	configCmd := configureCmd{}
+	cmd := configCmd.Command(celer)
+	cmd.SetArgs([]string{
+		"--port=this-port-does-not-exist@1.0.0",
+		"--port-url=https://example.com/foo.git",
+	})
+
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("expected error when --port refers to a non-existent port")
+	}
 }

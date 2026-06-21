@@ -2,7 +2,6 @@ package cmds
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -31,12 +30,9 @@ type configureCmd struct {
 	portUrl string
 	portRef string
 
-	// Package cache options.
-	pkgCacheDir      string
-	pkgCacheWritable bool
-
-	proxy  configs.Proxy
-	ccache configs.CCache
+	pkgCache configs.PkgCache
+	proxy    configs.Proxy
+	ccache   configs.CCache
 }
 
 var flagGroup = map[string]string{
@@ -191,9 +187,11 @@ Examples:
 	flags.BoolVar(&c.offline, "offline", false, "configure offline mode.")
 	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
 
-	// Package cache flags.
-	flags.StringVar(&c.pkgCacheDir, "pkgcache-dir", "", "configure package cache dir.")
-	flags.BoolVar(&c.pkgCacheWritable, "pkgcache-writable", false, "configure package cache writable.")
+	// Pkg-cache flags.
+	flags.StringVar(&c.pkgCache.Dir, "pkgcache-dir", "", "configure package cache dir.")
+	flags.BoolVar(&c.pkgCache.Writable, "pkgcache-writable", false, "configure pkg-cache writable.")
+	flags.BoolVar(&c.pkgCache.CacheArtifacts, "pkgcache-cache-artifacts", false, "configure pkg-cache to cache artifacts.")
+	flags.BoolVar(&c.pkgCache.CacheDownloads, "pkgcache-cache-downloads", false, "configure pkg-cache to cache downloads.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -212,63 +210,26 @@ Examples:
 	flags.StringVar(&c.portRef, "port-ref", "", "configure port ref (branch/tag/commit)")
 
 	// Support complete available platforms and projects.
-	command.RegisterFlagCompletionFunc("platform", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return c.tomlFileCompletion(dirs.ConfPlatformsDir, toComplete)
-	})
-	command.RegisterFlagCompletionFunc("project", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return c.tomlFileCompletion(dirs.ConfProjectsDir, toComplete)
-	})
-	command.RegisterFlagCompletionFunc("build-type", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"Release", "Debug", "RelWithDebInfo", "MinSizeRel"}, cobra.ShellCompDirectiveNoFileComp
-	})
-	command.RegisterFlagCompletionFunc("offline", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
-	})
-	command.RegisterFlagCompletionFunc("verbose", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
-	})
+	command.RegisterFlagCompletionFunc("platform", platformCompletgion)
+	command.RegisterFlagCompletionFunc("project", projectCompletgion)
+	command.RegisterFlagCompletionFunc("build-type", buildTypeCompletion)
+	command.RegisterFlagCompletionFunc("offline", boolCompletion)
+	command.RegisterFlagCompletionFunc("verbose", boolCompletion)
 
 	// PkgCache flag completions.
-	command.RegisterFlagCompletionFunc("pkgcache-writable", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
-	})
+	command.RegisterFlagCompletionFunc("pkgcache-writable", boolCompletion)
+	command.RegisterFlagCompletionFunc("pkgcache-cache-artifacts", boolCompletion)
+	command.RegisterFlagCompletionFunc("pkgcache-cache-downloads", boolCompletion)
 
 	// CCache flag completions.
-	command.RegisterFlagCompletionFunc("ccache-enabled", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
-	})
-	command.RegisterFlagCompletionFunc("ccache-remote-only", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-		return []string{"true", "false"}, cobra.ShellCompDirectiveNoFileComp
-	})
+	command.RegisterFlagCompletionFunc("ccache-enabled", boolCompletion)
+	command.RegisterFlagCompletionFunc("ccache-remote-only", boolCompletion)
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
 	command.SilenceUsage = true
 
 	return command
-}
-
-func (c *configureCmd) tomlFileCompletion(dir, toComplete string) ([]string, cobra.ShellCompDirective) {
-	var fileNames []string
-	if fileio.PathExists(dir) {
-		entities, err := os.ReadDir(dir)
-		if err != nil {
-			return nil, cobra.ShellCompDirectiveNoFileComp
-		}
-
-		for _, entity := range entities {
-			if !entity.IsDir() && strings.HasSuffix(entity.Name(), ".toml") {
-				fileName := strings.TrimSuffix(entity.Name(), ".toml")
-				if strings.HasPrefix(fileName, toComplete) {
-					fileNames = append(fileNames, fileName)
-				}
-			}
-		}
-
-		return fileNames, cobra.ShellCompDirectiveNoFileComp
-	}
-
-	return nil, cobra.ShellCompDirectiveNoFileComp
 }
 
 func (c configureCmd) checkIfInitialized() error {
@@ -402,16 +363,16 @@ func (c *configureCmd) configureProxy(flags *pflag.FlagSet) error {
 
 func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	if flags.Changed("pkgcache-dir") {
-		if err := c.celer.SetPkgCacheDir(c.pkgCacheDir); err != nil {
-			return color.PrintError(err, "failed to set pkgcache dir: %s", c.pkgCacheDir)
+		if err := c.celer.SetPkgCacheDir(c.pkgCache.Dir); err != nil {
+			return color.PrintError(err, "failed to set pkgcache dir: %s", c.pkgCache.Dir)
 		}
-		color.PrintSuccess("current pkgcache dir: %s", expr.If(c.pkgCacheDir != "", c.pkgCacheDir, "empty"))
+		color.PrintSuccess("current pkgcache dir: %s", expr.If(c.pkgCache.Dir != "", c.pkgCache.Dir, "empty"))
 	}
 	if flags.Changed("pkgcache-writable") {
-		if err := c.celer.SetPkgCacheWritable(c.pkgCacheWritable); err != nil {
-			return color.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
+		if err := c.celer.SetPkgCacheWritable(c.pkgCache.Writable); err != nil {
+			return color.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCache.Writable, "true", "false"))
 		}
-		color.PrintSuccess("current pkgcache writable: %s", expr.If(c.pkgCacheWritable, "true", "false"))
+		color.PrintSuccess("current pkgcache writable: %s", expr.If(c.pkgCache.Writable, "true", "false"))
 	}
 
 	return nil
@@ -468,6 +429,8 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--verbose",
 		"--pkgcache-dir",
 		"--pkgcache-writable",
+		"--pkgcache-cache-artifacts",
+		"--pkgcache-cache-downloads",
 		"--proxy-host",
 		"--proxy-port",
 		"--ccache-enabled",
@@ -475,6 +438,9 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--ccache-maxsize",
 		"--ccache-remote-storage",
 		"--ccache-remote-only",
+		"--port",
+		"--port-url",
+		"--port-ref",
 	}
 
 	var suggestions []string
