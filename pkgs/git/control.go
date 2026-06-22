@@ -170,7 +170,7 @@ func UpdateRepo(target, repoRef, repoDir string, force bool) error {
 	}
 	if modified {
 		if !force {
-			return fmt.Errorf("repository has local modifications, update is skipped ... ⭐⭐⭐ you can update forcibly with -f/--force ⭐⭐⭐")
+			return fmt.Errorf("repository has local modifications, update is skipped - you can update forcibly with -f/--force")
 		}
 	}
 
