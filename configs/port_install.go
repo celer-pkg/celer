@@ -242,8 +242,9 @@ func (p Port) Clone() error {
 			return err
 		}
 
-		// Clone repo is allowed only for third-party ports and public ports of project.
-		if port.Package.Checksum == "" || port.IsThirdParty() {
+		// Ports with a checksum are expected to be restored from the artifact
+		// pkgcache during install (no source build needed).
+		if port.Package.Checksum == "" {
 			if err := port.MatchedConfig.Clone(
 				port.Package.Url,
 				port.Package.Ref,
@@ -265,8 +266,9 @@ func (p Port) Clone() error {
 			return err
 		}
 
-		// Clone repo is allowed only for third-party ports and public ports of project.
-		if port.Package.Checksum == "" || port.IsThirdParty() {
+		// Ports with a checksum are expected to be restored from the artifact
+		// pkgcache during install (no source build needed).
+		if port.Package.Checksum == "" {
 			if err := port.MatchedConfig.Clone(
 				port.Package.Url,
 				port.Package.Ref,
@@ -639,8 +641,9 @@ func (p Port) cloneAllRepos() error {
 			return err
 		}
 
-		// Clone repo is allowed only for third-party ports and public ports of project.
-		if port.Package.Checksum == "" || port.IsThirdParty() {
+		// Ports with a checksum are restored from the artifact pkgcache, so
+		// their repo isn't cloned. Only checksum-less ports get cloned here.
+		if port.Package.Checksum == "" {
 			if err := port.Clone(); err != nil {
 				return err
 			}
@@ -664,8 +667,9 @@ func (p Port) cloneAllRepos() error {
 			return err
 		}
 
-		// Clone repo is allowed only for third-party ports and public ports of project.
-		if port.Package.Checksum == "" || port.IsThirdParty() {
+		// Ports with a checksum are restored from the artifact pkgcache, so
+		// their repo isn't cloned. Only checksum-less ports get cloned here.
+		if port.Package.Checksum == "" {
 			if err := port.Clone(); err != nil {
 				return err
 			}

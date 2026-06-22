@@ -182,6 +182,14 @@ func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 		return err
 	}
 
+	// Update to a specific commit hash: fetch then hard-reset.
+	if CheckIsCommitHash(repoRef) {
+		if err := HardReset(repoDir, repoRef); err != nil {
+			return fmt.Errorf("update %s to commit %s -> %w", updateTarget, repoRef, err)
+		}
+		return nil
+	}
+
 	// Update to branch.
 	isBranch, err := CheckIfRemoteBranch(updateTarget, repoUrl, repoRef)
 	if err != nil {
@@ -233,7 +241,7 @@ func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 		return nil
 	}
 
-	return fmt.Errorf("invalid repoRef: %s", repoRef)
+	return fmt.Errorf("invalid repo ref %s for %s", repoRef, updateTarget)
 }
 
 // CherryPick cherry-pick patches.
@@ -453,7 +461,7 @@ func pathExists(path string) bool {
 
 var commitHashPattern = regexp.MustCompile(`^[a-fA-F0-9]{7,40}$`)
 
-// IsCommitHash check if a valid git commit hash, booth short hash and long hash can be supported.
-func IsCommitHash(hash string) bool {
+// CheckIsCommitHash check if a valid git commit hash, booth short hash and long hash can be supported.
+func CheckIsCommitHash(hash string) bool {
 	return commitHashPattern.MatchString(strings.TrimSpace(hash))
 }

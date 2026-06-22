@@ -186,13 +186,14 @@ func (u *updateCmd) updatePortRepo(nameVersion string, visited map[string]bool) 
 	// No need to update port if it's not git repo or its code doesn't exist.
 	srcDir := filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src")
 	if !fileio.PathExists(srcDir) {
-		return fmt.Errorf("source directory not found: %s/%s/src (has the port been cloned?)",
-			filepath.ToSlash(dirs.BuildtreesDir), nameVersion)
+		color.PrintWarning("src dir not found for %s, updating source is skipped", nameVersion)
+		return nil
 	}
-	// It may not happen, even archive repo is init as local git repo by celer.
+
+	// Do not update local git repo for archive repo.
 	if !strings.HasSuffix(port.Package.Url, ".git") {
-		return fmt.Errorf("%s/%s/src is not a git repository, update is skipped",
-			filepath.ToSlash(dirs.BuildtreesDir), nameVersion)
+		color.PrintWarning("%s is not a remote git repo, updating source is skipped", nameVersion)
+		return nil
 	}
 
 	// Update port.
