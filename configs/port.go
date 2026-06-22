@@ -249,8 +249,8 @@ func (p Port) resolveProjectPort(project, name, version string) (string, error) 
 
 	switch {
 	case hasTopLevelPort && hasVendorPort:
-		return "", fmt.Errorf("%w: %s and %s — remove one to disambiguate",
-			errors.ErrAmbiguousProjectPort, topLevelPort, vendorPort)
+		return "", fmt.Errorf("%w in booth '%s' and '%s' for '%s' — remove one to disambiguate",
+			errors.ErrAmbiguousPortFound, project+"/", project+"/"+"ports/", name+"@"+version)
 
 	case hasTopLevelPort:
 		return topLevelPort, nil
@@ -448,11 +448,6 @@ func (p Port) IsHostSupported() bool {
 	}
 
 	return runtime.GOOS == "linux" || runtime.GOOS == "darwin"
-}
-
-func (p Port) IsThirdParty() bool {
-	portInPorts := dirs.GetPortPath(p.Name, p.Version)
-	return fileio.PathExists(portInPorts)
 }
 
 func (p Port) validate() error {

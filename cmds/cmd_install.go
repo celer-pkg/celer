@@ -166,9 +166,8 @@ func (i *installCmd) install(nameVersion string) error {
 	}
 	if err := port.Init(i.celer, nameVersion); err != nil {
 		if errors.Is(err, errors.ErrPortNotFound) {
-			format := "port %s is not yet available in the ports collection.\n 🚩 Welcome to contribute %s to the ports. 🚩"
-			err := fmt.Errorf(format, nameVersion, nameVersion)
-			return color.PrintError(err, "failed to install %s", nameVersion)
+			format := "port %s is not yet available - consider adding it now ?"
+			return color.PrintError(fmt.Errorf(format, nameVersion), "failed to install %s", nameVersion)
 		}
 		return color.PrintError(err, "failed to init %s", nameVersion)
 	}

@@ -486,8 +486,7 @@ func (b BuildConfig) Clean() error {
 		return nil
 	}
 
-	title := fmt.Sprintf("[clean %s]", b.PortConfig.nameVersion())
-	if err := git.Clean(title, b.PortConfig.RepoDir); err != nil {
+	if err := git.Clean(b.PortConfig.nameVersion(), b.PortConfig.RepoDir); err != nil {
 		return err
 	}
 
