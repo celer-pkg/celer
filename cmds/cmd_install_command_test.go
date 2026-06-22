@@ -2,14 +2,15 @@ package cmds
 
 import (
 	"errors"
-	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgs/color"
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs"
+	"github.com/celer-pkg/celer/pkgs/color"
+	"github.com/celer-pkg/celer/pkgs/dirs"
 
 	"github.com/spf13/cobra"
 )

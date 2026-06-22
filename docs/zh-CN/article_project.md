@@ -169,3 +169,38 @@ project = "project_001"
 ```bash
 celer tree project_001
 ```
+
+---
+
+## 项目内 Port 配置
+
+&emsp;&emsp;除了依赖全局 `ports/` 仓库中的第三方库 port，项目也可以在自己目录下放置 port，用来覆盖全局版本或维护项目专属 port。一个 port 在以下三个位置按优先级查找：
+
+1. **项目顶层**：`conf/projects/<项目>/<库名>/<版本>/port.toml`
+2. **项目 vendor 目录**：`conf/projects/<项目>/ports/<库名>/<版本>/port.toml`
+3. **全局 ports 仓库**：`ports/<首字母>/<库名>/<版本>/port.toml`
+
+&emsp;&emsp;**位置 1、2 互斥**：同一个 `<库名>@<版本>` 同时出现在项目顶层和 `ports/` 子目录下时，Celer 会报错并提示两个冲突路径，需要手动删除其一。位置 3 是兜底——项目内没找到时回退到全局仓库。
+
+### 顶层 vs vendor 目录的取舍
+
+- **顶层**：放项目自有的 port（如业务组件、内部库），打开项目目录一眼能看到"这是我们自己写的"。
+- **`ports/` 子目录**：放从全局仓库引入或 fork 的第三方 port，跟项目自有 port 物理隔离，便于识别"哪些是引来的依赖"。
+
+&emsp;&emsp;两种放置方式都是可选的——只用顶层、只用 `ports/`、或两者混用都可以，不影响功能。
+
+### 示例
+
+```
+conf/projects/my_project/
+├── my_project.toml
+├── algorithm_base/          # 项目自有 port（顶层）
+│   └── 1.0.0/port.toml
+└── ports/                   # 引入的第三方 port（vendor）
+    ├── boost/
+    │   └── 1.82.0/port.toml
+    └── eigen/
+        └── 3.4.0/port.toml
+```
+
+&emsp;&emsp;项目内 port 会覆盖同名全局 port——比如全局 `ports/b/boost/1.82.0/` 存在，项目 `ports/boost/1.82.0/` 也存在时，用项目版本（允许项目对第三方库打补丁或换 ref）。

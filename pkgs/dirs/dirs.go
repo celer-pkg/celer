@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unicode"
 )
 
 var (
@@ -60,13 +59,6 @@ func GetPortDir(name, version string) string {
 
 	// Get first character and convert to lowercase
 	firstChar := strings.ToLower(string([]rune(name)[0]))
-
-	// Use only letters/digits, default to "other" for special chars
-	r := []rune(firstChar)[0]
-	if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
-		firstChar = "other"
-	}
-
 	return filepath.Join(PortsDir, firstChar, name, version)
 }
 

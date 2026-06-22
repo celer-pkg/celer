@@ -168,3 +168,38 @@ View the dependency tree of the current project:
 ```bash
 celer tree project_001
 ```
+
+---
+
+## Project-local Ports
+
+&emsp;&emsp;Besides depending on ports from the global `ports/` repository, a project may also keep ports inside its own directory — to override global versions or maintain project-specific ports. A port is looked up in three locations, in priority order:
+
+1. **Project top-level**: `conf/projects/<project>/<lib>/<version>/port.toml`
+2. **Project vendor dir**: `conf/projects/<project>/ports/<lib>/<version>/port.toml`
+3. **Global ports repo**: `ports/<first-letter>/<lib>/<version>/port.toml`
+
+&emsp;&emsp;**Locations 1 and 2 are mutually exclusive**: if the same `<lib>@<version>` appears in both the project top-level and the `ports/` subdir, Celer errors out naming both conflicting paths — you must remove one. Location 3 is the fallback used when neither project-local layout has the port.
+
+### Top-level vs vendor dir
+
+- **Top-level**: project-owned ports (business components, internal libraries). Opening the project directory, these are immediately visible as "ours".
+- **`ports/` subdir**: third-party ports pulled in or forked from the global repo, kept physically separate from project-owned ports so it's easy to tell "which ones are imported".
+
+&emsp;&emsp;Both layouts are optional — using only top-level, only `ports/`, or a mix all work the same.
+
+### Example
+
+```
+conf/projects/my_project/
+├── my_project.toml
+├── algorithm_base/          # project-owned port (top-level)
+│   └── 1.0.0/port.toml
+└── ports/                   # imported third-party ports (vendor)
+    ├── boost/
+    │   └── 1.82.0/port.toml
+    └── eigen/
+        └── 3.4.0/port.toml
+```
+
+&emsp;&emsp;A project-local port overrides the global one of the same name — e.g. if both global `ports/b/boost/1.82.0/` and project `ports/boost/1.82.0/` exist, the project version wins (useful for patching a third-party lib or pinning a different ref).

@@ -732,7 +732,7 @@ func (p *Port) checkAllTools() error {
 }
 
 func (p Port) installAllDependencies(options InstallOptions) error {
-	if p.Parent == "" {
+	if p.Parent == "" && (len(p.MatchedConfig.DevDependencies) > 0 || len(p.MatchedConfig.Dependencies) > 0) {
 		title := fmt.Sprintf("[validate all dependencies: %s]", p.NameVersion())
 		color.Printf(color.Title, "\n%s\n", title)
 	}
