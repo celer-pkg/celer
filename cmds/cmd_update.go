@@ -108,6 +108,14 @@ func (u *updateCmd) doUpdate(args []string) error {
 		return color.PrintError(err, "failed to check if git is available")
 	}
 
+	// Repo update can not be done in offline mode.
+	if u.celer.Offline() {
+		return color.PrintError(
+			fmt.Errorf("celer update requires network access to fetch remote refs - disable offline mode (celer configure --offline=false) to update"),
+			"failed to execute update command",
+		)
+	}
+
 	// Perform update based on flags.
 	if u.confRepo {
 		if err := u.updateConfRepo(); err != nil {
