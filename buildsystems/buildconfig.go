@@ -383,6 +383,12 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 		}
 	}
 
+	// Check offline mode before clone/download repo.
+	if b.Ctx.Offline() {
+		return fmt.Errorf("source for %s is not available locally and offline mode forbids clone/download",
+			b.PortConfig.nameVersion())
+	}
+
 	// For git repo, clone it when source dir doesn't exists.
 	var trackArchiveAsLocalRepo bool
 	if strings.HasSuffix(repoUrl, ".git") {
