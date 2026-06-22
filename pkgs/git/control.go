@@ -25,7 +25,7 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 		return executor.Execute()
 	}
 
-	cloneArgs := func(repoRef, repoUrl, repoDir string, depth int) []string {
+	cloneArgsFunc := func(repoRef, repoUrl, repoDir string, depth int) []string {
 		args := []string{"clone"}
 		if repoRef != "" {
 			args = append(args, "--branch", repoRef)
@@ -45,7 +45,7 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 			// Failed clones can leave a partial destination behind and poison the
 			// next attempt, so always retry from a clean target directory.
 			if err := os.RemoveAll(repoDir); err != nil {
-				return fmt.Errorf("failed to clean repo dir %s -> %w", repoDir, err)
+				return fmt.Errorf("failed to clean repo dir %s for %s -> %w", repoDir, target, err)
 			}
 
 			executor := cmd.NewExecutor(title, "git", args...)
@@ -55,21 +55,21 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 			}
 
 			lastErr = err
-			color.Printf(color.Warning, "Git %s failed (attempt %d/%d): %v\n", action, attempt, retryMaxAttempts, err)
+			color.Printf(color.Warning, "Git %s failed (attempt %d/%d) for %s: %v\n", action, attempt, retryMaxAttempts, target, err)
 			if attempt < retryMaxAttempts {
 				retrySleep(attempt)
 			}
 		}
 
-		return fmt.Errorf("git %s failed after %d attempts -> %w", action, retryMaxAttempts, lastErr)
+		return fmt.Errorf("git %s failed after %d attempts for %s -> %w", action, retryMaxAttempts, target, lastErr)
 	}
 
 	cloneWithFallback := func(action string, repoRef string, depth int) error {
-		args := cloneArgs(repoRef, repoUrl, repoDir, depth)
+		args := cloneArgsFunc(repoRef, repoUrl, repoDir, depth)
 		if err := cloneWithRetry(action, args); err != nil {
 			if depth > 0 {
-				color.Printf(color.Warning, "-- Git %s failed with shallow clone, retrying without --depth\n", action)
-				if fallbackErr := cloneWithRetry(action+" without depth", cloneArgs(repoRef, repoUrl, repoDir, 0)); fallbackErr == nil {
+				color.Printf(color.Warning, "-- Git %s failed with shallow clone for %s, retrying without --depth\n", action, target)
+				if fallbackErr := cloneWithRetry(action+" without depth", cloneArgsFunc(repoRef, repoUrl, repoDir, 0)); fallbackErr == nil {
 					return nil
 				}
 			}
@@ -81,7 +81,7 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 	// ============ Clone default branch ============
 	if repoRef == "" {
 		if err := cloneWithFallback("clone git repo", repoRef, depth); err != nil {
-			return fmt.Errorf("failed to clone git repo -> %w", err)
+			return fmt.Errorf("failed to clone git repo for %s -> %w", target, err)
 		}
 		return nil
 	}
@@ -89,11 +89,11 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 	// ============ Clone specific branch ============
 	isBranch, err := CheckIfRemoteBranch(target, repoUrl, repoRef)
 	if err != nil {
-		return fmt.Errorf("failed to check if remote branch %s -> %w", repoRef, err)
+		return fmt.Errorf("failed to check if remote branch '%s' for '%s' -> %w", repoRef, target, err)
 	}
 	if isBranch {
 		if err := cloneWithFallback("clone git branch", repoRef, depth); err != nil {
-			return fmt.Errorf("failed to clone git branch %s -> %w", repoRef, err)
+			return fmt.Errorf("failed to clone git branch '%s' for '%s' -> %w", repoRef, target, err)
 		}
 		return nil
 	}
@@ -101,25 +101,32 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 	// ============ Clone specific tag ============
 	isTag, err := CheckIfRemoteTag(target, repoUrl, repoRef)
 	if err != nil {
-		return fmt.Errorf("failed to check if remote tag: %s of %s -> %w", repoRef, repoUrl, err)
+		return fmt.Errorf("failed to check if remote tag '%s' for '%s' -> %w", repoRef, target, err)
 	}
 	if isTag {
 		if err := cloneWithFallback("clone git tag", repoRef, depth); err != nil {
-			return fmt.Errorf("failed to clone git tag %s of %s -> %w", repoRef, repoUrl, err)
+			return fmt.Errorf("failed to clone with git tag '%s' for '%s' -> %w", repoRef, target, err)
 		}
 		return nil
 	}
 
 	// ============ Clone and checkout commit ============
-	command := fmt.Sprintf("git clone %s %s", repoUrl, repoDir)
-	if err := retryExecutor(title, command); err != nil {
-		return fmt.Errorf("failed to clone git repo %s -> %w", repoUrl, err)
+	cloneArgs := []string{"clone", repoUrl, repoDir}
+	if err := cloneWithRetry("clone git repo", cloneArgs); err != nil {
+		return fmt.Errorf("failed to clone with git repo %s for '%s' -> %w", repoUrl, target, err)
+	}
+
+	// Fetch all remote refs so the commit object is available locally.
+	fetchExecutor := cmd.NewExecutor(title+" (fetch)", "git", "fetch", "origin")
+	fetchExecutor.SetWorkDir(repoDir)
+	if output, err := fetchExecutor.ExecuteOutputLive(); err != nil {
+		return fmt.Errorf("failed to fetch origin after clone for '%s' -> %w: %s", target, err, output)
 	}
 
 	// Checkout repo to commit.
-	command = fmt.Sprintf("git reset --hard %s", repoRef)
+	command := fmt.Sprintf("git reset --hard %s", repoRef)
 	if err := retryExecutor(title+" (reset to commit)", command); err != nil {
-		return fmt.Errorf("failed to reset --hard to commit %s -> %w", repoRef, err)
+		return fmt.Errorf("failed to reset --hard '%s' to commit '%s' -> %w", target, repoRef, err)
 	}
 
 	return nil
@@ -148,7 +155,7 @@ func UpdateSubmodules(title, repoDir string) error {
 }
 
 // UpdateRepo update git repo.
-func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
+func UpdateRepo(target, repoRef, repoDir string, force bool) error {
 	if !fileio.PathExists(repoDir) {
 		return errors.ErrDirNotExist
 	}
@@ -169,7 +176,7 @@ func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 
 	// Get default branch if repoRef is empty.
 	if repoRef == "" {
-		branch, err := GetDefaultBranch(updateTarget, repoDir)
+		branch, err := GetDefaultBranch(target, repoDir)
 		if err != nil {
 			return err
 		}
@@ -185,13 +192,13 @@ func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 	// Update to a specific commit hash: fetch then hard-reset.
 	if CheckIsCommitHash(repoRef) {
 		if err := HardReset(repoDir, repoRef); err != nil {
-			return fmt.Errorf("update %s to commit %s -> %w", updateTarget, repoRef, err)
+			return fmt.Errorf("failed to update %s to commit '%s' -> %w", target, repoRef, err)
 		}
 		return nil
 	}
 
 	// Update to branch.
-	isBranch, err := CheckIfRemoteBranch(updateTarget, repoUrl, repoRef)
+	isBranch, err := CheckIfRemoteBranch(target, repoUrl, repoRef)
 	if err != nil {
 		return err
 	}
@@ -204,16 +211,16 @@ func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 			"git pull origin " + repoRef,
 		}
 		commandLine := strings.Join(commands, " && ")
-		executor := cmd.NewExecutor("[update "+updateTarget+"]", commandLine)
+		executor := cmd.NewExecutor("[update "+target+"]", commandLine)
 		executor.SetWorkDir(repoDir)
 		if output, err := executor.ExecuteOutputLive(); err != nil {
-			return fmt.Errorf("%s -> %w", output, err)
+			return fmt.Errorf("failed to update '%s' to '%s' -> %s -> %w", target, repoRef, output, err)
 		}
 		return nil
 	}
 
 	// Update to tag.
-	isTag, err := CheckIfRemoteTag(updateTarget, repoUrl, repoRef)
+	isTag, err := CheckIfRemoteTag(target, repoUrl, repoRef)
 	if err != nil {
 		return err
 	}
@@ -233,15 +240,15 @@ func UpdateRepo(updateTarget, repoRef, repoDir string, force bool) error {
 		}
 
 		commandLine := strings.Join(commands, " && ")
-		executor := cmd.NewExecutor("[update "+updateTarget+"]", commandLine)
+		executor := cmd.NewExecutor("[update "+target+"]", commandLine)
 		executor.SetWorkDir(repoDir)
 		if output, err := executor.ExecuteOutputLive(); err != nil {
-			return fmt.Errorf("%s -> %w", output, err)
+			return fmt.Errorf("failed to update '%s' to '%s' -> %s -> %w", target, repoRef, output, err)
 		}
 		return nil
 	}
 
-	return fmt.Errorf("invalid repo ref %s for %s", repoRef, updateTarget)
+	return fmt.Errorf("invalid repo ref %s for %s", repoRef, target)
 }
 
 // CherryPick cherry-pick patches.
@@ -308,7 +315,7 @@ func Rebase(title, repoRef, repoDir string, rebaseRefs []string) error {
 }
 
 // Clean clean git repo.
-func Clean(title, repoDir string) error {
+func Clean(target, repoDir string) error {
 	if !fileio.PathExists(repoDir) {
 		return errors.ErrDirNotExist
 	}
@@ -320,11 +327,12 @@ func Clean(title, repoDir string) error {
 	commands = append(commands, "git reset --hard")
 	commands = append(commands, "git clean -ffdx")
 
+	title := fmt.Sprintf("[clean %s]", target)
 	commandLine := strings.Join(commands, " && ")
 	executor := cmd.NewExecutor(title, commandLine)
 	executor.SetWorkDir(repoDir)
 	if output, err := executor.ExecuteOutputLive(); err != nil {
-		return fmt.Errorf("%s -> %w", output, err)
+		return fmt.Errorf("failed to clean '%s' -> %s -> %w", target, output, err)
 	}
 
 	return nil
@@ -356,15 +364,15 @@ func HardReset(repoDir, commit string) error {
 	if err := execute("reset", "--hard", commit); err != nil {
 		// Commit not found locally, fetch and retry.
 		if err := execute("fetch", "origin"); err != nil {
-			return fmt.Errorf("failed to fetch origin for %s -> %w", nameVersion, err)
+			return fmt.Errorf("failed to fetch origin for '%s' -> %w", nameVersion, err)
 		}
 		if err := execute("reset", "--hard", commit); err != nil {
-			return fmt.Errorf("failed to reset %s to %s -> %w", nameVersion, commit, err)
+			return fmt.Errorf("failed to reset --hard '%s' to '%s' -> %w", nameVersion, commit, err)
 		}
 	}
 
 	if err := execute("clean", "-ffdx"); err != nil {
-		return fmt.Errorf("failed to clean %s -> %w", nameVersion, err)
+		return fmt.Errorf("failed to clean '%s' -> %w", nameVersion, err)
 	}
 
 	return nil
@@ -386,7 +394,7 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 	if pathExists(recordFilePath) {
 		bytes, err := os.ReadFile(recordFilePath)
 		if err != nil {
-			return fmt.Errorf("cannot read .patched -> %w", err)
+			return fmt.Errorf("failed to read .patched for '%s' -> %w", nameVersion, err)
 		}
 
 		lines := strings.Split(string(bytes), "\n")
@@ -426,7 +434,7 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 		executor := cmd.NewExecutor(title, "git", args...)
 		executor.SetWorkDir(repoDir)
 		if output, err := executor.ExecuteOutputLive(); err != nil {
-			return fmt.Errorf("%s -> %w", output, err)
+			return fmt.Errorf("failed to apply patch for '%s' -> %s -> %w", nameVersion, output, err)
 		}
 	} else {
 		// Others, assume it's a regular patch file.
@@ -434,19 +442,19 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 		executor := cmd.NewExecutor(title, "patch", "-Np1", "-i", patchFile)
 		executor.SetWorkDir(repoDir)
 		if output, err := executor.ExecuteOutputLive(); err != nil {
-			return fmt.Errorf("%s -> %w", output, err)
+			return fmt.Errorf("failed to apply patch for '%s' -> %s -> %w", nameVersion, output, err)
 		}
 	}
 
 	// Create a flag file to indicated that patch already applied.
 	recordFile, err := os.OpenFile(recordFilePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("cannot open or create .patched -> %w", err)
+		return fmt.Errorf("failed to open or create .patched for '%s' -> %w", nameVersion, err)
 	}
 	defer recordFile.Close()
 
 	if _, err := recordFile.WriteString(patchFileName + "\n"); err != nil {
-		return fmt.Errorf("cannot write %s into .patched -> %w", patchFileName, err)
+		return fmt.Errorf("failed to write %s into .patched for '%s' -> %w", patchFileName, nameVersion, err)
 	}
 	return nil
 }

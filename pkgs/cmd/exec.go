@@ -76,14 +76,14 @@ func (e *executor) WithRetry(maxAttempts int) *executor {
 func (e *executor) ExecuteOutput() (string, error) {
 	var output fileio.LockedBuffer
 	err := e.executeWithRetry(&output)
-	return output.String(), err
+	return strings.TrimSpace(output.String()), err
 }
 
 // ExecuteOutputLive executes the command with live terminal output and returns its combined stdout/stderr as a string.
 func (e *executor) ExecuteOutputLive() (string, error) {
 	var output fileio.LockedBuffer
 	err := e.executeWithRetry(outputCapture{output: &output})
-	return output.String(), err
+	return strings.TrimSpace(output.String()), err
 }
 
 // Execute runs the command with live terminal output and no returned output.

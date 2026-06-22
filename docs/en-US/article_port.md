@@ -13,6 +13,8 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
   archive             = ""                    # optional field, only works when url is not a git repo url.
   src_dir             = "xxx"                 # optional field
   build_tool          = true|false            # optional field
+  checksum            = ""                    # optional field, git commit hash of the source, or sha-256 of the archive
+  depth               = 0                     # optional field, git shallow clone depth; only effective when ref is a branch/tag
 
 [[build_configs]]
   system_name         = "linux"               # optional selector
@@ -67,6 +69,8 @@ The following are fields and their descriptions:
 | archive | Optional, only works when url is not a git url. Used to rename downloaded archive file. |
 | src_dir | Optional, used to specify where **configure** or **CMakeLists.txt** is located. |
 | build_tool | Optional. Set to `true` for build-time tools (e.g. m4, automake, libtool, autoconf): always built natively, install path has no platform/project/buildType hierarchical directory segments, and only built on Linux/Darwin. |
+| checksum | Optional. Git commit hash of the source, or sha-256 of the archive. **A port with checksum is restored from the artifact pkgcache at install time, skipping clone and build**; falls back to clone+build if the cache miss. |
+| depth | Optional. Git shallow clone depth, saves bandwidth. **Only effective when ref is a branch or tag**; ignored when ref is a commit hash (the target commit may live on any branch, so all refs must be fetched to guarantee reachability). |
 | build_configs | Array, describes how to build the library on different platforms. |
 | dev_dependencies | Array, tools required during build (e.g. autoconf, nasm). |
 

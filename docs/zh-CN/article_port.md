@@ -22,6 +22,8 @@
   archive = ""                    # 可选字段，仅当 url 不是 git 仓库时有效
   src_dir = "xxx"                 # 可选字段
   build_tool = true|false         # 可选字段
+  checksum = ""                   # 可选字段，源码 git commit hash 或者 压缩包 sha-256 校验值
+  depth = 0                       # 可选字段，git 浅克隆深度，仅对 ref 为 branch/tag 生效
 
 [[build_configs]]
   system_name = "linux"           # 可选选择器
@@ -75,6 +77,8 @@
 | archive | ❌ | 下载压缩包时重命名文件名 | `glog-0.6.0.tar.gz` |
 | src_dir | ❌ | 指定 configure/CMakeLists.txt 所在目录 | `icu4c/source` |
 | build_tool | ❌ | 是否为"构建期工具"端口（如 m4、automake、libtool、autoconf）。设为 `true` 时始终本机编译、安装路径不含平台/项目/构建类型等层级目录，且仅在 Linux/Darwin 上构建 | `true` |
+| checksum | ❌ | 源码的 git commit hash 或者 压缩包的 sha-256 校验值。**配置了 checksum 的端口在 install 时优先从 pkgcache 拉取编译缓存，免去 clone 与编译**；若拉取失败则回退到 clone+编译 | `b6d328e9...` |
+| depth | ❌ | git 浅克隆深度，节省带宽。**仅当 ref 为分支或标签时生效**；ref 为 commit hash 时会被忽略（目标 commit 可能在任意分支上，必须拉取所有 ref 才能保证可达） | `1` |
 | build_configs | ✅ | 构建配置数组，描述不同平台的构建方式 | 见下方示例 |
 | dev_dependencies | ❌ | 构建期所需工具（如 autoconf、nasm） | `autoconf@2.72` |
 
