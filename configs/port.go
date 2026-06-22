@@ -103,13 +103,8 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	p.Name = parts[0]
 	p.Version = parts[1]
 
-	// Return the port.toml path for (name@version), searching
-	// in priority order:
-	//
-	//  1. <ConfProjectsDir>/<project>/<name>/<version>/port.toml         (project top-level)
-	//  2. <ConfProjectsDir>/<project>/ports/<name>/<version>/port.toml   (project vendor)
-	//  3. <PortsDir>/<first-char>/<name>/<version>/port.toml             (global)
-	portFile, err := dirs.ResolveProjectPort(ctx.Project().GetName(), parts[0], parts[1])
+	// Choose the right port file.
+	portFile, err := p.resolveProjectPort(ctx.Project().GetName(), parts[0], parts[1])
 	if err != nil {
 		if errors.Is(err, errors.ErrPortNotFound) {
 			if p.Parent != "" {
@@ -233,6 +228,44 @@ func (p Port) Installed() (bool, error) {
 	}
 
 	return depsInstalled, nil
+}
+
+// resolveProjectPort returns the port.toml path for (name@version), searching
+// in priority order:
+//
+//  1. <ConfProjectsDir>/<project>/<name>/<version>/port.toml         (project top-level)
+//  2. <ConfProjectsDir>/<project>/ports/<name>/<version>/port.toml   (project vendor)
+//  3. <PortsDir>/<first-char>/<name>/<version>/port.toml             (global)
+//
+// Returns the found path, or:
+//   - ErrAmbiguousProjectPort if both (1) and (2) exist
+//   - ErrPortNotFound if none of the three exists
+func (p Port) resolveProjectPort(project, name, version string) (string, error) {
+	topLevelPort := filepath.Join(dirs.ConfProjectsDir, project, name, version, "port.toml")
+	vendorPort := filepath.Join(dirs.ConfProjectsDir, project, "ports", name, version, "port.toml")
+
+	hasTopLevelPort := fileio.PathExists(topLevelPort)
+	hasVendorPort := fileio.PathExists(vendorPort)
+
+	switch {
+	case hasTopLevelPort && hasVendorPort:
+		return "", fmt.Errorf("%w: %s and %s — remove one to disambiguate",
+			errors.ErrAmbiguousProjectPort, topLevelPort, vendorPort)
+
+	case hasTopLevelPort:
+		return topLevelPort, nil
+
+	case hasVendorPort:
+		return vendorPort, nil
+	}
+
+	// Fall back to the global ports/ collection.
+	publicPort := dirs.GetPortPath(name, version)
+	if fileio.PathExists(publicPort) {
+		return publicPort, nil
+	}
+
+	return "", errors.ErrPortNotFound
 }
 
 func (p Port) checkDepsInstalled() (bool, error) {
