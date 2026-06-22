@@ -33,6 +33,7 @@ type BuildConfig struct {
 	Dependencies    []string
 	DevDependencies []string
 	BuildTools      []string
+	PortFile        string
 }
 
 type Port struct {
@@ -40,7 +41,6 @@ type Port struct {
 	Project     string
 	PortType    portType
 	NameVersion string
-	PortFile    string
 	DevDep      bool
 	HostDev     bool
 	Parents     []string
@@ -135,7 +135,6 @@ func (p Port) buildMeta() (string, error) {
 			Platform:    p.Platform,
 			PortType:    portTypeDevDependency,
 			NameVersion: nameVersion,
-			PortFile:    p.PortFile,
 			Project:     p.Project,
 			DevDep:      true,
 			Parents:     append(p.Parents, parent),
@@ -163,7 +162,6 @@ func (p Port) buildMeta() (string, error) {
 			PortType:    portTypeDependency,
 			NameVersion: nameVersion,
 			Project:     p.Project,
-			PortFile:    p.PortFile,
 			DevDep:      p.DevDep,
 			Parents:     append(p.Parents, parent),
 			BuildConfig: *buildConfig,
@@ -217,7 +215,6 @@ func (p Port) collectBuildTools(visitedPorts, seenTools map[string]struct{}) ([]
 		childTools, err := Port{
 			Platform:    p.Platform,
 			Project:     p.Project,
-			PortFile:    p.PortFile,
 			PortType:    portTypeDevDependency,
 			NameVersion: nameVersion,
 			DevDep:      true,
@@ -243,7 +240,6 @@ func (p Port) collectBuildTools(visitedPorts, seenTools map[string]struct{}) ([]
 			Project:     p.Project,
 			PortType:    portTypeDependency,
 			NameVersion: nameVersion,
-			PortFile:    p.PortFile,
 			DevDep:      p.DevDep,
 			Parents:     append(p.Parents, parent),
 			BuildConfig: *buildConfig,
@@ -270,7 +266,7 @@ func (p Port) writeSectionTitle(buffer *bytes.Buffer, parents []string, nameVers
 }
 
 func (p Port) readPatch(patchFileName string) (string, error) {
-	patchFilePath := filepath.Join(filepath.Dir(p.PortFile), patchFileName)
+	patchFilePath := filepath.Join(filepath.Dir(p.BuildConfig.PortFile), patchFileName)
 	if !fileio.PathExists(patchFilePath) {
 		return "", fmt.Errorf("patch %s not found", patchFileName)
 	}

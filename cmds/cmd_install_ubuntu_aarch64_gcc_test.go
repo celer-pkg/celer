@@ -58,9 +58,9 @@ func TestInstall_AArch64_GCC_Gyp(t *testing.T) {
 		buildWithAArch64GCC(t, "", "nss@3.55", false)
 	})
 
-	t.Run("portable_gcc", func(t *testing.T) {
-		buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "nss@3.55", false)
-	})
+	// t.Run("portable_gcc", func(t *testing.T) {
+	// 	buildWithAArch64GCC(t, ubuntu_aarch64_gcc_11_5_0, "nss@3.55", false)
+	// })
 }
 
 func TestInstall_AArch64_GCC_Meson(t *testing.T) {

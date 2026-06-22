@@ -79,10 +79,9 @@ func (p Port) buildMeta() (string, error) {
 		NameVersion: p.NameVersion(),
 		Platform:    platformName,
 		Project:     p.ctx.Project().GetName(),
-		PortFile:    p.portFile,
 		DevDep:      p.DevDep,
 		HostDev:     p.HostDep,
-		BuildConfig: p.toCacheBuildConfig(p.MatchedConfig),
+		BuildConfig: p.toPkgCacheBuildConfig(p.MatchedConfig, p.portFile),
 		Callbacks:   p,
 	}
 
@@ -249,7 +248,7 @@ func (p Port) GetBuildConfig(nameVersion string, devDep bool) (*pkgcache.BuildCo
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return nil, err
 	}
-	config := p.toCacheBuildConfig(port.MatchedConfig)
+	config := p.toPkgCacheBuildConfig(port.MatchedConfig, port.portFile)
 	return &config, nil
 }
 
@@ -263,11 +262,12 @@ func (p Port) CheckHostSupported(nameVersion string) bool {
 	return port.IsHostSupported()
 }
 
-func (p Port) toCacheBuildConfig(buildConfig *buildsystems.BuildConfig) pkgcache.BuildConfig {
+func (p Port) toPkgCacheBuildConfig(buildConfig *buildsystems.BuildConfig, portFile string) pkgcache.BuildConfig {
 	return pkgcache.BuildConfig{
 		Patches:         append([]string{}, buildConfig.Patches...),
 		Dependencies:    append([]string{}, buildConfig.Dependencies...),
 		DevDependencies: append([]string{}, buildConfig.DevDependencies...),
 		BuildTools:      buildConfig.CheckTools(),
+		PortFile:        portFile,
 	}
 }
