@@ -8,6 +8,7 @@ var (
 	ErrNoConfigFlagProvided     = errors.New("no configuration flag provided")
 	ErrNoCleanFlagProvided      = errors.New("no clean flag provided")
 	ErrPortNotFound             = errors.New("port is not found")
+	ErrAmbiguousProjectPort     = errors.New("port exists in both <project>/ and <project>/ports/")
 	ErrNoMatchedConfigFound     = errors.New("no matched config found")
 	ErrRepoNotExit              = errors.New("repo not exist")
 	ErrPlatformNotExist         = errors.New("platform not exist")

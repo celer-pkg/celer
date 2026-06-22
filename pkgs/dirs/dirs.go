@@ -5,7 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unicode"
+
+	"github.com/celer-pkg/celer/pkgs/errors"
 )
 
 var (
@@ -60,13 +61,6 @@ func GetPortDir(name, version string) string {
 
 	// Get first character and convert to lowercase
 	firstChar := strings.ToLower(string([]rune(name)[0]))
-
-	// Use only letters/digits, default to "other" for special chars
-	r := []rune(firstChar)[0]
-	if !unicode.IsLetter(r) && !unicode.IsDigit(r) {
-		firstChar = "other"
-	}
-
 	return filepath.Join(PortsDir, firstChar, name, version)
 }
 
@@ -74,6 +68,53 @@ func GetPortDir(name, version string) string {
 // For example: GetPortPath("glog", "0.6.0") returns "ports/g/glog/0.6.0/port.toml"
 func GetPortPath(name, version string) string {
 	return filepath.Join(GetPortDir(name, version), "port.toml")
+}
+
+// ResolveProjectPort returns the port.toml path for (name@version), searching
+// in priority order:
+//
+//  1. <ConfProjectsDir>/<project>/<name>/<version>/port.toml         (project top-level)
+//  2. <ConfProjectsDir>/<project>/ports/<name>/<version>/port.toml   (project vendor)
+//  3. <PortsDir>/<first-char>/<name>/<version>/port.toml             (global)
+//
+// Returns the found path, or:
+//   - ErrAmbiguousProjectPort if both (1) and (2) exist
+//   - ErrPortNotFound if none of the three exists
+func ResolveProjectPort(project, name, version string) (string, error) {
+	topLevelPort := filepath.Join(ConfProjectsDir, project, name, version, "port.toml")
+	vendorPort := filepath.Join(ConfProjectsDir, project, "ports", name, version, "port.toml")
+
+	hasTopLevelPort := exist(topLevelPort)
+	hasVendorPort := exist(vendorPort)
+
+	switch {
+	case hasTopLevelPort && hasVendorPort:
+		return "", fmt.Errorf("%w: %s and %s — remove one to disambiguate",
+			errors.ErrAmbiguousProjectPort, topLevelPort, vendorPort)
+
+	case hasTopLevelPort:
+		return topLevelPort, nil
+
+	case hasVendorPort:
+		return vendorPort, nil
+	}
+
+	// Fall back to the global ports/ collection.
+	publicPort := GetPortPath(name, version)
+	if exist(publicPort) {
+		return publicPort, nil
+	}
+
+	return "", errors.ErrPortNotFound
+}
+
+// exist reports whether p exists and is a regular file.
+func exist(p string) bool {
+	info, err := os.Stat(p)
+	if err != nil {
+		return false
+	}
+	return !info.IsDir()
 }
 
 // ParentDir return the parent directory of path.

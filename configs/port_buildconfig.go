@@ -72,6 +72,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		HostDev:         p.HostDep || p.DevDep,
 		Jobs:            p.ctx.Jobs(),
 		RepoDir:         filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
+		PortFile:        p.portFile,
 	}
 
 	// Source folder may be a inner dir.
@@ -87,10 +88,10 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	if len(p.BuildConfigs) > 0 {
 		for index := range p.BuildConfigs {
 			// Merge ports defined in project if exists.
-			portInPorts := dirs.GetPortPath(p.Name, p.Version)
-			portInProject := filepath.Join(dirs.ConfProjectsDir, p.ctx.Project().GetName(), p.Name, p.Version, "port.toml")
-			if fileio.PathExists(portInPorts) && fileio.PathExists(portInProject) {
-				bytes, err := os.ReadFile(portInProject)
+			publicPort := dirs.GetPortPath(p.Name, p.Version)
+			projectPort := p.portFile != "" && p.portFile != publicPort
+			if fileio.PathExists(publicPort) && projectPort {
+				bytes, err := os.ReadFile(p.portFile)
 				if err != nil {
 					return fmt.Errorf("failed to read project port -> %w", err)
 				}

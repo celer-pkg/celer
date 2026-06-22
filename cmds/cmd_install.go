@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/depcheck"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
+	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
@@ -159,22 +160,16 @@ func (i *installCmd) install(nameVersion string) error {
 	color.Printf(color.Title, "📌 product: %s\n", i.celer.Project().GetName())
 	color.Println(color.Title, "=======================================================================")
 
-	// Parse name and version (already validated)
-	parts := strings.Split(nameVersion, "@")
-	name, version := parts[0], parts[1]
-
-	portInProject := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName(), name, version, "port.toml")
-	portInPorts := dirs.GetPortPath(name, version)
-	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
-		err := fmt.Errorf("port %s is not yet available in the ports collection.\n 🚩 Welcome to contribute %s to the ports. 🚩",
-			nameVersion, nameVersion)
-		return color.PrintError(err, "failed to install %s", nameVersion)
+	// Init the port.
+	var port = configs.Port{
+		DevDep: i.dev,
 	}
-
-	// Install the port.
-	var port configs.Port
-	port.DevDep = i.dev
 	if err := port.Init(i.celer, nameVersion); err != nil {
+		if errors.Is(err, errors.ErrPortNotFound) {
+			format := "port %s is not yet available in the ports collection.\n 🚩 Welcome to contribute %s to the ports. 🚩"
+			err := fmt.Errorf(format, nameVersion, nameVersion)
+			return color.PrintError(err, "failed to install %s", nameVersion)
+		}
 		return color.PrintError(err, "failed to init %s", nameVersion)
 	}
 

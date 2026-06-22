@@ -150,21 +150,21 @@ func (e *Exporter) exportPorts() error {
 
 		// Copy all supplementary files from the source port directory
 		// (patches, cmake_config.toml, CMakeLists.txt, etc.).
-		srcPortDir := dirs.GetPortDir(parts[0], parts[1])
-		if fileio.PathExists(srcPortDir) {
-			entries, err := os.ReadDir(srcPortDir)
+		publicPortDir := dirs.GetPortDir(parts[0], parts[1])
+		if fileio.PathExists(publicPortDir) {
+			entries, err := os.ReadDir(publicPortDir)
 			if err != nil {
-				return fmt.Errorf("failed to read port dir %s -> %w", srcPortDir, err)
+				return fmt.Errorf("failed to read port dir %s -> %w", publicPortDir, err)
 			}
 			for _, entry := range entries {
-				if entry.Name() == "port.toml" {
+				if entry.Name() == "port.toml" || strings.HasSuffix(entry.Name(), ".patch") {
 					continue // port.toml is written separately with modifications.
 				}
 				if entry.IsDir() {
 					continue // port version dirs contain only flat files.
 				}
 
-				srcPath := filepath.Join(srcPortDir, entry.Name())
+				srcPath := filepath.Join(publicPortDir, entry.Name())
 				dstPath := filepath.Join(portDir, entry.Name())
 				if err := fileio.CopyFile(srcPath, dstPath); err != nil {
 					return fmt.Errorf("failed to copy %s -> %w", srcPath, err)

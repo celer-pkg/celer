@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -41,6 +40,7 @@ type Port struct {
 	Project     string
 	PortType    portType
 	NameVersion string
+	PortFile    string
 	DevDep      bool
 	HostDev     bool
 	Parents     []string
@@ -96,11 +96,6 @@ func (p Port) buildMeta() (string, error) {
 		return "", fmt.Errorf("invalid port name and version: %s", p.NameVersion)
 	}
 
-	portInProject := filepath.Join(dirs.ConfProjectsDir, p.Project, parts[0], parts[1], "port.toml")
-	portInPorts := dirs.GetPortPath(parts[0], parts[1])
-	if !fileio.PathExists(portInProject) && !fileio.PathExists(portInPorts) {
-		return "", fmt.Errorf("port %s not found", p.NameVersion)
-	}
 	content, err := p.Callbacks.GenPortTomlString(p.NameVersion, p.DevDep)
 	if err != nil {
 		return "", fmt.Errorf("generate toml content of port %s -> %w", p.NameVersion, err)
@@ -110,7 +105,7 @@ func (p Port) buildMeta() (string, error) {
 
 	// Write content of patches.
 	for _, patch := range p.BuildConfig.Patches {
-		content, err := p.readPatch(p.NameVersion, patch)
+		content, err := p.readPatch(patch)
 		if err != nil {
 			return "", fmt.Errorf("read patch %s -> %w", patch, err)
 		}
@@ -140,6 +135,7 @@ func (p Port) buildMeta() (string, error) {
 			Platform:    p.Platform,
 			PortType:    portTypeDevDependency,
 			NameVersion: nameVersion,
+			PortFile:    p.PortFile,
 			Project:     p.Project,
 			DevDep:      true,
 			Parents:     append(p.Parents, parent),
@@ -167,6 +163,7 @@ func (p Port) buildMeta() (string, error) {
 			PortType:    portTypeDependency,
 			NameVersion: nameVersion,
 			Project:     p.Project,
+			PortFile:    p.PortFile,
 			DevDep:      p.DevDep,
 			Parents:     append(p.Parents, parent),
 			BuildConfig: *buildConfig,
@@ -220,6 +217,7 @@ func (p Port) collectBuildTools(visitedPorts, seenTools map[string]struct{}) ([]
 		childTools, err := Port{
 			Platform:    p.Platform,
 			Project:     p.Project,
+			PortFile:    p.PortFile,
 			PortType:    portTypeDevDependency,
 			NameVersion: nameVersion,
 			DevDep:      true,
@@ -245,6 +243,7 @@ func (p Port) collectBuildTools(visitedPorts, seenTools map[string]struct{}) ([]
 			Project:     p.Project,
 			PortType:    portTypeDependency,
 			NameVersion: nameVersion,
+			PortFile:    p.PortFile,
 			DevDep:      p.DevDep,
 			Parents:     append(p.Parents, parent),
 			BuildConfig: *buildConfig,
@@ -270,27 +269,15 @@ func (p Port) writeSectionTitle(buffer *bytes.Buffer, parents []string, nameVers
 	}
 }
 
-func (p Port) readPatch(portNameVersion, patchFileName string) (string, error) {
-	parts := strings.Split(portNameVersion, "@")
-	if len(parts) != 2 {
-		return "", fmt.Errorf("invalid port name and version: %s", p.NameVersion)
-	}
-
-	portPatchPath := filepath.Join(dirs.GetPortDir(parts[0], parts[1]), patchFileName)
-	projectPatchPath := filepath.Join(dirs.ConfProjectsDir, p.Project, parts[0], parts[1], patchFileName)
-
-	var patchPath string
-	if fileio.PathExists(projectPatchPath) {
-		patchPath = projectPatchPath
-	} else if fileio.PathExists(portPatchPath) {
-		patchPath = portPatchPath
-	} else {
+func (p Port) readPatch(patchFileName string) (string, error) {
+	patchFilePath := filepath.Join(filepath.Dir(p.PortFile), patchFileName)
+	if !fileio.PathExists(patchFilePath) {
 		return "", fmt.Errorf("patch %s not found", patchFileName)
 	}
 
-	bytes, err := os.ReadFile(patchPath)
+	bytes, err := os.ReadFile(patchFilePath)
 	if err != nil {
-		return "", fmt.Errorf("read patch %s: %s", patchPath, err)
+		return "", fmt.Errorf("read patch %s: %s", patchFilePath, err)
 	}
 
 	return string(bytes), nil

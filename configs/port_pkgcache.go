@@ -79,6 +79,7 @@ func (p Port) buildMeta() (string, error) {
 		NameVersion: p.NameVersion(),
 		Platform:    platformName,
 		Project:     p.ctx.Project().GetName(),
+		PortFile:    p.portFile,
 		DevDep:      p.DevDep,
 		HostDev:     p.HostDep,
 		BuildConfig: p.toCacheBuildConfig(p.MatchedConfig),

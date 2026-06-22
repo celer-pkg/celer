@@ -46,6 +46,7 @@ type PortConfig struct {
 	Jobs            int      // number of jobs to run in parallel
 	DevDep          bool     // whether dev dependency
 	HostDev         bool     // whether native build
+	PortFile        string   // the file path of port.toml
 
 	Ctx context.Context `toml:"-"`
 }
@@ -307,25 +308,6 @@ func (b BuildConfig) Validate() error {
 }
 
 func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
-	// In default, clone or download into repo dir.
-	var cmakeConfigPath string
-	var trackArchiveAsLocalRepo bool
-
-	// Check cmake_config.toml in port dirs.
-	publicPortDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
-	projectPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
-	publicConfigPath := filepath.Join(publicPortDir, "cmake_config.toml")
-	projectConfigPath := filepath.Join(projectPortDir, "cmake_config.toml")
-
-	// Check if cmake_config.toml exists in port dirs or project port dirs.
-	// Note: The project port dir has higher priority.
-	if fileio.PathExists(publicConfigPath) {
-		cmakeConfigPath = publicConfigPath
-	}
-	if fileio.PathExists(projectConfigPath) {
-		cmakeConfigPath = projectConfigPath
-	}
-
 	if fileio.PathExists(b.PortConfig.RepoDir) {
 		entities, err := os.ReadDir(b.PortConfig.RepoDir)
 		if err != nil {
@@ -402,6 +384,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	}
 
 	// For git repo, clone it when source dir doesn't exists.
+	var trackArchiveAsLocalRepo bool
 	if strings.HasSuffix(repoUrl, ".git") {
 		// Do clone or download repo.
 		nameVersion := b.PortConfig.nameVersion()
@@ -448,7 +431,8 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	}
 
 	// Generate a CMakeLists.txt for prebuilt project.
-	if cmakeConfigPath != "" && b.buildSystem.Name() == "prebuilt" {
+	cmakeConfigPath := filepath.Join(filepath.Dir(b.PortConfig.PortFile), "cmake_config.toml")
+	if cmakeConfigPath != "" && fileio.PathExists(cmakeConfigPath) && b.buildSystem.Name() == "prebuilt" {
 		systemName := b.Ctx.Platform().GetToolchain().GetSystemName()
 		cmakeConfig, err := generator.ReadCMakeConfig(cmakeConfigPath, systemName)
 		if err != nil {
@@ -520,39 +504,22 @@ func (b BuildConfig) ApplyPatches() error {
 			}
 
 			// Find patch file to apply.
-			portDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
-			defaultPatchPath := filepath.Join(portDir, patch)
-			preferedPatchPath := filepath.Join(
-				dirs.ConfProjectsDir,
-				b.PortConfig.ProjectName,
-				b.PortConfig.LibName,
-				b.PortConfig.LibVersion,
-				patch,
-			)
-
-			var patchPath string
-			if fileio.PathExists(preferedPatchPath) {
-				patchPath = preferedPatchPath
-			} else if fileio.PathExists(defaultPatchPath) {
-				patchPath = defaultPatchPath
-			} else {
-				return fmt.Errorf("patch %s not found", patch)
+			portDir := filepath.Dir(b.PortConfig.PortFile)
+			patchPath := filepath.Join(portDir, patch)
+			if !fileio.PathExists(patchPath) {
+				return fmt.Errorf("patch file not exist for %s", patchPath)
 			}
 
 			// Apply patch (linux patch or git patch).
 			if err := git.ApplyPatch(b.PortConfig.nameVersion(), b.PortConfig.RepoDir, patchPath); err != nil {
 				return err
 			}
+
 		}
 	}
 
 	// Copy files under port dir if they are exist.
 	overrideFiles := func(portDir string) error {
-		// If port dir not exists, skip it.
-		if !fileio.PathExists(portDir) {
-			return nil
-		}
-
 		entities, err := os.ReadDir(portDir)
 		if err != nil {
 			return fmt.Errorf("failed to read port dir: %s", portDir)
@@ -573,12 +540,11 @@ func (b BuildConfig) ApplyPatches() error {
 		}
 		return nil
 	}
-	portDir := dirs.GetPortDir(b.PortConfig.LibName, b.PortConfig.LibVersion)
+	portDir := filepath.Dir(b.PortConfig.PortFile)
 	if err := overrideFiles(portDir); err != nil {
 		return fmt.Errorf("failed to override files from port dir -> %w", err)
 	}
-	projectPortDir := filepath.Join(dirs.ConfProjectsDir, b.PortConfig.ProjectName, b.PortConfig.LibName, b.PortConfig.LibVersion)
-	if err := overrideFiles(projectPortDir); err != nil {
+	if err := overrideFiles(portDir); err != nil {
 		return fmt.Errorf("failed to override files from project port dir -> %w", err)
 	}
 
