@@ -83,11 +83,11 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 	}
 
 	// Check if local file is valid. If not, try to restore from cache or download again.
-	pkgCache := ctx.PkgCache()
+	pkgCacheConfig := ctx.PkgCacheConfig()
 	cachedDownloadsDir := ""
-	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCache != nil && pkgCache.IsWritable()
+	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCacheConfig != nil && pkgCacheConfig.IsWritable()
 	if canUseCache {
-		cachedDownloadsDir = pkgCache.GetDir(context.PkgCacheDirDownloads)
+		cachedDownloadsDir = pkgCacheConfig.GetDir(context.PkgCacheDirDownloads)
 	}
 
 	// Determine if download is needed.
@@ -128,7 +128,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 			}
 
 			color.Printf(color.Hint, "- caching to pkgcache: %s", fileName)
-			chattrFS := NewChattrFS(pkgCache.GetDir(context.PkgCacheDirRoot))
+			chattrFS := NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot))
 			cachedPath, err := SaveCachedFile(downloaded, cachedDownloadsDir, fileName, r.sha256, chattrFS)
 			if err != nil {
 				return fmt.Errorf("failed to cache downloaded file %s: %w", fileName, err)

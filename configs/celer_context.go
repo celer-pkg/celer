@@ -58,14 +58,16 @@ func (c *Celer) Offline() bool {
 	return c.Main.Offline
 }
 
-func (c *Celer) PkgCache() context.PkgCache {
-	// Must return exactly nil if cache dir is none.
-	// otherwise, the result of CacheDir() will not be nil.
-	if c.configData.PkgCache == nil {
+func (c *Celer) PkgCacheConfig() context.PkgCacheConfig {
+	if c.configData.PkgCacheConfig == nil {
 		return nil
 	}
 
-	return c.configData.PkgCache
+	return c.configData.PkgCacheConfig
+}
+
+func (c *Celer) DevCacheConfig() context.DevCacheConfig {
+	return c.devCacheConfig
 }
 
 func (c *Celer) Verbose() bool {

@@ -250,10 +250,10 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if celer2.PkgCache().GetDir(context.PkgCacheDirRoot) != dirs.TestPkgCacheDir {
+	if celer2.PkgCacheConfig().GetDir(context.PkgCacheDirRoot) != dirs.TestPkgCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
-	if !celer2.PkgCache().IsWritable() {
+	if !celer2.PkgCacheConfig().IsWritable() {
 		t.Fatal("cache writable should be `true`")
 	}
 }
@@ -532,7 +532,7 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 	if err := celer2.Init(); err != nil {
 		t.Fatal(err)
 	}
-	if celer2.PkgCache().GetDir(context.PkgCacheDirRoot) != dirs.TestPkgCacheDir {
+	if celer2.PkgCacheConfig().GetDir(context.PkgCacheDirRoot) != dirs.TestPkgCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
 }
@@ -559,7 +559,7 @@ func TestConfigure_PkgCacheWritable(t *testing.T) {
 	if err := celer2.Init(); err != nil {
 		t.Fatal(err)
 	}
-	if !celer2.PkgCache().IsWritable() {
+	if !celer2.PkgCacheConfig().IsWritable() {
 		t.Fatal("cache writable should be `true`")
 	}
 }
@@ -909,7 +909,7 @@ func TestConfigure_PkgCacheCacheArtifacts(t *testing.T) {
 	if err := celer2.Init(); err != nil {
 		t.Fatal(err)
 	}
-	if !celer2.PkgCache().GetCacheArtifacts() {
+	if !celer2.PkgCacheConfig().GetCacheArtifacts() {
 		t.Fatal("pkgcache cache-artifacts should be `true`")
 	}
 }
@@ -932,7 +932,7 @@ func TestConfigure_PkgCacheCacheDownloads(t *testing.T) {
 	if err := celer2.Init(); err != nil {
 		t.Fatal(err)
 	}
-	if !celer2.PkgCache().GetCacheDownloads() {
+	if !celer2.PkgCacheConfig().GetCacheDownloads() {
 		t.Fatal("pkgcache cache-downloads should be `true`")
 	}
 }

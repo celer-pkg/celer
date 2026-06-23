@@ -2,6 +2,7 @@ package configs
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/celer-pkg/celer/context"
@@ -9,7 +10,9 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-type PkgCache struct {
+// ================= PkgCacheConfig ================= //
+
+type PkgCacheConfig struct {
 	Dir            string `toml:"dir"`
 	Writable       bool   `toml:"writable"`
 	CacheArtifacts bool   `toml:"cache_artifacts"`
@@ -21,8 +24,8 @@ type PkgCache struct {
 	repoConfig     *pkgcache.RepoConfig
 }
 
-func NewPkgCache(ctx context.Context, dir string, writable bool) *PkgCache {
-	return &PkgCache{
+func NewPkgCacheConfig(ctx context.Context, dir string, writable bool) *PkgCacheConfig {
+	return &PkgCacheConfig{
 		ctx:            ctx,
 		Dir:            dir,
 		Writable:       writable,
@@ -31,7 +34,7 @@ func NewPkgCache(ctx context.Context, dir string, writable bool) *PkgCache {
 	}
 }
 
-func (p *PkgCache) Refresh() error {
+func (p *PkgCacheConfig) Refresh() error {
 	if p.Dir == "" {
 		return fmt.Errorf("pkgcache dir is empty")
 	}
@@ -46,7 +49,7 @@ func (p *PkgCache) Refresh() error {
 	return nil
 }
 
-func (p PkgCache) GetDir(dirType context.PkgCacheDirType) string {
+func (p PkgCacheConfig) GetDir(dirType context.PkgCacheDirType) string {
 	switch dirType {
 	case context.PkgCacheDirArtifacts:
 		return filepath.Join(p.Dir, "artifacts-"+Version)
@@ -62,28 +65,56 @@ func (p PkgCache) GetDir(dirType context.PkgCacheDirType) string {
 	}
 }
 
-func (p PkgCache) IsWritable() bool {
+func (p PkgCacheConfig) IsWritable() bool {
 	return p.Writable
 }
 
-func (p PkgCache) GetCacheArtifacts() bool {
+func (p PkgCacheConfig) GetCacheArtifacts() bool {
 	return p.CacheArtifacts
 }
 
-func (p PkgCache) GetCacheDownloads() bool {
+func (p PkgCacheConfig) GetCacheDownloads() bool {
 	return p.CacheDownloads
 }
 
-func (p PkgCache) GetArtifactCache() context.AritifactCache {
+func (p PkgCacheConfig) GetArtifactCache() context.AritifactCache {
 	if p.artifactConfig == nil {
 		return nil
 	}
 	return p.artifactConfig
 }
 
-func (p PkgCache) GetRepoCache() context.RepoCache {
+func (p PkgCacheConfig) GetRepoCache() context.RepoCache {
 	if p.repoConfig == nil {
 		return nil
 	}
 	return p.repoConfig
+}
+
+// ================= DevCacheConfig ================= //
+
+type DevCacheConfig struct {
+	ctx              context.Context
+	devArtifactCache *pkgcache.DevArtifactCache
+}
+
+func NewDevCacheConfig(ctx context.Context) *DevCacheConfig {
+	cacheConfig := DevCacheConfig{ctx: ctx}
+	cacheDir := cacheConfig.GetDir()
+	cacheConfig.devArtifactCache = pkgcache.NewDevArtifactCache(ctx, cacheDir)
+	return &cacheConfig
+}
+
+func (d DevCacheConfig) GetDir() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		panic("cannot get user home dir: " + err.Error())
+	}
+
+	hostName := d.ctx.Platform().GetHostName()
+	return filepath.Join(homeDir, "celer", hostName+"-dev")
+}
+
+func (d DevCacheConfig) GetDevArtifactCache() context.DevAritifactCache {
+	return d.devArtifactCache
 }

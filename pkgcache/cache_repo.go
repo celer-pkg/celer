@@ -20,15 +20,15 @@ type RepoConfig struct {
 }
 
 func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
-	pkgCache := ctx.PkgCache()
-	if pkgCache == nil || pkgCache.GetDir(context.PkgCacheDirRoot) == "" {
+	pkgCacheConfig := ctx.PkgCacheConfig()
+	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(context.PkgCacheDirRoot) == "" {
 		return nil
 	}
 
 	return &RepoConfig{
 		ctx:      ctx,
 		writable: writable,
-		chattrFS: fileio.NewChattrFS(pkgCache.GetDir(context.PkgCacheDirRoot)),
+		chattrFS: fileio.NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot)),
 	}
 }
 
@@ -52,7 +52,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 	}
 
 	// Create folder to store repo archive.
-	cacheRepoDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
+	cacheRepoDir := r.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
 	if err := r.chattrFS.MkdirAll(cacheRepoDir, fileio.CacheDirPerm); err != nil {
 		return "", err
 	}
@@ -103,7 +103,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 
 		// Preserve original archive extension so Extract dispatches correctly.
 		ext := fileio.Ext(filepath.Base(archiveFile))
-		repoCacheDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
+		repoCacheDir := r.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
 		archivePath := filepath.Join(repoCacheDir, nameVersion, checksum+ext)
 
 		// Skip if already cached.
@@ -151,7 +151,7 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 	}
 
 	// Locate cached archive by checksum.
-	reposCacheDir := r.ctx.PkgCache().GetDir(context.PkgCacheDirRepos)
+	reposCacheDir := r.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
 	archivePath := filepath.Join(reposCacheDir, nameVersion, checksum+archiveExt)
 	if !fileio.PathExists(archivePath) {
 		return "", nil

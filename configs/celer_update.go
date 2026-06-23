@@ -203,13 +203,13 @@ func (c *Celer) SetPkgCacheDir(dir string) error {
 	}
 
 	// Update package cache dir.
-	if c.configData.PkgCache == nil {
-		c.configData.PkgCache = NewPkgCache(c, dir, false)
+	if c.configData.PkgCacheConfig == nil {
+		c.configData.PkgCacheConfig = NewPkgCacheConfig(c, dir, false)
 	}
-	c.configData.PkgCache.Dir = dir
+	c.configData.PkgCacheConfig.Dir = dir
 
 	// Rebuild internal handlers if dir is already configured.
-	if err := c.configData.PkgCache.Refresh(); err != nil {
+	if err := c.configData.PkgCacheConfig.Refresh(); err != nil {
 		return err
 	}
 	if err := c.save(); err != nil {
@@ -224,16 +224,16 @@ func (c *Celer) SetPkgCacheWritable(writable bool) error {
 		return err
 	}
 
-	if c.configData.PkgCache == nil || strings.TrimSpace(c.configData.PkgCache.Dir) == "" {
+	if c.configData.PkgCacheConfig == nil || strings.TrimSpace(c.configData.PkgCacheConfig.Dir) == "" {
 		return errors.ErrPkgCacheDirEmpty
 	}
-	if !fileio.PathExists(c.configData.PkgCache.Dir) {
+	if !fileio.PathExists(c.configData.PkgCacheConfig.Dir) {
 		return errors.ErrPkgCacheDirNotExist
 	}
 
 	// Update pkgcache wriatable.
-	c.configData.PkgCache.Writable = writable
-	if err := c.configData.PkgCache.Refresh(); err != nil {
+	c.configData.PkgCacheConfig.Writable = writable
+	if err := c.configData.PkgCacheConfig.Refresh(); err != nil {
 		return err
 	}
 	if err := c.save(); err != nil {
@@ -248,16 +248,16 @@ func (c *Celer) CacheArtifacts(cacheArtifacts bool) error {
 		return err
 	}
 
-	if c.configData.PkgCache == nil || strings.TrimSpace(c.configData.PkgCache.Dir) == "" {
+	if c.configData.PkgCacheConfig == nil || strings.TrimSpace(c.configData.PkgCacheConfig.Dir) == "" {
 		return errors.ErrPkgCacheDirEmpty
 	}
-	if !fileio.PathExists(c.configData.PkgCache.Dir) {
+	if !fileio.PathExists(c.configData.PkgCacheConfig.Dir) {
 		return errors.ErrPkgCacheDirNotExist
 	}
 
 	// Update cacheArtifacts.
-	c.configData.PkgCache.CacheArtifacts = cacheArtifacts
-	if err := c.configData.PkgCache.Refresh(); err != nil {
+	c.configData.PkgCacheConfig.CacheArtifacts = cacheArtifacts
+	if err := c.configData.PkgCacheConfig.Refresh(); err != nil {
 		return err
 	}
 	if err := c.save(); err != nil {
@@ -272,16 +272,16 @@ func (c *Celer) CacheDownloads(cacheDownloads bool) error {
 		return err
 	}
 
-	if c.configData.PkgCache == nil || strings.TrimSpace(c.configData.PkgCache.Dir) == "" {
+	if c.configData.PkgCacheConfig == nil || strings.TrimSpace(c.configData.PkgCacheConfig.Dir) == "" {
 		return errors.ErrPkgCacheDirEmpty
 	}
-	if !fileio.PathExists(c.configData.PkgCache.Dir) {
+	if !fileio.PathExists(c.configData.PkgCacheConfig.Dir) {
 		return errors.ErrPkgCacheDirNotExist
 	}
 
 	// Update cachedownloads.
-	c.configData.PkgCache.CacheDownloads = cacheDownloads
-	if err := c.configData.PkgCache.Refresh(); err != nil {
+	c.configData.PkgCacheConfig.CacheDownloads = cacheDownloads
+	if err := c.configData.PkgCacheConfig.Refresh(); err != nil {
 		return err
 	}
 

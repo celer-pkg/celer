@@ -31,9 +31,9 @@ type configureCmd struct {
 	portUrl string
 	portRef string
 
-	pkgCache configs.PkgCache
-	proxy    configs.Proxy
-	ccache   configs.CCache
+	pkgCacheConfig configs.PkgCacheConfig
+	proxy          configs.Proxy
+	ccache         configs.CCache
 }
 
 var flagGroup = map[string]string{
@@ -204,10 +204,10 @@ Examples:
 	flags.BoolVar(&c.verbose, "verbose", false, "configure verbose mode.")
 
 	// Pkg-cache flags.
-	flags.StringVar(&c.pkgCache.Dir, "pkgcache-dir", "", "configure package cache dir.")
-	flags.BoolVar(&c.pkgCache.Writable, "pkgcache-writable", false, "configure pkg-cache writable.")
-	flags.BoolVar(&c.pkgCache.CacheArtifacts, "pkgcache-cache-artifacts", false, "configure pkg-cache to cache artifacts.")
-	flags.BoolVar(&c.pkgCache.CacheDownloads, "pkgcache-cache-downloads", false, "configure pkg-cache to cache downloads.")
+	flags.StringVar(&c.pkgCacheConfig.Dir, "pkgcache-dir", "", "configure package cache dir.")
+	flags.BoolVar(&c.pkgCacheConfig.Writable, "pkgcache-writable", false, "configure pkg-cache writable.")
+	flags.BoolVar(&c.pkgCacheConfig.CacheArtifacts, "pkgcache-cache-artifacts", false, "configure pkg-cache to cache artifacts.")
+	flags.BoolVar(&c.pkgCacheConfig.CacheDownloads, "pkgcache-cache-downloads", false, "configure pkg-cache to cache downloads.")
 
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
@@ -379,28 +379,28 @@ func (c *configureCmd) configureProxy(flags *pflag.FlagSet) error {
 
 func (c *configureCmd) configurePkgCache(flags *pflag.FlagSet) error {
 	if flags.Changed("pkgcache-dir") {
-		if err := c.celer.SetPkgCacheDir(c.pkgCache.Dir); err != nil {
-			return color.PrintError(err, "failed to set pkgcache dir: %s", c.pkgCache.Dir)
+		if err := c.celer.SetPkgCacheDir(c.pkgCacheConfig.Dir); err != nil {
+			return color.PrintError(err, "failed to set pkgcache dir: %s", c.pkgCacheConfig.Dir)
 		}
-		color.PrintSuccess("current pkgcache dir: %s", expr.If(c.pkgCache.Dir != "", c.pkgCache.Dir, "empty"))
+		color.PrintSuccess("current pkgcache dir: %s", expr.If(c.pkgCacheConfig.Dir != "", c.pkgCacheConfig.Dir, "empty"))
 	}
 	if flags.Changed("pkgcache-writable") {
-		if err := c.celer.SetPkgCacheWritable(c.pkgCache.Writable); err != nil {
-			return color.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCache.Writable, "true", "false"))
+		if err := c.celer.SetPkgCacheWritable(c.pkgCacheConfig.Writable); err != nil {
+			return color.PrintError(err, "failed to set pkgcache writable: %s", expr.If(c.pkgCacheConfig.Writable, "true", "false"))
 		}
-		color.PrintSuccess("current pkgcache writable: %s", expr.If(c.pkgCache.Writable, "true", "false"))
+		color.PrintSuccess("current pkgcache writable: %s", expr.If(c.pkgCacheConfig.Writable, "true", "false"))
 	}
 	if flags.Changed("pkgcache-cache-artifacts") {
-		if err := c.celer.CacheArtifacts(c.pkgCache.CacheArtifacts); err != nil {
-			return color.PrintError(err, "failed to set pkgcache cache-artifacts: %s", expr.If(c.pkgCache.CacheArtifacts, "true", "false"))
+		if err := c.celer.CacheArtifacts(c.pkgCacheConfig.CacheArtifacts); err != nil {
+			return color.PrintError(err, "failed to set pkgcache cache-artifacts: %s", expr.If(c.pkgCacheConfig.CacheArtifacts, "true", "false"))
 		}
-		color.PrintSuccess("current pkgcache cache-artifacts: %s", expr.If(c.pkgCache.CacheArtifacts, "true", "false"))
+		color.PrintSuccess("current pkgcache cache-artifacts: %s", expr.If(c.pkgCacheConfig.CacheArtifacts, "true", "false"))
 	}
 	if flags.Changed("pkgcache-cache-downloads") {
-		if err := c.celer.CacheDownloads(c.pkgCache.CacheDownloads); err != nil {
-			return color.PrintError(err, "failed to set pkgcache cache-downloads: %s", expr.If(c.pkgCache.CacheDownloads, "true", "false"))
+		if err := c.celer.CacheDownloads(c.pkgCacheConfig.CacheDownloads); err != nil {
+			return color.PrintError(err, "failed to set pkgcache cache-downloads: %s", expr.If(c.pkgCacheConfig.CacheDownloads, "true", "false"))
 		}
-		color.PrintSuccess("current pkgcache cache-downloads: %s", expr.If(c.pkgCache.CacheDownloads, "true", "false"))
+		color.PrintSuccess("current pkgcache cache-downloads: %s", expr.If(c.pkgCacheConfig.CacheDownloads, "true", "false"))
 	}
 
 	return nil

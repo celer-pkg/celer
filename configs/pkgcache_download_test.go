@@ -28,15 +28,15 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 		project:  "proj",
 		build:    "release",
 	}
-	pkgCache := NewPkgCache(fakeCtx, cacheDir, true)
-	fakeCtx.pkgCache = pkgCache
-	pkgCache.ctx = fakeCtx
-	if err := pkgCache.Refresh(); err != nil {
+	pkgCacheConfig := NewPkgCacheConfig(fakeCtx, cacheDir, true)
+	fakeCtx.pkgCacheConfig = pkgCacheConfig
+	pkgCacheConfig.ctx = fakeCtx
+	if err := pkgCacheConfig.Refresh(); err != nil {
 		t.Fatal(err)
 	}
 
-	cachedDownloadsDir := pkgCache.GetDir(context.PkgCacheDirDownloads)
-	chattrFS := fileio.NewChattrFS(pkgCache.GetDir(context.PkgCacheDirRoot))
+	cachedDownloadsDir := pkgCacheConfig.GetDir(context.PkgCacheDirDownloads)
+	chattrFS := fileio.NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot))
 
 	t.Run("save and find cached download", func(t *testing.T) {
 		// Create a temporary source file to cache.
