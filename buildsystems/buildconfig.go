@@ -349,9 +349,9 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 	// Try to fetch repo from pkgcache.
 	var repoCache context.RepoCache
-	pkgCache := b.Ctx.PkgCache()
-	if pkgCache != nil {
-		repoCache = pkgCache.GetRepoCache()
+	pkgCacheConfig := b.Ctx.PkgCacheConfig()
+	if pkgCacheConfig != nil {
+		repoCache = pkgCacheConfig.GetRepoCache()
 	}
 
 	// Restore repo from pkgcache condition:
@@ -360,7 +360,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// - pkgcache is configured.
 	// - current port is one of third-party ports.
 	// - checksum is not empty.
-	if repoUrl != "_" && pkgCache != nil && repoCache != nil {
+	if repoUrl != "_" && pkgCacheConfig != nil && repoCache != nil {
 		if fromWhere, err := repoCache.Restore(nameVersion, repoUrl, b.PortConfig.RepoDir, b.PortConfig.Checksum); err != nil {
 			color.PrintWarning("failed to restore %s from repo cache, because of %s", nameVersion, err)
 			color.PrintHint("Location: %s\n", fromWhere)

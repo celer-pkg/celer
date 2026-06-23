@@ -173,7 +173,16 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		}
 	}
 
-	// 3. Fallback: install from source.
+	// 3. Try to install from local dev back for hostDep/devDep.
+	if installed, err := p.InstallFromDevCache(options); err != nil {
+		return "", err
+	} else if installed {
+		installedFrom = "devcache"
+		retErr = nil
+		return
+	}
+
+	// 4. Fallback: install from source.
 	if err := p.InstallFromSource(options); err != nil {
 		return "", err
 	}
@@ -293,7 +302,7 @@ func (p Port) Clone() error {
 	return nil
 }
 
-func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache context.AritifactCache) (bool, error) {
+func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 	// Try to install dependencies first.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
 		// Skip Init() for already-processed ports.
@@ -323,6 +332,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache contex
 	}
 
 	// Read cache file and extract them to package dir.
+	artifactCache := p.ctx.PkgCacheConfig().GetArtifactCache()
 	if artifactCache != nil {
 		if fromWhere, err := artifactCache.Restore(p.NameVersion(), buildhash, p.PackageDir); err != nil {
 			return false, fmt.Errorf("read cache with buildhash: %s", err)
@@ -332,119 +342,6 @@ func (p Port) doInstallFromPkgCache(options InstallOptions, artifactCache contex
 	}
 
 	return false, nil
-}
-
-func (p *Port) doInstallFromSource() error {
-	var installFailed bool
-	defer func() {
-		// Remove package dir if install failed.
-		if installFailed {
-			if err := os.RemoveAll(p.PackageDir); err != nil {
-				fmt.Printf("remove broken package dir %s: %s\n", p.PackageDir, err)
-			}
-		}
-	}()
-
-	// Clean package directory.
-	if err := os.RemoveAll(p.PackageDir); err != nil {
-		installFailed = true
-		return fmt.Errorf("failed to clean package dir %s -> %w", p.PackageDir, err)
-	}
-
-	// Check if need to store pkgcache and remember the skip reason.
-	skipReason, err := p.pkgCacheStoreSkipReason()
-	if err != nil {
-		return err
-	}
-	p.pkgCacheStoreSkippedReason = skipReason
-
-	// Call matched buildsystem to configure, build and install.
-	if err := p.MatchedConfig.Install(p.Package.Url, p.Package.Ref, p.Package.Archive); err != nil {
-		installFailed = true
-		return err
-	}
-
-	// Generate meta file and store cache.
-	buildSystem := p.MatchedConfig.BuildSystem
-	if buildSystem != "nobuild" {
-		// Skip meta file and cache for ports with url="_".
-		// port with url="_" means no source repo and just in development.
-		if p.Package.Url == "_" {
-			color.Printf(color.Warning, "\n======== virtual project, skipping meta file generation and cache storing. ========\n")
-			return nil
-		}
-
-		// Write meta file with installed files and build environment.
-		metaData, err := p.buildMeta()
-		if err != nil {
-			installFailed = true
-			return err
-		}
-		metaFile := filepath.Join(p.PackageDir, p.meta2hash(metaData)) + ".meta"
-		if err := fileio.MkdirAll(filepath.Dir(metaFile), os.ModePerm); err != nil {
-			installFailed = true
-			return err
-		}
-		if err := os.WriteFile(metaFile, []byte(metaData), os.ModePerm); err != nil {
-			installFailed = true
-			return err
-		}
-
-		// Store package cache with meta file inside.
-		pkgCache := p.ctx.PkgCache()
-		if pkgCache != nil && pkgCache.IsWritable() {
-			if p.pkgCacheStoreSkippedReason == "" && !p.shouldSkipArtifactPkgCache() {
-				artifactCache := pkgCache.GetArtifactCache()
-				if artifactCache != nil {
-					if err := artifactCache.Store(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
-						return err
-					}
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-func (p Port) doInstallFromPackage(destDir string) error {
-	// Check and repair current port.
-	files, err := p.PackageFiles(
-		p.PackageDir,
-		p.ctx.Platform().GetName(),
-		p.ctx.Project().GetName(),
-	)
-	if err != nil {
-		return err
-	}
-
-	// Copy files from package to installed dir.
-	for _, file := range files {
-		if p.DevDep || p.HostDep {
-			file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
-		} else {
-			file = strings.TrimPrefix(file, filepath.Join(p.ctx.LibraryFolder(), string(os.PathSeparator)))
-		}
-
-		src := filepath.Join(p.PackageDir, file)
-		dest := filepath.Join(destDir, file)
-
-		// Rename meta file as new name in meta folder.
-		if strings.HasSuffix(file, ".meta") {
-			dest = p.metaFile
-		}
-
-		// Ensure dest dir exists.
-		if err := fileio.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
-			return err
-		}
-
-		if err := fileio.CopyFile(src, dest); err != nil {
-			return fmt.Errorf("failed to copy file.\n%w", err)
-		}
-	}
-
-	return nil
 }
 
 func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
@@ -529,13 +426,13 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 }
 
 func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
-	// Check if pkgCache has been configured.
-	pkgCache := p.ctx.PkgCache()
-	if pkgCache == nil || pkgCache.GetDir(context.PkgCacheDirRoot) == "" {
+	// Check if pkgCacheConfig has been configured.
+	pkgCacheConfig := p.ctx.PkgCacheConfig()
+	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(context.PkgCacheDirRoot) == "" {
 		return false, nil
 	}
 
-	installed, err := p.doInstallFromPkgCache(options, pkgCache.GetArtifactCache())
+	installed, err := p.doInstallFromPkgCache(options)
 	if err != nil {
 		// Repo not exist is not error.
 		if errors.Is(err, errors.ErrRepoNotExit) {
@@ -554,8 +451,45 @@ func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		fromDir := pkgCache.GetDir(context.PkgCacheDirRoot)
-		return true, p.writeTraceFile(fmt.Sprintf("pkgcache: %q", fromDir))
+		fromDir := pkgCacheConfig.GetDir(context.PkgCacheDirRoot)
+		return true, p.writeTraceFile(fmt.Sprintf("pkg-cache: %q", fromDir))
+	}
+
+	return false, nil
+}
+
+func (p *Port) InstallFromDevCache(options InstallOptions) (bool, error) {
+	if !p.HostDep && !p.DevDep {
+		return false, nil
+	}
+
+	// Check if devCacheConfig has been configured.
+	devCacheConfig := p.ctx.DevCacheConfig()
+	if devCacheConfig == nil {
+		return false, nil
+	}
+
+	installed, err := p.doInstallFromDevCache(options)
+	if err != nil {
+		// Repo not exist is not error.
+		if errors.Is(err, errors.ErrRepoNotExit) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	if installed {
+		// Install dependencies also.
+		if err := p.installDependencies(options); err != nil {
+			return false, err
+		}
+
+		if err := p.doInstallFromPackage(p.InstalledDir); err != nil {
+			return false, err
+		}
+
+		fromDir := devCacheConfig.GetDir()
+		return true, p.writeTraceFile(fmt.Sprintf("dev-cache: %q", fromDir))
 	}
 
 	return false, nil
@@ -616,6 +550,173 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 	}
 
 	return p.writeTraceFile("source")
+}
+
+func (p Port) doInstallFromPackage(destDir string) error {
+	// Check and repair current port.
+	files, err := p.PackageFiles(
+		p.PackageDir,
+		p.ctx.Platform().GetName(),
+		p.ctx.Project().GetName(),
+	)
+	if err != nil {
+		return err
+	}
+
+	// Copy files from package to installed dir.
+	for _, file := range files {
+		if p.DevDep || p.HostDep {
+			file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
+		} else {
+			file = strings.TrimPrefix(file, filepath.Join(p.ctx.LibraryFolder(), string(os.PathSeparator)))
+		}
+
+		src := filepath.Join(p.PackageDir, file)
+		dest := filepath.Join(destDir, file)
+
+		// Rename meta file as new name in meta folder.
+		if strings.HasSuffix(file, ".meta") {
+			dest = p.metaFile
+		}
+
+		// Ensure dest dir exists.
+		if err := fileio.MkdirAll(filepath.Dir(dest), os.ModePerm); err != nil {
+			return err
+		}
+
+		if err := fileio.CopyFile(src, dest); err != nil {
+			return fmt.Errorf("failed to copy file.\n%w", err)
+		}
+	}
+
+	return nil
+}
+
+func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
+	// Try to install dependencies first.
+	for _, nameVersion := range p.MatchedConfig.Dependencies {
+		// Skip Init() for already-processed ports.
+		key := expr.If(p.DevDep || p.HostDep, nameVersion+"[dev]", nameVersion)
+		if visitedPorts[key] {
+			continue
+		}
+
+		var port Port
+		port.DevDep = false
+		port.HostDep = p.HostDep
+		port.Parent = p.NameVersion()
+		port.installReport = p.installReport
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return false, err
+		}
+
+		if _, err := port.Install(options); err != nil {
+			return false, err
+		}
+		visitedPorts[key] = true
+	}
+
+	// No repo means cannot computer meta.
+	if !fileio.PathExists(p.MatchedConfig.PortConfig.RepoDir) {
+		return false, nil
+	}
+
+	// Calculate buildhash.
+	buildhash, err := p.buildhash()
+	if err != nil {
+		return false, fmt.Errorf("failed to calculate buildhash -> %w", err)
+	}
+
+	// Read cache file and extract them to package dir.
+	devArtifactCache := p.ctx.DevCacheConfig().GetDevArtifactCache()
+	if fromWhere, err := devArtifactCache.Restore(p.NameVersion(), buildhash, p.PackageDir); err != nil {
+		return false, fmt.Errorf("read cache with buildhash: %s", err)
+	} else if fromWhere != "" {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (p *Port) doInstallFromSource() error {
+	var installFailed bool
+	defer func() {
+		// Remove package dir if install failed.
+		if installFailed {
+			if err := os.RemoveAll(p.PackageDir); err != nil {
+				fmt.Printf("remove broken package dir %s: %s\n", p.PackageDir, err)
+			}
+		}
+	}()
+
+	// Clean package directory.
+	if err := os.RemoveAll(p.PackageDir); err != nil {
+		installFailed = true
+		return fmt.Errorf("failed to clean package dir %s -> %w", p.PackageDir, err)
+	}
+
+	// Check if need to store pkgcache and remember the skip reason.
+	skipReason, err := p.pkgCacheStoreSkipReason()
+	if err != nil {
+		return err
+	}
+	p.pkgCacheStoreSkippedReason = skipReason
+
+	// Call matched buildsystem to configure, build and install.
+	if err := p.MatchedConfig.Install(p.Package.Url, p.Package.Ref, p.Package.Archive); err != nil {
+		installFailed = true
+		return err
+	}
+
+	// Generate meta file and store cache.
+	buildSystem := p.MatchedConfig.BuildSystem
+	if buildSystem != "nobuild" {
+		// Skip meta file and cache for ports with url="_".
+		// port with url="_" means no source repo and just in development.
+		if p.Package.Url == "_" {
+			color.Printf(color.Warning, "\n======== virtual project, skipping meta file generation and cache storing. ========\n")
+			return nil
+		}
+
+		// Write meta file with installed files and build environment.
+		metaData, err := p.buildMeta()
+		if err != nil {
+			installFailed = true
+			return err
+		}
+		metaFile := filepath.Join(p.PackageDir, p.meta2hash(metaData)) + ".meta"
+		if err := fileio.MkdirAll(filepath.Dir(metaFile), os.ModePerm); err != nil {
+			installFailed = true
+			return err
+		}
+		if err := os.WriteFile(metaFile, []byte(metaData), os.ModePerm); err != nil {
+			installFailed = true
+			return err
+		}
+
+		// Store package cache with meta file inside.
+		pkgCache := p.ctx.PkgCacheConfig()
+		if pkgCache != nil && pkgCache.IsWritable() {
+			if p.pkgCacheStoreSkippedReason == "" && !p.shouldSkipArtifactPkgCache() {
+				artifactCache := pkgCache.GetArtifactCache()
+				if artifactCache != nil {
+					if err := artifactCache.Store(p.MatchedConfig.PortConfig.PackageDir, metaData); err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		// Store hostDep/devDep into local dir to speed up building them in new workspace.
+		if p.HostDep || p.DevDep {
+			devArtifactCache := p.ctx.DevCacheConfig().GetDevArtifactCache()
+			if err := devArtifactCache.Store(p.PackageDir, metaData); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (p Port) cloneAllRepos() error {

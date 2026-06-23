@@ -13,12 +13,13 @@ import (
 )
 
 type fakeContext struct {
-	platform  string
-	project   string
-	build     string
-	downloads string
-	offline   bool
-	pkgCache  context.PkgCache
+	platform       string
+	project        string
+	build          string
+	downloads      string
+	offline        bool
+	pkgCacheConfig context.PkgCacheConfig
+	devCacheConfig context.DevCacheConfig
 }
 
 func (f fakeContext) Version() string                        { return "test" }
@@ -33,7 +34,8 @@ func (f fakeContext) Offline() bool                          { return f.offline 
 func (f fakeContext) Verbose() bool                          { return false }
 func (f fakeContext) InstalledDir() string                   { return "" }
 func (f fakeContext) InstalledDevDir() string                { return "" }
-func (f fakeContext) PkgCache() context.PkgCache             { return f.pkgCache }
+func (f fakeContext) PkgCacheConfig() context.PkgCacheConfig { return f.pkgCacheConfig }
+func (f fakeContext) DevCacheConfig() context.DevCacheConfig { return f.devCacheConfig }
 func (f fakeContext) ProxyHostPort() (host string, port int) { return "", 0 }
 func (f fakeContext) CCacheEnabled() bool                    { return false }
 func (f fakeContext) GenerateToolchainFile() error           { return nil }
@@ -86,10 +88,10 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 		}
-		pkgCache := NewPkgCache(fakeCtx, cacheDir, true)
-		fakeCtx.pkgCache = pkgCache
-		pkgCache.ctx = fakeCtx
-		if err := pkgCache.Refresh(); err != nil {
+		pkgCacheConfig := NewPkgCacheConfig(fakeCtx, cacheDir, true)
+		fakeCtx.pkgCacheConfig = pkgCacheConfig
+		pkgCacheConfig.ctx = fakeCtx
+		if err := pkgCacheConfig.Refresh(); err != nil {
 			t.Fatal(err)
 		}
 
@@ -106,7 +108,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		artifactCache = pkgCache.GetArtifactCache()
+		artifactCache = pkgCacheConfig.GetArtifactCache()
 		if artifactCache == nil {
 			t.Fatal("artifact cache should not be nil")
 		}

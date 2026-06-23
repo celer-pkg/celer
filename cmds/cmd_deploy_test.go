@@ -11,7 +11,6 @@ import (
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -156,30 +155,6 @@ func TestDeployCmd_Completion(t *testing.T) {
 	}
 }
 
-// deployFakeContext is a minimal context.Context implementation for testing
-// BuildConfig.Clone() without pkgcache or remote network access.
-type deployFakeContext struct{}
-
-func (f deployFakeContext) Version() string                        { return "test" }
-func (f deployFakeContext) Platform() context.Platform             { return nil }
-func (f deployFakeContext) RootFS() context.RootFS                 { return nil }
-func (f deployFakeContext) Project() context.Project               { return nil }
-func (f deployFakeContext) BuildType() string                      { return "Release" }
-func (f deployFakeContext) Downloads() string                      { return "" }
-func (f deployFakeContext) LibraryFolder() string                  { return "" }
-func (f deployFakeContext) Jobs() int                              { return 1 }
-func (f deployFakeContext) Offline() bool                          { return true }
-func (f deployFakeContext) Verbose() bool                          { return false }
-func (f deployFakeContext) InstalledDir() string                   { return "" }
-func (f deployFakeContext) InstalledDevDir() string                { return "" }
-func (f deployFakeContext) PkgCache() context.PkgCache             { return nil }
-func (f deployFakeContext) ProxyHostPort() (host string, port int) { return "", 0 }
-func (f deployFakeContext) CCacheEnabled() bool                    { return false }
-func (f deployFakeContext) GenerateToolchainFile() error           { return nil }
-func (f deployFakeContext) ExprVars() *context.ExprVars            { return nil }
-func (f deployFakeContext) PythonConfig() context.PythonConfig     { return nil }
-func (f deployFakeContext) Experiment() context.Experiment         { return nil }
-
 // setupTestRepo creates a bare git repo as clone source in a temp directory
 // and returns its path along with known commit hashes for testing.
 func setupTestRepo(t *testing.T) (repoUrl string, headCommit, olderCommit string) {
@@ -241,7 +216,7 @@ func TestDeploy_Clone_ExistingRepo_ResetsToResolvedCommit(t *testing.T) {
 
 	// Call Clone with the existing repo — it should HardReset to the resolved commit.
 	config := buildsystems.BuildConfig{
-		Ctx: deployFakeContext{},
+		Ctx: fakeContext{},
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",
@@ -279,7 +254,7 @@ func TestDeploy_Clone_ExistingRepo_NoResolvedCommit_NoReset(t *testing.T) {
 	refs.StoreResolvedCommits(nil)
 
 	config := buildsystems.BuildConfig{
-		Ctx: deployFakeContext{},
+		Ctx: fakeContext{},
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",
@@ -316,7 +291,7 @@ func TestDeploy_Clone_FreshClone_ResetsToResolvedCommit(t *testing.T) {
 	repoDir := filepath.Join(t.TempDir(), "new-src")
 
 	cfg := buildsystems.BuildConfig{
-		Ctx: deployFakeContext{},
+		Ctx: fakeContext{},
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",
@@ -359,7 +334,7 @@ func TestDeploy_Clone_FreshClone_NoResolvedCommit_StaysOnBranch(t *testing.T) {
 	repoDir := filepath.Join(t.TempDir(), "new-src")
 
 	cfg := buildsystems.BuildConfig{
-		Ctx: deployFakeContext{},
+		Ctx: fakeContext{},
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",

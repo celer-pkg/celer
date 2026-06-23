@@ -21,15 +21,15 @@ type ArtifactConfig struct {
 }
 
 func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
-	pkgCache := ctx.PkgCache()
-	if pkgCache == nil || pkgCache.GetDir(context.PkgCacheDirArtifacts) == "" {
+	pkgCacheConfig := ctx.PkgCacheConfig()
+	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(context.PkgCacheDirArtifacts) == "" {
 		return nil
 	}
 
 	return &ArtifactConfig{
 		ctx:      ctx,
 		writable: writable,
-		chattrFS: fileio.NewChattrFS(pkgCache.GetDir(context.PkgCacheDirRoot)),
+		chattrFS: fileio.NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot)),
 	}
 }
 
@@ -45,7 +45,7 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
 
-	artifactCacheDir := a.ctx.PkgCache().GetDir(context.PkgCacheDirArtifacts)
+	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirArtifacts)
 	archiveDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	archivePath := filepath.Join(archiveDir, buildHash+".tar.gz")
 	if !fileio.PathExists(archivePath) {
@@ -147,7 +147,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	artifactCacheDir := a.ctx.PkgCache().GetDir(context.PkgCacheDirArtifacts)
+	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirArtifacts)
 	destDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	metaDir := filepath.Join(destDir, "metas")
 
@@ -184,7 +184,7 @@ func (a ArtifactConfig) Remove(nameVersion string) error {
 	platformName := a.ctx.Platform().GetName()
 	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
-	artifactCacheDir := a.ctx.PkgCache().GetDir(context.PkgCacheDirArtifacts)
+	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirArtifacts)
 	pacakgeDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	if fileio.PathExists(pacakgeDir) {
 		if err := os.RemoveAll(pacakgeDir); err != nil {
@@ -200,7 +200,7 @@ func (a ArtifactConfig) Exist(nameVersion, hash string) bool {
 	platformName := a.ctx.Platform().GetName()
 	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
-	artifactCacheDir := a.ctx.PkgCache().GetDir(context.PkgCacheDirArtifacts)
+	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirArtifacts)
 	archivePath := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion, hash+".tar.gz")
 	metaFilePath := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion, "metas", hash+".meta")
 	return fileio.PathExists(archivePath) && fileio.PathExists(metaFilePath)

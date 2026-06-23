@@ -20,12 +20,12 @@ import (
 // and later restore that exact source tree from pkgcache before touching the
 // remote source again.
 
-type fakePkgCache struct {
+type fakePkgCacheConfig struct {
 	dir      string
 	writable bool
 }
 
-func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string {
+func (f fakePkgCacheConfig) GetDir(dirType context.PkgCacheDirType) string {
 	switch dirType {
 	case context.PkgCacheDirRepos:
 		return filepath.Join(f.dir, "repos")
@@ -37,12 +37,12 @@ func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string {
 		return f.dir
 	}
 }
-func (f fakePkgCache) IsWritable() bool                         { return f.writable }
-func (f fakePkgCache) GetCacheArtifacts() bool                  { return true }
-func (f fakePkgCache) GetCacheDownloads() bool                  { return true }
-func (f fakePkgCache) GetArtifactCache() context.AritifactCache { return nil }
-func (f fakePkgCache) GetRepoCache() context.RepoCache {
-	return pkgcache.NewRepoConfig(fakeContext{pkgCache: f}, f.writable)
+func (f fakePkgCacheConfig) IsWritable() bool                         { return f.writable }
+func (f fakePkgCacheConfig) GetCacheArtifacts() bool                  { return true }
+func (f fakePkgCacheConfig) GetCacheDownloads() bool                  { return true }
+func (f fakePkgCacheConfig) GetArtifactCache() context.AritifactCache { return nil }
+func (f fakePkgCacheConfig) GetRepoCache() context.RepoCache {
+	return pkgcache.NewRepoConfig(fakeContext{pkgCacheConfig: f}, f.writable)
 }
 
 // creates a local bare repo that acts like remote origin.
@@ -154,7 +154,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			platform: "x86_64-linux",
 			project:  "proj",
 			build:    "release",
-			pkgCache: fakePkgCache{
+			pkgCacheConfig: fakePkgCacheConfig{
 				dir:      pkgCacheDir,
 				writable: true,
 			},
@@ -184,7 +184,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			platform: "x86_64-linux",
 			project:  "proj",
 			build:    "release",
-			pkgCache: fakePkgCache{
+			pkgCacheConfig: fakePkgCacheConfig{
 				dir:      pkgCacheDir,
 				writable: true,
 			},
@@ -219,7 +219,7 @@ func TestBuildConfigClone_GitRepoCache(t *testing.T) {
 			platform: "x86_64-linux",
 			project:  "proj",
 			build:    "release",
-			pkgCache: fakePkgCache{
+			pkgCacheConfig: fakePkgCacheConfig{
 				dir:      pkgCacheDir,
 				writable: false,
 			},
@@ -284,7 +284,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		project:   "proj",
 		build:     "release",
 		downloads: downloadsDir,
-		pkgCache: fakePkgCache{
+		pkgCacheConfig: fakePkgCacheConfig{
 			dir:      pkgCacheDir,
 			writable: true,
 		},
@@ -335,7 +335,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		project:   "proj",
 		build:     "release",
 		downloads: downloadsDir,
-		pkgCache: fakePkgCache{
+		pkgCacheConfig: fakePkgCacheConfig{
 			dir:      pkgCacheDir,
 			writable: false,
 		},

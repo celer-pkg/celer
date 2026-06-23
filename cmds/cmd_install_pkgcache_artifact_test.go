@@ -396,7 +396,7 @@ func TestInstall_PkgCache_With_Commit_Missing_FallsBackToSource(t *testing.T) {
 		BuildCache: true,
 	}
 	check(port.Remove(removeOptions))
-	check(celer.PkgCache().GetArtifactCache().(interface{ Remove(string) error }).Remove(nameVersion))
+	check(celer.PkgCacheConfig().GetArtifactCache().(interface{ Remove(string) error }).Remove(nameVersion))
 
 	port.Package.Checksum = commit
 	port.MatchedConfig.PortConfig.Checksum = commit

@@ -39,30 +39,37 @@ func (f fakePkgCache) GetRepoCache() context.RepoCache {
 	return NewRepoConfig(fakeContext{pkgCache: f}, f.writable)
 }
 
+type fakeDevCache struct{}
+
+func (f fakeDevCache) GetDir() string                                 { return "" }
+func (f fakeDevCache) GetDevArtifactCache() context.DevAritifactCache { return nil }
+
 type fakeContext struct {
 	pkgCache fakePkgCache
+	devCache fakeDevCache
 	offline  bool
 }
 
-func (fakeContext) Version() string                    { return "test" }
-func (fakeContext) Platform() context.Platform         { return nil }
-func (fakeContext) RootFS() context.RootFS             { return nil }
-func (fakeContext) Project() context.Project           { return nil }
-func (fakeContext) BuildType() string                  { return "release" }
-func (fakeContext) LibraryFolder() string              { return "" }
-func (fakeContext) Downloads() string                  { return "" }
-func (fakeContext) Jobs() int                          { return 1 }
-func (f fakeContext) Offline() bool                    { return f.offline }
-func (fakeContext) Verbose() bool                      { return false }
-func (fakeContext) InstalledDir() string               { return "" }
-func (fakeContext) InstalledDevDir() string            { return "" }
-func (f fakeContext) PkgCache() context.PkgCache       { return f.pkgCache }
-func (fakeContext) ProxyHostPort() (string, int)       { return "", 0 }
-func (fakeContext) CCacheEnabled() bool                { return false }
-func (fakeContext) GenerateToolchainFile() error       { return nil }
-func (fakeContext) ExprVars() *context.ExprVars        { return nil }
-func (fakeContext) PythonConfig() context.PythonConfig { return nil }
-func (fakeContext) Experiment() context.Experiment     { return nil }
+func (fakeContext) Version() string                          { return "test" }
+func (fakeContext) Platform() context.Platform               { return nil }
+func (fakeContext) RootFS() context.RootFS                   { return nil }
+func (fakeContext) Project() context.Project                 { return nil }
+func (fakeContext) BuildType() string                        { return "release" }
+func (fakeContext) LibraryFolder() string                    { return "" }
+func (fakeContext) Downloads() string                        { return "" }
+func (fakeContext) Jobs() int                                { return 1 }
+func (f fakeContext) Offline() bool                          { return f.offline }
+func (fakeContext) Verbose() bool                            { return false }
+func (fakeContext) InstalledDir() string                     { return "" }
+func (fakeContext) InstalledDevDir() string                  { return "" }
+func (f fakeContext) PkgCacheConfig() context.PkgCacheConfig { return f.pkgCache }
+func (f fakeContext) DevCacheConfig() context.DevCacheConfig { return f.devCache }
+func (fakeContext) ProxyHostPort() (string, int)             { return "", 0 }
+func (fakeContext) CCacheEnabled() bool                      { return false }
+func (fakeContext) GenerateToolchainFile() error             { return nil }
+func (fakeContext) ExprVars() *context.ExprVars              { return nil }
+func (fakeContext) PythonConfig() context.PythonConfig       { return nil }
+func (fakeContext) Experiment() context.Experiment           { return nil }
 
 // ---- helpers ----
 

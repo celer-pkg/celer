@@ -54,9 +54,10 @@ type Celer struct {
 	configData
 
 	// Internal fields.
-	platform Platform
-	project  Project
-	exprVars context.ExprVars
+	platform       Platform
+	project        Project
+	exprVars       context.ExprVars
+	devCacheConfig *DevCacheConfig
 }
 
 type main struct {
@@ -107,12 +108,12 @@ func (p *Python) GetTrustedHosts() []string {
 }
 
 type configData struct {
-	Main       main        `toml:"main"`
-	Proxy      *Proxy      `toml:"proxy,omitempty"`
-	PkgCache   *PkgCache   `toml:"pkgcache,omitempty"`
-	CCache     *CCache     `toml:"ccache,omitempty"`
-	Python     *Python     `toml:"python,omitempty"`
-	Experiment *experiment `toml:"experiment,omitempty"`
+	Main           main            `toml:"main"`
+	Proxy          *Proxy          `toml:"proxy,omitempty"`
+	PkgCacheConfig *PkgCacheConfig `toml:"pkgcache,omitempty"`
+	CCache         *CCache         `toml:"ccache,omitempty"`
+	Python         *Python         `toml:"python,omitempty"`
+	Experiment     *experiment     `toml:"experiment,omitempty"`
 }
 
 // Init initializes celer with default options.
@@ -217,9 +218,9 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		}
 
 		// Validate package cache.
-		if c.configData.PkgCache != nil {
-			c.configData.PkgCache.ctx = c
-			if err := c.configData.PkgCache.Refresh(); err != nil {
+		if c.configData.PkgCacheConfig != nil {
+			c.configData.PkgCacheConfig.ctx = c
+			if err := c.configData.PkgCacheConfig.Refresh(); err != nil {
 				return err
 			}
 		}
@@ -321,6 +322,9 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 
 	// Load project-level variables to exprVars.
 	c.loadProjectVars()
+
+	// Used to cache local dev artifacts.
+	c.devCacheConfig = NewDevCacheConfig(c)
 
 	// Clone ports repo if empty.
 	if err := c.clonePorts(); err != nil {
