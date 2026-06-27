@@ -16,6 +16,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 	"github.com/celer-pkg/celer/pkgs/pc"
+	"golang.org/x/sync/errgroup"
 )
 
 // Install install a port and tell me where it was installed from.
@@ -267,7 +268,7 @@ func (p Port) Clone() error {
 
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
 		var port = Port{
-			DevDep:  false,
+			DevDep:  p.DevDep,
 			HostDep: p.DevDep || p.HostDep,
 			Parent:  p.NameVersion(),
 		}
@@ -511,6 +512,12 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
+	// Pre-warm meta cache: compute GenPortTomlString for all transitive deps
+	// in parallel, so the serial buildMeta recursion hits cache on every port.
+	if err := p.preWarmMetaCache(); err != nil {
+		return err
+	}
+
 	// Setup platform.
 	if err := p.ctx.Platform().Setup(); err != nil {
 		return err
@@ -720,13 +727,14 @@ func (p *Port) doInstallFromSource() error {
 }
 
 func (p Port) cloneAllRepos() error {
-	if p.Parent == "" {
+	buildConfig := p.MatchedConfig
+	clonedPorts = map[string]bool{}
+
+	if p.Parent == "" && (len(buildConfig.DevDependencies) > 0 || len(buildConfig.Dependencies) > 0) {
 		title := fmt.Sprintf("[check clone status of all repos: %s]", p.NameVersion())
 		color.Printf(color.Title, "\n%s\n", title)
 	}
 
-	clonedPorts = map[string]bool{}
-	buildConfig := p.MatchedConfig
 	for _, nameVersion := range buildConfig.DevDependencies {
 		// Skip Init() for already-cloned ports.
 		key := nameVersion + "[dev]"
@@ -760,7 +768,7 @@ func (p Port) cloneAllRepos() error {
 		}
 
 		port := Port{
-			DevDep:  false,
+			DevDep:  p.DevDep,
 			HostDep: p.DevDep || p.HostDep,
 			Parent:  p.NameVersion(),
 		}
@@ -797,7 +805,7 @@ func (p *Port) checkAllTools() error {
 		allTools = append(allTools, port.MatchedConfig.CheckTools()...)
 	}
 	for _, nameVersion := range buildConfig.Dependencies {
-		port := Port{DevDep: false, HostDep: p.DevDep || p.HostDep}
+		port := Port{DevDep: p.DevDep, HostDep: p.DevDep || p.HostDep}
 		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
@@ -834,6 +842,123 @@ func (p *Port) checkAllTools() error {
 	}
 
 	return nil
+}
+
+// collectAllDeps walks the full transitive dependency tree (deps +
+// dev_deps) starting from p, returning a de-duplicated list of every
+// name@version reachable — excluding p itself.
+func (p *Port) collectAllDeps() ([]string, error) {
+	seenMap := map[string]bool{}
+
+	var collect func(nameVersion string) error
+	collect = func(nameVersion string) error {
+		// Collect if not seen before.
+		if seenMap[nameVersion] {
+			return nil
+		}
+		seenMap[nameVersion] = true
+
+		// Collect deps and dev_deps.
+		var port Port
+		if err := port.Init(p.ctx, nameVersion); err != nil {
+			return fmt.Errorf("failed to init %s -> %w", nameVersion, err)
+		}
+		for _, dep := range port.MatchedConfig.Dependencies {
+			if err := collect(dep); err != nil {
+				return err
+			}
+		}
+		for _, dep := range port.MatchedConfig.DevDependencies {
+			if err := collect(dep); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	// Walk from p's direct deps (p itself is the root port, already inited).
+	if p.MatchedConfig != nil {
+		for _, dep := range p.MatchedConfig.Dependencies {
+			if err := collect(dep); err != nil {
+				return nil, err
+			}
+		}
+		for _, dep := range p.MatchedConfig.DevDependencies {
+			if err := collect(dep); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// Return converted slice from map.
+	var result []string
+	for item := range seenMap {
+		result = append(result, item)
+	}
+	return result, nil
+}
+
+// preWarmMetaCache computes GenPortTomlString, GetBuildConfig, and
+// CheckHostSupported for all transitive dependencies in parallel, filling the
+// sync.Map caches before the serial install pipeline begins.
+//
+// Must be called AFTER cloneAllRepos (so repos are cloned and GetCommitHash
+// won't hit ErrRepoNotExit) and AFTER checkAllTools (so exprVars is final and
+// Port.Init's ExprVars().Clone() has no writer race).
+func (p *Port) preWarmMetaCache() error {
+	nameVersions, err := p.collectAllDeps()
+	if err != nil {
+		return err
+	}
+	if len(nameVersions) == 0 {
+		return nil
+	}
+
+	color.Printf(color.Title, "\n[pre-warm meta cache: %d ports]\n", len(nameVersions))
+
+	// Meta pre-warm is IO-bound (read port.toml + git log), not CPU-bound like compilation.
+	jobs := p.ctx.Jobs() * 4
+	if jobs <= 0 {
+		jobs = 4
+	}
+
+	var group errgroup.Group
+	group.SetLimit(jobs)
+
+	for _, item := range nameVersions {
+		nameVersion := item
+		group.Go(func() error {
+			// ErrRepoNotExit is expected for ports with a checksum: they are
+			// skipped by cloneAllRepos (they will be restored from pkgcache instead),
+			// so their repo dir doesn't exist and GetCommitHash returns this error,
+			// It's not a real failure.
+			if _, err := p.GenPortTomlString(nameVersion, false); err != nil {
+				if !errors.Is(err, errors.ErrRepoNotExit) {
+					return fmt.Errorf("GenPortTomlString(%s, false): %w", nameVersion, err)
+				}
+			}
+			if _, err := p.GenPortTomlString(nameVersion, true); err != nil {
+				if !errors.Is(err, errors.ErrRepoNotExit) {
+					return fmt.Errorf("GenPortTomlString(%s, true): %w", nameVersion, err)
+				}
+			}
+
+			// Pre-warm buildConfigCache.
+			if _, err := p.GetBuildConfig(nameVersion, false); err != nil {
+				return fmt.Errorf("GetBuildConfig(%s, false): %w", nameVersion, err)
+			}
+			if _, err := p.GetBuildConfig(nameVersion, true); err != nil {
+				return fmt.Errorf("GetBuildConfig(%s, true): %w", nameVersion, err)
+			}
+
+			// Pre-warm hostSupportedCache.
+			p.CheckHostSupported(nameVersion)
+			return nil
+		})
+	}
+
+	return group.Wait()
 }
 
 func (p Port) installAllDependencies(options InstallOptions) error {

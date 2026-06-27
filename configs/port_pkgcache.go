@@ -24,14 +24,16 @@ type metaResult struct {
 	err  error
 }
 
-// Caches keyed by "nameVersion|devDep|hostDev". These are process-lifetime:
+// Caches keyed by "nameVersion|native". These are process-lifetime:
 // within a single celer invocation, port.toml content and git commits don't
 // change, so buildMeta/GenPortTomlString/GetCommitHash are pure functions of
 // their arguments.
 var (
-	buildMetaCache  sync.Map // key: string -> metaResult
-	portTomlCache   sync.Map // key: string -> metaResult
-	commitHashCache sync.Map // key: string -> metaResult
+	buildMetaCache     sync.Map // key: string -> metaResult
+	portTomlCache      sync.Map // key: string -> metaResult
+	commitHashCache    sync.Map // key: string -> metaResult
+	buildConfigCache   sync.Map // key: string -> *pkgcache.BuildConfig
+	hostSupportedCache sync.Map // key: string -> bool
 )
 
 // ResetMetaCache clears all metadata caches. Called at the start of each celer
@@ -49,6 +51,18 @@ func ResetMetaCache() {
 		commitHashCache.Delete(k)
 		return true
 	})
+	buildConfigCache.Range(func(k, v any) bool {
+		buildConfigCache.Delete(k)
+		return true
+	})
+	hostSupportedCache.Range(func(k, v any) bool {
+		hostSupportedCache.Delete(k)
+		return true
+	})
+
+	// Also clear the pkgcache-level buildMeta cache (the recursive one inside
+	// metadata.go that caches per nameVersion|native).
+	pkgcache.ResetMetaCache()
 }
 
 func (p Port) buildhash() (string, error) {
@@ -67,7 +81,7 @@ func (p Port) meta2hash(metaData string) string {
 
 func (p Port) buildMeta() (string, error) {
 	// Try find prebuilt meta from cache first.
-	key := fmt.Sprintf("%s|%t|%t", p.NameVersion(), p.DevDep, p.HostDep)
+	key := fmt.Sprintf("%s|%t", p.NameVersion(), p.DevDep || p.HostDep)
 	if v, ok := buildMetaCache.Load(key); ok {
 		r := v.(metaResult)
 		return r.meta, r.err
@@ -170,7 +184,9 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	return result, nil
 }
 
-func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
+// GetCommitHash try to get commit hash from `commitHashCache` first,
+// if not exist then get it by calling `doGetCommitHash`.
+func (p Port) GetCommitHash(nameVersion string, native bool) (string, error) {
 	key := nameVersion
 	if v, ok := commitHashCache.Load(key); ok {
 		r := v.(metaResult)
@@ -178,15 +194,15 @@ func (p Port) GetCommitHash(nameVersion string, devDep bool) (string, error) {
 	}
 
 	// Don't cache ErrRepoNotExit — the repo may be cloned later in the same run.
-	result, err := p.getCommitHashUncached(nameVersion, devDep)
+	result, err := p.doGetCommitHash(nameVersion, native)
 	if err == nil || !errors.Is(err, errors.ErrRepoNotExit) {
 		commitHashCache.Store(key, metaResult{meta: result, err: err})
 	}
 	return result, err
 }
 
-func (p Port) getCommitHashUncached(nameVersion string, devDep bool) (string, error) {
-	var port = Port{DevDep: devDep}
+func (p Port) doGetCommitHash(nameVersion string, native bool) (string, error) {
+	var port = Port{DevDep: native}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return "", err
 	}
@@ -243,23 +259,36 @@ func (p Port) getCommitHashUncached(nameVersion string, devDep bool) (string, er
 	}
 }
 
-func (p Port) GetBuildConfig(nameVersion string, devDep bool) (*pkgcache.BuildConfig, error) {
-	var port = Port{DevDep: devDep}
+func (p Port) GetBuildConfig(nameVersion string, native bool) (*pkgcache.BuildConfig, error) {
+	key := fmt.Sprintf("%s|%t", nameVersion, native)
+	if v, ok := buildConfigCache.Load(key); ok {
+		return v.(*pkgcache.BuildConfig), nil
+	}
+
+	var port = Port{DevDep: native, HostDep: native}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return nil, err
 	}
+
 	config := p.toPkgCacheBuildConfig(port.MatchedConfig, port.portFile)
+	buildConfigCache.Store(key, &config)
 	return &config, nil
 }
 
 // CheckHostSupported Host supported means that the port can be built natively.
 func (p Port) CheckHostSupported(nameVersion string) bool {
+	if v, ok := hostSupportedCache.Load(nameVersion); ok {
+		return v.(bool)
+	}
+
 	var port = Port{DevDep: true}
 	if err := port.Init(p.ctx, nameVersion); err != nil {
 		return false
 	}
 
-	return port.IsHostSupported()
+	supported := port.IsHostSupported()
+	hostSupportedCache.Store(nameVersion, supported)
+	return supported
 }
 
 func (p Port) toPkgCacheBuildConfig(buildConfig *buildsystems.BuildConfig, portFile string) pkgcache.BuildConfig {

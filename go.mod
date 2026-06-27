@@ -1,6 +1,6 @@
 module github.com/celer-pkg/celer
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/BurntSushi/toml v1.5.0
@@ -12,6 +12,7 @@ require (
 require (
 	github.com/mattn/go-runewidth v0.0.23
 	github.com/spf13/pflag v1.0.6
+	golang.org/x/sync v0.21.0
 )
 
 require (

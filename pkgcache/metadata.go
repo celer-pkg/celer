@@ -6,10 +6,28 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
+
+// metaCache caches pkgcache-level buildMeta results keyed by nameVersion|native
+var metaCache sync.Map // key: string -> metaResult
+
+type metaResult struct {
+	meta string
+	err  error
+}
+
+// ResetMetaCache clears the pkgcache-level buildMeta cache. Called alongside
+// configs.ResetMetaCache at the start of each celer command.
+func ResetMetaCache() {
+	metaCache.Range(func(k, v any) bool {
+		metaCache.Delete(k)
+		return true
+	})
+}
 
 type portType int
 
@@ -20,11 +38,11 @@ const (
 )
 
 type Callbacks interface {
-	GenPortTomlString(nameVersion string, devDep bool) (string, error)
+	GenPortTomlString(nameVersion string, native bool) (string, error)
 	GenPlatformTomlString() (string, error)
 	GenBuildToolsVersions(tools []string) (string, error)
-	GetCommitHash(nameVersion string, devDep bool) (string, error)
-	GetBuildConfig(nameVersion string, devDep bool) (*BuildConfig, error)
+	GetCommitHash(nameVersion string, native bool) (string, error)
+	GetBuildConfig(nameVersion string, native bool) (*BuildConfig, error)
 	CheckHostSupported(nameVersion string) bool
 }
 
@@ -77,6 +95,12 @@ func (p Port) BuildMeta() (string, error) {
 }
 
 func (p Port) buildMeta() (string, error) {
+	key := fmt.Sprintf("%s|%t", p.NameVersion, p.DevDep || p.HostDev)
+	if value, ok := metaCache.Load(key); ok {
+		result := value.(metaResult)
+		return result.meta, result.err
+	}
+
 	var buffer bytes.Buffer
 
 	// Write celer version and platform content for root port only.
@@ -175,11 +199,13 @@ func (p Port) buildMeta() (string, error) {
 		buffer.WriteString(string(content))
 	}
 
-	return buffer.String(), nil
+	result := buffer.String()
+	metaCache.Store(key, metaResult{meta: result})
+	return result, nil
 }
 
 func (p Port) collectBuildTools(visitedPorts, seenTools map[string]struct{}) ([]string, error) {
-	key := fmt.Sprintf("%s|%t|%t", p.NameVersion, p.DevDep, p.HostDev)
+	key := fmt.Sprintf("%s|%t", p.NameVersion, p.DevDep || p.HostDev)
 	if _, ok := visitedPorts[key]; ok {
 		return nil, nil
 	}
