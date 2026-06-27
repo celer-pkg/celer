@@ -67,7 +67,7 @@ func (i *installReport) add(port *Port, installedFrom string) {
 		return
 	}
 
-	key := port.NameVersion() + "|" + fmt.Sprintf("%t|%t", port.DevDep, port.HostDep)
+	key := port.NameVersion() + "|" + fmt.Sprintf("%t", port.DevDep || port.HostDep)
 	entry := installReportEntry{
 		Port:          port.NameVersion(),
 		Parent:        port.Parent,

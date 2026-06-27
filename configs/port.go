@@ -125,8 +125,10 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 		return fmt.Errorf("failed to unmarshal %s -> %w", p.portFile, err)
 	}
 
-	// Propagate build_tool flag from package to port.
-	p.HostDep = p.HostDep || p.Package.BuildTool
+	// Build_tool ports are always built by native toolchain.
+	if p.Package.BuildTool {
+		p.DevDep = true
+	}
 
 	// Convert build type to lowercase for all build configs.
 	for index := range p.BuildConfigs {
