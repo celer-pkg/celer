@@ -460,7 +460,19 @@ func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 }
 
 func (p *Port) InstallFromDevCache(options InstallOptions) (bool, error) {
+	// Install from local dev cache only work for hostDev or devDep.
 	if !p.HostDep && !p.DevDep {
+		return false, nil
+	}
+
+	// Rebuild with force.
+	if !options.Force {
+		return false, nil
+	}
+
+	// Disable devCache in build_config.
+	// For some library like icu, cross-compile it should base on its native build cache dir.
+	if p.MatchedConfig.DisableDevCache {
 		return false, nil
 	}
 

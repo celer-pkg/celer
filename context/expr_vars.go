@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -29,6 +30,7 @@ func (e *ExprVars) Init(ctx Context) {
 	e.vars["BUILDTREES_DIR"] = dirs.BuildtreesDir
 	e.vars["INSTALLED_DIR"] = "${INSTALLED_DIR}"
 	e.vars["INSTALLED_DEV_DIR"] = "${INSTALLED_DEV_DIR}"
+	e.vars["TOOLCHAIN_FILE"] = filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake")
 }
 
 // Put stores or updates an expression variable.

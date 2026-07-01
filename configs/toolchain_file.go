@@ -114,9 +114,6 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 	fmt.Fprintf(builder, "\n# Dev runtime path.\n")
 	fmt.Fprintf(builder, `set(ENV{PATH} "%s%s$ENV{PATH}")`+"\n", "${INSTALLED_DEV_DIR}/bin", string(os.PathListSeparator))
 
-	fmt.Fprintf(builder, "\n# Prefer installed libraries to SYSROOT when present.\n")
-	fmt.Fprintf(builder, "list(APPEND CMAKE_PREFIX_PATH %q)\n", "${INSTALLED_DIR}")
-
 	toolchainName := c.platform.Toolchain.GetName()
 
 	// Expose header files.
@@ -326,8 +323,6 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 		// Python3 configuration using modern Find(Python3)
 		fmt.Fprintf(toolchain, "# Python3 executable and libraries\n")
 		fmt.Fprintf(toolchain, "set(Python3_EXECUTABLE \"${PYTHON_VENV_DIR}/bin/python3\" CACHE FILEPATH \"Python3 executable\")\n")
-		fmt.Fprintf(toolchain, "set(Python3_INCLUDE_DIR \"${PYTHON_VENV_DIR}/include\" CACHE PATH \"Python3 include directory\")\n")
-		fmt.Fprintf(toolchain, "set(Python3_LIBRARY_DIR \"${PYTHON_VENV_DIR}/lib\" CACHE PATH \"Python3 library directory\")\n")
 		fmt.Fprintf(toolchain, "set(Python3_ROOT_DIR \"${PYTHON_VENV_DIR}\" CACHE PATH \"Python3 root directory\")\n")
 		fmt.Fprintf(toolchain, "\n# For CMake find_package(Python3) to correctly locate the venv Python.\n")
 		fmt.Fprintf(toolchain, "list(APPEND CMAKE_PREFIX_PATH \"${PYTHON_VENV_DIR}\")\n")
@@ -335,10 +330,7 @@ func (c *Celer) writePythonVenvConfig(toolchain *strings.Builder) error {
 		// Python2 configuration using legacy Find(PythonLibs)
 		fmt.Fprintf(toolchain, "# Python2 executable and libraries\n")
 		fmt.Fprintf(toolchain, "set(PYTHON_EXECUTABLE \"${PYTHON_VENV_DIR}/bin/python\" CACHE FILEPATH \"Python executable\")\n")
-		fmt.Fprintf(toolchain, "set(PYTHON_INCLUDE_DIR \"${PYTHON_VENV_DIR}/include/python%s\" CACHE PATH \"Python include directory\")\n", minorVersion)
-		fmt.Fprintf(toolchain, "set(PYTHON_LIBRARY_DIR \"${PYTHON_VENV_DIR}/lib\" CACHE PATH \"Python library directory\")\n")
 		fmt.Fprintf(toolchain, "\n# For CMake find_package(PythonLibs) to correctly locate the venv Python2.\n")
-		fmt.Fprintf(toolchain, "set(PYTHONLIBS_FOUND TRUE CACHE BOOL \"Python libraries found\")\n")
 		fmt.Fprintf(toolchain, "list(APPEND CMAKE_PREFIX_PATH \"${PYTHON_VENV_DIR}\")\n")
 	}
 

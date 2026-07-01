@@ -24,7 +24,7 @@ func (b *BuildConfig) mergeConfig() {
 		"PreConfigure", "CustomConfigure", "PostConfigure",
 		"PreBuild", "FixBuild", "CustomBuild", "PostBuild",
 		"PreInstall", "CustomInstall", "PostInstall",
-		"AutogenOptions", "Options",
+		"AutogenOptions", "DisableDevCache", "Options",
 	}
 
 	for _, fieldName := range fields {

@@ -261,6 +261,12 @@ type BuildConfig struct {
 	PostInstall_Linux   []string `toml:"post_install_linux,omitempty"`
 	PostInstall_Darwin  []string `toml:"post_install_darwin,omitempty"`
 
+	// Event hooks for diableDevCache
+	DisableDevCache         bool `toml:"disbale_dev_cache,omitempty"`
+	DisableDevCache_Windows bool `toml:"disbale_dev_cache_windows,omitempty"`
+	DisableDevCache_Linux   bool `toml:"disbale_dev_cache_linux,omitempty"`
+	DisableDevCache_Darwin  bool `toml:"disbale_dev_cache_darwin,omitempty"`
+
 	// Configure Options
 	Options         []string `toml:"options,omitempty"`
 	Options_Windows []string `toml:"options_windows,omitempty"`
@@ -847,7 +853,9 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 func (b BuildConfig) parseBuildSystem(value string) (name, version string, hasVersion bool, err error) {
 	value = strings.TrimSpace(value)
 	if value == "" {
-		return "", "", false, fmt.Errorf("build_system is empty, it should be one of %s", strings.Join(buildSystems, ", "))
+		return "", "", false,
+			fmt.Errorf("build_system is empty for %s, it should be one of %s",
+				b.PortConfig.PortFile, strings.Join(buildSystems, ", "))
 	}
 
 	if strings.Count(value, "@") > 1 {
