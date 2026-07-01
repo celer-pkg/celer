@@ -195,6 +195,7 @@ func (t *Toolchain) Detect(platformName string) error {
 	t.NM = "x86_64-linux-gnu-nm"
 	t.OBJDUMP = "x86_64-linux-gnu-objdump"
 	t.STRIP = "x86_64-linux-gnu-strip"
+	t.OBJCOPY = "x86_64-linux-gnu-objcopy"
 
 	if err := t.Validate(); err != nil {
 		return err

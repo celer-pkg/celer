@@ -43,3 +43,13 @@ func If[T any](condition bool, first T, second T) T {
 func UpperFirst(text string) string {
 	return strings.ToUpper(text[:1]) + strings.ToLower(text[1:])
 }
+
+// GetMinorVersion convert a version string to its major.minor part
+// (e.g. "5.11.13" -> "5.11", "1.11" -> "1.11"). 
+func GetMinorVersion(version string) string {
+	parts := strings.Split(version, ".")
+	if len(parts) >= 2 {
+		return parts[0] + "." + parts[1]
+	}
+	return version
+}

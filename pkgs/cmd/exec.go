@@ -116,6 +116,8 @@ func (e *executor) executeWithRetry(output io.Writer) error {
 		}
 	}
 
+	// Show mesage without "[]".
+	e.title = strings.Trim(e.title, "[]")
 	return fmt.Errorf("%s failed after %d attempts -> %w", e.title, e.retryMaxAttempts, lastErr)
 }
 

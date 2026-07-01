@@ -95,7 +95,7 @@ func (p Port) BuildMeta() (string, error) {
 }
 
 func (p Port) buildMeta() (string, error) {
-	key := fmt.Sprintf("%s|%t", p.NameVersion, p.DevDep || p.HostDev)
+	key := fmt.Sprintf("%s|%t|%d|%s", p.NameVersion, p.DevDep || p.HostDev, p.PortType, strings.Join(p.Parents, ">"))
 	if value, ok := metaCache.Load(key); ok {
 		result := value.(metaResult)
 		return result.meta, result.err
