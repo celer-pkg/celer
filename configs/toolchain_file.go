@@ -52,17 +52,26 @@ func (c *Celer) GenerateToolchainFile() error {
 		}
 	}
 
-	// Set CMAKE_FIND_ROOT_PATH.
-	var rootpaths = []string{"${INSTALLED_DIR}"}
-	if c.RootFS() != nil {
-		rootpaths = append(rootpaths, "${CMAKE_SYSROOT}")
-	}
+	// Make sure ${INSTALLED_DIR} has the higher priority than ${CMAKE_SYSROOT}
 	fmt.Fprintf(&builder, "\n# Library search root paths.\n")
-	fmt.Fprintf(&builder, "if(DEFINED CMAKE_FIND_ROOT_PATH)\n")
-	fmt.Fprintf(&builder, `  set(CMAKE_FIND_ROOT_PATH "${CMAKE_FIND_ROOT_PATH}")`+"\n")
-	fmt.Fprintf(&builder, "else()\n")
-	fmt.Fprintf(&builder, "  set(%s %q)\n", "CMAKE_FIND_ROOT_PATH", strings.Join(rootpaths, ";"))
+	fmt.Fprintf(&builder, "list(PREPEND CMAKE_FIND_ROOT_PATH \"${INSTALLED_DIR}\")\n")
+	if c.RootFS() != nil {
+		fmt.Fprintf(&builder, "list(APPEND CMAKE_FIND_ROOT_PATH \"${CMAKE_SYSROOT}\")\n")
+	}
+
+	// MODE_PACKAGE=ONLY means find_package only searches from CMAKE_FIND_ROOT_PATH.
+	// but for ros2, procedure compilation output directory must be added here too,
+	// otherwise ExternalProject sub-builds can't find configs installed by sibling
+	// colcon packages (e.g. ignition-cmake2), we can define the procedure compilation output
+	// directory with 'CMAKE_PREFIX_PATH=xxxx' via env.
+	fmt.Fprintf(&builder, "\n# Propagate CMAKE_PREFIX_PATH from environment for ExternalProject sub-builds.\n")
+	fmt.Fprintf(&builder, "if(DEFINED ENV{CMAKE_PREFIX_PATH})\n")
+	fmt.Fprintf(&builder, "  list(APPEND CMAKE_FIND_ROOT_PATH \"$ENV{CMAKE_PREFIX_PATH}\")\n")
+	fmt.Fprintf(&builder, "  list(APPEND CMAKE_PREFIX_PATH \"$ENV{CMAKE_PREFIX_PATH}\")\n")
 	fmt.Fprintf(&builder, "endif()\n")
+
+	// Some libraries generate cmake config into share/cmake.
+	fmt.Fprintf(&builder, "list(APPEND CMAKE_PREFIX_PATH \"${INSTALLED_DIR}/share/cmake\")\n")
 
 	// Write pkg-config configuration.
 	c.writePkgConfig(&builder)
