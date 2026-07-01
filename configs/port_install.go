@@ -512,6 +512,13 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
+	// Check if cpython version conflicts with venv version defined in celer.toml
+	if p.Parent == "" {
+		if err := p.checkCPythonVersionConflict(); err != nil {
+			return err
+		}
+	}
+
 	// Pre-warm meta cache: compute GenPortTomlString for all transitive deps
 	// in parallel, so the serial buildMeta recursion hits cache on every port.
 	if err := p.preWarmMetaCache(); err != nil {
@@ -915,8 +922,6 @@ func (p *Port) preWarmMetaCache() error {
 		return nil
 	}
 
-	color.Printf(color.Title, "\n[pre-warm meta cache: %d ports]\n", len(nameVersions))
-
 	// Meta pre-warm is IO-bound (read port.toml + git log), not CPU-bound like compilation.
 	jobs := p.ctx.Jobs() * 4
 	if jobs <= 0 {
@@ -935,21 +940,28 @@ func (p *Port) preWarmMetaCache() error {
 			// It's not a real failure.
 			if _, err := p.GenPortTomlString(nameVersion, false); err != nil {
 				if !errors.Is(err, errors.ErrRepoNotExit) {
-					return fmt.Errorf("GenPortTomlString(%s, false): %w", nameVersion, err)
+					return fmt.Errorf("failed to generate port toml string for %s as target -> %w", nameVersion, err)
 				}
 			}
-			if _, err := p.GenPortTomlString(nameVersion, true); err != nil {
-				if !errors.Is(err, errors.ErrRepoNotExit) {
-					return fmt.Errorf("GenPortTomlString(%s, true): %w", nameVersion, err)
+
+			// Some port defined in port.toml can only be build cross-compile toolchian,
+			// for example: system_processor = "aarch64", and no host buildConfig can be matched when
+			// init it with devDep, so we there is no need to pre warn meta cache for it.
+			if p.CheckHostSupported(nameVersion) {
+				if _, err := p.GenPortTomlString(nameVersion, true); err != nil {
+					if !errors.Is(err, errors.ErrRepoNotExit) {
+						return fmt.Errorf("failed to generate port toml string for %s as dev/host -> %w", nameVersion, err)
+					}
+				}
+
+				if _, err := p.GetBuildConfig(nameVersion, true); err != nil {
+					return fmt.Errorf("cannot find matched build config for %s as dev/host -> %w", nameVersion, err)
 				}
 			}
 
 			// Pre-warm buildConfigCache.
 			if _, err := p.GetBuildConfig(nameVersion, false); err != nil {
-				return fmt.Errorf("GetBuildConfig(%s, false): %w", nameVersion, err)
-			}
-			if _, err := p.GetBuildConfig(nameVersion, true); err != nil {
-				return fmt.Errorf("GetBuildConfig(%s, true): %w", nameVersion, err)
+				return fmt.Errorf("cannot find matched build_config for %s as target -> %w", nameVersion, err)
 			}
 
 			// Pre-warm hostSupportedCache.
@@ -1134,7 +1146,7 @@ func (p Port) collectInstalledDepsForReport() error {
 
 	// Collect dependencies.
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
-		name := strings.Split(nameVersion, "@")[0]
+		name, _, _ := strings.Cut(nameVersion, "@")
 		if name == p.Name {
 			return fmt.Errorf("%s's dependencies contains circular dependency: %s", p.NameVersion(), name)
 		}
@@ -1304,4 +1316,39 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	}
 
 	return nil
+}
+
+func (p *Port) checkCPythonVersionConflict() error {
+	cpythonVer := p.cpythonDepVersion()
+	if cpythonVer == "" {
+		return nil
+	}
+	cpythonMinor := expr.GetMinorVersion(cpythonVer)
+
+	venvVersion := buildtools.GetDefaultPythonVersion()
+	if pythonConfig := p.ctx.PythonConfig(); pythonConfig != nil && pythonConfig.GetVersion() != "" {
+		venvVersion = pythonConfig.GetVersion()
+	}
+	venvMinor := expr.GetMinorVersion(venvVersion)
+
+	if cpythonMinor != venvMinor {
+		return fmt.Errorf("cpython dependency version %s does not match venv python version %s "+
+			"(cpython minor %s vs venv minor %s); set [python] version in celer.toml to match the cpython dependency",
+			cpythonVer, venvVersion, cpythonMinor, venvMinor)
+	}
+	return nil
+}
+
+func (p Port) cpythonDepVersion() string {
+	for _, nameVersion := range p.MatchedConfig.Dependencies {
+		if name, ver, ok := strings.Cut(nameVersion, "@"); ok && name == "cpython" && ver != "" {
+			return ver
+		}
+	}
+	for _, nameVersion := range p.MatchedConfig.DevDependencies {
+		if name, ver, ok := strings.Cut(nameVersion, "@"); ok && name == "cpython" && ver != "" {
+			return ver
+		}
+	}
+	return ""
 }
