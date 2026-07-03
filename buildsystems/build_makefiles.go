@@ -110,40 +110,25 @@ func (m makefiles) configureOptions() ([]string, error) {
 		})
 	}
 
-	// Set build library type.
-	switch m.BuildConfig.BuildShared {
-	case "_":
-		m.BuildConfig.BuildShared = ""
-	case "":
-		m.BuildConfig.BuildShared = "--enable-shared"
+	// Makefiles configure scripts use project-specific flags
+	// (--enable-shared, --with-shared, ...), so the extra option are
+	// supplied per-port via build_shared_option / build_static_option.
+	// In default, celer set "--enable-shared" for `build_shared_option`,
+	// and set "--enable-static" for `build_static_option`.
+	libraryType := m.BuildConfig.buildLibraryType()
+	if libraryType.shared {
+		sharedOption := m.BuildConfig.BuildSharedOption
+		if sharedOption == "" {
+			sharedOption = "--enable-shared"
+		}
+		options = append(options, sharedOption)
 	}
-
-	switch m.BuildConfig.BuildStatic {
-	case "_":
-		m.BuildConfig.BuildStatic = ""
-	case "":
-		m.BuildConfig.BuildStatic = "--enable-static"
-	}
-
-	libraryType := m.libraryType(
-		m.BuildConfig.BuildShared,
-		m.BuildConfig.BuildStatic,
-	)
-	switch m.BuildConfig.LibraryType {
-	case "shared", "": // default is `shared`.
-		if libraryType.enableShared != "" {
-			options = append(options, libraryType.enableShared)
+	if libraryType.static {
+		staticOption := m.BuildConfig.BuildStaticOption
+		if staticOption == "" {
+			staticOption = "--enable-static"
 		}
-		if libraryType.disableStatic != "" {
-			options = append(options, libraryType.disableStatic)
-		}
-	case "static":
-		if libraryType.enableStatic != "" {
-			options = append(options, libraryType.enableStatic)
-		}
-		if libraryType.disableShared != "" {
-			options = append(options, libraryType.disableShared)
-		}
+		options = append(options, staticOption)
 	}
 
 	// Add ccache support for projects that need explicit --cc parameter, like ffmpeg.

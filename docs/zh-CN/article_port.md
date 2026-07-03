@@ -19,38 +19,39 @@
 [package]
   url = "https://github.com/google/glog.git"
   ref = "v0.6.0"
-  archive = ""                    # 可选字段，仅当 url 不是 git 仓库时有效
-  src_dir = "xxx"                 # 可选字段
-  build_tool = true|false         # 可选字段
-  checksum = ""                   # 可选字段，源码 git commit hash 或者 压缩包 sha-256 校验值
-  depth = 0                       # 可选字段，git 浅克隆深度，仅对 ref 为 branch/tag 生效
+  archive = ""                            # 可选字段，仅当 url 不是 git 仓库时有效
+  src_dir = "xxx"                         # 可选字段
+  build_tool = true|false                 # 可选字段
+  checksum = ""                           # 可选字段，源码 git commit hash 或者 压缩包 sha-256 校验值
+  depth = 0                               # 可选字段，git 浅克隆深度，仅对 ref 为 branch/tag 生效
 
 [[build_configs]]
-  system_name = "linux"           # 可选选择器
-  system_names = ["linux", "windows"]  # 可选选择器
-  system_processor = "x86_64"     # 可选选择器
-  build_system = "cmake"          # 必填字段，可选值：cmake、makefiles、b2、meson 等
-  cmake_generator = []            # 可选字段
-  build_tools = []                # 可选字段
-  library_type = "shared"         # 可选字段，默认 shared，可选 static
-  build_shared = "--with-shared"  # 可选字段
-  build_static = "--with-static"  # 可选字段
-  c_standard = "c99"              # 可选字段
-  cxx_standard = "cxx17"          # 可选字段
-  envs = []                       # 可选字段
-  patches = []                    # 可选字段
-  build_in_source = false         # 可选字段，默认 false
-  autogen_options = []            # 可选字段
-  pre_configure = []              # 可选字段
-  post_configure = []             # 可选字段
-  pre_build = []                  # 可选字段
-  options = []                    # 可选字段
-  fix_build = []                  # 可选字段
-  post_build = []                 # 可选字段
-  pre_install = []                # 可选字段
-  post_install = []               # 可选字段
-  dependencies = []               # 可选字段
-  dev_dependencies = []           # 可选字段
+  system_name = "linux"                   # 可选选择器
+  system_names = ["linux", "windows"]     # 可选选择器
+  system_processor = "x86_64"             # 可选选择器
+  build_system = "cmake"                  # 必填字段，可选值：cmake、makefiles、b2、meson 等
+  cmake_generator = []                    # 可选字段
+  build_tools = []                        # 可选字段
+  build_shared = true                     # 可选字段，是否构建动态库，默认 shared-only
+  build_static = false                    # 可选字段，是否构建静态库，默认 false
+  build_shared_option = "--with-shared"   # 可选字段（仅 makefiles），默认 --enable-shared
+  build_static_option = "--with-static"   # 可选字段（仅 makefiles），默认 --enable-static
+  c_standard = "c99"                      # 可选字段
+  cxx_standard = "cxx17"                  # 可选字段
+  envs = []                               # 可选字段
+  patches = []                            # 可选字段
+  build_in_source = false                 # 可选字段，默认 false
+  autogen_options = []                    # 可选字段
+  pre_configure = []                      # 可选字段
+  post_configure = []                     # 可选字段
+  pre_build = []                          # 可选字段
+  options = []                            # 可选字段
+  fix_build = []                          # 可选字段
+  post_build = []                         # 可选字段
+  pre_install = []                        # 可选字段
+  post_install = []                       # 可选字段
+  dependencies = []                       # 可选字段
+  dev_dependencies = []                   # 可选字段
 ```
 
 &emsp;&emsp;在 port.toml 中，只有少数字段是必填的，其他都是可选的。大多数情况下，管理一个第三方库都很简单，例如：
@@ -127,33 +128,26 @@
 >**Tip:**  
 &emsp;&emsp;实际上，Celer 已内置支持多种构建工具，包括：Windows 版的 CMake、MinGit、strawberry-perl、msys2、vswhere 等。虽然这些工具大多不支持用户配置，但当切换不同的构建系统时，Celer 会自动将它们加入构建工具列表。例如在 Windows 上使用 makefiles 编译时，msys2 就会被自动添加到构建工具中。
 
-### 1.2.5 library_type
+### 1.2.5 build_shared，build_static
 
-&emsp;&emsp;可选配置，用于指定库的类型，默认值为 **shared**，候选值为 **shared** 和 **static**，分别表示动态库和静态库。
+&emsp;&emsp;可选配置，三态布尔字段，用于声明是否构建动态库和/或静态库。Celer 会根据该意图自动映射到各构建系统的固定参数：
 
-### 1.2.6 build_shared，build_static
+- **cmake**：shared → `-DBUILD_SHARED_LIBS=ON`，static → `-DBUILD_SHARED_LIBS=OFF`
+- **meson**：shared → `--default-library=shared`，static → `--default-library=static`，两者皆要 → `--default-library=both`
+- **b2**：shared → `link=shared runtime-link=shared`，static → `link=static runtime-link=static`
+- **qmake**：shared → `-shared`，static → `-static`
+- **makefiles**：使用 `build_shared_option` / `build_static_option`（见 1.2.6），因为 makefiles 的参数因项目而异。
 
-&emsp;&emsp;可选配置，部分较旧的 makefiles 项目不支持通过 --enable-shared 编译动态库，而是使用 --with-shared 参数。为灵活兼容此类情况，特保留此配置项。您或许会对此处的配置感到困惑，但幸运的是，build_shared 的默认值会根据不同的 buildsystem 自动适配，通常只需在需要时才覆盖指定值。build_shared 与 build_static 的默认值如下：
+### 1.2.6 build_shared_option，build_static_option
 
-- **cmake**: "-DBUILD_SHARED_LIBS=ON"
-- **makefiles**: "--enable-shared"
-- **meson**: "--default-library=shared"
-- **b2**: "link=shared runtime-link=shared"
+&emsp;&emsp;可选配置，**仅 makefiles 有效**。makefiles 的 configure 脚本使用因项目而异的参数来启用动态/静态库（`--enable-shared`、`--with-shared`、`--enable-shared=yes` 等），因此需要按端口指定参数字符串。这两个字段仅在与对应的意图（`build_shared` / `build_static`）为 `true` 时才会被传递。
 
-**候选值说明：**
+| 字段 | 默认值 | 示例 |
+|------|--------|------|
+| `build_shared_option` | `--enable-shared` | `build_shared_option = "--with-shared"` |
+| `build_static_option` | `--enable-static` | `build_static_option = "--with-static"` |
 
-| 候选值 | 说明 | 示例 |
-|--------|------|------|
-| `""` (空字符串) | 使用构建系统的默认值 | `build_shared = ""` → 自动使用 `--enable-shared` |
-| `"_"` | 显式禁用该选项，不添加任何参数 | `build_shared = "_"` → 不添加任何共享库相关参数 |
-| 自定义字符串 | 指定具体的配置参数 | `build_shared = "--with-shared"` |
-| `"enable\|disable"` | 同时指定启用和禁用参数 | `build_shared = "--enable-shared\|--disable-shared"` |
-
->**注意：**  
->**1:** 由于大多数 C/C++ 库不支持显式地仅编译静态库，因此除非在 port.toml 中手动指定 **build_static**，否则默认值为空。  
->**2:** 有些 makefiles 项目的构建目标是一个可执行文件，而不是库。在这种情况下，您应该将 **build_shared** 和 **build_static** 设置为 **`"_"`** 来显式禁用库编译选项。 
-
-当 **library_type** 被设置为 **shared** 时，尝试读取 **build_shared** 中的值作为编译选项参数，否则读取 **build_static** 中的值作为编译选项参数。
+>**注意：** cmake、meson、b2、qmake 会忽略这两个字段——它们的动态/静态参数由构建系统固定。
 
 ### 1.2.7 c_standard, cxx_standard
 

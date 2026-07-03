@@ -23,9 +23,10 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
   build_system        = "cmake"               # mandatory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
   cmake_generator     = []                    # optional field, should be "Ninja", "Unix Makefiles", "Visual Studio xxx"
   build_tools         = [...]                 # optional field
-  library_type        = "shared"              # optional field, should be **shared**, **static**, and default is **shared**.
-  build_shared        = "--with-shared"       # optional field
-  build_static        = "--with-static"       # optional field
+  build_shared        = true                  # optional field, build shared library, default is shared-only
+  build_static        = false                 # optional field, build static library, default is false
+  build_shared_option = "--with-shared"       # optional field (makefiles only), default is --enable-shared
+  build_static_option = "--with-static"       # optional field (makefiles only), default is --enable-static
   c_standard          = "c99"                 # optional field
   cxx_standard        = "cxx17"               # optional field
   build_type          = "release"             # optional field, default is build_type in celer.toml
@@ -118,33 +119,26 @@ The following are fields and their descriptions:
 >**Tip:**  
 &emsp;&emsp;In actuality, Celer has built-in support for a variety of build tools, such as: Windows versions of CMake, MinGit, strawberry-perl, msys2, vswhere, and more. Although most of these tools are not user-configurable, when switching between different buildsystems, Celer automatically adds them to the buildtools list. For example, when compiling with makefiles on Windows, msys2 is automatically added to the buildtools.
 
-### 1.2.5 library_type
+### 1.2.5 build_shared, build_static
 
-&emsp;&emsp;Optional, default value is **shared**, candidate values are **shared** and **static**, which means dynamic library and static library respectively.
+&emsp;&emsp;Optional, tri-state boolean fields that declare whether to build shared and/or static libraries. Celer maps this intent to each build system's fixed parameters automatically:
 
-### 1.2.6 build_shared，build_static
+- **cmake**: shared → `-DBUILD_SHARED_LIBS=ON`, static → `-DBUILD_SHARED_LIBS=OFF`
+- **meson**: shared → `--default-library=shared`, static → `--default-library=static`, both → `--default-library=both`
+- **b2**: shared → `link=shared runtime-link=shared`, static → `link=static runtime-link=static`
+- **qmake**: shared → `-shared`, static → `-static`
+- **makefiles**: uses `build_shared_option` / `build_static_option` (see 1.2.6), because makefiles flags vary per project.
 
-&emsp;&emsp;Optional, some old **makefiles** projects do not support compiling dynamic libraries with **--enable-shared**, but with **--with-shared**. To flexibly support this, this configuration entry is reserved. You may be afraid of the configuration here, but fortunately, the default value of **build_shared** depends on the different **buildsystem**, and you only need to override the specified value when needed. The default values of **build_shared** and **build_static** are as follows:
+### 1.2.6 build_shared_option, build_static_option
 
-- **cmake**: "-DBUILD_SHARED_LIBS=ON"
-- **makefiles**: "--enable-shared"
-- **meson**: "--default-library=shared"
-- **b2**: "link=shared runtime-link=shared"
+&emsp;&emsp;Optional, **makefiles only**. Makefiles configure scripts use project-specific flags to enable shared/static libraries (`--enable-shared`, `--with-shared`, `--enable-shared=yes`, ...), so the flag string must be supplied per port. These fields hold that string and are emitted only when the matching intent (`build_shared` / `build_static`) is `true`.
 
-**Candidate Values:**
+| Field | Default | Example |
+|-------|---------|---------|
+| `build_shared_option` | `--enable-shared` | `build_shared_option = "--with-shared"` |
+| `build_static_option` | `--enable-static` | `build_static_option = "--with-static"` |
 
-| Value | Description | Example |
-|-------|-------------|---------|
-| `""` (empty string) | Use build system's default value | `build_shared = ""` → automatically uses `--enable-shared` |
-| `"_"` | Explicitly disable this option, no parameters added | `build_shared = "_"` → no shared library parameters added |
-| Custom string | Specify a custom configure parameter | `build_shared = "--with-shared"` |
-| `"enable\|disable"` | Specify both enable and disable parameters | `build_shared = "--enable-shared\|--disable-shared"` |
-
->**Note:**  
->**1:** Since most C/C++ libraries don't support explicitly compiling static libraries only, **build_static**'s default value is empty unless manually specified in port.toml.  
->**2:** Some makefiles projects have executable build targets, not libraries. In this case, you should set **build_shared** and **build_static** to **`"_"`** to explicitly disable library compilation options.
-
-When **library_type** is set to **shared**, Celer will try to read the value in **build_shared** as the compilation option parameter, otherwise read the value in **build_static** as the compilation option parameter.
+>**Note:** cmake, meson, b2, and qmake ignore these fields — their shared/static flags are fixed per build system.
 
 ### 1.2.7 c_standard, cxx_standard
 

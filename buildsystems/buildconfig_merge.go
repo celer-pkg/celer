@@ -16,10 +16,10 @@ func (b *BuildConfig) mergeConfig() {
 
 	bVal := reflect.ValueOf(b).Elem()
 
-	// List of all fields that need platform-specific merging
-	fields := []string{
-		"BuildSystem", "CMakeGenerator", "BuildTools", "LibraryType",
-		"BuildShared", "BuildStatic", "CStandard", "CXXStandard", "BuildType",
+	// Override string fields with system-specific suffix.
+	stringFields := []string{
+		"BuildSystem", "CMakeGenerator", "BuildTools",
+		"CStandard", "CXXStandard", "BuildType",
 		"Envs", "Patches", "Dependencies", "DevDependencies",
 		"PreConfigure", "CustomConfigure", "PostConfigure",
 		"PreBuild", "FixBuild", "CustomBuild", "PostBuild",
@@ -27,7 +27,7 @@ func (b *BuildConfig) mergeConfig() {
 		"AutogenOptions", "DisableDevCache", "Options",
 	}
 
-	for _, fieldName := range fields {
+	for _, fieldName := range stringFields {
 		platformFieldName := fieldName + platformSuffix
 		baseField := bVal.FieldByName(fieldName)
 		platformField := bVal.FieldByName(platformFieldName)
@@ -49,10 +49,26 @@ func (b *BuildConfig) mergeConfig() {
 		}
 	}
 
-	// Special handling for BuildInSource (pointer type)
-	buildInSourceField := bVal.FieldByName("BuildInSource" + platformSuffix)
-	if buildInSourceField.IsValid() && !buildInSourceField.IsNil() {
-		bVal.FieldByName("BuildInSource").SetBool(buildInSourceField.Elem().Bool())
+	// Override bool fields with system-specific suffix.
+	// The base field is bool for BuildInSource and *bool for BuildShared/BuildStatic;
+	// the per-platform variants are always *bool so "not configured" (nil) can be told
+	// apart from "configured false".
+	boolFields := []string{"BuildInSource", "BuildShared", "BuildStatic"}
+	for _, name := range boolFields {
+		variant := bVal.FieldByName(name + platformSuffix)
+		if !variant.IsValid() || variant.IsNil() {
+			continue
+		}
+
+		value := variant.Elem().Bool()
+		field := bVal.FieldByName(name)
+
+		switch field.Kind() {
+		case reflect.Bool:
+			field.SetBool(value)
+		case reflect.Pointer:
+			field.Set(reflect.ValueOf(&value))
+		}
 	}
 
 	// Ensure BuildType is always lowercase after platform-specific merge.

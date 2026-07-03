@@ -94,10 +94,8 @@ type buildSystem interface {
 }
 
 type libraryType struct {
-	enableShared  string
-	disableShared string
-	enableStatic  string
-	disableStatic string
+	shared bool
+	static bool
 }
 
 type BuildConfig struct {
@@ -124,23 +122,22 @@ type BuildConfig struct {
 	BuildTools_Linux   []string `toml:"build_tools_linux,omitempty"`
 	BuildTools_Darwin  []string `toml:"build_tools_darwin,omitempty"`
 
-	// Library Type
-	LibraryType         string `toml:"library_type,omitempty"`
-	LibraryType_Windows string `toml:"library_type_windows,omitempty"`
-	LibraryType_Linux   string `toml:"library_type_linux,omitempty"`
-	LibraryType_Darwin  string `toml:"library_type_darwin,omitempty"`
-
-	// BuildShared
-	BuildShared         string `toml:"build_shared,omitempty"`
-	BuildShared_Windows string `toml:"build_shared_windows,omitempty"`
-	BuildShared_Linux   string `toml:"build_shared_linux,omitempty"`
-	BuildShared_Darwin  string `toml:"build_shared_darwin,omitempty"`
+	// Library type configure field is not mandatory.
+	BuildShared         *bool `toml:"build_shared,omitempty"`
+	BuildShared_Windows *bool `toml:"build_shared_windows,omitempty"`
+	BuildShared_Linux   *bool `toml:"build_shared_linux,omitempty"`
+	BuildShared_Darwin  *bool `toml:"build_shared_darwin,omitempty"`
 
 	// BuildStatic
-	BuildStatic         string `toml:"build_static,omitempty"`
-	BuildStatic_Windows string `toml:"build_static_windows,omitempty"`
-	BuildStatic_Linux   string `toml:"build_static_linux,omitempty"`
-	BuildStatic_Darwin  string `toml:"build_static_darwin,omitempty"`
+	BuildStatic         *bool `toml:"build_static,omitempty"`
+	BuildStatic_Windows *bool `toml:"build_static_windows,omitempty"`
+	BuildStatic_Linux   *bool `toml:"build_static_linux,omitempty"`
+	BuildStatic_Darwin  *bool `toml:"build_static_darwin,omitempty"`
+
+	// Makefiles-only: for makefiles project, build shared/static may have different options.
+	// Empty defaults to --enable-shared / --enable-static for backward compatibility.
+	BuildSharedOption string `toml:"build_shared_option,omitempty"`
+	BuildStaticOption string `toml:"build_static_option,omitempty"`
 
 	// C Standard
 	CStandard         string `toml:"c_standard,omitempty"`
@@ -770,35 +767,19 @@ func (b *BuildConfig) Configured() bool {
 	return b.buildSystem.configured()
 }
 
-func (b BuildConfig) libraryType(defaultEnableShared, defaultEnableStatic string) libraryType {
-	var (
-		enableShared, disableShared string
-		enableStatic, disableStatic string
-	)
-	splitBuildOption := func(buildOption string) (string, string) {
-		parts := strings.Split(buildOption, "|")
-		if len(parts) == 2 {
-			return parts[0], parts[1]
+func (b BuildConfig) buildLibraryType() libraryType {
+	var libraryType libraryType
+	if b.BuildShared == nil && b.BuildStatic == nil {
+		libraryType.shared = true
+	} else {
+		if b.BuildShared != nil {
+			libraryType.shared = *b.BuildShared
 		}
-		return parts[0], ""
+		if b.BuildStatic != nil {
+			libraryType.static = *b.BuildStatic
+		}
 	}
-
-	enableShared, disableShared = splitBuildOption(b.BuildShared)
-	enableStatic, disableStatic = splitBuildOption(b.BuildStatic)
-
-	if enableShared == "" {
-		enableShared = defaultEnableShared
-	}
-	if enableStatic == "" {
-		enableStatic = defaultEnableStatic
-	}
-
-	return libraryType{
-		enableShared:  enableShared,
-		enableStatic:  enableStatic,
-		disableShared: disableShared,
-		disableStatic: disableStatic,
-	}
+	return libraryType
 }
 
 // checkSymlink create a symlink in the sysroot.
