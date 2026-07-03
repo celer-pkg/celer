@@ -128,19 +128,20 @@ func (c cmake) configureOptions() ([]string, error) {
 		}
 	}
 
-	// Set build library type.
-	libraryType := c.libraryType("-DBUILD_SHARED_LIBS=ON", "-DBUILD_SHARED_LIBS=OFF")
-	switch c.BuildConfig.LibraryType {
-	case "shared", "": // default is `shared`.
-		options = append(options, libraryType.enableShared)
-		if libraryType.disableStatic != "" {
-			options = append(options, libraryType.disableStatic)
-		}
-	case "static":
-		options = append(options, libraryType.enableStatic)
-		if libraryType.disableShared != "" {
-			options = append(options, libraryType.disableShared)
-		}
+	// Set build library type(remove user defined first).
+	options = slices.DeleteFunc(options, func(element string) bool {
+		return strings.HasPrefix(element, "-DBUILD_SHARED_LIBS=") ||
+			strings.HasPrefix(element, "-DBUILD_STATIC_LIBS=")
+	})
+	intent := c.BuildConfig.buildLibraryType()
+	if intent.shared && intent.static {
+		options = append(options, "-DBUILD_SHARED_LIBS=ON")
+		options = append(options, "-DBUILD_STATIC_LIBS=ON")
+	}
+	if intent.shared {
+		options = append(options, "-DBUILD_SHARED_LIBS=ON")
+	} else {
+		options = append(options, "-DBUILD_SHARED_LIBS=OFF")
 	}
 
 	// Set C standard.

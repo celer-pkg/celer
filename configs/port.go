@@ -316,7 +316,6 @@ func (p Port) Write(portPath string) error {
 		SystemProcessor: "",
 		BuildSystem:     "",
 		BuildTools:      []string{},
-		LibraryType:     "",
 		CStandard:       "",
 		CXXStandard:     "",
 		Envs:            []string{},
@@ -374,16 +373,10 @@ func (p *Port) findMatchedConfig(buildType string) (*buildsystems.BuildConfig, e
 	}
 
 	index := matchedIndexes[0]
-	config := p.BuildConfigs[index]
 
 	// If build type is not specified in port.toml, then set it to the build type defined in celer.toml.
 	if p.BuildConfigs[index].BuildType == "" {
 		p.BuildConfigs[index].BuildType = buildType
-	}
-
-	// If LibraryType is empty, set it to `shared`.
-	if strings.TrimSpace(config.LibraryType) == "" {
-		p.BuildConfigs[index].LibraryType = "shared"
 	}
 
 	// Placeholder variables.

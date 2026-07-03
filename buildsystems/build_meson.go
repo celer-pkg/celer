@@ -103,22 +103,18 @@ func (m meson) configureOptions() ([]string, error) {
 	// Set install library output dir as "dir" always.
 	options = append(options, "-Dlibdir=lib")
 
-	// Set build library type.
-	libraryType := m.libraryType(
-		"--default-library=shared",
-		"--default-library=static",
-	)
-	switch m.BuildConfig.LibraryType {
-	case "shared", "": // default is `shared`.
-		options = append(options, libraryType.enableShared)
-		if libraryType.disableStatic != "" {
-			options = append(options, libraryType.disableStatic)
-		}
-	case "static":
-		options = append(options, libraryType.enableStatic)
-		if libraryType.disableShared != "" {
-			options = append(options, libraryType.disableShared)
-		}
+	// Set build library type(remove user defined first).
+	options = slices.DeleteFunc(options, func(element string) bool {
+		return strings.HasPrefix(element, "--default-library=")
+	})
+	libraryType := m.BuildConfig.buildLibraryType()
+	switch {
+	case libraryType.shared && libraryType.static:
+		options = append(options, "--default-library=both")
+	case libraryType.static:
+		options = append(options, "--default-library=static")
+	default:
+		options = append(options, "--default-library=shared")
 	}
 
 	// Set install dir.

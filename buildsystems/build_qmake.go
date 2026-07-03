@@ -68,19 +68,13 @@ func (q qmake) configureOptions() ([]string, error) {
 	// Set installation directory.
 	options = append(options, "-extprefix "+q.PortConfig.PackageDir)
 
-	// Set build library type.
-	libraryType := q.libraryType("-shared", "-static")
-	switch q.BuildConfig.LibraryType {
-	case "shared", "": // default is `shared`.
-		options = append(options, libraryType.enableShared)
-		if libraryType.disableStatic != "" {
-			options = append(options, libraryType.disableStatic)
-		}
-	case "static":
-		options = append(options, libraryType.enableStatic)
-		if libraryType.disableShared != "" {
-			options = append(options, libraryType.disableShared)
-		}
+	// Set build library type. qmake's -shared/-static are mutually exclusive,
+	// so "both" falls back to shared.
+	intent := q.BuildConfig.buildLibraryType()
+	if intent.static && !intent.shared {
+		options = append(options, "-static")
+	} else {
+		options = append(options, "-shared")
 	}
 
 	options = append(options, fmt.Sprintf("--prefix=%s", q.PortConfig.PackageDir))

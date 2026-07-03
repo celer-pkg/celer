@@ -273,22 +273,19 @@ func (b b2) buildOptions() ([]string, error) {
 	// Set build cache dir.
 	options = append(options, "--build-dir="+b.PortConfig.BuildDir)
 
-	// Set build library type.
-	libraryType := b.libraryType(
-		"link=shared runtime-link=shared",
-		"link=static runtime-link=static",
-	)
-	switch b.BuildConfig.LibraryType {
-	case "shared", "": // default is `shared`.
-		options = append(options, libraryType.enableShared)
-		if libraryType.disableStatic != "" {
-			options = append(options, libraryType.disableStatic)
-		}
-	case "static":
-		options = append(options, libraryType.enableStatic)
-		if libraryType.disableShared != "" {
-			options = append(options, libraryType.disableShared)
-		}
+	// Set build library type(remove user defined first).
+	options = slices.DeleteFunc(options, func(element string) bool {
+		return strings.HasPrefix(element, "link=") ||
+			strings.HasPrefix(element, "runtime-link=")
+	})
+	libraryType := b.BuildConfig.buildLibraryType()
+	switch {
+	case libraryType.shared && libraryType.static:
+		options = append(options, "link=shared,static runtime-link=shared,static")
+	case libraryType.static:
+		options = append(options, "link=static runtime-link=static")
+	default:
+		options = append(options, "link=shared runtime-link=shared")
 	}
 
 	// Note: `threading=multi` is the default config for boost.
