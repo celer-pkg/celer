@@ -77,11 +77,6 @@ type Proxy struct {
 }
 
 type experiment struct {
-	CheckCMakeAbolutePath bool `toml:"check_cmake_abolute_path"`
-}
-
-func (e experiment) GetCheckCMakeAbolutePath() bool {
-	return e.CheckCMakeAbolutePath
 }
 
 type Python struct {

@@ -611,7 +611,7 @@ func (p Port) doInstallFromPackage(destDir string) error {
 		}
 
 		if err := fileio.CopyFile(src, dest); err != nil {
-			return fmt.Errorf("failed to copy file.\n%w", err)
+			return fmt.Errorf("failed to copy file -> %w", err)
 		}
 	}
 

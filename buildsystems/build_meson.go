@@ -173,7 +173,7 @@ func (m meson) Configure(options []string) error {
 		// Use cross_file.toml for host machine, and native_file.toml for build-time tools.
 		crossFile, err := m.generateCrossFile(toolchain, rootfs, m.Ctx.CCacheEnabled())
 		if err != nil {
-			return fmt.Errorf("generate cross_file.toml for meson: %v", err)
+			return fmt.Errorf("generate cross_file.toml for meson -> %w", err)
 		}
 
 		// Generate native file for build machine dependencies (e.g., wayland-scanner).

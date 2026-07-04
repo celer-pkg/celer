@@ -51,7 +51,7 @@ func (e *executor) doExecute(output io.Writer) error {
 	// Create and configure log file.
 	logFile, err := e.createLogFile(cmd)
 	if err != nil {
-		return fmt.Errorf("failed to setup logging: %w", err)
+		return fmt.Errorf("failed to setup logging -> %w", err)
 	}
 	if logFile != nil {
 		defer logFile.Close()
@@ -62,7 +62,7 @@ func (e *executor) doExecute(output io.Writer) error {
 
 	// Execute command and return result.
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("faild to execute command: %w", err)
+		return fmt.Errorf("faild to execute command -> %w", err)
 	}
 
 	return nil

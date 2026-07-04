@@ -408,7 +408,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			}
 		}
 	} else if repoUrl != "_" {
-		color.Printf(color.Title, "\n[fetch repo %s]\n", b.PortConfig.nameVersion())
+		color.Printf(color.Title, "\n[fetch repo %s]", b.PortConfig.nameVersion())
 
 		// Check and repair resource.
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
@@ -459,7 +459,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	if repoUrl != "_" && repoCache != nil {
 		archiveFile := filepath.Join(b.Ctx.Downloads(), archive)
 		if whereStored, err := repoCache.Store(nameVersion, repoUrl, b.PortConfig.RepoDir, archiveFile); err != nil {
-			return fmt.Errorf("failed to store repo cache for %s -> %v\n", nameVersion, err)
+			return fmt.Errorf("failed to store repo cache for %s -> %w", nameVersion, err)
 		} else if whereStored != "" {
 			color.PrintPass("%s is stored to repo cache", nameVersion)
 			color.PrintHint("Location: %s\n", whereStored)
@@ -486,11 +486,11 @@ func (b BuildConfig) Clean() error {
 	// Skip for empty folder.
 	entities, err := os.ReadDir(b.PortConfig.RepoDir)
 	if err != nil {
-		return fmt.Errorf("failed to read %s \n %w", b.PortConfig.RepoDir, err)
+		return fmt.Errorf("failed to read %s -> %w", b.PortConfig.RepoDir, err)
 	}
 	if len(entities) == 0 {
 		if err := os.RemoveAll(b.PortConfig.RepoDir); err != nil {
-			return fmt.Errorf("cannot remove empty folder: %s \n %w", b.PortConfig.RepoDir, err)
+			return fmt.Errorf("cannot remove empty folder: %s -> %w", b.PortConfig.RepoDir, err)
 		}
 		return nil
 	}
@@ -650,54 +650,54 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 			return fmt.Errorf("configure %s -> %w", b.PortConfig.nameVersion(), err)
 		}
 		if err := b.buildSystem.Configure(configureOptions); err != nil {
-			return fmt.Errorf("configure %s\n %w", b.PortConfig.nameVersion(), err)
+			return fmt.Errorf("configure %s -> %w", b.PortConfig.nameVersion(), err)
 		}
 		if err := b.buildSystem.postConfigure(); err != nil {
-			return fmt.Errorf("post configure %s\n %w", b.PortConfig.nameVersion(), err)
+			return fmt.Errorf("post configure %s -> %w", b.PortConfig.nameVersion(), err)
 		}
 	}
 
 	// Build related steps.
 	if err := b.buildSystem.preBuild(); err != nil {
-		return fmt.Errorf("pre build %s\n %w", b.PortConfig.nameVersion(), err)
+		return fmt.Errorf("pre build %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 	buildOptions, err := b.buildSystem.buildOptions()
 	if err != nil {
-		return fmt.Errorf("get build options %s\n %w", b.PortConfig.nameVersion(), err)
+		return fmt.Errorf("get build options %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 	if err := b.buildSystem.Build(buildOptions); err != nil {
 		// Some third-party need extra steps to fix build. For example: nspr.
 		if len(b.FixBuild) > 0 {
 			if err := b.buildSystem.fixBuild(); err != nil {
-				return fmt.Errorf("fix build %s\n %w", b.PortConfig.nameVersion(), err)
+				return fmt.Errorf("fix build %s -> %w", b.PortConfig.nameVersion(), err)
 			}
 			if err := b.buildSystem.Build(buildOptions); err != nil {
-				return fmt.Errorf("build %s again\n %w", b.PortConfig.nameVersion(), err)
+				return fmt.Errorf("build %s again -> %w", b.PortConfig.nameVersion(), err)
 			}
 		} else {
-			return fmt.Errorf("build %s\n %w", b.PortConfig.nameVersion(), err)
+			return fmt.Errorf("build %s -> %w", b.PortConfig.nameVersion(), err)
 		}
 	}
 	if err := b.buildSystem.postBuild(); err != nil {
-		return fmt.Errorf("post build %s\n %w", b.PortConfig.nameVersion(), err)
+		return fmt.Errorf("post build %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 
 	// Install related steps.
 	if err := b.buildSystem.preInstall(); err != nil {
-		return fmt.Errorf("pre install %s\n %w", b.PortConfig.nameVersion(), err)
+		return fmt.Errorf("pre install %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 	installOptions, err := b.buildSystem.installOptions()
 	if err != nil {
-		return fmt.Errorf("get install options %s\n %w", b.PortConfig.nameVersion(), err)
+		return fmt.Errorf("get install options %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 	if err := b.buildSystem.Install(installOptions); err != nil {
-		return fmt.Errorf("install %s\n %w", b.PortConfig.nameVersion(), err)
+		return fmt.Errorf("install %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 	if err := b.buildSystem.postInstall(); err != nil {
-		return fmt.Errorf("post install %s\n %w", b.PortConfig.nameVersion(), err)
+		return fmt.Errorf("post install %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 	if err := b.removeLaFiles(b.PortConfig.PackageDir); err != nil {
-		return fmt.Errorf("remove libtool archives %s\n %w", b.PortConfig.nameVersion(), err)
+		return fmt.Errorf("remove libtool archives %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 
 	// Fixup pkg config files.
@@ -710,16 +710,13 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	)
 	var pkgConfig pc.PkgConfig
 	if err := pkgConfig.Apply(b.PortConfig.PackageDir, prefix); err != nil {
-		return fmt.Errorf("fixup pkg-config\n %w", err)
+		return fmt.Errorf("fixup pkg-config -> %w", err)
 	}
 
 	// Check cmake config files for absolute workspace paths that make the
-	// installed package non-relocatable (breaks builds when workspace moves).
-	experiment := b.Ctx.Experiment()
-	if experiment != nil && experiment.GetCheckCMakeAbolutePath() {
-		if err := pkgcmake.CheckAbsPaths(b.PortConfig.PackageDir, dirs.WorkspaceDir); err != nil {
-			return fmt.Errorf("cmake config files contain absolute workspace paths (non-relocatable): %w", err)
-		}
+	// installed package non-relocatable, and break the reuse of pkgcache.
+	if err := pkgcmake.CheckAbsPaths(b.PortConfig.PackageDir, dirs.WorkspaceDir); err != nil {
+		return fmt.Errorf("cmake config files contain absolute workspace paths (non-relocatable) -> %w", err)
 	}
 
 	return nil
@@ -788,10 +785,10 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 	createSymlink := func(src, dest string) error {
 		relPath, err := filepath.Rel(filepath.Dir(dest), src)
 		if err != nil {
-			return fmt.Errorf("compute relative path\n %w", err)
+			return fmt.Errorf("compute relative path -> %w", err)
 		}
 		if err := os.Symlink(relPath, dest); err != nil {
-			return fmt.Errorf("create symlink\n %w", err)
+			return fmt.Errorf("create symlink -> %w", err)
 		}
 		return nil
 	}
@@ -802,7 +799,7 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 		if os.IsNotExist(err) {
 			return createSymlink(src, dest)
 		}
-		return fmt.Errorf("checking symlink: %v", err)
+		return fmt.Errorf("checking symlink -> %w", err)
 	}
 
 	// Check the symlink target.
@@ -810,13 +807,13 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 		// Read the target of the symlink.
 		realTarget, err := os.Readlink(dest)
 		if err != nil {
-			return fmt.Errorf("read symlink target: %v", err)
+			return fmt.Errorf("read symlink target -> %w", err)
 		}
 
 		// If symlink is broken or points to the wrong target, remove it and recreate.
 		if realTarget != src {
 			if err := os.RemoveAll(dest); err != nil {
-				return fmt.Errorf("remove broken symlink: %v", err)
+				return fmt.Errorf("remove broken symlink -> %w", err)
 			}
 			return createSymlink(src, dest)
 		}
@@ -826,7 +823,7 @@ func (b BuildConfig) checkSymlink(src, dest string) error {
 
 	// Remove if it's not a symlink.
 	if err = os.RemoveAll(dest); err != nil {
-		return fmt.Errorf("remove non-symlink: %v", err)
+		return fmt.Errorf("remove non-symlink -> %w", err)
 	}
 	return createSymlink(src, dest)
 }

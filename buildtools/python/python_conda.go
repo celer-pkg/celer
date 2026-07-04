@@ -64,7 +64,7 @@ func (c *CondaPython) installConda(scriptPath, installDir string) error {
 	case "linux", "darwin":
 		// Make script executable on Unix systems.
 		if err := os.Chmod(scriptPath, os.ModePerm); err != nil {
-			return fmt.Errorf("failed to make conda script executable: %w", err)
+			return fmt.Errorf("failed to make conda script executable -> %w", err)
 		}
 
 		// Run conda installer in batch mode with -b -p flags.
@@ -80,10 +80,10 @@ func (c *CondaPython) installConda(scriptPath, installDir string) error {
 				command := fmt.Sprintf("bash %s -b -u -p %s", scriptPath, installDir)
 				executor := cmd.NewExecutor("[conda install in update mode]", command)
 				if err := executor.Execute(); err != nil {
-					return fmt.Errorf("failed to install/update conda: %w", err)
+					return fmt.Errorf("failed to install/update conda -> %w", err)
 				}
 			} else {
-				return fmt.Errorf("failed to install conda: %w", err)
+				return fmt.Errorf("failed to install conda -> %w", err)
 			}
 		}
 
@@ -98,7 +98,7 @@ func (c *CondaPython) installConda(scriptPath, installDir string) error {
 		command := fmt.Sprintf("%s /S /D=%s", scriptPath, installDir)
 		executor := cmd.NewExecutor("[conda install]", command)
 		if err := executor.Execute(); err != nil {
-			return fmt.Errorf("failed to install conda: %w", err)
+			return fmt.Errorf("failed to install conda -> %w", err)
 		}
 
 		// Verify conda binary exists
@@ -147,7 +147,7 @@ func (c *CondaPython) GetExecutable() (string, error) {
 			output, err = exec.Command(c.condaBinary, "run", "-n", envName, "which", "python").Output()
 		}
 		if err != nil {
-			return "", fmt.Errorf("failed to get Python executable path: %w", err)
+			return "", fmt.Errorf("failed to get Python executable path -> %w", err)
 		}
 
 		if len(output) > 0 {
@@ -168,7 +168,7 @@ func (c *CondaPython) GetExecutable() (string, error) {
 	// Verify the new environment was created.
 	cmd = exec.Command(c.condaBinary, "run", "-n", envName, "python", "--version")
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("python environment verification failed: %w", err)
+		return "", fmt.Errorf("python environment verification failed -> %w", err)
 	}
 
 	// Get the path to the python executable in this environment.
@@ -208,12 +208,12 @@ func (c *CondaPython) Setup() error {
 	// Need to install conda - get the conda installer
 	condaInstallerPath, condaInstallDir, err := c.getCondaInstallerPaths()
 	if err != nil {
-		return fmt.Errorf("failed to locate conda installer: %w", err)
+		return fmt.Errorf("failed to locate conda installer -> %w", err)
 	}
 
 	// Execute the conda installation script.
 	if err := c.installConda(condaInstallerPath, condaInstallDir); err != nil {
-		return fmt.Errorf("failed to execute conda installation: %w", err)
+		return fmt.Errorf("failed to execute conda installation -> %w", err)
 	}
 
 	// Update PATH to include conda's bin directory.
@@ -231,7 +231,7 @@ func (c *CondaPython) Setup() error {
 	// This enables conda-forge packages by default.
 	tosCmd := exec.Command(condaBinary, "config", "--add", "channels", "conda-forge")
 	if err := tosCmd.Run(); err != nil {
-		return fmt.Errorf("Note: Could not configure conda-forge channel: %v", err)
+		return fmt.Errorf("Note: Could not configure conda-forge channel -> %w", err)
 	}
 
 	// Note: Python version installation is handled by getPythonExecutable via conda create

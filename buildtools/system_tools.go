@@ -2,10 +2,11 @@ package buildtools
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/cmd"
 	"runtime"
 	"slices"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/cmd"
 )
 
 // CheckSystemTools checks if the system tools are installed.
@@ -108,7 +109,7 @@ func getOSType() (string, error) {
 	executor := cmd.NewExecutor("", "cat", "/etc/os-release")
 	out, err := executor.ExecuteOutput()
 	if err != nil {
-		return "", fmt.Errorf("failed to read /etc/os-release\n %w", err)
+		return "", fmt.Errorf("failed to read /etc/os-release -> %w", err)
 	}
 
 	lines := strings.SplitSeq(string(out), "\n")
@@ -150,7 +151,7 @@ func checkRedHatLibraryInstalled(libraryName string) (bool, error) {
 	executor := cmd.NewExecutor("", "rpm", "-q", libraryName)
 	out, err := executor.ExecuteOutput()
 	if err != nil {
-		return false, fmt.Errorf("failed to run rpm -q: %v", err)
+		return false, fmt.Errorf("failed to run rpm -q -> %w", err)
 	}
 
 	// Check if the library is installed.

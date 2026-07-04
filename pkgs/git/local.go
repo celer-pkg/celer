@@ -144,7 +144,7 @@ func shouldIgnoreStatusLine(repoDir, line string) bool {
 func GetCommitHash(repoDir string) (string, error) {
 	// Check if repo exists.
 	if _, err := os.Stat(repoDir); err != nil {
-		return "", fmt.Errorf("directory error: %w", err)
+		return "", fmt.Errorf("directory error -> %w", err)
 	}
 
 	cmd := exec.Command("git", "-C", repoDir, "rev-parse", "HEAD")
@@ -163,7 +163,7 @@ func GetDefaultBranch(nameVersion, repoDir string) (string, error) {
 	executor.SetWorkDir(repoDir)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
-		return "", fmt.Errorf("read git default branch: %w", err)
+		return "", fmt.Errorf("read git default branch -> %w", err)
 	}
 
 	lines := strings.SplitSeq(string(output), "\n")
@@ -257,7 +257,7 @@ func CheckIfRefMatches(ctx context.Context, nameVersion, repoDir, expectedRef st
 		}
 
 		if err := fetchRemoteRef(nameVersion, repoDir, remoteName, branchName); err != nil {
-			return "", fmt.Errorf("git fetch branch %s failed for %s: %w", branchName, repoDir, err)
+			return "", fmt.Errorf("git fetch branch %s failed for %s -> %w", branchName, repoDir, err)
 		}
 	}
 
@@ -275,7 +275,7 @@ func getRemoteNames(repoDir string) ([]string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "remote")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("git remote failed: %v", err)
+		return nil, fmt.Errorf("git remote failed -> %w", err)
 	}
 
 	var remotes []string
@@ -318,7 +318,7 @@ func getUpstreamBranch(repoDir string) (string, error) {
 func InitAsLocalRepo(repoDir, message string) error {
 	// Check if repo directory exists
 	if _, err := os.Stat(repoDir); err != nil {
-		return fmt.Errorf("directory error: %w", err)
+		return fmt.Errorf("directory error -> %w", err)
 	}
 
 	// Set up environment variables for git commits
@@ -334,7 +334,7 @@ func InitAsLocalRepo(repoDir, message string) error {
 	cmd := exec.Command("git", "-C", repoDir, "init")
 	cmd.Env = gitEnv
 	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to git init repo: %w (output: %s)", err, output)
+		return fmt.Errorf("failed to git init repo: %s -> %w", output, err)
 	}
 	color.PrintInline(color.Hint, "✔ git -C %s init\n", repoDir)
 
