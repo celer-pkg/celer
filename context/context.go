@@ -36,7 +36,6 @@ type PythonConfig interface {
 
 // Experiment gates opt-in, not-yet-stable features behind a flag.
 type Experiment interface {
-	GetCheckCMakeAbolutePath() bool
 }
 
 // ========================== pkg-cache ========================== //
