@@ -42,7 +42,7 @@ func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
 		executor := cmd.NewExecutor("", cmdName, args...)
 		out, err := executor.ExecuteOutput()
 		if err != nil {
-			return "", fmt.Errorf("failed to get tool version of %s", tool)
+			return "", fmt.Errorf("failed to get tool version of %s -> %w", tool, err)
 		}
 
 		line := strings.TrimSpace(strings.Split(out, "\n")[0])

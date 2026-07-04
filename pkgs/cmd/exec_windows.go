@@ -49,7 +49,7 @@ func (e *executor) doExecute(output io.Writer) error {
 	// Create and configure log file.
 	logFile, err := e.createLogFile(cmd)
 	if err != nil {
-		return fmt.Errorf("failed to setup logging: %w", err)
+		return fmt.Errorf("failed to setup logging -> %w", err)
 	}
 	if logFile != nil {
 		defer logFile.Close()

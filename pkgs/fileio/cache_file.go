@@ -93,7 +93,7 @@ func SaveCachedFile(srcFile, cacheDir, fileName, sha256 string, chattrFS *Chattr
 
 	// Copy file to cache (overwrite in-place if it exists, compatible with chattr +a).
 	if err := chattrFS.CopyFile(srcFile, cachedFilePath); err != nil {
-		return "", fmt.Errorf("failed to copy file to cache: %w", err)
+		return "", fmt.Errorf("failed to copy file to cache -> %w", err)
 	}
 
 	return cachedFilePath, nil

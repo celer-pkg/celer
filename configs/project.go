@@ -42,7 +42,7 @@ func (p *Project) Init(ctx context.Context, projectName string) error {
 	// Check if project file exists.
 	projectPath := filepath.Join(dirs.ConfProjectsDir, projectName+".toml")
 	if !fileio.PathExists(projectPath) {
-		return fmt.Errorf("%w: %s", errors.ErrProjectNotExist, projectName)
+		return fmt.Errorf("%w -> %s", errors.ErrProjectNotExist, projectName)
 	}
 
 	// Read conf/projects/<project_name>.toml.

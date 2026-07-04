@@ -143,7 +143,7 @@ func (b b2) Configure(options []string) error {
 					toolchainRoot := filepath.Dir(toolchain.GetAbsDir())
 					platformTriple, err := b.detectPlatformTriple(toolchainRoot)
 					if err != nil {
-						return fmt.Errorf("failed to detect platform triple: %w", err)
+						return fmt.Errorf("failed to detect platform triple -> %w", err)
 					}
 
 					libcxxInclude := filepath.Join(toolchainRoot, "include", "c++", "v1")
@@ -345,12 +345,12 @@ func (b b2) msvcVersion() string {
 	// Parse major and minor
 	major, err := strconv.Atoi(parts[0])
 	if err != nil {
-		panic(fmt.Errorf("parse major version: %v", err))
+		panic(fmt.Errorf("parse major version -> %w", err))
 	}
 
 	minor, err := strconv.Atoi(parts[1])
 	if err != nil {
-		panic(fmt.Errorf("parse minor version: %v", err))
+		panic(fmt.Errorf("parse minor version -> %w", err))
 	}
 
 	if minor >= 10 {
@@ -367,7 +367,7 @@ func (b b2) detectPlatformTriple(toolchainRoot string) (string, error) {
 	includePath := filepath.Join(toolchainRoot, "include")
 	entries, err := os.ReadDir(includePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to read include directory: %w", err)
+		return "", fmt.Errorf("failed to read include directory -> %w", err)
 	}
 
 	// Find the first subdirectory that contains c++/v1/__config_site

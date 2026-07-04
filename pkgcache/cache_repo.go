@@ -191,7 +191,7 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 		cachedChecksum, err := fileio.ComputeSHA256(archivePath)
 		if err != nil {
 			_ = os.RemoveAll(repoDir)
-			return "", fmt.Errorf("invalid cached repo, verify checksum failed: %w", err)
+			return "", fmt.Errorf("invalid cached repo, verify checksum failed -> %w", err)
 		}
 		localChecksum = cachedChecksum
 

@@ -169,13 +169,13 @@ func RenameDir(srcDir, dstDir string) error {
 func FlattenNestedDir(dir string) error {
 	entities, err := os.ReadDir(dir)
 	if err != nil {
-		return fmt.Errorf("failed to read dir: %w", err)
+		return fmt.Errorf("failed to read dir -> %w", err)
 	}
 
 	if len(entities) == 1 && entities[0].IsDir() && entities[0].Name() != "include" {
 		srcDir := filepath.Join(dir, entities[0].Name())
 		if err := RenameDir(srcDir, dir); err != nil {
-			return fmt.Errorf("failed to flatten nested dir: %w", err)
+			return fmt.Errorf("failed to flatten nested dir -> %w", err)
 		}
 	}
 
@@ -279,7 +279,7 @@ func renameWithRetry(src, dst string, maxRetries int) error {
 			time.Sleep(100 * time.Millisecond)
 		}
 	}
-	return fmt.Errorf("failed after %d retries: %v", maxRetries, lastErr)
+	return fmt.Errorf("failed after %d retries -> %w", maxRetries, lastErr)
 }
 
 func MoveFile(src, dst string) error {

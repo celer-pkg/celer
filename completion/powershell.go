@@ -251,7 +251,7 @@ func (p powershell) executeCmd(name string, args ...string) error {
 	cmd := exec.Command(name, args...)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		if msg := strings.TrimSpace(string(output)); msg != "" {
-			return fmt.Errorf("%w: %s", err, msg)
+			return fmt.Errorf("%s -> %w", msg, err)
 		}
 		return err
 	}

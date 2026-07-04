@@ -120,7 +120,7 @@ func CloneRepo(title, target, repoUrl, repoRef string, depth int, repoDir string
 	fetchExecutor := cmd.NewExecutor(title+" (fetch)", "git", "fetch", "origin")
 	fetchExecutor.SetWorkDir(repoDir)
 	if output, err := fetchExecutor.ExecuteOutputLive(); err != nil {
-		return fmt.Errorf("failed to fetch origin after clone for '%s' -> %w: %s", target, err, output)
+		return fmt.Errorf("failed to fetch origin after clone for '%s' -> %s -> %w", target, output, err)
 	}
 
 	// Checkout repo to commit.

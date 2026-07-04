@@ -131,7 +131,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 			chattrFS := NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot))
 			cachedPath, err := SaveCachedFile(downloaded, cachedDownloadsDir, fileName, r.sha256, chattrFS)
 			if err != nil {
-				return fmt.Errorf("failed to cache downloaded file %s: %w", fileName, err)
+				return fmt.Errorf("failed to cache downloaded file %s -> %w", fileName, err)
 			}
 			color.PrintInline(color.Hint, "✔ cached to pkgcache: %s\n", fileName)
 			downloaded = cachedPath
@@ -180,14 +180,14 @@ func (r *Repair) deployToDestination(downloaded, destDir string, needToDownload 
 // deploySingleFile copies a single file to destination.
 func (r *Repair) deploySingleFile(downloaded, destDir string) error {
 	if err := os.MkdirAll(destDir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to mkdir %s: %w", destDir, err)
+		return fmt.Errorf("failed to mkdir %s -> %w", destDir, err)
 	}
 
 	destFileName := expr.If(r.downloader.archive != "", r.downloader.archive, filepath.Base(downloaded))
 	destFile := filepath.Join(destDir, destFileName)
 
 	if err := CopyFile(downloaded, destFile); err != nil {
-		return fmt.Errorf("failed to copy %s to %s: %w", downloaded, destFile, err)
+		return fmt.Errorf("failed to copy %s to %s -> %w", downloaded, destFile, err)
 	}
 
 	return nil
@@ -196,11 +196,11 @@ func (r *Repair) deploySingleFile(downloaded, destDir string) error {
 // deployArchive extracts archive to destination.
 func (r *Repair) deployArchive(downloaded, destDir string) error {
 	if err := Extract(downloaded, destDir); err != nil {
-		return fmt.Errorf("failed to extract %s: %w", downloaded, err)
+		return fmt.Errorf("failed to extract %s -> %w", downloaded, err)
 	}
 
 	if err := moveNestedFolderIfExist(destDir); err != nil {
-		return fmt.Errorf("failed to move nested folder in %s: %w", destDir, err)
+		return fmt.Errorf("failed to move nested folder in %s -> %w", destDir, err)
 	}
 
 	return nil
@@ -211,7 +211,7 @@ func (r *Repair) handleLocalFile() error {
 	localPath := strings.TrimPrefix(r.downloader.url, "file:///")
 	state, err := os.Stat(localPath)
 	if err != nil {
-		return fmt.Errorf("%s is not accessible: %w", r.downloader.url, err)
+		return fmt.Errorf("%s is not accessible -> %w", r.downloader.url, err)
 	}
 
 	if state.IsDir() {
