@@ -715,8 +715,11 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 
 	// Check cmake config files for absolute workspace paths that make the
 	// installed package non-relocatable, and break the reuse of pkgcache.
-	if err := pkgcmake.CheckAbsPaths(b.PortConfig.PackageDir, dirs.WorkspaceDir); err != nil {
-		return fmt.Errorf("cmake config files contain absolute workspace paths (non-relocatable) -> %w", err)
+	switches := b.Ctx.Switches()
+	if switches == nil || !switches.ShouldIgnoreCheckCMakeAbsPath() {
+		if err := pkgcmake.CheckCMakeAbsPaths(b.PortConfig.PackageDir, dirs.WorkspaceDir); err != nil {
+			return fmt.Errorf("cmake config files contain absolute workspace paths (non-relocatable) -> %w", err)
+		}
 	}
 
 	return nil

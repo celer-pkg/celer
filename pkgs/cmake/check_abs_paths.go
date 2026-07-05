@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-// CheckAbsPaths scans cmake config files under packageDir for absolute
+// CheckCMakeAbsPaths scans cmake config files under packageDir for absolute
 // paths baked into target properties that make the installed package
 // non-relocatable.
-func CheckAbsPaths(packageDir, workspaceDir string) error {
+func CheckCMakeAbsPaths(packageDir, workspaceDir string) error {
 	cmakeDirs := []string{
 		filepath.Join(packageDir, "lib", "cmake"),
 		filepath.Join(packageDir, "share", "cmake"),

@@ -25,7 +25,7 @@ set_target_properties(mylib PROPERTIES
 		t.Fatal(err)
 	}
 
-	if err := CheckAbsPaths(dir, "/workspace"); err != nil {
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err != nil {
 		t.Fatalf("CheckAbsPaths() should pass for relative paths, got: %v", err)
 	}
 }
@@ -48,7 +48,7 @@ set_target_properties(mylib PROPERTIES
 		t.Fatal(err)
 	}
 
-	if err := CheckAbsPaths(dir, "/workspace"); err == nil {
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err == nil {
 		t.Fatal("CheckAbsPaths() should fail for absolute paths")
 	}
 }
@@ -76,7 +76,7 @@ set_target_properties(mylib PROPERTIES
 		t.Fatal(err)
 	}
 
-	if err := CheckAbsPaths(dir, "/workspace"); err == nil {
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err == nil {
 		t.Fatal("CheckAbsPaths() should catch INTERFACE_LINK_LIBRARIES violation alongside _IMPORT_PREFIX boilerplate")
 	}
 }
@@ -97,7 +97,7 @@ set_target_properties(mylib PROPERTIES
 		t.Fatal(err)
 	}
 
-	if err := CheckAbsPaths(dir, "/workspace"); err == nil {
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err == nil {
 		t.Fatal("CheckAbsPaths() should catch IMPORTED_LOCATION_* with absolute path")
 	}
 }
@@ -127,7 +127,7 @@ set_target_properties(mylib PROPERTIES
 		t.Fatal(err)
 	}
 
-	if err := CheckAbsPaths(dir, "/workspace"); err != nil {
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err != nil {
 		t.Fatalf("CheckAbsPaths() should skip files that use CMAKE_CURRENT_LIST_DIR, got: %v", err)
 	}
 }
@@ -150,7 +150,7 @@ set_target_properties(mylib PROPERTIES
 		t.Fatal(err)
 	}
 
-	if err := CheckAbsPaths(dir, "/workspace"); err != nil {
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err != nil {
 		t.Fatalf("CheckAbsPaths() should skip comment lines, got: %v", err)
 	}
 }
@@ -158,7 +158,7 @@ set_target_properties(mylib PROPERTIES
 func TestCheckAbsPaths_NoCmakeDir(t *testing.T) {
 	dir := t.TempDir()
 	// No lib/cmake or share/cmake directories — should pass cleanly.
-	if err := CheckAbsPaths(dir, "/workspace"); err != nil {
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err != nil {
 		t.Fatalf("CheckAbsPaths() should pass when no cmake dirs exist, got: %v", err)
 	}
 }
@@ -179,7 +179,7 @@ set_target_properties(mylib PROPERTIES
 		t.Fatal(err)
 	}
 
-	if err := CheckAbsPaths(dir, "/workspace"); err == nil {
+	if err := CheckCMakeAbsPaths(dir, "/workspace"); err == nil {
 		t.Fatal("CheckAbsPaths() should find violation in share/cmake/")
 	}
 }
