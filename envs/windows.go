@@ -6,52 +6,49 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
+var preserveKeys = []string{
+	"TEMP",
+	"TMP",
+	"OS",
+	"HOMEDRIVE",
+	"HOMEPATH",
+	"USERNAME",
+	"USERPROFILE",
+	"SystemRoot",
+	"SystemDrive",
+	"LOCALAPPDATA",
+	"PROCESSOR_ARCHITECTURE",
+	"PROCESSOR_IDENTIFIER",
+	"PROCESSOR_LEVEL",
+	"PROCESSOR_REVISION",
+	"NUMBER_OF_PROCESSORS",
+	"CELER_PORTS_REPO",
+	"GITHUB_ACTIONS",
+	"HTTP_PROXY",
+	"HTTPS_PROXY",
+	"http_proxy",
+	"https_proxy",
+}
+
 // CleanEnv clear all environments that not required and reset PATH.
 func CleanEnv() {
-	// Cache necessary environments.
-	temp := os.Getenv("TEMP")
-	tmp := os.Getenv("TMP")
-	operatingSystem := os.Getenv("OS")
-	homeDriver := os.Getenv("HOMEDRIVE")
-	homePath := os.Getenv("HOMEPATH")
-	username := os.Getenv("USERNAME")
-	userProfile := os.Getenv("USERPROFILE")
-	systemRoot := os.Getenv("SystemRoot")
-	systemDrive := os.Getenv("SystemDrive")
-	localAppData := os.Getenv("LOCALAPPDATA")
-	processorArchitecture := os.Getenv("PROCESSOR_ARCHITECTURE")
-	processorIdentifier := os.Getenv("PROCESSOR_IDENTIFIER")
-	processorLevel := os.Getenv("PROCESSOR_LEVEL")
-	processorRevision := os.Getenv("PROCESSOR_REVISION")
-	numberOfProcessors := os.Getenv("NUMBER_OF_PROCESSORS")
-	portsRepo := os.Getenv("CELER_PORTS_REPO")
-	githubActions := os.Getenv("GITHUB_ACTIONS")
+	// Cache preserved key-value.
+	preservedEnvs := make(map[string]string, len(preserveKeys))
+	for _, key := range preserveKeys {
+		if val := os.Getenv(key); val != "" {
+			preservedEnvs[key] = val
+		}
+	}
 
+	// Clear and preserve.
 	os.Clearenv()
-
-	// Restore necessary environemnts.
-	setEnvIfNotEmpty("TEMP", temp)
-	setEnvIfNotEmpty("TMP", tmp)
-	setEnvIfNotEmpty("OS", operatingSystem)
-	setEnvIfNotEmpty("HOMEDRIVE", homeDriver)
-	setEnvIfNotEmpty("HOMEPATH", homePath)
-	setEnvIfNotEmpty("USERNAME", username)
-	setEnvIfNotEmpty("USERPROFILE", userProfile)
-	setEnvIfNotEmpty("SystemRoot", systemRoot)
-	setEnvIfNotEmpty("SystemDrive", systemDrive)
-	setEnvIfNotEmpty("LOCALAPPDATA", localAppData)
-	setEnvIfNotEmpty("PROCESSOR_ARCHITECTURE", processorArchitecture)
-	setEnvIfNotEmpty("PROCESSOR_IDENTIFIER", processorIdentifier)
-	setEnvIfNotEmpty("PROCESSOR_LEVEL", processorLevel)
-	setEnvIfNotEmpty("PROCESSOR_REVISION", processorRevision)
-	setEnvIfNotEmpty("NUMBER_OF_PROCESSORS", numberOfProcessors)
-	setEnvIfNotEmpty("CELER_PORTS_REPO", portsRepo)
-	setEnvIfNotEmpty("GITHUB_ACTIONS", githubActions)
+	for key, value := range preservedEnvs {
+		os.Setenv(key, value)
+	}
 
 	// Reset PATH.
 	var paths []string
@@ -67,14 +64,6 @@ func CleanEnv() {
 	// Use PATH instead of Path.
 	os.Unsetenv("Path")
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
-	os.Setenv("PYTHONUSERBASE", dirs.PythonUserBase)
-}
-
-// setEnvIfNotEmpty sets an environment variable only if the provided value is non-empty.
-func setEnvIfNotEmpty(key, value string) {
-	if value != "" {
-		os.Setenv(key, value)
-	}
 }
 
 // AppendPythonBinDir appends the Python user "Scripts" directory to PATH if it exists.
