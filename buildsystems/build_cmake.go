@@ -174,7 +174,7 @@ func (c cmake) configureOptions() ([]string, error) {
 	}
 
 	// Set minimum CMake policy version to support in old CMakeLists.txt.
-	cmakeTool, err := buildtools.FindBuildTool(c.Ctx, "cmake")
+	cmakeTool, err := buildtools.FindBuildTool(c.Ctx, c.buildSystem)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find cmake tool -> %w", err)
 	}

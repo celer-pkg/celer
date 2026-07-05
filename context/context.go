@@ -23,7 +23,7 @@ type Context interface {
 	GenerateToolchainFile() error
 	ExprVars() *ExprVars
 	PythonConfig() PythonConfig
-	Experiment() Experiment
+	Switches() Switches
 }
 
 // PythonConfig exposes the Python interpreter setup for building python ports.
@@ -34,8 +34,9 @@ type PythonConfig interface {
 	GetTrustedHosts() []string
 }
 
-// Experiment gates opt-in, not-yet-stable features behind a flag.
-type Experiment interface {
+// Switches switches during development, can be configure temportary.
+type Switches interface {
+	ShouldIgnoreCheckCMakeAbsPath() bool
 }
 
 // ========================== pkg-cache ========================== //

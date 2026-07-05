@@ -9,9 +9,11 @@ import (
 )
 
 func NewPrebuilt(config *BuildConfig) *prebuilt {
+	cmakeInside := NewCMake(config)
+	cmakeInside.buildSystem = "cmake"
 	return &prebuilt{
 		BuildConfig: config,
-		cmakeInside: NewCMake(config),
+		cmakeInside: cmakeInside,
 	}
 }
 

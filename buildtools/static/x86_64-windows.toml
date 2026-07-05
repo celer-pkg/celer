@@ -25,6 +25,14 @@
   archive = "cmake-4.3.2-windows-x86_64.zip"
   paths = ["cmake-4.3.2-windows-x86_64/bin"]
 
+  [[build_tools]]
+  name = "cmake"
+  version = "3.31.12"
+  url = "https://github.com/Kitware/CMake/releases/download/v3.31.12/cmake-3.31.12-windows-x86_64.zip"
+  sha256 = "0c4baa40f28b3f8225eb3fdf6946c987b4fe901403b4eaf2fbbd9378100aaa0c"
+  archive = "cmake-3.31.12-linux-x86_64.tar.gz"
+  paths = ["cmake-3.31.12-linux-x86_64/bin"]
+
 [[build_tools]]
   name = "ninja"
   version = "v1.12.1"

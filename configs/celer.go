@@ -76,7 +76,12 @@ type Proxy struct {
 	Port int    `toml:"port"`
 }
 
-type experiment struct {
+type switches struct {
+	IgnoreCheckCMakeAbsPath bool `toml:"ignore_check_cmake_abs_path"`
+}
+
+func (i switches) ShouldIgnoreCheckCMakeAbsPath() bool {
+	return i.IgnoreCheckCMakeAbsPath
 }
 
 type Python struct {
@@ -108,7 +113,7 @@ type configData struct {
 	PkgCacheConfig *PkgCacheConfig `toml:"pkgcache,omitempty"`
 	CCache         *CCache         `toml:"ccache,omitempty"`
 	Python         *Python         `toml:"python,omitempty"`
-	Experiment     *experiment     `toml:"experiment,omitempty"`
+	Switches       *switches       `toml:"switches,omitempty"`
 }
 
 // Init initializes celer with default options.
