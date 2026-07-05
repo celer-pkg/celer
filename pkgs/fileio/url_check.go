@@ -1,6 +1,7 @@
 package fileio
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
@@ -60,22 +61,36 @@ func FileSize(httpClient *http.Client, downloadUrl string) (int64, error) {
 	return 0, lastErr
 }
 
+var dnsDialer = &net.Dialer{
+	Timeout:   30 * time.Second,
+	KeepAlive: 30 * time.Second,
+	Resolver: &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			dialer := net.Dialer{Timeout: 5 * time.Second}
+			conn, err := dialer.DialContext(ctx, network, address)
+			if err != nil {
+				conn, err = dialer.DialContext(ctx, network, "8.8.8.8:53")
+			}
+			return conn, err
+		},
+	},
+}
+
 func httpClient(host string, port int) *http.Client {
-	if host == "" || port == 0 {
-		return http.DefaultClient
+	transport := &http.Transport{
+		DialContext:     dnsDialer.DialContext,
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: false},
 	}
 
-	return &http.Client{
-		Transport: &http.Transport{
-			Proxy: http.ProxyURL(&url.URL{
-				Scheme: "http",
-				Host:   fmt.Sprintf("%s:%d", host, port),
-			}),
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: false,
-			},
-		},
+	if host != "" && port != 0 {
+		transport.Proxy = http.ProxyURL(&url.URL{
+			Scheme: "http",
+			Host:   fmt.Sprintf("%s:%d", host, port),
+		})
 	}
+
+	return &http.Client{Transport: transport}
 }
 
 func checkHTTPAccessible(httpUrl string) error {

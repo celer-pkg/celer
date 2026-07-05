@@ -11,37 +11,40 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
+var preserveKeys = []string{
+	"HOME",
+	"SHELL",
+	"USER",
+	"SHELL",
+	"USER",
+	"SUDO_USER",
+	"UID",
+	"HOSTNAME",
+	"HOSTTYPE",
+	"MACHTYPE",
+	"OSTYPE",
+	"CELER_PORTS_REPO",
+	"HTTP_PROXY",
+	"HTTPS_PROXY",
+	"http_proxy",
+	"https_proxy",
+}
+
 // CleanEnv clear all environments and reset PATH.
 func CleanEnv() {
-	home := os.Getenv("HOME")
-	shell := os.Getenv("SHELL")
-	user := os.Getenv("USER")
-	sudoUser := os.Getenv("SUDO_USER")
-	uid := os.Getenv("UID")
-	hostName := os.Getenv("HOSTNAME")
-	hostType := os.Getenv("HOSTTYPE ")
-	machType := os.Getenv("MACHTYPE")
-	osType := os.Getenv("OSTYPE")
-	portsRepo := os.Getenv("CELER_PORTS_REPO")
-	githubActions := os.Getenv("GITHUB_ACTIONS")
-
-	// Clear all environments.
-	os.Clearenv()
-
-	os.Setenv("SHELL", shell)
-	os.Setenv("HOME", home)
-	os.Setenv("USER", user)
-	os.Setenv("SUDO_USER", sudoUser)
-	os.Setenv("UDI", uid)
-	os.Setenv("HOSTNAME", hostName)
-	os.Setenv("HOSTTYPE", hostType)
-	os.Setenv("MACHTYPE", machType)
-	os.Setenv("OSTYPE", osType)
-	if portsRepo != "" {
-		os.Setenv("CELER_PORTS_REPO", portsRepo)
+	// Cache preserved key-value.
+	preservedEnvs := make(map[string]string, len(preserveKeys))
+	for _, key := range preserveKeys {
+		if val := os.Getenv(key); val != "" {
+			preservedEnvs[key] = val
+		}
 	}
-	if githubActions != "" {
-		os.Setenv("GITHUB_ACTIONS", githubActions)
+
+	// Clear and preserve.
+	os.Clearenv()
+	os.Setenv("GIT_SSL_NO_VERIFY", "true")
+	for key, value := range preservedEnvs {
+		os.Setenv(key, value)
 	}
 
 	// Reset PATH.
@@ -51,7 +54,6 @@ func CleanEnv() {
 	paths = append(paths, "/usr/sbin")
 	paths = append(paths, filepath.Join(dirs.PythonUserBase, "bin"))
 	os.Setenv("PATH", env.JoinPaths("PATH", paths...))
-	os.Setenv("PYTHONUSERBASE", dirs.PythonUserBase)
 }
 
 // AppendPythonBinDir adds the Python virtual environment bin directory to PATH.
