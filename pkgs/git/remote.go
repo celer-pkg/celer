@@ -20,7 +20,7 @@ func CheckIfRemoteBranch(target, repoUrl, repoRef string) (bool, error) {
 	output, err := cmd.NewExecutor(title, "git", "ls-remote", "--heads", repoUrl, repoRef).
 		WithRetry(retryMaxAttempts).ExecuteOutput()
 	if err != nil {
-		return false, fmt.Errorf("failed to query remote branch %s of %s -> %w", repoRef, repoUrl, err)
+		return false, fmt.Errorf("failed to query remote branch %s of %s -> %s -> %w", repoRef, repoUrl, output, err)
 	}
 
 	return strings.TrimSpace(output) != "", nil
@@ -32,7 +32,7 @@ func CheckIfRemoteTag(target, repoUrl, repoRef string) (bool, error) {
 	output, err := cmd.NewExecutor(title, "git", "ls-remote", "--tags", repoUrl, repoRef).
 		WithRetry(retryMaxAttempts).ExecuteOutput()
 	if err != nil {
-		return false, fmt.Errorf("failed to query remote tag %s of %s -> %w", repoRef, repoUrl, err)
+		return false, fmt.Errorf("failed to query remote tag %s of %s -> %s -> %w", repoRef, repoUrl, output, err)
 	}
 	return strings.TrimSpace(output) != "", nil
 }
@@ -43,7 +43,7 @@ func GetRemoteHeadCommit(target, repoUrl string) (string, error) {
 	output, err := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "HEAD").
 		WithRetry(retryMaxAttempts).ExecuteOutput()
 	if err != nil {
-		return "", fmt.Errorf("failed to resolve HEAD of %s -> %w", repoUrl, err)
+		return "", fmt.Errorf("failed to resolve HEAD of %s -> %s -> %w", repoUrl, output, err)
 	}
 
 	fields := strings.Fields(output)
@@ -66,7 +66,7 @@ func GetRemoteRefCommit(target, repoUrl, repoRef string) (string, error) {
 		output, err := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "refs/heads/"+repoRef).
 			WithRetry(retryMaxAttempts).ExecuteOutput()
 		if err != nil {
-			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
+			return "", fmt.Errorf("failed to read git commit hash -> %s -> %w", output, err)
 		}
 
 		fields := strings.Fields(output)
@@ -87,7 +87,7 @@ func GetRemoteRefCommit(target, repoUrl, repoRef string) (string, error) {
 		output, err := cmd.NewExecutor(title, "git", "ls-remote", repoUrl, "refs/tags/"+repoRef).
 			WithRetry(retryMaxAttempts).ExecuteOutput()
 		if err != nil {
-			return "", fmt.Errorf("failed to read git commit hash -> %w", err)
+			return "", fmt.Errorf("failed to read git commit hash -> %s -> %w", output, err)
 		}
 
 		fields := strings.Fields(output)
