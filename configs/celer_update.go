@@ -204,7 +204,7 @@ func (c *Celer) SetPkgCacheDir(dir string) error {
 
 	// Update package cache dir.
 	if c.configData.PkgCacheConfig == nil {
-		c.configData.PkgCacheConfig = NewPkgCacheConfig(c, dir, false)
+		c.configData.PkgCacheConfig = NewPkgCacheConfig(c, dir, true)
 	}
 	c.configData.PkgCacheConfig.Dir = dir
 

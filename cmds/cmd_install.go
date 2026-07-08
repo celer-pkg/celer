@@ -9,6 +9,7 @@ import (
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -98,6 +99,11 @@ func (i *installCmd) runInstall(nameVersions []string) error {
 
 	if err := i.celer.Init(); err != nil {
 		return color.PrintError(err, "failed to initialize celer.")
+	}
+
+	// Check if pkgcache dir is writable.
+	if err := pkgcache.CheckWriteAccess(i.celer); err != nil {
+		return color.PrintError(err, "pkgcache dir write check failed.")
 	}
 
 	// Check git first as it's needed for cloning and reading commit hashes,

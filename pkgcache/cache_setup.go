@@ -26,6 +26,14 @@ var (
 	lookupUser    = user.Lookup
 	lookupGroup   = user.LookupGroup
 	lookupGroupID = user.LookupGroupId
+
+	changeGroupGIDFn = changeGroupGID
+	runGroupdel      = func(groupName string) (string, error) {
+		return cmd.NewExecutor("", "groupdel", groupName).ExecuteOutput()
+	}
+	runUserdel = func(username string) (string, error) {
+		return cmd.NewExecutor("", "userdel", username).ExecuteOutput()
+	}
 )
 
 type NFSServerSetup struct {
@@ -57,7 +65,7 @@ func (n *NFSServerSetup) Setup() error {
 	}
 
 	// Step 1: Create celer system user/group if not exists.
-	if err := createSystemGroupAndUser(nfsUser, ""); err != nil {
+	if err := n.createSystemGroupAndUser(); err != nil {
 		return err
 	}
 
@@ -114,7 +122,7 @@ func (n *NFSServerSetup) Remove() error {
 	if err := n.reloadNFSExports(); err != nil {
 		return err
 	}
-	if err := removeSystemGroupAndUser(nfsUser); err != nil {
+	if err := n.removeSystemGroupAndUser(); err != nil {
 		return err
 	}
 
@@ -132,7 +140,7 @@ func NewNFSClientSetup(nfsClientDir string) *NFSClientSetup {
 }
 
 func (n *NFSClientSetup) Setup() error {
-	// Parse --nfs-client-dir
+	// Parse --nfs-client
 	mountPoint, serverExport, err := parseNFSClientDir(n.nfsClientDir)
 	if err != nil {
 		return err
@@ -171,9 +179,10 @@ func (n *NFSClientSetup) Setup() error {
 		return err
 	}
 
-	// Create celer group/user with the mounted export's numeric GID.
+	// Create celer group with the mounted export's numeric GID.
 	// NFS sec=sys checks numeric IDs, not group names.
-	if err := createSystemGroupAndUser(nfsUser, mountedGID); err != nil {
+	// Client setup only needs the group.
+	if err := n.createSystemGroup(mountedGID); err != nil {
 		return err
 	}
 
@@ -206,7 +215,7 @@ func (n *NFSClientSetup) Remove() error {
 	if err := n.removeFSTabEntry(serverExport, mountPoint); err != nil {
 		return err
 	}
-	if err := removeSystemGroupAndUser(nfsUser); err != nil {
+	if err := n.removeSystemGroup(); err != nil {
 		return err
 	}
 
@@ -406,66 +415,110 @@ func (n *NFSClientSetup) probeNFSServer(serverExport string) error {
 	return nil
 }
 
-// checkServerTools verifies that all system packages needed by server setup are installed.
-func checkServerTools() error {
-	return buildtools.CheckSystemTools([]string{
-		"apt:nfs-kernel-server", // NFS server
-		"apt:passwd",            // provides useradd
-		"yum:nfs-utils",         // NFS server
-		"yum:shadow-utils",      // provides useradd
-	})
+func (n *NFSServerSetup) createSystemGroupAndUser() error {
+	if err := createOrAlignSystemGroup(nfsUser, ""); err != nil {
+		return err
+	}
+
+	// Check if system user already exist.
+	userExists := true
+	if _, err := lookupUser(nfsUser); err != nil {
+		var unknownUserError user.UnknownUserError
+		if !errors.As(err, &unknownUserError) {
+			return fmt.Errorf("failed to lookup %s user -> %w", nfsUser, err)
+		}
+		userExists = false
+	}
+	if userExists {
+		color.PrintHint("✔ system user exists: %s", nfsUser)
+		return nil
+	}
+
+	// Add system user.
+	args := []string{"--system", "--no-create-home", "--shell", "/usr/sbin/nologin", "--gid", nfsUser, nfsUser}
+	if output, err := cmd.NewExecutor("", "useradd", args...).ExecuteOutput(); err != nil {
+		return fmt.Errorf("failed to create %s user -> %s -> %w", nfsUser, output, err)
+	}
+
+	color.PrintHint("✔ create system user: %s", nfsUser)
+	return nil
 }
 
-// checkClientTools verifies that NFS client packages are installed.
-func checkClientTools() error {
-	return buildtools.CheckSystemTools([]string{
-		"apt:nfs-common",
-		"yum:nfs-utils",
-	})
+func (n *NFSServerSetup) removeSystemGroupAndUser() error {
+	if err := doRemoveCurrentUserFromGroup(nfsUser); err != nil {
+		return err
+	}
+	if err := removeSystemUserIfExists(nfsUser); err != nil {
+		return err
+	}
+	return n.doRemoveSystemGroup(nfsUser)
 }
 
-// createSystemGroupAndUser creates the celer system user/group if it does not already exist.
-// If requiredGID is set, the group must use that numeric gid.
-func createSystemGroupAndUser(username, requiredGID string) error {
-	// Create system group if not exist.
+func (n *NFSServerSetup) doRemoveSystemGroup(groupName string) error {
+	// Check if group exist.
 	groupExists := true
-	group, err := lookupGroup(username)
-	if err != nil {
+	if _, err := lookupGroup(groupName); err != nil {
 		var unknownGroupError user.UnknownGroupError
 		if !errors.As(err, &unknownGroupError) {
-			return fmt.Errorf("failed to lookup %s group -> %w", username, err)
+			return fmt.Errorf("failed to lookup %s group -> %w", groupName, err)
 		}
 		groupExists = false
 	}
-
-	// Change local GID as the same of remote GID.
-	if groupExists {
-		if requiredGID != "" && group.Gid != requiredGID {
-			if err := changeGroupGID(username, group.Gid, requiredGID); err != nil {
-				return err
-			}
-		} else {
-			color.PrintHint("✔ system group exists: %s", username)
-		}
-	} else {
-		var output string
-		var err error
-
-		if requiredGID != "" {
-			if err := ensureGroupIDUnused(requiredGID, username); err != nil {
-				return err
-			}
-			output, err = cmd.NewExecutor("", "groupadd", "--system", "--gid", requiredGID, username).ExecuteOutput()
-		} else {
-			output, err = cmd.NewExecutor("", "groupadd", "--system", username).ExecuteOutput()
-		}
-		if err != nil {
-			return fmt.Errorf("failed to create %s group -> %s -> %w", username, output, err)
-		}
-		color.PrintHint("✔ create system group: %s", username)
+	if !groupExists {
+		return nil
 	}
 
-	// Check if celer user is created.
+	// Do delete group.
+	if output, err := runGroupdel(groupName); err != nil {
+		return fmt.Errorf("failed to remove %s group -> %s -> %w", groupName, output, err)
+	}
+
+	color.PrintHint("✔ remove system group: %s", groupName)
+	return nil
+}
+
+func (n *NFSClientSetup) createSystemGroup(requiredGID string) error {
+	return createOrAlignSystemGroup(nfsUser, requiredGID)
+}
+
+func (n *NFSClientSetup) removeSystemGroup() error {
+	if err := doRemoveCurrentUserFromGroup(nfsUser); err != nil {
+		return err
+	}
+	return n.doRemoveSystemGroup(nfsUser)
+}
+
+func (n *NFSClientSetup) doRemoveSystemGroup(groupName string) error {
+	// Check if system group exist.
+	groupExists := true
+	if _, err := lookupGroup(groupName); err != nil {
+		var unknownGroupError user.UnknownGroupError
+		if !errors.As(err, &unknownGroupError) {
+			return fmt.Errorf("failed to lookup %s group -> %w", groupName, err)
+		}
+		groupExists = false
+	}
+	if !groupExists {
+		return nil
+	}
+
+	// Do remove system group.
+	if output, err := runGroupdel(groupName); err != nil {
+		// Older client setup created a celer system user as the group's primary member.
+		if removeErr := removeSystemUserIfExists(groupName); removeErr != nil {
+			return removeErr
+		}
+		if output, err = runGroupdel(groupName); err != nil {
+			return fmt.Errorf("failed to remove %s group -> %s -> %w", groupName, output, err)
+		}
+	}
+
+	color.PrintHint("✔ remove system group: %s", groupName)
+	return nil
+}
+
+func removeSystemUserIfExists(username string) error {
+	// Check if system user exist.
 	userExists := true
 	if _, err := lookupUser(username); err != nil {
 		var unknownUserError user.UnknownUserError
@@ -474,18 +527,15 @@ func createSystemGroupAndUser(username, requiredGID string) error {
 		}
 		userExists = false
 	}
-	if userExists {
-		color.PrintHint("✔ system user exists: %s", username)
+	if !userExists {
 		return nil
 	}
 
-	// Create system user (no login shell, no home directory).
-	args := []string{"--system", "--no-create-home", "--shell", "/usr/sbin/nologin", "--gid", username, username}
-	if output, err := cmd.NewExecutor("", "useradd", args...).ExecuteOutput(); err != nil {
-		return fmt.Errorf("failed to create %s user -> %s -> %w", username, output, err)
+	// Do remove system user.
+	if output, err := runUserdel(username); err != nil {
+		return fmt.Errorf("failed to remove %s user -> %s -> %w", username, output, err)
 	}
-
-	color.PrintHint("✔ create system user: %s", username)
+	color.PrintHint("✔ remove system user %s", username)
 	return nil
 }
 
@@ -520,53 +570,13 @@ func changeGroupGID(groupName, oldGID, requiredGID string) error {
 	return nil
 }
 
-func removeSystemGroupAndUser(username string) error {
-	// If the user is still in the group, groupdel may fail or leave the system in an inconsistent state.
-	if err := removeCurrentUserFromGroup(username); err != nil {
-		return err
-	}
-
-	// Remove system user.
-	userExists := true
-	if _, err := lookupUser(username); err != nil {
-		var unknownUserError user.UnknownUserError
-		if !errors.As(err, &unknownUserError) {
-			return fmt.Errorf("failed to lookup %s user -> %w", username, err)
-		}
-		userExists = false
-	}
-	if userExists {
-		if output, err := cmd.NewExecutor("", "userdel", username).ExecuteOutput(); err != nil {
-			return fmt.Errorf("failed to remove %s user -> %s -> %w", username, output, err)
-		}
-		color.PrintHint("✔ remove system user %s", username)
-	}
-
-	// Remove system group.
-	groupExists := true
-	if _, err := lookupGroup(username); err != nil {
-		var unknownGroupError user.UnknownGroupError
-		if !errors.As(err, &unknownGroupError) {
-			return fmt.Errorf("failed to lookup %s group -> %w", username, err)
-		}
-		groupExists = false
-	}
-	if groupExists {
-		if output, err := cmd.NewExecutor("", "groupdel", username).ExecuteOutput(); err != nil {
-			return fmt.Errorf("failed to remove %s group -> %s -> %w", username, output, err)
-		}
-		color.PrintHint("✔ remove system group: %s", username)
-	}
-
-	return nil
-}
-
-func removeCurrentUserFromGroup(groupName string) error {
+func doRemoveCurrentUserFromGroup(groupName string) error {
 	currentUser, err := currentUserForGroup()
 	if err != nil {
 		return err
 	}
 
+	// Check if group exist.
 	groupExists := true
 	if _, err := lookupGroup(groupName); err != nil {
 		var unknownGroupError user.UnknownGroupError
@@ -579,6 +589,7 @@ func removeCurrentUserFromGroup(groupName string) error {
 		return nil
 	}
 
+	// Check if user in group.
 	groups, err := cmd.NewExecutor("", "id", "-nG", currentUser).ExecuteOutput()
 	if err != nil {
 		return fmt.Errorf("failed to get groups for %q -> %w", currentUser, err)
@@ -588,9 +599,11 @@ func removeCurrentUserFromGroup(groupName string) error {
 		return nil
 	}
 
+	// Remove user from group.
 	if output, err := cmd.NewExecutor("", "gpasswd", "-d", currentUser, groupName).ExecuteOutput(); err != nil {
 		return fmt.Errorf("failed to remove %q from %q group -> %s -> %w", currentUser, groupName, output, err)
 	}
+
 	color.PrintHint("✔ remove %s from group %s", currentUser, groupName)
 	return nil
 }
@@ -623,6 +636,7 @@ func addCurrentUserToGroup(groupName string) error {
 		return err
 	}
 
+	// Add current user into group.
 	if output, err := cmd.NewExecutor("", "usermod", "-aG", groupName, currentUser).ExecuteOutput(); err != nil {
 		return fmt.Errorf("failed to add %q to %q group -> %s -> %w", currentUser, groupName, output, err)
 	}
@@ -642,19 +656,77 @@ func addCurrentUserToGroup(groupName string) error {
 	return nil
 }
 
-// parseNFSClientDir parses the --nfs-client-dir flag value.
+// parseNFSClientDir parses the --nfs-client flag value.
 // Expected format: <mount_point>@<server>:<export_path>
 func parseNFSClientDir(val string) (mountPoint, serverExport string, err error) {
 	parts := strings.SplitN(val, "@", 2)
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return "", "", fmt.Errorf("--nfs-client-dir format: <mount_point>@<server>:<export_path>")
+		return "", "", fmt.Errorf("--nfs-client format: <mount_point>@<server>:<export_path>")
 	}
 	if !strings.Contains(parts[1], ":") {
-		return "", "", fmt.Errorf("--nfs-client-dir: server export must be in <server>:<path> format")
+		return "", "", fmt.Errorf("--nfs-client: server export must be in <server>:<path> format")
 	}
 	return parts[0], parts[1], nil
 }
 
 func shellQuote(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
+}
+
+// checkServerTools verifies that all system packages needed by server setup are installed.
+func checkServerTools() error {
+	return buildtools.CheckSystemTools([]string{
+		"apt:nfs-kernel-server", // NFS server
+		"apt:passwd",            // provides useradd
+		"yum:nfs-utils",         // NFS server
+		"yum:shadow-utils",      // provides useradd
+	})
+}
+
+// checkClientTools verifies that NFS client packages are installed.
+func checkClientTools() error {
+	return buildtools.CheckSystemTools([]string{
+		"apt:nfs-common",
+		"yum:nfs-utils",
+	})
+}
+
+// createOrAlignSystemGroup creates or aligns the system group.
+// If requiredGID is set, the group must use that numeric gid.
+func createOrAlignSystemGroup(groupName, requiredGID string) error {
+	groupExists := true
+	group, err := lookupGroup(groupName)
+	if err != nil {
+		var unknownGroupError user.UnknownGroupError
+		if !errors.As(err, &unknownGroupError) {
+			return fmt.Errorf("failed to lookup %s group -> %w", groupName, err)
+		}
+		groupExists = false
+	}
+
+	if groupExists {
+		if requiredGID != "" && group.Gid != requiredGID {
+			if err := changeGroupGIDFn(groupName, group.Gid, requiredGID); err != nil {
+				return err
+			}
+		} else {
+			color.PrintHint("✔ system group exists: %s", groupName)
+		}
+		return nil
+	}
+
+	var output string
+	if requiredGID != "" {
+		if err := ensureGroupIDUnused(requiredGID, groupName); err != nil {
+			return err
+		}
+		output, err = cmd.NewExecutor("", "groupadd", "--system", "--gid", requiredGID, groupName).ExecuteOutput()
+	} else {
+		output, err = cmd.NewExecutor("", "groupadd", "--system", groupName).ExecuteOutput()
+	}
+	if err != nil {
+		return fmt.Errorf("failed to create %s group -> %s -> %w", groupName, output, err)
+	}
+	color.PrintHint("✔ create system group: %s", groupName)
+	return nil
 }

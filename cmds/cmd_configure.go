@@ -205,7 +205,7 @@ Examples:
 
 	// Pkg-cache flags.
 	flags.StringVar(&c.pkgCacheConfig.Dir, "pkgcache-dir", "", "configure package cache dir.")
-	flags.BoolVar(&c.pkgCacheConfig.Writable, "pkgcache-writable", false, "configure pkg-cache writable.")
+	flags.BoolVar(&c.pkgCacheConfig.Writable, "pkgcache-writable", true, "configure pkg-cache writable.")
 	flags.BoolVar(&c.pkgCacheConfig.CacheArtifacts, "pkgcache-cache-artifacts", false, "configure pkg-cache to cache artifacts.")
 	flags.BoolVar(&c.pkgCacheConfig.CacheDownloads, "pkgcache-cache-downloads", false, "configure pkg-cache to cache downloads.")
 

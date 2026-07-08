@@ -24,22 +24,22 @@ func TestParseNFSClientDir(t *testing.T) {
 		{
 			name:    "missing separator",
 			value:   "/mnt/cache",
-			wantErr: "--nfs-client-dir format: <mount_point>@<server>:<export_path>",
+			wantErr: "--nfs-client format: <mount_point>@<server>:<export_path>",
 		},
 		{
 			name:    "empty mount point",
 			value:   "@server:/exports/cache",
-			wantErr: "--nfs-client-dir format: <mount_point>@<server>:<export_path>",
+			wantErr: "--nfs-client format: <mount_point>@<server>:<export_path>",
 		},
 		{
 			name:    "empty server export",
 			value:   "/mnt/cache@",
-			wantErr: "--nfs-client-dir format: <mount_point>@<server>:<export_path>",
+			wantErr: "--nfs-client format: <mount_point>@<server>:<export_path>",
 		},
 		{
 			name:    "server export missing colon",
 			value:   "/mnt/cache@server",
-			wantErr: "--nfs-client-dir: server export must be in <server>:<path> format",
+			wantErr: "--nfs-client: server export must be in <server>:<path> format",
 		},
 	}
 
@@ -192,10 +192,10 @@ func TestCurrentUserForGroup(t *testing.T) {
 			want: "bob",
 		},
 		{
-			name:    "rejects root from SUDO_USER",
+			name:     "rejects root from SUDO_USER",
 			sudoUser: "root",
-			user:    "ignored",
-			wantErr: "cannot determine the invoking non-root user",
+			user:     "ignored",
+			wantErr:  "cannot determine the invoking non-root user",
 		},
 		{
 			name:    "rejects root from USER",
