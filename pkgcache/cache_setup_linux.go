@@ -23,3 +23,14 @@ func mountedDirGID(path string) (string, error) {
 
 	return strconv.FormatUint(uint64(stat.Gid), 10), nil
 }
+
+// IsNFSMount check mounted dir is nfs type.
+func IsNFSMount(path string) (bool, error) {
+	var stat syscall.Statfs_t
+	err := syscall.Statfs(path, &stat)
+	if err != nil {
+		return false, fmt.Errorf("statfs failed for %s: %v", path, err)
+	}
+
+	return stat.Type == 0x6969, nil
+}

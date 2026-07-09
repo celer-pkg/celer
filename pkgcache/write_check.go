@@ -36,6 +36,14 @@ func CheckWriteAccess(ctx context.Context) error {
 		return nil
 	}
 
+	isNfsDir, err := IsNFSMount(cacheDir)
+	if err != nil {
+		return fmt.Errorf("failed to check if nfs dir for %s -> %w", cacheDir, err)
+	}
+	if !isNfsDir {
+		return nil
+	}
+
 	if err := checkProcessInCelerGroup(); err != nil {
 		return err
 	}
