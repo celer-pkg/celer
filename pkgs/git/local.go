@@ -95,7 +95,7 @@ func statusLines(repoDir string) ([]string, error) {
 	cmd := exec.Command("git", "-C", repoDir, "status", "--porcelain")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("check if repo is modified -> %s", output)
+		return nil, fmt.Errorf("failed to check if repo is modified for %s -> %s", repoDir, output)
 	}
 
 	var lines []string

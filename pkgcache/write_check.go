@@ -36,6 +36,7 @@ func CheckWriteAccess(ctx context.Context) error {
 		return nil
 	}
 
+	// No need check GID for none NFS mounted dir.
 	isNfsDir, err := IsNFSMount(cacheDir)
 	if err != nil {
 		return fmt.Errorf("failed to check if nfs dir for %s -> %w", cacheDir, err)
