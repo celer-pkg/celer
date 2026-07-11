@@ -9,7 +9,7 @@ Celer's PkgCache system provides three cache capabilities: **artifact cache**, *
 1. **Multi-user concurrent writes** — build results from different developers need to be written into the shared directory
 2. **Accidental deletion prevention** — no user should delete cache files that other users depend on
 
-Celer uses Linux `chattr +a` (append-only), a system user/group, and `celer setup --nfs-server-dir` to reduce accidental deletion risk while allowing multiple users to write to the shared cache.
+Celer uses Linux `chattr +a` (append-only), a system user/group, and `celer setup --nfs-server` to reduce accidental deletion risk while allowing multiple users to write to the shared cache.
 
 ## Cache Directory Layout
 
@@ -47,7 +47,7 @@ Add a `[pkgcache]` section to `celer.toml`:
 
 ```toml
 [main]
-  conf_repo = "https://github.com/celer-pkg/test-conf.git"
+  conf_repo = "http://10.0.8.47/gitlab/celer/conf.git"
   platform = "x86_64-linux-ubuntu-22.04-gcc-11.5.0"
   project = "project_01"
 
@@ -102,7 +102,7 @@ Celer's NFS cache permission model has these layers:
 Run this on the NFS server:
 
 ```bash
-sudo celer setup --nfs-server-dir=/srv/celer-cache
+sudo celer setup --nfs-server=/srv/celer-cache
 ```
 
 > **Note**: this command must be run with `sudo`, and it is supported only on Linux.
@@ -110,38 +110,39 @@ sudo celer setup --nfs-server-dir=/srv/celer-cache
 The command performs these steps:
 
 1. **Check required tools** — verifies that `nfs-kernel-server` (apt) or `nfs-utils` (yum), and `passwd` / `shadow-utils` are installed
-2. **Remove existing append-only attributes** — `find <dir> -type d -exec chattr -a {} ;` because previous `+a` attributes may block `chown` / `chmod`
-3. **Create the `celer` system user** — `useradd --system --no-create-home --shell /usr/sbin/nologin celer` (idempotent; skipped if it already exists)
-4. **Set file ownership** — `chown -R celer:celer <nfs-dir>`
-5. **Set directory permissions** — `find <dir> -type d -exec chmod 2775 {} ;` (group writable + setgid, so new files inherit the `celer` group)
-6. **Set file permissions** — `find <dir> -type f -exec chmod 664 {} ;` (group can overwrite files in place)
-7. **Add the invoking user to the `celer` group** — `usermod -aG celer $SUDO_USER` when run through sudo, falling back to `$USER` otherwise
-8. **Add the NFS export** — writes to `/etc/exports` with `*(rw,sync,no_subtree_check,no_root_squash)`, then runs `exportfs -ra`
+2. **Validate the NFS directory** — `<nfs-dir>` must already exist and be a directory
+3. **Remove existing append-only attributes** — `find <dir> -type d -exec chattr -a {} ;` because previous `+a` attributes may block `chown` / `chmod`
+4. **Create the `celer` system user and group** — `groupadd` / `useradd --system --no-create-home --shell /usr/sbin/nologin celer` (idempotent; skipped if they already exist)
+5. **Set file ownership** — `chown -R celer:celer <nfs-dir>`
+6. **Set directory permissions** — `find <dir> -type d -exec chmod 2775 {} ;` (group writable + setgid, so new files inherit the `celer` group)
+7. **Set file permissions** — `find <dir> -type f -exec chmod 664 {} ;` (group can overwrite files in place)
+8. **Add the invoking user to the `celer` group** — `usermod -aG celer $SUDO_USER` when run through sudo, falling back to `$USER` otherwise
+9. **Add the NFS export** — writes to `/etc/exports` with `*(rw,sync,no_subtree_check,no_root_squash)`, then runs `exportfs -ra`
    - `no_root_squash` allows root users on NFS clients to access the shared directory as root when client-side administration is needed; directory protection itself is handled by server-side `chattr +a` and cron
-9. **Apply `chattr +a` to all directories** — `find <dir> -type d -exec chattr +a {} ;`
-10. **Install the cron job** — writes `/etc/cron.d/celer-chattr`, which applies `chattr +a` to all directories every minute, ensuring that directories created by NFS clients are also protected
+10. **Apply `chattr +a` to all directories** — `find <dir> -type d -exec chattr +a {} ;`
+11. **Install the cron job** — writes `/etc/cron.d/celer-chattr`, which applies `chattr +a` to all directories every minute, ensuring that directories created by NFS clients are also protected
 
 ### Client Setup
 
 Run this on each NFS client machine:
 
 ```bash
-sudo celer setup --nfs-client-dir=/home/phil/celer-cache@10.0.8.60:/mnt/data/celer-cache
+sudo celer setup --nfs-client=/home/phil/celer-cache@10.0.8.60:/mnt/data/celer-cache
 ```
 
 Argument format: `<mount_point>@<server>:<export_path>`
 
 The command performs these steps:
 
-1. **Parse arguments**: split by `@` into the mount point and server export path
-2. **Check that the mount point exists**: Celer does not create the mount directory for you
-3. **Install NFS client packages**: `nfs-common` (apt) or `nfs-utils` (yum)
-4. **Unmount an existing mount**: idempotent operation; errors are ignored
-5. **Mount the NFS share**: validates that the server export is reachable before writing `/etc/fstab`
-6. **Validate the `celer` group GID**: NFS `sec=sys` checks numeric GIDs, not group names. The client-local `celer` group must use the same numeric GID as the mounted export root. If the group does not exist and the GID is unused, Celer creates it with that GID; if an existing `celer` group uses a different GID, setup stops with remediation guidance.
-7. **Create the `celer` system user**: create the `celer` system user on the client as well
-8. **Add the invoking user to the `celer` group**: `usermod -aG celer $SUDO_USER` when setup is run through sudo, falling back to `$USER` otherwise, so the non-sudo user can write cache entries after re-login or `newgrp celer`
-9. **Write fstab**: remove the old entry first, then append: `<server>:<export> <mount> nfs rw,_netdev,noatime,rsize=1048576,wsize=1048576 0 0`
+1. **Parse arguments** — split by `@` into the mount point and server export path
+2. **Check that the mount point exists** — Celer does not create the mount directory for you
+3. **Install NFS client packages** — `nfs-common` (apt) or `nfs-utils` (yum)
+4. **Unmount an existing mount** — idempotent; skipped if the mount point is not mounted
+5. **Probe NFS server reachability** — ping the server host (avoids long default `mount.nfs` retries that make setup appear hung)
+6. **Mount the NFS share** — validates that the export is reachable and reads the mounted directory's numeric GID
+7. **Create or align the `celer` group** — NFS `sec=sys` checks numeric GIDs, not group names. The client-local `celer` group must use the same numeric GID as the mounted export root. If the group does not exist and the GID is unused, Celer creates it with that GID; if an existing `celer` group uses a different GID, setup stops with remediation guidance. Client setup does not create a `celer` system user — only the matching group is required for writes
+8. **Add the invoking user to the `celer` group** — `usermod -aG celer $SUDO_USER` when setup is run through sudo, falling back to `$USER` otherwise, so the non-sudo user can write cache entries after re-login or `newgrp celer`
+9. **Write fstab** — remove the old entry first, then append: `<server>:<export> <mount> nfs rw,_netdev,noatime,rsize=1048576,wsize=1048576 0 0`
 
 ### After Setup
 

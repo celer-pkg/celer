@@ -777,7 +777,7 @@ func (p Port) cloneAllRepos() error {
 			}
 		}
 		clonedPorts[key] = true
-		color.Printf(color.Hint, "✔ %s\n", nameVersion)
+		color.Printf(color.Hint, "✔ clone %s\n", nameVersion)
 	}
 	for _, nameVersion := range buildConfig.Dependencies {
 		// Skip Init() for already-cloned ports.
@@ -803,7 +803,7 @@ func (p Port) cloneAllRepos() error {
 			}
 		}
 		clonedPorts[key] = true
-		color.Printf(color.Hint, "✔ %s\n", nameVersion)
+		color.Printf(color.Hint, "✔ clone %s\n", nameVersion)
 	}
 	if err := p.Clone(); err != nil {
 		return err
@@ -986,7 +986,7 @@ func (p *Port) preWarmMetaCache() error {
 }
 
 func (p Port) installAllDependencies(options InstallOptions) error {
-	if p.Parent == "" && (len(p.MatchedConfig.DevDependencies) > 0 || len(p.MatchedConfig.Dependencies) > 0) {
+	if len(p.MatchedConfig.DevDependencies) > 0 || len(p.MatchedConfig.Dependencies) > 0 {
 		title := fmt.Sprintf("[validate all dependencies: %s]", p.NameVersion())
 		color.Printf(color.Title, "\n%s\n", title)
 	}
@@ -1042,7 +1042,9 @@ func (p Port) installDependencies(options InstallOptions) error {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
+
 			visitedPorts[key] = true
+			color.Printf(color.Hint, "✔ install dep %s\n", nameVersion)
 		} else {
 			visitedPorts[key] = true
 			if p.installReport != nil {
@@ -1052,8 +1054,6 @@ func (p Port) installDependencies(options InstallOptions) error {
 				}
 			}
 		}
-
-		color.Printf(color.Hint, "✔ %s\n", nameVersion)
 	}
 
 	return nil
@@ -1102,7 +1102,9 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 			if _, err := port.Install(options); err != nil {
 				return err
 			}
+
 			visitedPorts[key] = true
+			color.Printf(color.Hint, "✔ install dep %s\n", nameVersion)
 		} else {
 			visitedPorts[key] = true
 			if p.installReport != nil {
@@ -1112,8 +1114,6 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 				}
 			}
 		}
-
-		color.Printf(color.Hint, "✔ %s\n", nameVersion)
 	}
 
 	return nil
@@ -1229,7 +1229,7 @@ func (p Port) prepareTmpDeps() error {
 			return err
 		}
 
-		color.Printf(color.Hint, "✔ %-15s -- [dev]\n", port.NameVersion())
+		color.Printf(color.Hint, "✔ prepare deps %-15s -- [dev]\n", port.NameVersion())
 	}
 
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
@@ -1277,7 +1277,7 @@ func (p Port) prepareTmpDeps() error {
 			return err
 		}
 
-		content := expr.If(port.DevDep || port.HostDep, "✔ %-15s -- [dev]\n", "✔ %s\n")
+		content := expr.If(port.DevDep || port.HostDep, "✔ prepare deps %-15s -- [dev]\n", "✔ prepare deps %s\n")
 		color.Printf(color.Hint, content, port.NameVersion())
 	}
 

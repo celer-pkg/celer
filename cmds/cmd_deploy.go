@@ -9,6 +9,7 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/depcheck"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
@@ -44,6 +45,11 @@ Examples:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := d.celer.Init(); err != nil {
 				return color.PrintError(err, "failed to init celer.")
+			}
+
+			// Check if pkgcache dir is writable.
+			if err := pkgcache.CheckWriteAccess(d.celer); err != nil {
+				return color.PrintError(err, "pkgcache dir write check failed.")
 			}
 
 			platformName := expr.If(d.celer.Platform().GetName() != "", d.celer.Platform().GetName(), "native")
