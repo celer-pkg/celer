@@ -22,8 +22,6 @@ import (
 var (
 	//go:embed static/*
 	static embed.FS
-
-	LLVMPath string
 )
 
 // CheckTools checks if tools exist and repair them if necessary, finally make sure tool paths are in PATH
@@ -114,9 +112,6 @@ func CheckTools(ctx context.Context, tools ...string) error {
 		switch toolFound.Name {
 		case "msys2":
 			msys2Tool = toolFound
-
-		case "llvm":
-			LLVMPath = toolFound.rootDir
 		}
 	}
 

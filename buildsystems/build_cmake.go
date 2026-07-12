@@ -156,6 +156,20 @@ func (c cmake) configureOptions() ([]string, error) {
 		options = append(options, "-DCMAKE_CXX_STANDARD_REQUIRED=ON")
 	}
 
+	// Append "include_dirs" from port.toml to CMAKE_C_FLAGS_INIT and CMAKE_CXX_FLAGS_INIT
+	// because cmake may ignores the CFLAGS/CXXFLAGS/LDFLAGS env var during cross-compilation.
+	for _, includeDir := range c.IncludeDirs {
+		includeDir = c.ExprVars.Expand(includeDir)
+		options = append(options, fmt.Sprintf("-DCMAKE_C_FLAGS_INIT=%s", includeDir))
+		options = append(options, fmt.Sprintf("-DCMAKE_CXX_FLAGS_INIT=%s", includeDir))
+	}
+	for _, linkDir := range c.LinkDirs {
+		linkDir = c.ExprVars.Expand(linkDir)
+		options = append(options, fmt.Sprintf("-DCMAKE_SHARED_LINKER_FLAGS_INIT=%s", linkDir))
+		options = append(options, fmt.Sprintf("-DCMAKE_MODULE_LINKER_FLAGS_INIT=%s", linkDir))
+		options = append(options, fmt.Sprintf("-DCMAKE_EXE_LINKER_FLAGS_INIT=%s", linkDir))
+	}
+
 	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.
 	// For DevDep or HostDev (host tools), don't include rootfs to avoid finding target arch binaries.
 	tmpDepDir := filepath.Join(dirs.TmpDepsDir, c.PortConfig.LibraryDir)

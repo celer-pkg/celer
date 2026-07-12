@@ -83,6 +83,13 @@ func (b *BuildConfig) setupEnvs() {
 			currentValue = strings.ReplaceAll(currentValue, "${CPPFLAGS}", "")
 			currentValue = strings.ReplaceAll(currentValue, "${LDFLAGS}", "")
 
+			if strings.HasPrefix(currentValue, "-I") ||
+				strings.HasPrefix(currentValue, "-isystem") ||
+				strings.HasPrefix(currentValue, "-L") {
+				color.PrintWarning("set env %q with %q use `include_dirs` and `lib_dirs` is suggested.",
+					"CFLAGS/CXXFLAGS/LDFLAGS", "-I, -isystem and -L' is deprecated")
+			}
+
 			lastValue := filepath.ToSlash(os.Getenv(key))
 			if strings.TrimSpace(lastValue) == "" {
 				b.envBackup.setenv(key, strings.TrimSpace(currentValue))
@@ -121,12 +128,6 @@ func (b *BuildConfig) setupEnvs() {
 		autoconfBin := filepath.Join(tmpDevDir, "bin", "autoconf")
 		if os.Getenv("AUTOCONF") == "" && fileio.PathExists(autoconfBin) {
 			b.envBackup.setenv("AUTOCONF", autoconfBin)
-		}
-
-		// Expose LLVM_CONFIG for ports that rely on llvm-config.
-		if buildtools.LLVMPath != "" {
-			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
-			b.envBackup.setenv("LLVM_CONFIG", filepath.Join(buildtools.LLVMPath, "bin", llvmConfig))
 		}
 
 		// Expose dev/bin and python venv bin to PATH.
@@ -360,6 +361,14 @@ func (b *BuildConfig) setEnvFlags() {
 		// Update CFLAGS/CXXFLAGS/LDFLAGS
 		b.appendIncludeDir(filepath.Join(tmpDepsDir, "include"))
 		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
+	}
+
+	// Convert "include_dirs" and "link_dirs" into CFLAGS/CXXFLAGS/LDFLAGS for makefiles.
+	for _, includeDir := range b.IncludeDirs {
+		b.appendIncludeDir(includeDir)
+	}
+	for _, linkDir := range b.LinkDirs {
+		b.appendLibDir(linkDir)
 	}
 }
 

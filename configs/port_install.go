@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
@@ -313,7 +312,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 		}
 
 		var port Port
-		port.DevDep = false
+		port.DevDep = p.DevDep
 		port.HostDep = p.HostDep
 		port.Parent = p.NameVersion()
 		port.installReport = p.installReport
@@ -547,13 +546,9 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
-	// Prepare dependencies to tmp/deps before build it, below are conditions:
-	// 1. It's a dependency project and it has its own dependencies.
-	// 2. It's a top project, build with --force, and it has its own dependencies.
-	// 3. It's a top project, it has its own dependencies but is not configured yet, even not build with --force.
+	// Prepare dependencies to tmp/deps before build it.
 	haveDependencies := len(p.MatchedConfig.Dependencies) > 0 || len(p.MatchedConfig.DevDependencies) > 0
-	isTopProject := p.Parent == ""
-	if haveDependencies && (!isTopProject || (isTopProject && (options.Force || !p.MatchedConfig.Configured()))) {
+	if haveDependencies && (options.Force || !p.MatchedConfig.Configured()) {
 		color.Printf(color.Title, "\n[prepare dependencies: %s]\n", p.NameVersion())
 		preparedTmpDeps = map[string]bool{}
 		if err := p.prepareTmpDeps(); err != nil {
@@ -628,7 +623,7 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 		}
 
 		var port Port
-		port.DevDep = false
+		port.DevDep = p.DevDep
 		port.HostDep = p.HostDep
 		port.Parent = p.NameVersion()
 		port.installReport = p.installReport
@@ -848,11 +843,6 @@ func (p *Port) checkAllTools() error {
 		if buildtools.PythonTool != nil {
 			buildtools.PythonTool.RegisterExprVars(exprVars)
 		}
-		if buildtools.LLVMPath != "" {
-			llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
-			llvmRoot := fileio.ToRelPath(buildtools.LLVMPath)
-			exprVars.Put("LLVM_CONFIG", filepath.ToSlash(filepath.Join(llvmRoot, "bin", llvmConfig)))
-		}
 	}
 
 	if p.MatchedConfig != nil {
@@ -986,11 +976,6 @@ func (p *Port) preWarmMetaCache() error {
 }
 
 func (p Port) installAllDependencies(options InstallOptions) error {
-	if len(p.MatchedConfig.DevDependencies) > 0 || len(p.MatchedConfig.Dependencies) > 0 {
-		title := fmt.Sprintf("[validate all dependencies: %s]", p.NameVersion())
-		color.Printf(color.Title, "\n%s\n", title)
-	}
-
 	if err := p.installDevDependencies(options); err != nil {
 		return err
 	}
@@ -1044,7 +1029,6 @@ func (p Port) installDependencies(options InstallOptions) error {
 			}
 
 			visitedPorts[key] = true
-			color.Printf(color.Hint, "✔ install dep %s\n", nameVersion)
 		} else {
 			visitedPorts[key] = true
 			if p.installReport != nil {
@@ -1104,7 +1088,6 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 			}
 
 			visitedPorts[key] = true
-			color.Printf(color.Hint, "✔ install dep %s\n", nameVersion)
 		} else {
 			visitedPorts[key] = true
 			if p.installReport != nil {

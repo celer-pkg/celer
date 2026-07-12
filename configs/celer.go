@@ -13,7 +13,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 
@@ -65,7 +64,7 @@ type main struct {
 	Platform  string `toml:"platform"`
 	Project   string `toml:"project"`
 	BuildType string `toml:"build_type"`
-	Downloads string `toml:"downloads"`
+	Downloads string `toml:"downloads,omitempty"`
 	Jobs      int    `toml:"jobs"`
 	Verbose   bool   `toml:"verbose"`
 	Offline   bool   `toml:"offline"`
@@ -232,11 +231,6 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 			}
 		}
 
-		// Save updated.
-		if err := c.save(); err != nil {
-			return err
-		}
-
 		// Assign default project and python version after saving celer.toml.
 		if c.Main.Project == "" {
 			c.Main.Project = "unnamed"
@@ -307,14 +301,6 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 
 	if c.Main.Offline {
 		color.Printf(color.Warning, "\n================ WARNING: You're in offline mode currently! ================\n")
-	}
-
-	// Store global express vars if exist.
-	if buildtools.LLVMPath != "" {
-		llvmConfig := expr.If(runtime.GOOS == "windows", "llvm-config.exe", "llvm-config")
-		llvmRoot := fileio.ToRelPath(buildtools.LLVMPath)
-		llvmConfigPath := filepath.Join(llvmRoot, "bin", llvmConfig)
-		c.exprVars.Put("LLVM_CONFIG", filepath.ToSlash(llvmConfigPath))
 	}
 
 	// Must init at the end of InitWithPlatform, because it depends on the celer fields.

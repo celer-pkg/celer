@@ -391,7 +391,7 @@ func (p *Port) putExprVars(config buildsystems.BuildConfig) {
 	p.exprVars.Put("SRC_DIR", config.PortConfig.SrcDir)
 	p.exprVars.Put("BUILD_DIR", config.PortConfig.BuildDir)
 	p.exprVars.Put("PACKAGE_DIR", config.PortConfig.PackageDir)
-	p.exprVars.Put("DEPS_DEV_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
+	p.exprVars.Put("DEV_DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
 
 	if config.DevDep {
 		p.exprVars.Put("DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
