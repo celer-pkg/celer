@@ -258,6 +258,24 @@ type BuildConfig struct {
 	PostInstall_Linux   []string `toml:"post_install_linux,omitempty"`
 	PostInstall_Darwin  []string `toml:"post_install_darwin,omitempty"`
 
+	// Extra include dirs, they'll be converted to differnet buildsystems options:
+	// - makefiles: CFLAGS/CXXFLAGS
+	// - meson: c_args/cxx_args
+	// - cmake: CMAKE_C_FLAGS_INIT/CMAKE_CXX_FLAGS_INIT
+	IncludeDirs         []string `toml:"include_dirs,omitempty"`
+	IncludeDirs_Windows []string `toml:"include_dirs_windows,omitempty"`
+	IncludeDirs_Linux   []string `toml:"include_dirs_linux,omitempty"`
+	IncludeDirs_Darwin  []string `toml:"include_dirs_darwin,omitempty"`
+
+	// Extra link dirs, they'll be converted to different buildsystems options:
+	// - makefiles: LDFLAGS
+	// - meson: c_link_args/cXX_link_args
+	// - cmake: CMAKE_SHARED_LINKER_FLAGS_INIT/CMAKE_MODULE_LINKER_FLAGS_INIT/CMAKE_EXE_LINKER_FLAGS_INIT
+	LinkDirs         []string `toml:"link_dirs,omitempty"`
+	LinkDirs_Windows []string `toml:"link_dirs_windows,omitempty"`
+	LinkDirs_Linux   []string `toml:"link_dirs_linux,omitempty"`
+	LinkDirs_Darwin  []string `toml:"link_dirs_darwin,omitempty"`
+
 	// Event hooks for diableDevCache
 	DisableDevCache         bool `toml:"disbale_dev_cache,omitempty"`
 	DisableDevCache_Windows bool `toml:"disbale_dev_cache_windows,omitempty"`

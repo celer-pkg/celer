@@ -67,7 +67,7 @@ These are injected per matched `build_config` before build execution.
 | `${SRC_DIR}` | current port | Port source extraction path |
 | `${BUILD_DIR}` | current port | Port build directory |
 | `${PACKAGE_DIR}` | current port | Port package output directory |
-| `${DEPS_DEV_DIR}` | workspace tmp deps | Host dev dependency directory |
+| `${DEV_DEPS_DIR}` | workspace tmp deps | Host dev dependency directory |
 | `${DEPS_DIR}` | workspace tmp deps | Dependency directory for current mode (dev or target) |
 
 ## Where Replacement Happens

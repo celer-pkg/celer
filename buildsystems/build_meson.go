@@ -409,6 +409,17 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		}
 	}
 
+	// Append "include_dirs" and "link_dirs"  from port.toml to cross-file args.
+	// because meson ignores the CFLAGS/CXXFLAGS/LDFLAGS env var during cross-compilation.
+	for _, includeDir := range m.IncludeDirs {
+		includeDir = m.ExprVars.Expand(includeDir)
+		m.appendIncludeArgs(&includeArgs, includeDir)
+	}
+	for _, linkDir := range m.LinkDirs {
+		linkDir = m.ExprVars.Expand(linkDir)
+		m.appendLinkArgs(&linkArgs, linkDir)
+	}
+
 	// Append CFLAGS to c_args, CXXFLAGS to cpp_args.
 	// CFLAGS/CXXFLAGS should come FIRST to have higher priority in compiler include search order
 	cflags = append(cflags, includeArgs...)
@@ -418,6 +429,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 	fmt.Fprintf(&buffers, "\n[built-in options]\n")
 	fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(cflags, ",\n  "))
 	fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(cxxflags, ",\n  "))
+
 	fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ",\n  "))
 	fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(linkArgs, ",\n  "))
 	crossFilePath := filepath.Join(m.PortConfig.BuildDir, "cross_file.toml")
@@ -490,25 +502,37 @@ func (m meson) generateNativeFile() (string, error) {
 	// This is needed for build-time tools (e.g., wayland-scanner) that need to find headers from dev dependencies.
 	// Meson should use pkg-config for dependencies, but we explicitly add the include path for build-time tools.
 	devIncludeDir := filepath.Join(tmpDevDir, "include")
-	var nativeCArgs []string
-	var nativeCppArgs []string
-	var nativeCLinkArgs []string
-	var nativeCppLinkArgs []string
+
+	var (
+		cArgs    []string
+		cppArgs  []string
+		linkArgs []string
+	)
 
 	if fileio.PathExists(devIncludeDir) {
-		m.appendIncludeArgs(&nativeCArgs, devIncludeDir)
-		m.appendIncludeArgs(&nativeCppArgs, devIncludeDir)
+		m.appendIncludeArgs(&cArgs, devIncludeDir)
+		m.appendIncludeArgs(&cppArgs, devIncludeDir)
+	}
+
+	// Append "include_dirs" and "link_dirs"  from port.toml to cross-file args.
+	// because meson ignores the CFLAGS/CXXFLAGS/LDFLAGS env var during cross-compilation.
+	for _, includeDir := range m.IncludeDirs {
+		includeDir = m.ExprVars.Expand(includeDir)
+		m.appendIncludeArgs(&cArgs, includeDir)
+		m.appendIncludeArgs(&cppArgs, includeDir)
+	}
+	for _, linkDir := range m.LinkDirs {
+		linkDir = m.ExprVars.Expand(linkDir)
+		m.appendLinkArgs(&linkArgs, linkDir)
 	}
 
 	devLibDir := filepath.Join(tmpDevDir, "lib")
 	devLib64Dir := filepath.Join(tmpDevDir, "lib64")
 	if fileio.PathExists(devLibDir) {
-		m.appendLinkArgs(&nativeCLinkArgs, devLibDir)
-		m.appendLinkArgs(&nativeCppLinkArgs, devLibDir)
+		m.appendLinkArgs(&linkArgs, devLibDir)
 	}
 	if fileio.PathExists(devLib64Dir) {
-		m.appendLinkArgs(&nativeCLinkArgs, devLib64Dir)
-		m.appendLinkArgs(&nativeCppLinkArgs, devLib64Dir)
+		m.appendLinkArgs(&linkArgs, devLib64Dir)
 	}
 
 	// Add rpath to allow the bin to locate the libraries in the relative lib dir.
@@ -516,26 +540,25 @@ func (m meson) generateNativeFile() (string, error) {
 	// For native build, we typically use gcc or clang on Linux.
 	switch runtime.GOOS {
 	case "linux":
-		nativeCLinkArgs = append(nativeCLinkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
-		nativeCLinkArgs = append(nativeCLinkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+		linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+		linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
 	case "darwin":
 		// TODO: it may supported in the future for darwin.
 	}
 
 	// Write [built-in options] section if we have any options.
-	if len(nativeCArgs) > 0 || len(nativeCppArgs) > 0 || len(nativeCLinkArgs) > 0 || len(nativeCppLinkArgs) > 0 {
+	if len(cArgs) > 0 || len(cppArgs) > 0 || len(linkArgs) > 0 {
 		fmt.Fprintf(&buffers, "\n[built-in options]\n")
-		if len(nativeCArgs) > 0 {
-			fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(nativeCArgs, ",\n  "))
+		if len(cArgs) > 0 {
+			fmt.Fprintf(&buffers, "c_args = [%s]\n", strings.Join(cArgs, ",\n  "))
 		}
-		if len(nativeCppArgs) > 0 {
-			fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(nativeCppArgs, ",\n  "))
+		if len(cppArgs) > 0 {
+			fmt.Fprintf(&buffers, "cpp_args = [%s]\n", strings.Join(cppArgs, ",\n  "))
 		}
-		if len(nativeCLinkArgs) > 0 {
-			fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(nativeCLinkArgs, ",\n  "))
-		}
-		if len(nativeCppLinkArgs) > 0 {
-			fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(nativeCppLinkArgs, ",\n  "))
+
+		if len(linkArgs) > 0 {
+			fmt.Fprintf(&buffers, "c_link_args = [%s]\n", strings.Join(linkArgs, ",\n  "))
+			fmt.Fprintf(&buffers, "cpp_link_args = [%s]\n", strings.Join(linkArgs, ",\n  "))
 		}
 	}
 
