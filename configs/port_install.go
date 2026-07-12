@@ -313,7 +313,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 		}
 
 		var port Port
-		port.DevDep = false
+		port.DevDep = p.DevDep
 		port.HostDep = p.HostDep
 		port.Parent = p.NameVersion()
 		port.installReport = p.installReport
@@ -628,7 +628,7 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 		}
 
 		var port Port
-		port.DevDep = false
+		port.DevDep = p.DevDep
 		port.HostDep = p.HostDep
 		port.Parent = p.NameVersion()
 		port.installReport = p.installReport

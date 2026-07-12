@@ -433,6 +433,13 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			color.PrintInline(color.Hint, "✔ mv %s %s\n", srcDir, b.PortConfig.RepoDir)
 		}
 
+		// Reset timestamps to avoid autotools "newly created file is older" error.
+		if b.buildSystem != nil && b.buildSystem.Name() == "makefiles" {
+			if err := fileio.ResetTimestamps(b.PortConfig.RepoDir); err != nil {
+				return err
+			}
+		}
+
 		// Archive sources under buildtrees are tracked as local git repos for
 		// local-change detection in install flow. Delay init until after any
 		// generated files (e.g. prebuilt CMakeLists) are created.

@@ -225,11 +225,18 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 		filepath.ToSlash(filepath.Join("${INSTALLED_DIR}", "share", "pkgconfig")),
 	}
 
-	fmt.Fprintf(toolchain, "if(DEFINED TMP_DEP_DIR)\n")
+	// PKG_CONFIG_SYSROOT_DIR must not depend on TMP_DEP_DIR alone. CMake reloads the
+	// toolchain during try_compile() without -D TMP_DEP_DIR.
+	fmt.Fprintf(toolchain, "if(DEFINED CMAKE_SYSROOT AND NOT CMAKE_SYSROOT STREQUAL \"\")\n")
+	fmt.Fprintf(toolchain, "  set(ENV{PKG_CONFIG_SYSROOT_DIR} \"${CMAKE_SYSROOT}\")\n")
+	fmt.Fprintf(toolchain, "elseif(DEFINED TMP_DEP_DIR)\n")
 	fmt.Fprintf(toolchain, "  set(ENV{PKG_CONFIG_SYSROOT_DIR} %q)\n", tmpDepSysroot)
-	writePathList("  ", "PKG_CONFIG_PATH", tmpDepConfigPaths)
 	fmt.Fprintf(toolchain, "else()\n")
 	fmt.Fprintf(toolchain, "  set(ENV{PKG_CONFIG_SYSROOT_DIR} \"${WORKSPACE_ROOT}\")\n")
+	fmt.Fprintf(toolchain, "endif()\n")
+	fmt.Fprintf(toolchain, "if(DEFINED TMP_DEP_DIR)\n")
+	writePathList("  ", "PKG_CONFIG_PATH", tmpDepConfigPaths)
+	fmt.Fprintf(toolchain, "else()\n")
 	writePathList("  ", "PKG_CONFIG_PATH", configPaths)
 	fmt.Fprintf(toolchain, "endif()\n")
 }
