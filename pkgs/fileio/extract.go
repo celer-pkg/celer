@@ -2,12 +2,14 @@ package fileio
 
 import (
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
+
+	"github.com/celer-pkg/celer/pkgs/expr"
 )
 
 func IsSupportedArchive(filePath string) bool {
@@ -101,4 +103,17 @@ func Targz(archivePath, srcDir string, includeFolder bool) error {
 	}
 
 	return nil
+}
+
+func ResetTimestamps(dir string) error {
+	now := time.Now()
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return os.Chtimes(path, now, now)
+		}
+		return nil
+	})
 }

@@ -296,9 +296,9 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	onlineBuildConfig := newBuildConfig(onlineCtx, repoDir)
-	onlineBuildConfig.PortConfig.Checksum = checksum
-	if err := onlineBuildConfig.Clone(repoURL, checksum, "", 0); err != nil {
+	buildConfig := newBuildConfig(onlineCtx, repoDir)
+	buildConfig.PortConfig.Checksum = checksum
+	if err := buildConfig.Clone(repoURL, checksum, "", 0); err != nil {
 		t.Fatal(err)
 	}
 
