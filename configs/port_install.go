@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/color"
@@ -14,7 +15,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
-	"github.com/celer-pkg/celer/pkgs/pc"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -744,7 +744,7 @@ func (p Port) cloneAllRepos() error {
 	buildConfig := p.MatchedConfig
 	clonedPorts = map[string]bool{}
 
-	if p.Parent == "" && (len(buildConfig.DevDependencies) > 0 || len(buildConfig.Dependencies) > 0) {
+	if len(buildConfig.DevDependencies) > 0 || len(buildConfig.Dependencies) > 0 {
 		title := fmt.Sprintf("[check clone status of all repos: %s]", p.NameVersion())
 		color.Printf(color.Title, "\n%s\n", title)
 	}
@@ -1197,12 +1197,8 @@ func (p Port) prepareTmpDeps() error {
 			return err
 		}
 
-		// Fixup pkg config files.
-		// Use absolute path for dev dependencies since native_file wrapper unsets PKG_CONFIG_SYSROOT_DIR
-		// and this can also make sure system pc file can work right.
-		var pkgConfigPrefix = filepath.Join(dirs.TmpDepsDir, port.ctx.Platform().GetHostName()+"-dev")
-		var pkgConfig pc.PkgConfig
-		if err := pkgConfig.Apply(port.tmpDepsDir, pkgConfigPrefix); err != nil {
+		// Fixup pkg config files to use self-locating ${pcfiledir} prefix.
+		if err := buildsystems.FixupPkgConfigFile(port.tmpDepsDir); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
 		}
 
@@ -1241,15 +1237,8 @@ func (p Port) prepareTmpDeps() error {
 			return err
 		}
 
-		// Fixup pkg config files.
-		// Use absolute path for dev dependencies since native_file wrapper unsets PKG_CONFIG_SYSROOT_DIR
-		// and this can also make sure system pc file can work right.
-		pkgConfigPrefix := expr.If(port.DevDep || port.HostDep,
-			port.tmpDepsDir,
-			filepath.Join(string(os.PathSeparator), "tmp", "deps", port.MatchedConfig.PortConfig.LibraryDir),
-		)
-		var pkgConfig pc.PkgConfig
-		if err := pkgConfig.Apply(port.tmpDepsDir, pkgConfigPrefix); err != nil {
+		// Fixup pkg config files to use self-locating ${pcfiledir} prefix.
+		if err := buildsystems.FixupPkgConfigFile(port.tmpDepsDir); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
 		}
 

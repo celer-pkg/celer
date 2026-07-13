@@ -342,6 +342,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		toolchainName := toolchain.GetName()
 		if toolchainName == "gcc" || toolchainName == "clang" || toolchainName == "qcc" {
 			linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+			linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib64'")
 		}
 	case "darwin":
 		// TODO: it may supported in the future for darwin.
@@ -390,7 +391,7 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		}
 	}
 
-	// Parse CFLAGS and CXXFLAGS from envs
+	// Parse CFLAGS and CXXFLAGS from envs.
 	var cflags, cxxflags []string
 	for _, env := range m.Envs {
 		if after, ok := strings.CutPrefix(env, "CFLAGS="); ok {
@@ -498,16 +499,16 @@ func (m meson) generateNativeFile() (string, error) {
 	fmt.Fprintf(&buffers, "\n[properties]\n")
 	buffers.WriteString("cross_file = 'false'\n")
 
-	// Add dev dependencies' include directory to native file's built-in options.
-	// This is needed for build-time tools (e.g., wayland-scanner) that need to find headers from dev dependencies.
-	// Meson should use pkg-config for dependencies, but we explicitly add the include path for build-time tools.
-	devIncludeDir := filepath.Join(tmpDevDir, "include")
-
 	var (
 		cArgs    []string
 		cppArgs  []string
 		linkArgs []string
 	)
+
+	// Add dev dependencies' include directory to native file's built-in options.
+	// This is needed for build-time tools (e.g., wayland-scanner) that need to find headers from dev dependencies.
+	// Meson should use pkg-config for dependencies, but we explicitly add the include path for build-time tools.
+	devIncludeDir := filepath.Join(tmpDevDir, "include")
 
 	if fileio.PathExists(devIncludeDir) {
 		m.appendIncludeArgs(&cArgs, devIncludeDir)
@@ -541,7 +542,7 @@ func (m meson) generateNativeFile() (string, error) {
 	switch runtime.GOOS {
 	case "linux":
 		linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
-		linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib'")
+		linkArgs = append(linkArgs, "'-Wl,-rpath=$ORIGIN/../lib64'")
 	case "darwin":
 		// TODO: it may supported in the future for darwin.
 	}

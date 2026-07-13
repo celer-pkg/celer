@@ -17,7 +17,6 @@ import (
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
-	"github.com/celer-pkg/celer/pkgs/pc"
 	"github.com/celer-pkg/celer/pkgs/refs"
 )
 
@@ -725,17 +724,9 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 		return fmt.Errorf("remove libtool archives %s -> %w", b.PortConfig.nameVersion(), err)
 	}
 
-	// Fixup pkg config files.
-	// 1. Use absolute path for dev dependencies since native_file wrapper unsets PKG_CONFIG_SYSROOT_DIR
-	// and this can also make sure system pc file can work right.
-	// 2. Use relative path for dependencies, this make installed pc files portable with workspace.
-	var prefix = expr.If(rootfs == nil || b.DevDep || b.HostDev,
-		filepath.Join(dirs.WorkspaceDir, "installed", b.PortConfig.HostName+"-dev"),
-		filepath.Join(string(os.PathSeparator), "installed", b.PortConfig.LibraryDir),
-	)
-	var pkgConfig pc.PkgConfig
-	if err := pkgConfig.Apply(b.PortConfig.PackageDir, prefix); err != nil {
-		return fmt.Errorf("fixup pkg-config -> %w", err)
+	// Fixup pkg config files to use self-locating ${pcfiledir} prefix.
+	if err := FixupPkgConfigFile(b.PortConfig.PackageDir); err != nil {
+		return fmt.Errorf("fixup pkg-config\n %w", err)
 	}
 
 	// Check cmake config files for absolute workspace paths that make the

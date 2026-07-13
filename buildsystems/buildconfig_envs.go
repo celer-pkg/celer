@@ -107,7 +107,11 @@ func (b *BuildConfig) setupEnvs() {
 		toolchain := b.Ctx.Platform().GetToolchain()
 		if strings.ToLower(toolchain.GetSystemName()) == "linux" &&
 			b.buildSystem.Name() == "makefiles" {
-			b.envBackup.setenv("LDFLAGS", env.JoinSpace("-Wl,-rpath=\\$$ORIGIN/../lib", os.Getenv("LDFLAGS")))
+			b.envBackup.setenv("LDFLAGS", env.JoinSpace(
+				"-Wl,-rpath=\\$$ORIGIN/../lib",
+				"-Wl,-rpath=\\$$ORIGIN/../lib64",
+				os.Getenv("LDFLAGS"),
+			))
 		}
 
 		tmpDevDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.HostName+"-dev")
