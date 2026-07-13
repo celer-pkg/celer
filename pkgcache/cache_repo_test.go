@@ -69,7 +69,7 @@ func (fakeContext) CCacheEnabled() bool                      { return false }
 func (fakeContext) GenerateToolchainFile() error             { return nil }
 func (fakeContext) ExprVars() *context.ExprVars              { return nil }
 func (fakeContext) PythonConfig() context.PythonConfig       { return nil }
-func (fakeContext) Switches() context.Switches               { return nil }
+func (fakeContext) Features() context.Features               { return nil }
 
 // ---- helpers ----
 

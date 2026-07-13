@@ -12,7 +12,7 @@ celer integrate [flags]
 
 - On Linux, Celer detects the current shell automatically (`bash` or `zsh`).
 - On Windows, Celer always configures `PowerShell` completion.
-- `--remove` switches behavior from register to unregister.
+- `--remove` remove installed celer binary and completion file.
 - Unsupported shell environments fail with a clear error.
 
 ## Command Options

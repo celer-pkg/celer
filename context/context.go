@@ -23,7 +23,7 @@ type Context interface {
 	GenerateToolchainFile() error
 	ExprVars() *ExprVars
 	PythonConfig() PythonConfig
-	Switches() Switches
+	Features() Features
 }
 
 // PythonConfig exposes the Python interpreter setup for building python ports.
@@ -34,8 +34,8 @@ type PythonConfig interface {
 	GetTrustedHosts() []string
 }
 
-// Switches switches during development, can be configure temportary.
-type Switches interface {
+// Features features during development, can be configure temportary.
+type Features interface {
 	ShouldIgnoreCheckCMakeAbsPath() bool
 }
 

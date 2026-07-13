@@ -98,9 +98,9 @@ func (c *Celer) PythonConfig() context.PythonConfig {
 	return nil
 }
 
-func (c *Celer) Switches() context.Switches {
-	if c.configData.Switches != nil {
-		return c.configData.Switches
+func (c *Celer) Features() context.Features {
+	if c.configData.Features != nil {
+		return c.configData.Features
 	}
 
 	return nil

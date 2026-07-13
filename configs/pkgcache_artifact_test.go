@@ -41,7 +41,7 @@ func (f fakeContext) CCacheEnabled() bool                    { return false }
 func (f fakeContext) GenerateToolchainFile() error           { return nil }
 func (f fakeContext) ExprVars() *context.ExprVars            { return nil }
 func (f fakeContext) PythonConfig() context.PythonConfig     { return nil }
-func (f fakeContext) Switches() context.Switches             { return nil }
+func (f fakeContext) Features() context.Features             { return nil }
 
 type fakePlatform struct {
 	name string
