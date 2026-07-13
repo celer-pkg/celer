@@ -12,7 +12,7 @@ celer integrate [flags]
 
 - 在 Linux 上会自动识别当前 shell（`bash` 或 `zsh`）。
 - 在 Windows 上固定配置 `PowerShell` 补全。
-- `--remove` 会将行为从“注册补全”切换为“移除补全”。
+- `--remove` 卸载安装的celer和命令补全文件。
 - 不支持的 shell 环境会直接报错。
 
 ## 命令选项

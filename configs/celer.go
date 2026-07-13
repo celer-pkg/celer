@@ -75,11 +75,11 @@ type Proxy struct {
 	Port int    `toml:"port"`
 }
 
-type switches struct {
+type features struct {
 	IgnoreCheckCMakeAbsPath bool `toml:"ignore_check_cmake_abs_path"`
 }
 
-func (i switches) ShouldIgnoreCheckCMakeAbsPath() bool {
+func (i features) ShouldIgnoreCheckCMakeAbsPath() bool {
 	return i.IgnoreCheckCMakeAbsPath
 }
 
@@ -112,7 +112,7 @@ type configData struct {
 	PkgCacheConfig *PkgCacheConfig `toml:"pkgcache,omitempty"`
 	CCache         *CCache         `toml:"ccache,omitempty"`
 	Python         *Python         `toml:"python,omitempty"`
-	Switches       *switches       `toml:"switches,omitempty"`
+	Features       *features       `toml:"features,omitempty"`
 }
 
 // Init initializes celer with default options.
@@ -233,8 +233,8 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 
 		// Assign default project and python version after saving celer.toml.
 		if c.Main.Project == "" {
-			c.Main.Project = "unnamed"
-			c.project.Name = "unnamed"
+			c.Main.Project = "default"
+			c.project.Name = "default"
 		}
 	}
 
