@@ -744,11 +744,6 @@ func (p Port) cloneAllRepos() error {
 	buildConfig := p.MatchedConfig
 	clonedPorts = map[string]bool{}
 
-	if len(buildConfig.DevDependencies) > 0 || len(buildConfig.Dependencies) > 0 {
-		title := fmt.Sprintf("[check clone status of all repos: %s]", p.NameVersion())
-		color.Printf(color.Title, "\n%s\n", title)
-	}
-
 	for _, nameVersion := range buildConfig.DevDependencies {
 		// Skip Init() for already-cloned ports.
 		key := nameVersion + "[dev]"
