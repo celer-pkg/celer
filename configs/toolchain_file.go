@@ -37,7 +37,7 @@ func (c *Celer) GenerateToolchainFile() error {
 	// Let execuable binary locate dependency libraries from "../lib" automatically.
 	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
 		fmt.Fprintf(&builder, "\n# Let executable binary locate dependency libraries from \"../lib\" automatically.\n")
-		fmt.Fprintf(&builder, "set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib`)
+		fmt.Fprintf(&builder, "set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib\;\$ORIGIN/../lib64`)
 	}
 
 	// Let CMake project generate compile_commands.json.

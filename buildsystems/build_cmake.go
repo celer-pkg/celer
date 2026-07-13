@@ -102,7 +102,7 @@ func (c cmake) configureOptions() ([]string, error) {
 	if !c.BuildConfig.DevDep {
 		options = append(options, fmt.Sprintf("-DCMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir))
 	} else {
-		options = append(options, "-DCMAKE_INSTALL_RPATH=$ORIGIN/../lib")
+		options = append(options, `-DCMAKE_INSTALL_RPATH="$ORIGIN/../lib;$ORIGIN/../lib64"`)
 	}
 
 	// Set CMAKE_INSTALL_PREFIX.

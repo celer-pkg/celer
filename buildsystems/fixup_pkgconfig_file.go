@@ -1,4 +1,4 @@
-package pc
+package buildsystems
 
 import (
 	"bufio"
@@ -11,10 +11,8 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-type PkgConfig struct{}
-
-// Apply changes standard pkg-config directories as specified.
-func (p PkgConfig) Apply(packageDir, prefix string) error {
+// FixupPkgConfigFile fix pkgconfig file to use self-locating ${pcfiledir} prefix
+func FixupPkgConfigFile(packageDir string) error {
 	pkgConfigs := []string{
 		filepath.Join(packageDir, "share", "pkgconfig"),
 		filepath.Join(packageDir, "lib", "pkgconfig"),
@@ -31,7 +29,7 @@ func (p PkgConfig) Apply(packageDir, prefix string) error {
 			for _, entity := range entities {
 				if strings.HasSuffix(entity.Name(), ".pc") {
 					pkgPath := filepath.Join(pkgConfig, entity.Name())
-					if err := p.apply(pkgPath, prefix); err != nil {
+					if err := doFixupPkgConfigFile(pkgPath); err != nil {
 						return err
 					}
 				}
@@ -42,7 +40,7 @@ func (p PkgConfig) Apply(packageDir, prefix string) error {
 	return nil
 }
 
-func (p PkgConfig) apply(pkgPath, prefix string) error {
+func doFixupPkgConfigFile(pkgPath string) error {
 	// Ensure the file is writable before opening it for RDWR.
 	if err := os.Chmod(pkgPath, os.ModePerm); err != nil {
 		return err
@@ -57,49 +55,15 @@ func (p PkgConfig) apply(pkgPath, prefix string) error {
 	var buffer bytes.Buffer
 	scanner := bufio.NewScanner(pkgFile)
 	for scanner.Scan() {
-		// Remove space before `=`
 		line := scanner.Text()
+
+		// Remove space before `=`.
 		line = strings.ReplaceAll(line, "prefix =", "prefix=")
-		line = strings.ReplaceAll(line, "exec_prefix =", "exec_prefix=")
-		line = strings.ReplaceAll(line, "libdir =", "libdir=")
-		line = strings.ReplaceAll(line, "sharedlibdir =", "sharedlibdir=")
-		line = strings.ReplaceAll(line, "includedir =", "includedir=")
 
 		switch {
 		case strings.HasPrefix(line, "prefix="):
-			if line != "prefix=" {
-				fmt.Fprintf(&buffer, "prefix=%s\n", prefix)
-			} else {
-				fmt.Fprintf(&buffer, "%s\n", line)
-			}
-
-		case strings.HasPrefix(line, "exec_prefix="):
-			if line != "exec_prefix=${prefix}" {
-				fmt.Fprintf(&buffer, "exec_prefix=${prefix}\n")
-			} else {
-				fmt.Fprintf(&buffer, "%s\n", line)
-			}
-
-		case strings.HasPrefix(line, "libdir="):
-			if line != "libdir=${prefix}/lib" {
-				fmt.Fprintf(&buffer, "libdir=${prefix}/lib\n")
-			} else {
-				fmt.Fprintf(&buffer, "%s\n", line)
-			}
-
-		case strings.HasPrefix(line, "sharedlibdir="):
-			if line != "sharedlibdir=${prefix}/lib" {
-				fmt.Fprintf(&buffer, "sharedlibdir=${prefix}/lib\n")
-			} else {
-				fmt.Fprintf(&buffer, "%s\n", line)
-			}
-
-		case strings.HasPrefix(line, "includedir="):
-			if line != "includedir=${prefix}/include" {
-				fmt.Fprintf(&buffer, "includedir=${prefix}/include\n")
-			} else {
-				fmt.Fprintf(&buffer, "%s\n", line)
-			}
+			// Rewrite to self-locating prefix using pkgconf's built-in ${pcfiledir} variable.
+			fmt.Fprintf(&buffer, "prefix=${pcfiledir}/../..\n")
 
 		case strings.HasPrefix(line, "pkgdatadir="),
 			strings.HasPrefix(line, "xcbincludedir="),
