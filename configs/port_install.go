@@ -717,7 +717,7 @@ func (p *Port) doInstallFromSource() error {
 
 		// Store package cache with meta file inside.
 		pkgCache := p.ctx.PkgCacheConfig()
-		if pkgCache != nil && pkgCache.IsWritable() {
+		if pkgCache != nil && pkgCache.GetDir(context.PkgCacheDirRoot) != "" && pkgCache.IsWritable() {
 			if p.pkgCacheStoreSkippedReason == "" && !p.shouldSkipArtifactPkgCache() {
 				artifactCache := pkgCache.GetArtifactCache()
 				if artifactCache != nil {

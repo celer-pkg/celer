@@ -327,7 +327,6 @@ func (p Port) Write(portPath string) error {
 		PreConfigure:    []string{},
 		PostConfigure:   []string{},
 		PreBuild:        []string{},
-		FixBuild:        []string{},
 		PostBuild:       []string{},
 		PreInstall:      []string{},
 		PostInstall:     []string{},

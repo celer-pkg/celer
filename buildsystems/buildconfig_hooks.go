@@ -17,10 +17,6 @@ type eventHook interface {
 	postBuild() error
 	preInstall() error
 	postInstall() error
-
-	// Some third-parties need extra steps
-	// to fix build, for example: nspr.
-	fixBuild() error
 }
 
 func (b BuildConfig) preConfigure() error {
@@ -179,29 +175,6 @@ func (b BuildConfig) postInstall() error {
 			executor.SetWorkDir(b.PortConfig.RepoDir)
 		}
 
-		if err := executor.Execute(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (b BuildConfig) fixBuild() error {
-	for _, script := range b.FixBuild {
-		script = strings.TrimSpace(script)
-		if script == "" {
-			continue
-		}
-
-		title := fmt.Sprintf("[fix build %s]", b.PortConfig.nameVersion())
-		script = b.expandVariables(script)
-		if err := checkUnexpandedVariables(script, title); err != nil {
-			return err
-		}
-		executor := cmd.NewExecutor(title, script)
-		executor.SetWorkDir(b.PortConfig.RepoDir)
-		executor.MSYS2Env(runtime.GOOS == "windows")
 		if err := executor.Execute(); err != nil {
 			return err
 		}
