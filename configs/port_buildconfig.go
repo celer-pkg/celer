@@ -174,7 +174,7 @@ func (p *Port) mergeFromProject(index int, overrideConfig *buildsystems.BuildCon
 		"BuildShared", "BuildStatic", "CStandard", "CXXStandard", "BuildType",
 		"Envs", "Patches", "Dependencies", "DevDependencies", "PkgConfigToolVars",
 		"PreConfigure", "CustomConfigure", "PostConfigure",
-		"PreBuild", "FixBuild", "CustomBuild", "PostBuild",
+		"PreBuild", "CustomBuild", "PostBuild",
 		"PreInstall", "CustomInstall", "PostInstall",
 		"AutogenOptions", "Options",
 	}

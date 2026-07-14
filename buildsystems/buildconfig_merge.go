@@ -22,7 +22,7 @@ func (b *BuildConfig) mergeConfig() {
 		"CStandard", "CXXStandard", "BuildType",
 		"Envs", "Patches", "Dependencies", "DevDependencies",
 		"PreConfigure", "CustomConfigure", "PostConfigure",
-		"PreBuild", "FixBuild", "CustomBuild", "PostBuild",
+		"PreBuild", "CustomBuild", "PostBuild",
 		"PreInstall", "CustomInstall", "PostInstall",
 		"IncludeDirs", "LinkDirs",
 		"AutogenOptions", "DisableDevCache", "Options",
