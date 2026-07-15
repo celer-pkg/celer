@@ -130,7 +130,21 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		libVersion = versionParts[1]
 	)
 
-	// Extract tar.gz to a tmp dir.
+	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirArtifacts)
+	destDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
+	metaDir := filepath.Join(destDir, "metas")
+
+	// Calculate checksum of metadata，this would be the cache key.
+	data := sha256.Sum256([]byte(meta))
+	hash := fmt.Sprintf("%x", data)
+	archivePath := filepath.Join(destDir, hash+".tar.gz")
+
+	// Skip if already cached — rebuild with same metadata produces identical output.
+	if fileio.PathExists(archivePath) {
+		return nil
+	}
+
+	// Compress package dir to a temp archive.
 	archiveName := fmt.Sprintf("%s@%s.tar.gz", libName, libVersion)
 	if err := dirs.CleanTmpFilesDir(); err != nil {
 		return fmt.Errorf("failed to clean tmp files dir -> %w", err)
@@ -147,15 +161,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirArtifacts)
-	destDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
-	metaDir := filepath.Join(destDir, "metas")
-
-	// Calculate checksum of metadata (this would be the cache key).
-	data := sha256.Sum256([]byte(meta))
-	hash := fmt.Sprintf("%x", data)
-
-	// Create dirs (chattr +a is applied by ChattrFS.MkdirAll).
+	// Create dirs and write to cache.
 	if err := a.chattrFS.MkdirAll(destDir, fileio.CacheDirPerm); err != nil {
 		return err
 	}
@@ -163,14 +169,11 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	// Copy archive directly to final path (chattr +a allows creating new files, but not renaming).
-	// Use CopyFile to overwrite in-place if the file already exists (e.g. -f rebuild with same hash).
-	archivePath := filepath.Join(destDir, hash+".tar.gz")
 	if err := a.chattrFS.CopyFile(tempArchivePath, archivePath); err != nil {
 		return err
 	}
 
-	// Write meta file directly to final path.
+	// Write meta file.
 	metaPath := filepath.Join(metaDir, hash+".meta")
 	if err := a.chattrFS.WriteFile(metaPath, []byte(meta), fileio.CacheFilePerm); err != nil {
 		return err
