@@ -29,7 +29,28 @@ func init() {
 	if err != nil {
 		panic(fmt.Errorf("cannot get current dir -> %w", err))
 	}
-	Init(currentDir)
+
+	// Find workspace dir from current dir.
+	workspaceDir := findWorkspaceRoot(currentDir)
+	Init(workspaceDir)
+}
+
+// findWorkspaceRoot walks up from startDir until it finds a directory
+// containing celer.toml. If not found, returns startDir unchanged.
+func findWorkspaceRoot(currentDir string) string {
+	dir := currentDir
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "celer.toml")); err == nil {
+			return dir
+		}
+
+		// If reached root, fall back to original dir.
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return currentDir
+		}
+		dir = parent
+	}
 }
 
 // Init initialize with specified workspace dir.
