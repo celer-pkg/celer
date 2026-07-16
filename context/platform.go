@@ -19,6 +19,7 @@ type Toolchain interface {
 	GetVersion() string
 	GetHost() string
 	GetSystemName() string
+	GetSystemVersion() string
 	GetSystemProcessor() string
 	GetCrosstoolPrefix() string
 	GetCStandard() string

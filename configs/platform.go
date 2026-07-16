@@ -50,15 +50,6 @@ func (p *Platform) Init(platformName string) error {
 	}
 
 	exrVars := p.ctx.ExprVars()
-	if p.RootFS != nil {
-		p.RootFS.ctx = p.ctx
-		if err := p.RootFS.Validate(); err != nil {
-			return err
-		}
-
-		// Store toolchain releated express vars.
-		exrVars.Put("SYSROOT", p.RootFS.GetAbsDir())
-	}
 	if p.Toolchain != nil {
 		p.Toolchain.ctx = p.ctx
 		if err := p.Toolchain.Validate(); err != nil {
@@ -69,6 +60,7 @@ func (p *Platform) Init(platformName string) error {
 		exrVars.Put("HOST", p.Toolchain.GetHost())
 		exrVars.Put("BUILD_HOST", p.buildHost())
 		exrVars.Put("SYSTEM_NAME", strings.ToLower(p.Toolchain.GetHost()))
+		exrVars.Put("SYSTEM_VERSION", p.Toolchain.GetSystemVersion())
 		exrVars.Put("SYSTEM_PROCESSOR", p.Toolchain.GetSystemProcessor())
 		exrVars.Put("CROSSTOOL_PREFIX", p.Toolchain.GetCrosstoolPrefix())
 		exrVars.Put("TOOLCHAIN", p.Toolchain.rootDir)
@@ -91,6 +83,16 @@ func (p *Platform) Init(platformName string) error {
 		exrVars.Put("ADDR2LINE", p.Toolchain.ADDR2LINE)
 		exrVars.Put("CXXFILT", p.Toolchain.CXXFILT)
 		exrVars.Put("FC", p.Toolchain.FC)
+	}
+
+	if p.RootFS != nil {
+		p.RootFS.ctx = p.ctx
+		if err := p.RootFS.Validate(); err != nil {
+			return err
+		}
+
+		// Store toolchain releated express vars.
+		exrVars.Put("SYSROOT", p.RootFS.GetAbsDir())
 	}
 
 	return nil

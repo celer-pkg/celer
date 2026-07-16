@@ -21,6 +21,7 @@ type Toolchain struct {
 	Archive         string `toml:"archive,omitempty"`         // Archive can be changed to avoid conflict.
 	Path            string `toml:"path"`                      // Runtime path of tool, it's relative path and would be converted to absolute path later.
 	SystemName      string `toml:"system_name"`               // It would be "Windows", "Linux", "Android" and so on.
+	SystemVersion   string `toml:"system_version,omitempty"`  // It would be a version for Android API level, etc.
 	SystemProcessor string `toml:"system_processor"`          // It would be "x86_64", "aarch64" and so on.
 	Host            string `toml:"host"`                      // It would be "x86_64-linux-gnu", "aarch64-linux-gnu" and so on.
 	EmbeddedSystem  bool   `toml:"embedded_system,omitempty"` // Whether it's for embedded system, like mcu or bare-metal.
@@ -155,6 +156,16 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	fmt.Fprintf(toolchain, "\n# ============== Cross-compile target system ============== #\n")
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", t.cmakeSystemName())
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
+
+	// system_version is always required by Android and not mandatory for other system.
+	if t.SystemVersion != "" {
+		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_VERSION", t.SystemVersion)
+	}
+
+	// For Android, set CMAKE_ANDROID_NDK so CMake uses the NDK path.
+	if strings.EqualFold(t.SystemName, "Android") {
+		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_ANDROID_NDK", fileio.ToRelPath(t.rootDir))
+	}
 
 	fmt.Fprintf(toolchain, "\n# ============== Cross-compile toolchain ============== #\n")
 
@@ -363,6 +374,10 @@ func (t Toolchain) GetVersion() string {
 
 func (t Toolchain) GetSystemName() string {
 	return t.SystemName
+}
+
+func (t Toolchain) GetSystemVersion() string {
+	return t.SystemVersion
 }
 
 func (t Toolchain) GetSystemProcessor() string {

@@ -63,6 +63,9 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 	case strings.HasPrefix(r.downloader.url, "file:///"):
 		return r.handleLocalFile()
 
+	case r.downloader.url == "_":
+		return nil
+
 	default:
 		return fmt.Errorf("%s is not accessible", r.downloader.url)
 	}

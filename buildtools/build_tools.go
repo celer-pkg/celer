@@ -158,6 +158,8 @@ type BuildTool struct {
 	SHA256  string   `toml:"sha256"`
 	Archive string   `toml:"archive"`
 	Paths   []string `toml:"paths"`
+	Vars    []string `toml:"vars"`
+	Envs    []string `toml:"envs"`
 
 	// Internal fields.
 	rootDir  string
@@ -181,11 +183,16 @@ func (b *BuildTool) validate() error {
 		return fmt.Errorf("url of %s is empty", b.Name)
 	}
 
+	// Check and fix tool.
+	if err := b.checkAndFix(); err != nil {
+		return err
+	}
+
 	// Set rootDir and paths based on tool type.
 	// Archive tools (has paths) are extracted to subdirectories.
 	if len(b.Paths) > 0 {
 		// Archive with paths specified: extract to subdirectory.
-		folderName := strings.Split(b.Paths[0], "/")[0]
+		folderName, _, _ := strings.Cut(b.Paths[0], "/")
 		b.rootDir = filepath.Join(b.ctx.Downloads(), "tools", folderName)
 		for _, path := range b.Paths {
 			b.abspaths = append(b.abspaths, filepath.Join(b.ctx.Downloads(), "tools", path))
@@ -196,9 +203,22 @@ func (b *BuildTool) validate() error {
 		b.rootDir = b.ctx.Downloads()
 	}
 
-	// Check and fix tool.
-	if err := b.checkAndFix(); err != nil {
-		return err
+	// Set global vars.
+	for _, value := range b.Vars {
+		parts := strings.SplitN(value, "=", 2)
+		if _, ok := b.ctx.ExprVars().Lookup(parts[0]); ok {
+			return fmt.Errorf("${%s} exist already, so build_tool '%s' can't define it", parts[0], b.Name)
+		}
+		b.ctx.ExprVars().Put(parts[0], parts[1])
+	}
+
+	// Set environment vars.
+	for _, env := range b.Envs {
+		parts := strings.SplitN(env, "=", 2)
+		if _, ok := os.LookupEnv(parts[0]); ok {
+			return fmt.Errorf("$ENV{%s} exist already, so build_tool '%s' can't define it", parts[0], b.Name)
+		}
+		os.Setenv(parts[0], parts[1])
 	}
 
 	return nil
