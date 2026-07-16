@@ -610,33 +610,9 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	// Expand variables in options, like ${HOST}, ${SYSROOT} etc.
 	b.expandOptions()
 
+	// nobuild buildsystem do not have crosstool.
 	toolchain := b.Ctx.Platform().GetToolchain()
-	rootfs := b.Ctx.Platform().GetRootFS()
-
-	// nobuild config do not have crosstool.
 	if toolchain != nil {
-		// Create a symlink in the sysroot that points to the installed directory,
-		// then the pc file would be found by other libraries.
-		if rootfs != nil {
-			// This symblink is used to find library via toolchain_file.cmake
-			sysrootDir := rootfs.GetAbsDir()
-			if err := b.checkSymlink(dirs.InstalledDir, filepath.Join(sysrootDir, "installed")); err != nil {
-				return err
-			}
-
-			// Create tmp dir in rootfs if not exist.
-			rootfsTmp := filepath.Join(sysrootDir, "tmp")
-			if err := os.MkdirAll(rootfsTmp, os.ModePerm); err != nil {
-				return err
-			}
-
-			// This symblink is used to find library during build.
-			if err := b.checkSymlink(dirs.TmpDepsDir,
-				filepath.Join(sysrootDir, "tmp", "deps")); err != nil {
-				return err
-			}
-		}
-
 		// Keep the host-side tool runtime closure isolated under tmp/deps for every
 		// build. Host-side tools must be prepared explicitly into tmp/deps instead of
 		// silently falling back to the installed directory.
