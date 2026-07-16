@@ -198,7 +198,7 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 		// Initialize archive source as local git repo, so they won't be treated as user local modifications.
 		// Clone returns early after successful Restore, so the git init that normally happens
 		// in the Clone archive branch is skipped. Restore must init the git repo itself.
-		if err := git.InitAsLocalRepo(repoDir, "init for tracking file change"); err != nil {
+		if err := git.InitAsLocalRepo(repoDir, `"init for tracking file change"`); err != nil {
 			return "", err
 		}
 	}

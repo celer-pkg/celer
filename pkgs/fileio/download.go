@@ -90,8 +90,11 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 		return "", fmt.Errorf("cannot clean tmp files dir -> %w", err)
 	}
 
-	// Build download file path.
-	tmpFile := filepath.Join(dirs.TmpFilesDir, fmt.Sprintf("%d_%s", time.Now().Unix(), fileName))
+	// Ensure tmp files dir exists always.
+	if err := os.MkdirAll(dirs.TmpFilesDir, os.ModePerm); err != nil {
+		return "", fmt.Errorf("cannot create tmp files dir -> %w", err)
+	}
+	tmpFile := filepath.Join(dirs.TmpFilesDir, fmt.Sprintf("%d_%s", time.Now().UnixNano(), fileName))
 	file, err := os.Create(tmpFile)
 	if err != nil {
 		return "", err
@@ -247,7 +250,7 @@ func (p *progressBar) Write(b []byte) (int, error) {
 		color.PrintInline(color.Hint, "%s", content)
 		if progress == 100 {
 			totalSec := time.Since(p.startTime).Seconds()
-			color.PrintInline(color.Hint, "✔ downloaded: %s (%s) in %s\n",
+			color.PrintInline(color.Hint, "✔ downloaded %s (%s) in %s\n",
 				p.fileName,
 				expr.FormatSize(p.fileSize),
 				formatDuration(int64(totalSec)),
