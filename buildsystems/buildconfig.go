@@ -436,12 +436,11 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 		// Move extracted files to repo dir if it's not "include".
 		if len(entities) == 1 && entities[0].IsDir() && entities[0].Name() != "include" {
-			srcDir := filepath.Join(b.PortConfig.RepoDir, entities[0].Name())
-			color.Printf(color.Hint, "- mv %s %s", srcDir, b.PortConfig.RepoDir)
+			color.Printf(color.Hint, "- extract to %s", b.PortConfig.RepoDir)
 			if err := fileio.FlattenNestedDir(b.PortConfig.RepoDir); err != nil {
 				return err
 			}
-			color.PrintInline(color.Hint, "✔ mv %s %s\n", srcDir, b.PortConfig.RepoDir)
+			color.PrintInline(color.Hint, "✔ extract to %s\n", b.PortConfig.RepoDir)
 		}
 
 		// Reset timestamps to avoid autotools "newly created file is older" error.
@@ -487,7 +486,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// Initialize archive source as local git repo after internal generated files
 	// are ready, so they won't be treated as user local modifications.
 	if trackArchiveAsLocalRepo {
-		if err := git.InitAsLocalRepo(b.PortConfig.RepoDir, "init for tracking file change"); err != nil {
+		if err := git.InitAsLocalRepo(b.PortConfig.RepoDir, `"init for tracking file change"`); err != nil {
 			return err
 		}
 	}
