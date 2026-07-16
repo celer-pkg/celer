@@ -27,6 +27,7 @@ func (e *ExprVars) Init(ctx Context) {
 		e.vars = make(map[string]string)
 	}
 
+	e.vars["WORKSPACE_DIR"] = dirs.WorkspaceDir
 	e.vars["BUILDTREES_DIR"] = dirs.BuildtreesDir
 	e.vars["INSTALLED_DIR"] = "${INSTALLED_DIR}"
 	e.vars["INSTALLED_DEV_DIR"] = "${INSTALLED_DEV_DIR}"

@@ -18,12 +18,12 @@
 
 Celer is designed to lower the barrier to hosting, handoff, and reuse in C/C++ projects by handling the complexity of build, compile, and install steps. At the same time, it separates **dependency management** and **build environments** from business code. This separation of concerns makes project boundaries clearer and engineering workflows easier to manage.
 
-In real C/C++ projects, the common pain points usually look like these:
+In real C/C++ projects, the common pain points usually look like this:
 
 - 🎯 **High integration cost**: existing projects often depend on specific build conventions, so taking over a project means touching code and build scripts.
 - 🚀 **Complex cross-compilation environments**: compilers, sysroots, ABIs, environment variables, and dependency sources are scattered, so switching platforms and reproducing environments is expensive.
 - 📦 **Built artifacts are hard to reuse**: repeated builds are common, outputs vary across machines and stages, and environment drift is easy to introduce.
-- 🔧 **Third-party libraries use many build tools**: CMake, Makefiles, Meson, B2, and QMake all need different handling.
+- 🔧 **Third-party libraries use many build tools**: CMake, Make, Meson, B2, and QMake all need different handling.
 - 🏢 **Projects contaminate each other**: dependency versions, macros, and environment variables leak globally and create conflicts.
 - 🔗 **Team collaboration and delivery are difficult**: environments are tightly bound to individual machines, making handoff, collaboration, and CI rollout expensive.
 
@@ -82,7 +82,7 @@ Celer is stronger where **delivery efficiency and consistency in complex enginee
 
 | Dimension | Conan / vcpkg / XMake common approach | ✅ Where Celer is stronger |
 | --- | --- | --- |
-| **Intrusion** | Often requires adapting recipes, ports, or ecosystem-specific integration | Integrates existing CMake projects through `toolchain_file.cmake` without intrusion |
+| **Intrusion** | Often requires adapting recipes, ports, or ecosystem-specific integration | Integrates existing CMake projects through `toolchain_file.cmake` with low intrusion |
 | **Cross-compile** | Toolchains, profiles, and triplets are often assembled separately | Platforms, toolchains, environment variables, and dependencies are described in one unified configuration |
 | **Project&nbsp;isolation** | Shared configuration often causes version conflicts | Dependencies, variables, and build settings are maintained at project scope, with clearer boundaries |
 | **Multi&nbsp;project&nbsp;coordination** | Frequently wired manually one project at a time | One configuration can coordinate multiple subprojects |
@@ -114,6 +114,8 @@ In one sentence:
 - [Expression Variables](./docs/en-US/article_expvars.md) - Review the dynamic variables available in TOML configuration
 - [Detect Version Conflicts and Circular Dependencies](./docs/en-US/article_detect_conflict_circular.md) - Catch invalid dependency relationships before builds start
 - [CUDA Auto Detection](./docs/en-US/article_cuda_support.md) - Integrate CUDA toolchains for GPU-oriented projects
+- [Python Version Management](./docs/en-US/article_python_management.md) - Configure and manage Python versions for build dependencies
+- [Build Tools](./docs/en-US/article_build_tools.md) - Automatically download and manage build-time toolchains
 - [Export Snapshots](./docs/en-US/cmd_deploy_snapshot.md) - Export a reproducible workspace snapshot after deployment
 
 ## 📋 Commands
@@ -146,7 +148,7 @@ If you want to add features, improve documentation, or contribute new port defin
 
 ## 📄 License
 
-This project is released under the MIT License. See [LICENSE](LICENSE) for details.
+This project is released under the MIT License. See [LICENSE](./LICENSE) for details.
 
 Third-party libraries in the `ports` repository remain under their original licenses.
 
