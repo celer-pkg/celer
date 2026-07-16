@@ -59,15 +59,16 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   version = "9.5"
   path = "ubuntu-base-20.04.5-base-amd64"
   pkg_config_path = [
-      "usr/lib/x86_64-linux-gnu/pkgconfig",
-      "usr/share/pkgconfig",
-      "usr/lib/pkgconfig"
+    "usr/lib/x86_64-linux-gnu/pkgconfig",
+    "usr/share/pkgconfig",
+    "usr/lib/pkgconfig"
   ]
 
 [toolchain]
   url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-9.5.0.tar.gz"
   path = "gcc-9.5.0/bin"
   system_name = "Linux"
+  system_version = "6.18.35.2"                # Mandatory for Android system
   system_processor = "x86_64"
   host = "x86_64-linux-gnu"
   crosstool_prefix = "x86_64-linux-gnu-"
@@ -91,6 +92,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `url` | ✅ | Toolchain download URL or local path. Supports http/https/ftp protocols. Local paths must start with `file:///` | `https://...gcc-9.5.0.tar.gz`<br>`file:///C:/toolchains/gcc.tar.gz` |
 | `path` | ✅ | Relative path to the toolchain bin directory. Celer adds it to PATH environment variable and CMake's `$ENV{PATH}` | `gcc-9.5.0/bin` |
 | `system_name` | ✅ | Target operating system name | `Linux`, `Windows`, `Darwin` |
+| `system_version` | ✅ | Target operating system version | Mandatory for Android system |
 | `system_processor` | ✅ | Target CPU architecture | `x86_64`, `aarch64`, `arm`, `i386` |
 | `host` | ✅ | Toolchain target triple, defines the target platform for compiler-generated code | `x86_64-linux-gnu`<br>`aarch64-linux-gnu`<br>`i686-w64-mingw32` |
 | `crosstool_prefix` | ✅ | Prefix for toolchain executables, used to locate compiler tools | `x86_64-linux-gnu-`<br>`arm-none-eabi-` |

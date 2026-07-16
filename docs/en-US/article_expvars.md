@@ -25,6 +25,7 @@ These are injected after platform loading.
 | --- | --- | --- |
 | `${HOST}` | `toolchain.host` | Target host triple |
 | `${SYSTEM_NAME}` | platform toolchain metadata | System selector variable used by configs |
+| `${SYSTEM_VERSION}` | `toolchain.system_version` | system version，it's mandatory for Android system |
 | `${SYSTEM_PROCESSOR}` | `toolchain.system_processor` | CPU architecture selector |
 | `${CROSSTOOL_PREFIX}` | `toolchain.crosstool_prefix` | Prefix for toolchain executables |
 | `${TOOLCHAIN}` | toolchain root dir | Toolchain root directory used by platform expression expansion |
@@ -55,7 +56,6 @@ These are injected after platform loading.
 | `${PYTHON_PATH}` | detected Python3 | Python3 executable path (relative to workspace) |
 | `${PYTHON_VENV_EXE}` | detected Python3 | Absolute path to the venv Python executable |
 | `${PYTHON_VENV_DIR}` | detected Python3 | Absolute path to the venv root directory |
-| `${LLVM_CONFIG}` | detected LLVM | Available when LLVM is detected |
 
 ## Port Build Variables
 

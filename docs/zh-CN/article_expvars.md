@@ -26,6 +26,7 @@
 | `${HOST}` | `toolchain.host` | 目标 host triple |
 | `${SYSTEM_NAME}` | 平台工具链元数据 | 用于配置匹配的系统选择变量 |
 | `${SYSTEM_PROCESSOR}` | `toolchain.system_processor` | CPU 架构选择变量 |
+| `${SYSTEM_VERSION}` | `toolchain.system_version` | 系统版本号，Android系统必填 |
 | `${CROSSTOOL_PREFIX}` | `toolchain.crosstool_prefix` | 工具链可执行前缀 |
 | `${TOOLCHAIN}` | 工具链根目录 | 用于平台表达式展开的工具链根目录 |
 | `${SYSROOT}` | `rootfs` | 仅在配置了 rootfs 时可用 |
@@ -55,7 +56,6 @@
 | `${PYTHON_PATH}` | 自动识别 Python3 | Python3 可执行文件路径（相对于工作区） |
 | `${PYTHON_VENV_EXE}` | 自动识别 Python3 | 虚拟环境 Python 可执行文件的绝对路径 |
 | `${PYTHON_VENV_DIR}` | 自动识别 Python3 | 虚拟环境根目录的绝对路径 |
-| `${LLVM_CONFIG}` | 自动识别 LLVM | 检测到 LLVM 时可用 |
 
 ## 端口构建变量
 
