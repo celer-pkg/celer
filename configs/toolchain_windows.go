@@ -55,6 +55,11 @@ func (t *Toolchain) Validate() error {
 		return fmt.Errorf("toolchain.system_name is empty")
 	}
 
+	// Validate toolchain.system_version.
+	if strings.EqualFold(t.SystemName, "android") && t.SystemVersion == "" {
+		return fmt.Errorf("toolchain.system_version is not specified for android")
+	}
+
 	// Validate toolchain.system_processor.
 	if strings.TrimSpace(t.SystemProcessor) == "" {
 		return fmt.Errorf("toolchain.system_processor is empty")

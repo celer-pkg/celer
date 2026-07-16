@@ -270,10 +270,10 @@ type BuildConfig struct {
 	LinkDirs_Darwin  []string `toml:"link_dirs_darwin,omitempty"`
 
 	// Event hooks for diableDevCache
-	DisableDevCache         bool `toml:"disbale_dev_cache,omitempty"`
-	DisableDevCache_Windows bool `toml:"disbale_dev_cache_windows,omitempty"`
-	DisableDevCache_Linux   bool `toml:"disbale_dev_cache_linux,omitempty"`
-	DisableDevCache_Darwin  bool `toml:"disbale_dev_cache_darwin,omitempty"`
+	DisableDevCache         bool `toml:"disable_dev_cache,omitempty"`
+	DisableDevCache_Windows bool `toml:"disable_dev_cache_windows,omitempty"`
+	DisableDevCache_Linux   bool `toml:"disable_dev_cache_linux,omitempty"`
+	DisableDevCache_Darwin  bool `toml:"disable_dev_cache_darwin,omitempty"`
 
 	// Configure Options
 	Options         []string `toml:"options,omitempty"`

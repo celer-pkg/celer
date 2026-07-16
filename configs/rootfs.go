@@ -27,12 +27,13 @@ type RootFS struct {
 }
 
 func (r *RootFS) Validate() error {
-	// Validate rootfs download url.
-	if r.Url == "" {
-		return fmt.Errorf("rootfs.url is empty, it's required for downloading and caching")
+	// Some rootfs is a part of toolchain, like NDK.
+	if r.Url != "_" && r.SHA256 == "" {
+		return fmt.Errorf("rootfs.sha256 is empty, it's required for verification and caching")
 	}
 
-	if r.SHA256 == "" {
+	// Some rootfs is a part of toolchain, like NDK.
+	if r.Url != "_" && r.SHA256 == "" {
 		return fmt.Errorf("rootfs.sha256 is empty, it's required for verification and caching")
 	}
 
@@ -41,7 +42,12 @@ func (r *RootFS) Validate() error {
 		return fmt.Errorf("rootfs.path is empty, it's required for specifying the root filesystem location")
 	}
 
-	r.abspath = filepath.Join(r.ctx.Downloads(), "tools", r.Path)
+	// Some rootfs is a part of toolchain, like NDK.
+	if strings.HasPrefix(r.Path, "${TOOLCHAIN}") {
+		r.abspath = r.ctx.ExprVars().Expand(r.Path)
+	} else {
+		r.abspath = filepath.Join(r.ctx.Downloads(), "tools", r.Path)
+	}
 
 	return nil
 }
@@ -65,7 +71,7 @@ func (r *RootFS) CheckAndRepair() error {
 	// Print download & extract info.
 	location := filepath.Join(toolsDir, folderName)
 	color.PrintPass("rootfs: %s", fileio.Base(r.Url))
-	color.PrintHint("Location: %s\n", location)
+	color.PrintHint("Location: %s\n", r.ctx.ExprVars().Expand(location))
 
 	return nil
 }
@@ -95,7 +101,12 @@ func (r RootFS) Generate(toolchain *strings.Builder) error {
 
 	// SYSROOT section.
 	fmt.Fprintf(&buffer, "\n# =============== Cross-compile SYSROOT =============== #\n")
-	fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", "${WORKSPACE_ROOT}/downloads/tools/"+filepath.ToSlash(r.Path))
+	// Some rootfs may a part of toolchain.
+	if strings.HasPrefix(r.Path, "${TOOLCHAIN}") {
+		fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", fileio.ToRelPath(r.abspath))
+	} else {
+		fmt.Fprintf(&buffer, "set(CMAKE_SYSROOT %q)\n", "${WORKSPACE_ROOT}/downloads/tools/"+filepath.ToSlash(r.Path))
+	}
 
 	// Append --sysroot to compiler flags.
 	fmt.Fprintf(&buffer, `string(APPEND CMAKE_C_FLAGS_INIT " --sysroot=${CMAKE_SYSROOT}")`+"\n")

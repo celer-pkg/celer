@@ -59,15 +59,16 @@
   version = "9.5"
   path = "ubuntu-base-20.04.5-base-amd64"
   pkg_config_path = [
-      "usr/lib/x86_64-linux-gnu/pkgconfig",
-      "usr/share/pkgconfig",
-      "usr/lib/pkgconfig"
+    "usr/lib/x86_64-linux-gnu/pkgconfig",
+    "usr/share/pkgconfig",
+    "usr/lib/pkgconfig"
   ]
 
 [toolchain]
   url = "https://github.com/celer-pkg/test-conf/releases/download/resource/gcc-9.5.0.tar.gz"
   path = "gcc-9.5.0/bin"
   system_name = "Linux"
+  system_version = "6.18.35.2"                # Android系统强制需要
   system_processor = "x86_64"
   host = "x86_64-linux-gnu"
   crosstool_prefix = "x86_64-linux-gnu-"
@@ -91,6 +92,7 @@
 | `url` | ✅ | 工具链下载地址或本地路径。支持 http/https/ftp 协议，本地路径需以 `file:///` 开头 | `https://...gcc-9.5.0.tar.gz`<br>`file:///C:/toolchains/gcc.tar.gz` |
 | `path` | ✅ | 工具链 bin 目录的相对路径。Celer 会将其添加到 PATH 环境变量和 CMake 的 `$ENV{PATH}` 中 | `gcc-9.5.0/bin` |
 | `system_name` | ✅ | 目标操作系统名称 | `Linux`, `Windows`, `Darwin` |
+| `system_version` | ✅ | 目标操作系统版本 | Android系统必填 |
 | `system_processor` | ✅ | 目标 CPU 架构 | `x86_64`, `aarch64`, `arm`, `i386` |
 | `host` | ✅ | 工具链的目标三元组，定义编译器生成代码的目标平台 | `x86_64-linux-gnu`<br>`aarch64-linux-gnu`<br>`i686-w64-mingw32` |
 | `crosstool_prefix` | ✅ | 工具链可执行文件的前缀，用于查找编译器工具 | `x86_64-linux-gnu-`<br>`arm-none-eabi-` |

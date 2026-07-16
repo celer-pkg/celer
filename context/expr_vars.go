@@ -59,6 +59,19 @@ func (e ExprVars) Expand(content string) string {
 	return content
 }
 
+// Lookup return value if found with key.
+func (e *ExprVars) Lookup(key string) (string, bool) {
+	if e.vars == nil {
+		e.vars = make(map[string]string)
+	}
+
+	value, ok := e.vars[key]
+	if !ok {
+		return "", false
+	}
+	return value, true
+}
+
 // replaceEnvVars replace env express with env value.
 func (e ExprVars) replaceEnvVars(content string) string {
 	content = strings.ReplaceAll(content, "~", os.Getenv("HOME"))
