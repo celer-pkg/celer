@@ -767,7 +767,6 @@ func (p Port) cloneAllRepos() error {
 			}
 		}
 		clonedPorts[key] = true
-		color.Printf(color.Hint, "✔ clone %s\n", nameVersion)
 	}
 	for _, nameVersion := range buildConfig.Dependencies {
 		// Skip Init() for already-cloned ports.
@@ -793,7 +792,6 @@ func (p Port) cloneAllRepos() error {
 			}
 		}
 		clonedPorts[key] = true
-		color.Printf(color.Hint, "✔ clone %s\n", nameVersion)
 	}
 	if err := p.Clone(); err != nil {
 		return err
