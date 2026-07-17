@@ -757,55 +757,6 @@ func (b BuildConfig) buildLibraryType() libraryType {
 	return libraryType
 }
 
-// checkSymlink create a symlink in the sysroot.
-func (b BuildConfig) checkSymlink(src, dest string) error {
-	// Convenient function to create a relative symlink.
-	createSymlink := func(src, dest string) error {
-		relPath, err := filepath.Rel(filepath.Dir(dest), src)
-		if err != nil {
-			return fmt.Errorf("compute relative path -> %w", err)
-		}
-		if err := os.Symlink(relPath, dest); err != nil {
-			return fmt.Errorf("create symlink -> %w", err)
-		}
-		return nil
-	}
-
-	// Check if the symlink exists.
-	info, err := os.Lstat(dest)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return createSymlink(src, dest)
-		}
-		return fmt.Errorf("checking symlink -> %w", err)
-	}
-
-	// Check the symlink target.
-	if info.Mode()&os.ModeSymlink != 0 {
-		// Read the target of the symlink.
-		realTarget, err := os.Readlink(dest)
-		if err != nil {
-			return fmt.Errorf("read symlink target -> %w", err)
-		}
-
-		// If symlink is broken or points to the wrong target, remove it and recreate.
-		if realTarget != src {
-			if err := os.RemoveAll(dest); err != nil {
-				return fmt.Errorf("remove broken symlink -> %w", err)
-			}
-			return createSymlink(src, dest)
-		}
-
-		return nil
-	}
-
-	// Remove if it's not a symlink.
-	if err = os.RemoveAll(dest); err != nil {
-		return fmt.Errorf("remove non-symlink -> %w", err)
-	}
-	return createSymlink(src, dest)
-}
-
 func (b BuildConfig) parseBuildSystem(value string) (name, version string, hasVersion bool, err error) {
 	value = strings.TrimSpace(value)
 	if value == "" {
@@ -862,15 +813,18 @@ func (b BuildConfig) expandVariables(content string) string {
 	rootfs := b.Ctx.Platform().GetRootFS()
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
-	// For Clang with sysroot, add --gcc-toolchain to find GCC runtime files.
-	ccValue := toolchain.GetCC()
-	cxxValue := toolchain.GetCXX()
-	if !b.DevDep && rootfs != nil && toolchain.GetName() == "clang" {
-		ccValue += " --gcc-toolchain=/usr"
-		cxxValue += " --gcc-toolchain=/usr"
+	var ccValue, cxxValue strings.Builder
+	ccValue.WriteString(toolchain.GetCC())
+	cxxValue.WriteString(toolchain.GetCXX())
+
+	if !b.DevDep && rootfs != nil {
+		for _, flag := range toolchain.RuntimeFlags() {
+			fmt.Fprintf(&ccValue, " %s", flag)
+			fmt.Fprintf(&cxxValue, " %s", flag)
+		}
 	}
-	content = strings.ReplaceAll(content, "${CC}", ccValue)
-	content = strings.ReplaceAll(content, "${CXX}", cxxValue)
+	content = strings.ReplaceAll(content, "${CC}", ccValue.String())
+	content = strings.ReplaceAll(content, "${CXX}", cxxValue.String())
 
 	content = b.ExprVars.Expand(content)
 	return content

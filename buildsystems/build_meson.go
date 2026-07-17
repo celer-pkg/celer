@@ -329,10 +329,11 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		includeArgs = append(includeArgs, sysrootArg)
 		linkArgs = append(linkArgs, sysrootArg)
 
-		// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
-		if toolchain.GetName() == "clang" {
-			includeArgs = append(includeArgs, "'--gcc-toolchain=/usr'")
-			linkArgs = append(linkArgs, "'--gcc-toolchain=/usr'")
+		// clang cross-compile runtime flags.
+		rtFlags := toolchain.RuntimeFlags()
+		for _, flag := range rtFlags {
+			includeArgs = append(includeArgs, fmt.Sprintf("'%s'", flag))
+			linkArgs = append(linkArgs, fmt.Sprintf("'%s'", flag))
 		}
 	}
 

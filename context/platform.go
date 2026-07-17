@@ -45,6 +45,7 @@ type Toolchain interface {
 	SetEnvs(rootfs RootFS, buildsystem string, portEnvs []string)
 	SetupEnvs()
 	ClearEnvs()
+	RuntimeFlags() []string
 }
 
 type RootFS interface {

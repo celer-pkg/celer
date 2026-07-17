@@ -211,14 +211,17 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
 		writeIfNotEmpty("CMAKE_READELF", t.READELF)
 
-		// For clang, if using lld, add LLVM runtime library flags to linker.
-		if t.Name == "clang" && t.LD != "" && strings.Contains(t.LD, "lld") {
-			fmt.Fprint(toolchain, "\n# Use LLVM lld linker, compiler-rt runtime and libc++ for clang.\n")
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_CXX_FLAGS_INIT " -stdlib=libc++")`+"\n")
-
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind")`+"\n")
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind")`+"\n")
-			fmt.Fprintf(toolchain, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " -fuse-ld=lld --rtlib=compiler-rt --unwindlib=libunwind")`+"\n")
+		// clang cross-compile runtime flags for CMake toolchain.
+		rtFlags := t.RuntimeFlags()
+		if len(rtFlags) > 0 {
+			fmt.Fprint(toolchain, "\n# clang cross-compile runtime flags.\n")
+			for _, flag := range rtFlags {
+				fmt.Fprintf(toolchain, `string(APPEND CMAKE_C_FLAGS_INIT " %s")`+"\n", flag)
+				fmt.Fprintf(toolchain, `string(APPEND CMAKE_CXX_FLAGS_INIT " %s")`+"\n", flag)
+				fmt.Fprintf(toolchain, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " %s")`+"\n", flag)
+				fmt.Fprintf(toolchain, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " %s")`+"\n", flag)
+				fmt.Fprintf(toolchain, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " %s")`+"\n", flag)
+			}
 		}
 
 	case "qcc":
@@ -547,17 +550,10 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs [
 				ccFlags = append(ccFlags, "--sysroot="+rootfs.GetAbsDir())
 				cxxFlags = append(cxxFlags, "--sysroot="+rootfs.GetAbsDir())
 
-				// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
-				if t.GetName() == "clang" {
-					ccFlags = append(ccFlags, "--gcc-toolchain=/usr")
-					cxxFlags = append(cxxFlags, "--gcc-toolchain=/usr")
-				}
-
-				// For clang with lld, add LLVM runtime library flags.
-				if t.GetName() == "clang" && strings.Contains(t.GetLD(), "lld") {
-					ccFlags = append(ccFlags, "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
-					cxxFlags = append(cxxFlags, "-stdlib=libc++", "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
-				}
+				// clang cross-compile runtime flags.
+				rtFlags := t.RuntimeFlags()
+				ccFlags = append(ccFlags, rtFlags...)
+				cxxFlags = append(cxxFlags, rtFlags...)
 			}
 			os.Setenv("CC", strings.Join(ccFlags, " "))
 			os.Setenv("CXX", strings.Join(cxxFlags, " "))
@@ -570,17 +566,10 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs [
 			ccFlags = append(ccFlags, "--sysroot="+rootfs.GetAbsDir())
 			cxxFlags = append(cxxFlags, "--sysroot="+rootfs.GetAbsDir())
 
-			// For Clang, add --gcc-toolchain to help find GCC runtime files (crtbeginS.o, etc.)
-			if t.GetName() == "clang" {
-				ccFlags = append(ccFlags, "--gcc-toolchain=/usr")
-				cxxFlags = append(cxxFlags, "--gcc-toolchain=/usr")
-			}
-
-			// For clang with lld, add LLVM runtime library flags.
-			if t.GetName() == "clang" && strings.Contains(t.GetLD(), "lld") {
-				ccFlags = append(ccFlags, "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
-				cxxFlags = append(cxxFlags, "-stdlib=libc++", "-fuse-ld=lld", "--rtlib=compiler-rt", "--unwindlib=libunwind")
-			}
+			// clang cross-compile runtime flags.
+			rtFlags := t.RuntimeFlags()
+			ccFlags = append(ccFlags, rtFlags...)
+			cxxFlags = append(cxxFlags, rtFlags...)
 		}
 		os.Setenv("CC", strings.Join(ccFlags, " "))
 		os.Setenv("CXX", strings.Join(cxxFlags, " "))
@@ -658,6 +647,24 @@ func (t Toolchain) ClearEnvs() {
 			os.Unsetenv(parts[0])
 		}
 	}
+}
+
+// RuntimeFlags returns extra compiler flags needed when this toolchain
+// cross-compiles against a sysroot. Self-contained toolchains (Android NDK,
+// etc.) return nil.
+func (t Toolchain) RuntimeFlags() []string {
+	if t.GetName() != "clang" {
+		return nil
+	}
+
+	var flags []string
+	if strings.EqualFold(t.SystemName, "linux") {
+		flags = append(flags, "--gcc-toolchain=/usr")
+	}
+	if strings.Contains(t.GetLD(), "lld") {
+		flags = append(flags, "-fuse-ld=lld")
+	}
+	return flags
 }
 
 type WindowsKit struct {
