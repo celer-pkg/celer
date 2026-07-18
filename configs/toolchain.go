@@ -171,8 +171,11 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 
 	switch runtime.GOOS {
 	case "windows":
-		if t.Name == "msvc" || t.Name == "clang-cl" || t.Name == "clang" {
+		switch t.Name {
+		case "msvc":
 			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", filepath.ToSlash(t.abspath))
+		case "clang-cl", "clang":
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", "${WORKSPACE_ROOT}/downloads/tools/"+filepath.ToSlash(t.Path))
 		}
 
 	case "linux":

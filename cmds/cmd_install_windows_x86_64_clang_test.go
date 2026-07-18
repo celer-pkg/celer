@@ -15,12 +15,6 @@ func TestInstall_x86_64_Clang_CMake(t *testing.T) {
 	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "gflags@2.2.2", false)
 }
 
-// TODO: it works in local but fails in test.
-// func TestInstall_B2_x86_64_Clang(t *testing.T) {
-// 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
-// 	buildWithAMD64Clang(t, platform, "boost@1.91.0", false)
-// }
-
 func TestInstall_x86_64_Clang_Meson(t *testing.T) {
 	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "pkgconf@2.4.3", false)
 }
