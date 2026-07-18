@@ -37,8 +37,19 @@ func (c *Celer) GenerateToolchainFile() error {
 	// Let execuable binary locate dependency libraries from "../lib" automatically.
 	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
 		fmt.Fprintf(&builder, "\n# Let executable binary locate dependency libraries from \"../lib\" automatically.\n")
-		fmt.Fprintf(&builder, "set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib\;\$ORIGIN/../lib64`)
+		fmt.Fprintf(&builder, "if(CMAKE_HOST_SYSTEM_NAME STREQUAL \"Linux\")\n")
+		fmt.Fprintf(&builder, "  set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib\;\$ORIGIN/../lib64`)
+		fmt.Fprintf(&builder, "endif()\n")
 	}
+
+	// The Ninja generator on Windows cannot modify RPATH during install.
+	// Visual Studio / MSVC generator doesn't use RPATH at all, so this is
+	// a no-op for those. CMAKE_BUILD_WITH_INSTALL_RPATH sets the install
+	// RPATH at build time, avoiding the Ninja relinking step.
+	fmt.Fprintf(&builder, "\n# Ninja on Windows cannot modify RPATH during install.\n")
+	fmt.Fprintf(&builder, "if(CMAKE_HOST_SYSTEM_NAME STREQUAL \"Windows\" AND CMAKE_GENERATOR STREQUAL \"Ninja\")\n")
+	fmt.Fprintf(&builder, "  set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)\n")
+	fmt.Fprintf(&builder, "endif()\n")
 
 	// Let CMake project generate compile_commands.json.
 	fmt.Fprintf(&builder, "\n# Let CMake project generate compile_commands.json.\n")
@@ -126,37 +137,43 @@ func (c *Celer) preExposeInstalledDir(builder *strings.Builder, installedDir str
 	toolchainName := c.platform.Toolchain.GetName()
 
 	// Expose header files.
-	fmt.Fprintf(builder, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
+	var includeBuilder strings.Builder
 	switch runtime.GOOS {
 	case "linux":
 		if toolchainName == "gcc" || toolchainName == "clang" || toolchainName == "qcc" {
-			fmt.Fprintf(builder, `  string(APPEND ${flag_var} " -I${INSTALLED_DIR}/include")`+"\n")
+			fmt.Fprintf(&includeBuilder, `  string(APPEND ${flag_var} " -I${INSTALLED_DIR}/include")`+"\n")
 		}
 	case "windows":
 		if toolchainName == "msvc" || toolchainName == "clang-cl" {
-			fmt.Fprintf(builder, `  string(APPEND ${flag_var} "/I ${INSTALLED_DIR}/include")`+"\n")
+			fmt.Fprintf(&includeBuilder, `  string(APPEND ${flag_var} "/I ${INSTALLED_DIR}/include")`+"\n")
 		}
-	case "darwin":
-		// TODO: it may supported in the future for darwin.
 	}
-	fmt.Fprintf(builder, `endforeach()`+"\n\n")
+	if includeBuilder.Len() > 0 {
+		fmt.Fprintf(builder, "# Expose header files.\n")
+		fmt.Fprintf(builder, `foreach(flag_var CMAKE_C_FLAGS_INIT CMAKE_CXX_FLAGS_INIT)`+"\n")
+		builder.WriteString(includeBuilder.String())
+		fmt.Fprintf(builder, `endforeach()`+"\n\n")
+	}
 
 	// Expose library files.
-	fmt.Fprintf(builder, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
+	var libBuilder strings.Builder
 	switch runtime.GOOS {
 	case "linux":
 		if toolchainName == "gcc" || toolchainName == "clang" || toolchainName == "qcc" {
-			fmt.Fprintf(builder, `  string(APPEND ${flag_var} " -L${INSTALLED_DIR}/lib")`+"\n")
-			fmt.Fprintf(builder, `  string(APPEND ${flag_var} " -Wl,-rpath-link,${INSTALLED_DIR}/lib")`+"\n")
+			fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} " -L${INSTALLED_DIR}/lib")`+"\n")
+			fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} " -Wl,-rpath-link,${INSTALLED_DIR}/lib")`+"\n")
 		}
 	case "windows":
 		if toolchainName == "msvc" || toolchainName == "clang-cl" {
-			fmt.Fprintf(builder, `  string(APPEND ${flag_var} "'/LIBPATH:\"${INSTALLED_DIR}/lib\"'")`+"\n")
+			fmt.Fprintf(&libBuilder, `  string(APPEND ${flag_var} "'/LIBPATH:\"${INSTALLED_DIR}/lib\"'")`+"\n")
 		}
-	case "darwin":
-		// TODO: it may supported in the future for darwin.
 	}
-	fmt.Fprintf(builder, `endforeach()`+"\n")
+	if libBuilder.Len() > 0 {
+		fmt.Fprintf(builder, "# Expose library files.\n")
+		fmt.Fprintf(builder, `foreach(flag_var CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT CMAKE_EXE_LINKER_FLAGS_INIT)`+"\n")
+		builder.WriteString(libBuilder.String())
+		fmt.Fprintf(builder, `endforeach()`+"\n")
+	}
 }
 
 func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
