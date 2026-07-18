@@ -46,7 +46,8 @@ func (c cmake) CheckTools() []string {
 
 	// Add build tools dynamically.
 	tools = append(tools, c.buildSystem)
-	if c.CMakeGenerator == "Ninja" {
+	toolchainName := c.Ctx.Platform().GetToolchain().GetName()
+	if toolchainName == "clang" || c.CMakeGenerator == "Ninja" {
 		tools = append(tools, "ninja")
 	}
 
@@ -391,11 +392,15 @@ func (c *cmake) detectGenerator() error {
 		case "linux":
 			c.CMakeGenerator = "Unix Makefiles"
 		case "windows":
-			msvcGenerator, err := detectMSVCGenerator()
-			if err != nil {
-				return err
+			if c.Ctx.Platform().GetToolchain().GetName() == "clang" {
+				c.CMakeGenerator = "Ninja"
+			} else {
+				msvcGenerator, err := detectMSVCGenerator()
+				if err != nil {
+					return err
+				}
+				c.CMakeGenerator = msvcGenerator
 			}
-			c.CMakeGenerator = msvcGenerator
 		}
 	} else if c.CMakeGenerator != "Ninja" &&
 		c.CMakeGenerator != "Unix Makefiles" &&
