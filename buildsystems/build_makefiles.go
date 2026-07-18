@@ -24,7 +24,7 @@ func NewMakefiles(config *BuildConfig) *makefiles {
 
 type makefiles struct {
 	*BuildConfig
-	msvcEnvs string
+	winEnvs string
 }
 
 func (makefiles) Name() string {
@@ -56,13 +56,50 @@ func (m *makefiles) preConfigure() error {
 		}
 	}
 
-	// Cache MSVC envs.
+	// Cache MSVC envs (only needed for MSVC / clang-cl toolchains).
+	// For non-MSVC toolchains on Windows (e.g., clang), set CC/CXX directly.
 	if runtime.GOOS == "windows" {
-		msvcEnvs, err := m.BuildConfig.msvcEnvs()
-		if err != nil {
-			return err
+		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
+			winEnvs, err := m.BuildConfig.winEnvs()
+			if err != nil {
+				return err
+			}
+			m.winEnvs = winEnvs
+		} else {
+			// Non-MSVC toolchains: set CC/CXX and binutils with full cygpath and MinGW target.
+			// clang on Windows defaults to MSVC ABI (lld-link), which can't handle
+			// GNU-style linker flags from autoconf configure scripts.
+			// Use MinGW target to make clang use ld.lld in GNU mode instead.
+			// Also pass binutils paths so MSYS2 bash can find them.
+			ccPath := fileio.ToCygpath(filepath.Join(toolchain.GetAbsDir(), toolchain.GetCC()))
+			cxxPath := fileio.ToCygpath(filepath.Join(toolchain.GetAbsDir(), toolchain.GetCXX()))
+
+			var parts []string
+			parts = append(parts, fmt.Sprintf(`CC="%s --target=%s"`, ccPath, toolchain.GetHost()))
+			parts = append(parts, fmt.Sprintf(`CXX="%s --target=%s"`, cxxPath, toolchain.GetHost()))
+
+			// Toolchain-provided binutils: join with toolchain abs path.
+			for _, item := range []struct{ env, exe string }{
+				{"AR", toolchain.GetAR()},
+				{"CPP", toolchain.GetCPP()},
+				{"GCOV", toolchain.GetGCOV()},
+				{"LD", toolchain.GetLD()},
+				{"NM", toolchain.GetNM()},
+				{"OBJCOPY", toolchain.GetOBJCOPY()},
+				{"OBJDUMP", toolchain.GetOBJDUMP()},
+				{"RANLIB", toolchain.GetRANLIB()},
+				{"READELF", toolchain.GetREADELF()},
+				{"STRIP", toolchain.GetSTRIP()},
+				// AS intentionally skipped — llvm-as assembles LLVM IR, not
+				// x86 asm. Projects that need x86 asm use nasm (dev deps).
+			} {
+				if item.exe != "" {
+					parts = append(parts, fmt.Sprintf(`%s="%s"`, item.env,
+						fileio.ToCygpath(filepath.Join(toolchain.GetAbsDir(), item.exe))))
+				}
+			}
+			m.winEnvs = strings.Join(parts, " ")
 		}
-		m.msvcEnvs = msvcEnvs
 	}
 
 	// Execute pre configure scripts.
@@ -97,7 +134,8 @@ func (m makefiles) configureOptions() ([]string, error) {
 	toolchain := m.Ctx.Platform().GetToolchain()
 	toolchainName := toolchain.GetName()
 	if m.PortConfig.HostDev || m.BuildConfig.DevDep ||
-		toolchainName == "msvc" || toolchainName == "clang-cl" {
+		toolchainName == "msvc" || toolchainName == "clang-cl" ||
+		(runtime.GOOS == "windows" && toolchainName == "clang") {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.HasPrefix(element, "--host=") ||
 				strings.HasPrefix(element, "--sysroot=") ||
@@ -108,6 +146,15 @@ func (m makefiles) configureOptions() ([]string, error) {
 				strings.HasPrefix(element, "--with-build-python=") ||
 				strings.HasPrefix(element, "--enable-cross-compile")
 		})
+	}
+
+	// Make assembler (nasm) from dev deps accessible to configure scripts
+	// running in MSYS2, which may not resolve Windows PATH entries properly.
+	if runtime.GOOS == "windows" && toolchainName == "clang" {
+		nasmPath := filepath.Join(dirs.TmpDepsDir, "x86_64-windows-dev", "bin", "nasm.exe")
+		if fileio.PathExists(nasmPath) {
+			options = append(options, "--x86asmexe="+fileio.ToCygpath(nasmPath))
+		}
 	}
 
 	// Makefiles configure scripts use project-specific flags
@@ -241,7 +288,7 @@ func (m makefiles) Configure(options []string) error {
 	// Use msys2 and msvc env only when in windows and not using perl.
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
-		executor.SetMsvcEnvs(m.msvcEnvs)
+		executor.SetWinEnvs(m.winEnvs)
 	}
 	if err := executor.Execute(); err != nil {
 		return err
@@ -280,7 +327,7 @@ func (m makefiles) Build(options []string) error {
 	// Use msys2 and msvc envs for Windows builds (only for autoconf projects).
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
-		executor.SetMsvcEnvs(m.msvcEnvs)
+		executor.SetWinEnvs(m.winEnvs)
 	}
 
 	if !m.configureRequired() || m.BuildInSource {
@@ -328,7 +375,7 @@ func (m makefiles) Install(options []string) error {
 	// Use msys2 and msvc envs for Windows builds (only for autoconf projects).
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
-		executor.SetMsvcEnvs(m.msvcEnvs)
+		executor.SetWinEnvs(m.winEnvs)
 	}
 
 	if !m.configureRequired() || m.BuildInSource {

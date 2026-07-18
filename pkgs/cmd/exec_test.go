@@ -24,7 +24,7 @@ func TestNewExecutor_Defaults(t *testing.T) {
 	if executor.msys2Env {
 		t.Error("msys2Env should default to false")
 	}
-	if executor.msvcEnvs != "" {
+	if executor.winEnvs != "" {
 		t.Error("msvcEnvs should default to empty")
 	}
 	if executor.workDir != "" {
@@ -38,14 +38,14 @@ func TestNewExecutor_Defaults(t *testing.T) {
 func TestExecutor_BuilderChain(t *testing.T) {
 	executor := NewExecutor("title", "cmd").
 		MSYS2Env(true).
-		SetMsvcEnvs("vcvars").
+		SetWinEnvs("vcvars").
 		SetWorkDir(os.TempDir()).
 		SetLogPath("test.log")
 
 	if !executor.msys2Env {
 		t.Error("msys2Env should be true")
 	}
-	if executor.msvcEnvs != "vcvars" {
+	if executor.winEnvs != "vcvars" {
 		t.Error("msvcEnvs should be 'vcvars'")
 	}
 	if executor.workDir != os.TempDir() {

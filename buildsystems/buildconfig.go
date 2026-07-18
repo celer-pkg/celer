@@ -102,6 +102,8 @@ type BuildConfig struct {
 	SystemName      string   `toml:"system_name,omitempty"`
 	SystemNames     []string `toml:"system_names,omitempty"`
 	SystemProcessor string   `toml:"system_processor,omitempty"`
+	ToolchainName   string   `toml:"toolchain_name,omitempty"`
+	ToolchainNames  []string `toml:"toolchain_names,omitempty"`
 
 	// Build System
 	BuildSystem         string `toml:"build_system"`
@@ -850,8 +852,8 @@ func (b BuildConfig) getLogPath(suffix string) string {
 	return filepath.Join(parentDir, fileName)
 }
 
-// msvcEnvs provider the MSVC environment variables required by msys2.
-func (b BuildConfig) msvcEnvs() (string, error) {
+// winEnvs provider the MSVC environment variables required by msys2.
+func (b BuildConfig) winEnvs() (string, error) {
 	// Append args if exist.
 	var args []string
 	var appendEnv = func(envKey, envValue string) {

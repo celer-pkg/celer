@@ -9,5 +9,6 @@ builtin_packages = [
   "intltool",
   "gettext",
   "flex",
-  "xorg-util-macros"
+  "xorg-util-macros",
+  "mingw-w64-x86_64-gcc",
 ]

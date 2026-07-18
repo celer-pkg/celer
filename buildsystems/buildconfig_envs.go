@@ -104,8 +104,10 @@ func (b *BuildConfig) setupEnvs() {
 
 	if b.buildSystem.Name() != "cmake" {
 		// This allows the bin to locate the libraries in the relative lib dir.
+		// $ORIGIN rpath is an ELF concept, only works on Linux build hosts.
 		toolchain := b.Ctx.Platform().GetToolchain()
 		if strings.ToLower(toolchain.GetSystemName()) == "linux" &&
+			runtime.GOOS == "linux" &&
 			b.buildSystem.Name() == "makefiles" {
 			b.envBackup.setenv("LDFLAGS", env.JoinSpace(
 				"-Wl,-rpath=\\$$ORIGIN/../lib",

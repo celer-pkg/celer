@@ -485,6 +485,29 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 		return false
 	}
 
+	// Merge ToolchainName and ToolchainNames into a single list.
+	var toolchainNames []string
+	if len(config.ToolchainNames) > 0 {
+		toolchainNames = config.ToolchainNames
+	} else if config.ToolchainName != "" {
+		toolchainNames = []string{config.ToolchainName}
+	}
+
+	// Filter by toolchain name if specified.
+	if len(toolchainNames) > 0 {
+		currentToolchain := strings.TrimSpace(p.ctx.Platform().GetToolchain().GetName())
+		found := false
+		for _, name := range toolchainNames {
+			if strings.EqualFold(strings.TrimSpace(name), currentToolchain) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+
 	// No target system name specified indicates that
 	// system name is not a factor for matching, so consider it a match.
 	if len(targetSystemNames) == 0 {
