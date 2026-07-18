@@ -3,43 +3,37 @@
 package cmds
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-func TestInstall_x86_64_Clang_CL_CMake(t *testing.T) {
-	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
-	buildWithAMD64ClangCL(t, platform, "gflags@2.2.2", false)
+func TestInstall_x86_64_Clang_CMake(t *testing.T) {
+	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "gflags@2.2.2", false)
 }
 
 // TODO: it works in local but fails in test.
 // func TestInstall_B2_x86_64_Clang(t *testing.T) {
 // 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
-// 	buildWithAMD64ClangCL(t, platform, "boost@1.91.0", false)
+// 	buildWithAMD64Clang(t, platform, "boost@1.91.0", false)
 // }
 
-func TestInstall_x86_64_Clang_CL_Meson(t *testing.T) {
-	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
-	buildWithAMD64ClangCL(t, platform, "pkgconf@2.4.3", false)
+func TestInstall_x86_64_Clang_Meson(t *testing.T) {
+	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "pkgconf@2.4.3", false)
 }
 
-func TestInstall_x86_64_Clang_CL_Prebuilt(t *testing.T) {
-	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
-	buildWithAMD64ClangCL(t, platform, "prebuilt-x264@stable", false)
+func TestInstall_x86_64_Clang_Prebuilt(t *testing.T) {
+	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "prebuilt-x264@stable", false)
 }
 
-func TestInstall_x86_64_Clang_CL_Nobuild(t *testing.T) {
-	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
-	buildWithAMD64ClangCL(t, platform, "gnulib@1.0", true)
+func TestInstall_x86_64_Clang_Nobuild(t *testing.T) {
+	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "gnulib@1.0", true)
 }
 
-func buildWithAMD64ClangCL(t *testing.T, platform, nameVersion string, nobuild bool) {
+func buildWithAMD64Clang(t *testing.T, platform, nameVersion string, nobuild bool) {
 	// Cleanup.
 	dirs.RemoveAllForTest()
 

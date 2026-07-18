@@ -20,7 +20,7 @@ type executor struct {
 	title            string   // Execution title for display output
 	command          string   // Command to execute
 	args             []string // Command arguments
-	msvcEnvs         string   // MSVC environment setup string (Windows only)
+	winEnvs          string   // MSVC environment setup string (Windows only)
 	workDir          string   // Working directory for command execution
 	logPath          string   // File path for execution logs
 	retryMaxAttempts int      // 0 = no retry (default)
@@ -33,7 +33,7 @@ func NewExecutor(title string, command string, args ...string) *executor {
 		command:          command,
 		args:             args,
 		msys2Env:         false, // Default: no MSYS2
-		msvcEnvs:         "",    // Default: no MSVC setup
+		winEnvs:          "",    // Default: no MSVC setup
 		workDir:          "",    // Default: inherit parent working directory
 		logPath:          "",    // Default: no logging
 		retryMaxAttempts: 0,     // Default: no retry
@@ -46,9 +46,9 @@ func (e *executor) MSYS2Env(msys2Env bool) *executor {
 	return e
 }
 
-// SetMsvcEnvs sets MSVC environment configuration string (Windows only).
-func (e *executor) SetMsvcEnvs(msvcEnvs string) *executor {
-	e.msvcEnvs = msvcEnvs
+// SetWinEnvs sets Windows environment configuration string (Windows only).
+func (e *executor) SetWinEnvs(winEnvs string) *executor {
+	e.winEnvs = winEnvs
 	return e
 }
 

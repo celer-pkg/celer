@@ -69,8 +69,8 @@ func (e *executor) doExecute(output io.Writer) error {
 // buildMSYS2Command constructs a command to run in MSYS2/bash environment.
 func (e *executor) buildMSYS2Command(displayCmd *string) *exec.Cmd {
 	var args []string
-	if e.msvcEnvs != "" {
-		args = append(args, e.msvcEnvs)
+	if e.winEnvs != "" {
+		args = append(args, e.winEnvs)
 	}
 	args = append(args, e.command)
 	if len(e.args) > 0 {
