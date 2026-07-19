@@ -32,7 +32,7 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
   build_type          = "release"             # optional field, default is build_type in celer.toml
   envs                = [...]                 # optional field
   include_dirs        = [...]                 # optional field, additional header search directories
-  link_dirs           = [...]                 # optional field, additional library search directories
+  lib_dirs            = [...]                 # optional field, additional library search directories
   patches             = [...]                 # optional field
   build_in_source     = false                 # optional field, default is **false**
   autogen_options     = [...]                 # optional field
@@ -161,9 +161,9 @@ The following are fields and their descriptions:
 &emsp;&emsp;Optional, you can define some environment variables here, such as **CXXFLAGS=-fPIC**, or even compile some libraries need to set specified environment variables, such as: the **libxext** library needs to set the environment variable: **"xorg_cv_malloc0_returns_null=yes"** when cross-compiling to the aarch64 platform, the purpose is to mask the compiler check error report;  
 &emsp;&emsp;In addition, it should be noted that each library's **toml** file supports defining **envs**, but when compiling them, **envs** are completely independent of each other, as each library compilation ends, the **envs** defined in the **toml** file will be cleared from the current process, and when compiling the next library, if the corresponding **toml** file defines new **envs**, then set the new environment variables.
 
-> **Note:** Defining search paths through `-I`, `-isystem`, or `-L` in `CFLAGS`, `CXXFLAGS`, `CPPFLAGS`, or `LDFLAGS` is deprecated. Prefer `include_dirs` and `link_dirs`.
+> **Note:** Defining search paths through `-I`, `-isystem`, or `-L` in `CFLAGS`, `CXXFLAGS`, `CPPFLAGS`, or `LDFLAGS` is deprecated. Prefer `include_dirs` and `lib_dirs`.
 
-### 1.2.10 include_dirs, link_dirs
+### 1.2.10 include_dirs, lib_dirs
 
 &emsp;&emsp;Optional, empty by default. These fields declare header and library directories that are not in the default search paths. Specify directories only; Celer converts them to the appropriate build-system arguments, so do not add `-I`, `-isystem`, or `-L` prefixes manually.
 
@@ -173,19 +173,19 @@ The following are fields and their descriptions:
   include_dirs = [
     "${DEPS_DIR}/include/valgrind",
   ]
-  link_dirs = [
+  lib_dirs = [
     "${DEPS_DIR}/lib",
   ]
 ```
 
 - `include_dirs`: additional header search directories.
-- `link_dirs`: additional library search directories.
+- `lib_dirs`: additional library search directories.
 - Both fields support [expression variables](./article_expvars.md), including `${DEPS_DIR}` and `${DEV_DEPS_DIR}`.
-- Platform-specific directories can be appended with `include_dirs_windows`, `include_dirs_linux`, `include_dirs_darwin`, and the corresponding `link_dirs_*` fields.
+- Platform-specific directories can be appended with `include_dirs_windows`, `include_dirs_linux`, `include_dirs_darwin`, and the corresponding `lib_dirs_*` fields.
 
 Currently supported build systems and mappings:
 
-| Build system | `include_dirs` | `link_dirs` |
+| Build system | `include_dirs` | `lib_dirs` |
 | --- | --- | --- |
 | `makefiles` | Converted to header search arguments in `CFLAGS` / `CXXFLAGS` | Converted to library search arguments in `LDFLAGS` |
 | `meson` | Written to `c_args` / `cpp_args` in the cross/native file | Written to linker arguments in the cross/native file |

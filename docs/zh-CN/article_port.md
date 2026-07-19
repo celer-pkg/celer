@@ -29,6 +29,8 @@
   system_name = "linux"                   # 可选选择器
   system_names = ["linux", "windows"]     # 可选选择器
   system_processor = "x86_64"             # 可选选择器
+  toolchain_name = "gcc"                  # 可选选择器
+  toolchain_names = ["gcc", "clang"]      # 可选选择器
   build_system = "cmake"                  # 必填字段，可选值：cmake、makefiles、b2、meson 等
   cmake_generator = []                    # 可选字段
   build_tools = []                        # 可选字段
@@ -40,7 +42,7 @@
   cxx_standard = "cxx17"                  # 可选字段
   envs = []                               # 可选字段
   include_dirs = []                       # 可选字段，额外头文件搜索目录
-  link_dirs = []                          # 可选字段，额外库文件搜索目录
+  lib_dirs = []                           # 可选字段，额外库文件搜索目录
   patches = []                            # 可选字段
   build_in_source = false                 # 可选字段，默认 false
   autogen_options = []                    # 可选字段
@@ -87,10 +89,10 @@
 
 ## 🛠️ 构建配置详解
 
-&emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **system_name/system_processor** 自动找到匹配的 **build_config** 来组装编译命令。  
+&emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **system_name/system_processor/toolchain_name** 自动找到匹配的 **build_config** 来组装编译命令。  
 &emsp;&emsp;第三方库的编译配置通常在不同系统上会有差异。这些差异通常涉及平台特定的编译标志或甚至 entirely distinct build steps。一些库甚至需要特殊的预处理或后处理才能在 Windows 上正确编译。
 
-### 1.2.1 system_name, system_names, system_processor
+### 1.2.1.1 system_name, system_names, system_processor
 
 &emsp;&emsp;用于匹配 platform toolchain 中的选择器（`toolchain.system_name`、`toolchain.system_names`、`toolchain.system_processor`）。匹配规则如下：
 
@@ -104,6 +106,30 @@
 | `system_name = "windows"` + `system_processor = "x86_64"` | 匹配 x86_64 Windows 平台 |
 
 >Note: `system_names` 是一个数组，用于指定多个系统平台，例如：["linux", "windows"]，x264 在 Linux 和 Windows 上的配置是一样的，但 QNX 上的差别较大，因此可以通过 `system_names` 来合并 Linux 和 Windows。
+
+### 1.2.1.2 toolchain_name, toolchain_names
+
+&emsp;&emsp;可选选择器，用于进一步限定匹配特定的工具链。当同一个平台（如 `linux` + `x86_64`）下存在多个工具链变体时（如 `gcc`、`clang`），可通过 `toolchain_name` 或 `toolchain_names` 为不同工具链提供差异化的构建配置。
+
+&emsp;&emsp;`toolchain_name` 为单个工具链名称，`toolchain_names` 为数组形式，两者语义等同于 `system_name` / `system_names`。候选值为平台所支持的工具链：
+
+| 工具链 | 说明 |
+| --- | --- |
+| `gcc` | GNU Compiler Collection |
+| `clang` | LLVM Clang（类 Unix 模式） |
+| `clang-cl` | LLVM Clang（MSVC 兼容模式，仅 Windows） |
+| `msvc` | Microsoft Visual C++（仅 Windows） |
+| `qcc` | QNX C/C++ Compiler |
+
+**匹配规则：**
+
+| 选择器 | 描述 |
+| --- | --- |
+| 不设置 `toolchain_name` / `toolchain_names` | 不按工具链筛选（默认行为） |
+| `toolchain_name = "gcc"` | 仅匹配 gcc 工具链 |
+| `toolchain_names = ["gcc", "clang"]` | 匹配 gcc 或 clang 工具链 |
+
+>Note: `toolchain_name` / `toolchain_names` 与 `system_name` / `system_processor` 是 **AND** 关系——必须同时满足所有已设置的选择器才会命中该 `build_config`。
 
 ### 1.2.2 build_system
 
@@ -169,9 +195,9 @@
 &emsp;&emsp;可选配置，默认值为空，用于定义一些环境变量，例如 **CXXFLAGS=-fPIC**，或者甚至编译一些库需要设置指定的环境变量，例如：**libxext** 库在交叉编译到 aarch64 平台时需要设置环境变量：**"xorg_cv_malloc0_returns_null=yes"**，目的是屏蔽编译器检查错误报告；  
 &emsp;&emsp;此外需注意，每个库的 toml 文件虽然支持定义 envs 环境变量，但在实际编译过程中，这些环境变量彼此完全独立——每当一个库编译完成时，其 toml 文件中定义的 envs 会从当前进程中被清除。当编译下一个库时，若对应的 toml 文件定义了新的 envs，则会重新设置新的环境变量。
 
-> **注意：** 不建议再通过 `CFLAGS`、`CXXFLAGS`、`CPPFLAGS` 或 `LDFLAGS` 配置 `-I`、`-isystem`、`-L` 等搜索目录；请优先使用 `include_dirs` 和 `link_dirs`。
+> **注意：** 不建议再通过 `CFLAGS`、`CXXFLAGS`、`CPPFLAGS` 或 `LDFLAGS` 配置 `-I`、`-isystem`、`-L` 等搜索目录；请优先使用 `include_dirs` 和 `lib_dirs`。
 
-### 1.2.10 include_dirs, link_dirs
+### 1.2.10 include_dirs, lib_dirs
 
 &emsp;&emsp;可选配置，默认值为空，用于声明不在默认搜索路径中的头文件目录和库文件目录。字段值只填写目录，Celer 会根据构建系统自动转换成对应参数，因此不要在目录前手动添加 `-I`、`-isystem` 或 `-L`。
 
@@ -181,19 +207,19 @@
   include_dirs = [
     "${DEPS_DIR}/include/valgrind",
   ]
-  link_dirs = [
+  lib_dirs = [
     "${DEPS_DIR}/lib",
   ]
 ```
 
 - `include_dirs`：额外头文件搜索目录。
-- `link_dirs`：额外库文件搜索目录。
+- `lib_dirs`：额外库文件搜索目录。
 - 两个字段都支持 `${DEPS_DIR}`、`${DEV_DEPS_DIR}` 等[动态变量](./article_expvars.md)。
-- 也可以使用 `include_dirs_windows`、`include_dirs_linux`、`include_dirs_darwin` 和对应的 `link_dirs_*` 字段追加平台专用目录。
+- 也可以使用 `include_dirs_windows`、`include_dirs_linux`、`include_dirs_darwin` 和对应的 `lib_dirs_*` 字段追加平台专用目录。
 
 当前明确支持的构建系统及映射方式：
 
-| 构建系统 | `include_dirs` | `link_dirs` |
+| 构建系统 | `include_dirs` | `lib_dirs` |
 | --- | --- | --- |
 | `makefiles` | 转换为 `CFLAGS` / `CXXFLAGS` 中的头文件搜索参数 | 转换为 `LDFLAGS` 中的库搜索参数 |
 | `meson` | 写入 cross/native file 的 `c_args` / `cpp_args` | 写入 cross/native file 的链接参数 |

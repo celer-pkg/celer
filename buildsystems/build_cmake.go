@@ -164,11 +164,11 @@ func (c cmake) configureOptions() ([]string, error) {
 		options = append(options, fmt.Sprintf("-DCMAKE_C_FLAGS_INIT=%s", includeDir))
 		options = append(options, fmt.Sprintf("-DCMAKE_CXX_FLAGS_INIT=%s", includeDir))
 	}
-	for _, linkDir := range c.LinkDirs {
-		linkDir = c.ExprVars.Expand(linkDir)
-		options = append(options, fmt.Sprintf("-DCMAKE_SHARED_LINKER_FLAGS_INIT=%s", linkDir))
-		options = append(options, fmt.Sprintf("-DCMAKE_MODULE_LINKER_FLAGS_INIT=%s", linkDir))
-		options = append(options, fmt.Sprintf("-DCMAKE_EXE_LINKER_FLAGS_INIT=%s", linkDir))
+	for _, libDir := range c.LibDirs {
+		libDir = c.ExprVars.Expand(libDir)
+		options = append(options, fmt.Sprintf("-DCMAKE_SHARED_LINKER_FLAGS_INIT=%s", libDir))
+		options = append(options, fmt.Sprintf("-DCMAKE_MODULE_LINKER_FLAGS_INIT=%s", libDir))
+		options = append(options, fmt.Sprintf("-DCMAKE_EXE_LINKER_FLAGS_INIT=%s", libDir))
 	}
 
 	// Override `CMAKE_FIND_ROOT_PATH` defined in toolchain file.

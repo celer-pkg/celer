@@ -47,6 +47,15 @@ func (c *Celer) readOrCreate() error {
 			return err
 		}
 
+		// Normalize path separators to forward slashes.
+		c.Main.Downloads = filepath.ToSlash(c.Main.Downloads)
+		if c.configData.CCache != nil {
+			c.configData.CCache.Dir = filepath.ToSlash(c.configData.CCache.Dir)
+		}
+		if c.configData.PkgCacheConfig != nil {
+			c.configData.PkgCacheConfig.Dir = filepath.ToSlash(c.configData.PkgCacheConfig.Dir)
+		}
+
 		if c.Main.Jobs == 0 {
 			c.Main.Jobs = runtime.NumCPU()
 		}
@@ -101,7 +110,7 @@ func (c *Celer) SetDownloads(downloads string) error {
 		return err
 	}
 
-	c.Main.Downloads = downloads
+	c.Main.Downloads = filepath.ToSlash(downloads)
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -206,7 +215,7 @@ func (c *Celer) SetPkgCacheDir(dir string) error {
 	if c.configData.PkgCacheConfig == nil {
 		c.configData.PkgCacheConfig = NewPkgCacheConfig(c, dir, true)
 	}
-	c.configData.PkgCacheConfig.Dir = dir
+	c.configData.PkgCacheConfig.Dir = filepath.ToSlash(dir)
 
 	// Rebuild internal handlers if dir is already configured.
 	if err := c.configData.PkgCacheConfig.Refresh(); err != nil {
@@ -373,7 +382,7 @@ func (c *Celer) SetCCacheDir(dir string) error {
 		c.configData.CCache = &CCache{}
 		c.configData.CCache.init()
 	}
-	c.configData.CCache.Dir = dir
+	c.configData.CCache.Dir = filepath.ToSlash(dir)
 
 	if err := c.save(); err != nil {
 		return err
