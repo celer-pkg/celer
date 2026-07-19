@@ -2,7 +2,7 @@
 
 # Celer
 
-**A lightweight, non-intrusive, delivery-oriented C/C++ package management tool for projects centered on CMake**
+**A lightweight, non-intrusive, delivery-oriented C/C++ package manager centered on CMake**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Report Card](https://goreportcard.com/badge/github.com/celer-pkg/celer)](https://goreportcard.com/report/github.com/celer-pkg/celer)
@@ -14,143 +14,114 @@
 
 ---
 
-## ✨ Why Celer?
-
-Celer is designed to lower the barrier to hosting, handoff, and reuse in C/C++ projects by handling the complexity of build, compile, and install steps. At the same time, it separates **dependency management** and **build environments** from business code. This separation of concerns makes project boundaries clearer and engineering workflows easier to manage.
-
-In real C/C++ projects, the common pain points usually look like this:
-
-- 🎯 **High integration cost**: existing projects often depend on specific build conventions, so taking over a project means touching code and build scripts.
-- 🚀 **Complex cross-compilation environments**: compilers, sysroots, ABIs, environment variables, and dependency sources are scattered, so switching platforms and reproducing environments is expensive.
-- 📦 **Built artifacts are hard to reuse**: repeated builds are common, outputs vary across machines and stages, and environment drift is easy to introduce.
-- 🔧 **Third-party libraries use many build tools**: CMake, Make, Meson, B2, and QMake all need different handling.
-- 🏢 **Projects contaminate each other**: dependency versions, macros, and environment variables leak globally and create conflicts.
-- 🔗 **Team collaboration and delivery are difficult**: environments are tightly bound to individual machines, making handoff, collaboration, and CI rollout expensive.
+> **Celer focuses on delivery efficiency, cross-compilation, and team collaboration — not on generic ecosystem size.**
 
 ## 🚀 Quick Start
 
 ```bash
-# 1. Install Celer (or download a prebuilt package from releases)
+# 1. Install
 git clone https://github.com/celer-pkg/celer.git
 cd celer && go build
 
-# 2. Initialize with a configuration repository
+# 2. Init with a config repo
 celer init --url=https://github.com/celer-pkg/test-conf.git
 
-# 3. Configure your platform and project
+# 3. Choose your platform & project
 celer configure --platform=x86_64-linux-ubuntu-22.04-gcc-11.5.0
 celer configure --project=project_test_01
 
-# 4. Test clone, build and install a library.
+# 4. Install a library
 celer install glog@0.6.0
 ```
 
 📖 [Full Quick Start Guide](./docs/en-US/quick_start.md)
 
+## 🎯 Who Is This For?
+
+Celer is built for teams facing **real-world C/C++ delivery challenges**:
+
+- You maintain projects across **multiple platforms** (Windows, Linux, embedded) with **different compilers** (MSVC, GCC, Clang).
+- You need to **hand off reproducible builds** to teammates or CI — without "works on my machine".
+- You ship **private binaries** or maintain internal artifact repositories.
+- You're tired of dependency version conflicts leaking across projects.
+
+If you just need to fetch an open-source library, [Conan](https://conan.io) / [vcpkg](https://vcpkg.io) / [XMake](https://xmake.io) are mature options. Celer is for when **delivery consistency** matters more than ecosystem breadth.
+
 ## 💡 How It Works
 
 ![workflow](./docs/assets/workflow.svg)
 
-Celer generates a `toolchain_file.cmake` based on your platform and project configuration. That file connects your project to predefined toolchains, dependencies, environment variables, and build settings.
+Celer generates a `toolchain_file.cmake` from your platform and project config. Your CMake project stays untouched — dependencies, toolchains, env vars, and build flags are injected externally.
 
-That means:
+- ✅ Keep your existing CMake structure
+- ✅ Dependencies and platform config live outside your codebase
+- ✅ The generated toolchain file is self-contained — share it for CI, handoff, or bug reproduction
 
-- your project can keep its existing CMake structure;
-- dependencies and platform configuration are managed externally in a unified way;
-- once generated, the toolchain file can be reused independently for team collaboration, CI/CD, and issue reproduction.
+## 🖥️ Platform & Compiler Support
 
-## 🌟 Core Capabilities
+Celer aims to provide first-class cross-compilation support across major platforms and compilers. The matrix below shows the current status:
 
-| Capability | Value |
+|              | 💻 **Windows** | 🐧 **Linux** | 🍎 **macOS** |
+| ------------ | :---: | :---: | :---: |
+| **MSVC**     | ✅   | —    | —    |
+| **Clang-CL** | ✅   | —    | —    |
+| **Clang**    | ✅   | ✅   | 🚧   |
+| **GCC**      | —    | ✅   | 🚧   |
+
+> ✅ = Supported &nbsp;&nbsp; 🚧 = Planned &nbsp;&nbsp; — = Not applicable
+
+## 🌟 Features at a Glance
+
+| When you need… | Celer handles it |
 | --- | --- |
-| **Cross&nbsp;Compilation** | Use TOML to describe toolchains and build environments for ARM, x86, QNX, Windows, Linux, and more in one place. |
-| **Project&nbsp;Isolation** | Each project owns its own dependency versions, environment variables, macros, and CMake variables, reducing conflict risk in parallel development. |
-| **Build&nbsp;Systems** | Works natively with **CMake**, **Makefiles**, **Meson**, **B2**, **QMake**, and **GYP**, reducing the cost of hosting third-party libraries. |
-| **CMake&nbsp;Config** | Automatically fills in CMake configuration for prebuilt binaries, lowering the integration barrier. |
-| **Artifact&nbsp;Cache** | Uses hash-based caching of build artifacts, suitable for private libraries, binary distribution, and large-scale repeated builds. |
-| **Repo&nbsp;Cache** | Reuses source code by caching source repositories, reducing integration cost when external networks or GitHub/GitLab access are unavailable. |
-| **Embedded** | Supports MCU and bare-metal environments through `embedded_system`, without depending on a traditional OS runtime. |
-| **Development&nbsp;Mode** | After `celer deploy`, continue development directly in any IDE using the generated toolchain file. |
-| **CI/CD&nbsp;Integration** | Platform and project configuration can flow directly into pipelines, reducing drift between developer and CI environments. |
-| **Snapshots** | Export reproducible workspace snapshots for debugging, traceability, and handoff. |
+| **Cross-compilation** | Unified TOML config for toolchains, sysroots, env vars across ARM / x86 / QNX / Windows / Linux |
+| **Project isolation** | Per-project dependency versions, macros, and CMake variables — no global leaks |
+| **Multi-buildsystem** | Native support for CMake, Makefiles, Meson, B2, QMake, GYP |
+| **Binary distribution** | Hash-based artifact cache for private libraries and prebuilt packages |
+| **Air-gapped / offline** | Repo cache reuses source trees when GitHub/GitLab access is unavailable |
+| **Reproducible CI** | Export workspace snapshots; config flows directly into pipelines |
+| **Embedded / MCU** | `embedded_system` support without depending on a traditional OS runtime |
 
-## 🆚 Where Celer Differs from Other C++ Package Managers
+## 🆚 How Celer Compares
 
-If your only need is “how do I fetch an open-source library”, Conan, vcpkg, and XMake already provide mature solutions.
-
-Celer is stronger where **delivery efficiency and consistency in complex engineering environments** matter more:
-
-| Dimension | Conan / vcpkg / XMake common approach | ✅ Where Celer is stronger |
+| Dimension | Conan / vcpkg / XMake | ✅ Celer |
 | --- | --- | --- |
-| **Intrusion** | Often requires adapting recipes, ports, or ecosystem-specific integration | Integrates existing CMake projects through `toolchain_file.cmake` with low intrusion |
-| **Cross-compile** | Toolchains, profiles, and triplets are often assembled separately | Platforms, toolchains, environment variables, and dependencies are described in one unified configuration |
-| **Project&nbsp;isolation** | Shared configuration often causes version conflicts | Dependencies, variables, and build settings are maintained at project scope, with clearer boundaries |
-| **Multi&nbsp;project&nbsp;coordination** | Frequently wired manually one project at a time | One configuration can coordinate multiple subprojects |
-| **Private&nbsp;binaries** | Usually needs extra packaging conventions and workflow glue | Better suited for internal artifact repositories, prebuilt packages, and custom delivery flows |
-| **Caching&nbsp;and&nbsp;rebuilds** | Less focused on team-wide artifact reuse | Hash-based artifact caching emphasizes team-wide reuse and build stability |
-| **Sharing&nbsp;and&nbsp;reproduction** | Users often need to understand the full local toolchain stack | Generated toolchain files and workspace snapshots are easier to share, reproduce, and hand off |
-
-In one sentence:
-
-> **Celer focuses on delivery efficiency, cross-compilation, and team collaboration—not on generic ecosystem size.**
-
-📖 [Learn more about the problems Celer is built to solve](./docs/en-US/why_celer.md)
+| **Intrusion** | Requires adapting recipes or ecosystem conventions | Integrates via `toolchain_file.cmake` — your project stays unchanged |
+| **Cross-compile** | Toolchains, profiles, triplets assembled separately | One unified config: platform + toolchain + deps + env |
+| **Project isolation** | Shared config risks version conflicts | Dependencies scoped per project |
+| **Multi-project** | Often wired one project at a time | One config coordinates multiple subprojects |
+| **Private binaries** | Extra packaging glue needed | Built for internal artifact repos and custom delivery |
+| **Caching** | Less focused on team-wide reuse | Hash-based caching for team-wide build stability |
+| **Reproduction** | Users must understand full local toolchain stack | Self-contained toolchain files and snapshots |
 
 ## 📚 Documentation
 
-**Getting Started:**
-- [Quick Start Guide](./docs/en-US/quick_start.md) - Get started in 5 minutes
-- [Create a New Platform](./docs/en-US/cmd_create.md) - Define custom cross-compilation environments
-- [Create a New Project](./docs/en-US/cmd_create.md) - Configure project-level settings
-- [Add a New Port](./docs/en-US/cmd_create.md) - Host and manage your own libraries
+**Get started in 5 minutes:**
+- [Quick Start Guide](./docs/en-US/quick_start.md) · [Init a Workspace](./docs/en-US/quick_start.md#3-setup-conf)
+- [Create a Platform / Project / Port](./docs/en-US/cmd_create.md)
+- [Install a Library](./docs/en-US/cmd_install.md) · [Deploy](./docs/en-US/cmd_deploy.md)
 
-**Advanced Topics:**
-- [Generate CMake Configs](./docs/en-US/article_generate_cmake_config.md) - Auto-generate configuration for prebuilt binaries
-- [PkgCache Shared Cache and NFS Permissions](./docs/en-US/article_pkgcache.md) - Share package caches across teams with NFS and append-only directory protection
-- [Cache Build Artifacts](./docs/en-US/article_pkgcache_artifacts.md) - Reuse built artifacts to reduce repeated integration cost
-- [Cache Source Repositories](./docs/en-US/article_pkgcache_repos.md) - Reuse source trees through repo cache when upstream access is unstable
-- [Cache Build Tools](./docs/en-US/article_pkgcache_downloads.md) - Speed up and stabilize the compilation environment by caching compilation tools
-- [Support CCache](./docs/en-US/article_ccache.md) - Speed up repeated compilation by reusing compiler outputs
-- [Expression Variables](./docs/en-US/article_expvars.md) - Review the dynamic variables available in TOML configuration
-- [Detect Version Conflicts and Circular Dependencies](./docs/en-US/article_detect_conflict_circular.md) - Catch invalid dependency relationships before builds start
-- [CUDA Auto Detection](./docs/en-US/article_cuda_support.md) - Integrate CUDA toolchains for GPU-oriented projects
-- [Python Version Management](./docs/en-US/article_python_management.md) - Configure and manage Python versions for build dependencies
-- [Build Tools](./docs/en-US/article_build_tools.md) - Automatically download and manage build-time toolchains
-- [Export Snapshots](./docs/en-US/cmd_deploy_snapshot.md) - Export a reproducible workspace snapshot after deployment
+**Deep dives:**
+- [Generate CMake Configs for Prebuilts](./docs/en-US/article_generate_cmake_config.md)
+- [PkgCache: Shared Cache & NFS](./docs/en-US/article_pkgcache.md) · [Artifact Cache](./docs/en-US/article_pkgcache_artifacts.md) · [Repo Cache](./docs/en-US/article_pkgcache_repos.md) · [Download Cache](./docs/en-US/article_pkgcache_downloads.md)
+- [CCache Integration](./docs/en-US/article_ccache.md) · [CUDA Detection](./docs/en-US/article_cuda_support.md)
+- [Expression Variables](./docs/en-US/article_expvars.md) · [Dependency Conflict Detection](./docs/en-US/article_detect_conflict_circular.md)
+- [Python Version Management](./docs/en-US/article_python_management.md) · [Build Tools](./docs/en-US/article_build_tools.md)
+- [Export Snapshots](./docs/en-US/cmd_deploy_snapshot.md)
 
-## 📋 Commands
-
-| Command | Description |
-| --- | --- |
-| [autoremove](./docs/en-US/cmd_autoremove.md) | Clean the install directory and remove libraries no longer required by the current project |
-| [clean](./docs/en-US/cmd_clean.md) | Clean build cache for selected targets, or use `--all` to clean everything |
-| [configure](./docs/en-US/cmd_configure.md) | Update global configuration for the current workspace |
-| [create](./docs/en-US/cmd_create.md) | Create a platform, project, or port |
-| [deploy](./docs/en-US/cmd_deploy.md) | Deploy using the selected platform and project |
-| [init](./docs/en-US/quick_start.md#3-setup-conf) | Initialize Celer with a configuration repository |
-| [install](./docs/en-US/cmd_install.md) | Install a library |
-| [integrate](./docs/en-US/cmd_integrate.md) | Enable shell tab completion integration |
-| [remove](./docs/en-US/cmd_remove.md) | Remove installed libraries |
-| [reverse](./docs/en-US/cmd_reverse.md) | Query which projects or libraries depend on a given library |
-| [search](./docs/en-US/cmd_search.md) | Search available ports |
-| [tree](./docs/en-US/cmd_tree.md) | Show the dependency tree of a library or project |
-| [update](./docs/en-US/cmd_update.md) | Repo mode takes no port arguments; port mode requires at least one `name@version` |
-| [version](./docs/en-US/cmd_version.md) | Show Celer version information |
+**Reference:**
+- [All Commands](./docs/en-US/cmd_configure.md) — `configure` · `install` · `remove` · `update` · `search` · `tree` · `clean` · `autoremove` · `reverse` · `integrate` · `version`
 
 ## 🤝 Contributing
 
-Celer is an open-source project built for community collaboration. Contributions are welcome in:
+Contributions are welcome in both the core and ports:
 
-- **[celer](https://github.com/celer-pkg/celer)** - the core package manager implementation
-- **[ports](https://github.com/celer-pkg/ports)** - port definitions and build configurations
-
-If you want to add features, improve documentation, or contribute new port definitions, we would be glad to have your help.
+- **[celer](https://github.com/celer-pkg/celer)** — core package manager
+- **[ports](https://github.com/celer-pkg/ports)** — port definitions & build configs
 
 ## 📄 License
 
-This project is released under the MIT License. See [LICENSE](./LICENSE) for details.
-
-Third-party libraries in the `ports` repository remain under their original licenses.
+MIT. See [LICENSE](./LICENSE). Third-party libraries in `ports/` remain under their original licenses.
 
 ---
 
