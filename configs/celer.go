@@ -186,6 +186,15 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 			return fmt.Errorf("failed to unmarshal conf -> %w", err)
 		}
 
+		// Normalize path separators to forward slashes.
+		c.Main.Downloads = filepath.ToSlash(c.Main.Downloads)
+		if c.configData.CCache != nil {
+			c.configData.CCache.Dir = filepath.ToSlash(c.configData.CCache.Dir)
+		}
+		if c.configData.PkgCacheConfig != nil {
+			c.configData.PkgCacheConfig.Dir = filepath.ToSlash(c.configData.PkgCacheConfig.Dir)
+		}
+
 		// Use lower case build type in celer as default.
 		c.Main.BuildType = strings.ToLower(c.Main.BuildType)
 

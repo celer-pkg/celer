@@ -369,12 +369,14 @@ func (b *BuildConfig) setEnvFlags() {
 		b.appendLibDir(filepath.Join(tmpDepsDir, "lib"))
 	}
 
-	// Convert "include_dirs" and "link_dirs" into CFLAGS/CXXFLAGS/LDFLAGS for makefiles.
+	// Convert "include_dirs" and "lib_dirs" into CFLAGS/CXXFLAGS/LDFLAGS for makefiles.
 	for _, includeDir := range b.IncludeDirs {
+		includeDir = b.ExprVars.Expand(includeDir)
 		b.appendIncludeDir(includeDir)
 	}
-	for _, linkDir := range b.LinkDirs {
-		b.appendLibDir(linkDir)
+	for _, libDir := range b.LibDirs {
+		libDir = b.ExprVars.Expand(libDir)
+		b.appendLibDir(libDir)
 	}
 }
 

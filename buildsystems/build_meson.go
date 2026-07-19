@@ -411,15 +411,15 @@ func (m meson) generateCrossFile(toolchain context.Toolchain, rootfs context.Roo
 		}
 	}
 
-	// Append "include_dirs" and "link_dirs"  from port.toml to cross-file args.
+	// Append "include_dirs" and "lib_dirs"  from port.toml to cross-file args.
 	// because meson ignores the CFLAGS/CXXFLAGS/LDFLAGS env var during cross-compilation.
 	for _, includeDir := range m.IncludeDirs {
 		includeDir = m.ExprVars.Expand(includeDir)
 		m.appendIncludeArgs(&includeArgs, includeDir)
 	}
-	for _, linkDir := range m.LinkDirs {
-		linkDir = m.ExprVars.Expand(linkDir)
-		m.appendLinkArgs(&linkArgs, linkDir)
+	for _, libDir := range m.LibDirs {
+		libDir = m.ExprVars.Expand(libDir)
+		m.appendLinkArgs(&linkArgs, libDir)
 	}
 
 	// Append CFLAGS to c_args, CXXFLAGS to cpp_args.
@@ -516,16 +516,16 @@ func (m meson) generateNativeFile() (string, error) {
 		m.appendIncludeArgs(&cppArgs, devIncludeDir)
 	}
 
-	// Append "include_dirs" and "link_dirs"  from port.toml to cross-file args.
+	// Append "include_dirs" and "lib_dirs"  from port.toml to cross-file args.
 	// because meson ignores the CFLAGS/CXXFLAGS/LDFLAGS env var during cross-compilation.
 	for _, includeDir := range m.IncludeDirs {
 		includeDir = m.ExprVars.Expand(includeDir)
 		m.appendIncludeArgs(&cArgs, includeDir)
 		m.appendIncludeArgs(&cppArgs, includeDir)
 	}
-	for _, linkDir := range m.LinkDirs {
-		linkDir = m.ExprVars.Expand(linkDir)
-		m.appendLinkArgs(&linkArgs, linkDir)
+	for _, libDir := range m.LibDirs {
+		libDir = m.ExprVars.Expand(libDir)
+		m.appendLinkArgs(&linkArgs, libDir)
 	}
 
 	devLibDir := filepath.Join(tmpDevDir, "lib")

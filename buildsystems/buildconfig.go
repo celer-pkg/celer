@@ -262,14 +262,14 @@ type BuildConfig struct {
 	IncludeDirs_Linux   []string `toml:"include_dirs_linux,omitempty"`
 	IncludeDirs_Darwin  []string `toml:"include_dirs_darwin,omitempty"`
 
-	// Extra link dirs, they'll be converted to different buildsystems options:
+	// Extra lib dirs, they'll be converted to different buildsystems options:
 	// - makefiles: LDFLAGS
 	// - meson: c_link_args/cXX_link_args
 	// - cmake: CMAKE_SHARED_LINKER_FLAGS_INIT/CMAKE_MODULE_LINKER_FLAGS_INIT/CMAKE_EXE_LINKER_FLAGS_INIT
-	LinkDirs         []string `toml:"link_dirs,omitempty"`
-	LinkDirs_Windows []string `toml:"link_dirs_windows,omitempty"`
-	LinkDirs_Linux   []string `toml:"link_dirs_linux,omitempty"`
-	LinkDirs_Darwin  []string `toml:"link_dirs_darwin,omitempty"`
+	LibDirs         []string `toml:"lib_dirs,omitempty"`
+	LibDirs_Windows []string `toml:"lib_dirs_windows,omitempty"`
+	LibDirs_Linux   []string `toml:"lib_dirs_linux,omitempty"`
+	LibDirs_Darwin  []string `toml:"lib_dirs_darwin,omitempty"`
 
 	// Event hooks for diableDevCache
 	DisableDevCache         bool `toml:"disable_dev_cache,omitempty"`
