@@ -438,7 +438,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 		// Move extracted files to repo dir if it's not "include".
 		if len(entities) == 1 && entities[0].IsDir() && entities[0].Name() != "include" {
-			color.Printf(color.Hint, "- extract to %s", b.PortConfig.RepoDir)
+			color.Printf(color.Hint, "\n- extract to %s", b.PortConfig.RepoDir)
 			if err := fileio.FlattenNestedDir(b.PortConfig.RepoDir); err != nil {
 				return err
 			}

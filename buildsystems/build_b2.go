@@ -43,6 +43,13 @@ func (b b2) CheckTools() []string {
 func (b *b2) preConfigure() error {
 	toolchain := b.Ctx.Platform().GetToolchain()
 
+	// Boost b2 does not support clang on Windows.
+	// b2's clang toolset uses MSVC-style link flags (/LIBPATH) incompatible
+	// with clang's MinGW mode. Use msvc or clang-cl toolchain instead.
+	if runtime.GOOS == "windows" && toolchain.GetName() == "clang" {
+		return fmt.Errorf("boost b2 does not support clang on Windows, use msvc or clang-cl toolchain")
+	}
+
 	// `clang` inside visual studio cannot be used to compile b2 project.
 	if runtime.GOOS == "windows" && strings.Contains(toolchain.GetAbsDir(), "Microsoft Visual Studio") {
 		if toolchain.GetName() == "clang" {
