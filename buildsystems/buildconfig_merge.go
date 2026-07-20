@@ -24,7 +24,7 @@ func (b *BuildConfig) mergeConfig() {
 		"PreConfigure", "CustomConfigure", "PostConfigure",
 		"PreBuild", "CustomBuild", "PostBuild",
 		"PreInstall", "CustomInstall", "PostInstall",
-		"IncludeDirs", "LinkDirs",
+		"IncludeDirs", "LibDirs",
 		"AutogenOptions", "DisableDevCache", "Options",
 	}
 
