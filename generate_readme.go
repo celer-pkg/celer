@@ -2,6 +2,9 @@
 
 // Generate root README.md from docs/en-US/README.md by adjusting relative link paths.
 //
+// The en-US README uses paths relative to docs/en-US/ (e.g. ./quick_start.md).
+// The root README needs paths relative to repo root (e.g. ./docs/en-US/quick_start.md).
+//
 // Usage:
 //
 //	go run generate_readme.go
@@ -10,7 +13,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"regexp"
+	"strings"
 )
 
 func main() {
@@ -22,29 +25,39 @@ func main() {
 
 	content := string(src)
 
-	// 1. Fix language switcher: ../zh-CN/README.md -> ./docs/zh-CN/README.md
-	content = regexp.MustCompile(`\[🌍 中文\]\(\.\./zh-CN/README\.md\)`).
-		ReplaceAllString(content, `[🌍 中文](./docs/zh-CN/README.md)`)
+	// Language switcher: point back to en-US README, zh-CN stays.
+	content = strings.ReplaceAll(content,
+		"[English](../../README.md)",
+		"[English](./README.md)")
+	content = strings.ReplaceAll(content,
+		"[🌍 中文](../zh-CN/README.md)",
+		"[🌍 中文](./docs/zh-CN/README.md)")
 
-	// 2. Fix image path: ](../assets/ -> ](./docs/assets/
-	content = regexp.MustCompile(`\]\(\.\./assets/`).
-		ReplaceAllString(content, `](./docs/assets/`)
+	// Assets: lift one level up from docs/en-US/.
+	content = strings.ReplaceAll(content,
+		"](../../assets/",
+		"](./docs/assets/")
 
-	// 3. Fix doc links: ](./xxx.md) -> ](./docs/en-US/xxx.md)
-	//    Skip links already under ./docs/ and the self-reference ](./README.md).
-	//    Handles optional #anchor fragments.
-	re := regexp.MustCompile(`\]\(\./([^)]*\.md(?:#[^)]*)?)\)`)
-	content = re.ReplaceAllStringFunc(content, func(m string) string {
-		// Keep unchanged: self-reference or already under docs/.
-		if m == "](./README.md)" || regexp.MustCompile(`^\]\(\./docs/`).MatchString(m) {
-			return m
-		}
-		return re.ReplaceAllString(m, `](./docs/en-US/$1)`)
-	})
+	// Root-level files: lift out of docs/en-US/.
+	content = strings.ReplaceAll(content,
+		"](../../LICENSE)",
+		"](./LICENSE)")
 
-	// 4. Fix LICENSE path: ../../LICENSE -> ./LICENSE (root README is at repo root).
-	content = regexp.MustCompile(`\]\(\.\./\.\./LICENSE\)`).
-		ReplaceAllString(content, `](./LICENSE)`)
+	// Doc links: ./xxx.md -> ./docs/en-US/xxx.md
+	// Only rewrite relative links that are NOT already under docs/en-US/.
+	// We do a simple prefix check: replace "./quick_" with "./docs/en-US/quick_" etc.
+	content = strings.ReplaceAll(content,
+		"](./quick_",
+		"](./docs/en-US/quick_")
+	content = strings.ReplaceAll(content,
+		"](./cmd_",
+		"](./docs/en-US/cmd_")
+	content = strings.ReplaceAll(content,
+		"](./article_",
+		"](./docs/en-US/article_")
+	content = strings.ReplaceAll(content,
+		"](./why_",
+		"](./docs/en-US/why_")
 
 	if err := os.WriteFile("README.md", []byte(content), 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "write README.md: %v\n", err)
