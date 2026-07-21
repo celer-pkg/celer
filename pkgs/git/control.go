@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"slices"
 	"strings"
 
 	"github.com/celer-pkg/celer/pkgs/cmd"
@@ -387,20 +386,16 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 		return errors.ErrNotGitDir
 	}
 
-	patchFileName := filepath.Base(patchFile)
-
-	// Check if patched already.
-	recordFilePath := filepath.Join(repoDir, ".patched")
-	if pathExists(recordFilePath) {
-		bytes, err := os.ReadFile(recordFilePath)
-		if err != nil {
-			return fmt.Errorf("failed to read .patched for '%s' -> %w", nameVersion, err)
-		}
-
-		lines := strings.Split(string(bytes), "\n")
-		if slices.Contains(lines, patchFileName) {
-			return nil
-		}
+	// Check if the patch is already applied by attempting to reverse-apply it.
+	// --reverse --check succeeds (no files changed) only if the patch is already
+	// applied, which means we can skip.
+	title := fmt.Sprintf("[check patch: %s]", nameVersion)
+	checkArgs := []string{"apply", "--reverse", "--check", patchFile}
+	checkExecutor := cmd.NewExecutor(title, "git", checkArgs...)
+	checkExecutor.SetWorkDir(repoDir)
+	if _, err := checkExecutor.ExecuteOutputLive(); err == nil {
+		// Reverse apply succeeded → patch is already applied.
+		return nil
 	}
 
 	// Read the first few lines of the file to check for Git patch features.
@@ -446,16 +441,6 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 		}
 	}
 
-	// Create a flag file to indicated that patch already applied.
-	recordFile, err := os.OpenFile(recordFilePath, os.O_CREATE|os.O_RDWR|os.O_APPEND, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("failed to open or create .patched for '%s' -> %w", nameVersion, err)
-	}
-	defer recordFile.Close()
-
-	if _, err := recordFile.WriteString(patchFileName + "\n"); err != nil {
-		return fmt.Errorf("failed to write %s into .patched for '%s' -> %w", patchFileName, nameVersion, err)
-	}
 	return nil
 }
 
