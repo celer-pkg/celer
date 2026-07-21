@@ -3,6 +3,7 @@ package pkgcache
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/user"
 	"path/filepath"
 	"slices"
@@ -58,6 +59,7 @@ func CheckWriteAccess(ctx context.Context) error {
 		if err := probeWrite(chattrFS, subDir.name, subDir.path); err != nil {
 			return err
 		}
+		defer os.RemoveAll(writeProbeRel)
 	}
 
 	if ctx.Verbose() {

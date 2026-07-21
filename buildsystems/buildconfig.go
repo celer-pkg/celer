@@ -919,19 +919,16 @@ func (b BuildConfig) winEnvs() (string, error) {
 		configPaths   []string
 		configLibDirs []string
 		pathDivider   string
-		sysrootDir    string
 	)
 	configPaths = []string{
 		fileio.ToCygpath(filepath.Join(tmpDepsDir, "lib", "pkgconfig")),
 		fileio.ToCygpath(filepath.Join(tmpDepsDir, "share", "pkgconfig")),
 	}
-	sysrootDir = fileio.ToCygpath(tmpDepsDir)
 	pathDivider = ":"
 
 	// Set merged pkgconfig envs.
 	appendEnv("PKG_CONFIG_PATH", strings.Join(configPaths, pathDivider))
 	appendEnv("PKG_CONFIG_LIBDIR", strings.Join(configLibDirs, pathDivider))
-	appendEnv("PKG_CONFIG_SYSROOT_DIR", sysrootDir)
 
 	// Load MSVC environment variables.
 	msvcEnvs, err := b.readMSVCEnvs()

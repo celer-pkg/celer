@@ -229,10 +229,6 @@ func (b BuildConfig) setupPkgConfig() {
 		b.envBackup.setenv("PKG_CONFIG_LIBDIR", strings.Join(configLibDirs, pathDivider))
 	}
 	b.envBackup.setenv("PKG_CONFIG_PATH", strings.Join(configPaths, pathDivider))
-
-	// Host-side builds use absolute dependency paths and should not inherit target sysroot.
-	// PKG_CONFIG_SYSROOT_DIR is only needed for cross-compilation when .pc files use relative paths.
-	b.envBackup.setenv("PKG_CONFIG_SYSROOT_DIR", expr.If(hostBuild, "", sysrootDir))
 }
 
 // setupLDLibraryPath Keep host-side dev tool runtimes resolvable before any helper process starts.
