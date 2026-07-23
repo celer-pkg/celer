@@ -60,7 +60,7 @@ func (e *executor) doExecute(output io.Writer) error {
 
 	// Execute command and return result.
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("faild to execute command -> %w", err)
+		return err
 	}
 
 	return nil
