@@ -261,9 +261,12 @@ func (i *installCmd) completion(cmd *cobra.Command, args []string, toComplete st
 		i.buildSuggestions(&suggestions, dirs.PortsDir, toComplete)
 	}
 
-	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, i.celer.Project().GetName())
-	if fileio.PathExists(projectPortsDir) {
-		i.buildSuggestions(&suggestions, projectPortsDir, toComplete)
+	projectName := i.celer.GetProjectName()
+	if projectName != "" {
+		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
+		if fileio.PathExists(projectPortsDir) {
+			i.buildSuggestions(&suggestions, projectPortsDir, toComplete)
+		}
 	}
 
 	// Support flags completion.

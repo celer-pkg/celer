@@ -138,10 +138,13 @@ func (s *searchCmd) search(pattern string) ([]string, error) {
 		return nil, err
 	}
 
-	// Search in project-specific ports.
-	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, s.celer.Project().GetName())
-	if err := searchInDir(projectPortsDir); err != nil {
-		return nil, err
+	// Search in project-specific ports (only if project is configured).
+	projectName := s.celer.GetProjectName()
+	if projectName != "" {
+		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
+		if err := searchInDir(projectPortsDir); err != nil {
+			return nil, err
+		}
 	}
 
 	return results, nil
@@ -174,25 +177,28 @@ func (s *searchCmd) completion(cmd *cobra.Command, args []string, toComplete str
 	}
 
 	// Completion from project-specific ports.
-	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, s.celer.Project().GetName())
-	if fileio.PathExists(projectPortsDir) {
-		filepath.WalkDir(projectPortsDir, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return nil // Skip errors in completion.
-			}
-
-			if !d.IsDir() && d.Name() == "port.toml" {
-				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
-				libVersion := filepath.Base(filepath.Dir(path))
-				nameVersion := libName + "@" + libVersion
-
-				if strings.HasPrefix(nameVersion, toComplete) {
-					suggestions = append(suggestions, nameVersion)
+	projectName := s.celer.GetProjectName()
+	if projectName != "" {
+		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
+		if fileio.PathExists(projectPortsDir) {
+			filepath.WalkDir(projectPortsDir, func(path string, d fs.DirEntry, err error) error {
+				if err != nil {
+					return nil // Skip errors in completion.
 				}
-			}
 
-			return nil
-		})
+				if !d.IsDir() && d.Name() == "port.toml" {
+					libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
+					libVersion := filepath.Base(filepath.Dir(path))
+					nameVersion := libName + "@" + libVersion
+
+					if strings.HasPrefix(nameVersion, toComplete) {
+						suggestions = append(suggestions, nameVersion)
+					}
+				}
+
+				return nil
+			})
+		}
 	}
 
 	return suggestions, cobra.ShellCompDirectiveNoFileComp
