@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -114,8 +115,9 @@ func (r *reverseCmd) query(target string) ([]string, error) {
 	if fileio.PathExists(dirs.PortsDir) {
 		walkPorts(dirs.PortsDir)
 	}
-	if r.celer.Project().GetName() != "" {
-		projectDir := filepath.Join(dirs.ConfProjectsDir, r.celer.Project().GetName())
+	projectName := r.celer.GetProjectName()
+	if projectName != "" {
+		projectDir := filepath.Join(dirs.ConfProjectsDir, projectName)
 		if fileio.PathExists(projectDir) {
 			walkPorts(projectDir)
 		}
@@ -147,16 +149,12 @@ func (r *reverseCmd) tomlHasDependency(portTomlPath, target string) bool {
 		return false
 	}
 	for _, config := range deps.BuildConfigs {
-		for _, dependency := range config.Dependencies {
-			if dependency == target {
-				return true
-			}
+		if slices.Contains(config.Dependencies, target) {
+			return true
 		}
 		if r.dev {
-			for _, dependency := range config.DevDependencies {
-				if dependency == target {
-					return true
-				}
+			if slices.Contains(config.DevDependencies, target) {
+				return true
 			}
 		}
 	}
@@ -193,8 +191,9 @@ func (r *reverseCmd) completion(cmd *cobra.Command, args []string, toComplete st
 	if fileio.PathExists(dirs.PortsDir) {
 		walkPorts(dirs.PortsDir)
 	}
-	if r.celer != nil && r.celer.Project().GetName() != "" {
-		projectDir := filepath.Join(dirs.ConfProjectsDir, r.celer.Project().GetName())
+	projectName := r.celer.GetProjectName()
+	if projectName != "" {
+		projectDir := filepath.Join(dirs.ConfProjectsDir, projectName)
 		if fileio.PathExists(projectDir) {
 			walkPorts(projectDir)
 		}

@@ -41,7 +41,7 @@ func NewCeler() *Celer {
 
 	return &Celer{
 		configData: configData{
-			Main: main{
+			Main: Main{
 				Jobs:      runtime.NumCPU() - 1,
 				BuildType: "Release",
 			},
@@ -59,7 +59,7 @@ type Celer struct {
 	devCacheConfig *DevCacheConfig
 }
 
-type main struct {
+type Main struct {
 	ConfRepo  string `toml:"conf_repo"`
 	Platform  string `toml:"platform"`
 	Project   string `toml:"project"`
@@ -71,8 +71,9 @@ type main struct {
 }
 
 type Proxy struct {
-	Host string `toml:"host"`
-	Port int    `toml:"port"`
+	Host   string `toml:"host"`
+	Port   int    `toml:"port"`
+	Remove bool   `toml:"-"`
 }
 
 type features struct {
@@ -107,7 +108,7 @@ func (p *Python) GetTrustedHosts() []string {
 }
 
 type configData struct {
-	Main           main            `toml:"main"`
+	Main           Main            `toml:"main"`
 	Proxy          *Proxy          `toml:"proxy,omitempty"`
 	PkgCacheConfig *PkgCacheConfig `toml:"pkgcache,omitempty"`
 	CCache         *CCache         `toml:"ccache,omitempty"`
@@ -146,7 +147,7 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		}
 
 		// Default global values.
-		c.Main = main{
+		c.Main = Main{
 			BuildType: "release",
 			Downloads: "",
 			Jobs:      jobs,
@@ -429,6 +430,21 @@ func (c *Celer) CloneConf(url, branch string, force bool) error {
 	}
 
 	return nil
+}
+
+// GetProjectName this a tiny api to read project's name from celer.toml directly.
+func (c *Celer) GetProjectName() string {
+	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
+	if !fileio.PathExists(configPath) {
+		return ""
+	}
+	var cfg struct {
+		Main Main `toml:"main"`
+	}
+	if _, err := toml.DecodeFile(configPath, &cfg); err != nil {
+		return ""
+	}
+	return cfg.Main.Project
 }
 
 func (c *Celer) portsRepoUrl() string {

@@ -359,25 +359,28 @@ func (t *treeCmd) completion(cmd *cobra.Command, args []string, toComplete strin
 	}
 
 	// Support port completion from project-specific ports.
-	projectPortsDir := filepath.Join(dirs.ConfProjectsDir, t.celer.Project().GetName())
-	if fileio.PathExists(projectPortsDir) {
-		filepath.WalkDir(projectPortsDir, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-
-			if !d.IsDir() && strings.HasSuffix(d.Name(), ".toml") {
-				libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
-				libVersion := filepath.Base(filepath.Dir(path))
-				nameVersion := libName + "@" + libVersion
-
-				if strings.HasPrefix(nameVersion, toComplete) {
-					suggestions = append(suggestions, nameVersion)
+	projectName := t.celer.GetProjectName()
+	if projectName != "" {
+		projectPortsDir := filepath.Join(dirs.ConfProjectsDir, projectName)
+		if fileio.PathExists(projectPortsDir) {
+			filepath.WalkDir(projectPortsDir, func(path string, d fs.DirEntry, err error) error {
+				if err != nil {
+					return err
 				}
-			}
 
-			return nil
-		})
+				if !d.IsDir() && strings.HasSuffix(d.Name(), ".toml") {
+					libName := filepath.Base(filepath.Dir(filepath.Dir(path)))
+					libVersion := filepath.Base(filepath.Dir(path))
+					nameVersion := libName + "@" + libVersion
+
+					if strings.HasPrefix(nameVersion, toComplete) {
+						suggestions = append(suggestions, nameVersion)
+					}
+				}
+
+				return nil
+			})
+		}
 	}
 
 	// Support project completion.
