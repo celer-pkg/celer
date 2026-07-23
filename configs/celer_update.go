@@ -326,6 +326,19 @@ func (c *Celer) SetProxyHost(host string) error {
 	return nil
 }
 
+func (c *Celer) RemoveProxy() error {
+	if err := c.readOrCreate(); err != nil {
+		return err
+	}
+
+	c.configData.Proxy = nil
+	if err := c.save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *Celer) SetProxyPort(port int) error {
 	if port <= 0 {
 		return fmt.Errorf("proxy port is invalid")
