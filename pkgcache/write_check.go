@@ -9,13 +9,13 @@ import (
 	"slices"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-const writeProbeRel = ".celer-write-probe/probe"
+const writeProbeRel = ".celer-write-probe"
 
 var getProcessGroups = syscall.Getgroups
 
@@ -59,12 +59,8 @@ func CheckWriteAccess(ctx context.Context) error {
 		if err := probeWrite(chattrFS, subDir.name, subDir.path); err != nil {
 			return err
 		}
-		defer os.RemoveAll(writeProbeRel)
 	}
 
-	if ctx.Verbose() {
-		color.PrintHint("✔ pkgcache write check passed: %s", cacheDir)
-	}
 	return nil
 }
 
@@ -96,7 +92,7 @@ func checkProcessInCelerGroup() error {
 }
 
 func probeWrite(chattrFS *fileio.ChattrFS, subName, subDir string) error {
-	probeFile := filepath.Join(subDir, writeProbeRel)
+	probeFile := filepath.Join(subDir, fmt.Sprintf("%s-%d", writeProbeRel, time.Nanosecond))
 	if err := chattrFS.MkdirAll(filepath.Dir(probeFile), fileio.CacheDirPerm); err != nil {
 		return fmt.Errorf("failed to check pkgcache write permission (%s) -> %w", subName, err)
 	}
@@ -105,5 +101,6 @@ func probeWrite(chattrFS *fileio.ChattrFS, subName, subDir string) error {
 		return fmt.Errorf("failed to check pkgcache write permission(%s) -> %w", subName, err)
 	}
 
+	os.RemoveAll(probeFile)
 	return nil
 }

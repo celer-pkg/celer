@@ -99,13 +99,6 @@ func TestCheckWriteAccess_Success(t *testing.T) {
 	if err := CheckWriteAccess(ctx); err != nil {
 		t.Fatalf("expected success, got: %v", err)
 	}
-
-	for _, sub := range []string{"repos", "downloads", "artifacts"} {
-		probe := filepath.Join(cacheDir, sub, writeProbeRel)
-		if !fileExists(probe) {
-			t.Fatalf("expected probe file at %s", probe)
-		}
-	}
 }
 
 func setupWritableCacheDir(t *testing.T) string {

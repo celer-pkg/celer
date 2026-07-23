@@ -50,6 +50,7 @@ var flagGroup = map[string]string{
 	"pkgcache-cache-downloads": "pkgcache",
 	"proxy-host":               "proxy",
 	"proxy-port":               "proxy",
+	"proxy-remove":             "proxy",
 	"ccache-enabled":           "ccache",
 	"ccache-dir":               "ccache",
 	"ccache-maxsize":           "ccache",
@@ -97,6 +98,7 @@ Available Configuration Options:
   Proxy Configuration:
     --proxy-host                Set the proxy server hostname
     --proxy-port                Set the proxy server port number
+	--proxy-remove				Remove http/https proxy
 
   CCache Configuration:
     --ccache-enabled            Enable/disable ccache (true/false)
@@ -123,6 +125,7 @@ Examples:
   celer configure --pkgcache-cache-artifacts=true                  # Cache built artifacts
   celer configure --proxy-host=proxy.example.com                   # Set proxy host
   celer configure --proxy-port=8080                                # Set proxy port
+  celer configure --proxy-remove                                   # Remove http/https proxy
   celer configure --ccache-enabled=true                            # Enable ccache
   celer configure --ccache-maxsize=5G                              # Set ccache max size to 5GB
   celer configure --ccache-remote-storage=http://srv:8080/ccache   # Set ccache remote storage
@@ -212,6 +215,7 @@ Examples:
 	// Proxy flags.
 	flags.StringVar(&c.proxy.Host, "proxy-host", "", "configure proxy host.")
 	flags.IntVar(&c.proxy.Port, "proxy-port", 0, "configure proxy port.")
+	flags.BoolVar(&c.proxy.Remove, "proxy-remove", false, "remove http/https proxy.")
 
 	// CCache flags.
 	flags.BoolVar(&c.ccache.Enabled, "ccache-enabled", false, "configure ccache enabled.")
@@ -240,6 +244,9 @@ Examples:
 	// CCache flag completions.
 	command.RegisterFlagCompletionFunc("ccache-enabled", boolCompletion)
 	command.RegisterFlagCompletionFunc("ccache-remote-only", boolCompletion)
+
+	// Proxy remove completions.
+	command.RegisterFlagCompletionFunc("proxy-remove", boolCompletion)
 
 	// Silence cobra's error and usage output to avoid duplicate messages.
 	command.SilenceErrors = true
@@ -360,18 +367,25 @@ func (c *configureCmd) configureCCache(flags *pflag.FlagSet) error {
 }
 
 func (c *configureCmd) configureProxy(flags *pflag.FlagSet) error {
-	if flags.Changed("proxy-host") {
-		if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
-			return color.PrintError(err, "failed to configure proxy host: %s", c.proxy.Host)
+	if flags.Changed("proxy-remove") {
+		if err := c.celer.RemoveProxy(); err != nil {
+			return err
 		}
-		color.PrintSuccess("current proxy host: %s", c.proxy.Host)
-	}
+		color.PrintSuccess("http/https proxy is removed")
+	} else {
+		if flags.Changed("proxy-host") {
+			if err := c.celer.SetProxyHost(c.proxy.Host); err != nil {
+				return color.PrintError(err, "failed to configure proxy host: %s", c.proxy.Host)
+			}
+			color.PrintSuccess("current proxy host: %s", c.proxy.Host)
+		}
 
-	if flags.Changed("proxy-port") {
-		if err := c.celer.SetProxyPort(c.proxy.Port); err != nil {
-			return color.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
+		if flags.Changed("proxy-port") {
+			if err := c.celer.SetProxyPort(c.proxy.Port); err != nil {
+				return color.PrintError(err, "failed to set proxy port: %d.", c.proxy.Port)
+			}
+			color.PrintSuccess("current proxy port: %d.", c.proxy.Port)
 		}
-		color.PrintSuccess("current proxy port: %d.", c.proxy.Port)
 	}
 
 	return nil
@@ -461,6 +475,7 @@ func (c *configureCmd) completion(cmd *cobra.Command, args []string, toComplete 
 		"--pkgcache-cache-downloads",
 		"--proxy-host",
 		"--proxy-port",
+		"--proxy-remove",
 		"--ccache-enabled",
 		"--ccache-dir",
 		"--ccache-maxsize",
