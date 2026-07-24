@@ -69,7 +69,10 @@ type Toolchain struct {
 	// Additional compiler tools.
 	FC string `toml:"fc,omitempty"` // Compile Fortran code.
 
-	// Platform-aware envs, flags.
+	// Default minimum is "3.5"
+	CMakePolicyVersionMinimum string `toml:"cmake_policy_version_minimum,omitempty"`
+
+	// Platform-aware vars, envs and flags.
 	Envs           []string `toml:"envs"`
 	CFlags         []string `toml:"cflags"`
 	CXXFlags       []string `toml:"cxxflags"`
@@ -77,6 +80,7 @@ type Toolchain struct {
 	CFlagsDebug    []string `toml:"cflags_debug"`
 	CXXFlagsDebug  []string `toml:"cxxflags_debug"`
 	LinkFlagsDebug []string `toml:"linkflags_debug"`
+	CMakeVars      []string `toml:"cmake_vars,omitempty"`
 
 	// Internal fields.
 	MSVC        context.MSVC `toml:"-"`
@@ -324,8 +328,28 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		fmt.Fprintf(toolchain, "set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS FALSE)\n")
 	}
 
+	// Inject global cmake built-in variables to affecting the build environment.
+	for index, cmakeVar := range t.GetCMakeVars() {
+		cmakeVar = strings.TrimSpace(cmakeVar)
+		if cmakeVar == "" {
+			continue
+		}
+
+		if index == 0 {
+			fmt.Fprint(toolchain, "\n# Set global CMake built-in variables.\n")
+		}
+
+		if !strings.HasPrefix(cmakeVar, "CMAKE") {
+			return fmt.Errorf("%s is expected to be a CMake built-in variable affecting the build environment", cmakeVar)
+		}
+
+		if before, after, found := strings.Cut(cmakeVar, "="); found {
+			fmt.Fprintf(toolchain, "set(%s %s CACHE INTERNAL \"\")\n", before, after)
+		}
+	}
+
 	if len(cflags) > 0 || len(cxxflags) > 0 || len(linkflags) > 0 {
-		fmt.Fprint(toolchain, "\n# Append extra build flags.\n")
+		fmt.Fprint(toolchain, "\n# Setting extra build flags.\n")
 
 		// If both cflags and cxxflags exist, use foreach to avoid duplication
 		if len(cflags) > 0 && len(cxxflags) > 0 {
@@ -420,6 +444,14 @@ func (t Toolchain) GetCXXFlags() []string {
 
 func (t Toolchain) GetLinkFlags() []string {
 	return t.LinkFlags
+}
+
+func (t Toolchain) GetCMakePolicyVersionMinimum() string {
+	return t.CMakePolicyVersionMinimum
+}
+
+func (t Toolchain) GetCMakeVars() []string {
+	return t.CMakeVars
 }
 
 func (t Toolchain) GetCPP() string {

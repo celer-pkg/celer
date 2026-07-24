@@ -34,27 +34,6 @@ func (c *Celer) GenerateToolchainFile() error {
 		return err
 	}
 
-	// Let execuable binary locate dependency libraries from "../lib" automatically.
-	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
-		fmt.Fprintf(&builder, "\n# Let executable binary locate dependency libraries from \"../lib\" automatically.\n")
-		fmt.Fprintf(&builder, "if(CMAKE_HOST_SYSTEM_NAME STREQUAL \"Linux\")\n")
-		fmt.Fprintf(&builder, "  set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib\;\$ORIGIN/../lib64`)
-		fmt.Fprintf(&builder, "endif()\n")
-	}
-
-	// The Ninja generator on Windows cannot modify RPATH during install.
-	// Visual Studio / MSVC generator doesn't use RPATH at all, so this is
-	// a no-op for those. CMAKE_BUILD_WITH_INSTALL_RPATH sets the install
-	// RPATH at build time, avoiding the Ninja relinking step.
-	fmt.Fprintf(&builder, "\n# Ninja on Windows cannot modify RPATH during install.\n")
-	fmt.Fprintf(&builder, "if(CMAKE_HOST_SYSTEM_NAME STREQUAL \"Windows\" AND CMAKE_GENERATOR STREQUAL \"Ninja\")\n")
-	fmt.Fprintf(&builder, "  set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)\n")
-	fmt.Fprintf(&builder, "endif()\n")
-
-	// Let CMake project generate compile_commands.json.
-	fmt.Fprintf(&builder, "\n# Let CMake project generate compile_commands.json.\n")
-	fmt.Fprintf(&builder, "set(%s %s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON")
-
 	// Rootfs related.
 	rootfs := c.RootFS()
 	if rootfs != nil {
@@ -98,6 +77,27 @@ func (c *Celer) GenerateToolchainFile() error {
 			return err
 		}
 	}
+
+	// Let execuable binary locate dependency libraries from "../lib" automatically.
+	if strings.ToLower(c.platform.Toolchain.GetSystemName()) == "linux" {
+		fmt.Fprintf(&builder, "\n# Let executable binary locate dependency libraries from \"../lib\" automatically.\n")
+		fmt.Fprintf(&builder, "if(CMAKE_HOST_SYSTEM_NAME STREQUAL \"Linux\")\n")
+		fmt.Fprintf(&builder, "  set(%s %q)\n", "CMAKE_INSTALL_RPATH", `\$ORIGIN/../lib\;\$ORIGIN/../lib64`)
+		fmt.Fprintf(&builder, "endif()\n")
+	}
+
+	// The Ninja generator on Windows cannot modify RPATH during install.
+	// Visual Studio / MSVC generator doesn't use RPATH at all, so this is
+	// a no-op for those. CMAKE_BUILD_WITH_INSTALL_RPATH sets the install
+	// RPATH at build time, avoiding the Ninja relinking step.
+	fmt.Fprintf(&builder, "\n# Ninja on Windows can not modify RPATH during install.\n")
+	fmt.Fprintf(&builder, "if(CMAKE_HOST_SYSTEM_NAME STREQUAL \"Windows\" AND CMAKE_GENERATOR STREQUAL \"Ninja\")\n")
+	fmt.Fprintf(&builder, "  set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)\n")
+	fmt.Fprintf(&builder, "endif()\n")
+
+	// Let CMake project generate compile_commands.json.
+	fmt.Fprintf(&builder, "\n# Let CMake project generate compile_commands.json.\n")
+	fmt.Fprintf(&builder, "set(%s %s)\n", "CMAKE_EXPORT_COMPILE_COMMANDS", "ON")
 
 	// Define global cmake vars, env vars and macros.
 	c.appendVars(&builder)

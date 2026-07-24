@@ -24,11 +24,13 @@ type Toolchain interface {
 	GetCrosstoolPrefix() string
 	GetCStandard() string
 	GetCXXStandard() string
+	GetCMakePolicyVersionMinimum() string
 	GetCC() string
 	GetCXX() string
 	GetCFlags() []string
 	GetCXXFlags() []string
 	GetLinkFlags() []string
+	GetCMakeVars() []string
 	GetCPP() string
 	GetLD() string
 	GetGCOV() string
