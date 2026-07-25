@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/env"
 	"github.com/celer-pkg/celer/pkgs/expr"
@@ -14,76 +15,24 @@ import (
 )
 
 type Toolchain struct {
-	Url             string `toml:"url"`                       // Download url or local file url.
-	SHA256          string `toml:"sha256"`                    // SHA256 of the toolchain archive, used for verification and caching.
-	Name            string `toml:"name"`                      // It should be "gcc", "msvc", "clang-cl", "clang" and "msys2".
-	Version         string `toml:"version"`                   // It should be version of gcc/msvc/clang.
-	Archive         string `toml:"archive,omitempty"`         // Archive can be changed to avoid conflict.
-	Path            string `toml:"path"`                      // Runtime path of tool, it's relative path and would be converted to absolute path later.
-	SystemName      string `toml:"system_name"`               // It would be "Windows", "Linux", "Android" and so on.
-	SystemVersion   string `toml:"system_version,omitempty"`  // It would be a version for Android API level, etc.
-	SystemProcessor string `toml:"system_processor"`          // It would be "x86_64", "aarch64" and so on.
-	Host            string `toml:"host"`                      // It would be "x86_64-linux-gnu", "aarch64-linux-gnu" and so on.
-	EmbeddedSystem  bool   `toml:"embedded_system,omitempty"` // Whether it's for embedded system, like mcu or bare-metal.
-	CrosstoolPrefix string `toml:"crosstool_prefix"`          // It would be like "x86_64-linux-gnu-"
+	toolchains.Infos
+	toolchains.BuildTools
+	toolchains.BuildFlags
 
 	// C/C++ standard.
 	CStandard   string `toml:"c_standard,omitempty"`
 	CXXStandard string `toml:"cxx_standard,omitempty"`
 
-	// Mandatory fields.
-	CC  string `toml:"cc"`  // C language compiler.
-	CXX string `toml:"cxx"` // C++ language compiler.
-
-	// Compiler target triplets for multi-target compiler drivers (e.g. qcc).
-	// CMake maps these to CMAKE_C/CXX_COMPILER_TARGET, which translates to -V flags.
-	// Required when the compiler driver defaults to a different architecture
-	CCompilerTarget   string `toml:"c_compiler_target,omitempty"`
-	CXXCompilerTarget string `toml:"cxx_compiler_target,omitempty"`
-
-	// Core compiler tools (Essential).
-	CPP string `toml:"cpp,omitempty"` // C preprocessor.
-	AR  string `toml:"ar,omitempty"`  // Archive static library.
-	LD  string `toml:"ld,omitempty"`  // Link executable.
-	AS  string `toml:"as,omitempty"`  // Assemble assembly code.
-
-	// Object file manipulation tools.
-	OBJCOPY string `toml:"objcopy,omitempty"` // Copy object file.
-	OBJDUMP string `toml:"objdump,omitempty"` // Dump object file.
-	STRIP   string `toml:"strip,omitempty"`   // Strip executable and library.
-	READELF string `toml:"readelf,omitempty"` // Read ELF file.
-	SIZE    string `toml:"size,omitempty"`    // Display file size.
-	STRINGS string `toml:"strings,omitempty"` // Display strings in file.
-
-	// Symbol and archive tools.
-	NM     string `toml:"nm,omitempty"`     // List symbols in object file.
-	RANLIB string `toml:"ranlib,omitempty"` // Index static library.
-
-	// Code coverage tools.
-	GCOV string `toml:"gcov,omitempty"` // Gcov code coverage.
-
-	// Debug and analysis tools.
-	ADDR2LINE string `toml:"addr2line,omitempty"` // Convert address to line number.
-	CXXFILT   string `toml:"cxxfilt,omitempty"`   // C++ symbol demangler.
-
-	// Additional compiler tools.
-	FC string `toml:"fc,omitempty"` // Compile Fortran code.
-
 	// Default minimum is "3.5"
 	CMakePolicyVersionMinimum string `toml:"cmake_policy_version_minimum,omitempty"`
 
-	// Platform-aware vars, envs and flags.
-	Envs           []string `toml:"envs"`
-	CFlags         []string `toml:"cflags"`
-	CXXFlags       []string `toml:"cxxflags"`
-	LinkFlags      []string `toml:"linkflags"`
-	CFlagsDebug    []string `toml:"cflags_debug"`
-	CXXFlagsDebug  []string `toml:"cxxflags_debug"`
-	LinkFlagsDebug []string `toml:"linkflags_debug"`
-	CMakeVars      []string `toml:"cmake_vars,omitempty"`
+	// Platform-aware envs and cmake variables.
+	Envs      []string `toml:"envs,omitempty"`
+	CMakeVars []string `toml:"cmake_vars,omitempty"`
 
 	// Internal fields.
-	MSVC        context.MSVC `toml:"-"`
+	toolchain toolchains.Toolchain
+
 	ctx         context.Context
 	displayName string
 	rootDir     string
@@ -106,37 +55,40 @@ func (t Toolchain) SetupEnvs() {
 	}
 }
 
-func (t Toolchain) effectiveFlags(buildType string) (cflags, cxxflags, linkflags []string) {
+func (t Toolchain) effectiveFlags(buildType string) (cflags, cxxflags, ldflags []string) {
 	if strings.EqualFold(buildType, "debug") {
 		if len(t.CFlagsDebug) > 0 {
 			cflags = t.CFlagsDebug
 		} else {
 			cflags = t.CFlags
 		}
-
 		if len(t.CXXFlagsDebug) > 0 {
 			cxxflags = t.CXXFlagsDebug
 		} else {
 			cxxflags = t.CXXFlags
 		}
-
-		if len(t.LinkFlagsDebug) > 0 {
-			linkflags = t.LinkFlagsDebug
+		if len(t.LDFlagsDebug) > 0 {
+			ldflags = t.LDFlagsDebug
 		} else {
-			linkflags = t.LinkFlags
+			ldflags = t.LinkFlags
 		}
-		return cflags, cxxflags, linkflags
+	} else {
+		cflags = t.CFlags
+		cxxflags = t.CXXFlags
+		ldflags = t.LinkFlags
 	}
 
-	return t.CFlags, t.CXXFlags, t.LinkFlags
+	// Merge toolchain builtin flags.
+	if t.toolchain != nil {
+		cflags = append(cflags, t.toolchain.CFlags()...)
+		cxxflags = append(cxxflags, t.toolchain.CXXFlags()...)
+		ldflags = append(ldflags, t.toolchain.LDFlags()...)
+	}
+
+	return cflags, cxxflags, ldflags
 }
 
 func (t Toolchain) generate(toolchain *strings.Builder) error {
-	writeIfNotEmpty := func(key, value string) {
-		if value != "" {
-			fmt.Fprintf(toolchain, "set(%s %q)\n", key, "${TOOLCHAIN}/"+value)
-		}
-	}
 	appendFlags := func(key string, flags []string, indent string) {
 		for _, item := range flags {
 			item = strings.TrimSpace(item)
@@ -151,17 +103,10 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 			fmt.Fprintf(toolchain, "%sstring(APPEND %s %q)\n", indent, key, " "+item)
 		}
 	}
-	buildType := ""
-	if t.ctx != nil {
-		buildType = t.ctx.BuildType()
-	}
-	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
 
 	fmt.Fprintf(toolchain, "\n# ============== Cross-compile target system ============== #\n")
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_NAME", t.cmakeSystemName())
 	fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_PROCESSOR", t.SystemProcessor)
-
-	// system_version is always required by Android and not mandatory for other system.
 	if t.SystemVersion != "" {
 		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_SYSTEM_VERSION", t.SystemVersion)
 	}
@@ -172,116 +117,30 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	}
 
 	fmt.Fprintf(toolchain, "\n# ============== Cross-compile toolchain ============== #\n")
+	fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", t.toolchain.Dir(t.abspath))
+	t.toolchain.AssembleBuildTools(toolchain)
 
-	switch runtime.GOOS {
-	case "windows":
-		switch t.Name {
-		case "msvc":
-			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", filepath.ToSlash(t.abspath))
-		case "clang-cl", "clang":
-			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", "${WORKSPACE_ROOT}/downloads/tools/"+filepath.ToSlash(t.Path))
-		}
-
-	case "linux":
-		if t.Path == "/usr/bin" {
-			fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", "/usr/bin")
-		} else {
-			if strings.HasPrefix(t.Url, "file:///") {
-				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", filepath.ToSlash(t.abspath))
-			} else {
-				fmt.Fprintf(toolchain, "set(%s %q)\n", "TOOLCHAIN", "${WORKSPACE_ROOT}/downloads/tools/"+filepath.ToSlash(t.Path))
-			}
+	// Some toolchain like clang may link runtime flags.
+	rtFlags := t.toolchain.RuntimeFlags()
+	if len(rtFlags) > 0 {
+		fmt.Fprint(toolchain, "\n# clang cross-compile runtime flags.\n")
+		for _, flag := range rtFlags {
+			fmt.Fprintf(toolchain, `string(APPEND CMAKE_C_FLAGS_INIT " %s")`+"\n", flag)
+			fmt.Fprintf(toolchain, `string(APPEND CMAKE_CXX_FLAGS_INIT " %s")`+"\n", flag)
+			fmt.Fprintf(toolchain, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " %s")`+"\n", flag)
+			fmt.Fprintf(toolchain, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " %s")`+"\n", flag)
+			fmt.Fprintf(toolchain, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " %s")`+"\n", flag)
 		}
 	}
 
-	writeIfNotEmpty("CMAKE_C_COMPILER", strings.Split(t.CC, " ")[0])
-	writeIfNotEmpty("CMAKE_CXX_COMPILER", strings.Split(t.CXX, " ")[0])
-	writeIfNotEmpty("CMAKE_AR", t.AR)
-	writeIfNotEmpty("CMAKE_LINKER", t.LD)
-
-	// Configure compiler targets are usually required by embed platform, like qnx.
-	if t.CCompilerTarget != "" {
-		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_C_COMPILER_TARGET", t.CCompilerTarget)
-	}
-	if t.CXXCompilerTarget != "" {
-		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_CXX_COMPILER_TARGET", t.CXXCompilerTarget)
-	}
-
-	switch t.Name {
-	case "gcc", "clang":
-		writeIfNotEmpty("CMAKE_ASM_COMPILER", t.AS)
-		writeIfNotEmpty("CMAKE_NM", t.NM)
-		writeIfNotEmpty("CMAKE_Fortran_COMPILER", t.FC)
-		writeIfNotEmpty("CMAKE_RANLIB", t.RANLIB)
-		writeIfNotEmpty("CMAKE_OBJCOPY", t.OBJCOPY)
-		writeIfNotEmpty("CMAKE_OBJDUMP", t.OBJDUMP)
-		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
-		writeIfNotEmpty("CMAKE_READELF", t.READELF)
-
-		// clang cross-compile runtime flags for CMake toolchain.
-		rtFlags := t.RuntimeFlags()
-		if len(rtFlags) > 0 {
-			fmt.Fprint(toolchain, "\n# clang cross-compile runtime flags.\n")
-			for _, flag := range rtFlags {
-				fmt.Fprintf(toolchain, `string(APPEND CMAKE_C_FLAGS_INIT " %s")`+"\n", flag)
-				fmt.Fprintf(toolchain, `string(APPEND CMAKE_CXX_FLAGS_INIT " %s")`+"\n", flag)
-				fmt.Fprintf(toolchain, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " %s")`+"\n", flag)
-				fmt.Fprintf(toolchain, `string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " %s")`+"\n", flag)
-				fmt.Fprintf(toolchain, `string(APPEND CMAKE_MODULE_LINKER_FLAGS_INIT " %s")`+"\n", flag)
-			}
+	// Configure compiler targets are usually required by embed platform.
+	if t.CCompilerTarget != "" || t.CXXCompilerTarget != "" {
+		fmt.Fprintf(toolchain, "\n# ============== Compiler targets are usually required by embed platform ============== #\n")
+		if t.CCompilerTarget != "" {
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_C_COMPILER_TARGET", t.CCompilerTarget)
 		}
-
-	case "qcc":
-		writeIfNotEmpty("CMAKE_NM", t.NM)
-		writeIfNotEmpty("CMAKE_RANLIB", t.RANLIB)
-		writeIfNotEmpty("CMAKE_OBJDUMP", t.OBJDUMP)
-		writeIfNotEmpty("CMAKE_STRIP", t.STRIP)
-
-		fmt.Fprint(toolchain, "\n# QNX cross-compile settings.\n")
-		qnxTarget := fileio.ToRelPath(filepath.Join(t.GetRootDir(), "target/qnx"))
-		fmt.Fprintf(toolchain, "set(CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES %q)\n", filepath.Join(qnxTarget, "usr/include"))
-		fmt.Fprintf(toolchain, "set(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES %q)\n", filepath.Join(qnxTarget, "usr/include"))
-
-	case "msvc", "clang-cl":
-		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_MT", filepath.ToSlash(t.MSVC.MT))
-		fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_RC_COMPILER_INIT", filepath.ToSlash(t.MSVC.RC))
-
-		// For Ninja generator with MSVC, add include/lib paths as compiler/linker flags.
-		// Note: Environment variables (INCLUDE/LIB) must still be set in preConfigure()
-		// because they are not inherited from toolchain file to the build phase.
-		if len(t.MSVC.Includes) > 0 {
-			fmt.Fprint(toolchain, "\n# MSVC include paths for C/C++ and RC compilers.\n")
-			// Use string(APPEND ...) for better readability
-			fmt.Fprintf(toolchain, `set(CMAKE_C_FLAGS_INIT "")`+"\n")
-			for _, inc := range t.MSVC.Includes {
-				fmt.Fprintf(toolchain, `string(APPEND CMAKE_C_FLAGS_INIT " /I\"%s\"")`+"\n", filepath.ToSlash(inc))
-			}
-			fmt.Fprintf(toolchain, `set(CMAKE_CXX_FLAGS_INIT "${CMAKE_C_FLAGS_INIT}")`+"\n")
-
-			// Build RC compiler flags
-			fmt.Fprint(toolchain, "\n# RC FLAGS for RC compilers.\n")
-			fmt.Fprintf(toolchain, `set(CMAKE_RC_FLAGS_INIT "/nologo")`+"\n")
-			for _, inc := range t.MSVC.Includes {
-				fmt.Fprintf(toolchain, `string(APPEND CMAKE_RC_FLAGS_INIT " /I\"%s\"")`+"\n", filepath.ToSlash(inc))
-			}
-		} else {
-			fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_RC_FLAGS_INIT", "/nologo")
-			fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_RC_FLAGS", "/nologo")
-		}
-
-		if len(t.MSVC.Libs) > 0 {
-			fmt.Fprint(toolchain, "\n# MSVC library paths for linker.\n")
-			fmt.Fprintf(toolchain, `set(CMAKE_EXE_LINKER_FLAGS_INIT " /NODEFAULTLIB:LIBCMT")`+"\n")
-			for _, lib := range t.MSVC.Libs {
-				// Windows SDK libs need to include the x64 subdirectory
-				libPath := filepath.ToSlash(lib)
-				if !strings.HasSuffix(libPath, "/x64") && !strings.Contains(libPath, "/MSVC/") {
-					libPath = filepath.ToSlash(filepath.Join(lib, "x64"))
-				}
-				fmt.Fprintf(toolchain, `string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " /LIBPATH:\"%s\"")`+"\n", libPath)
-			}
-			fmt.Fprintf(toolchain, `set(CMAKE_SHARED_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT}")`+"\n")
-			fmt.Fprintf(toolchain, `set(CMAKE_MODULE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT}")`+"\n")
+		if t.CXXCompilerTarget != "" {
+			fmt.Fprintf(toolchain, "set(%s %q)\n", "CMAKE_CXX_COMPILER_TARGET", t.CXXCompilerTarget)
 		}
 	}
 
@@ -308,46 +167,8 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		}
 	}
 
-	if t.EmbeddedSystem {
-		fmt.Fprint(toolchain, "\n# Embedded system settings.\n")
-		fmt.Fprintf(toolchain, "set(CMAKE_SYSTEM_INCLUDE_PATH %s)\n", "\"/include\"")
-		fmt.Fprintf(toolchain, "set(CMAKE_SYSTEM_LIBRARY_PATH %s)\n", "\"/lib\"")
-		fmt.Fprintf(toolchain, "set(CMAKE_SYSTEM_PROGRAM_PATH %s)\n", "\"/bin\"")
-		fmt.Fprintf(toolchain, "set(CMAKE_TRY_COMPILE_TARGET_TYPE %s)\n", "STATIC_LIBRARY")
-
-		fmt.Fprintf(toolchain, "set(CMAKE_C_USE_RESPONSE_FILE_FOR_OBJECTS %s)\n", "0")
-		fmt.Fprintf(toolchain, "set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_OBJECTS %s)\n", "0")
-		fmt.Fprintf(toolchain, "set(CMAKE_ASM_USE_RESPONSE_FILE_FOR_OBJECTS %s)\n", "0")
-		fmt.Fprintf(toolchain, "set(CMAKE_C_USE_RESPONSE_FILE_FOR_LIBRARIES %s)\n", "0")
-		fmt.Fprintf(toolchain, "set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_LIBRARIES %s)\n", "0")
-		fmt.Fprintf(toolchain, "set(CMAKE_ASM_USE_RESPONSE_FILE_FOR_LIBRARIES %s)\n", "0")
-		fmt.Fprintf(toolchain, "set(CMAKE_C_USE_RESPONSE_FILE_FOR_INCLUDES %s)\n", "0")
-		fmt.Fprintf(toolchain, "set(CMAKE_CXX_USE_RESPONSE_FILE_FOR_INCLUDES %s)\n", "0")
-		fmt.Fprintf(toolchain, "set(CMAKE_ASM_USE_RESPONSE_FILE_FOR_INCLUDES %s)\n", "0")
-
-		fmt.Fprintf(toolchain, "set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS FALSE)\n")
-	}
-
-	// Inject global cmake built-in variables to affecting the build environment.
-	for index, cmakeVar := range t.GetCMakeVars() {
-		cmakeVar = strings.TrimSpace(cmakeVar)
-		if cmakeVar == "" {
-			continue
-		}
-
-		if index == 0 {
-			fmt.Fprint(toolchain, "\n# Set global CMake built-in variables.\n")
-		}
-
-		if !strings.HasPrefix(cmakeVar, "CMAKE") {
-			return fmt.Errorf("%s is expected to be a CMake built-in variable affecting the build environment", cmakeVar)
-		}
-
-		if before, after, found := strings.Cut(cmakeVar, "="); found {
-			fmt.Fprintf(toolchain, "set(%s %s CACHE INTERNAL \"\")\n", before, after)
-		}
-	}
-
+	buildType := t.ctx.BuildType()
+	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
 	if len(cflags) > 0 || len(cxxflags) > 0 || len(linkflags) > 0 {
 		fmt.Fprint(toolchain, "\n# Setting extra build flags.\n")
 
@@ -379,6 +200,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 
 			envKey := parts[0]
 			envValue := t.ctx.ExprVars().Expand(parts[1])
+			envValue = fileio.ToRelPath(envValue)
 			fmt.Fprintf(toolchain, "set(ENV{%s} %q)\n", envKey, envValue)
 		}
 	}

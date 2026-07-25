@@ -140,12 +140,32 @@ func (b b2) Configure(options []string) error {
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			line := scanner.Text()
-			if strings.Contains(line, "using gcc ;") {
+			if strings.Contains(line, "default-build <toolset>gcc") {
+				switch toolchain.GetName() {
+				case "clang-cl":
+					line = strings.Replace(line, "<toolset>gcc", "<toolset>clang-win", 1)
+
+				case "msvc":
+					line = strings.Replace(line, "<toolset>gcc", "<toolset>msvc", 1)
+
+				default:
+					line = strings.Replace(line, "<toolset>gcc", "<toolset>"+toolchain.GetName(), 1)
+				}
+			} else if strings.Contains(line, "using gcc ;") {
 				switch {
 				case isQNX:
+					// Include toolchain builtin flags (e.g. -D_QNX_SOURCE -Vgcc_ntoaarch64le_cxx).
 					fmt.Fprintf(&buffer, "%s\n", line)
-					fmt.Fprintf(&buffer, "%s\n", b.formatUsingToolset("qcc", toolchainVersion, cxx))
+					cxxPath := filepath.Join(toolchain.GetAbsDir(), toolchain.GetCXX())
+					line = b.formatUsingToolset("qcc", toolchainVersion, cxxPath)
+					cxxFlags := toolchain.GetCXXFlags()
+					if len(cxxFlags) > 0 {
+						flags := fmt.Sprintf(` : <cxxflags>"%s" ;`, strings.Join(cxxFlags, " "))
+						line = strings.Replace(line, " ;", flags, 1)
+					}
+					fmt.Fprintf(&buffer, "%s\n", line)
 					continue
+
 				case isClang:
 					toolchainRoot := filepath.Dir(toolchain.GetAbsDir())
 					platformTriple, err := b.detectPlatformTriple(toolchainRoot)
@@ -171,6 +191,7 @@ func (b b2) Configure(options []string) error {
 					} else {
 						line = fmt.Sprintf(`using clang : : %s : %s ;`, compilerCmd, compilerOptions)
 					}
+
 				default:
 					line = b.formatUsingToolset("gcc", toolchainVersion, cxx)
 				}
@@ -398,7 +419,7 @@ func (b b2) formatUsingToolset(toolset, version, cxx string) string {
 		compilerCmd = fmt.Sprintf(`"%s"`, filepath.ToSlash(cxx))
 	}
 	if version != "" {
-		return fmt.Sprintf(`using %s : %s : %s ;`, toolset, version, compilerCmd)
+		return fmt.Sprintf(`    using %s : %s : %s ;`, toolset, version, compilerCmd)
 	}
-	return fmt.Sprintf(`using %s : : %s ;`, toolset, compilerCmd)
+	return fmt.Sprintf(`    using %s : : %s ;`, toolset, compilerCmd)
 }

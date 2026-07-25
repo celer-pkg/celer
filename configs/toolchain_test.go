@@ -4,59 +4,80 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/celer-pkg/celer/configs/toolchains"
 )
 
 func TestToolchainEffectiveFlags(t *testing.T) {
-	toolchain := Toolchain{
-		CFlags:         []string{"-O2"},
-		CXXFlags:       []string{"-O2"},
-		LinkFlags:      []string{"-Wl,--as-needed"},
-		CFlagsDebug:    []string{"-O0", "-g"},
-		CXXFlagsDebug:  []string{"-O0", "-g"},
-		LinkFlagsDebug: []string{"-Wl,--export-dynamic"},
-	}
+	toolchain := Toolchain{}
+	toolchain.Name = "gcc"
+	toolchain.CFlags = []string{"-O2"}
+	toolchain.CXXFlags = []string{"-O2"}
+	toolchain.LinkFlags = []string{"-Wl,--as-needed"}
+	toolchain.CFlagsDebug = []string{"-O0", "-g"}
+	toolchain.CXXFlagsDebug = []string{"-O0", "-g"}
+	toolchain.CXXFlagsDebug = []string{"-O0", "-g"}
+	toolchain.LDFlagsDebug = []string{"-Wl,--export-dynamic"}
 
-	cflags, cxxflags, linkflags := toolchain.effectiveFlags("debug")
+	// Initialize the toolchain implementation.
+	toolchain.toolchain = toolchains.NewToolchain(
+		toolchain.ctx,
+		toolchain.Name,
+		toolchain.Infos,
+		toolchain.BuildTools,
+		toolchain.BuildFlags,
+	)
+
+	cflags, cxxflags, ldflags := toolchain.effectiveFlags("debug")
 	if !reflect.DeepEqual(cflags, toolchain.CFlagsDebug) {
 		t.Fatalf("debug cflags = %v, want %v", cflags, toolchain.CFlagsDebug)
 	}
 	if !reflect.DeepEqual(cxxflags, toolchain.CXXFlagsDebug) {
 		t.Fatalf("debug cxxflags = %v, want %v", cxxflags, toolchain.CXXFlagsDebug)
 	}
-	if !reflect.DeepEqual(linkflags, toolchain.LinkFlagsDebug) {
-		t.Fatalf("debug linkflags = %v, want %v", linkflags, toolchain.LinkFlagsDebug)
+	if !reflect.DeepEqual(ldflags, toolchain.LDFlagsDebug) {
+		t.Fatalf("debug ldflags = %v, want %v", ldflags, toolchain.LDFlagsDebug)
 	}
 
-	cflags, cxxflags, linkflags = toolchain.effectiveFlags("release")
+	cflags, cxxflags, ldflags = toolchain.effectiveFlags("release")
 	if !reflect.DeepEqual(cflags, toolchain.CFlags) {
 		t.Fatalf("release cflags = %v, want %v", cflags, toolchain.CFlags)
 	}
 	if !reflect.DeepEqual(cxxflags, toolchain.CXXFlags) {
 		t.Fatalf("release cxxflags = %v, want %v", cxxflags, toolchain.CXXFlags)
 	}
-	if !reflect.DeepEqual(linkflags, toolchain.LinkFlags) {
-		t.Fatalf("release linkflags = %v, want %v", linkflags, toolchain.LinkFlags)
+	if !reflect.DeepEqual(ldflags, toolchain.LinkFlags) {
+		t.Fatalf("release linkflags = %v, want %v", ldflags, toolchain.LinkFlags)
 	}
 }
 
 func TestToolchainGenerate_UsesDebugFlags(t *testing.T) {
 	var buffer strings.Builder
 
-	toolchain := Toolchain{
-		Name:            "gcc",
-		SystemName:      "linux",
-		SystemProcessor: "x86_64",
-		Path:            "/usr/bin",
-		CC:              "gcc",
-		CXX:             "g++",
-		CFlags:          []string{"-O2"},
-		CXXFlags:        []string{"-O2"},
-		LinkFlags:       []string{"-Wl,--as-needed"},
-		CFlagsDebug:     []string{"-O0", "-g3"},
-		CXXFlagsDebug:   []string{"-O0", "-g3"},
-		LinkFlagsDebug:  []string{"-Wl,--export-dynamic"},
-		ctx:             fakeContext{build: "debug"},
-	}
+	toolchain := Toolchain{}
+	toolchain.Name = "gcc"
+	toolchain.SystemName = "linux"
+	toolchain.SystemProcessor = "x86_64"
+	toolchain.Path = "/usr/bin"
+	toolchain.CC = "gcc"
+	toolchain.CXX = "g++"
+	toolchain.CFlags = []string{"-O2"}
+	toolchain.CXXFlags = []string{"-O2"}
+	toolchain.LinkFlags = []string{"-Wl,--as-needed"}
+	toolchain.CFlagsDebug = []string{"-O0", "-g3"}
+	toolchain.CXXFlagsDebug = []string{"-O0", "-g3"}
+	toolchain.CXXFlagsDebug = []string{"-O2"}
+	toolchain.LDFlagsDebug = []string{"-Wl,--export-dynamic"}
+	toolchain.ctx = fakeContext{build: "debug"}
+
+	// Initialize the toolchain implementation.
+	toolchain.toolchain = toolchains.NewToolchain(
+		toolchain.ctx,
+		toolchain.Name,
+		toolchain.Infos,
+		toolchain.BuildTools,
+		toolchain.BuildFlags,
+	)
 
 	if err := toolchain.generate(&buffer); err != nil {
 		t.Fatalf("generate() error = %v", err)
