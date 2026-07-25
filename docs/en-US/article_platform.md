@@ -76,7 +76,7 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   cxx = "x86_64-linux-gnu-g++"
   cflags = ["-fPIC"]                          # Optional field
   cxxflags = ["-fPIC", "-stdlib=libc++"]      # Optional field
-  linkflags = ["-Wl,--as-needed"]             # Optional field
+  ldflags = ["-Wl,--as-needed"]               # Optional field
   cmake_policy_version_minimum = "3.5"        # Optional field
   cmake_vars = ["CMAKE_XXX=ON"]               # Optional field
   fc = "x86_64-linux-gnu-gfortran"            # Optional field
@@ -107,10 +107,10 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `envs` | ❌ | Extra environment variables for toolchains that require runtime env setup (for example QNX) | `["QNX_CONFIGURATION=/dir/of/qnx/license"]` |
 | `cflags` | ❌ | Appended to `CMAKE_C_FLAGS_INIT` in `toolchain_file.cmake` | `["-fPIC", "--sysroot=${SYSROOT}"]` |
 | `cxxflags` | ❌ | Appended to `CMAKE_CXX_FLAGS_INIT` in `toolchain_file.cmake` | `["-fPIC", "-stdlib=libc++"]` |
-| `linkflags` | ❌ | Appended to `CMAKE_EXE/SHARED/MODULE_LINKER_FLAGS_INIT` in `toolchain_file.cmake` | `["-Wl,--as-needed"]` |
+| `ldflags` | ❌ | Appended to `CMAKE_EXE/SHARED/MODULE_LINKER_FLAGS_INIT` in `toolchain_file.cmake` | `["-Wl,--as-needed"]` |
 | `cflags_debug` | ❌ | C compiler flags preferred when `build_type=debug`; falls back to `cflags` when unset | `["-O0", "-g3"]` |
 | `cxxflags_debug` | ❌ | C++ compiler flags preferred when `build_type=debug`; falls back to `cxxflags` when unset | `["-O0", "-g3"]` |
-| `linkflags_debug` | ❌ | Linker flags preferred when `build_type=debug`; falls back to `linkflags` when unset | `["-Wl,--export-dynamic"]` |
+| `ldflags_debug` | ❌ | Linker flags preferred when `build_type=debug`; falls back to `ldflags` when unset | `["-Wl,--export-dynamic"]` |
 | `cmake_policy_version_minimum` | ❌ | Minimum CMake policy version, passed as `-DCMAKE_POLICY_VERSION_MINIMUM=<value>` on the cmake **command line**. Needed by ports that declare `cmake_minimum_required(VERSION < 3.5)` under CMake 4.x (which removed `< 3.5` compatibility). Defaults to `3.5` when unset | `"3.5"`<br>`"3.6"` |
 | `cmake_vars` | ❌ | List of `KEY=VALUE` CMake built-in variables written into `toolchain_file.cmake` as `set(KEY VALUE CACHE INTERNAL "")`. Each entry **must start with `CMAKE`**. | `["CMAKE_FIND_PACKAGE_PREFER_CONFIG=ON"]`<br>`["CMAKE_POSITION_INDEPENDENT_CODE=ON"]` |
 | `embedded_system` | ❌ | Whether this is for embedded systems (like MCU or bare-metal) | `true` (MCU/bare-metal)<br>`false` or omit (regular systems) |

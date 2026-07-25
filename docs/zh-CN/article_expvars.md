@@ -73,7 +73,7 @@
 ## 变量替换生效位置
 
 - 平台 TOML 中 `toolchain.envs`。
-- `project.vars`、`project.envs`、`project.macros`、`toolchain.cflags`、`toolchain.cxxflags`、`toolchain.linkflags`。
+- `project.vars`、`project.envs`、`project.macros`、`toolchain.cflags`、`toolchain.cxxflags`、`toolchain.ldflags`。
 - 端口 `build_config` 中的 `envs`、`options` 等字段。
 
 ## 构建阶段额外占位符
