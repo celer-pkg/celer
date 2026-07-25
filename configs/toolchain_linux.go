@@ -11,6 +11,7 @@ import (
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/env"
@@ -210,6 +211,7 @@ func (t *Toolchain) Detect(platformName string) error {
 		return err
 	}
 
+	t.toolchain = toolchains.NewToolchain(t.ctx, t.Name, t.Infos, t.BuildTools, t.BuildFlags)
 	return nil
 }
 

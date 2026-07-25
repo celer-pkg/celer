@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -188,12 +187,13 @@ func (c cmake) configureOptions() ([]string, error) {
 		options = append(options, "-DCMAKE_VERBOSE_MAKEFILE=ON")
 	}
 
-	// Set minimum CMake policy version to support in old CMakeLists.txt.
-	cmakeTool, err := buildtools.FindBuildTool(c.Ctx, c.buildSystem)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find cmake tool -> %w", err)
+	// Set minimum CMake policy version to support in old CMakeLists.txt (default is 3.5).
+	minmumVersion := c.Ctx.Platform().GetToolchain().GetCMakePolicyVersionMinimum()
+	if strings.TrimSpace(minmumVersion) == "" {
+		options = append(options, "-DCMAKE_POLICY_VERSION_MINIMUM=3.5")
+	} else {
+		options = append(options, "-DCMAKE_POLICY_VERSION_MINIMUM="+strings.TrimSpace(minmumVersion))
 	}
-	options = append(options, "-DCMAKE_POLICY_VERSION_MINIMUM="+cmakeTool.Version)
 
 	// Replace placeholders.
 	for index, value := range options {

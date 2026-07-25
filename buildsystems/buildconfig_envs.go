@@ -150,11 +150,12 @@ func (b *BuildConfig) setupEnvs() {
 		b.setupPkgConfig()      // Setup pkg-config.
 		b.setupRuntimePath()    // Some python extensions tool can not build with $ORIGIN/../lib
 		b.setupPythonEnvs()     // Expost PYTHONUSERBASE and PYTHONPATH for Python.
-		b.setupQNXEnvs()        // Set environments only when toolchain is qcc
 	} else if b.ApplyEnvs {
 		b.setupPythonEnvs() // Expost PYTHONUSERBASE and PYTHONPATH for Python.
-		b.setupQNXEnvs()    // Set environments only when toolchain is qcc
 	}
+
+	// Set environments only when toolchain is qcc
+	b.setupQNXEnvs()
 }
 
 func (b BuildConfig) setupPkgConfig() {
@@ -273,20 +274,48 @@ func (b BuildConfig) setupPythonEnvs() {
 
 func (b BuildConfig) setupQNXEnvs() {
 	toolchain := b.Ctx.Platform().GetToolchain()
-	if toolchain.GetName() == "qcc" {
-		b.envBackup.setenv("CFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CFLAGS")))
-		b.envBackup.setenv("CXXFLAGS", env.JoinSpace("-D_QNX_SOURCE", os.Getenv("CXXFLAGS")))
+	if toolchain.GetName() != "qcc" {
+		return
+	}
 
-		// QNX_HOST and QNX_TARGET is mandatory.
-		switch runtime.GOOS {
-		case "linux":
-			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/linux/x86_64"))
-		case "windows":
-			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/win64/x86_64/usr/bin"))
-		case "darwin":
-			b.envBackup.setenv("QNX_HOST", filepath.Join(toolchain.GetRootDir(), "host/darwin/x86_64/usr/bin"))
-		}
-		b.envBackup.setenv("QNX_TARGET", filepath.Join(toolchain.GetRootDir(), "target/qnx"))
+	qnxEnvs, err := b.readQNXEnvs()
+	if err != nil {
+		color.PrintWarning("failed to read QNX envs from qnxsdp-env.sh: %v", err)
+		return
+	}
+
+	// Apply QNX_HOST and QNX_TARGET from the script.
+	if host, ok := qnxEnvs["QNX_HOST"]; ok && host != "" {
+		b.envBackup.setenv("QNX_HOST", host)
+	}
+	if target, ok := qnxEnvs["QNX_TARGET"]; ok && target != "" {
+		b.envBackup.setenv("QNX_TARGET", target)
+	}
+
+	// Apply MAKEFLAGS (sets include paths for QNX kernel headers).
+	if makeflags, ok := qnxEnvs["MAKEFLAGS"]; ok && makeflags != "" {
+		b.envBackup.setenv("MAKEFLAGS", makeflags)
+	}
+
+	// Apply PYTHONDONTWRITEBYTECODE (prevents Python from creating .pyc files
+	// in the read-only SDP installation).
+	if pyflag, ok := qnxEnvs["PYTHONDONTWRITEBYTECODE"]; ok && pyflag != "" {
+		b.envBackup.setenv("PYTHONDONTWRITEBYTECODE", pyflag)
+	}
+
+	// Apply PATH: the script prepends QNX_HOST/usr/bin, QNX_CONFIGURATION/bin,
+	// jre/bin, and host/common/bin to the existing PATH.
+	if scriptPath, ok := qnxEnvs["PATH"]; ok && scriptPath != "" {
+		qnxPathParts := strings.Split(scriptPath, string(os.PathListSeparator))
+		b.envBackup.setenv("PATH", env.JoinPaths("PATH", qnxPathParts...))
+	}
+
+	// Apply compiler flags from the toolchain configuration (cflags/cxxflags).
+	for _, flag := range toolchain.GetCFlags() {
+		b.envBackup.setenv("CFLAGS", env.JoinSpace(flag, os.Getenv("CFLAGS")))
+	}
+	for _, flag := range toolchain.GetCXXFlags() {
+		b.envBackup.setenv("CXXFLAGS", env.JoinSpace(flag, os.Getenv("CXXFLAGS")))
 	}
 }
 

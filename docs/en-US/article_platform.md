@@ -77,6 +77,8 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
   cflags = ["-fPIC"]                          # Optional field
   cxxflags = ["-fPIC", "-stdlib=libc++"]      # Optional field
   linkflags = ["-Wl,--as-needed"]             # Optional field
+  cmake_policy_version_minimum = "3.5"        # Optional field
+  cmake_vars = ["CMAKE_XXX=ON"]               # Optional field
   fc = "x86_64-linux-gnu-gfortran"            # Optional field
   ranlib = "x86_64-linux-gnu-ranlib"          # Optional field
   ar = "x86_64-linux-gnu-ar"                  # Optional field
@@ -109,6 +111,8 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `cflags_debug` | ❌ | C compiler flags preferred when `build_type=debug`; falls back to `cflags` when unset | `["-O0", "-g3"]` |
 | `cxxflags_debug` | ❌ | C++ compiler flags preferred when `build_type=debug`; falls back to `cxxflags` when unset | `["-O0", "-g3"]` |
 | `linkflags_debug` | ❌ | Linker flags preferred when `build_type=debug`; falls back to `linkflags` when unset | `["-Wl,--export-dynamic"]` |
+| `cmake_policy_version_minimum` | ❌ | Minimum CMake policy version, passed as `-DCMAKE_POLICY_VERSION_MINIMUM=<value>` on the cmake **command line**. Needed by ports that declare `cmake_minimum_required(VERSION < 3.5)` under CMake 4.x (which removed `< 3.5` compatibility). Defaults to `3.5` when unset | `"3.5"`<br>`"3.6"` |
+| `cmake_vars` | ❌ | List of `KEY=VALUE` CMake built-in variables written into `toolchain_file.cmake` as `set(KEY VALUE CACHE INTERNAL "")`. Each entry **must start with `CMAKE`**. | `["CMAKE_FIND_PACKAGE_PREFER_CONFIG=ON"]`<br>`["CMAKE_POSITION_INDEPENDENT_CODE=ON"]` |
 | `embedded_system` | ❌ | Whether this is for embedded systems (like MCU or bare-metal) | `true` (MCU/bare-metal)<br>`false` or omit (regular systems) |
 | `fc` | ❌ | Fortran compiler (if needed) | `x86_64-linux-gnu-gfortran` |
 | `ranlib` | ❌ | Library index generator | `x86_64-linux-gnu-ranlib` |
@@ -118,6 +122,8 @@ Let's look at a complete Linux platform configuration file `x86_64-linux-ubuntu-
 | `strip` | ❌ | Symbol stripping tool | `x86_64-linux-gnu-strip` |
 
 > ⚠️ **Note**: Optional tools (fc, ranlib, etc.) will be automatically located using `crosstool_prefix` if not specified.
+
+> ℹ️ **Note on `cmake_policy_version_minimum` vs `cmake_vars`**: `CMAKE_POLICY_VERSION_MINIMUM` must take effect *before* `cmake_minimum_required()` runs, but the toolchain file is only loaded later at `project()` time — so it gets its own dedicated field (`cmake_policy_version_minimum`) that is passed on the cmake command line. `cmake_vars` is for ordinary CMake built-ins that are fine taking effect at `project()` time and is written into `toolchain_file.cmake`.
 
 ### 2. Rootfs (Root Filesystem) Configuration Fields
 

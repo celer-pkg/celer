@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -55,6 +56,15 @@ func (p *Platform) Init(platformName string) error {
 		if err := p.Toolchain.Validate(); err != nil {
 			return err
 		}
+
+		// Create the correct toolchain implementation based on the name.
+		p.Toolchain.toolchain = toolchains.NewToolchain(
+			p.ctx,
+			p.Toolchain.Name,
+			p.Toolchain.Infos,
+			p.Toolchain.BuildTools,
+			p.Toolchain.BuildFlags,
+		)
 
 		// Store toolchain releated express vars.
 		exrVars.Put("HOST", p.Toolchain.GetHost())

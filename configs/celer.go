@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/envs"
 	"github.com/celer-pkg/celer/pkgs/color"
@@ -269,6 +270,14 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 		default:
 			return fmt.Errorf("unsupported architecture: %s", runtime.GOARCH)
 		}
+	} else {
+		c.platform.Toolchain.toolchain = toolchains.NewToolchain(
+			c,
+			c.platform.Toolchain.Name,
+			c.platform.Toolchain.Infos,
+			c.platform.Toolchain.BuildTools,
+			c.platform.Toolchain.BuildFlags,
+		)
 	}
 
 	// Detected windows kit.
