@@ -10,6 +10,7 @@ import (
 
 func TestToolchainEffectiveFlags(t *testing.T) {
 	toolchain := Toolchain{}
+	toolchain.Name = "gcc"
 	toolchain.CFlags = []string{"-O2"}
 	toolchain.CXXFlags = []string{"-O2"}
 	toolchain.LinkFlags = []string{"-Wl,--as-needed"}
