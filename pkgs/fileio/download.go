@@ -84,12 +84,7 @@ func (d downloader) startOnce(httpClient *http.Client) (downloaded string, err e
 	if err != nil {
 		return "", err
 	}
-
-	// Create clean temp directory.
-	if err := dirs.CleanTmpFilesDir(); err != nil {
-		return "", fmt.Errorf("cannot clean tmp files dir -> %w", err)
-	}
-
+	
 	// Ensure tmp files dir exists always.
 	if err := os.MkdirAll(dirs.TmpFilesDir, os.ModePerm); err != nil {
 		return "", fmt.Errorf("cannot create tmp files dir -> %w", err)

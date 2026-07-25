@@ -27,9 +27,9 @@ type RootFS struct {
 }
 
 func (r *RootFS) Validate() error {
-	// Some rootfs is a part of toolchain, like NDK.
-	if r.Url != "_" && r.SHA256 == "" {
-		return fmt.Errorf("rootfs.sha256 is empty, it's required for verification and caching")
+	// Validate rootfs download url.
+	if r.Url == "" {
+		return fmt.Errorf("rootfs.url is empty, it's required for downloading and caching")
 	}
 
 	// Some rootfs is a part of toolchain, like NDK.

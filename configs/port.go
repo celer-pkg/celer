@@ -125,9 +125,12 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 		return fmt.Errorf("failed to unmarshal %s -> %w", p.portFile, err)
 	}
 
-	// Build_tool ports are always built by native toolchain.
+	// Propagate build_tool flag: build_tool ports are always built natively on
+	// the host, so both DevDep and HostDep are set to keep the invariant that
+	// HostDep=true implies DevDep=true.
 	if p.Package.BuildTool {
 		p.DevDep = true
+		p.HostDep = true
 	}
 
 	// Convert build type to lowercase for all build configs.
@@ -330,6 +333,7 @@ func (p Port) Write(portPath string) error {
 		PostBuild:       []string{},
 		PreInstall:      []string{},
 		PostInstall:     []string{},
+		DisableDevCache: false,
 	})
 	bytes, err := toml.Marshal(p)
 	if err != nil {
@@ -390,6 +394,8 @@ func (p *Port) putExprVars(config buildsystems.BuildConfig) {
 	p.exprVars.Put("SRC_DIR", config.PortConfig.SrcDir)
 	p.exprVars.Put("BUILD_DIR", config.PortConfig.BuildDir)
 	p.exprVars.Put("PACKAGE_DIR", config.PortConfig.PackageDir)
+	p.exprVars.Put("CMAKE_TOOLCHAIN_FILE", filepath.Join(dirs.WorkspaceDir, "toolchain_file.cmake"))
+	p.exprVars.Put("PORT_DIR", filepath.Dir(p.portFile))
 	p.exprVars.Put("DEV_DEPS_DIR", filepath.Join(dirs.TmpDepsDir, config.PortConfig.HostName+"-dev"))
 
 	if config.DevDep {

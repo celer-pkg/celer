@@ -39,7 +39,7 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		if p.Parent == "" {
 			reportPath, err := p.installReport.write(p)
 			if err != nil {
-				color.PrintWarning("failed to write install report for %s: %s", p.NameVersion(), err)
+				color.PrintWarning("failed to write install report for %s -> %s", p.NameVersion(), err)
 				return
 			}
 

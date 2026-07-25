@@ -235,6 +235,8 @@ func (c *Celer) writePkgConfig(toolchain *strings.Builder) {
 		filepath.ToSlash(filepath.Join("${INSTALLED_DIR}", "share", "pkgconfig")),
 	}
 
+	// All celer-generated .pc files use prefix=${pcfiledir}/../.. for self-relocation,
+	// so PKG_CONFIG_SYSROOT_DIR is not needed and would double-prefix paths.
 	fmt.Fprintf(toolchain, "if(DEFINED TMP_DEP_DIR)\n")
 	writePathList("  ", "PKG_CONFIG_PATH", tmpDepConfigPaths)
 	fmt.Fprintf(toolchain, "else()\n")

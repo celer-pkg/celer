@@ -373,12 +373,12 @@ func (b b2) msvcVersion() string {
 	// Parse major and minor
 	major, err := strconv.Atoi(parts[0])
 	if err != nil {
-		panic(fmt.Errorf("parse major version -> %w", err))
+		panic(fmt.Errorf("parse major version: %v", err))
 	}
 
 	minor, err := strconv.Atoi(parts[1])
 	if err != nil {
-		panic(fmt.Errorf("parse minor version -> %w", err))
+		panic(fmt.Errorf("parse minor version: %v", err))
 	}
 
 	if minor >= 10 {

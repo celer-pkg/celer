@@ -299,7 +299,7 @@ func (p Port) readPatch(patchFileName string) (string, error) {
 
 	bytes, err := os.ReadFile(patchFilePath)
 	if err != nil {
-		return "", fmt.Errorf("read patch %s: %s", patchFilePath, err)
+		return "", fmt.Errorf("read patch %s -> %s", patchFilePath, err)
 	}
 
 	return string(bytes), nil
