@@ -70,12 +70,12 @@ func (t Toolchain) effectiveFlags(buildType string) (cflags, cxxflags, ldflags [
 		if len(t.LDFlagsDebug) > 0 {
 			ldflags = t.LDFlagsDebug
 		} else {
-			ldflags = t.LinkFlags
+			ldflags = t.LDFlags
 		}
 	} else {
 		cflags = t.CFlags
 		cxxflags = t.CXXFlags
-		ldflags = t.LinkFlags
+		ldflags = t.LDFlags
 	}
 
 	// Merge toolchain builtin flags.
@@ -168,8 +168,8 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	}
 
 	buildType := t.ctx.BuildType()
-	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
-	if len(cflags) > 0 || len(cxxflags) > 0 || len(linkflags) > 0 {
+	cflags, cxxflags, ldflags := t.effectiveFlags(buildType)
+	if len(cflags) > 0 || len(cxxflags) > 0 || len(ldflags) > 0 {
 		fmt.Fprint(toolchain, "\n# Setting extra build flags.\n")
 
 		// If both cflags and cxxflags exist, use foreach to avoid duplication
@@ -182,9 +182,9 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 			appendFlags("CMAKE_CXX_FLAGS_INIT", cxxflags, "")
 		}
 
-		if len(linkflags) > 0 {
+		if len(ldflags) > 0 {
 			fmt.Fprint(toolchain, "foreach(flag_var CMAKE_EXE_LINKER_FLAGS_INIT CMAKE_SHARED_LINKER_FLAGS_INIT CMAKE_MODULE_LINKER_FLAGS_INIT)\n")
-			appendFlags("${flag_var}", linkflags, "  ")
+			appendFlags("${flag_var}", ldflags, "  ")
 			fmt.Fprint(toolchain, "endforeach()\n")
 		}
 	}
@@ -264,8 +264,8 @@ func (t Toolchain) GetCXXFlags() []string {
 	return t.CXXFlags
 }
 
-func (t Toolchain) GetLinkFlags() []string {
-	return t.LinkFlags
+func (t Toolchain) GetLDFlags() []string {
+	return t.LDFlags
 }
 
 func (t Toolchain) GetCMakePolicyVersionMinimum() string {

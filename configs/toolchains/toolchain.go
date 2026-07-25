@@ -82,7 +82,7 @@ func (b BuildTools) writeIfNotEmpty(toolchain *strings.Builder, key, value strin
 type BuildFlags struct {
 	CFlags        []string `toml:"cflags"`
 	CXXFlags      []string `toml:"cxxflags"`
-	LinkFlags     []string `toml:"linkflags"`
+	LDFlags       []string `toml:"ldflags"`
 	CFlagsDebug   []string `toml:"cflags_debug"`
 	CXXFlagsDebug []string `toml:"cxxflags_debug"`
 	LDFlagsDebug  []string `toml:"ldflags_debug"`

@@ -29,7 +29,7 @@ type Toolchain interface {
 	GetCXX() string
 	GetCFlags() []string
 	GetCXXFlags() []string
-	GetLinkFlags() []string
+	GetLDFlags() []string
 	GetCMakeVars() []string
 	GetCPP() string
 	GetLD() string

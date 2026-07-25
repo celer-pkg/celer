@@ -13,7 +13,7 @@ func TestToolchainEffectiveFlags(t *testing.T) {
 	toolchain.Name = "gcc"
 	toolchain.CFlags = []string{"-O2"}
 	toolchain.CXXFlags = []string{"-O2"}
-	toolchain.LinkFlags = []string{"-Wl,--as-needed"}
+	toolchain.LDFlags = []string{"-Wl,--as-needed"}
 	toolchain.CFlagsDebug = []string{"-O0", "-g"}
 	toolchain.CXXFlagsDebug = []string{"-O0", "-g"}
 	toolchain.CXXFlagsDebug = []string{"-O0", "-g"}
@@ -46,8 +46,8 @@ func TestToolchainEffectiveFlags(t *testing.T) {
 	if !reflect.DeepEqual(cxxflags, toolchain.CXXFlags) {
 		t.Fatalf("release cxxflags = %v, want %v", cxxflags, toolchain.CXXFlags)
 	}
-	if !reflect.DeepEqual(ldflags, toolchain.LinkFlags) {
-		t.Fatalf("release linkflags = %v, want %v", ldflags, toolchain.LinkFlags)
+	if !reflect.DeepEqual(ldflags, toolchain.LDFlags) {
+		t.Fatalf("release ldflags = %v, want %v", ldflags, toolchain.LDFlags)
 	}
 }
 
@@ -63,7 +63,7 @@ func TestToolchainGenerate_UsesDebugFlags(t *testing.T) {
 	toolchain.CXX = "g++"
 	toolchain.CFlags = []string{"-O2"}
 	toolchain.CXXFlags = []string{"-O2"}
-	toolchain.LinkFlags = []string{"-Wl,--as-needed"}
+	toolchain.LDFlags = []string{"-Wl,--as-needed"}
 	toolchain.CFlagsDebug = []string{"-O0", "-g3"}
 	toolchain.CXXFlagsDebug = []string{"-O0", "-g3"}
 	toolchain.CXXFlagsDebug = []string{"-O2"}

@@ -76,7 +76,7 @@
   cxx = "x86_64-linux-gnu-g++"
   cflags = ["-fPIC"]                          # 可选字段
   cxxflags = ["-fPIC", "-stdlib=libc++"]      # 可选字段
-  linkflags = ["-Wl,--as-needed"]             # 可选字段
+  ldflags = ["-Wl,--as-needed"]               # 可选字段
   cmake_policy_version_minimum = "3.5"        # 可选字段
   cmake_vars = ["CMAKE_XXX=ON"]               # 可选字段
   fc = "x86_64-linux-gnu-gfortran"            # 可选字段
@@ -107,10 +107,10 @@
 | `envs` | ❌ | 工具链额外环境变量（适用于需要运行时环境的工具链，例如 QNX） | `["QNX_CONFIGURATION=/dir/of/qnx/license"]` |
 | `cflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_C_FLAGS_INIT` 的 C 编译参数 | `["-fPIC", "--sysroot=${SYSROOT}"]` |
 | `cxxflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_CXX_FLAGS_INIT` 的 C++ 编译参数 | `["-fPIC", "-stdlib=libc++"]` |
-| `linkflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_EXE/SHARED/MODULE_LINKER_FLAGS_INIT` 的链接参数 | `["-Wl,--as-needed"]` |
+| `ldflags` | ❌ | 追加到 `toolchain_file.cmake` 中 `CMAKE_EXE/SHARED/MODULE_LINKER_FLAGS_INIT` 的链接参数 | `["-Wl,--as-needed"]` |
 | `cflags_debug` | ❌ | 当 `build_type=debug` 时优先使用的 C 编译参数；未配置时回退到 `cflags` | `["-O0", "-g3"]` |
 | `cxxflags_debug` | ❌ | 当 `build_type=debug` 时优先使用的 C++ 编译参数；未配置时回退到 `cxxflags` | `["-O0", "-g3"]` |
-| `linkflags_debug` | ❌ | 当 `build_type=debug` 时优先使用的链接参数；未配置时回退到 `linkflags` | `["-Wl,--export-dynamic"]` |
+| `ldflags_debug` | ❌ | 当 `build_type=debug` 时优先使用的链接参数；未配置时回退到 `ldflags` | `["-Wl,--export-dynamic"]` |
 | `cmake_policy_version_minimum` | ❌ | CMake 最低策略版本，通过 cmake **命令行**以 `-DCMAKE_POLICY_VERSION_MINIMUM=<value>` 传入。CMake 4.x 移除了 `< 3.5` 兼容性，声明 `cmake_minimum_required(VERSION < 3.5)` 的端口需要此项，未配置时默认 `3.5` | `"3.5"`<br>`"3.6"` |
 | `cmake_vars` | ❌ | `KEY=VALUE` 形式的 CMake 内置变量列表，写入 `toolchain_file.cmake` 为 `set(KEY VALUE CACHE INTERNAL "")`。每项**必须以 `CMAKE` 开头**。在 `project()` 时生效，适用于一般 CMake 内置变量 | `["CMAKE_FIND_PACKAGE_PREFER_CONFIG=ON"]`<br>`["CMAKE_POSITION_INDEPENDENT_CODE=ON"]` |
 | `embedded_system` | ❌ | 是否为嵌入式系统环境（如 MCU、裸机） | `true`（MCU/裸机）<br>`false` 或不设置（常规系统） |
