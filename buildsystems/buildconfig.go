@@ -272,7 +272,7 @@ type BuildConfig struct {
 	LibDirs_Linux   []string `toml:"lib_dirs_linux,omitempty"`
 	LibDirs_Darwin  []string `toml:"lib_dirs_darwin,omitempty"`
 
-	// Event hooks for diableDevCache
+	// Event hooks for disableDevCache
 	DisableDevCache         bool `toml:"disable_dev_cache,omitempty"`
 	DisableDevCache_Windows bool `toml:"disable_dev_cache_windows,omitempty"`
 	DisableDevCache_Linux   bool `toml:"disable_dev_cache_linux,omitempty"`
@@ -696,7 +696,8 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	features := b.Ctx.Features()
 	if features == nil || !features.ShouldIgnoreCheckCMakeAbsPath() {
 		if err := pkgcmake.CheckCMakeAbsPaths(b.PortConfig.PackageDir, dirs.WorkspaceDir); err != nil {
-			return fmt.Errorf("cmake config files contain absolute workspace paths (non-relocatable) -> %w", err)
+			return fmt.Errorf("%s' cmake config files contain absolute workspace paths (non-relocatable) -> %w",
+				b.PortConfig.nameVersion(), err)
 		}
 	}
 
@@ -1013,7 +1014,7 @@ func (b BuildConfig) readQNXEnvs() (map[string]string, error) {
 	executor := cmd.NewExecutor(title, command)
 	output, err := executor.ExecuteOutput()
 	if err != nil {
-		return nil, fmt.Errorf("failed to source %s: %w", scriptName, err)
+		return nil, fmt.Errorf("failed to source %s -> %w", scriptName, err)
 	}
 
 	var qnxEnvs = make(map[string]string)

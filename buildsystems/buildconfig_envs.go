@@ -86,8 +86,9 @@ func (b *BuildConfig) setupEnvs() {
 			if strings.HasPrefix(currentValue, "-I") ||
 				strings.HasPrefix(currentValue, "-isystem") ||
 				strings.HasPrefix(currentValue, "-L") {
-				color.PrintWarning("set env %q with %q use `include_dirs` and `lib_dirs` is suggested.",
-					"CFLAGS/CXXFLAGS/LDFLAGS", "-I, -isystem and -L' is deprecated")
+				color.PrintWarning("in %s set env %q with %q use `include_dirs` and `lib_dirs` is suggested.",
+					b.PortConfig.nameVersion(), "CFLAGS/CXXFLAGS/LDFLAGS",
+					"flags like -I, -isystem and -L' is deprecated")
 			}
 
 			lastValue := filepath.ToSlash(os.Getenv(key))
@@ -154,7 +155,7 @@ func (b *BuildConfig) setupEnvs() {
 		b.setupPythonEnvs() // Expost PYTHONUSERBASE and PYTHONPATH for Python.
 	}
 
-	// Set environments only when toolchain is qcc
+	// Set QNX environments only when toolchain is qcc.
 	b.setupQNXEnvs()
 }
 

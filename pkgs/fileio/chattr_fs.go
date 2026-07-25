@@ -17,7 +17,7 @@ func NewChattrFS(rootDir string) *ChattrFS {
 
 // MkdirAll creates a directory tree within append-only compatible workflows.
 func (fs *ChattrFS) MkdirAll(path string, perm os.FileMode) error {
-	return os.MkdirAll(path, perm)
+	return MkdirAll(path, perm)
 }
 
 // CopyFile it does not remove the destination. it opens with O_WRONLY|O_CREATE|O_TRUNC.

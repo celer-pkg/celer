@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/color"
@@ -15,9 +16,10 @@ import (
 )
 
 type ArtifactConfig struct {
-	ctx      context.Context
-	writable bool
-	chattrFS *fileio.ChattrFS
+	ctx        context.Context
+	writable   bool
+	chattrFS   *fileio.ChattrFS
+	maxRetries int
 }
 
 func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
@@ -27,9 +29,10 @@ func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
 	}
 
 	return &ArtifactConfig{
-		ctx:      ctx,
-		writable: writable,
-		chattrFS: fileio.NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot)),
+		ctx:        ctx,
+		writable:   writable,
+		chattrFS:   fileio.NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot)),
+		maxRetries: 3,
 	}
 }
 
@@ -77,9 +80,20 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Extract to a tmp dir and move back to dest dir.
-	if err := fileio.Extract(archivePath, tempDir); err != nil {
-		return "", err
+	// Extract to a tmp dir (retry for NFS read hiccups).
+	var restoreErr error
+	for attempt := 1; attempt <= a.maxRetries; attempt++ {
+		restoreErr = fileio.Extract(archivePath, tempDir)
+		if restoreErr == nil {
+			break
+		}
+		if attempt < a.maxRetries {
+			color.Printf(color.Warning, "Restore pkgcache failed (attempt %d/%d): %v\n", attempt, a.maxRetries, err)
+			time.Sleep(time.Duration(attempt) * time.Second)
+		}
+	}
+	if restoreErr != nil {
+		return "", restoreErr
 	}
 	if err := os.RemoveAll(packageDir); err != nil {
 		return "", err
@@ -130,6 +144,7 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		libVersion = versionParts[1]
 	)
 
+	// Extract tar.gz to a tmp dir.
 	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirArtifacts)
 	destDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
 	metaDir := filepath.Join(destDir, "metas")
@@ -161,16 +176,29 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		return err
 	}
 
-	// Create dirs and write to cache.
+	// Create dirs and write to cache (with retry for NFS transient issues).
+	destName := filepath.Join(platformName, projectName, buildType, nameVersion)
 	if err := a.chattrFS.MkdirAll(destDir, fileio.CacheDirPerm); err != nil {
-		return err
+		return storeErrorDiagnostic(err, destName, destDir)
 	}
 	if err := a.chattrFS.MkdirAll(metaDir, fileio.CacheDirPerm); err != nil {
-		return err
+		return storeErrorDiagnostic(err, destName, metaDir)
 	}
 
-	if err := a.chattrFS.CopyFile(tempArchivePath, archivePath); err != nil {
-		return err
+	// Copy the compressed archive to cache. Retry on transient IO failures.
+	var storeErr error
+	for attempt := 1; attempt <= a.maxRetries; attempt++ {
+		storeErr = a.chattrFS.CopyFile(tempArchivePath, archivePath)
+		if storeErr == nil {
+			break
+		}
+		if attempt < a.maxRetries {
+			color.Printf(color.Warning, "Store pkgcache failed (attempt %d/%d): %v\n", attempt, a.maxRetries, err)
+			time.Sleep(time.Duration(attempt) * time.Second)
+		}
+	}
+	if storeErr != nil {
+		return storeErrorDiagnostic(storeErr, destName, archivePath)
 	}
 
 	// Write meta file.

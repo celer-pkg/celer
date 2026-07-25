@@ -37,7 +37,7 @@ func CheckWriteAccess(ctx context.Context) error {
 		return nil
 	}
 
-	// No need check GID for none NFS mounted dir.
+	// No need check GID for dir that not mounted with NFS.
 	isNfsDir, err := IsNFSMount(cacheDir)
 	if err != nil {
 		return fmt.Errorf("failed to check if nfs dir for %s -> %w", cacheDir, err)
@@ -103,4 +103,19 @@ func probeWrite(chattrFS *fileio.ChattrFS, subName, subDir string) error {
 
 	os.RemoveAll(probeFile)
 	return nil
+}
+
+func storeErrorDiagnostic(err error, subName, subDir string) error {
+	if err == nil {
+		return nil
+	}
+
+	// Probe first: only check group if the probe actually fails (no-op for non-NFS).
+	if probeErr := probeWrite(fileio.NewChattrFS(filepath.Dir(subDir)), subName, subDir); probeErr != nil {
+		if groupErr := checkProcessInCelerGroup(); groupErr != nil {
+			return fmt.Errorf("failed to store pkgcache (%s) -> %w", subName, groupErr)
+		}
+		return fmt.Errorf("failed to store pkgcache (%s) -> %w", subName, probeErr)
+	}
+	return fmt.Errorf("failed to store pkgcache (%s: %s) -> %w", subName, subDir, err)
 }
