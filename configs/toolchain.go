@@ -170,7 +170,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 	buildType := t.ctx.BuildType()
 	cflags, cxxflags, linkflags := t.effectiveFlags(buildType)
 	if len(cflags) > 0 || len(cxxflags) > 0 || len(linkflags) > 0 {
-		fmt.Fprint(toolchain, "\n# Append extra build flags.\n")
+		fmt.Fprint(toolchain, "\n# Setting extra build flags.\n")
 
 		// If both cflags and cxxflags exist, use foreach to avoid duplication
 		if len(cflags) > 0 && len(cxxflags) > 0 {
