@@ -33,16 +33,16 @@ func TestBuildMSYS2Command_EnvVars(t *testing.T) {
 
 func TestBuildMSYS2Command_WithMsvcEnvs(t *testing.T) {
 	var displayCmd string
-	executor := NewExecutor("", "make -j 4").SetWinEnvs(`call "C:\VC\vcvarsall.bat" x64 > nul &&`)
+	executor := NewExecutor("", "make -j 4").SetMSVCEnvs(`call "C:\VC\vcvarsall.bat" x64 > nul &&`)
 	cmd := executor.buildMSYS2Command(&displayCmd)
 
-	if !strings.Contains(displayCmd, executor.winEnvs) {
+	if !strings.Contains(displayCmd, executor.msvcEnvs) {
 		t.Errorf("displayCmd should contain msvcEnvs, got: %s", displayCmd)
 	}
 	if !strings.Contains(displayCmd, executor.command) {
 		t.Errorf("displayCmd should contain command, got: %s", displayCmd)
 	}
-	if !strings.HasPrefix(displayCmd, executor.winEnvs) {
+	if !strings.HasPrefix(displayCmd, executor.msvcEnvs) {
 		t.Errorf("msvcEnvs should be at the beginning of displayCmd, got: %s", displayCmd)
 	}
 
@@ -56,7 +56,7 @@ func TestBuildMSYS2Command_WithMsvcEnvs(t *testing.T) {
 		t.Errorf("expected second arg to be -lc, got: %s", cmd.Args[1])
 	}
 	combined := cmd.Args[2]
-	if !strings.Contains(combined, executor.winEnvs) {
+	if !strings.Contains(combined, executor.msvcEnvs) {
 		t.Errorf("bash command should contain msvcEnvs, got: %s", combined)
 	}
 	if !strings.Contains(combined, executor.command) {
@@ -99,7 +99,7 @@ func TestBuildMSYS2Command_WithArgs(t *testing.T) {
 
 func TestBuildMSYS2Command_EnvNotOverridden(t *testing.T) {
 	var displayCmd string
-	executor := NewExecutor("", "make").SetWinEnvs(`call vcvarsall.bat &&`)
+	executor := NewExecutor("", "make").SetMSVCEnvs(`call vcvarsall.bat &&`)
 	cmd := executor.buildMSYS2Command(&displayCmd)
 
 	msysCount := 0
@@ -115,7 +115,7 @@ func TestBuildMSYS2Command_EnvNotOverridden(t *testing.T) {
 
 func TestBuildMSYS2Command_MsvcEnvsOrder(t *testing.T) {
 	executor := NewExecutor("", "make install", "DESTDIR=/tmp").
-		SetWinEnvs(`call "C:\VC\vcvarsall.bat" x64 > nul &&`)
+		SetMSVCEnvs(`call "C:\VC\vcvarsall.bat" x64 > nul &&`)
 
 	var displayCmd string
 	cmd := executor.buildMSYS2Command(&displayCmd)

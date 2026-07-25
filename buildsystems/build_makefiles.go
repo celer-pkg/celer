@@ -24,7 +24,7 @@ func NewMakefiles(config *BuildConfig) *makefiles {
 
 type makefiles struct {
 	*BuildConfig
-	winEnvs string
+	msvcEnvs string
 }
 
 func (makefiles) Name() string {
@@ -60,11 +60,11 @@ func (m *makefiles) preConfigure() error {
 	// For non-MSVC toolchains on Windows (e.g., clang), set CC/CXX directly.
 	if runtime.GOOS == "windows" {
 		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
-			winEnvs, err := m.BuildConfig.winEnvs()
+			msvcEnvs, err := m.BuildConfig.msvcEnvs()
 			if err != nil {
 				return err
 			}
-			m.winEnvs = winEnvs
+			m.msvcEnvs = msvcEnvs
 		} else {
 			// Non-MSVC toolchains: set CC/CXX and binutils with full cygpath and MinGW target.
 			// clang on Windows defaults to MSVC ABI (lld-link), which can't handle
@@ -98,7 +98,7 @@ func (m *makefiles) preConfigure() error {
 						fileio.ToCygpath(filepath.Join(toolchain.GetAbsDir(), item.exe))))
 				}
 			}
-			m.winEnvs = strings.Join(parts, " ")
+			m.msvcEnvs = strings.Join(parts, " ")
 		}
 	}
 
@@ -288,7 +288,7 @@ func (m makefiles) Configure(options []string) error {
 	// Use msys2 and msvc env only when in windows and not using perl.
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
-		executor.SetWinEnvs(m.winEnvs)
+		executor.SetMSVCEnvs(m.msvcEnvs)
 	}
 	if err := executor.Execute(); err != nil {
 		return err
@@ -327,7 +327,7 @@ func (m makefiles) Build(options []string) error {
 	// Use msys2 and msvc envs for Windows builds (only for autoconf projects).
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
-		executor.SetWinEnvs(m.winEnvs)
+		executor.SetMSVCEnvs(m.msvcEnvs)
 	}
 
 	if !m.configureRequired() || m.BuildInSource {
@@ -375,7 +375,7 @@ func (m makefiles) Install(options []string) error {
 	// Use msys2 and msvc envs for Windows builds (only for autoconf projects).
 	if runtime.GOOS == "windows" && !configureWithPerl {
 		executor.MSYS2Env(true)
-		executor.SetWinEnvs(m.winEnvs)
+		executor.SetMSVCEnvs(m.msvcEnvs)
 	}
 
 	if !m.configureRequired() || m.BuildInSource {

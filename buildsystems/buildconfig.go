@@ -854,8 +854,8 @@ func (b BuildConfig) getLogPath(suffix string) string {
 	return filepath.Join(parentDir, fileName)
 }
 
-// winEnvs provider the MSVC environment variables required by msys2.
-func (b BuildConfig) winEnvs() (string, error) {
+// msvcEnvs provider the MSVC environment variables required by msys2.
+func (b BuildConfig) msvcEnvs() (string, error) {
 	// Append args if exist.
 	var args []string
 	var appendEnv = func(envKey, envValue string) {
