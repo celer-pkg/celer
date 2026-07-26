@@ -135,6 +135,24 @@ macros = [
 ]
 ```
 
+### 5. features（功能开关）
+
+临时性功能开关，用于在开发或特殊场景下控制 celer 的校验行为。这些开关未来可能变化或被移除。
+
+**格式：** `开关名 = true/false`
+
+**可用开关：**
+
+| 开关 | 默认值 | 说明 |
+|------|--------|------|
+| `ignore_check_cmake_abs_path` | `false` | 跳过 cmake 配置文件的绝对路径检查（非 relocatable 的包无法复用 pkgcache） |
+
+**示例：**
+```toml
+[features]
+  ignore_check_cmake_abs_path = true
+```
+
 ---
 
 ## 使用项目配置

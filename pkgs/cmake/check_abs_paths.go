@@ -48,7 +48,7 @@ func CheckCMakeAbsPaths(packageDir, workspaceDir string) error {
 					continue
 				}
 				relPath, _ := filepath.Rel(packageDir, path)
-				violations = append(violations, fmt.Sprintf("  %s: line %d: %s", relPath, lineNum+1, trimmed))
+				violations = append(violations, fmt.Sprintf("%s: line %d: %s", relPath, lineNum+1, trimmed))
 			}
 			return nil
 		})
@@ -58,14 +58,17 @@ func CheckCMakeAbsPaths(packageDir, workspaceDir string) error {
 	}
 
 	if len(violations) > 0 {
-		var sb strings.Builder
-		for _, v := range violations {
-			sb.WriteString(" ->")
-			sb.WriteString(v)
+		var builder strings.Builder
+		for index, v := range violations {
+			if index == 0 {
+				fmt.Fprintf(&builder, "%s", v)
+			} else {
+				fmt.Fprintf(&builder, " -> %s", v)
+			}
 		}
-		sb.WriteString("\n\n  This usually means a CMakeLists.txt didn't use find_package and target_link_libraries the imported targets. " +
+		builder.WriteString("\n\n  This usually means a CMakeLists.txt didn't use find_package and target_link_libraries the imported targets. " +
 			"This will cause cached target package cannot be relocatable.\n")
-		return fmt.Errorf("%s", sb.String())
+		return fmt.Errorf("%s", builder.String())
 	}
 
 	return nil
