@@ -56,11 +56,15 @@ func (c *Clang) LDFlags() []string {
 
 func (c *Clang) RuntimeFlags() []string {
 	var flags []string
-	if strings.EqualFold(c.SystemName, "linux") {
-		flags = append(flags, "--gcc-toolchain=/usr")
+
+	if !strings.EqualFold(c.SystemName, "android") {
+		if strings.EqualFold(c.SystemName, "linux") {
+			flags = append(flags, "--gcc-toolchain=/usr")
+		}
+		if strings.Contains(c.LD, "lld") {
+			flags = append(flags, "-fuse-ld=lld")
+		}
 	}
-	if strings.Contains(c.LD, "lld") {
-		flags = append(flags, "-fuse-ld=lld")
-	}
+
 	return flags
 }

@@ -134,6 +134,26 @@ macros = [
   "_GNU_SOURCE"           # Enable GNU extensions
 ]
 ```
+
+### 5. features (Feature Flags)
+
+Temporary feature toggles for controlling celer validation behavior during development
+or special scenarios. These flags may change or be removed in the future.
+
+**Format:** `"flag_name = true/false"`
+
+**Available flags:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `ignore_check_cmake_abs_path` | `false` | Skip checking cmake config files for absolute workspace paths (non-relocatable packages cannot reuse pkgcache) |
+
+**Example:**
+```toml
+[features]
+  ignore_check_cmake_abs_path = true
+```
+
 ---
 
 ## Using Project Configuration
