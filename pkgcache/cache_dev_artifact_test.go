@@ -7,9 +7,72 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache/nfs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
+
+// ---- test fakes ----
+
+type fakePkgCache struct {
+	dir      string
+	writable bool
+}
+
+func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string {
+	switch dirType {
+	case context.PkgCacheDirRepos:
+		return filepath.Join(f.dir, "repos")
+	case context.PkgCacheDirArtifacts:
+		return filepath.Join(f.dir, "artifacts")
+	case context.PkgCacheDirDownloads:
+		return filepath.Join(f.dir, "downloads")
+	default:
+		return f.dir
+	}
+}
+func (f fakePkgCache) IsWritable() bool                         { return f.writable }
+func (f fakePkgCache) GetCacheArtifacts() bool                  { return true }
+func (f fakePkgCache) GetCacheDownloads() bool                  { return true }
+func (f fakePkgCache) GetArtifactCache() context.AritifactCache { return nil }
+func (f fakePkgCache) GetRepoCache() context.RepoCache {
+	return nfs.NewRepoConfig(fakeContext{pkgCache: f}, f.writable)
+}
+
+type fakeDevCache struct{}
+
+func (f fakeDevCache) GetDir() string                                 { return "" }
+func (f fakeDevCache) GetDevArtifactCache() context.DevAritifactCache { return nil }
+
+type fakeContext struct {
+	pkgCache fakePkgCache
+	devCache fakeDevCache
+	offline  bool
+}
+
+func (fakeContext) Version() string                          { return "test" }
+func (fakeContext) Platform() context.Platform               { return nil }
+func (fakeContext) RootFS() context.RootFS                   { return nil }
+func (fakeContext) Project() context.Project                 { return nil }
+func (fakeContext) BuildType() string                        { return "release" }
+func (fakeContext) LibraryFolder() string                    { return "" }
+func (fakeContext) Downloads() string                        { return "" }
+func (fakeContext) Jobs() int                                { return 1 }
+func (f fakeContext) Offline() bool                          { return f.offline }
+func (fakeContext) Verbose() bool                            { return false }
+func (fakeContext) InstalledDir() string                     { return "" }
+func (fakeContext) InstalledDevDir() string                  { return "" }
+func (f fakeContext) PkgCacheConfig() context.PkgCacheConfig { return f.pkgCache }
+func (f fakeContext) DevCacheConfig() context.DevCacheConfig { return f.devCache }
+func (fakeContext) ProxyHostPort() (string, int)             { return "", 0 }
+func (fakeContext) CCacheEnabled() bool                      { return false }
+func (fakeContext) GenerateToolchainFile() error             { return nil }
+func (fakeContext) ExprVars() *context.ExprVars              { return nil }
+func (fakeContext) PythonConfig() context.PythonConfig       { return nil }
+func (fakeContext) Features() context.Features               { return nil }
+
+// ---- helpers ----
 
 func newTestDevArtifactCache(t *testing.T) *DevArtifactCache {
 	t.Helper()

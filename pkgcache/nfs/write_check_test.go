@@ -1,4 +1,4 @@
-package pkgcache
+package nfs
 
 import (
 	"os"
@@ -11,7 +11,7 @@ import (
 
 func TestCheckWriteAccess_SkipWhenNotWritable(t *testing.T) {
 	cacheDir := t.TempDir()
-	ctx := fakeContext{
+	ctx := FakeContext{
 		pkgCache: fakePkgCache{dir: cacheDir, writable: false},
 	}
 	if err := CheckWriteAccess(ctx); err != nil {
@@ -21,7 +21,7 @@ func TestCheckWriteAccess_SkipWhenNotWritable(t *testing.T) {
 
 func TestCheckWriteAccess_SkipWhenOffline(t *testing.T) {
 	cacheDir := t.TempDir()
-	ctx := fakeContext{
+	ctx := FakeContext{
 		offline:  true,
 		pkgCache: fakePkgCache{dir: cacheDir, writable: true},
 	}
@@ -31,7 +31,7 @@ func TestCheckWriteAccess_SkipWhenOffline(t *testing.T) {
 }
 
 func TestCheckWriteAccess_SkipWhenNilPkgCache(t *testing.T) {
-	ctx := fakeContext{}
+	ctx := FakeContext{}
 	if err := CheckWriteAccess(ctx); err != nil {
 		t.Fatalf("expected no error when pkgcache nil, got: %v", err)
 	}
@@ -54,7 +54,7 @@ func TestCheckWriteAccess_NotInCelerGroup(t *testing.T) {
 		return []int{os.Getgid()}, nil
 	}
 
-	ctx := fakeContext{
+	ctx := FakeContext{
 		pkgCache: fakePkgCache{dir: cacheDir, writable: true},
 	}
 	err := CheckWriteAccess(ctx)
@@ -74,7 +74,7 @@ func TestCheckWriteAccess_WriteProbeFails(t *testing.T) {
 
 	withMockCelerGroup(t, 5151)
 
-	ctx := fakeContext{
+	ctx := FakeContext{
 		pkgCache: fakePkgCache{dir: cacheDir, writable: true},
 	}
 	err := CheckWriteAccess(ctx)
@@ -93,7 +93,7 @@ func TestCheckWriteAccess_Success(t *testing.T) {
 	cacheDir := setupWritableCacheDir(t)
 	withMockCelerGroup(t, 6161)
 
-	ctx := fakeContext{
+	ctx := FakeContext{
 		pkgCache: fakePkgCache{dir: cacheDir, writable: true},
 	}
 	if err := CheckWriteAccess(ctx); err != nil {

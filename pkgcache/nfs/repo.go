@@ -1,4 +1,4 @@
-package pkgcache
+package nfs
 
 import (
 	"fmt"
