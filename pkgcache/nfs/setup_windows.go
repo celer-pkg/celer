@@ -1,6 +1,6 @@
 //go:build windows
 
-package pkgcache
+package nfs
 
 import (
 	"fmt"
