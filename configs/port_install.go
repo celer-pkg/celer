@@ -465,7 +465,7 @@ func (p *Port) InstallFromDevCache(options InstallOptions) (bool, error) {
 	}
 
 	// Rebuild with force.
-	if !options.Force {
+	if options.Force {
 		return false, nil
 	}
 
