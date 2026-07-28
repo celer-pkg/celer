@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/cmd"
 )
 
 type MSVC struct {
@@ -94,4 +95,34 @@ func (m *MSVC) LDFlags() []string {
 
 func (m *MSVC) RuntimeFlags() []string {
 	return []string{}
+}
+
+// ReadMSVCEnvs call MSVC's batch file to get all build environment variables.
+func ReadMSVCEnvs(toolchain context.Toolchain) (map[string]string, error) {
+	// Read MSVC environment variables.
+	// TODO: the `x64` may be different depending on the platform.
+	command := fmt.Sprintf(`call "%s" x64 && set`, toolchain.GetMSVC().VCVars)
+	executor := cmd.NewExecutor("", command)
+	output, err := executor.ExecuteOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse environment variables from output.
+	var msvcEnvs = make(map[string]string)
+	lines := strings.SplitSeq(output, "\n")
+	for line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" && strings.Contains(line, "=") {
+			parts := strings.Split(line, "=")
+
+			// Unify "Path" to "PATH".
+			if parts[0] == "Path" {
+				parts[0] = "PATH"
+			}
+			msvcEnvs[parts[0]] = parts[1]
+		}
+	}
+
+	return msvcEnvs, nil
 }

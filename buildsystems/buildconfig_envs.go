@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/env"
@@ -279,7 +280,7 @@ func (b BuildConfig) setupQNXEnvs() {
 		return
 	}
 
-	qnxEnvs, err := b.readQNXEnvs()
+	qnxEnvs, err := toolchains.ReadQNXEnvs(toolchain)
 	if err != nil {
 		color.PrintWarning("failed to read QNX envs from qnxsdp-env.sh: %v", err)
 		return

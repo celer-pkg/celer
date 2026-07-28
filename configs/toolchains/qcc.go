@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -85,4 +86,42 @@ func (q *QCC) LDFlags() []string {
 
 func (q *QCC) RuntimeFlags() []string {
 	return []string{}
+}
+
+// ReadQNXEnvs read QNX's source file to get all build environment variables.
+func ReadQNXEnvs(toolchain context.Toolchain) (map[string]string, error) {
+	var scriptName, command string
+	switch runtime.GOOS {
+	case "windows":
+		scriptName = "qnxsdp-env.bat"
+		command = fmt.Sprintf("call \"%s\" && set",
+			filepath.Join(toolchain.GetRootDir(), scriptName))
+	default:
+		scriptName = "qnxsdp-env.sh"
+		command = fmt.Sprintf("source '%s' && env",
+			filepath.Join(toolchain.GetRootDir(), scriptName))
+	}
+
+	qnxEnvScript := filepath.Join(toolchain.GetRootDir(), scriptName)
+	if !fileio.PathExists(qnxEnvScript) {
+		return nil, fmt.Errorf("QNX env script not found at: %s", qnxEnvScript)
+	}
+
+	executor := cmd.NewExecutor("", command)
+	output, err := executor.ExecuteOutput()
+	if err != nil {
+		return nil, fmt.Errorf("failed to source %s -> %w", scriptName, err)
+	}
+
+	var qnxEnvs = make(map[string]string)
+	lines := strings.SplitSeq(output, "\n")
+	for line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" && strings.Contains(line, "=") {
+			key, value, _ := strings.Cut(line, "=")
+			qnxEnvs[key] = value
+		}
+	}
+
+	return qnxEnvs, nil
 }
