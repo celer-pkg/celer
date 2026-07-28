@@ -446,17 +446,21 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			color.PrintInline(color.Hint, "✔ extract to %s\n", b.PortConfig.RepoDir)
 		}
 
-		// Reset timestamps to avoid autotools "newly created file is older" error.
-		if b.buildSystem != nil && b.buildSystem.Name() == "makefiles" {
-			if err := fileio.ResetTimestamps(b.PortConfig.RepoDir); err != nil {
-				return err
+		// Some tests the b.buildSystem may not initialized by initBuildSystem()
+		if b.buildSystem != nil {
+			// Reset timestamps to avoid autotools "newly created file is older" error.
+			if b.buildSystem.Name() == "makefiles" {
+				if err := fileio.ResetTimestamps(b.PortConfig.RepoDir); err != nil {
+					return err
+				}
 			}
-		}
 
-		// Archive sources under buildtrees are tracked as local git repos for
-		// local-change detection in install flow. Delay init until after any
-		// generated files (e.g. prebuilt CMakeLists) are created.
-		trackArchiveAsLocalRepo = fileio.IsSubPath(dirs.BuildtreesDir, b.PortConfig.RepoDir)
+			// Archive sources under buildtrees are tracked as local git repos for
+			// local-change detection in install flow. Delay init until after any
+			// generated files (e.g. prebuilt CMakeLists) are created.
+			// For prebuilt library, there's no need to init as local repo, since it'll be removed after installation.
+			trackArchiveAsLocalRepo = fileio.IsSubPath(dirs.BuildtreesDir, b.PortConfig.RepoDir) && b.buildSystem.Name() != "prebuilt"
+		}
 	}
 
 	// Generate a CMakeLists.txt for prebuilt project.
