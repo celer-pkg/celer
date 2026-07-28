@@ -6,7 +6,7 @@ import (
 	"runtime"
 
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgcache/nfs"
 
 	"github.com/spf13/cobra"
 )
@@ -80,7 +80,7 @@ func (s *setupCmd) doSetup() error {
 		if runtime.GOOS != "linux" {
 			return fmt.Errorf("celer setup --nfs-server is only supported on Linux")
 		}
-		serverSetup := pkgcache.NewNFSServerSetup(s.nfsServerDir)
+		serverSetup := nfs.NewNFSServerSetup(s.nfsServerDir)
 		if s.remove {
 			return serverSetup.Remove()
 		}
@@ -91,7 +91,7 @@ func (s *setupCmd) doSetup() error {
 		if runtime.GOOS != "linux" {
 			return fmt.Errorf("celer setup --nfs-client is only supported on Linux")
 		}
-		clientSetup := pkgcache.NewNFSClientSetup(s.nfsClientDir)
+		clientSetup := nfs.NewNFSClientSetup(s.nfsClientDir)
 		if s.remove {
 			return clientSetup.Remove()
 		}

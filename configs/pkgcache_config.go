@@ -7,6 +7,7 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgcache/nfs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -20,8 +21,8 @@ type PkgCacheConfig struct {
 
 	// Internal field.
 	ctx            context.Context
-	artifactConfig *pkgcache.ArtifactConfig
-	repoConfig     *pkgcache.RepoConfig
+	artifactConfig *nfs.ArtifactConfig
+	repoConfig     *nfs.RepoConfig
 }
 
 func NewPkgCacheConfig(ctx context.Context, dir string, writable bool) *PkgCacheConfig {
@@ -43,8 +44,8 @@ func (p *PkgCacheConfig) Refresh() error {
 	}
 
 	// Create valid artifact config and repo config.
-	p.artifactConfig = pkgcache.NewArtifactConfig(p.ctx, p.Writable)
-	p.repoConfig = pkgcache.NewRepoConfig(p.ctx, p.Writable)
+	p.artifactConfig = nfs.NewArtifactConfig(p.ctx, p.Writable)
+	p.repoConfig = nfs.NewRepoConfig(p.ctx, p.Writable)
 
 	return nil
 }
