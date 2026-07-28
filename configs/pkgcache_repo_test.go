@@ -9,7 +9,7 @@ import (
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgcache/nfs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
@@ -42,7 +42,7 @@ func (f fakePkgCacheConfig) GetCacheArtifacts() bool                  { return t
 func (f fakePkgCacheConfig) GetCacheDownloads() bool                  { return true }
 func (f fakePkgCacheConfig) GetArtifactCache() context.AritifactCache { return nil }
 func (f fakePkgCacheConfig) GetRepoCache() context.RepoCache {
-	return pkgcache.NewRepoConfig(fakeContext{pkgCacheConfig: f}, f.writable)
+	return nfs.NewRepoConfig(fakeContext{pkgCacheConfig: f}, f.writable)
 }
 
 // creates a local bare repo that acts like remote origin.
