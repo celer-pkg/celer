@@ -81,9 +81,24 @@ func (m *MSVC) AssembleBuildTools(toolchain *strings.Builder) {
 	}
 }
 
-func (m *MSVC) ReadBuiltinEnvs() (map[string]string, error) {
-	toolchain := m.Platform().GetToolchain()
+func (m *MSVC) CFlags() []string {
+	return []string{}
+}
 
+func (m *MSVC) CXXFlags() []string {
+	return []string{}
+}
+
+func (m *MSVC) LDFlags() []string {
+	return []string{}
+}
+
+func (m *MSVC) RuntimeFlags() []string {
+	return []string{}
+}
+
+// ReadMSVCEnvs call MSVC's batch file to get all build environment variables.
+func ReadMSVCEnvs(toolchain context.Toolchain) (map[string]string, error) {
 	// Read MSVC environment variables.
 	// TODO: the `x64` may be different depending on the platform.
 	command := fmt.Sprintf(`call "%s" x64 && set`, toolchain.GetMSVC().VCVars)
@@ -110,20 +125,4 @@ func (m *MSVC) ReadBuiltinEnvs() (map[string]string, error) {
 	}
 
 	return msvcEnvs, nil
-}
-
-func (m *MSVC) CFlags() []string {
-	return []string{}
-}
-
-func (m *MSVC) CXXFlags() []string {
-	return []string{}
-}
-
-func (m *MSVC) LDFlags() []string {
-	return []string{}
-}
-
-func (m *MSVC) RuntimeFlags() []string {
-	return []string{}
 }

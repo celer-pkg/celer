@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
@@ -60,7 +61,7 @@ func (b *b2) preConfigure() error {
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
 	if runtime.GOOS == "windows" {
 		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
-			msvcEnvs, err := b.Ctx.Platform().GetToolchain().ReadBuiltinEnvs()
+			msvcEnvs, err := toolchains.ReadMSVCEnvs(toolchain)
 			if err != nil {
 				return err
 			}

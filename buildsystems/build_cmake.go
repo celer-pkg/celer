@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -69,7 +70,7 @@ func (c *cmake) preConfigure() error {
 	// not the build phase when Ninja invokes RC.exe and link.exe.
 	if runtime.GOOS == "windows" && c.CMakeGenerator == "Ninja" {
 		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
-			msvcEnvs, err := c.Ctx.Platform().GetToolchain().ReadBuiltinEnvs()
+			msvcEnvs, err := toolchains.ReadMSVCEnvs(toolchain)
 			if err != nil {
 				return err
 			}

@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/generator"
 	pkgcmake "github.com/celer-pkg/celer/pkgs/cmake"
@@ -935,7 +936,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	appendEnv("PKG_CONFIG_LIBDIR", strings.Join(configLibDirs, pathDivider))
 
 	// Load MSVC environment variables.
-	msvcEnvs, err := b.Ctx.Platform().GetToolchain().ReadBuiltinEnvs()
+	msvcEnvs, err := toolchains.ReadMSVCEnvs(toolchain)
 	if err != nil {
 		return "", err
 	}

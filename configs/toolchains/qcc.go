@@ -66,9 +66,30 @@ func (q *QCC) AssembleBuildTools(toolchain *strings.Builder) {
 	fmt.Fprintf(toolchain, "set(ENV{QNX_TARGET} %q)\n", qnxTarget)
 }
 
-func (q *QCC) ReadBuiltinEnvs() (map[string]string, error) {
-	toolchain := q.Platform().GetToolchain()
+func (q *QCC) CFlags() []string {
+	return []string{
+		"-D_QNX_SOURCE",
+		"-V" + q.CCompilerTarget,
+	}
+}
 
+func (q *QCC) CXXFlags() []string {
+	return []string{
+		"-D_QNX_SOURCE",
+		"-V" + q.CXXCompilerTarget,
+	}
+}
+
+func (q *QCC) LDFlags() []string {
+	return []string{}
+}
+
+func (q *QCC) RuntimeFlags() []string {
+	return []string{}
+}
+
+// ReadQNXEnvs read QNX's source file to get all build environment variables.
+func ReadQNXEnvs(toolchain context.Toolchain) (map[string]string, error) {
 	var scriptName, command string
 	switch runtime.GOOS {
 	case "windows":
@@ -103,26 +124,4 @@ func (q *QCC) ReadBuiltinEnvs() (map[string]string, error) {
 	}
 
 	return qnxEnvs, nil
-}
-
-func (q *QCC) CFlags() []string {
-	return []string{
-		"-D_QNX_SOURCE",
-		"-V" + q.CCompilerTarget,
-	}
-}
-
-func (q *QCC) CXXFlags() []string {
-	return []string{
-		"-D_QNX_SOURCE",
-		"-V" + q.CXXCompilerTarget,
-	}
-}
-
-func (q *QCC) LDFlags() []string {
-	return []string{}
-}
-
-func (q *QCC) RuntimeFlags() []string {
-	return []string{}
 }

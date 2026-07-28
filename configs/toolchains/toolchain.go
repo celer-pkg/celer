@@ -10,7 +10,6 @@ import (
 type Toolchain interface {
 	Dir(abspath string) string
 	AssembleBuildTools(toolchain *strings.Builder)
-	ReadBuiltinEnvs() (map[string]string, error)
 	CFlags() []string
 	CXXFlags() []string
 	LDFlags() []string

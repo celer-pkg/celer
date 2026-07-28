@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
+	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -61,7 +62,7 @@ func (m *meson) preConfigure() error {
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
 	if runtime.GOOS == "windows" {
 		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
-			msvcEnvs, err := m.Ctx.Platform().GetToolchain().ReadBuiltinEnvs()
+			msvcEnvs, err := toolchains.ReadMSVCEnvs(toolchain)
 			if err != nil {
 				return err
 			}

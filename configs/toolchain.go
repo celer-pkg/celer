@@ -506,14 +506,6 @@ func (t Toolchain) ClearEnvs() {
 	}
 }
 
-// ReadBuiltinEnvs reads toolchain-specific builtin environment variables.
-func (t Toolchain) ReadBuiltinEnvs() (map[string]string, error) {
-	if t.toolchain != nil {
-		return t.toolchain.ReadBuiltinEnvs()
-	}
-	return nil, nil
-}
-
 // RuntimeFlags returns extra compiler flags needed when this toolchain
 // cross-compiles against a sysroot. Self-contained toolchains (Android NDK,
 // etc.) return nil.
