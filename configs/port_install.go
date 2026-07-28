@@ -208,8 +208,8 @@ func (p *Port) pkgCacheStoreSkipReason() (string, error) {
 		return "offline mode", nil
 	}
 
-	// Check if source modified.
-	if fileio.PathExists(p.MatchedConfig.PortConfig.RepoDir) {
+	// Check if source modified, but for prebuilt library it's not managered by git.
+	if fileio.PathExists(p.MatchedConfig.PortConfig.RepoDir) && p.MatchedConfig.BuildSystem != "prebuilt" {
 		modified, err := git.IsModified(p.MatchedConfig.PortConfig.RepoDir)
 		if err != nil {
 			return "", err
@@ -561,13 +561,21 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
-	// Python packages: copy from PACKAGE_DIR to venv. C++ packages: copy to InstalledDir.
+	// - Python packages: copy from PACKAGE_DIR to venv
+	// - C++ packages: copy to InstalledDir.
 	destDir := p.InstalledDir
 	if p.MatchedConfig.IsPythonPackage() && buildtools.PythonTool != nil {
 		destDir = buildtools.PythonTool.VenvDir()
 	}
 	if err := p.doInstallFromPackage(destDir); err != nil {
 		return err
+	}
+
+	// Different platform prebuilt libraries share the same "src" directory.
+	// If the directory is not removed after installation, switching to another
+	// platform will not overwrite the source files with the new platform's prebuilt library.
+	if p.MatchedConfig.BuildSystem == "prebuilt" {
+		defer os.RemoveAll(filepath.Dir(p.MatchedConfig.PortConfig.RepoDir))
 	}
 
 	return p.writeTraceFile("source")
@@ -1285,11 +1293,6 @@ func (p Port) writeTraceFile(installedFrom string) error {
 		color.PrintHint("Location: %s\n", buildtools.PythonTool.VenvDir())
 	} else {
 		color.PrintHint("Location: %s\n", p.InstalledDir)
-	}
-
-	// Print reason why skip store artifact to pkgcache.
-	if p.pkgCacheStoreSkippedReason != "" {
-		color.PrintWarning("skip storing package cache for %s because %s\n", p.NameVersion(), p.pkgCacheStoreSkippedReason)
 	}
 
 	return nil

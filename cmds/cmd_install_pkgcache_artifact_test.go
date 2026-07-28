@@ -218,8 +218,8 @@ func TestInstall_PkgCache_Prebuilt_Success(t *testing.T) {
 	if !fileio.PathExists(packageDir) {
 		t.Fatal("package cannot found: " + packageDir)
 	}
-	if !fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
-		t.Fatal("repo should be exist: " + port.MatchedConfig.PortConfig.RepoDir)
+	if fileio.PathExists(port.MatchedConfig.PortConfig.RepoDir) {
+		t.Fatal("repo should not be removed: " + port.MatchedConfig.PortConfig.RepoDir)
 	}
 
 	// Totally remove port.
