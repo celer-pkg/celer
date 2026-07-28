@@ -95,7 +95,7 @@ func (t *Toolchain) Validate() error {
 		return fmt.Errorf("toolchain.cxx is empty")
 	}
 
-	toolsDir := filepath.Join(t.Downloads(), "tools")
+	toolsDir := filepath.Join(t.ctx.Downloads(), "tools")
 
 	switch {
 	// Web resource file would be extracted to specified path, so path can not be empty.
@@ -158,9 +158,9 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 
 	// Check and repair resource.
 	archiveName := expr.If(t.Archive != "", t.Archive, filepath.Base(t.Url))
-	toolsDir := filepath.Join(t.Downloads(), "tools")
-	repair := fileio.NewRepair(t.Url, t.Downloads(), archiveName, folderName, toolsDir, t.SHA256)
-	if err := repair.CheckAndRepair(t.Context); err != nil {
+	toolsDir := filepath.Join(t.ctx.Downloads(), "tools")
+	repair := fileio.NewRepair(t.Url, t.ctx.Downloads(), archiveName, folderName, toolsDir, t.SHA256)
+	if err := repair.CheckAndRepair(t.ctx); err != nil {
 		return err
 	}
 
@@ -181,7 +181,7 @@ func (t *Toolchain) CheckAndRepair(silent bool) error {
 // Detect detect local installed gcc.
 func (t *Toolchain) Detect(platformName string) error {
 	if platformName == "" {
-		if err := buildtools.CheckTools(t.Context, platformName); err != nil {
+		if err := buildtools.CheckTools(t.ctx, platformName); err != nil {
 			return err
 		}
 	}
@@ -211,7 +211,7 @@ func (t *Toolchain) Detect(platformName string) error {
 		return err
 	}
 
-	t.toolchain = toolchains.NewToolchain(t.Context, t.Name, t.Infos, t.BuildTools, t.BuildFlags)
+	t.toolchain = toolchains.NewToolchain(t.ctx, t.Name, t.Infos, t.BuildTools, t.BuildFlags)
 	return nil
 }
 

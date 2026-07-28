@@ -46,8 +46,8 @@ func (g gyp) configured() bool {
 }
 
 func (g gyp) Configure(options []string) error {
-	toolchain := g.Platform().GetToolchain()
-	rootfs := g.Platform().GetRootFS()
+	toolchain := g.Ctx.Platform().GetToolchain()
+	rootfs := g.Ctx.Platform().GetRootFS()
 
 	if g.DevDep {
 		toolchain.ClearEnvs()

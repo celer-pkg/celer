@@ -30,7 +30,7 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 	}
 	pkgCacheConfig := NewPkgCacheConfig(fakeCtx, cacheDir, true)
 	fakeCtx.pkgCacheConfig = pkgCacheConfig
-	pkgCacheConfig.Context = fakeCtx
+	pkgCacheConfig.ctx = fakeCtx
 	if err := pkgCacheConfig.Refresh(); err != nil {
 		t.Fatal(err)
 	}

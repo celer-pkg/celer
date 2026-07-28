@@ -67,7 +67,7 @@ func (g *GCC) AssembleBuildTools(toolchain *strings.Builder) {
 	}
 }
 
-func (q *GCC) ReadBuiltinEnvs() (map[string]string, error) {
+func (g *GCC) ReadBuiltinEnvs() (map[string]string, error) {
 	return nil, nil
 }
 

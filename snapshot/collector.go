@@ -14,14 +14,14 @@ import (
 
 // Collector collects ports and their dependencies.
 type Collector struct {
-	context.Context
+	ctx       context.Context
 	collected map[string]*configs.Port
 }
 
 // NewCollector creates a new Collector instance.
 func NewCollector(ctx context.Context) *Collector {
 	return &Collector{
-		Context:   ctx,
+		ctx:       ctx,
 		collected: make(map[string]*configs.Port),
 	}
 }
@@ -46,7 +46,7 @@ func (c *Collector) collectRecursive(nameVersion string) error {
 
 	// Load port.
 	var port configs.Port
-	if err := port.Init(c.Context, nameVersion); err != nil {
+	if err := port.Init(c.ctx, nameVersion); err != nil {
 		return fmt.Errorf("failed to init port %s -> %w", nameVersion, err)
 	}
 	c.collected[nameVersion] = &port
@@ -75,7 +75,7 @@ func (c *Collector) GetPortChecksum(port *configs.Port) (string, error) {
 	// For archive downloads (zip/tar), use the sha256 as checksum.
 	if !strings.HasSuffix(port.Package.Url, ".git") {
 		archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-		filePath := filepath.Join(c.Downloads(), archive)
+		filePath := filepath.Join(c.ctx.Downloads(), archive)
 		sha256, err := fileio.ComputeSHA256(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of port's archive %s -> %w", port.NameVersion(), err)

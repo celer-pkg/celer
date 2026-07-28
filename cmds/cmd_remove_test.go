@@ -526,7 +526,7 @@ func TestRemoveCmd_Recursive(t *testing.T) {
 
 	// Check if dependency gflags@2.2.2 is also removed.
 	gflagsPort := configs.Port{}
-	if err := gflagsPort.Init(installedPort.MatchedConfig.Context, "gflags@2.2.2"); err != nil {
+	if err := gflagsPort.Init(installedPort.MatchedConfig.Ctx, "gflags@2.2.2"); err != nil {
 		t.Fatalf("failed to initialize gflags@2.2.2 port: %v", err)
 	}
 	if installed, err := gflagsPort.Installed(); err != nil {

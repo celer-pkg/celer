@@ -45,7 +45,7 @@ func (c cmake) CheckTools() []string {
 
 	// Add build tools dynamically.
 	tools = append(tools, c.buildSystem)
-	toolchainName := c.Platform().GetToolchain().GetName()
+	toolchainName := c.Ctx.Platform().GetToolchain().GetName()
 	if toolchainName == "clang" || c.CMakeGenerator == "Ninja" {
 		tools = append(tools, "ninja")
 	}
@@ -60,7 +60,7 @@ func (c cmake) CheckTools() []string {
 }
 
 func (c *cmake) preConfigure() error {
-	toolchain := c.Platform().GetToolchain()
+	toolchain := c.Ctx.Platform().GetToolchain()
 
 	// For MSVC build with Ninja generator, we need to set INCLUDE and LIB env vars.
 	// Visual Studio generator handles these automatically via MSBuild.
@@ -69,7 +69,7 @@ func (c *cmake) preConfigure() error {
 	// not the build phase when Ninja invokes RC.exe and link.exe.
 	if runtime.GOOS == "windows" && c.CMakeGenerator == "Ninja" {
 		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
-			msvcEnvs, err := c.Platform().GetToolchain().ReadBuiltinEnvs()
+			msvcEnvs, err := c.Ctx.Platform().GetToolchain().ReadBuiltinEnvs()
 			if err != nil {
 				return err
 			}
@@ -84,8 +84,8 @@ func (c *cmake) preConfigure() error {
 
 func (c cmake) configureOptions() ([]string, error) {
 	var (
-		toolchain = c.Platform().GetToolchain()
-		rootfs    = c.Platform().GetRootFS()
+		toolchain = c.Ctx.Platform().GetToolchain()
+		rootfs    = c.Ctx.Platform().GetRootFS()
 		options   = slices.Clone(c.Options)
 	)
 
@@ -183,12 +183,12 @@ func (c cmake) configureOptions() ([]string, error) {
 	options = append(options, "-DTMP_DEP_DEV_DIR="+filepath.ToSlash(tmpDepDevDir))
 
 	// Enable verbose makefile.
-	if c.Verbose() {
+	if c.Ctx.Verbose() {
 		options = append(options, "-DCMAKE_VERBOSE_MAKEFILE=ON")
 	}
 
 	// Set minimum CMake policy version to support in old CMakeLists.txt (default is 3.5).
-	minmumVersion := c.Platform().GetToolchain().GetCMakePolicyVersionMinimum()
+	minmumVersion := c.Ctx.Platform().GetToolchain().GetCMakePolicyVersionMinimum()
 	if strings.TrimSpace(minmumVersion) == "" {
 		options = append(options, "-DCMAKE_POLICY_VERSION_MINIMUM=3.5")
 	} else {
@@ -254,8 +254,8 @@ func (c cmake) configured() bool {
 }
 
 func (c cmake) Configure(options []string) error {
-	toolchain := c.Platform().GetToolchain()
-	rootfs := c.Platform().GetRootFS()
+	toolchain := c.Ctx.Platform().GetToolchain()
+	rootfs := c.Ctx.Platform().GetRootFS()
 
 	// Host-side dev dependencies must not inherit the target toolchain's
 	// CC/CXX/AR/... from previously built cross packages. Otherwise CMake
@@ -392,7 +392,7 @@ func (c *cmake) detectGenerator() error {
 		case "linux":
 			c.CMakeGenerator = "Unix Makefiles"
 		case "windows":
-			if c.Platform().GetToolchain().GetName() == "clang" {
+			if c.Ctx.Platform().GetToolchain().GetName() == "clang" {
 				c.CMakeGenerator = "Ninja"
 			} else {
 				msvcGenerator, err := detectMSVCGenerator()
@@ -412,7 +412,7 @@ func (c *cmake) detectGenerator() error {
 }
 
 func (c cmake) multiConfigGenerator() bool {
-	toolchain := c.Platform().GetToolchain()
+	toolchain := c.Ctx.Platform().GetToolchain()
 
 	if runtime.GOOS == "windows" {
 		return toolchain.GetName() == "msvc" ||

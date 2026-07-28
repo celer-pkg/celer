@@ -49,9 +49,9 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 	}()
 
 	installedDir := expr.If(p.DevDep || p.HostDep,
-		filepath.Join(dirs.InstalledDir, p.Platform().GetHostName()+"-dev"),
+		filepath.Join(dirs.InstalledDir, p.ctx.Platform().GetHostName()+"-dev"),
 		filepath.Join(dirs.InstalledDir,
-			p.Platform().GetName()+"@"+p.Project().GetName()+"@"+p.BuildType()),
+			p.ctx.Platform().GetName()+"@"+p.ctx.Project().GetName()+"@"+p.ctx.BuildType()),
 	)
 
 	// There is no need to read p.Installed() if build with --force, this API may time-consuming.
@@ -204,7 +204,7 @@ func (p Port) shouldSkipArtifactPkgCache() bool {
 // pkgCacheStoreSkipReason returns the reason the artifact pkgcache upload
 // should be skipped after a source build. Empty string means upload is OK.
 func (p *Port) pkgCacheStoreSkipReason() (string, error) {
-	if p.Offline() {
+	if p.ctx.Offline() {
 		return "offline mode", nil
 	}
 
@@ -223,7 +223,7 @@ func (p *Port) pkgCacheStoreSkipReason() (string, error) {
 	// Only repos that match the configured source ref can store package cache.
 	if strings.HasSuffix(p.MatchedConfig.PortConfig.Url, ".git") {
 		repoRef := expr.If(p.Package.Checksum != "", p.Package.Checksum, p.Package.Ref)
-		mismatchDetails, err := git.CheckIfRefMatches(p.Context, p.NameVersion(), p.MatchedConfig.PortConfig.RepoDir, repoRef)
+		mismatchDetails, err := git.CheckIfRefMatches(p.ctx, p.NameVersion(), p.MatchedConfig.PortConfig.RepoDir, repoRef)
 		if err != nil {
 			return "", fmt.Errorf("failed to check if ref matches for %s -> %w", p.NameVersion(), err)
 		}
@@ -247,7 +247,7 @@ func (p Port) Clone() error {
 			DevDep: true,
 			Parent: p.NameVersion(),
 		}
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -271,7 +271,7 @@ func (p Port) Clone() error {
 			HostDep: p.DevDep || p.HostDep,
 			Parent:  p.NameVersion(),
 		}
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -316,7 +316,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 		port.HostDep = p.HostDep
 		port.Parent = p.NameVersion()
 		port.installReport = p.installReport
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return false, err
 		}
 		if _, err := port.Install(options); err != nil {
@@ -332,7 +332,7 @@ func (p Port) doInstallFromPkgCache(options InstallOptions) (bool, error) {
 	}
 
 	// Read cache file and extract them to package dir.
-	artifactCache := p.PkgCacheConfig().GetArtifactCache()
+	artifactCache := p.ctx.PkgCacheConfig().GetArtifactCache()
 	if artifactCache != nil {
 		if fromWhere, err := artifactCache.Restore(p.NameVersion(), buildhash, p.PackageDir); err != nil {
 			return false, fmt.Errorf("read cache with buildhash: %s", err)
@@ -427,7 +427,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 
 func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 	// Check if pkgCacheConfig has been configured.
-	pkgCacheConfig := p.PkgCacheConfig()
+	pkgCacheConfig := p.ctx.PkgCacheConfig()
 	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(context.PkgCacheDirRoot) == "" {
 		return false, nil
 	}
@@ -476,7 +476,7 @@ func (p *Port) InstallFromDevCache(options InstallOptions) (bool, error) {
 	}
 
 	// Check if devCacheConfig has been configured.
-	devCacheConfig := p.DevCacheConfig()
+	devCacheConfig := p.ctx.DevCacheConfig()
 	if devCacheConfig == nil {
 		return false, nil
 	}
@@ -537,7 +537,7 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 	}
 
 	// Setup platform.
-	if err := p.Platform().Setup(); err != nil {
+	if err := p.ctx.Platform().Setup(); err != nil {
 		return err
 	}
 
@@ -585,8 +585,8 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	// Check and repair current port.
 	files, err := p.PackageFiles(
 		p.PackageDir,
-		p.Platform().GetName(),
-		p.Project().GetName(),
+		p.ctx.Platform().GetName(),
+		p.ctx.Project().GetName(),
 	)
 	if err != nil {
 		return err
@@ -595,9 +595,9 @@ func (p Port) doInstallFromPackage(destDir string) error {
 	// Copy files from package to installed dir.
 	for _, file := range files {
 		if p.DevDep || p.HostDep {
-			file = strings.TrimPrefix(file, p.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
+			file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
 		} else {
-			file = strings.TrimPrefix(file, filepath.Join(p.LibraryFolder(), string(os.PathSeparator)))
+			file = strings.TrimPrefix(file, filepath.Join(p.ctx.LibraryFolder(), string(os.PathSeparator)))
 		}
 
 		src := filepath.Join(p.PackageDir, file)
@@ -635,7 +635,7 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 		port.HostDep = p.HostDep
 		port.Parent = p.NameVersion()
 		port.installReport = p.installReport
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return false, err
 		}
 
@@ -657,7 +657,7 @@ func (p *Port) doInstallFromDevCache(options InstallOptions) (bool, error) {
 	}
 
 	// Read cache file and extract them to package dir.
-	devArtifactCache := p.DevCacheConfig().GetDevArtifactCache()
+	devArtifactCache := p.ctx.DevCacheConfig().GetDevArtifactCache()
 	if fromWhere, err := devArtifactCache.Restore(p.NameVersion(), buildhash, p.PackageDir); err != nil {
 		return false, fmt.Errorf("read cache with buildhash: %s", err)
 	} else if fromWhere != "" {
@@ -724,7 +724,7 @@ func (p *Port) doInstallFromSource() error {
 		}
 
 		// Store package cache with meta file inside.
-		pkgCache := p.PkgCacheConfig()
+		pkgCache := p.ctx.PkgCacheConfig()
 		if pkgCache != nil && pkgCache.GetDir(context.PkgCacheDirRoot) != "" && pkgCache.IsWritable() {
 			if p.pkgCacheStoreSkippedReason == "" && !p.shouldSkipArtifactPkgCache() {
 				artifactCache := pkgCache.GetArtifactCache()
@@ -738,7 +738,7 @@ func (p *Port) doInstallFromSource() error {
 
 		// Store hostDep/devDep into local dir to speed up building them in new workspace.
 		if p.HostDep || p.DevDep {
-			devArtifactCache := p.DevCacheConfig().GetDevArtifactCache()
+			devArtifactCache := p.ctx.DevCacheConfig().GetDevArtifactCache()
 			if err := devArtifactCache.Store(p.PackageDir, metaData); err != nil {
 				return err
 			}
@@ -763,7 +763,7 @@ func (p Port) cloneAllRepos() error {
 			DevDep: true,
 			Parent: p.NameVersion(),
 		}
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -788,7 +788,7 @@ func (p Port) cloneAllRepos() error {
 			HostDep: p.DevDep || p.HostDep,
 			Parent:  p.NameVersion(),
 		}
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -813,7 +813,7 @@ func (p *Port) checkAllTools() error {
 	buildConfig := p.MatchedConfig
 	for _, nameVersion := range buildConfig.DevDependencies {
 		port := Port{DevDep: true}
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -821,26 +821,26 @@ func (p *Port) checkAllTools() error {
 	}
 	for _, nameVersion := range buildConfig.Dependencies {
 		port := Port{DevDep: p.DevDep, HostDep: p.DevDep || p.HostDep}
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 		allTools = append(allTools, port.MatchedConfig.CheckTools()...)
 	}
 
-	if p.CCacheEnabled() {
+	if p.ctx.CCacheEnabled() {
 		allTools = append(allTools, "ccache")
 	}
 
 	allTools = append(allTools, p.MatchedConfig.CheckTools()...)
 
 	// Validate tools exist and ensure tool paths are in PATH.
-	if err := buildtools.CheckTools(p.Context, allTools...); err != nil {
+	if err := buildtools.CheckTools(p.ctx, allTools...); err != nil {
 		return err
 	}
 
 	// Refresh dynamic expression variables after tool detection because some
 	// ports rely on build_tools-provided paths during option expansion.
-	if exprVars := p.ExprVars(); exprVars != nil {
+	if exprVars := p.ctx.ExprVars(); exprVars != nil {
 		if buildtools.PythonTool != nil {
 			buildtools.PythonTool.RegisterExprVars(exprVars)
 		}
@@ -870,7 +870,7 @@ func (p *Port) collectAllDeps() ([]string, error) {
 
 		// Collect deps and dev_deps.
 		var port Port
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return fmt.Errorf("failed to init %s -> %w", nameVersion, err)
 		}
 		for _, dep := range port.MatchedConfig.Dependencies {
@@ -926,7 +926,7 @@ func (p *Port) preWarmMetaCache() error {
 	}
 
 	// Meta pre-warm is IO-bound (read port.toml + git log), not CPU-bound like compilation.
-	jobs := p.Jobs() * 4
+	jobs := p.ctx.Jobs() * 4
 	if jobs <= 0 {
 		jobs = 4
 	}
@@ -1005,7 +1005,7 @@ func (p Port) installDependencies(options InstallOptions) error {
 			Parent:        p.NameVersion(),
 			installReport: p.installReport,
 		}
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -1064,7 +1064,7 @@ func (p Port) installDevDependencies(options InstallOptions) error {
 			Parent:        p.NameVersion(),
 			installReport: p.installReport,
 		}
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -1130,7 +1130,7 @@ func (p Port) collectInstalledDepsForReport() error {
 			Parent:        p.NameVersion(),
 			installReport: p.installReport,
 		}
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -1159,7 +1159,7 @@ func (p Port) collectInstalledDepsForReport() error {
 			Parent:        p.NameVersion(),
 			installReport: p.installReport,
 		}
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -1189,7 +1189,7 @@ func (p Port) prepareTmpDeps() error {
 		port.Parent = p.NameVersion()
 		port.DevDep = true
 		port.HostDep = true
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -1229,7 +1229,7 @@ func (p Port) prepareTmpDeps() error {
 		port.DevDep = p.DevDep
 		port.HostDep = p.DevDep || p.HostDep
 		port.Parent = p.NameVersion()
-		if err := port.Init(p.Context, nameVersion); err != nil {
+		if err := port.Init(p.ctx, nameVersion); err != nil {
 			return err
 		}
 
@@ -1262,7 +1262,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	if err := fileio.MkdirAll(filepath.Dir(p.traceFile), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to create trace dir -> %w", err)
 	}
-	packageFiles, err := p.PackageFiles(p.PackageDir, p.Platform().GetName(), p.Project().GetName())
+	packageFiles, err := p.PackageFiles(p.PackageDir, p.ctx.Platform().GetName(), p.ctx.Project().GetName())
 	if err != nil {
 		return fmt.Errorf("failed to get package files -> %w", err)
 	}
@@ -1275,9 +1275,9 @@ func (p Port) writeTraceFile(installedFrom string) error {
 		for i, file := range packageFiles {
 			// Strip libraryDir prefix (same as doInstallFromPackage).
 			if p.DevDep || p.HostDep {
-				file = strings.TrimPrefix(file, p.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
+				file = strings.TrimPrefix(file, p.ctx.Platform().GetHostName()+"-dev"+string(os.PathSeparator))
 			} else {
-				file = strings.TrimPrefix(file, filepath.Join(p.LibraryFolder(), string(os.PathSeparator)))
+				file = strings.TrimPrefix(file, filepath.Join(p.ctx.LibraryFolder(), string(os.PathSeparator)))
 			}
 			packageFiles[i] = filepath.Join(venvFolder, file)
 		}
@@ -1306,7 +1306,7 @@ func (p *Port) checkCPythonVersionConflict() error {
 	cpythonMinor := expr.GetMinorVersion(cpythonVer)
 
 	venvVersion := buildtools.GetDefaultPythonVersion()
-	if pythonConfig := p.PythonConfig(); pythonConfig != nil && pythonConfig.GetVersion() != "" {
+	if pythonConfig := p.ctx.PythonConfig(); pythonConfig != nil && pythonConfig.GetVersion() != "" {
 		venvVersion = pythonConfig.GetVersion()
 	}
 	venvMinor := expr.GetMinorVersion(venvVersion)

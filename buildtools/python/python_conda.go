@@ -18,8 +18,7 @@ import (
 )
 
 type CondaPython struct {
-	context.Context
-
+	ctx           context.Context
 	archiveName   string
 	pythonVersion string
 	condaVersion  string
@@ -28,7 +27,7 @@ type CondaPython struct {
 
 func NewCondaPython(ctx context.Context, archiveName, condaVersion, pythonVersion string) *CondaPython {
 	return &CondaPython{
-		Context:       ctx,
+		ctx:           ctx,
 		archiveName:   archiveName,
 		condaVersion:  condaVersion,
 		pythonVersion: pythonVersion,
@@ -245,7 +244,7 @@ func (c *CondaPython) Setup() error {
 // getCondaInstallerPaths determines the paths to the conda installer and installation directory.
 // Returns installer path and installation directory
 func (c *CondaPython) getCondaInstallerPaths() (string, string, error) {
-	downloadsDir := c.Downloads()
+	downloadsDir := c.ctx.Downloads()
 
 	// Locate the installer in the downloads directory
 	installerPath := filepath.Join(downloadsDir, c.archiveName)

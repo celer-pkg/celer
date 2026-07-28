@@ -58,8 +58,8 @@ func (c custom) configured() bool {
 }
 
 func (c custom) Configure(options []string) error {
-	toolchain := c.Platform().GetToolchain()
-	rootfs := c.Platform().GetRootFS()
+	toolchain := c.Ctx.Platform().GetToolchain()
+	rootfs := c.Ctx.Platform().GetRootFS()
 
 	if len(c.CustomConfigure) > 0 {
 		// msvc and clang-cl need to set build environment event in dev mode.
@@ -90,8 +90,8 @@ func (c custom) Configure(options []string) error {
 }
 
 func (c custom) Build(options []string) error {
-	toolchain := c.Platform().GetToolchain()
-	rootfs := c.Platform().GetRootFS()
+	toolchain := c.Ctx.Platform().GetToolchain()
+	rootfs := c.Ctx.Platform().GetRootFS()
 
 	if len(c.CustomBuild) > 0 {
 		// msvc and clang-cl need to set build environment event in dev mode.
@@ -115,8 +115,8 @@ func (c custom) Build(options []string) error {
 }
 
 func (c custom) Install(options []string) error {
-	toolchain := c.Platform().GetToolchain()
-	rootfs := c.Platform().GetRootFS()
+	toolchain := c.Ctx.Platform().GetToolchain()
+	rootfs := c.Ctx.Platform().GetRootFS()
 
 	if len(c.CustomInstall) > 0 {
 		// msvc and clang-cl need to set build environment event in dev mode.

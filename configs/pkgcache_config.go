@@ -13,21 +13,20 @@ import (
 // ================= PkgCacheConfig ================= //
 
 type PkgCacheConfig struct {
-	context.Context
-
 	Dir            string `toml:"dir"`
 	Writable       bool   `toml:"writable"`
 	CacheArtifacts bool   `toml:"cache_artifacts"`
 	CacheDownloads bool   `toml:"cache_downloads"`
 
 	// Internal field.
+	ctx            context.Context
 	artifactConfig *pkgcache.ArtifactConfig
 	repoConfig     *pkgcache.RepoConfig
 }
 
 func NewPkgCacheConfig(ctx context.Context, dir string, writable bool) *PkgCacheConfig {
 	return &PkgCacheConfig{
-		Context:        ctx,
+		ctx:            ctx,
 		Dir:            dir,
 		Writable:       writable,
 		CacheArtifacts: true,
@@ -44,8 +43,8 @@ func (p *PkgCacheConfig) Refresh() error {
 	}
 
 	// Create valid artifact config and repo config.
-	p.artifactConfig = pkgcache.NewArtifactConfig(p.Context, p.Writable)
-	p.repoConfig = pkgcache.NewRepoConfig(p.Context, p.Writable)
+	p.artifactConfig = pkgcache.NewArtifactConfig(p.ctx, p.Writable)
+	p.repoConfig = pkgcache.NewRepoConfig(p.ctx, p.Writable)
 
 	return nil
 }
@@ -95,12 +94,12 @@ func (p PkgCacheConfig) GetRepoCache() context.RepoCache {
 // ================= DevCacheConfig ================= //
 
 type DevCacheConfig struct {
-	context.Context
+	ctx              context.Context
 	devArtifactCache *pkgcache.DevArtifactCache
 }
 
 func NewDevCacheConfig(ctx context.Context) *DevCacheConfig {
-	cacheConfig := DevCacheConfig{Context: ctx}
+	cacheConfig := DevCacheConfig{ctx: ctx}
 	cacheDir := cacheConfig.GetDir()
 	cacheConfig.devArtifactCache = pkgcache.NewDevArtifactCache(ctx, cacheDir)
 	return &cacheConfig
@@ -112,7 +111,7 @@ func (d DevCacheConfig) GetDir() string {
 		panic("cannot get user home dir: " + err.Error())
 	}
 
-	hostName := d.Platform().GetHostName()
+	hostName := d.ctx.Platform().GetHostName()
 	return filepath.Join(homeDir, "celer", hostName+"-dev")
 }
 

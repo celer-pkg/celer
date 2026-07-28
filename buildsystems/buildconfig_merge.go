@@ -96,7 +96,7 @@ func getPlatformSuffix(target string) string {
 }
 
 func (b BuildConfig) buildTarget() string {
-	systemName := strings.ToLower(b.Platform().GetToolchain().GetSystemName())
+	systemName := strings.ToLower(b.Ctx.Platform().GetToolchain().GetSystemName())
 	if !slices.Contains([]string{"windows", "linux", "darwin"}, systemName) {
 		return runtime.GOOS
 	}

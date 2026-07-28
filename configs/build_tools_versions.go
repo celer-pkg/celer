@@ -19,7 +19,7 @@ var toolVersionArgs = map[string][]string{
 
 func (p Port) GenBuildToolsVersions(tools []string) (string, error) {
 	// Ensure tools are validated and their paths are set in PATH,
-	if err := buildtools.CheckTools(p.Context, tools...); err != nil {
+	if err := buildtools.CheckTools(p.ctx, tools...); err != nil {
 		return "", fmt.Errorf("failed to check tools -> %w", err)
 	}
 

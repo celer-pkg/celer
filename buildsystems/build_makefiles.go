@@ -47,7 +47,7 @@ func (m *makefiles) CheckTools() []string {
 }
 
 func (m *makefiles) preConfigure() error {
-	toolchain := m.Platform().GetToolchain()
+	toolchain := m.Ctx.Platform().GetToolchain()
 
 	// `clang` inside visual studio cannot be used to compile makefiles project.
 	if runtime.GOOS == "windows" && strings.Contains(toolchain.GetAbsDir(), "Microsoft Visual Studio") {
@@ -131,7 +131,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	}
 
 	// Remove common cross compile args for native build.
-	toolchain := m.Platform().GetToolchain()
+	toolchain := m.Ctx.Platform().GetToolchain()
 	toolchainName := toolchain.GetName()
 	if m.PortConfig.HostDev || m.BuildConfig.DevDep ||
 		toolchainName == "msvc" || toolchainName == "clang-cl" ||
@@ -179,7 +179,7 @@ func (m makefiles) configureOptions() ([]string, error) {
 	}
 
 	// Add ccache support for projects that need explicit --cc parameter, like ffmpeg.
-	if m.CCacheEnabled() {
+	if m.Ctx.CCacheEnabled() {
 		for index, option := range options {
 			if after, ok := strings.CutPrefix(option, "--cc="); ok {
 				options[index] = fmt.Sprintf("--cc='ccache %s'", after)
@@ -220,8 +220,8 @@ func (m makefiles) Configure(options []string) error {
 		return nil
 	}
 
-	toolchain := m.Platform().GetToolchain()
-	rootfs := m.Platform().GetRootFS()
+	toolchain := m.Ctx.Platform().GetToolchain()
+	rootfs := m.Ctx.Platform().GetRootFS()
 
 	// Host-side dev dependencies must not inherit the target toolchain's
 	// CC/CXX/AR/... from previously built cross packages. Otherwise Makefiles may
@@ -314,7 +314,7 @@ func (m makefiles) Build(options []string) error {
 
 	// For Perl-configured projects (like OpenSSL), wrap nmake with vcvarsall.bat
 	if runtime.GOOS == "windows" && configureWithPerl {
-		toolchain := m.Platform().GetToolchain()
+		toolchain := m.Ctx.Platform().GetToolchain()
 		vcVars := toolchain.GetMSVC().VCVars
 		command = fmt.Sprintf(`call "%s" x64 > nul && %s`, vcVars, command)
 	}
@@ -362,7 +362,7 @@ func (m makefiles) Install(options []string) error {
 
 	// For Perl-configured projects (like OpenSSL), wrap nmake with vcvarsall.bat
 	if runtime.GOOS == "windows" && configureWithPerl && m.configureRequired() {
-		toolchain := m.Platform().GetToolchain()
+		toolchain := m.Ctx.Platform().GetToolchain()
 		vcVars := toolchain.GetMSVC().VCVars
 		command = fmt.Sprintf(`call "%s" x64 > nul && %s`, vcVars, command)
 	}
@@ -397,7 +397,7 @@ func (m makefiles) disableLibtoolRelinkForInstall() error {
 	if runtime.GOOS == "windows" {
 		return nil
 	}
-	if m.Platform().GetRootFS() == nil || m.DevDep || m.PortConfig.HostDev {
+	if m.Ctx.Platform().GetRootFS() == nil || m.DevDep || m.PortConfig.HostDev {
 		return nil
 	}
 

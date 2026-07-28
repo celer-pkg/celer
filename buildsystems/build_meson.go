@@ -56,12 +56,12 @@ func (m meson) CheckTools() []string {
 }
 
 func (m *meson) preConfigure() error {
-	toolchain := m.Platform().GetToolchain()
+	toolchain := m.Ctx.Platform().GetToolchain()
 
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
 	if runtime.GOOS == "windows" {
 		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
-			msvcEnvs, err := m.Platform().GetToolchain().ReadBuiltinEnvs()
+			msvcEnvs, err := m.Ctx.Platform().GetToolchain().ReadBuiltinEnvs()
 			if err != nil {
 				return err
 			}
@@ -137,8 +137,8 @@ func (m meson) configured() bool {
 }
 
 func (m meson) Configure(options []string) error {
-	toolchain := m.Platform().GetToolchain()
-	rootfs := m.Platform().GetRootFS()
+	toolchain := m.Ctx.Platform().GetToolchain()
+	rootfs := m.Ctx.Platform().GetRootFS()
 
 	// Host-side dev dependencies must not inherit the target toolchain's
 	// CC/CXX/AR/... from previously built cross packages. Otherwise Meson
@@ -171,7 +171,7 @@ func (m meson) Configure(options []string) error {
 	} else {
 		// For regular dependencies: cross compilation (build_machine != host_machine).
 		// Use cross_file.toml for host machine, and native_file.toml for build-time tools.
-		crossFile, err := m.generateCrossFile(toolchain, rootfs, m.CCacheEnabled())
+		crossFile, err := m.generateCrossFile(toolchain, rootfs, m.Ctx.CCacheEnabled())
 		if err != nil {
 			return fmt.Errorf("generate cross_file.toml for meson -> %w", err)
 		}
@@ -570,7 +570,7 @@ func (m meson) generateNativeFile() (string, error) {
 }
 
 func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
-	toolchain := m.Platform().GetToolchain()
+	toolchain := m.Ctx.Platform().GetToolchain()
 	includeDir = filepath.ToSlash(includeDir)
 
 	switch toolchain.GetName() {
@@ -586,7 +586,7 @@ func (m meson) appendIncludeArgs(includeArgs *[]string, includeDir string) {
 }
 
 func (m meson) appendLinkArgs(linkArgs *[]string, linkDir string) {
-	toolchain := m.Platform().GetToolchain()
+	toolchain := m.Ctx.Platform().GetToolchain()
 	linkDir = filepath.ToSlash(linkDir)
 	toolchainName := toolchain.GetName()
 

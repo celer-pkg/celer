@@ -17,15 +17,14 @@ import (
 )
 
 type Platform struct {
-	context.Context
-
 	Toolchain  *Toolchain  `toml:"toolchain"`
 	WindowsKit *WindowsKit `toml:"windows_kit"`
 	RootFS     *RootFS     `toml:"rootfs"`
 
 	// Internal fields.
-	Name      string `toml:"-"`
-	setupDone bool   `toml:"-"`
+	Name      string          `toml:"-"`
+	ctx       context.Context `toml:"-"`
+	setupDone bool            `toml:"-"`
 }
 
 func (p *Platform) Init(platformName string) error {
@@ -51,16 +50,16 @@ func (p *Platform) Init(platformName string) error {
 		return fmt.Errorf("failed to read %s -> %w", platformPath, err)
 	}
 
-	exrVars := p.ExprVars()
+	exrVars := p.ctx.ExprVars()
 	if p.Toolchain != nil {
-		p.Toolchain.Context = p.Context
+		p.Toolchain.ctx = p.ctx
 		if err := p.Toolchain.Validate(); err != nil {
 			return err
 		}
 
 		// Create the correct toolchain implementation based on the name.
 		p.Toolchain.toolchain = toolchains.NewToolchain(
-			p.Context,
+			p.ctx,
 			p.Toolchain.Name,
 			p.Toolchain.Infos,
 			p.Toolchain.BuildTools,
@@ -97,7 +96,7 @@ func (p *Platform) Init(platformName string) error {
 	}
 
 	if p.RootFS != nil {
-		p.RootFS.Context = p.Context
+		p.RootFS.ctx = p.ctx
 		if err := p.RootFS.Validate(); err != nil {
 			return err
 		}
@@ -201,7 +200,7 @@ func (p *Platform) Setup() error {
 	}
 
 	// Generate toolchain file.
-	if err := p.GenerateToolchainFile(); err != nil {
+	if err := p.ctx.GenerateToolchainFile(); err != nil {
 		return fmt.Errorf("failed to generate toolchain file -> %w", err)
 	}
 

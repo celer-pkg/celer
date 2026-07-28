@@ -18,8 +18,7 @@ import (
 var checkedFiles sync.Map
 
 type Repair struct {
-	context.Context
-
+	ctx        context.Context
 	httpClient *http.Client
 	downloader *downloader
 	folder     string
@@ -54,8 +53,8 @@ func (r *Repair) CheckAndRepair(ctx context.Context) error {
 		checkedFiles.Delete(checkedKey)
 	}
 
-	r.Context = ctx
-	r.httpClient = httpClient(r.ProxyHostPort())
+	r.ctx = ctx
+	r.httpClient = httpClient(r.ctx.ProxyHostPort())
 
 	switch {
 	case strings.HasPrefix(r.downloader.url, "http"), strings.HasPrefix(r.downloader.url, "ftp"):
@@ -89,7 +88,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 	// Check if local file is valid. If not, try to restore from cache or download again.
 	pkgCacheConfig := ctx.PkgCacheConfig()
 	cachedDownloadsDir := ""
-	canUseCache := r.sha256 != "" && !r.Offline() && pkgCacheConfig != nil && pkgCacheConfig.IsWritable()
+	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCacheConfig != nil && pkgCacheConfig.IsWritable()
 	if canUseCache {
 		cachedDownloadsDir = pkgCacheConfig.GetDir(context.PkgCacheDirDownloads)
 	}
@@ -239,17 +238,17 @@ func (r Repair) fileCheckedKey() string {
 }
 
 func (r Repair) needToDownload(archive, sha256 string) (needToDownload bool, err error) {
-	destFilePath := filepath.Join(r.Downloads(), archive)
+	destFilePath := filepath.Join(r.ctx.Downloads(), archive)
 	if !PathExists(destFilePath) {
 		// Skip downloading in offline mode.
-		if r.Offline() {
+		if r.ctx.Offline() {
 			return false, fmt.Errorf("downloading has been ignored since you are currently in offline mode.")
 		}
 		return true, nil
 	}
 
 	// Skip checking filesize and re-download.
-	if r.Offline() {
+	if r.ctx.Offline() {
 		return false, nil
 	}
 
@@ -274,7 +273,7 @@ func (r *Repair) tryRestoreFromCache(cacheDir, fileName string) (string, error) 
 		return "", nil
 	}
 
-	if r.Offline() {
+	if r.ctx.Offline() {
 		return "", nil
 	}
 

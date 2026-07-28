@@ -14,8 +14,7 @@ import (
 )
 
 type RepoConfig struct {
-	context.Context
-
+	ctx      context.Context
 	writable bool
 	chattrFS *fileio.ChattrFS
 }
@@ -27,7 +26,7 @@ func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
 	}
 
 	return &RepoConfig{
-		Context:  ctx,
+		ctx:      ctx,
 		writable: writable,
 		chattrFS: fileio.NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot)),
 	}
@@ -38,7 +37,7 @@ func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
 // - for archive source, the archiveFile is the path to the original archive file.
 func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (string, error) {
 	// skip storing cache when offline.
-	if r.Offline() {
+	if r.ctx.Offline() {
 		return "", nil
 	}
 
@@ -53,7 +52,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 	}
 
 	// Create folder to store repo archive.
-	cacheRepoDir := r.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
+	cacheRepoDir := r.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
 	if err := r.chattrFS.MkdirAll(cacheRepoDir, fileio.CacheDirPerm); err != nil {
 		return "", err
 	}
@@ -104,7 +103,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 
 		// Preserve original archive extension so Extract dispatches correctly.
 		ext := fileio.Ext(filepath.Base(archiveFile))
-		repoCacheDir := r.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
+		repoCacheDir := r.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
 		archivePath := filepath.Join(repoCacheDir, nameVersion, checksum+ext)
 
 		// Skip if already cached.
@@ -130,7 +129,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 // the checksum maybe sha256 of a file or git commit hash.
 func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (string, error) {
 	// skip restore cache when offline.
-	if r.Offline() {
+	if r.ctx.Offline() {
 		return "", nil
 	}
 
@@ -152,7 +151,7 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 	}
 
 	// Locate cached archive by checksum.
-	reposCacheDir := r.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
+	reposCacheDir := r.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
 	archivePath := filepath.Join(reposCacheDir, nameVersion, checksum+archiveExt)
 	if !fileio.PathExists(archivePath) {
 		return "", nil

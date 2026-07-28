@@ -84,7 +84,7 @@ func setupGitOriginRepo(t *testing.T, tmpWorkspace string) (string, string) {
 
 func newBuildConfig(ctx context.Context, repoDir string) buildsystems.BuildConfig {
 	return buildsystems.BuildConfig{
-		Context: ctx,
+		Ctx: ctx,
 		PortConfig: buildsystems.PortConfig{
 			LibName:     "x264",
 			LibVersion:  "stable",
