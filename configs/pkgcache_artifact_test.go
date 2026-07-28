@@ -90,7 +90,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 		}
 		pkgCacheConfig := NewPkgCacheConfig(fakeCtx, cacheDir, true)
 		fakeCtx.pkgCacheConfig = pkgCacheConfig
-		pkgCacheConfig.ctx = fakeCtx
+		pkgCacheConfig.Context = fakeCtx
 		if err := pkgCacheConfig.Refresh(); err != nil {
 			t.Fatal(err)
 		}

@@ -42,6 +42,10 @@ func (c *Clang) AssembleBuildTools(toolchain *strings.Builder) {
 	c.writeIfNotEmpty(toolchain, "CMAKE_READELF", c.READELF)
 }
 
+func (c *Clang) ReadBuiltinEnvs() (map[string]string, error) {
+	return nil, nil
+}
+
 func (c *Clang) CFlags() []string {
 	return []string{}
 }

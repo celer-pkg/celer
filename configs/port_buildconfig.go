@@ -16,10 +16,10 @@ import (
 )
 
 func (p *Port) initBuildConfig(nameVersion string) error {
-	buildType := p.ctx.BuildType()
-	hostName := p.ctx.Platform().GetHostName()
-	platformName := p.ctx.Platform().GetName()
-	projectName := p.ctx.Project().GetName()
+	buildType := p.BuildType()
+	hostName := p.Platform().GetHostName()
+	platformName := p.Platform().GetName()
+	projectName := p.Project().GetName()
 
 	// host example: x86_64-linux-dev
 	// target example: aarch64-linux-ubuntu-22.04-gcc-11.5.0-test_project_001-release
@@ -55,7 +55,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 	p.tmpDepsDir = filepath.Join(dirs.TmpDepsDir, libraryDir)
 
 	portConfig := buildsystems.PortConfig{
-		Ctx:             p.ctx,
+		Context:         p.Context,
 		LibName:         p.Name,
 		LibVersion:      p.Version,
 		Archive:         p.Package.Archive,
@@ -70,7 +70,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		LibraryDir:      libraryDir,
 		DevDep:          p.DevDep,
 		HostDev:         p.HostDep || p.DevDep,
-		Jobs:            p.ctx.Jobs(),
+		Jobs:            p.Jobs(),
 		RepoDir:         filepath.Join(dirs.WorkspaceDir, "buildtrees", nameVersion, "src"),
 		PortFile:        p.portFile,
 	}
@@ -80,9 +80,9 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		portConfig.SrcDir = filepath.Join(portConfig.SrcDir, p.Package.SrcDir)
 	}
 
-	if p.ctx.RootFS() != nil {
-		portConfig.IncludeDirs = p.ctx.RootFS().GetIncludeDirs()
-		portConfig.LibDirs = p.ctx.RootFS().GetLibDirs()
+	if p.RootFS() != nil {
+		portConfig.IncludeDirs = p.RootFS().GetIncludeDirs()
+		portConfig.LibDirs = p.RootFS().GetLibDirs()
 	}
 
 	if len(p.BuildConfigs) > 0 {
@@ -100,7 +100,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 				if err := toml.Unmarshal(bytes, &portInProject); err != nil {
 					return fmt.Errorf("failed to unmarshal project port -> %w", err)
 				}
-				portInProject.ctx = p.ctx
+				portInProject.Context = p.Context
 
 				// Convert build type to lowercase for all build configs in project port.
 				for i := range portInProject.BuildConfigs {
@@ -112,7 +112,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 				}
 			}
 
-			p.BuildConfigs[index].Ctx = p.ctx
+			p.BuildConfigs[index].Context = p.Context
 			p.BuildConfigs[index].ExprVars = p.exprVars
 			p.BuildConfigs[index].PortConfig = portConfig
 			p.BuildConfigs[index].DevDep = p.DevDep
@@ -123,7 +123,7 @@ func (p *Port) initBuildConfig(nameVersion string) error {
 		}
 
 		// Update matched config.
-		matchedConfig, err := p.findMatchedConfig(p.ctx.BuildType())
+		matchedConfig, err := p.findMatchedConfig(p.BuildType())
 		if err != nil {
 			return err
 		}

@@ -167,7 +167,7 @@ func (i *installReport) renderMarkdown(p *Port) string {
 		))
 	}
 
-	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
+	platformName := expr.If(p.DevDep || p.HostDep, p.Platform().GetHostName(), p.Platform().GetName())
 
 	lines = append(lines, "")
 	lines = append(lines, "## Workspace configuration")
@@ -175,8 +175,8 @@ func (i *installReport) renderMarkdown(p *Port) string {
 	lines = append(lines, "| Name | Value |")
 	lines = append(lines, "| --- | --- |")
 	lines = append(lines, fmt.Sprintf("| Platform | `%s` |", normalize(platformName)))
-	lines = append(lines, fmt.Sprintf("| Project | `%s` |", normalize(p.ctx.Project().GetName())))
-	lines = append(lines, fmt.Sprintf("| Build Type | `%s` |", normalize(p.ctx.BuildType())))
+	lines = append(lines, fmt.Sprintf("| Project | `%s` |", normalize(p.Project().GetName())))
+	lines = append(lines, fmt.Sprintf("| Build Type | `%s` |", normalize(p.BuildType())))
 	lines = append(lines, "")
 	lines = append(lines, "## Dependencies list")
 	lines = append(lines, "")
@@ -254,12 +254,12 @@ func (i *installReport) write(p *Port) (string, error) {
 
 	var statisticDir string
 	if p.DevDep || p.HostDep {
-		hostName := p.ctx.Platform().GetHostName()
+		hostName := p.Platform().GetHostName()
 		statisticDir = filepath.Join(dirs.InstalledDir, "celer", "statistics", hostName+"-dev")
 	} else {
-		projectName := p.ctx.Project().GetName()
-		platformName := p.ctx.Platform().GetName()
-		buildType := p.ctx.BuildType()
+		projectName := p.Project().GetName()
+		platformName := p.Platform().GetName()
+		buildType := p.BuildType()
 		statisticDir = filepath.Join(dirs.InstalledDir, "celer", "statistics", platformName, projectName, buildType)
 	}
 	if err := fileio.MkdirAll(statisticDir, os.ModePerm); err != nil {

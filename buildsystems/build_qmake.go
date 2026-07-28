@@ -56,7 +56,7 @@ func (q qmake) configureOptions() ([]string, error) {
 	var options = slices.Clone(q.Options)
 
 	// Remove common cross compile args for native build.
-	rootfs := q.Ctx.Platform().GetRootFS()
+	rootfs := q.Platform().GetRootFS()
 	if q.PortConfig.HostDev || q.BuildConfig.DevDep {
 		options = slices.DeleteFunc(options, func(element string) bool {
 			return strings.Contains(element, "-sysroot")
@@ -93,8 +93,8 @@ func (q qmake) configured() bool {
 }
 
 func (q qmake) Configure(options []string) error {
-	toolchain := q.Ctx.Platform().GetToolchain()
-	rootfs := q.Ctx.Platform().GetRootFS()
+	toolchain := q.Platform().GetToolchain()
+	rootfs := q.Platform().GetRootFS()
 
 	// Host-side dev dependencies must not inherit the target toolchain's
 	// CC/CXX/AR/... from previously built cross packages. Otherwise QMake

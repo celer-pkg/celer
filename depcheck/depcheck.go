@@ -26,8 +26,9 @@ type versionInfo struct {
 }
 
 type depcheck struct {
+	context.Context
+
 	debugMode    bool
-	ctx          context.Context
 	versionInfos map[string][]versionInfo
 	visited      map[string]bool
 	path         []string
@@ -40,7 +41,7 @@ func (d *depcheck) log(format string, v ...any) {
 }
 
 func (d *depcheck) CheckConflict(ctx context.Context, ports ...configs.Port) error {
-	d.ctx = ctx
+	d.Context = ctx
 	d.versionInfos = make(map[string][]versionInfo)
 	d.visited = make(map[string]bool)
 
@@ -97,7 +98,7 @@ func (d *depcheck) CheckConflict(ctx context.Context, ports ...configs.Port) err
 
 // CheckCircular check if have circular dependency in port.
 func (d *depcheck) CheckCircular(ctx context.Context, port configs.Port) error {
-	d.ctx = ctx
+	d.Context = ctx
 	d.versionInfos = make(map[string][]versionInfo)
 	d.visited = make(map[string]bool)
 	d.path = make([]string, 0)
@@ -174,7 +175,7 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 			DevDep:  true,
 			HostDep: true,
 		}
-		if err := devPort.Init(d.ctx, nameVersion); err != nil {
+		if err := devPort.Init(d.Context, nameVersion); err != nil {
 			if errors.Is(err, errors.ErrNoMatchedConfigFound) {
 				return nil
 			}
@@ -213,7 +214,7 @@ func (d *depcheck) checkCircular(port configs.Port) error {
 			DevDep:  false,
 			HostDep: port.DevDep || port.HostDep,
 		}
-		if err := devPort.Init(d.ctx, nameVersion); err != nil {
+		if err := devPort.Init(d.Context, nameVersion); err != nil {
 			if errors.Is(err, errors.ErrNoMatchedConfigFound) {
 				return nil
 			}
@@ -258,7 +259,7 @@ func (d *depcheck) collectPortsInfos(nameVersion string, native bool) error {
 	d.visited[key] = true
 
 	var port = configs.Port{DevDep: native}
-	if err := port.Init(d.ctx, nameVersion); err != nil {
+	if err := port.Init(d.Context, nameVersion); err != nil {
 		return err
 	}
 
@@ -276,7 +277,7 @@ func (d *depcheck) collectPortsInfos(nameVersion string, native bool) error {
 			DevDep:  true,
 			HostDep: port.DevDep,
 		}
-		if err := devDepPort.Init(d.ctx, item); err != nil {
+		if err := devDepPort.Init(d.Context, item); err != nil {
 			return err
 		}
 
@@ -311,7 +312,7 @@ func (d *depcheck) collectPortsInfos(nameVersion string, native bool) error {
 			DevDep:  false,
 			HostDep: port.DevDep,
 		}
-		if err := depPort.Init(d.ctx, item); err != nil {
+		if err := depPort.Init(d.Context, item); err != nil {
 			return err
 		}
 

@@ -13,6 +13,8 @@ import (
 )
 
 type RootFS struct {
+	context.Context
+
 	Url           string   `toml:"url"`               // Download url.
 	SHA256        string   `toml:"sha256"`            // SHA256 of the toolchain archive, used for verification and caching.
 	Archive       string   `toml:"archive,omitempty"` // Archive can be changed to avoid conflict.
@@ -22,7 +24,6 @@ type RootFS struct {
 	LibDirs       []string `toml:"lib_dirs"`
 
 	// Internal fields.
-	ctx     context.Context
 	abspath string
 }
 
@@ -44,9 +45,9 @@ func (r *RootFS) Validate() error {
 
 	// Some rootfs is a part of toolchain, like NDK.
 	if strings.HasPrefix(r.Path, "${TOOLCHAIN}") {
-		r.abspath = r.ctx.ExprVars().Expand(r.Path)
+		r.abspath = r.ExprVars().Expand(r.Path)
 	} else {
-		r.abspath = filepath.Join(r.ctx.Downloads(), "tools", r.Path)
+		r.abspath = filepath.Join(r.Downloads(), "tools", r.Path)
 	}
 
 	return nil
@@ -62,16 +63,16 @@ func (r *RootFS) CheckAndRepair() error {
 
 	// Check and repair resource.
 	archiveName := expr.If(r.Archive != "", r.Archive, filepath.Base(r.Url))
-	toolsDir := filepath.Join(r.ctx.Downloads(), "tools")
-	repair := fileio.NewRepair(r.Url, r.ctx.Downloads(), archiveName, folderName, toolsDir, r.SHA256)
-	if err := repair.CheckAndRepair(r.ctx); err != nil {
+	toolsDir := filepath.Join(r.Downloads(), "tools")
+	repair := fileio.NewRepair(r.Url, r.Downloads(), archiveName, folderName, toolsDir, r.SHA256)
+	if err := repair.CheckAndRepair(r.Context); err != nil {
 		return err
 	}
 
 	// Print download & extract info.
 	location := filepath.Join(toolsDir, folderName)
 	color.PrintPass("rootfs: %s", fileio.Base(r.Url))
-	color.PrintHint("Location: %s\n", r.ctx.ExprVars().Expand(location))
+	color.PrintHint("Location: %s\n", r.ExprVars().Expand(location))
 
 	return nil
 }

@@ -18,6 +18,8 @@ import (
 )
 
 type Project struct {
+	context.Context
+
 	TargetPlatform string   `toml:"target_platform,omitempty"`
 	BuildType      string   `toml:"build_type"`
 	Ports          []string `toml:"ports"`
@@ -27,11 +29,10 @@ type Project struct {
 
 	// Internal fields.
 	Name string `toml:"-"`
-	ctx  context.Context
 }
 
 func (p *Project) Init(ctx context.Context, projectName string) error {
-	p.ctx = ctx
+	p.Context = ctx
 
 	// Check if project name is empty.
 	projectName = strings.TrimSpace(projectName)
@@ -128,7 +129,7 @@ func (p Project) deploy(force, strip bool) error {
 
 	for _, nameVersion := range p.Ports {
 		var port Port
-		if err := port.Init(p.ctx, nameVersion); err != nil {
+		if err := port.Init(p.Context, nameVersion); err != nil {
 			return fmt.Errorf("failed to init %s -> %w", nameVersion, err)
 		}
 
@@ -153,16 +154,16 @@ func (p Project) deploy(force, strip bool) error {
 // them removes symbols downstream linking against this deploy still needs.
 func (p Project) stripDeployed() error {
 	// Check if strip executable file has been configured.
-	toolchain := p.ctx.Platform().GetToolchain()
+	toolchain := p.Platform().GetToolchain()
 	stripBin := toolchain.GetSTRIP()
 	if stripBin == "" {
-		return fmt.Errorf("strip executable file path is not configured in platform: %s.toml", p.ctx.Platform().GetName())
+		return fmt.Errorf("strip executable file path is not configured in platform: %s.toml", p.Platform().GetName())
 	}
 
 	// Resolve target tree: installed/<platform>/<project>/<buildType>/.
 	// Dev/host trees are not stripped — those binaries run on the build host
 	// and people often want their symbols for debugging build issues.
-	installedDir := p.ctx.InstalledDir()
+	installedDir := p.InstalledDir()
 	if !fileio.PathExists(installedDir) {
 		return nil
 	}

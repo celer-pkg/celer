@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgs/cmd"
 )
 
 type MSVC struct {
@@ -78,6 +79,37 @@ func (m *MSVC) AssembleBuildTools(toolchain *strings.Builder) {
 		fmt.Fprintf(toolchain, `set(CMAKE_SHARED_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT}")`+"\n")
 		fmt.Fprintf(toolchain, `set(CMAKE_MODULE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT}")`+"\n")
 	}
+}
+
+func (m *MSVC) ReadBuiltinEnvs() (map[string]string, error) {
+	toolchain := m.Platform().GetToolchain()
+
+	// Read MSVC environment variables.
+	// TODO: the `x64` may be different depending on the platform.
+	command := fmt.Sprintf(`call "%s" x64 && set`, toolchain.GetMSVC().VCVars)
+	executor := cmd.NewExecutor("", command)
+	output, err := executor.ExecuteOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse environment variables from output.
+	var msvcEnvs = make(map[string]string)
+	lines := strings.SplitSeq(output, "\n")
+	for line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" && strings.Contains(line, "=") {
+			parts := strings.Split(line, "=")
+
+			// Unify "Path" to "PATH".
+			if parts[0] == "Path" {
+				parts[0] = "PATH"
+			}
+			msvcEnvs[parts[0]] = parts[1]
+		}
+	}
+
+	return msvcEnvs, nil
 }
 
 func (m *MSVC) CFlags() []string {

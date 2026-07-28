@@ -52,6 +52,8 @@ type Package struct {
 }
 
 type Port struct {
+	context.Context
+
 	Package      Package                    `toml:"package"`
 	BuildConfigs []buildsystems.BuildConfig `toml:"build_configs"`
 
@@ -65,7 +67,6 @@ type Port struct {
 	PackageDir    string                    `toml:"-"`
 	InstalledDir  string                    `toml:"-"`
 
-	ctx                        context.Context
 	portFile                   string
 	traceFile                  string
 	metaFile                   string
@@ -89,7 +90,7 @@ func (p Port) visitedKey() string {
 }
 
 func (p *Port) Init(ctx context.Context, nameVersion string) error {
-	p.ctx = ctx
+	p.Context = ctx
 	p.exprVars = ctx.ExprVars().Clone()
 
 	// Validate name and version.
@@ -142,7 +143,7 @@ func (p *Port) Init(ctx context.Context, nameVersion string) error {
 	}
 
 	// Set matchedConfig as prebuilt config when no config found in toml.
-	matchedConfig, err := p.findMatchedConfig(p.ctx.BuildType())
+	matchedConfig, err := p.findMatchedConfig(p.BuildType())
 	if err != nil {
 		return err
 	}
@@ -279,7 +280,7 @@ func (p Port) checkDepsInstalled() (bool, error) {
 			DevDep:  p.DevDep,
 			HostDep: p.HostDep,
 		}
-		if err := port.Init(p.ctx, nameVersion); err != nil {
+		if err := port.Init(p.Context, nameVersion); err != nil {
 			return false, err
 		}
 		if installed, _ := port.Installed(); !installed {
@@ -295,7 +296,7 @@ func (p Port) checkDepsInstalled() (bool, error) {
 			DevDep:  true,
 			HostDep: p.HostDep,
 		}
-		if err := port.Init(p.ctx, nameVersion); err != nil {
+		if err := port.Init(p.Context, nameVersion); err != nil {
 			return false, err
 		}
 		if installed, _ := port.Installed(); !installed {
@@ -389,7 +390,7 @@ func (p *Port) findMatchedConfig(buildType string) (*buildsystems.BuildConfig, e
 }
 
 func (p *Port) putExprVars(config buildsystems.BuildConfig) {
-	p.exprVars = p.ctx.ExprVars().Clone()
+	p.exprVars = p.ExprVars().Clone()
 	p.exprVars.Put("REPO_DIR", config.PortConfig.RepoDir)
 	p.exprVars.Put("SRC_DIR", config.PortConfig.SrcDir)
 	p.exprVars.Put("BUILD_DIR", config.PortConfig.BuildDir)
@@ -426,10 +427,10 @@ func (p Port) PackageFiles(packageDir, platformName, projectName string) ([]stri
 		}
 
 		if p.DevDep || p.HostDep {
-			file := filepath.Join(p.ctx.Platform().GetHostName()+"-dev", relativePath)
+			file := filepath.Join(p.Platform().GetHostName()+"-dev", relativePath)
 			files = append(files, file)
 		} else {
-			libraryDir := filepath.Join(platformName, projectName, p.ctx.BuildType())
+			libraryDir := filepath.Join(platformName, projectName, p.BuildType())
 			file := filepath.Join(libraryDir, relativePath)
 			files = append(files, file)
 		}
@@ -501,7 +502,7 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 
 	// Filter by toolchain name if specified.
 	if len(toolchainNames) > 0 {
-		currentToolchain := strings.TrimSpace(p.ctx.Platform().GetToolchain().GetName())
+		currentToolchain := strings.TrimSpace(p.Platform().GetToolchain().GetName())
 		found := false
 		for _, name := range toolchainNames {
 			if strings.EqualFold(strings.TrimSpace(name), currentToolchain) {
@@ -535,14 +536,14 @@ func (p Port) currentSystemName() string {
 		// Host-side tools/dev dependencies must match the native machine,
 		// not the target toolchain. Otherwise ports like ICU may select the
 		// target config (for example aarch64) while building an x86_64 host tool.
-		hostName := strings.TrimSpace(p.ctx.Platform().GetHostName())
+		hostName := strings.TrimSpace(p.Platform().GetHostName())
 		if _, systemName, ok := strings.Cut(hostName, "-"); ok && systemName != "" {
 			return systemName
 		}
 		return runtime.GOOS
 	}
 
-	toolchain := p.ctx.Platform().GetToolchain()
+	toolchain := p.Platform().GetToolchain()
 	if toolchain != nil && strings.TrimSpace(toolchain.GetSystemName()) != "" {
 		return toolchain.GetSystemName()
 	}
@@ -554,7 +555,7 @@ func (p Port) currentSystemProcessor() string {
 		// Host-side tools/dev dependencies must use the host architecture for
 		// build_config matching so we pick the native x86_64 config instead of
 		// the target architecture's config.
-		hostName := strings.TrimSpace(p.ctx.Platform().GetHostName())
+		hostName := strings.TrimSpace(p.Platform().GetHostName())
 		if systemProcessor, _, ok := strings.Cut(hostName, "-"); ok && systemProcessor != "" {
 			return systemProcessor
 		}
@@ -569,7 +570,7 @@ func (p Port) currentSystemProcessor() string {
 		}
 	}
 
-	toolchain := p.ctx.Platform().GetToolchain()
+	toolchain := p.Platform().GetToolchain()
 	if toolchain != nil && strings.TrimSpace(toolchain.GetSystemProcessor()) != "" {
 		return toolchain.GetSystemProcessor()
 	}

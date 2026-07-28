@@ -21,7 +21,7 @@ func TestToolchainEffectiveFlags(t *testing.T) {
 
 	// Initialize the toolchain implementation.
 	toolchain.toolchain = toolchains.NewToolchain(
-		toolchain.ctx,
+		toolchain.Context,
 		toolchain.Name,
 		toolchain.Infos,
 		toolchain.BuildTools,
@@ -68,11 +68,11 @@ func TestToolchainGenerate_UsesDebugFlags(t *testing.T) {
 	toolchain.CXXFlagsDebug = []string{"-O0", "-g3"}
 	toolchain.CXXFlagsDebug = []string{"-O2"}
 	toolchain.LDFlagsDebug = []string{"-Wl,--export-dynamic"}
-	toolchain.ctx = fakeContext{build: "debug"}
+	toolchain.Context = fakeContext{build: "debug"}
 
 	// Initialize the toolchain implementation.
 	toolchain.toolchain = toolchains.NewToolchain(
-		toolchain.ctx,
+		toolchain.Context,
 		toolchain.Name,
 		toolchain.Infos,
 		toolchain.BuildTools,

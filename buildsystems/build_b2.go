@@ -41,7 +41,7 @@ func (b b2) CheckTools() []string {
 }
 
 func (b *b2) preConfigure() error {
-	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchain := b.Platform().GetToolchain()
 
 	// Boost b2 does not support clang on Windows.
 	// b2's clang toolset uses MSVC-style link flags (/LIBPATH) incompatible
@@ -60,7 +60,7 @@ func (b *b2) preConfigure() error {
 	// For MSVC build, we need to set PATH, INCLUDE and LIB env vars.
 	if runtime.GOOS == "windows" {
 		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
-			msvcEnvs, err := b.readMSVCEnvs()
+			msvcEnvs, err := b.Platform().GetToolchain().ReadBuiltinEnvs()
 			if err != nil {
 				return err
 			}
@@ -84,7 +84,7 @@ func (b b2) configured() bool {
 }
 
 func (b b2) Configure(options []string) error {
-	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchain := b.Platform().GetToolchain()
 
 	// Clean build cache.
 	if err := b.Clean(); err != nil {
@@ -97,7 +97,7 @@ func (b b2) Configure(options []string) error {
 	configure := expr.If(runtime.GOOS == "windows", "bootstrap.bat", "./bootstrap.sh")
 
 	// For cross-compilation, set --prefix to dependency directory.
-	rootfs := b.Ctx.RootFS()
+	rootfs := b.RootFS()
 	if !b.DevDep && rootfs != nil {
 		depsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
 		configure = fmt.Sprintf("%s --prefix=%s", configure, depsDir)
@@ -124,7 +124,7 @@ func (b b2) Configure(options []string) error {
 
 		// For cross-compilation, use version identifier to distinguish toolchain.
 		var toolchainVersion string
-		rootfs := b.Ctx.RootFS()
+		rootfs := b.RootFS()
 		if !b.DevDep && rootfs != nil {
 			toolchainVersion = toolchain.GetVersion()
 		} else {
@@ -178,7 +178,7 @@ func (b b2) Configure(options []string) error {
 					platformLib := filepath.Join(toolchainRoot, "lib", platformTriple)
 
 					var compilerCmd string
-					if b.Ctx.CCacheEnabled() {
+					if b.CCacheEnabled() {
 						compilerCmd = fmt.Sprintf(`"ccache" "%s"`, filepath.ToSlash(cxx))
 					} else {
 						compilerCmd = fmt.Sprintf(`"%s"`, filepath.ToSlash(cxx))
@@ -222,7 +222,7 @@ func (b b2) Configure(options []string) error {
 
 func (b b2) buildOptions() ([]string, error) {
 	var options = slices.Clone(b.Options)
-	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchain := b.Platform().GetToolchain()
 	toolchainName := toolchain.GetName()
 
 	// Set build toolset with version for cross-compilation.
@@ -241,7 +241,7 @@ func (b b2) buildOptions() ([]string, error) {
 	default:
 		return nil, fmt.Errorf("unsupported toolchain: %s for b2", toolchain.GetName())
 	}
-	rootfs := b.Ctx.RootFS()
+	rootfs := b.RootFS()
 	if !b.DevDep && rootfs != nil {
 		options = append(options, "toolset="+toolsetName+"-"+toolchain.GetVersion())
 	} else {
@@ -362,7 +362,7 @@ func (b b2) Install(options []string) error {
 }
 
 func (b b2) msvcVersion() string {
-	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchain := b.Platform().GetToolchain()
 
 	// Split by "." to get major, minor, patch
 	parts := strings.Split(toolchain.GetVersion(), ".")
@@ -413,7 +413,7 @@ func (b b2) detectPlatformTriple(toolchainRoot string) (string, error) {
 
 func (b b2) formatUsingToolset(toolset, version, cxx string) string {
 	var compilerCmd string
-	if b.Ctx.CCacheEnabled() {
+	if b.CCacheEnabled() {
 		compilerCmd = fmt.Sprintf(`"ccache" "%s"`, filepath.ToSlash(cxx))
 	} else {
 		compilerCmd = fmt.Sprintf(`"%s"`, filepath.ToSlash(cxx))

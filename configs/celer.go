@@ -129,7 +129,7 @@ func (c *Celer) InitWithOptions(opts InitOption) error {
 
 // InitWithPlatform initializes celer with platform.
 func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
-	c.platform.ctx = c
+	c.platform.Context = c
 
 	configPath := filepath.Join(dirs.WorkspaceDir, "celer.toml")
 	if !fileio.PathExists(configPath) {
@@ -229,7 +229,7 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 
 		// Validate package cache.
 		if c.configData.PkgCacheConfig != nil {
-			c.configData.PkgCacheConfig.ctx = c
+			c.configData.PkgCacheConfig.Context = c
 			if err := c.configData.PkgCacheConfig.Refresh(); err != nil {
 				return err
 			}
@@ -253,7 +253,7 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 	// Windows: default is msvc,
 	// Linux: default is gcc.
 	if c.Main.Platform == "" {
-		var toolchain = Toolchain{ctx: c}
+		var toolchain = Toolchain{Context: c}
 		if err := toolchain.Detect(c.Main.Platform); err != nil {
 			return fmt.Errorf("detect celer.toolchain -> %w", err)
 		}

@@ -49,7 +49,7 @@ func (b *BuildConfig) setupEnvs() {
 	b.envBackup.backup()
 
 	// Setup environments if defined.
-	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchain := b.Platform().GetToolchain()
 	if toolchain != nil {
 		toolchain.SetupEnvs()
 	}
@@ -106,7 +106,7 @@ func (b *BuildConfig) setupEnvs() {
 	if b.buildSystem.Name() != "cmake" {
 		// This allows the bin to locate the libraries in the relative lib dir.
 		// $ORIGIN rpath is an ELF concept, only works on Linux build hosts.
-		toolchain := b.Ctx.Platform().GetToolchain()
+		toolchain := b.Platform().GetToolchain()
 		if strings.ToLower(toolchain.GetSystemName()) == "linux" &&
 			runtime.GOOS == "linux" &&
 			b.buildSystem.Name() == "makefiles" {
@@ -167,7 +167,7 @@ func (b BuildConfig) setupPkgConfig() {
 		sysrootDir    string
 	)
 
-	rootfs := b.Ctx.Platform().GetRootFS()
+	rootfs := b.Platform().GetRootFS()
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
 	hostBuild := b.DevDep || b.HostDev
 
@@ -274,12 +274,12 @@ func (b BuildConfig) setupPythonEnvs() {
 }
 
 func (b BuildConfig) setupQNXEnvs() {
-	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchain := b.Platform().GetToolchain()
 	if toolchain.GetName() != "qcc" {
 		return
 	}
 
-	qnxEnvs, err := b.readQNXEnvs()
+	qnxEnvs, err := b.Platform().GetToolchain().ReadBuiltinEnvs()
 	if err != nil {
 		color.PrintWarning("failed to read QNX envs from qnxsdp-env.sh: %v", err)
 		return
@@ -321,7 +321,7 @@ func (b BuildConfig) setupQNXEnvs() {
 }
 
 func (b *BuildConfig) setLanguageStandard() {
-	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchain := b.Platform().GetToolchain()
 
 	// Set C standard.
 	cstandard := expr.If(b.CStandard != "", b.CStandard, toolchain.GetCStandard())
@@ -361,7 +361,7 @@ func (b *BuildConfig) setLanguageStandard() {
 }
 
 func (b *BuildConfig) setEnvFlags() {
-	rootfs := b.Ctx.Platform().GetRootFS()
+	rootfs := b.Platform().GetRootFS()
 	tmpDepsDir := filepath.Join(dirs.TmpDepsDir, b.PortConfig.LibraryDir)
 	hostBuild := b.DevDep || b.HostDev
 
@@ -420,7 +420,7 @@ func (b *BuildConfig) appendIncludeDir(includeDir string) {
 		return
 	}
 
-	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchain := b.Platform().GetToolchain()
 	switch toolchain.GetName() {
 	case "gcc", "clang", "qcc":
 		cflags := strings.Fields(os.Getenv("CFLAGS"))
@@ -494,7 +494,7 @@ func (b *BuildConfig) appendLibDir(libDir string) {
 		return
 	}
 
-	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchain := b.Platform().GetToolchain()
 	switch toolchain.GetName() {
 	case "gcc", "clang", "qcc":
 		ldflags := os.Getenv("LDFLAGS")

@@ -30,7 +30,7 @@ func (p Port) Remove(options RemoveOptions) error {
 				HostDep: hostDev,
 				Parent:  p.NameVersion(),
 			}
-			if err := port.Init(p.ctx, nameVersion); err != nil {
+			if err := port.Init(p.Context, nameVersion); err != nil {
 				return fmt.Errorf("failed to init dependency %s -> %w", nameVersion, err)
 			}
 
@@ -144,7 +144,7 @@ func (p Port) doRemovePort() error {
 
 	// Remove generated cmake config if exist.
 	portName, _, _ := strings.Cut(p.NameVersion(), "@")
-	libraryDir := filepath.Join(p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
+	libraryDir := filepath.Join(p.Platform().GetName(), p.Project().GetName(), p.BuildType())
 	cmakeConfigDir := filepath.Join(dirs.InstalledDir, libraryDir, "lib", "cmake", portName)
 	if err := os.RemoveAll(cmakeConfigDir); err != nil {
 		noError = false
@@ -245,8 +245,8 @@ func (p Port) removeFiles(path string) error {
 }
 
 func (p Port) RemoveLogs() error {
-	libraryDir := fmt.Sprintf("%s-%s-%s", p.ctx.Platform().GetName(), p.ctx.Project().GetName(), p.ctx.BuildType())
-	logPathPrefix := filepath.Join(p.NameVersion(), expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName()+"-dev", libraryDir))
+	libraryDir := fmt.Sprintf("%s-%s-%s", p.Platform().GetName(), p.Project().GetName(), p.BuildType())
+	logPathPrefix := filepath.Join(p.NameVersion(), expr.If(p.DevDep || p.HostDep, p.Platform().GetHostName()+"-dev", libraryDir))
 	matches, err := filepath.Glob(filepath.Join(dirs.BuildtreesDir, logPathPrefix+"-*.log"))
 	if err != nil {
 		return fmt.Errorf("glob syntax error -> %w", err)

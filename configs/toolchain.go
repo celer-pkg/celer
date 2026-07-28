@@ -15,6 +15,8 @@ import (
 )
 
 type Toolchain struct {
+	context.Context
+
 	toolchains.Infos
 	toolchains.BuildTools
 	toolchains.BuildFlags
@@ -33,14 +35,13 @@ type Toolchain struct {
 	// Internal fields.
 	toolchain toolchains.Toolchain
 
-	ctx         context.Context
 	displayName string
 	rootDir     string
 	abspath     string
 }
 
 func (t Toolchain) SetupEnvs() {
-	exrVars := t.ctx.ExprVars()
+	exrVars := t.ExprVars()
 	for _, item := range t.Envs {
 		parts := strings.Split(item, "=")
 		if len(parts) != 2 {
@@ -95,10 +96,8 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 			if item == "" {
 				continue
 			}
-			if t.ctx != nil {
-				if exprVars := t.ctx.ExprVars(); exprVars != nil {
-					item = exprVars.Expand(item)
-				}
+			if exprVars := t.ExprVars(); exprVars != nil {
+				item = exprVars.Expand(item)
 			}
 			fmt.Fprintf(toolchain, "%sstring(APPEND %s %q)\n", indent, key, " "+item)
 		}
@@ -167,7 +166,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 		}
 	}
 
-	buildType := t.ctx.BuildType()
+	buildType := t.BuildType()
 	cflags, cxxflags, ldflags := t.effectiveFlags(buildType)
 	if len(cflags) > 0 || len(cxxflags) > 0 || len(ldflags) > 0 {
 		fmt.Fprint(toolchain, "\n# Setting extra build flags.\n")
@@ -199,7 +198,7 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 			}
 
 			envKey := parts[0]
-			envValue := t.ctx.ExprVars().Expand(parts[1])
+			envValue := t.ExprVars().Expand(parts[1])
 			envValue = fileio.ToRelPath(envValue)
 			fmt.Fprintf(toolchain, "set(ENV{%s} %q)\n", envKey, envValue)
 		}
@@ -209,35 +208,35 @@ func (t Toolchain) generate(toolchain *strings.Builder) error {
 }
 
 func (t Toolchain) GetName() string {
-	return t.Name
+	return t.Infos.Name
 }
 
 func (t Toolchain) GetSHA256() string {
-	return t.SHA256
+	return t.Infos.SHA256
 }
 
 func (t Toolchain) GetHost() string {
-	return t.Host
+	return t.Infos.Host
 }
 
 func (t Toolchain) GetVersion() string {
-	return t.Version
+	return t.Infos.Version
 }
 
 func (t Toolchain) GetSystemName() string {
-	return t.SystemName
+	return t.Infos.SystemName
 }
 
 func (t Toolchain) GetSystemVersion() string {
-	return t.SystemVersion
+	return t.Infos.SystemVersion
 }
 
 func (t Toolchain) GetSystemProcessor() string {
-	return t.SystemProcessor
+	return t.Infos.SystemProcessor
 }
 
 func (t Toolchain) GetCrosstoolPrefix() string {
-	return t.CrosstoolPrefix
+	return t.BuildTools.CrosstoolPrefix
 }
 
 func (t Toolchain) GetCStandard() string {
@@ -249,23 +248,23 @@ func (t Toolchain) GetCXXStandard() string {
 }
 
 func (t Toolchain) GetCC() string {
-	return t.CC
+	return t.BuildTools.CC
 }
 
 func (t Toolchain) GetCXX() string {
-	return t.CXX
+	return t.BuildTools.CXX
 }
 
 func (t Toolchain) GetCFlags() []string {
-	return t.CFlags
+	return t.BuildFlags.CFlags
 }
 
 func (t Toolchain) GetCXXFlags() []string {
-	return t.CXXFlags
+	return t.BuildFlags.CXXFlags
 }
 
 func (t Toolchain) GetLDFlags() []string {
-	return t.LDFlags
+	return t.BuildFlags.LDFlags
 }
 
 func (t Toolchain) GetCMakePolicyVersionMinimum() string {
@@ -281,63 +280,63 @@ func (t Toolchain) GetCPP() string {
 }
 
 func (t Toolchain) GetAR() string {
-	return t.AR
+	return t.BuildTools.AR
 }
 
 func (t Toolchain) GetLD() string {
-	return t.LD
+	return t.BuildTools.LD
 }
 
 func (t Toolchain) GetAS() string {
-	return t.AS
+	return t.BuildTools.AS
 }
 
 func (t Toolchain) GetFC() string {
-	return t.FC
+	return t.BuildTools.FC
 }
 
 func (t Toolchain) GetRANLIB() string {
-	return t.RANLIB
+	return t.BuildTools.RANLIB
 }
 
 func (t Toolchain) GetNM() string {
-	return t.NM
+	return t.BuildTools.NM
 }
 
 func (t Toolchain) GetOBJCOPY() string {
-	return t.OBJCOPY
+	return t.BuildTools.OBJCOPY
 }
 
 func (t Toolchain) GetOBJDUMP() string {
-	return t.OBJDUMP
+	return t.BuildTools.OBJDUMP
 }
 
 func (t Toolchain) GetSTRIP() string {
-	return t.STRIP
+	return t.BuildTools.STRIP
 }
 
 func (t Toolchain) GetREADELF() string {
-	return t.READELF
+	return t.BuildTools.READELF
 }
 
 func (t Toolchain) GetSIZE() string {
-	return t.SIZE
+	return t.BuildTools.SIZE
 }
 
 func (t Toolchain) GetSTRINGS() string {
-	return t.STRINGS
+	return t.BuildTools.STRINGS
 }
 
 func (t Toolchain) GetGCOV() string {
-	return t.GCOV
+	return t.BuildTools.GCOV
 }
 
 func (t Toolchain) GetADDR2LINE() string {
-	return t.ADDR2LINE
+	return t.BuildTools.ADDR2LINE
 }
 
 func (t Toolchain) GetCXXFILT() string {
-	return t.CXXFILT
+	return t.BuildTools.CXXFILT
 }
 func (t Toolchain) GetMSVC() *context.MSVC {
 	return &t.MSVC
@@ -393,7 +392,7 @@ func (t Toolchain) SetEnvs(rootfs context.RootFS, buildsystem string, portEnvs [
 	}
 
 	var ccFlags, cxxFlags []string
-	if t.ctx.CCacheEnabled() {
+	if t.CCacheEnabled() {
 		// For Windows + MSVC with Makefiles, don't set ccache in CC/CXX environment variables,
 		// because MSYS2 shell cannot handle "ccache cl.exe" as a command.
 		if runtime.GOOS == "windows" && (t.GetName() == "msvc" || t.GetName() == "clang-cl") && buildsystem == "makefiles" {
@@ -522,6 +521,10 @@ func (t Toolchain) RuntimeFlags() []string {
 		flags = append(flags, "-fuse-ld=lld")
 	}
 	return flags
+}
+
+func (t Toolchain) ReadBuiltinEnvs() (map[string]string, error) {
+	return t.toolchain.ReadBuiltinEnvs()
 }
 
 type WindowsKit struct {

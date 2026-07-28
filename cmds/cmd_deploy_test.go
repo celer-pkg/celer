@@ -216,7 +216,7 @@ func TestDeploy_Clone_ExistingRepo_ResetsToResolvedCommit(t *testing.T) {
 
 	// Call Clone with the existing repo — it should HardReset to the resolved commit.
 	config := buildsystems.BuildConfig{
-		Ctx: fakeContext{},
+		Context: fakeContext{},
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",
@@ -254,7 +254,7 @@ func TestDeploy_Clone_ExistingRepo_NoResolvedCommit_NoReset(t *testing.T) {
 	refs.StoreResolvedCommits(nil)
 
 	config := buildsystems.BuildConfig{
-		Ctx: fakeContext{},
+		Context: fakeContext{},
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",
@@ -291,7 +291,7 @@ func TestDeploy_Clone_FreshClone_ResetsToResolvedCommit(t *testing.T) {
 	repoDir := filepath.Join(t.TempDir(), "new-src")
 
 	cfg := buildsystems.BuildConfig{
-		Ctx: fakeContext{},
+		Context: fakeContext{},
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",
@@ -334,7 +334,7 @@ func TestDeploy_Clone_FreshClone_NoResolvedCommit_StaysOnBranch(t *testing.T) {
 	repoDir := filepath.Join(t.TempDir(), "new-src")
 
 	cfg := buildsystems.BuildConfig{
-		Ctx: fakeContext{},
+		Context: fakeContext{},
 		PortConfig: buildsystems.PortConfig{
 			LibName:    "test",
 			LibVersion: "1.0",

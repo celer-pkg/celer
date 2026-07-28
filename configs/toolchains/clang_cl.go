@@ -80,6 +80,10 @@ func (c *ClangCL) AssembleBuildTools(toolchain *strings.Builder) {
 	}
 }
 
+func (c *ClangCL) ReadBuiltinEnvs() (map[string]string, error) {
+	return nil, nil
+}
+
 func (c *ClangCL) CFlags() []string {
 	return []string{}
 }

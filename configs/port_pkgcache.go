@@ -88,11 +88,11 @@ func (p Port) buildMeta() (string, error) {
 	}
 
 	// Computer meta and save into cache.
-	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
+	platformName := expr.If(p.DevDep || p.HostDep, p.Platform().GetHostName(), p.Platform().GetName())
 	port := pkgcache.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    platformName,
-		Project:     p.ctx.Project().GetName(),
+		Project:     p.Project().GetName(),
 		DevDep:      p.DevDep,
 		HostDev:     p.HostDep,
 		BuildConfig: p.toPkgCacheBuildConfig(p.MatchedConfig, p.portFile),
@@ -107,26 +107,26 @@ func (p Port) buildMeta() (string, error) {
 	return result, err
 }
 
-func (c Port) GenPlatformTomlString() (string, error) {
-	if c.DevDep || c.HostDep {
+func (p Port) GenPlatformTomlString() (string, error) {
+	if p.DevDep || p.HostDep {
 		// Host/dev packages should describe the native host side instead of the
 		// target cross toolchain/rootfs from the workspace platform config.
 		bytes, err := toml.Marshal(struct {
 			Name    string `toml:"name"`
 			HostDev bool   `toml:"host_dev,omitempty"`
 		}{
-			Name:    c.ctx.Platform().GetHostName(),
+			Name:    p.Platform().GetHostName(),
 			HostDev: true,
 		})
 		if err != nil {
-			return "", fmt.Errorf("failed to marshal host platform %s -> %w", c.ctx.Platform().GetHostName(), err)
+			return "", fmt.Errorf("failed to marshal host platform %s -> %w", p.Platform().GetHostName(), err)
 		}
 		return string(bytes), nil
 	}
 
-	bytes, err := toml.Marshal(c.ctx.Platform())
+	bytes, err := toml.Marshal(p.Platform())
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal platform %s -> %w", c.ctx.Platform().GetName(), err)
+		return "", fmt.Errorf("failed to marshal platform %s -> %w", p.Platform().GetName(), err)
 	}
 	return string(bytes), nil
 }
@@ -141,7 +141,7 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 
 	// Store err if init port failed.
 	var port = Port{DevDep: devDep}
-	if err := port.Init(p.ctx, nameVersion); err != nil {
+	if err := port.Init(p.Context, nameVersion); err != nil {
 		portTomlCache.Store(key, metaResult{err: err})
 		return "", err
 	}
@@ -149,7 +149,7 @@ func (p Port) GenPortTomlString(nameVersion string, devDep bool) (string, error)
 	// The build type is one of the key fields to identify a build config.
 	matchedConfig := port.MatchedConfig
 	if matchedConfig.BuildType == "" {
-		matchedConfig.BuildType = p.ctx.BuildType()
+		matchedConfig.BuildType = p.BuildType()
 	}
 	port.BuildConfigs = []buildsystems.BuildConfig{*matchedConfig}
 
@@ -203,7 +203,7 @@ func (p Port) GetCommitHash(nameVersion string, native bool) (string, error) {
 
 func (p Port) doGetCommitHash(nameVersion string, native bool) (string, error) {
 	var port = Port{DevDep: native}
-	if err := port.Init(p.ctx, nameVersion); err != nil {
+	if err := port.Init(p.Context, nameVersion); err != nil {
 		return "", err
 	}
 
@@ -231,7 +231,7 @@ func (p Port) doGetCommitHash(nameVersion string, native bool) (string, error) {
 			filePath = after
 		} else {
 			archive := expr.If(port.Package.Archive != "", port.Package.Archive, filepath.Base(port.Package.Url))
-			filePath = filepath.Join(p.ctx.Downloads(), archive)
+			filePath = filepath.Join(p.Downloads(), archive)
 		}
 
 		// Auto-download source archive if missing, then continue checksum.
@@ -266,7 +266,7 @@ func (p Port) GetBuildConfig(nameVersion string, native bool) (*pkgcache.BuildCo
 	}
 
 	var port = Port{DevDep: native, HostDep: native}
-	if err := port.Init(p.ctx, nameVersion); err != nil {
+	if err := port.Init(p.Context, nameVersion); err != nil {
 		return nil, err
 	}
 
@@ -282,7 +282,7 @@ func (p Port) CheckHostSupported(nameVersion string) bool {
 	}
 
 	var port = Port{DevDep: true}
-	if err := port.Init(p.ctx, nameVersion); err != nil {
+	if err := port.Init(p.Context, nameVersion); err != nil {
 		return false
 	}
 

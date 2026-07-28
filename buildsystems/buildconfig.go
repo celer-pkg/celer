@@ -5,14 +5,12 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/generator"
 	pkgcmake "github.com/celer-pkg/celer/pkgs/cmake"
-	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
@@ -28,6 +26,8 @@ var (
 )
 
 type PortConfig struct {
+	context.Context
+
 	LibName         string   // like: `ffmpeg`
 	LibVersion      string   // like: `4.4`
 	Archive         string   // like: `ffmpeg-4.4.tar.xz`
@@ -47,8 +47,6 @@ type PortConfig struct {
 	DevDep          bool     // whether dev dependency
 	HostDev         bool     // whether native build
 	PortFile        string   // the file path of port.toml
-
-	Ctx context.Context `toml:"-"`
 }
 
 func (p PortConfig) nameVersion() string {
@@ -99,6 +97,8 @@ type libraryType struct {
 }
 
 type BuildConfig struct {
+	context.Context
+
 	Url             string   `toml:"url,omitempty"` // Used to override url in package.
 	SystemName      string   `toml:"system_name,omitempty"`
 	SystemNames     []string `toml:"system_names,omitempty"`
@@ -285,7 +285,6 @@ type BuildConfig struct {
 	Options_Darwin  []string `toml:"options_darwin,omitempty"`
 
 	// Internal fields
-	Ctx         context.Context  `toml:"-"`
 	ExprVars    context.ExprVars `toml:"-"`
 	DevDep      bool             `toml:"-"`
 	HostDev     bool             `toml:"-"`
@@ -366,7 +365,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 	// Try to fetch repo from pkgcache.
 	var repoCache context.RepoCache
-	pkgCacheConfig := b.Ctx.PkgCacheConfig()
+	pkgCacheConfig := b.PkgCacheConfig()
 	if pkgCacheConfig != nil {
 		repoCache = pkgCacheConfig.GetRepoCache()
 	}
@@ -388,8 +387,8 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 			// Restore to downloads also, it's required to compute meta when build.
 			if !strings.HasSuffix(repoUrl, ".git") {
 				archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
-				downloadsArchive := filepath.Join(b.Ctx.Downloads(), archive)
-				if err := os.MkdirAll(b.Ctx.Downloads(), os.ModePerm); err != nil {
+				downloadsArchive := filepath.Join(b.Downloads(), archive)
+				if err := os.MkdirAll(b.Downloads(), os.ModePerm); err != nil {
 					return fmt.Errorf("failed to create downloads dir -> %w", err)
 				}
 				if err := fileio.CopyFile(fromWhere, downloadsArchive); err != nil {
@@ -401,7 +400,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	}
 
 	// Check offline mode before clone/download repo.
-	if b.Ctx.Offline() {
+	if b.Offline() {
 		return fmt.Errorf("source for %s is not available locally and offline mode forbids clone/download",
 			b.PortConfig.nameVersion())
 	}
@@ -426,8 +425,8 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 
 		// Check and repair resource.
 		archive = expr.If(archive == "", filepath.Base(repoUrl), archive)
-		repair := fileio.NewRepair(repoUrl, b.Ctx.Downloads(), archive, ".", b.PortConfig.RepoDir, b.PortConfig.Checksum)
-		if err := repair.CheckAndRepair(b.Ctx); err != nil {
+		repair := fileio.NewRepair(repoUrl, b.Downloads(), archive, ".", b.PortConfig.RepoDir, b.PortConfig.Checksum)
+		if err := repair.CheckAndRepair(b.Context); err != nil {
 			return err
 		}
 
@@ -466,7 +465,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// Generate a CMakeLists.txt for prebuilt project.
 	cmakeConfigPath := filepath.Join(filepath.Dir(b.PortConfig.PortFile), "cmake_config.toml")
 	if cmakeConfigPath != "" && fileio.PathExists(cmakeConfigPath) && b.buildSystem.Name() == "prebuilt" {
-		systemName := b.Ctx.Platform().GetToolchain().GetSystemName()
+		systemName := b.Platform().GetToolchain().GetSystemName()
 		cmakeConfig, err := generator.ReadCMakeConfig(cmakeConfigPath, systemName)
 		if err != nil {
 			return err
@@ -481,7 +480,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	// stays keyed by the original archive checksum without the generated .git directory.
 	// Store repo even checksum is empty, then can fill checksum in port.toml, if you want restore it from pkgcache/repos.
 	if repoUrl != "_" && repoCache != nil {
-		archiveFile := filepath.Join(b.Ctx.Downloads(), archive)
+		archiveFile := filepath.Join(b.Downloads(), archive)
 		if whereStored, err := repoCache.Store(nameVersion, repoUrl, b.PortConfig.RepoDir, archiveFile); err != nil {
 			return fmt.Errorf("failed to store repo cache for %s -> %w", nameVersion, err)
 		} else if whereStored != "" {
@@ -617,7 +616,7 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	b.expandOptions()
 
 	// nobuild buildsystem do not have crosstool.
-	toolchain := b.Ctx.Platform().GetToolchain()
+	toolchain := b.Platform().GetToolchain()
 	if toolchain != nil {
 		// Keep the host-side tool runtime closure isolated under tmp/deps for every
 		// build. Host-side tools must be prepared explicitly into tmp/deps instead of
@@ -697,7 +696,7 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 
 	// Check cmake config files for absolute workspace paths that make the
 	// installed package non-relocatable, and break the reuse of pkgcache.
-	features := b.Ctx.Features()
+	features := b.Features()
 	if features == nil || !features.ShouldIgnoreCheckCMakeAbsPath() {
 		if err := pkgcmake.CheckCMakeAbsPaths(b.PortConfig.PackageDir, dirs.WorkspaceDir); err != nil {
 			return fmt.Errorf("%s' cmake config files contain absolute workspace paths (non-relocatable) -> %w",
@@ -817,8 +816,8 @@ func (b *BuildConfig) expandOptions() {
 // expandVariables expands placeholder variables in the given string and returns the result.
 // Placeholders like ${CC}, ${CXX}, ${SYSROOT}, etc. are replaced with actual values.
 func (b BuildConfig) expandVariables(content string) string {
-	toolchain := b.Ctx.Platform().GetToolchain()
-	rootfs := b.Ctx.Platform().GetRootFS()
+	toolchain := b.Platform().GetToolchain()
+	rootfs := b.Platform().GetRootFS()
 
 	// Replace ${CC}, ${CXX}, ${HOST_CC} for compiler paths.
 	var ccValue, cxxValue strings.Builder
@@ -893,8 +892,8 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	}
 
 	var (
-		toolchain = b.Ctx.Platform().GetToolchain()
-		rootfs    = b.Ctx.Platform().GetRootFS()
+		toolchain = b.Platform().GetToolchain()
+		rootfs    = b.Platform().GetRootFS()
 	)
 
 	// sysroot and tmp dir.
@@ -937,7 +936,7 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	appendEnv("PKG_CONFIG_LIBDIR", strings.Join(configLibDirs, pathDivider))
 
 	// Load MSVC environment variables.
-	msvcEnvs, err := b.readMSVCEnvs()
+	msvcEnvs, err := b.Platform().GetToolchain().ReadBuiltinEnvs()
 	if err != nil {
 		return "", err
 	}
@@ -959,80 +958,6 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	appendEnv("CXX", toolchain.GetCXX())
 
 	return strings.Join(args, " "), nil
-}
-
-func (b BuildConfig) readMSVCEnvs() (map[string]string, error) {
-	toolchain := b.Ctx.Platform().GetToolchain()
-
-	// Read MSVC environment variables.
-	// TODO: the `x64` may be different depending on the platform.
-	command := fmt.Sprintf(`call "%s" x64 && set`, toolchain.GetMSVC().VCVars)
-	title := fmt.Sprintf("[read msvc envs: %s]", b.PortConfig.nameVersion())
-	executor := cmd.NewExecutor(title, command)
-	output, err := executor.ExecuteOutput()
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse environment variables from output.
-	var msvcEnvs = make(map[string]string)
-	lines := strings.SplitSeq(output, "\n")
-	for line := range lines {
-		line = strings.TrimSpace(line)
-		if line != "" && strings.Contains(line, "=") {
-			parts := strings.Split(line, "=")
-
-			// Unify "Path" to "PATH".
-			if parts[0] == "Path" {
-				parts[0] = "PATH"
-			}
-			msvcEnvs[parts[0]] = parts[1]
-			color.Printf(color.Hint, "-- %s=%s\n", parts[0], parts[1])
-		}
-	}
-
-	return msvcEnvs, nil
-}
-
-func (b BuildConfig) readQNXEnvs() (map[string]string, error) {
-	toolchain := b.Ctx.Platform().GetToolchain()
-
-	var scriptName, command string
-	switch runtime.GOOS {
-	case "windows":
-		scriptName = "qnxsdp-env.bat"
-		command = fmt.Sprintf("call \"%s\" && set",
-			filepath.Join(toolchain.GetRootDir(), scriptName))
-	default:
-		scriptName = "qnxsdp-env.sh"
-		command = fmt.Sprintf("source '%s' && env",
-			filepath.Join(toolchain.GetRootDir(), scriptName))
-	}
-
-	qnxEnvScript := filepath.Join(toolchain.GetRootDir(), scriptName)
-	if !fileio.PathExists(qnxEnvScript) {
-		return nil, fmt.Errorf("QNX env script not found at: %s", qnxEnvScript)
-	}
-
-	title := fmt.Sprintf("[read qnx envs: %s]", b.PortConfig.nameVersion())
-	executor := cmd.NewExecutor(title, command)
-	output, err := executor.ExecuteOutput()
-	if err != nil {
-		return nil, fmt.Errorf("failed to source %s -> %w", scriptName, err)
-	}
-
-	var qnxEnvs = make(map[string]string)
-	lines := strings.SplitSeq(output, "\n")
-	for line := range lines {
-		line = strings.TrimSpace(line)
-		if line != "" && strings.Contains(line, "=") {
-			key, value, _ := strings.Cut(line, "=")
-			qnxEnvs[key] = value
-			color.Printf(color.Hint, "-- %s=%s\n", key, value)
-		}
-	}
-
-	return qnxEnvs, nil
 }
 
 // removeLaFiles remove la files generated by libtool.

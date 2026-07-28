@@ -151,6 +151,8 @@ func CheckTools(ctx context.Context, tools ...string) error {
 }
 
 type BuildTool struct {
+	context.Context
+
 	Name    string   `toml:"name"`
 	Version string   `toml:"version"`
 	Default bool     `toml:"default"`
@@ -164,7 +166,6 @@ type BuildTool struct {
 	// Internal fields.
 	rootDir  string
 	abspaths []string
-	ctx      context.Context
 }
 
 func (b *BuildTool) validate() error {
@@ -193,23 +194,23 @@ func (b *BuildTool) validate() error {
 	if len(b.Paths) > 0 {
 		// Archive with paths specified: extract to subdirectory.
 		folderName, _, _ := strings.Cut(b.Paths[0], "/")
-		b.rootDir = filepath.Join(b.ctx.Downloads(), "tools", folderName)
+		b.rootDir = filepath.Join(b.Downloads(), "tools", folderName)
 		for _, path := range b.Paths {
-			b.abspaths = append(b.abspaths, filepath.Join(b.ctx.Downloads(), "tools", path))
+			b.abspaths = append(b.abspaths, filepath.Join(b.Downloads(), "tools", path))
 		}
 		os.Setenv("PATH", env.JoinPaths("PATH", b.abspaths...))
 	} else {
 		// Single-file tool: use directly from /downloads/
-		b.rootDir = b.ctx.Downloads()
+		b.rootDir = b.Downloads()
 	}
 
 	// Set global vars.
 	for _, value := range b.Vars {
 		parts := strings.SplitN(value, "=", 2)
-		if _, ok := b.ctx.ExprVars().Lookup(parts[0]); ok {
+		if _, ok := b.ExprVars().Lookup(parts[0]); ok {
 			return fmt.Errorf("${%s} exist already, so build_tool '%s' can't define it", parts[0], b.Name)
 		}
-		b.ctx.ExprVars().Put(parts[0], parts[1])
+		b.ExprVars().Put(parts[0], parts[1])
 	}
 
 	// Set environment vars.
@@ -232,7 +233,7 @@ func (b *BuildTool) checkAndFix() error {
 	)
 
 	// Determine folder name and location based on tool type
-	toolsDir := filepath.Join(b.ctx.Downloads(), "tools")
+	toolsDir := filepath.Join(b.Downloads(), "tools")
 	if len(b.Paths) > 0 {
 		// Archive with paths: extract to subdirectory.
 		folderName = strings.Split(b.Paths[0], "/")[0]
@@ -247,17 +248,17 @@ func (b *BuildTool) checkAndFix() error {
 		// Single-file tool: use directly from /downloads/
 		if b.Archive != "" {
 			archiveName = b.Archive
-			location = filepath.Join(b.ctx.Downloads(), b.Archive)
+			location = filepath.Join(b.Downloads(), b.Archive)
 		} else {
 			archiveName = filepath.Base(b.Url)
-			location = filepath.Join(b.ctx.Downloads(), filepath.Base(b.Url))
+			location = filepath.Join(b.Downloads(), filepath.Base(b.Url))
 		}
 		folderName = "" // Empty indicates single-file, no subdirectory needed.
 	}
 
 	// Check and repair resource.
-	repair := fileio.NewRepair(b.Url, b.ctx.Downloads(), archiveName, folderName, toolsDir, b.SHA256)
-	if err := repair.CheckAndRepair(b.ctx); err != nil {
+	repair := fileio.NewRepair(b.Url, b.Downloads(), archiveName, folderName, toolsDir, b.SHA256)
+	if err := repair.CheckAndRepair(b.Context); err != nil {
 		return err
 	}
 
@@ -293,7 +294,7 @@ func (b BuildTools) findTool(ctx context.Context, nameVersion string) (*BuildToo
 		}
 
 		// Matched tool found.
-		b.BuildTools[index].ctx = ctx
+		b.BuildTools[index].Context = ctx
 		return &b.BuildTools[index], nil
 	}
 

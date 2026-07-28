@@ -48,6 +48,7 @@ type Toolchain interface {
 	SetupEnvs()
 	ClearEnvs()
 	RuntimeFlags() []string
+	ReadBuiltinEnvs() (map[string]string, error)
 }
 
 type RootFS interface {
