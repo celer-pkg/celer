@@ -564,7 +564,7 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 	// - Python packages: copy from PACKAGE_DIR to venv
 	// - C++ packages: copy to InstalledDir.
 	destDir := p.InstalledDir
-	if p.MatchedConfig.IsPythonPackage() && buildtools.PythonTool != nil {
+	if p.MatchedConfig.SystemName == "python" {
 		destDir = buildtools.PythonTool.VenvDir()
 	}
 	if err := p.doInstallFromPackage(destDir); err != nil {
@@ -1269,7 +1269,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 
 	// For Python packages, transform paths to be relative to installed/.
 	// PackageFiles returns "libraryDir/relative/path", we need "venv-x.y@project/relative/path".
-	if p.MatchedConfig.IsPythonPackage() && buildtools.PythonTool != nil {
+	if p.MatchedConfig.SystemName == "python" {
 		venvDir := buildtools.PythonTool.VenvDir()
 		venvFolder, _ := filepath.Rel(dirs.InstalledDir, venvDir) // "venv-3.10@ros2"
 		for i, file := range packageFiles {
@@ -1289,7 +1289,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 
 	// Print install trace.
 	color.PrintPass("%s is installed from %s", p.NameVersion(), installedFrom)
-	if p.MatchedConfig.IsPythonPackage() && buildtools.PythonTool != nil {
+	if p.MatchedConfig.SystemName == "python" {
 		color.PrintHint("Location: %s\n", buildtools.PythonTool.VenvDir())
 	} else {
 		color.PrintHint("Location: %s\n", p.InstalledDir)
