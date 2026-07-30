@@ -23,7 +23,7 @@ import (
 var (
 	CStandards   = []string{"c90", "c99", "c11", "c17", "c23"}
 	CXXStandards = []string{"c++98", "c++11", "c++14", "c++17", "c++20", "c++23"}
-	buildSystems = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "nobuild", "prebuilt", "custom"}
+	buildSystems = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "nobuild", "prebuilt", "python", "custom"}
 )
 
 type PortConfig struct {
@@ -730,7 +730,7 @@ func (b *BuildConfig) InitBuildSystem() error {
 		b.buildSystem = NewPrebuilt(b)
 	case "nobuild":
 		b.buildSystem = NewNoBuild(b)
-	case "custom":
+	case "python", "custom":
 		b.buildSystem = NewCustom(b)
 	default:
 		return fmt.Errorf("unsupported build system for %s", b.BuildSystem)
@@ -835,20 +835,6 @@ func (b BuildConfig) expandVariables(content string) string {
 
 	content = b.ExprVars.Expand(content)
 	return content
-}
-
-// IsPythonPackage returns true if the build config references Python placeholders
-// in its custom commands, indicating it's a Python package that should be installed
-// to the virtual environment.
-func (b BuildConfig) IsPythonPackage() bool {
-	commands := append(b.CustomConfigure, b.CustomBuild...)
-	commands = append(commands, b.CustomInstall...)
-	for _, command := range commands {
-		if strings.Contains(command, "${PYTHON_VENV_EXE}") || strings.Contains(command, "${PYTHON_VENV_DIR}") {
-			return true
-		}
-	}
-	return false
 }
 
 func (b BuildConfig) getLogPath(suffix string) string {
