@@ -3,8 +3,11 @@ package buildsystems
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 
@@ -41,7 +44,7 @@ func (b bazel) configureOptions() ([]string, error) {
 
 // setupToolchainEnvs wires the cross-compiler into the process environment so
 // that Bazel's @local_config_cc probes it (instead of the host gcc).
-func (b bazel) setupToolchainEnvs() {
+func (b bazel) setupToolchainEnvs() error {
 	toolchain := b.Ctx.Platform().GetToolchain()
 
 	if b.DevDep || b.HostDev {
@@ -49,7 +52,7 @@ func (b bazel) setupToolchainEnvs() {
 		if name := toolchain.GetName(); name != "msvc" && name != "clang-cl" {
 			toolchain.ClearEnvs()
 		}
-		return
+		return nil
 	}
 
 	// Bare cross-compiler for @local_config_cc probing.
@@ -84,10 +87,14 @@ func (b bazel) setupToolchainEnvs() {
 			b.envBackup.setenv(e[0], e[1])
 		}
 	}
+
+	return nil
 }
 
 func (b bazel) Configure(options []string) error {
-	b.setupToolchainEnvs()
+	if err := b.setupToolchainEnvs(); err != nil {
+		return err
+	}
 
 	// Ensure BuildDir exists: Bazel's output_base lives under it (see
 	// generateBazelrc) and Bazel needs its parent directory to exist.
@@ -95,8 +102,16 @@ func (b bazel) Configure(options []string) error {
 		return fmt.Errorf("create build dir for bazel -> %w", err)
 	}
 
+	// Generate a cc_toolchain (crosstool) for cross-compilation, replacing
+	// @local_config_cc. Returns "" when not applicable (host build / no rootfs /
+	// non-gcc/clang), in which case Bazel falls back to its default detection.
+	ccToolchainDir, err := b.generateCCToolchain()
+	if err != nil {
+		return fmt.Errorf("generate cc_toolchain for bazel -> %w", err)
+	}
+
 	// Generate .bazelrc with cross-compilation flags.
-	if _, err := b.generateBazelrc(); err != nil {
+	if _, err := b.generateBazelrc(ccToolchainDir); err != nil {
 		return fmt.Errorf("generate .bazelrc for bazel -> %w", err)
 	}
 
@@ -127,7 +142,9 @@ func (b bazel) buildOptions() ([]string, error) {
 }
 
 func (b bazel) Build(options []string) error {
-	b.setupToolchainEnvs()
+	if err := b.setupToolchainEnvs(); err != nil {
+		return err
+	}
 
 	// Execute custom build commands if port.toml has them.
 	if len(b.CustomBuild) > 0 {
@@ -176,7 +193,9 @@ func (b bazel) installOptions() ([]string, error) {
 }
 
 func (b bazel) Install(options []string) error {
-	b.setupToolchainEnvs()
+	if err := b.setupToolchainEnvs(); err != nil {
+		return err
+	}
 
 	// Custom install commands in port.toml take full control.
 	if len(b.CustomInstall) > 0 {
@@ -225,6 +244,13 @@ func (b bazel) Install(options []string) error {
 	}
 
 	// Walk bazel-bin/ and copy relevant outputs.
+	var copyShared, copyStatic bool
+	if b.BuildShared == nil && b.BuildStatic == nil {
+		copyShared, copyStatic = true, false
+	} else {
+		intent := b.buildLibraryType()
+		copyShared, copyStatic = intent.shared, intent.static
+	}
 	err := filepath.WalkDir(bazelBin, func(path string, d os.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
@@ -258,6 +284,14 @@ func (b bazel) Install(options []string) error {
 		// Skip generated build files (not actual artifacts).
 		ext := filepath.Ext(baseName)
 		if ext == ".params" || ext == ".cmd" || ext == ".scan" || ext == ".d" || ext == ".o" {
+			return nil
+		}
+
+		// Respect build_shared/build_static: skip library types not requested.
+		if b.isStaticLib(baseName) && !copyStatic {
+			return nil
+		}
+		if b.isSharedLib(baseName) && !copyShared {
 			return nil
 		}
 
@@ -352,7 +386,7 @@ func (b bazel) Install(options []string) error {
 
 // generateBazelrc generates a .bazelrc file in the source directory with
 // cross-compilation flags for Bazel.
-func (b bazel) generateBazelrc() (string, error) {
+func (b bazel) generateBazelrc(ccToolchainDir string) (string, error) {
 	toolchain := b.Ctx.Platform().GetToolchain()
 	rootfs := b.Ctx.Platform().GetRootFS()
 
@@ -369,34 +403,32 @@ func (b bazel) generateBazelrc() (string, error) {
 	if !b.DevDep && !b.HostDev {
 		fmt.Fprintf(&buffer, "build --spawn_strategy=local\n")
 
-		if prefix := toolchain.GetCrosstoolPrefix(); prefix != "" {
-			// Use the platform configured ar for @local_config_cc probing.
-			// For gcc platforms this is gcc-ar (LTO wrapper), which Bazel
-			// cannot use -- substitute the plain ar from the same toolchain.
-			ar := toolchain.GetAR()
-			if strings.Contains(ar, "gcc-") {
-				ar = prefix + "ar"
-			}
-			fmt.Fprintf(&buffer, "build --repo_env=AR=%s\n", ar)
+		// Register celer's cc_toolchain (crosstool) for cross-compilation,
+		// replacing @local_config_cc (which is host-oriented: it injects the
+		// host binutils and misses the sysroot includes). Disabled when no
+		// crosstool was generated (no rootfs / non-gcc/clang), in which case
+		// Bazel falls back to its default host toolchain detection.
+		if ccToolchainDir != "" {
+			fmt.Fprintf(&buffer, "build --incompatible_enable_cc_toolchain_resolution\n")
+			fmt.Fprintf(&buffer, "build --action_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1\n")
+			fmt.Fprintf(&buffer, "build --override_repository=cc_toolchain=%s\n", ccToolchainDir)
+			fmt.Fprintf(&buffer, "build --extra_toolchains=@cc_toolchain//:cc_toolchain_impl\n")
+			fmt.Fprintf(&buffer, "build --platforms=@cc_toolchain//:target_platform\n")
 		}
 
-		// Runtime flags (e.g., clang --gcc-toolchain, --rtlib). CC already
-		// carries them for probing/compiling; mirror onto linkopts too.
+		// Runtime flags (e.g., clang --gcc-toolchain, --rtlib) applied to
+		// compile and link actions.
 		for _, flag := range toolchain.RuntimeFlags() {
 			fmt.Fprintf(&buffer, "build --copt=%s\n", flag)
 			fmt.Fprintf(&buffer, "build --cxxopt=%s\n", flag)
 			fmt.Fprintf(&buffer, "build --linkopt=%s\n", flag)
 		}
 
-		// Sysroot: pass to both compiler and linker so cross-compilers
-		// can find target headers and libraries.
+		// Sysroot lib dirs (link paths). The sysroot itself (headers + the
+		// --sysroot flag) is declared in the crosstool via builtin_sysroot; here
+		// we only add the lib search paths for the linker.
 		if rootfs != nil {
 			sysrootDir := filepath.ToSlash(rootfs.GetAbsDir())
-			fmt.Fprintf(&buffer, "build --copt=--sysroot=%s\n", sysrootDir)
-			fmt.Fprintf(&buffer, "build --cxxopt=--sysroot=%s\n", sysrootDir)
-			fmt.Fprintf(&buffer, "build --linkopt=--sysroot=%s\n", sysrootDir)
-
-			// Sysroot lib dirs.
 			for _, libDir := range rootfs.GetLibDirs() {
 				libPath := filepath.ToSlash(filepath.Join(sysrootDir, libDir))
 				fmt.Fprintf(&buffer, "build --linkopt=-L%s\n", libPath)
@@ -479,3 +511,329 @@ func (b bazel) generateBazelrc() (string, error) {
 
 	return bazelrcPath, nil
 }
+
+// generateCCToolchain generates a minimal Bazel cc_toolchain (crosstool) that
+// cross-compiles with celer's toolchain + rootfs, replacing @local_config_cc
+// (which is host-oriented and injects the host binutils / misses the sysroot
+// includes).
+func (b bazel) generateCCToolchain() (string, error) {
+	toolchain := b.Ctx.Platform().GetToolchain()
+	rootfs := b.Ctx.Platform().GetRootFS()
+	if rootfs == nil {
+		return "", nil
+	}
+	switch toolchain.GetName() {
+	case "gcc", "clang":
+	default:
+		return "", nil
+	}
+
+	binDir := filepath.ToSlash(toolchain.GetAbsDir())
+	sysrootDir := filepath.ToSlash(rootfs.GetAbsDir())
+	ccPath := filepath.ToSlash(filepath.Join(binDir, toolchain.GetCC()))
+
+	includes := b.probeGccIncludes(ccPath, sysrootDir)
+	if len(includes) == 0 {
+		return "", fmt.Errorf("probe cross-gcc builtin includes for bazel crosstool failed: %s", ccPath)
+	}
+
+	cpu := toolchain.GetSystemProcessor()
+	targetSystem := strings.ToLower(toolchain.GetSystemName())
+	execCpu := b.bazelCpu(runtime.GOARCH)
+
+	// Plain ar (gcc-ar LTO wrapper cannot handle @response files).
+	ar := toolchain.GetAR()
+	if strings.Contains(ar, "gcc-") {
+		if prefix := toolchain.GetCrosstoolPrefix(); prefix != "" {
+			ar = prefix + "ar"
+		}
+	}
+
+	// Resolve binutils. Cross toolchains (e.g. aarch64) ship their own; some
+	// toolchains that target the host arch (e.g. x86_64-linux-gnu on an x86_64
+	// host) omit them and rely on the host /usr/bin binutils. Fall back to the
+	// host tool when the cross one is absent (correct because target==host arch
+	// in that case); /bin/false if neither exists.
+	ldPath := b.resolveBinutil(binDir, toolchain.GetLD(), "ld")
+	arPath := b.resolveBinutil(binDir, ar, "ar")
+	nmPath := b.resolveBinutil(binDir, toolchain.GetNM(), "nm")
+	stripPath := b.resolveBinutil(binDir, toolchain.GetSTRIP(), "strip")
+	objdumpPath := b.resolveBinutil(binDir, toolchain.GetOBJDUMP(), "objdump")
+
+	// cpp / gcov / dwp: fall back to the C compiler (gcc can preprocess / drive
+	// gcov); these are rarely invoked directly.
+	cppPath := ccPath
+	if cpp := toolchain.GetCPP(); cpp != "" {
+		if p := filepath.Join(binDir, cpp); b.isFile(p) {
+			cppPath = filepath.ToSlash(p)
+		}
+	}
+	gcovPath := ccPath
+	if gcov := toolchain.GetGCOV(); gcov != "" {
+		if p := filepath.Join(binDir, gcov); b.isFile(p) {
+			gcovPath = filepath.ToSlash(p)
+		}
+	}
+	dwpPath := ccPath
+
+	var includesBuf strings.Builder
+	for _, inc := range includes {
+		fmt.Fprintf(&includesBuf, "    %q,\n", inc)
+	}
+
+	configBzl := fmt.Sprintf(ccToolchainConfigBzlTemplate,
+		sysrootDir, cpu, targetSystem, includesBuf.String(),
+		ccPath,
+		filepath.ToSlash(filepath.Join(binDir, toolchain.GetCXX())),
+		cppPath, gcovPath,
+		ldPath, ldPath,
+		arPath,
+		nmPath, stripPath,
+		objdumpPath,
+		dwpPath,
+	)
+
+	buildBazel := fmt.Sprintf(ccToolchainBuildTemplate, execCpu, cpu, cpu)
+
+	repoDir := filepath.ToSlash(filepath.Join(b.PortConfig.BuildDir, "cc_toolchain"))
+	if err := os.MkdirAll(repoDir, os.ModePerm); err != nil {
+		return "", fmt.Errorf("create cc_toolchain repo dir for bazel -> %w", err)
+	}
+	if err := os.WriteFile(filepath.Join(repoDir, "WORKSPACE.bazel"), []byte("# cc_toolchain repository\n"), os.ModePerm); err != nil {
+		return "", err
+	}
+	if err := os.WriteFile(filepath.Join(repoDir, "BUILD.bazel"), []byte(buildBazel), os.ModePerm); err != nil {
+		return "", err
+	}
+	if err := os.WriteFile(filepath.Join(repoDir, "cc_toolchain_config.bzl"), []byte(configBzl), os.ModePerm); err != nil {
+		return "", err
+	}
+	return repoDir, nil
+}
+
+// bazelCpu maps a Go runtime arch to a @platforms//cpu value.
+func (b bazel) bazelCpu(goarch string) string {
+	switch goarch {
+	case "amd64":
+		return "x86_64"
+	case "arm64":
+		return "aarch64"
+	case "386":
+		return "x86_32"
+	default:
+		return goarch
+	}
+}
+
+// isFile reports whether path exists and is not a directory.
+func (b bazel) isFile(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
+}
+
+func (b bazel) isStaticLib(name string) bool {
+	ext := filepath.Ext(name)
+	return ext == ".a" || ext == ".lib"
+}
+
+func (b bazel) isSharedLib(name string) bool {
+	return strings.HasSuffix(name, ".so") ||
+		strings.HasSuffix(name, ".dylib") ||
+		strings.HasSuffix(name, ".dll") ||
+		strings.Contains(name, ".so.")
+}
+
+// resolveBinutil resolves a binutils tool path: prefer the cross-toolchain's
+// own binary under binDir, fall back to the host's (correct when the target
+// arch equals the host arch, which is exactly when cross toolchains tend to
+// omit these tools), else "/bin/false".
+func (b bazel) resolveBinutil(binDir, tomlName, base string) string {
+	if tomlName != "" {
+		if p := filepath.Join(binDir, tomlName); b.isFile(p) {
+			return filepath.ToSlash(p)
+		}
+	}
+	if host, err := exec.LookPath(base); err == nil {
+		return filepath.ToSlash(host)
+	}
+	return "/bin/false"
+}
+
+// probeGccIncludes runs the cross-gcc with --sysroot and parses the include
+// directories it reports via `-E -v` (the same set the real compile searches).
+func (b bazel) probeGccIncludes(gccPath, sysroot string) []string {
+	cmd := exec.Command(gccPath, "--sysroot="+sysroot, "-E", "-v", "-xc++", "-")
+	cmd.Stdin = strings.NewReader("")
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	cmd.Stdout = io.Discard
+	if err := cmd.Run(); err != nil {
+		return nil
+	}
+	return b.parseGccIncludeDirs(stderr.String())
+}
+
+func (b bazel) parseGccIncludeDirs(output string) []string {
+	var dirs []string
+	inBlock := false
+	for _, line := range strings.Split(output, "\n") {
+		switch {
+		case strings.Contains(line, "search starts here"):
+			inBlock = true
+		case strings.Contains(line, "End of search list"):
+			inBlock = false
+		case inBlock:
+			trimmed := strings.TrimSpace(line)
+			if trimmed == "" || strings.HasPrefix(trimmed, "(") {
+				continue
+			}
+			// Strip trailing "(framework directory)" etc.
+			if idx := strings.Index(trimmed, " ("); idx > 0 {
+				trimmed = trimmed[:idx]
+			}
+			dirs = append(dirs, trimmed)
+		}
+	}
+	return dirs
+}
+
+const ccToolchainConfigBzlTemplate = `load("@bazel_tools//tools/cpp:cc_toolchain_config_lib.bzl", "feature", "flag_set", "flag_group", "tool_path")
+load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
+
+SYSROOT = %q
+CPU = %q
+TARGET_SYSTEM = %q
+
+BUILTIN_INCLUDES = [
+%s]
+
+TOOL_PATHS = {
+    "gcc": %q,
+    "g++": %q,
+    "cpp": %q,
+    "gcov": %q,
+    "ld": %q,
+    "compatibility_ld": %q,
+    "ar": %q,
+    "nm": %q,
+    "strip": %q,
+    "objdump": %q,
+    "dwp": %q,
+}
+
+_COMPILE_ACTIONS = [
+    ACTION_NAMES.assemble,
+    ACTION_NAMES.preprocess_assemble,
+    ACTION_NAMES.c_compile,
+    ACTION_NAMES.cpp_compile,
+    ACTION_NAMES.linkstamp_compile,
+]
+
+_LINK_ACTIONS = [
+    ACTION_NAMES.cpp_link_executable,
+    ACTION_NAMES.cpp_link_dynamic_library,
+    ACTION_NAMES.cpp_link_nodeps_dynamic_library,
+]
+
+def _impl(ctx):
+    features = [
+        feature(
+            name = "default_compile_flags",
+            enabled = True,
+            flag_sets = [flag_set(
+                actions = _COMPILE_ACTIONS,
+                flag_groups = [flag_group(flags = ["--sysroot=" + SYSROOT])],
+            )],
+        ),
+        feature(
+            name = "default_link_flags",
+            enabled = True,
+            flag_sets = [flag_set(
+                actions = _LINK_ACTIONS,
+                flag_groups = [flag_group(flags = ["--sysroot=" + SYSROOT])],
+            )],
+        ),
+        feature(
+            name = "dependency_file",
+            enabled = True,
+            flag_sets = [flag_set(
+                actions = _COMPILE_ACTIONS,
+                flag_groups = [flag_group(flags = ["-MD", "-MF", "%%{dependency_file}"])],
+            )],
+        ),
+        feature(
+            name = "random_seed",
+            enabled = True,
+            flag_sets = [flag_set(
+                actions = [ACTION_NAMES.c_compile, ACTION_NAMES.cpp_compile],
+                flag_groups = [flag_group(flags = ["-frandom-seed=%%{output_file}"])],
+            )],
+        ),
+    ]
+    return cc_common.create_cc_toolchain_config_info(
+        ctx = ctx,
+        toolchain_identifier = CPU,
+        host_system_name = "local",
+        target_system_name = TARGET_SYSTEM,
+        target_cpu = CPU,
+        target_libc = "glibc",
+        compiler = "gcc",
+        abi_version = "local",
+        abi_libc_version = "local",
+        tool_paths = [tool_path(name = k, path = v) for k, v in TOOL_PATHS.items()],
+        cxx_builtin_include_directories = BUILTIN_INCLUDES,
+        builtin_sysroot = SYSROOT,
+        features = features,
+    )
+
+cc_toolchain_config = rule(
+    implementation = _impl,
+    attrs = {},
+    provides = [CcToolchainConfigInfo],
+)
+`
+
+const ccToolchainBuildTemplate = `load(":cc_toolchain_config.bzl", "cc_toolchain_config")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(name = "empty")
+
+cc_toolchain_config(name = "cc_toolchain_config")
+
+cc_toolchain(
+    name = "cc_toolchain",
+    toolchain_config = ":cc_toolchain_config",
+    all_files = ":empty",
+    ar_files = ":empty",
+    as_files = ":empty",
+    compiler_files = ":empty",
+    dwp_files = ":empty",
+    linker_files = ":empty",
+    objcopy_files = ":empty",
+    strip_files = ":empty",
+    supports_param_files = 0,
+)
+
+toolchain(
+    name = "cc_toolchain_impl",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:%s",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:%s",
+    ],
+    toolchain = ":cc_toolchain",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+platform(
+    name = "target_platform",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:%s",
+    ],
+)
+`
