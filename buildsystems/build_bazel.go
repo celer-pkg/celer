@@ -388,11 +388,12 @@ func (b bazel) generateBazelrc() (string, error) {
 			fmt.Fprintf(&buffer, "build --linkopt=%s\n", flag)
 		}
 
-		// Sysroot: the compiler gets --sysroot via the CC env var (set by
-		// toolchain.SetEnvs), so its builtin includes resolve to the rootfs.
-		// Only the linker needs --sysroot repeated here.
+		// Sysroot: pass to both compiler and linker so cross-compilers
+		// can find target headers and libraries.
 		if rootfs != nil {
 			sysrootDir := filepath.ToSlash(rootfs.GetAbsDir())
+			fmt.Fprintf(&buffer, "build --copt=--sysroot=%s\n", sysrootDir)
+			fmt.Fprintf(&buffer, "build --cxxopt=--sysroot=%s\n", sysrootDir)
 			fmt.Fprintf(&buffer, "build --linkopt=--sysroot=%s\n", sysrootDir)
 
 			// Sysroot lib dirs.
