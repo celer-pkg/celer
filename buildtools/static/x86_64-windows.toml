@@ -34,6 +34,15 @@
   paths = ["cmake-3.31.12-linux-x86_64/bin"]
 
 [[build_tools]]
+  name = "bazel"
+  version = "v1.29.0"
+  default = true
+  url = "https://github.com/bazelbuild/bazelisk/releases/download/v1.29.0/bazelisk-windows-amd64.exe"
+  sha256 = "092a8738d5b41aae7a85c42cc961b1034e3389aba43ffc20c0fabda7b43e095b"
+  archive = "bazel.exe"
+  paths = ["bazelisk-windows-amd64-v1.29.0"]
+
+[[build_tools]]
   name = "ninja"
   version = "v1.12.1"
   default = true

@@ -362,7 +362,7 @@ func (b bazel) generateBazelrc() (string, error) {
 	// Isolate ALL Bazel state (execroot, external deps, build outputs) under
 	// the celer BuildDir instead of the global ~/.cache/bazel, so everything
 	// build-generated stays inside the workspace.
-	outputBase := filepath.Join(b.PortConfig.BuildDir, "output_base")
+	outputBase := filepath.ToSlash(filepath.Join(b.PortConfig.BuildDir, "output_base"))
 	fmt.Fprintf(&buffer, "startup --output_base=%s\n", outputBase)
 
 	// Cross-compilation mode (not for dev dependencies).

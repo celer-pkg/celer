@@ -23,7 +23,7 @@ import (
 var (
 	CStandards   = []string{"c90", "c99", "c11", "c17", "c23"}
 	CXXStandards = []string{"c++98", "c++11", "c++14", "c++17", "c++20", "c++23"}
-	buildSystems = []string{"cmake", "makefiles", "meson", "qmake", "b2", "gyp", "nobuild", "prebuilt", "custom"}
+	buildSystems = []string{"cmake", "makefiles", "meson", "qmake", "b2", "bazel", "gyp", "nobuild", "prebuilt", "custom"}
 )
 
 type PortConfig struct {
@@ -726,6 +726,8 @@ func (b *BuildConfig) InitBuildSystem() error {
 		b.buildSystem = NewGyp(b)
 	case "qmake":
 		b.buildSystem = NewQMake(b)
+	case "bazel":
+		b.buildSystem = NewBazel(b)
 	case "prebuilt":
 		b.buildSystem = NewPrebuilt(b)
 	case "nobuild":
