@@ -29,6 +29,11 @@ func TestInstall_x86_64_Clang_CL_Meson(t *testing.T) {
 	buildWithAMD64ClangCL(t, platform, "pkgconf@2.4.3", false)
 }
 
+func TestInstall_x86_64_Clang_CL_Bazel(t *testing.T) {
+	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
+	buildWithAMD64ClangCL(t, platform, "skcms@mirror", false)
+}
+
 func TestInstall_x86_64_Clang_CL_Prebuilt(t *testing.T) {
 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-clang-cl-enterprise-14", "x86_64-windows-clang-cl-community-14")
 	buildWithAMD64ClangCL(t, platform, "prebuilt-x264@stable", false)
