@@ -73,14 +73,24 @@ func TestInstall_x86_64_GCC_Meson(t *testing.T) {
 	})
 }
 
+func TestInstall_x86_64_GCC_Bazel(t *testing.T) {
+	t.Run("local_gcc", func(t *testing.T) {
+		buildWithAMD64GCC(t, "", "skcms@mirror", false)
+	})
+
+	t.Run("portable_gcc", func(t *testing.T) {
+		buildWithAMD64GCC(t, ubuntu_x86_64_gcc_11_5_0, "skcms@mirror", false)
+	})
+}
+
 func TestInstall_x86_64_GCC_Custom(t *testing.T) {
 	t.Run("local_gcc", func(t *testing.T) {
 		buildWithAMD64GCC(t, "", "qpOASES_e@3.1.2", false)
 	})
 
-	// t.Run("portable_gcc", func(t *testing.T) {
-	// 	buildWithAMD64GCC(t, ubuntu_x86_64_gcc_11_5_0, "qpOASES_e@3.1.2", false)
-	// })
+	t.Run("portable_gcc", func(t *testing.T) {
+		buildWithAMD64GCC(t, ubuntu_x86_64_gcc_11_5_0, "qpOASES_e@3.1.2", false)
+	})
 }
 
 func TestInstall_x86_64_GCC_Prebuilt(t *testing.T) {

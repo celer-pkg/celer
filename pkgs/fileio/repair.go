@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -149,6 +150,11 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 func (r *Repair) deployToDestination(downloaded, destDir string, needToDownload bool) error {
 	// Single-file tools (folder is empty) don't need deployment
 	if r.folder == "" {
+		if runtime.GOOS != "windows" {
+			if err := os.Chmod(downloaded, 0755); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
@@ -174,10 +180,28 @@ func (r *Repair) deployToDestination(downloaded, destDir string, needToDownload 
 		return err
 	}
 
+	// Deploy single file / archive
+	var deployErr error
 	if isSingleFile {
-		return r.deploySingleFile(downloaded, destDir)
+		deployErr = r.deploySingleFile(downloaded, destDir)
+	} else {
+		deployErr = r.deployArchive(downloaded, destDir)
 	}
-	return r.deployArchive(downloaded, destDir)
+	if deployErr != nil {
+		return deployErr
+	}
+
+	// Ensure all extracted / copied files are executable.
+	if runtime.GOOS != "windows" {
+		filepath.WalkDir(destDir, func(p string, d os.DirEntry, err error) error {
+			if err != nil || d.IsDir() {
+				return nil
+			}
+			return os.Chmod(p, 0755)
+		})
+	}
+
+	return nil
 }
 
 // deploySingleFile copies a single file to destination.
