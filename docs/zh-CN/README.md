@@ -47,6 +47,8 @@ Celer 为面临 **真实 C/C++ 交付挑战** 的团队而设计：
 
 如果只是获取开源库，[Conan](https://conan.io) / [vcpkg](https://vcpkg.io) / [XMake](https://xmake.io) 已经是成熟方案。Celer 适合把 **交付一致性** 放在生态广度前面的工程团队。
 
+> 🧭 **为什么选择 Celer？** 想深入了解 Celer 的设计理念——TOML 声明式配置、交付导向、项目-平台-构建类型三维隔离、meta 驱动的缓存 Key、非侵入式集成与多级缓存体系？阅读 [《为什么选择 Celer？》](./why_celer.md)。
+
 ## 💡 工作原理
 
 ![workflow](../assets/workflow.svg)
@@ -105,6 +107,7 @@ Celer 致力于为各主流平台和编译器提供一流的交叉编译支持�
 
 **深入阅读：**
 - [为预编译库生成 CMake 配置](./article_generate_cmake_config.md)
+- [平台配置详解](./article_platform.md) · [端口（Port）配置详解](./article_port.md) · [项目配置详解](./article_project.md)
 - [PkgCache：共享缓存与 NFS](./article_pkgcache.md) · [制品缓存](./article_pkgcache_artifacts.md) · [Repo 缓存](./article_pkgcache_repos.md) · [下载缓存](./article_pkgcache_downloads.md)
 - [CCache 集成](./article_ccache.md) · [CUDA 检测](./article_cuda_support.md)
 - [动态变量](./article_expvars.md) · [依赖冲突检测](./article_detect_conflict_circular.md)

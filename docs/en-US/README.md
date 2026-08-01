@@ -47,6 +47,8 @@ Celer is built for teams facing **real-world C/C++ delivery challenges**:
 
 If you just need to fetch an open-source library, [Conan](https://conan.io) / [vcpkg](https://vcpkg.io) / [XMake](https://xmake.io) are mature options. Celer is for when **delivery consistency** matters more than ecosystem breadth.
 
+> 🧭 **Why Celer?** Curious about the design philosophy — declarative TOML config, delivery-first design, platform-project-buildtype isolation, meta-driven cache keys, non-intrusive integration, and multi-level caching? Read [Why Celer?](./why_celer.md).
+
 ## 💡 How It Works
 
 ![workflow](../../assets/workflow.svg)
@@ -103,6 +105,7 @@ Celer aims to provide first-class cross-compilation support across major platfor
 
 **Deep dives:**
 - [Generate CMake Configs for Prebuilts](./article_generate_cmake_config.md)
+- [Platform Config Deep Dive](./article_platform.md) · [Port Config Deep Dive](./article_port.md) · [Project Config Deep Dive](./article_project.md)
 - [PkgCache: Shared Cache & NFS](./article_pkgcache.md) · [Artifact Cache](./article_pkgcache_artifacts.md) · [Repo Cache](./article_pkgcache_repos.md) · [Download Cache](./article_pkgcache_downloads.md)
 - [CCache Integration](./article_ccache.md) · [CUDA Detection](./article_cuda_support.md)
 - [Expression Variables](./article_expvars.md) · [Dependency Conflict Detection](./article_detect_conflict_circular.md)
