@@ -68,6 +68,17 @@ func TestInstall_x86_64_MSVC_Meson(t *testing.T) {
 	})
 }
 
+func TestInstall_x86_64_MSVC_Bazel(t *testing.T) {
+	t.Run("detect_msvc", func(t *testing.T) {
+		buildWithAMD64MSVC(t, "", "skcms@mirror", false)
+	})
+
+	t.Run("fixed_msvc", func(t *testing.T) {
+		platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
+		buildWithAMD64MSVC(t, platform, "skcms@mirror", false)
+	})
+}
+
 func TestInstall_x86_64_MSVC_Prebuilt(t *testing.T) {
 	platform := expr.If(os.Getenv("GITHUB_ACTIONS") == "true", "x86_64-windows-msvc-enterprise-14", "x86_64-windows-msvc-community-14")
 	buildWithAMD64MSVC(t, platform, "prebuilt-x264@stable", false)

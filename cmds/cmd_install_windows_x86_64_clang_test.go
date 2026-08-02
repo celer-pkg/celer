@@ -19,6 +19,10 @@ func TestInstall_x86_64_Clang_Meson(t *testing.T) {
 	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "pkgconf@2.4.3", false)
 }
 
+func TestInstall_x86_64_Clang_Bazel(t *testing.T) {
+	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "skcms@mirror", false)
+}
+
 func TestInstall_x86_64_Clang_Prebuilt(t *testing.T) {
 	buildWithAMD64Clang(t, "x86_64-windows-clang-21.1.4", "prebuilt-x264@stable", false)
 }
