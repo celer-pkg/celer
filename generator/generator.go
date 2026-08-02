@@ -3,11 +3,12 @@ package generator
 import (
 	"embed"
 	"fmt"
-	"github.com/celer-pkg/celer/pkgs/expr"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/celer-pkg/celer/pkgs/expr"
 
 	"github.com/BurntSushi/toml"
 )
@@ -21,15 +22,15 @@ type libInfo interface {
 
 type cmakeConfig struct {
 	Namespace string       `toml:"namespace"`
-	Linux     targetConfig `toml:"linux"`
-	Windows   targetConfig `toml:"windows"`
+	Linux     TargetConfig `toml:"linux"`
+	Windows   TargetConfig `toml:"windows"`
 }
 
 func (c *cmakeConfig) GetNamespace() string {
 	return c.Namespace
 }
 
-type targetConfig struct {
+type TargetConfig struct {
 	Filename   string      `toml:"filename"`
 	Filenames  []string    `toml:"filenames"`
 	Components []component `toml:"components"`
@@ -43,7 +44,7 @@ type component struct {
 	Dependencies []string `toml:"dependencies"`
 }
 
-func (t *targetConfig) GenerateCMakeLists(repoDir, libName, libVersion string) error {
+func (t *TargetConfig) GenerateCMakeLists(repoDir, libName, libVersion string) error {
 	// Create the cmake directory.
 	if err := os.MkdirAll(filepath.Join(repoDir, "cmake"), os.ModePerm); err != nil {
 		return err
@@ -66,7 +67,10 @@ func (t *targetConfig) GenerateCMakeLists(repoDir, libName, libVersion string) e
 	}
 
 	// Set namespace to libName if it is empty.
-	namespace := t.libInfo.GetNamespace()
+	var namespace string
+	if t.libInfo != nil {
+		namespace = t.libInfo.GetNamespace()
+	}
 	if namespace == "" {
 		namespace = libName
 	}
@@ -101,7 +105,7 @@ func (t *targetConfig) GenerateCMakeLists(repoDir, libName, libVersion string) e
 	return os.WriteFile(filepath.Join(repoDir, "CMakeLists.txt"), []byte(content), os.ModePerm)
 }
 
-func (t *targetConfig) generateComponents() (string, error) {
+func (t *TargetConfig) generateComponents() (string, error) {
 	var components strings.Builder
 	for _, component := range t.Components {
 		bytes, err := templates.ReadFile("templates/components/Component.cmake.in")
@@ -125,7 +129,7 @@ func (t *targetConfig) generateComponents() (string, error) {
 	return components.String(), nil
 }
 
-func (t *targetConfig) isValidVersionFormat(version string) bool {
+func (t *TargetConfig) isValidVersionFormat(version string) bool {
 	// Match patterns:
 	// 1. ^\d+(\.\d+)*$ -- number version (1, 1.2, 1.2.3, 1.2.3.4)
 	// 2. ^\d+(\.\d+)*[-+][a-zA-Z0-9._]+$ -- number version with suffix (1.0.0-alpha1, 2.0+beta)
@@ -134,8 +138,35 @@ func (t *targetConfig) isValidVersionFormat(version string) bool {
 	return matched
 }
 
+// AutoDetectConfig scans the package lib directory for library files and returns a
+// single-target config with filenames auto-detected. Returns nil if none found.
+func AutoDetectConfig(packageDir string) *TargetConfig {
+	var filenames []string
+	dir := filepath.Join(packageDir, "lib")
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+
+		name := e.Name()
+		if strings.HasSuffix(name, ".a") || strings.HasSuffix(name, ".lib") ||
+			strings.HasSuffix(name, ".so") || strings.Contains(name, ".so.") ||
+			strings.HasSuffix(name, ".dylib") {
+			filenames = append(filenames, name)
+		}
+	}
+	if len(filenames) == 0 {
+		return nil
+	}
+	return &TargetConfig{Filenames: filenames}
+}
+
 // ReadCMakeConfig Find matched cmake config.
-func ReadCMakeConfig(configPath, systemName string) (*targetConfig, error) {
+func ReadCMakeConfig(configPath, systemName string) (*TargetConfig, error) {
 	// Read the cmake_config.toml file.
 	bytes, err := os.ReadFile(configPath)
 	if err != nil {
@@ -146,8 +177,8 @@ func ReadCMakeConfig(configPath, systemName string) (*targetConfig, error) {
 		return nil, err
 	}
 
-	// Find the matched config.
-	var targetConfig *targetConfig
+	// Find the matched targetConfig.
+	var targetConfig *TargetConfig
 
 	switch strings.ToLower(systemName) {
 	case "linux":

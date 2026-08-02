@@ -12,6 +12,7 @@ import (
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/generator"
 	pkgcmake "github.com/celer-pkg/celer/pkgs/cmake"
+	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
@@ -694,6 +695,14 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 		return fmt.Errorf("fixup pkg-config\n %w", err)
 	}
 
+	// Generate cmake config files for build systems that don't produce them
+	// natively (e.g. makefiles). Prebuilt handles this in its own configure step.
+	if b.buildSystem.Name() != "prebuilt" {
+		if err := b.generateCMakeConfig(); err != nil {
+			return fmt.Errorf("generate cmake config %s -> %w", b.PortConfig.nameVersion(), err)
+		}
+	}
+
 	// Check cmake config files for absolute workspace paths that make the
 	// installed package non-relocatable, and break the reuse of pkgcache.
 	features := b.Ctx.Features()
@@ -702,6 +711,74 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 			return fmt.Errorf("%s' cmake config files contain absolute workspace paths (non-relocatable) -> %w",
 				b.PortConfig.nameVersion(), err)
 		}
+	}
+
+	return nil
+}
+
+func (b *BuildConfig) generateCMakeConfig() error {
+	cmakeConfigPath := filepath.Join(filepath.Dir(b.PortConfig.PortFile), "cmake_config.toml")
+	if !fileio.PathExists(cmakeConfigPath) {
+		return nil
+	}
+
+	systemName := b.Ctx.Platform().GetToolchain().GetSystemName()
+	cmakeConfig, err := generator.ReadCMakeConfig(cmakeConfigPath, systemName)
+	if err != nil {
+		return err
+	}
+
+	// If no filenames specified and no components, auto-detect from PackageDir.
+	if len(cmakeConfig.Filenames) == 0 && len(cmakeConfig.Components) == 0 {
+		if autoConfig := generator.AutoDetectConfig(b.PortConfig.PackageDir); autoConfig != nil {
+			cmakeConfig.Filenames = autoConfig.Filenames
+		}
+	}
+
+	// Generate CMakeLists.txt directly in PackageDir (where include/, lib/, bin/
+	// already exist from the normal install) so that PROJECT_SOURCE_DIR resolves
+	// correctly. The cmake build dir stays under BuildDir.
+	if err := cmakeConfig.GenerateCMakeLists(b.PortConfig.PackageDir, b.PortConfig.LibName, b.PortConfig.LibVersion); err != nil {
+		return err
+	}
+
+	// Remove generated scaffolding after cmake install finishes.
+	cmakeListsPath := filepath.Join(b.PortConfig.PackageDir, "CMakeLists.txt")
+	cmakeDir := filepath.Join(b.PortConfig.PackageDir, "cmake")
+	defer func() {
+		os.Remove(cmakeListsPath)
+		os.RemoveAll(cmakeDir)
+	}()
+
+	buildDir := filepath.Join(b.PortConfig.BuildDir, "cmake_generate", "build")
+	title := fmt.Sprintf("[generate cmake config %s]", b.PortConfig.nameVersion())
+
+	// cmake configure.
+	exec := cmd.NewExecutor(title, "cmake",
+		"-S", b.PortConfig.PackageDir,
+		"-B", buildDir,
+		"-DCMAKE_INSTALL_PREFIX="+b.PortConfig.PackageDir,
+	)
+	exec.SetWorkDir(b.PortConfig.PackageDir)
+	exec.SetLogPath(b.getLogPath("cmake-config-configure"))
+	if err := exec.Execute(); err != nil {
+		return err
+	}
+
+	// cmake build.
+	exec = cmd.NewExecutor(title, "cmake", "--build", buildDir)
+	exec.SetWorkDir(b.PortConfig.PackageDir)
+	exec.SetLogPath(b.getLogPath("cmake-config-build"))
+	if err := exec.Execute(); err != nil {
+		return err
+	}
+
+	// cmake install.
+	exec = cmd.NewExecutor(title, "cmake", "--install", buildDir)
+	exec.SetWorkDir(b.PortConfig.PackageDir)
+	exec.SetLogPath(b.getLogPath("cmake-config-install"))
+	if err := exec.Execute(); err != nil {
+		return err
 	}
 
 	return nil

@@ -1,10 +1,10 @@
 # Generate CMake Config Files
 
-> **Automatically generate standard CMake config files for prebuilt libraries**
+> **Automatically generate standard CMake config files for any library**
 
 ## Why Do You Need This?
 
-Many excellent third-party libraries (like FFmpeg, x264) don't use CMake as their build system and don't generate CMake config files after installation. This creates integration challenges for projects using CMake:
+Many third-party libraries (like FFmpeg, x264) don't use CMake as their build system and don't generate CMake config files after installation. Even some CMake-based libraries forget to export their targets. This creates integration challenges for projects using CMake:
 
 **Problems with Traditional Approaches:**
 - **Hard to Find**: Need to manually write `FindXXX.cmake` modules
@@ -13,20 +13,19 @@ Many excellent third-party libraries (like FFmpeg, x264) don't use CMake as thei
 - **High Maintenance Cost**: Each library needs custom find scripts
 
 **Celer's Solution:**
-- Automatically generate standard CMake config files
+- Automatically generate standard CMake config files for **any** build system
+- Zero-config auto-detect for simple single-target libraries
 - Consistent cross-platform experience
 - Automatically handle inter-component dependencies
-- Support for static, shared, and interface libraries
 
-## 📚 Configuration Types Overview
+---
 
-Choose the appropriate configuration type based on your library's characteristics:
+## Configuration Types Overview
 
 | Type | Use Case | Typical Examples | Complexity |
 |------|----------|------------------|------------|
-| **Single Target** | Single library file, no sub-modules | x264, zlib, sqlite | ⭐ Simple |
-| **Multi-Component** | Multiple independent modules, can be used separately | FFmpeg, Boost, OpenCV | ⭐⭐⭐ Medium |
-| **Interface Library** | Pre-built libraries or header-only libraries | Pre-built SDK, header-only libs | ⭐⭐ Simple |
+| **Single Target** | Single library, no sub-modules | x264, zlib, sqlite | ⭐ Simple |
+| **Multi-Component** | Multiple independent modules | FFmpeg, Boost, OpenCV | ⭐⭐⭐ Medium |
 
 ---
 
@@ -36,7 +35,7 @@ Choose the appropriate configuration type based on your library's characteristic
 
 Suitable for simple libraries with only one main library file, such as:
 - **x264**: Video encoding library
-- **zlib**: Compression library  
+- **zlib**: Compression library
 - **sqlite3**: Database engine
 
 ### Configuration Steps
@@ -45,68 +44,76 @@ Suitable for simple libraries with only one main library file, such as:
 
 Create a `cmake_config.toml` file in the port's version directory:
 
-```shell
+```
 x264/
 └── stable/
     ├── cmake_config.toml  # ← Create this file
     └── port.toml
 ```
 
-#### Step 2: Write Configuration
+#### Step 2: Write Configuration (Minimal)
 
-`cmake_config.toml` content example:
+The simplest form — namespace only, library filenames are auto-detected from `lib/`:
 
 ```toml
-# Namespace, also the prefix for CMake config files
 namespace = "x264"
 
-# Linux static library configuration
-[linux_static]
-  filename = "libx264.a"  # Library filename
+[linux]
 
-# Linux shared library configuration
-[linux_shared]
-  filename = "libx264.so.164"  # Actual filename (with version)
-  soname = "libx264.so"        # Symbol link name (SONAME)
+[windows]
+```
 
-[windows_static]
-  filename = "x264.lib"
+> 💡 **Auto-Detect**: When `filename` / `filenames` is omitted and no `components` are defined, celer automatically scans the installed `lib/` directory for library files (`.a`, `.lib`, `.so*`, `.dylib`). DLLs under `bin/` are runtime dependencies and excluded from the link list.
 
-# Windows shared library configuration
-[windows_shared]
-  filename = "libx264-164.dll"  # DLL filename
-  impname = "libx264.lib"       # Import library name (.lib)  
+#### Step 3: Explicit Filenames (Optional)
+
+You can explicitly list the library files if needed:
+
+```toml
+namespace = "x264"
+
+[linux]
+filename = "libx264.a"
+
+[windows]
+filename = "libx264.lib"
+```
+
+Or list multiple files:
+
+```toml
+namespace = "zlib"
+
+[linux]
+filenames = ["libz.a", "libz.so.1"]
+
+[windows]
+filenames = ["zlib.lib"]
 ```
 
 **Field Descriptions:**
 
-| Field | Description | Platform | Required |
-|-------|-------------|----------|----------|
-| `namespace` | CMake namespace and config file prefix | All | No* |
-| `filename` | Actual library filename | All | Yes |
-| `soname` | Shared library symbol name (symlink) | Linux | Required for shared |
-| `impname` | Import library filename | Windows | Required for shared |
+| Field | Description | Required |
+|-------|-------------|----------|
+| `namespace` | CMake namespace and config file prefix | No — defaults to library name |
+| `filename` | Single library filename | No — auto-detects from `lib/` |
+| `filenames` | Multiple library filenames | No — auto-detects from `lib/` |
 
-> 💡 *If `namespace` is not specified, the library name will be used as default.
+#### Step 4: Generated Files
 
-#### Step 3: Generated Files
+After installation, the following will be generated in `lib/cmake/`:
 
-After compilation and installation, the following will be generated in `lib/cmake/`:
-
-```shell
+```
 lib/cmake/x264/
-├── x264Config.cmake           # Main config file
-├── x264ConfigVersion.cmake    # Version information
-└── x264Targets.cmake          # Release configuration
+├── x264Config.cmake
+├── x264ConfigVersion.cmake
+└── x264Targets.cmake
 ```
 
-#### Step 4: Use in Your Project
+#### Step 5: Use in Your Project
 
 ```cmake
-# Find the library
 find_package(x264 REQUIRED)
-
-# Link to your target
 target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 ```
 
@@ -116,69 +123,67 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 
 ### Use Case
 
-Suitable for libraries containing multiple independent modules that can be used separately, such as:
-- **FFmpeg**: Contains avcodec, avformat, avutil, and more
-- **Boost**: Contains numerous independent sub-libraries
-- **OpenCV**: Contains core, imgproc, video, and other modules
+Suitable for libraries containing multiple independent modules that can be used separately:
+- **FFmpeg**: avcodec, avformat, avutil, and more
+- **Boost**: Numerous independent sub-libraries
+- **OpenCV**: core, imgproc, video, and other modules
 
 ### Configuration Steps
 
 #### Step 1: Create Configuration File
 
-```shell
+```
 ffmpeg/
 └── 5.1.6/
-    ├── cmake_config.toml  # ← Create this file
+    ├── cmake_config.toml
     └── port.toml
 ```
 
 #### Step 2: Write Configuration
 
-`cmake_config.toml` content example (showing partial components):
-
 ```toml
 namespace = "FFmpeg"
 
 [linux]
-# avutil component - Basic utility library (no dependencies)
 [[linux.components]]
-  component = "avutil"                    # Component name
-  filename = "libavutil.so.55"            # Lib filename
-  dependencies = []                       # No dependencies
+  component = "avutil"
+  filename = "libavutil.so.57"
+  dependencies = []
 
-# avcodec component - Codec library (depends on avutil)
 [[linux.components]]
   component = "avcodec"
-  filename = "libavcodec.so.57"
-  dependencies = ["avutil"]              # Depends on avutil
+  filename = "libavcodec.so.59"
+  dependencies = ["avutil"]
 
 [[linux.components]]
   component = "avdevice"
-  filename = "libavdevice.so.57"
+  filename = "libavdevice.so.59"
   dependencies = ["avformat", "avutil"]
 
-[[linux.components]]
-...
-
 [windows]
-...
+[[windows.components]]
+  component = "avutil"
+  filename = "avutil.lib"
+  dependencies = []
+
+[[windows.components]]
+  component = "avcodec"
+  filename = "avcodec.lib"
+  dependencies = ["avutil"]
 ```
 
-> **Note:**  
-> Note that different components may have different dependencies, CMake will generate cmake config files with dependency relation inside.
+> **Note:** Auto-detect is disabled when `components` is present — every component must explicitly declare its `filename`.
 
-After compiling and installing, you can see the generated cmake config files as follows:
+#### Step 3: Generated Files
 
 ```
-lib
-└── cmake
-    └─── FFmpeg
-        ├── FFmpegConfig.cmake
-        ├── FFmpegConfigVersion.cmake
-        └── FFmpegTarget.cmake
+lib/cmake/FFmpeg/
+├── FFmpegConfig.cmake
+├── FFmpegConfigVersion.cmake
+└── FFmpegTargets.cmake
 ```
 
-Finally, you can use it in your cmake project as follows:
+#### Step 4: Use in Your Project
 
 ```cmake
 find_package(FFmpeg REQUIRED)
@@ -186,80 +191,26 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   FFmpeg::avutil
   FFmpeg::avcodec
   FFmpeg::avdevice
-  FFmpeg::avfilter
-  FFmpeg::avformat
-  FFmpeg::postproc
-  FFmpeg::swresample
-  FFmpeg::swscale
 )
 ```
 
-**3. How to generate cmake config files for interface target**
+---
 
-For example, prebuilt-ffmpeg, you should create a **cmake_config.toml** file in the version directory of the port.
+## 3. How It Works
 
-```
-prebuilt-ffmpeg
-└── 5.1.6
-    ├── cmake_config.toml
-    └── port.toml
-```
+### Supported Build Systems
 
-```toml
-[package]
-  ref = "5.1.6"
+CMake config generation works with **all** build systems. celer generates the config files as a post-install step, after the library files are already in `PackageDir/lib/`.
 
-[[build_configs]]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
-  system_name = "linux"
-  system_processor = "x86_64"
-  build_system = "prebuilt"
-```
+| Build System | When Config is Generated |
+|-------------|--------------------------|
+| `prebuilt`  | During configure phase (uses `RepoDir`) |
+| `makefiles`, `cmake`, `meson`, `b2`, `gyp`, `qmake`, `bazel`, `custom` | After install (uses `PackageDir`) |
 
-```toml
-namespace = "FFmpeg"
+### Auto-Detect Logic
 
-[linux]
-filenames = [
-  "libavutil.so.57",
-  "libavcodec.so.59",
-  "libavdevice.so.59",
-  "libavfilter.so.8",
-  "libavformat.so.59",
-  "libpostproc.so.56",
-  "libswresample.so.4",
-  "libswscale.so.6",
-]
+When `cmake_config.toml` has no `filename` / `filenames` and no `components`:
 
-[windows]
-  filenames = [
-    "avutil.lib",
-    "avcodec.lib",
-    "avdevice.lib",
-    "avfilter.lib",
-    "avformat.lib",
-    "postproc.lib",
-    "swresample.lib",
-    "swscale.lib",
-  ]
-```
-
-> 💡 **Tip**: For Interface type, just list all the libraries that need to be linked. No need to specify components or dependencies.
-
-**Step 3: Generated Files**
-
-```
-lib/cmake/FFmpeg/
-├── FFmpegConfig.cmake
-└── FFmpegConfigVersion.cmake
-```
-
-**Step 4: Use in Your Project**
-
-```cmake
-find_package(FFmpeg REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE FFmpeg::prebuilt-ffmpeg)
-```
-
-> **Note:**  
-> **1.** If namespace is not specified, it will default to the library name.
+1. Scan `PackageDir/lib/` for `.a`, `.lib`, `.so`, `.so.*`, `.dylib`
+2. Namespace defaults to the library name from `port.toml`
+3. DLLs in `bin/` are **not** included (runtime, not link-time)
