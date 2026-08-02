@@ -1,10 +1,10 @@
 # 生成 CMake 配置文件
 
-> **为非 CMake 库自动生成标准 CMake 配置文件**
+> **为任意库自动生成标准 CMake 配置文件**
 
 ## 为什么需要这个功能？
 
-许多优秀的第三方库（如 FFmpeg、x264）不使用 CMake 作为构建系统，安装后也不会生成 CMake 配置文件。这给使用 CMake 的项目带来了集成困难：
+许多第三方库（如 FFmpeg、x264）不使用 CMake 作为构建系统，安装后也不会生成 CMake 配置文件。甚至有些 CMake 库也忘了导出 target。这给 CMake 项目的集成带来了困难：
 
 **传统方案的问题：**
 - 🔍 **查找困难**：需要手动编写 `FindXXX.cmake` 模块
@@ -13,22 +13,23 @@
 - ⚙️ **维护成本高**：每个库都需要自定义查找脚本
 
 **Celer 的解决方案：**
-- ✅ 自动生成标准 CMake 配置文件
+- ✅ 支持**所有**构建系统，安装后自动生成标准 CMake 配置文件
+- ✅ 简单库零配置，自动扫描 `lib/` 目录
 - ✅ 跨平台一致的使用体验
 - ✅ 自动处理组件间依赖关系
-- ✅ 支持静态库、动态库和 Interface 库
+
+---
 
 ## 配置类型概览
-
-根据库的特点，选择合适的配置类型：
 
 | 类型 | 使用场景 | 典型示例 | 配置复杂度 |
 |------|---------|---------|----------|
 | **🎯 单目标库** | 单一库文件，没有子模块 | x264, zlib, sqlite | ⭐ 简单 |
 | **📦 多组件库** | 包含多个独立模块，可单独使用 | FFmpeg, Boost, OpenCV | ⭐⭐⭐ 中等 |
-| **🔗 Interface 库** | 预编译库或仅头文件库 | 预构建 SDK, header-only 库 | ⭐⭐ 简单 |
 
 ---
+
+## 1. 单目标库配置
 
 ### 使用场景
 
@@ -43,70 +44,76 @@
 
 在端口的版本目录中创建 `cmake_config.toml` 文件：
 
-```shell
+```
 x264
 └── stable
     ├── cmake_config.toml  # ← 创建此文件
     └── port.toml
 ```
 
-#### 步骤2：编写配置
+#### 步骤2：编写配置（最简形式）
 
-`cmake_config.toml` 内容示例：
+仅需指定命名空间，库文件名自动从 `lib/` 目录扫描：
 
 ```toml
-# 命名空间，也是 CMake 配置文件的前缀
 namespace = "x264"
 
-# Linux 静态库配置
-[linux_static]
-  filename = "libx264.a"       # 库文件名
+[linux]
 
-# Linux 动态库配置
-[linux_shared]
-  filename = "libx264.so.164"  # 实际文件名（带版本号）
-  soname = "libx264.so"        # 符号链接名（SONAME）
+[windows]
+```
 
-# Windows 静态库配置
-[windows_static]
-  filename = "x264.lib"
+> 💡 **自动扫描**：当 `filename` / `filenames` 为空且未定义 `components` 时，celer 会自动扫描已安装的 `lib/` 目录中的库文件（`.a`、`.lib`、`.so*`、`.dylib`）。`bin/` 下的 DLL 属于运行时依赖，不会出现在链接列表中。
 
-# Windows 动态库配置
-[windows_shared]
-  filename = "libx264-164.dll"  # DLL 文件名
-  impname = "libx264.lib"       # 导入库名（.lib）  
+#### 步骤3：显式指定文件名（可选）
+
+如需精确控制，可以明确指定库文件名：
+
+```toml
+namespace = "x264"
+
+[linux]
+filename = "libx264.a"
+
+[windows]
+filename = "libx264.lib"
+```
+
+或列出多个文件：
+
+```toml
+namespace = "zlib"
+
+[linux]
+filenames = ["libz.a", "libz.so.1"]
+
+[windows]
+filenames = ["zlib.lib"]
 ```
 
 **字段说明：**
 
-| 字段 | 说明 | 平台 | 必需 |
-|------|------|------|------|
-| `namespace` | CMake 命名空间和配置文件前缀 | 通用 | 否* |
-| `filename` | 实际库文件名 | 全部 | 是 |
-| `soname` | 共享库的符号名（符号链接） | Linux | 动态库必需 |
-| `impname` | 导入库文件名 | Windows | 动态库必需 |
+| 字段 | 说明 | 必需 |
+|------|------|------|
+| `namespace` | CMake 命名空间和配置文件前缀 | 否 — 默认为库名 |
+| `filename` | 单个库文件名 | 否 — 自动从 `lib/` 扫描 |
+| `filenames` | 多个库文件名 | 否 — 自动从 `lib/` 扫描 |
 
-> 💡 *如果未指定 `namespace`，将使用库名作为默认值
+#### 步骤4：生成的文件
 
-#### 步骤3：生成的文件
+安装后，在 `lib/cmake/` 目录下会生成：
 
-编译安装后，在 `lib/cmake/` 目录下会生成：
-
-```shell
-lib/cmake/x264
-├── x264Config.cmake           # 主配置文件
-├── x264ConfigVersion.cmake    # 版本信息
-├── x264Targets.cmake          # 目标定义
-└── x264Targets-release.cmake  # Release 配置
+```
+lib/cmake/x264/
+├── x264Config.cmake
+├── x264ConfigVersion.cmake
+└── x264Targets.cmake
 ```
 
-#### 步骤4：在项目中使用
+#### 步骤5：在项目中使用
 
 ```cmake
-# 查找库
 find_package(x264 REQUIRED)
-
-# 链接到你的目标
 target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 ```
 
@@ -116,69 +123,67 @@ target_link_libraries(${PROJECT_NAME} PRIVATE x264::x264)
 
 ### 使用场景
 
-适用于包含多个独立模块的库，每个模块可以单独使用，例如：
-- **FFmpeg**：包含 avcodec、avformat、avutil 等多个模块
-- **Boost**：包含众多独立的子库
-- **OpenCV**：包含 core、imgproc、video 等模块
+适用于包含多个独立模块的库，每个模块可以单独使用：
+- **FFmpeg**：avcodec、avformat、avutil 等
+- **Boost**：众多独立的子库
+- **OpenCV**：core、imgproc、video 等模块
 
 ### 配置步骤
 
 #### 步骤1：创建配置文件
 
-```shell
+```
 ffmpeg
 └── 5.1.6
-    ├── cmake_config.toml  # ← 创建此文件
+    ├── cmake_config.toml
     └── port.toml
 ```
 
 #### 步骤2：编写配置
 
-`cmake_config.toml` 内容示例（仅展示部分组件）：
-
 ```toml
 namespace = "FFmpeg"
 
 [linux]
-# avutil 组件 - 基础工具库（无依赖）
 [[linux.components]]
-  component = "avutil"                    # 组件名
-  filename = "libavutil.so.55"            # 库文件名
-  dependencies = []                       # 无依赖
+  component = "avutil"
+  filename = "libavutil.so.57"
+  dependencies = []
 
-# avcodec 组件 - 编解码器（依赖 avutil）
 [[linux.components]]
   component = "avcodec"
-  filename = "libavcodec.so.57"
-  dependencies = ["avutil"]                # 依赖 avutil
+  filename = "libavcodec.so.59"
+  dependencies = ["avutil"]
 
 [[linux.components]]
   component = "avdevice"
-  filename = "libavdevice.so.57"
+  filename = "libavdevice.so.59"
   dependencies = ["avformat", "avutil"]
 
-[[linux.components]]
-...
-
 [windows]
-...
+[[windows.components]]
+  component = "avutil"
+  filename = "avutil.lib"
+  dependencies = []
+
+[[windows.components]]
+  component = "avcodec"
+  filename = "avcodec.lib"
+  dependencies = ["avutil"]
 ```
 
-> **注意：**  
-> 不同的组件可能有不同的依赖关系，CMake 会在生成的配置文件中自动处理这些依赖。
+> **注意：** 定义了 `components` 后自动扫描会关闭，每个组件必须显式指定 `filename`。
 
-编译安装后，会生成如下配置文件：
+#### 步骤3：生成的文件
 
 ```
-lib
-└── cmake
-    └─── FFmpeg
-        ├── FFmpegConfig.cmake
-        ├── FFmpegConfigVersion.cmake
-        └── FFmpegTarget.cmake
+lib/cmake/FFmpeg/
+├── FFmpegConfig.cmake
+├── FFmpegConfigVersion.cmake
+└── FFmpegTargets.cmake
 ```
 
-最后，在你的 CMake 项目中可以这样使用：
+#### 步骤4：在项目中使用
 
 ```cmake
 find_package(FFmpeg REQUIRED)
@@ -186,77 +191,29 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   FFmpeg::avutil
   FFmpeg::avcodec
   FFmpeg::avdevice
-  FFmpeg::avfilter
-  FFmpeg::avformat
-  FFmpeg::postproc
-  FFmpeg::swresample
-  FFmpeg::swscale
 )
 ```
 
 ---
 
-## 3. 预构建库 CMake 配置生成
+## 3. 工作原理
 
-对于预构建库（`build_system = "prebuilt"`），你可以手动创建 `cmake_config.toml` 文件，无需手动配置。
+### 支持的构建系统
 
-```
-prebuilt-ffmpeg
-└── 5.1.6
-    ├── cmake_config.toml
-    └── port.toml
-```
+CMake 配置生成适用于**所有**构建系统。celer 在安装完成后（库文件已放入 `PackageDir/lib/`）执行生成。
 
-```toml
-[package]
-  ref = "5.1.6"
+| 构建系统 | 生成时机 |
+|---------|---------|
+| `prebuilt` | configure 阶段（使用 `RepoDir`） |
+| `makefiles`、`cmake`、`meson`、`b2`、`gyp`、`qmake`、`bazel`、`custom` | install 之后（使用 `PackageDir`） |
 
-[[build_configs]]
-  url = "https://github.com/celer-pkg/test-conf/releases/download/resource/prebuilt-ffmpeg@5.1.6@x86_64-linux.tar.gz"
-  system_name = "linux"
-  system_processor = "x86_64"
-  build_system = "prebuilt"
-```
+### 自动扫描逻辑
 
-```toml
-namespace = "FFmpeg"
+当 `cmake_config.toml` 中未指定 `filename` / `filenames` 且无 `components` 时：
 
-[linux]
-  filenames = [
-    "libavutil.so.57",
-    "libavcodec.so.59",
-    "libavdevice.so.59",
-    "libavfilter.so.8",
-    "libavformat.so.59",
-    "libpostproc.so.56",
-    "libswresample.so.4",
-    "libswscale.so.6",
-  ]
-
-[windows]
-  filenames = [
-    "avutil.lib",
-    "avcodec.lib",
-    "avdevice.lib",
-    "avfilter.lib",
-    "avformat.lib",
-    "postproc.lib",
-    "swresample.lib",
-    "swscale.lib",
-  ]
-```
-
-> 💡 **提示**：对于 Interface 类型，只需列出所有需要链接的库文件名，无需指定组件或依赖关系。
-
-**步骤3：生成的文件**
-
-```
-lib/cmake/FFmpeg/
-├── FFmpegConfig.cmake
-└── FFmpegConfigVersion.cmake
-```
-
-**步骤4：在项目中使用**
+1. 扫描 `PackageDir/lib/` 中的 `.a`、`.lib`、`.so`、`.so.*`、`.dylib`
+2. 命名空间默认使用 `port.toml` 中的库名
+3. `bin/` 下的 DLL 不会被包含（运行时依赖，非链接时依赖）
 
 ```cmake
 find_package(FFmpeg REQUIRED)
@@ -269,39 +226,3 @@ target_link_libraries(${PROJECT_NAME} PRIVATE FFmpeg::prebuilt-ffmpeg)
 ---
 
 ## 最佳实践
-
-### 选择正确的配置类型
-
-```
-你的库是什么情况？
-│
-├─ 只有一个主库文件？
-│   └─ ✅ 使用【单目标库】配置
-│
-├─ 有多个独立的模块/组件？
-│   └─ ✅ 使用【多组件库】配置
-│
-└─ 已经预编译或只有头文件？
-    └─ ✅ 使用【Interface 库】配置
-```
-
-### 命名规范建议
-
-| 项目 | 建议 | 示例 |
-|------|------|------|
-| **namespace** | 使用库的官方名称（首字母大写） | `"FFmpeg"`, `"OpenCV"` |
-| **component** | 使用小写，与库的模块名一致 | `"avcodec"`, `"core"` |
-| **filename** | 使用实际的文件名（含版本号） | `"libavcodec.so.57.107.100"` |
-| **soname** | 使用主版本号的符号名 | `"libavcodec.so.57"` |
-
-### 依赖管理技巧
-
-**✅ 推荐做法：**
-- 明确声明组件间的直接依赖
-- 按依赖顺序组织组件（基础库在前）
-- 使用注释说明每个组件的用途
-
-**❌ 避免：**
-- 循环依赖
-- 声明不必要的传递依赖
-- 使用不存在的组件名
