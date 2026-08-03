@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -42,9 +43,11 @@ func TestCheckWriteAccess_NotInCelerGroup(t *testing.T) {
 
 	oldLookup := lookupGroup
 	oldGetGroups := getProcessGroups
+	oldIsNFS := isNFSMountFn
 	t.Cleanup(func() {
 		lookupGroup = oldLookup
 		getProcessGroups = oldGetGroups
+		isNFSMountFn = oldIsNFS
 	})
 
 	lookupGroup = func(name string) (*user.Group, error) {
@@ -53,6 +56,7 @@ func TestCheckWriteAccess_NotInCelerGroup(t *testing.T) {
 	getProcessGroups = func() ([]int, error) {
 		return []int{os.Getgid()}, nil
 	}
+	isNFSMountFn = func(_ string) (bool, error) { return true, nil }
 
 	ctx := fakeContext{
 		pkgCache: fakePkgCache{dir: cacheDir, writable: true},
@@ -67,10 +71,19 @@ func TestCheckWriteAccess_NotInCelerGroup(t *testing.T) {
 }
 
 func TestCheckWriteAccess_WriteProbeFails(t *testing.T) {
+	// os.Chmod(0555) does not prevent writes on Windows (ACL-based permissions).
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping on Windows: os.Chmod semantics differ from Unix")
+	}
+
 	cacheDir := t.TempDir()
 	if err := os.Chmod(cacheDir, 0555); err != nil {
 		t.Fatal(err)
 	}
+
+	oldIsNFS := isNFSMountFn
+	t.Cleanup(func() { isNFSMountFn = oldIsNFS })
+	isNFSMountFn = func(_ string) (bool, error) { return true, nil }
 
 	withMockCelerGroup(t, 5151)
 
@@ -91,6 +104,11 @@ func TestCheckWriteAccess_WriteProbeFails(t *testing.T) {
 
 func TestCheckWriteAccess_Success(t *testing.T) {
 	cacheDir := setupWritableCacheDir(t)
+
+	oldIsNFS := isNFSMountFn
+	t.Cleanup(func() { isNFSMountFn = oldIsNFS })
+	isNFSMountFn = func(_ string) (bool, error) { return true, nil }
+
 	withMockCelerGroup(t, 6161)
 
 	ctx := fakeContext{

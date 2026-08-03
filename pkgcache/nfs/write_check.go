@@ -17,7 +17,10 @@ import (
 
 const writeProbeRel = ".celer-write-probe"
 
-var getProcessGroups = syscall.Getgroups
+var (
+	getProcessGroups = syscall.Getgroups
+	isNFSMountFn     = IsNFSMount
+)
 
 type cacheSubdir struct {
 	name string
@@ -38,7 +41,7 @@ func CheckWriteAccess(ctx context.Context) error {
 	}
 
 	// No need check GID for dir that not mounted with NFS.
-	isNfsDir, err := IsNFSMount(cacheDir)
+	isNfsDir, err := isNFSMountFn(cacheDir)
 	if err != nil {
 		return fmt.Errorf("failed to check if nfs dir for %s -> %w", cacheDir, err)
 	}

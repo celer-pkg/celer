@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -88,12 +89,11 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 		}
-		pkgCacheConfig := NewPkgCacheConfig(fakeCtx, cacheDir, true)
+		pkgCacheConfig := NewPkgCacheConfig(nil, nil)
+		pkgCacheConfig.Dir = cacheDir
+		pkgCacheConfig.Writable = true
 		fakeCtx.pkgCacheConfig = pkgCacheConfig
-		pkgCacheConfig.ctx = fakeCtx
-		if err := pkgCacheConfig.Refresh(); err != nil {
-			t.Fatal(err)
-		}
+		pkgCacheConfig.artifactCache = pkgcache.BuildAritifactCache(fakeCtx, true)
 
 		nameVersion = "demo@1.0.0"
 		meta = "meta-data-for-test"

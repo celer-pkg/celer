@@ -23,18 +23,9 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fakeCtx := fakeContext{
-		platform: "x86_64-linux",
-		project:  "proj",
-		build:    "release",
-	}
-	pkgCacheConfig := NewPkgCacheConfig(fakeCtx, cacheDir, true)
-	fakeCtx.pkgCacheConfig = pkgCacheConfig
-	pkgCacheConfig.ctx = fakeCtx
-	if err := pkgCacheConfig.Refresh(); err != nil {
-		t.Fatal(err)
-	}
-
+	pkgCacheConfig := NewPkgCacheConfig(nil, nil)
+	pkgCacheConfig.Dir = cacheDir
+	pkgCacheConfig.Writable = true
 	cachedDownloadsDir := pkgCacheConfig.GetDir(context.PkgCacheDirDownloads)
 	chattrFS := fileio.NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot))
 

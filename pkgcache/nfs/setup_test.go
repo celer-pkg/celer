@@ -1,8 +1,10 @@
 package nfs
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -142,13 +144,16 @@ func TestNFSClientSetupRemoveFSTabEntry(t *testing.T) {
 
 func TestNFSClientSetupMountNFSDirIncludesMountStderr(t *testing.T) {
 	binDir := t.TempDir()
+	// Use platform-appropriate script: .bat on Windows, shell script on Unix.
 	mountPath := filepath.Join(binDir, "mount")
-	if err := os.WriteFile(mountPath, []byte("#!/bin/sh\nprintf '%s\n' 'mount.nfs: mounting server:/missing failed, reason given by server: No such file or directory' >&2\nexit 32\n"), 0755); err != nil {
+	mountPath, script := mountMockScript(mountPath)
+	if err := os.WriteFile(mountPath, []byte(script), 0755); err != nil {
 		t.Fatal(err)
 	}
 	// probeNFSServer runs "ping -c 1 -W 3 <host>" before mount; provide a fake.
 	pingPath := filepath.Join(binDir, "ping")
-	if err := os.WriteFile(pingPath, []byte("#!/bin/sh\nexit 0\n"), 0755); err != nil {
+	pingPath, pingScript := pingMockScript(pingPath)
+	if err := os.WriteFile(pingPath, []byte(pingScript), 0755); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
@@ -239,4 +244,37 @@ func assertFileContent(t *testing.T, path, want string) {
 	if string(got) != want {
 		t.Fatalf("file content = %q, want %q", string(got), want)
 	}
+}
+
+// mountMockScript returns the path and content for a mock "mount" command
+// suitable for the current OS. On Windows it appends .bat; on Unix it uses
+// the bare name with a #!/bin/sh shebang.
+func mountMockScript(basePath string) (string, string) {
+	return mockScript(basePath,
+		"mount.nfs: mounting server:/missing failed, reason given by server: No such file or directory",
+		32,
+	)
+}
+
+// pingMockScript returns the path and content for a mock "ping" command.
+func pingMockScript(basePath string) (string, string) {
+	return mockScript(basePath, "", 0)
+}
+
+func mockScript(basePath, stderrMsg string, exitCode int) (string, string) {
+	if runtime.GOOS == "windows" {
+		batPath := basePath + ".bat"
+		script := "@echo off\r\n"
+		if stderrMsg != "" {
+			script += "echo " + stderrMsg + " >&2\r\n"
+		}
+		script += fmt.Sprintf("exit /b %d\r\n", exitCode)
+		return batPath, script
+	}
+	script := "#!/bin/sh\n"
+	if stderrMsg != "" {
+		script += "printf '%s\\n' '" + stderrMsg + "' >&2\n"
+	}
+	script += fmt.Sprintf("exit %d\n", exitCode)
+	return basePath, script
 }

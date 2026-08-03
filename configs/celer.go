@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/envs"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -229,10 +230,11 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 
 		// Validate package cache.
 		if c.configData.PkgCacheConfig != nil {
-			c.configData.PkgCacheConfig.ctx = c
-			if err := c.configData.PkgCacheConfig.Refresh(); err != nil {
-				return err
+			if strings.TrimSpace(c.configData.PkgCacheConfig.Dir) == "" {
+				return fmt.Errorf("pkgcache dir is empty")
 			}
+			c.configData.PkgCacheConfig.repoCache = pkgcache.BuildRepoCache(c, c.configData.PkgCacheConfig.Writable)
+			c.configData.PkgCacheConfig.artifactCache = pkgcache.BuildAritifactCache(c, c.configData.PkgCacheConfig.Writable)
 		}
 
 		// Setup ccache.
