@@ -57,10 +57,6 @@ The simplest form — namespace only, library filenames are auto-detected from `
 
 ```toml
 namespace = "x264"
-
-[linux]
-
-[windows]
 ```
 
 > 💡 **Auto-Detect**: When `filename` / `filenames` is omitted and no `components` are defined, celer automatically scans the installed `lib/` directory for library files (`.a`, `.lib`, `.so*`, `.dylib`). DLLs under `bin/` are runtime dependencies and excluded from the link list.

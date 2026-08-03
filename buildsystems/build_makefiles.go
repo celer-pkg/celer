@@ -59,13 +59,15 @@ func (m *makefiles) preConfigure() error {
 	// Cache MSVC envs (only needed for MSVC / clang-cl toolchains).
 	// For non-MSVC toolchains on Windows (e.g., clang), set CC/CXX directly.
 	if runtime.GOOS == "windows" {
-		if toolchain.GetName() == "msvc" || toolchain.GetName() == "clang-cl" {
+		switch toolchain.GetName() {
+		case "msvc", "clang-cl":
 			msvcEnvs, err := m.BuildConfig.msvcEnvs()
 			if err != nil {
 				return err
 			}
 			m.msvcEnvs = msvcEnvs
-		} else {
+
+		case "clang":
 			// Non-MSVC toolchains: set CC/CXX and binutils with full cygpath and MinGW target.
 			// clang on Windows defaults to MSVC ABI (lld-link), which can't handle
 			// GNU-style linker flags from autoconf configure scripts.

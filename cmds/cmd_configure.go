@@ -98,7 +98,7 @@ Available Configuration Options:
   Proxy Configuration:
     --proxy-host                Set the proxy server hostname
     --proxy-port                Set the proxy server port number
-	--proxy-remove				Remove http/https proxy
+    --proxy-remove				Remove http/https proxy
 
   CCache Configuration:
     --ccache-enabled            Enable/disable ccache (true/false)

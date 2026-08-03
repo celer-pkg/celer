@@ -57,10 +57,6 @@ x264
 
 ```toml
 namespace = "x264"
-
-[linux]
-
-[windows]
 ```
 
 > 💡 **自动扫描**：当 `filename` / `filenames` 为空且未定义 `components` 时，celer 会自动扫描已安装的 `lib/` 目录中的库文件（`.a`、`.lib`、`.so*`、`.dylib`）。`bin/` 下的 DLL 属于运行时依赖，不会出现在链接列表中。
@@ -222,7 +218,3 @@ target_link_libraries(${PROJECT_NAME} PRIVATE FFmpeg::prebuilt-ffmpeg)
 
 > **注意：**  
 > **1.** 如果未指定 `namespace`，将使用库名作为默认值。
-
----
-
-## 最佳实践
