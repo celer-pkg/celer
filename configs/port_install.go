@@ -564,7 +564,7 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 	// - Python packages: copy from PACKAGE_DIR to venv
 	// - C++ packages: copy to InstalledDir.
 	destDir := p.InstalledDir
-	if p.MatchedConfig.SystemName == "python" {
+	if p.MatchedConfig.BuildSystem == "python" {
 		destDir = buildtools.PythonTool.VenvDir()
 	}
 	if err := p.doInstallFromPackage(destDir); err != nil {

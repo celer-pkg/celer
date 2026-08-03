@@ -754,11 +754,15 @@ func (b *BuildConfig) generateCMakeConfig() error {
 	title := fmt.Sprintf("[generate cmake config %s]", b.PortConfig.nameVersion())
 
 	// cmake configure.
-	exec := cmd.NewExecutor(title, "cmake",
+	args := []string{
 		"-S", b.PortConfig.PackageDir,
 		"-B", buildDir,
-		"-DCMAKE_INSTALL_PREFIX="+b.PortConfig.PackageDir,
-	)
+		"-DCMAKE_INSTALL_PREFIX=" + b.PortConfig.PackageDir,
+	}
+	if !b.DevDep && !b.HostDev {
+		args = append(args, fmt.Sprintf("-DCMAKE_TOOLCHAIN_FILE=%s/toolchain_file.cmake", dirs.WorkspaceDir))
+	}
+	exec := cmd.NewExecutor(title, "cmake", args...)
 	exec.SetWorkDir(b.PortConfig.PackageDir)
 	exec.SetLogPath(b.getLogPath("cmake-config-configure"))
 	if err := exec.Execute(); err != nil {

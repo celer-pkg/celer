@@ -46,7 +46,7 @@ func (e *executor) MSYS2Env(msys2Env bool) *executor {
 	return e
 }
 
-// SetMSVCEnvs sets Windows environment configuration string (Windows only).
+// SetMSVCEnvs sets MSVC environment configuration string (Windows only).
 func (e *executor) SetMSVCEnvs(msvcEnvs string) *executor {
 	e.msvcEnvs = msvcEnvs
 	return e
