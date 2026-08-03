@@ -481,6 +481,12 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 		targetSystemNames = []string{config.SystemName}
 	}
 
+	// Build the except list from system_names_except.
+	var exceptSystemNames []string
+	if len(config.SystemNamesExcept) > 0 {
+		exceptSystemNames = config.SystemNamesExcept
+	}
+
 	// Trim whitespace from system names and processor.
 	targetSystemProcessor := strings.ToLower(strings.TrimSpace(config.SystemProcessor))
 	currentSystemName := strings.ToLower(p.currentSystemName())
@@ -514,20 +520,30 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 		}
 	}
 
+	// system_names_except takes priority: match all systems except those listed.
+	if len(exceptSystemNames) > 0 {
+		for _, exceptName := range exceptSystemNames {
+			if exceptName != "" && strings.EqualFold(exceptName, currentSystemName) {
+				return false
+			}
+		}
+		return true
+	}
+
 	// No target system name specified indicates that
 	// system name is not a factor for matching, so consider it a match.
 	if len(targetSystemNames) == 0 {
 		return true
-	} else {
-		// Compare system names if specified.
-		for _, targetSystemName := range targetSystemNames {
-			targetSystemName = strings.ToLower(strings.TrimSpace(targetSystemName))
-			if targetSystemName != "" && targetSystemName == currentSystemName {
-				return true
-			}
-		}
-		return false
 	}
+
+	// Compare system names if specified.
+	for _, targetSystemName := range targetSystemNames {
+		targetSystemName = strings.ToLower(strings.TrimSpace(targetSystemName))
+		if targetSystemName != "" && targetSystemName == currentSystemName {
+			return true
+		}
+	}
+	return false
 }
 
 func (p Port) currentSystemName() string {
