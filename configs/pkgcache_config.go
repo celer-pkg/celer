@@ -27,6 +27,7 @@ func NewPkgCacheConfig(repoCache context.RepoCache, artifactCache context.Aritif
 		artifactCache:  artifactCache,
 		CacheArtifacts: true,
 		CacheDownloads: true,
+		Writable:       true,
 	}
 }
 

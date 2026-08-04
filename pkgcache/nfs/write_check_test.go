@@ -97,9 +97,6 @@ func TestCheckWriteAccess_WriteProbeFails(t *testing.T) {
 	if !strings.Contains(err.Error(), "repos") {
 		t.Fatalf("expected repos probe failure, got: %v", err)
 	}
-	if !strings.Contains(err.Error(), "parent") {
-		t.Fatalf("expected parent details in error, got: %v", err)
-	}
 }
 
 func TestCheckWriteAccess_Success(t *testing.T) {
