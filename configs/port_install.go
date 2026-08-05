@@ -120,22 +120,6 @@ func (p *Port) Install(options InstallOptions) (installedFrom string, retErr err
 		}
 	}
 
-	// Clear the tmp/deps dir, then copy library files of dependencies into it.
-	// This ensures the folder contains exactly the libraries required by the current port.
-	// Clean tmp/deps dir only when install with -f or still not configured yet.
-	if (options.Force || !p.MatchedConfig.Configured()) && p.Parent == "" {
-		color.Printf(color.Title, "\n[clean tmps/deps: %s]\n", p.NameVersion())
-		if err := os.RemoveAll(dirs.TmpDepsDir); err != nil {
-			return "", err
-		}
-		color.Printf(color.Hint, "✔ rm -rf %s\n", dirs.TmpDepsDir)
-
-		if err := fileio.MkdirAll(dirs.TmpDepsDir, os.ModePerm); err != nil {
-			return "", err
-		}
-		color.Printf(color.Hint, "✔ mkdir -p %s\n", dirs.TmpDepsDir)
-	}
-
 	// No config or explicit prebuilt-with-url -> treat as nobuild or prebuilt.
 	if len(p.BuildConfigs) == 0 ||
 		(p.MatchedConfig.BuildSystem == "prebuilt" && p.MatchedConfig.Url != "") {
@@ -543,6 +527,11 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 
 	// Install all dependencies for current port.
 	if err := p.installAllDependencies(options); err != nil {
+		return err
+	}
+
+	// Clean tmp/deps before prepareTmpDeps to prevent sibling dependency pollution.
+	if err := fileio.CleanDir(dirs.TmpDepsDir); err != nil {
 		return err
 	}
 
