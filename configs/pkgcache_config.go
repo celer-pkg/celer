@@ -1,13 +1,11 @@
 package configs
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 // ================= PkgCacheConfig ================= //
@@ -19,34 +17,18 @@ type PkgCacheConfig struct {
 	CacheDownloads bool   `toml:"cache_downloads"`
 
 	// Internal field.
-	ctx            context.Context
-	artifactConfig *pkgcache.ArtifactConfig
-	repoConfig     *pkgcache.RepoConfig
+	artifactCache context.AritifactCache
+	repoCache     context.RepoCache
 }
 
-func NewPkgCacheConfig(ctx context.Context, dir string, writable bool) *PkgCacheConfig {
+func NewPkgCacheConfig(repoCache context.RepoCache, artifactCache context.AritifactCache) *PkgCacheConfig {
 	return &PkgCacheConfig{
-		ctx:            ctx,
-		Dir:            dir,
-		Writable:       writable,
+		repoCache:      repoCache,
+		artifactCache:  artifactCache,
 		CacheArtifacts: true,
 		CacheDownloads: true,
+		Writable:       true,
 	}
-}
-
-func (p *PkgCacheConfig) Refresh() error {
-	if p.Dir == "" {
-		return fmt.Errorf("pkgcache dir is empty")
-	}
-	if !fileio.PathExists(p.Dir) {
-		return fmt.Errorf("pkgcache dir does not exist: %s", p.Dir)
-	}
-
-	// Create valid artifact config and repo config.
-	p.artifactConfig = pkgcache.NewArtifactConfig(p.ctx, p.Writable)
-	p.repoConfig = pkgcache.NewRepoConfig(p.ctx, p.Writable)
-
-	return nil
 }
 
 func (p PkgCacheConfig) GetDir(dirType context.PkgCacheDirType) string {
@@ -78,17 +60,17 @@ func (p PkgCacheConfig) GetCacheDownloads() bool {
 }
 
 func (p PkgCacheConfig) GetArtifactCache() context.AritifactCache {
-	if p.artifactConfig == nil {
+	if p.artifactCache == nil {
 		return nil
 	}
-	return p.artifactConfig
+	return p.artifactCache
 }
 
 func (p PkgCacheConfig) GetRepoCache() context.RepoCache {
-	if p.repoConfig == nil {
+	if p.repoCache == nil {
 		return nil
 	}
-	return p.repoConfig
+	return p.repoCache
 }
 
 // ================= DevCacheConfig ================= //

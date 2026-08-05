@@ -1,4 +1,4 @@
-package pkgcache
+package nfs
 
 import (
 	"crypto/sha256"
@@ -88,7 +88,7 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 			break
 		}
 		if attempt < a.maxRetries {
-			color.Printf(color.Warning, "Restore pkgcache failed (attempt %d/%d): %v\n", attempt, a.maxRetries, err)
+			color.Printf(color.Warning, "Restore pkgcache failed (attempt %d/%d): %v\n", attempt, a.maxRetries, restoreErr)
 			time.Sleep(time.Duration(attempt) * time.Second)
 		}
 	}

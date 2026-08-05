@@ -1,6 +1,6 @@
 //go:build darwin || linux
 
-package pkgcache
+package nfs
 
 import (
 	"fmt"

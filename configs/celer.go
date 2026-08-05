@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/envs"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -229,10 +230,10 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 
 		// Validate package cache.
 		if c.configData.PkgCacheConfig != nil {
-			c.configData.PkgCacheConfig.ctx = c
-			if err := c.configData.PkgCacheConfig.Refresh(); err != nil {
-				return err
+			if strings.TrimSpace(c.configData.PkgCacheConfig.Dir) == "" {
+				return fmt.Errorf("pkgcache dir is empty")
 			}
+			c.buildPkgCacheCaches()
 		}
 
 		// Setup ccache.
@@ -454,6 +455,17 @@ func (c *Celer) GetProjectName() string {
 		return ""
 	}
 	return cfg.Main.Project
+}
+
+// buildPkgCacheCaches populates repoCache and artifactCache on PkgCacheConfig.
+// Safe to call multiple times; callers should ensure Dir is non-empty first.
+func (c *Celer) buildPkgCacheCaches() {
+	if c.configData.PkgCacheConfig == nil {
+		return
+	}
+
+	c.configData.PkgCacheConfig.repoCache = pkgcache.BuildRepoCache(c, c.configData.PkgCacheConfig.Writable)
+	c.configData.PkgCacheConfig.artifactCache = pkgcache.BuildAritifactCache(c, c.configData.PkgCacheConfig.Writable)
 }
 
 func (c *Celer) portsRepoUrl() string {
