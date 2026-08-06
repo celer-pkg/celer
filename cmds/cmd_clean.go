@@ -203,33 +203,35 @@ func (c *cleanCmd) cleanAll() error {
 			return err
 		}
 
-	leaveLoop: // Remove all except src.
+		var skipClean bool
 		for _, entity := range entities {
-			// Remove build dir and log files.
+			// Remove everything except the src directory.
 			if entity.Name() != "src" {
 				if err := os.RemoveAll(filepath.Join(buildDir, entity.Name())); err != nil {
 					return err
 				}
 			}
-
-			// Clean repo.
-			var port configs.Port
-			if err := port.Init(c.celer, nameVersion); err != nil {
-				if errors.Is(err, errors.ErrPortNotFound) {
-					color.Printf(color.Warning, "\n[clean %s]: cannot find it in ports, clean is skipped.\n", port.NameVersion())
-					break leaveLoop
-				}
-				return err
-			}
-			if err := port.MatchedConfig.Clean(); err != nil {
-				// Do not clean non-git repo.
-				if errors.Is(errors.ErrNotGitDir, err) {
-					return nil
-				}
-				return err
-			}
-			cleaned = true
 		}
+
+		// Clean the git repo (if the port still exists).
+		var port configs.Port
+		if err := port.Init(c.celer, nameVersion); err != nil {
+			if errors.Is(err, errors.ErrPortNotFound) {
+				skipClean = true
+			}
+
+			return err
+		}
+		if !skipClean {
+			if err := port.MatchedConfig.Clean(); err != nil {
+				if errors.Is(errors.ErrNotGitDir, err) {
+					continue
+				}
+
+				return err
+			}
+		}
+		cleaned = true
 
 		if cleaned {
 			color.Printf(color.Hint, "✔ clean %s\n", entity.Name())
@@ -249,7 +251,8 @@ func (c *cleanCmd) doClean(port configs.Port) error {
 	// Remove build cache for dev build or platform build.
 	matchedConfig := port.MatchedConfig
 	if port.DevDep || port.HostDep {
-		devBuildDir := filepath.Join(filepath.Dir(matchedConfig.PortConfig.BuildDir), matchedConfig.PortConfig.HostName+"-dev")
+		rootDir := filepath.Dir(matchedConfig.PortConfig.BuildDir)
+		devBuildDir := filepath.Join(rootDir, matchedConfig.PortConfig.HostName+"-dev")
 		if err := os.RemoveAll(devBuildDir); err != nil {
 			return err
 		}
