@@ -10,6 +10,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
+	"github.com/celer-pkg/celer/pkgs/pc"
 )
 
 type RootFS struct {
@@ -66,6 +67,12 @@ func (r *RootFS) CheckAndRepair() error {
 	repair := fileio.NewRepair(r.Url, r.ctx.Downloads(), archiveName, folderName, toolsDir, r.SHA256)
 	if err := repair.CheckAndRepair(r.ctx); err != nil {
 		return err
+	}
+
+	// Fixup rootfs .pc files once after extraction — rewrite absolute
+	// prefixes to self-locating ${pcfiledir} paths.
+	if err := pc.FixupRootFSPC(r.abspath); err != nil {
+		return fmt.Errorf("fixup rootfs pkgconfig -> %w", err)
 	}
 
 	// Print download & extract info.

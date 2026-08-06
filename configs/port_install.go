@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/buildtools"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/color"
@@ -15,6 +14,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/pc"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -1188,7 +1188,7 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Fixup pkg config files to use self-locating ${pcfiledir} prefix.
-		if err := buildsystems.FixupPkgConfigFile(port.tmpDepsDir); err != nil {
+		if err := pc.FixupPkgConfigFile(port.tmpDepsDir); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
 		}
 
@@ -1228,7 +1228,7 @@ func (p Port) prepareTmpDeps() error {
 		}
 
 		// Fixup pkg config files to use self-locating ${pcfiledir} prefix.
-		if err := buildsystems.FixupPkgConfigFile(port.tmpDepsDir); err != nil {
+		if err := pc.FixupPkgConfigFile(port.tmpDepsDir); err != nil {
 			return fmt.Errorf("failed to fixup pkg-config -> %w", err)
 		}
 

@@ -1,4 +1,4 @@
-package buildsystems
+package pc
 
 import (
 	"bufio"
