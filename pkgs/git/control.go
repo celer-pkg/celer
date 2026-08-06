@@ -436,7 +436,15 @@ func ApplyPatch(nameVersion, repoDir, patchFile string) error {
 		title := fmt.Sprintf("[apply patch: %s]", nameVersion)
 		executor := cmd.NewExecutor(title, "patch", "-Np1", "-i", patchFile)
 		executor.SetWorkDir(repoDir)
-		if output, err := executor.ExecuteOutputLive(); err != nil {
+		output, err := executor.ExecuteOutputLive()
+		if err != nil {
+			// patch may fail because the patch was already applied:
+			// (git apply --reverse --check above missed it due to whitespace/line-ending differences).
+			// we needto treat this kind of error as success.
+			if strings.Contains(output, "already applied") ||
+				strings.Contains(output, "Reversed") {
+				return nil
+			}
 			return fmt.Errorf("failed to apply patch for '%s' -> %s -> %w", nameVersion, output, err)
 		}
 	}
