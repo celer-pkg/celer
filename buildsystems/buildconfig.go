@@ -18,6 +18,7 @@ import (
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
+	"github.com/celer-pkg/celer/pkgs/pc"
 	"github.com/celer-pkg/celer/pkgs/refs"
 )
 
@@ -697,7 +698,7 @@ func (b *BuildConfig) Install(url, ref, archive string) error {
 	}
 
 	// Fixup pkg config files to use self-locating ${pcfiledir} prefix.
-	if err := FixupPkgConfigFile(b.PortConfig.PackageDir); err != nil {
+	if err := pc.FixupPkgConfigFile(b.PortConfig.PackageDir); err != nil {
 		return fmt.Errorf("fixup pkg-config\n %w", err)
 	}
 
