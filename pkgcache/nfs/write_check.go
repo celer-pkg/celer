@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
@@ -29,13 +29,13 @@ type cacheSubdir struct {
 
 // CheckWriteAccess verifies the current process can write to pkgcache subdirs.
 // It is a no-op when pkgcache is nil, dir empty/missing, writable=false or offline.
-func CheckWriteAccess(ctx context.Context) error {
+func CheckWriteAccess(ctx pkgcache.CacheContext) error {
 	cacheConfig := ctx.PkgCacheConfig()
 	if cacheConfig == nil || ctx.Offline() || !cacheConfig.IsWritable() {
 		return nil
 	}
 
-	cacheDir := cacheConfig.GetDir(context.PkgCacheDirRoot)
+	cacheDir := cacheConfig.GetDir(pkgcache.PkgCacheDirRoot)
 	if cacheDir == "" || !fileio.PathExists(cacheDir) {
 		return nil
 	}
@@ -55,9 +55,9 @@ func CheckWriteAccess(ctx context.Context) error {
 
 	chattrFS := fileio.NewChattrFS(cacheDir)
 	for _, subDir := range []cacheSubdir{
-		{name: "repos", path: cacheConfig.GetDir(context.PkgCacheDirRepos)},
-		{name: "downloads", path: cacheConfig.GetDir(context.PkgCacheDirDownloads)},
-		{name: "artifacts", path: cacheConfig.GetDir(context.PkgCacheDirArtifacts)},
+		{name: "repos", path: cacheConfig.GetDir(pkgcache.PkgCacheDirRepos)},
+		{name: "downloads", path: cacheConfig.GetDir(pkgcache.PkgCacheDirDownloads)},
+		{name: "artifacts", path: cacheConfig.GetDir(pkgcache.PkgCacheDirArtifacts)},
 	} {
 		if err := probeWrite(chattrFS, subDir.name, subDir.path); err != nil {
 			return err

@@ -11,7 +11,7 @@ import (
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/envs"
-	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgcache/nfs"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -464,8 +464,8 @@ func (c *Celer) buildPkgCacheCaches() {
 		return
 	}
 
-	c.configData.PkgCacheConfig.repoCache = pkgcache.BuildRepoCache(c, c.configData.PkgCacheConfig.Writable)
-	c.configData.PkgCacheConfig.artifactCache = pkgcache.BuildAritifactCache(c, c.configData.PkgCacheConfig.Writable)
+	c.configData.PkgCacheConfig.repoCache = nfs.NewRepoConfig(c, c.configData.PkgCacheConfig.Writable)
+	c.configData.PkgCacheConfig.artifactCache = nfs.NewArtifactConfig(c, c.configData.PkgCacheConfig.Writable)
 }
 
 func (c *Celer) portsRepoUrl() string {

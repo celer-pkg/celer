@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/expr"
 )
@@ -91,7 +92,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 	cachedDownloadsDir := ""
 	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCacheConfig != nil && pkgCacheConfig.IsWritable()
 	if canUseCache {
-		cachedDownloadsDir = pkgCacheConfig.GetDir(context.PkgCacheDirDownloads)
+		cachedDownloadsDir = pkgCacheConfig.GetDir(pkgcache.PkgCacheDirDownloads)
 	}
 
 	// Determine if download is needed.
@@ -132,7 +133,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 			}
 
 			color.Printf(color.Hint, "- caching to pkgcache: %s", fileName)
-			chattrFS := NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot))
+			chattrFS := NewChattrFS(pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot))
 			cachedPath, err := SaveCachedFile(downloaded, cachedDownloadsDir, fileName, r.sha256, chattrFS)
 			if err != nil {
 				return fmt.Errorf("failed to cache downloaded file %s -> %w", fileName, err)

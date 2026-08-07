@@ -9,6 +9,7 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgcache/nfs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -19,30 +20,32 @@ type fakeContext struct {
 	build          string
 	downloads      string
 	offline        bool
-	pkgCacheConfig context.PkgCacheConfig
-	devCacheConfig context.DevCacheConfig
+	pkgCacheConfig pkgcache.PkgCacheConfig
+	devCacheConfig pkgcache.LocalCacheConfig
 }
 
-func (f fakeContext) Version() string                        { return "test" }
-func (f fakeContext) Platform() context.Platform             { return fakePlatform{name: f.platform} }
-func (f fakeContext) RootFS() context.RootFS                 { return nil }
-func (f fakeContext) Project() context.Project               { return fakeProject{name: f.project} }
-func (f fakeContext) BuildType() string                      { return f.build }
-func (f fakeContext) LibraryFolder() string                  { return "" }
-func (f fakeContext) Downloads() string                      { return f.downloads }
-func (f fakeContext) Jobs() int                              { return 1 }
-func (f fakeContext) Offline() bool                          { return f.offline }
-func (f fakeContext) Verbose() bool                          { return false }
-func (f fakeContext) InstalledDir() string                   { return "" }
-func (f fakeContext) InstalledDevDir() string                { return "" }
-func (f fakeContext) PkgCacheConfig() context.PkgCacheConfig { return f.pkgCacheConfig }
-func (f fakeContext) DevCacheConfig() context.DevCacheConfig { return f.devCacheConfig }
-func (f fakeContext) ProxyHostPort() (host string, port int) { return "", 0 }
-func (f fakeContext) CCacheEnabled() bool                    { return false }
-func (f fakeContext) GenerateToolchainFile() error           { return nil }
-func (f fakeContext) ExprVars() *context.ExprVars            { return nil }
-func (f fakeContext) PythonConfig() context.PythonConfig     { return nil }
-func (f fakeContext) Features() context.Features             { return nil }
+func (f fakeContext) Version() string                           { return "test" }
+func (f fakeContext) Platform() context.Platform                { return fakePlatform{name: f.platform} }
+func (f fakeContext) RootFS() context.RootFS                    { return nil }
+func (f fakeContext) Project() context.Project                  { return fakeProject{name: f.project} }
+func (f fakeContext) PlatformName() string                      { return f.platform }
+func (f fakeContext) ProjectName() string                       { return f.project }
+func (f fakeContext) BuildType() string                         { return f.build }
+func (f fakeContext) LibraryFolder() string                     { return "" }
+func (f fakeContext) Downloads() string                         { return f.downloads }
+func (f fakeContext) Jobs() int                                 { return 1 }
+func (f fakeContext) Offline() bool                             { return f.offline }
+func (f fakeContext) Verbose() bool                             { return false }
+func (f fakeContext) InstalledDir() string                      { return "" }
+func (f fakeContext) InstalledDevDir() string                   { return "" }
+func (f fakeContext) PkgCacheConfig() pkgcache.PkgCacheConfig   { return f.pkgCacheConfig }
+func (f fakeContext) DevCacheConfig() pkgcache.LocalCacheConfig { return f.devCacheConfig }
+func (f fakeContext) ProxyHostPort() (host string, port int)    { return "", 0 }
+func (f fakeContext) CCacheEnabled() bool                       { return false }
+func (f fakeContext) GenerateToolchainFile() error              { return nil }
+func (f fakeContext) ExprVars() *context.ExprVars               { return nil }
+func (f fakeContext) PythonConfig() context.PythonConfig        { return nil }
+func (f fakeContext) Features() context.Features                { return nil }
 
 type fakePlatform struct {
 	name string
@@ -81,7 +84,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 
 	// creates a fresh cache entry per subtest so test cases
 	// stay isolated and do not depend on execution order.
-	setupArtifactFixture := func(t *testing.T) (artifactCache context.AritifactCache, nameVersion, meta, hash, packageDir string) {
+	setupArtifactFixture := func(t *testing.T) (artifactCache pkgcache.AritifactCache, nameVersion, meta, hash, packageDir string) {
 		t.Helper()
 
 		fakeCtx := fakeContext{
@@ -93,7 +96,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 		pkgCacheConfig.Dir = cacheDir
 		pkgCacheConfig.Writable = true
 		fakeCtx.pkgCacheConfig = pkgCacheConfig
-		pkgCacheConfig.artifactCache = pkgcache.BuildAritifactCache(fakeCtx, true)
+		pkgCacheConfig.artifactCache = nfs.NewArtifactConfig(fakeCtx, true)
 
 		nameVersion = "demo@1.0.0"
 		meta = "meta-data-for-test"

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -26,8 +26,8 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 	pkgCacheConfig := NewPkgCacheConfig(nil, nil)
 	pkgCacheConfig.Dir = cacheDir
 	pkgCacheConfig.Writable = true
-	cachedDownloadsDir := pkgCacheConfig.GetDir(context.PkgCacheDirDownloads)
-	chattrFS := fileio.NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot))
+	cachedDownloadsDir := pkgCacheConfig.GetDir(pkgcache.PkgCacheDirDownloads)
+	chattrFS := fileio.NewChattrFS(pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot))
 
 	t.Run("save and find cached download", func(t *testing.T) {
 		// Create a temporary source file to cache.

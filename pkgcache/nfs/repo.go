@@ -7,28 +7,28 @@ import (
 	"strings"
 	"time"
 
-	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
 )
 
 type RepoConfig struct {
-	ctx      context.Context
+	ctx      pkgcache.CacheContext
 	writable bool
 	chattrFS *fileio.ChattrFS
 }
 
-func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
+func NewRepoConfig(ctx pkgcache.CacheContext, writable bool) *RepoConfig {
 	pkgCacheConfig := ctx.PkgCacheConfig()
-	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(context.PkgCacheDirRoot) == "" {
+	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot) == "" {
 		return nil
 	}
 
 	return &RepoConfig{
 		ctx:      ctx,
 		writable: writable,
-		chattrFS: fileio.NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot)),
+		chattrFS: fileio.NewChattrFS(pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot)),
 	}
 }
 
@@ -52,7 +52,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 	}
 
 	// Create folder to store repo archive.
-	cacheRepoDir := r.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
+	cacheRepoDir := r.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRepos)
 	if err := r.chattrFS.MkdirAll(cacheRepoDir, fileio.CacheDirPerm); err != nil {
 		return "", err
 	}
@@ -103,7 +103,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 
 		// Preserve original archive extension so Extract dispatches correctly.
 		ext := fileio.Ext(filepath.Base(archiveFile))
-		repoCacheDir := r.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
+		repoCacheDir := r.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRepos)
 		archivePath := filepath.Join(repoCacheDir, nameVersion, checksum+ext)
 
 		// Skip if already cached.
@@ -151,7 +151,7 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 	}
 
 	// Locate cached archive by checksum.
-	reposCacheDir := r.ctx.PkgCacheConfig().GetDir(context.PkgCacheDirRepos)
+	reposCacheDir := r.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRepos)
 	archivePath := filepath.Join(reposCacheDir, nameVersion, checksum+archiveExt)
 	if !fileio.PathExists(archivePath) {
 		return "", nil

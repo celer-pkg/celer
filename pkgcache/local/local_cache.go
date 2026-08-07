@@ -1,4 +1,4 @@
-package pkgcache
+package local
 
 import (
 	"crypto/sha256"
@@ -12,13 +12,13 @@ import (
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
-type DevArtifactCache struct {
+type LocalArtifactCache struct {
 	cacheDir string
 	ctx      context.Context
 }
 
-func NewDevArtifactCache(ctx context.Context, cacheDir string) *DevArtifactCache {
-	return &DevArtifactCache{
+func NewLocalArtifactCache(ctx context.Context, cacheDir string) *LocalArtifactCache {
+	return &LocalArtifactCache{
 		ctx:      ctx,
 		cacheDir: cacheDir,
 	}
@@ -26,14 +26,14 @@ func NewDevArtifactCache(ctx context.Context, cacheDir string) *DevArtifactCache
 
 // Restore restores the cached package to package directory if cache hit, and return the archive path.
 // If cache miss, just return empty string without error.
-func (d DevArtifactCache) Restore(nameVersion, buildHash, packageDir string) (string, error) {
-	cachePath := filepath.Join(d.cacheDir, nameVersion, buildHash+".tar.gz")
+func (l LocalArtifactCache) Restore(nameVersion, buildHash, packageDir string) (string, error) {
+	cachePath := filepath.Join(l.cacheDir, nameVersion, buildHash+".tar.gz")
 	if !fileio.PathExists(cachePath) {
 		return "", nil // not an error even not exist.
 	}
 
 	// The meta file hash should be the same as hash that calcuated dynamically.
-	metaPath := filepath.Join(d.cacheDir, nameVersion, "metas", buildHash+".meta")
+	metaPath := filepath.Join(l.cacheDir, nameVersion, "metas", buildHash+".meta")
 	if !fileio.PathExists(metaPath) {
 		return "", nil
 	}
@@ -75,7 +75,7 @@ func (d DevArtifactCache) Restore(nameVersion, buildHash, packageDir string) (st
 
 // Store compresses the package dir and store in cache,
 // the meta is expected to be a string and would be used to calculate the hash key for cache.
-func (d DevArtifactCache) Store(packageDir, meta string) error {
+func (l LocalArtifactCache) Store(packageDir, meta string) error {
 	if !fileio.PathExists(packageDir) {
 		return fmt.Errorf("package dir does not exist: %s", packageDir)
 	}
@@ -113,7 +113,7 @@ func (d DevArtifactCache) Store(packageDir, meta string) error {
 		return err
 	}
 
-	destDir := filepath.Join(d.cacheDir, nameVersion)
+	destDir := filepath.Join(l.cacheDir, nameVersion)
 	metaDir := filepath.Join(destDir, "metas")
 
 	// Calculate checksum of metadata (this would be the cache key).

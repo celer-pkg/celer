@@ -1,4 +1,4 @@
-package pkgcache
+package local
 
 import (
 	"crypto/sha256"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgcache/nfs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -20,30 +21,30 @@ type fakePkgCache struct {
 	writable bool
 }
 
-func (f fakePkgCache) GetDir(dirType context.PkgCacheDirType) string {
+func (f fakePkgCache) GetDir(dirType pkgcache.PkgCacheDirType) string {
 	switch dirType {
-	case context.PkgCacheDirRepos:
+	case pkgcache.PkgCacheDirRepos:
 		return filepath.Join(f.dir, "repos")
-	case context.PkgCacheDirArtifacts:
+	case pkgcache.PkgCacheDirArtifacts:
 		return filepath.Join(f.dir, "artifacts")
-	case context.PkgCacheDirDownloads:
+	case pkgcache.PkgCacheDirDownloads:
 		return filepath.Join(f.dir, "downloads")
 	default:
 		return f.dir
 	}
 }
-func (f fakePkgCache) IsWritable() bool                         { return f.writable }
-func (f fakePkgCache) GetCacheArtifacts() bool                  { return true }
-func (f fakePkgCache) GetCacheDownloads() bool                  { return true }
-func (f fakePkgCache) GetArtifactCache() context.AritifactCache { return nil }
-func (f fakePkgCache) GetRepoCache() context.RepoCache {
+func (f fakePkgCache) IsWritable() bool                          { return f.writable }
+func (f fakePkgCache) GetCacheArtifacts() bool                   { return true }
+func (f fakePkgCache) GetCacheDownloads() bool                   { return true }
+func (f fakePkgCache) GetArtifactCache() pkgcache.AritifactCache { return nil }
+func (f fakePkgCache) GetRepoCache() pkgcache.RepoCache {
 	return nfs.NewRepoConfig(fakeContext{pkgCache: f}, f.writable)
 }
 
 type fakeDevCache struct{}
 
-func (f fakeDevCache) GetDir() string                                 { return "" }
-func (f fakeDevCache) GetDevArtifactCache() context.DevAritifactCache { return nil }
+func (f fakeDevCache) GetDir() string                                    { return "" }
+func (f fakeDevCache) GetDevArtifactCache() pkgcache.LocalAritifactCache { return nil }
 
 type fakeContext struct {
 	pkgCache fakePkgCache
@@ -51,30 +52,32 @@ type fakeContext struct {
 	offline  bool
 }
 
-func (fakeContext) Version() string                          { return "test" }
-func (fakeContext) Platform() context.Platform               { return nil }
-func (fakeContext) RootFS() context.RootFS                   { return nil }
-func (fakeContext) Project() context.Project                 { return nil }
-func (fakeContext) BuildType() string                        { return "release" }
-func (fakeContext) LibraryFolder() string                    { return "" }
-func (fakeContext) Downloads() string                        { return "" }
-func (fakeContext) Jobs() int                                { return 1 }
-func (f fakeContext) Offline() bool                          { return f.offline }
-func (fakeContext) Verbose() bool                            { return false }
-func (fakeContext) InstalledDir() string                     { return "" }
-func (fakeContext) InstalledDevDir() string                  { return "" }
-func (f fakeContext) PkgCacheConfig() context.PkgCacheConfig { return f.pkgCache }
-func (f fakeContext) DevCacheConfig() context.DevCacheConfig { return f.devCache }
-func (fakeContext) ProxyHostPort() (string, int)             { return "", 0 }
-func (fakeContext) CCacheEnabled() bool                      { return false }
-func (fakeContext) GenerateToolchainFile() error             { return nil }
-func (fakeContext) ExprVars() *context.ExprVars              { return nil }
-func (fakeContext) PythonConfig() context.PythonConfig       { return nil }
-func (fakeContext) Features() context.Features               { return nil }
+func (fakeContext) Version() string                             { return "test" }
+func (fakeContext) Platform() context.Platform                  { return nil }
+func (fakeContext) RootFS() context.RootFS                      { return nil }
+func (fakeContext) Project() context.Project                    { return nil }
+func (fakeContext) PlatformName() string                        { return "test-platform" }
+func (fakeContext) ProjectName() string                         { return "test-project" }
+func (fakeContext) BuildType() string                           { return "release" }
+func (fakeContext) LibraryFolder() string                       { return "" }
+func (fakeContext) Downloads() string                           { return "" }
+func (fakeContext) Jobs() int                                   { return 1 }
+func (f fakeContext) Offline() bool                             { return f.offline }
+func (fakeContext) Verbose() bool                               { return false }
+func (fakeContext) InstalledDir() string                        { return "" }
+func (fakeContext) InstalledDevDir() string                     { return "" }
+func (f fakeContext) PkgCacheConfig() pkgcache.PkgCacheConfig   { return f.pkgCache }
+func (f fakeContext) DevCacheConfig() pkgcache.LocalCacheConfig { return f.devCache }
+func (fakeContext) ProxyHostPort() (string, int)                { return "", 0 }
+func (fakeContext) CCacheEnabled() bool                         { return false }
+func (fakeContext) GenerateToolchainFile() error                { return nil }
+func (fakeContext) ExprVars() *context.ExprVars                 { return nil }
+func (fakeContext) PythonConfig() context.PythonConfig          { return nil }
+func (fakeContext) Features() context.Features                  { return nil }
 
 // ---- helpers ----
 
-func newTestDevArtifactCache(t *testing.T) *DevArtifactCache {
+func newTestDevArtifactCache(t *testing.T) *LocalArtifactCache {
 	t.Helper()
 
 	// Redirect workspace so TmpFilesDir is inside the sandbox.
@@ -88,7 +91,7 @@ func newTestDevArtifactCache(t *testing.T) *DevArtifactCache {
 		t.Fatal(err)
 	}
 
-	return NewDevArtifactCache(fakeContext{}, cacheDir)
+	return NewLocalArtifactCache(fakeContext{}, cacheDir)
 }
 
 // makePackageDir creates a fake built package directory with a couple of files

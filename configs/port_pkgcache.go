@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/celer-pkg/celer/buildsystems"
-	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgcache/meta"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -32,7 +32,7 @@ var (
 	buildMetaCache     sync.Map // key: string -> metaResult
 	portTomlCache      sync.Map // key: string -> metaResult
 	commitHashCache    sync.Map // key: string -> metaResult
-	buildConfigCache   sync.Map // key: string -> *pkgcache.BuildConfig
+	buildConfigCache   sync.Map // key: string -> *meta.BuildConfig
 	hostSupportedCache sync.Map // key: string -> bool
 )
 
@@ -62,7 +62,7 @@ func ResetMetaCache() {
 
 	// Also clear the pkgcache-level buildMeta cache (the recursive one inside
 	// metadata.go that caches per nameVersion|native).
-	pkgcache.ResetMetaCache()
+	meta.ResetMetaCache()
 }
 
 func (p Port) buildhash() (string, error) {
@@ -89,7 +89,7 @@ func (p Port) buildMeta() (string, error) {
 
 	// Computer meta and save into cache.
 	platformName := expr.If(p.DevDep || p.HostDep, p.ctx.Platform().GetHostName(), p.ctx.Platform().GetName())
-	port := pkgcache.Port{
+	port := meta.Port{
 		NameVersion: p.NameVersion(),
 		Platform:    platformName,
 		Project:     p.ctx.Project().GetName(),
@@ -259,10 +259,10 @@ func (p Port) doGetCommitHash(nameVersion string, native bool) (string, error) {
 	}
 }
 
-func (p Port) GetBuildConfig(nameVersion string, native bool) (*pkgcache.BuildConfig, error) {
+func (p Port) GetBuildConfig(nameVersion string, native bool) (*meta.BuildConfig, error) {
 	key := fmt.Sprintf("%s|%t", nameVersion, native)
 	if v, ok := buildConfigCache.Load(key); ok {
-		return v.(*pkgcache.BuildConfig), nil
+		return v.(*meta.BuildConfig), nil
 	}
 
 	var port = Port{DevDep: native, HostDep: native}
@@ -291,8 +291,8 @@ func (p Port) CheckHostSupported(nameVersion string) bool {
 	return supported
 }
 
-func (p Port) toPkgCacheBuildConfig(buildConfig *buildsystems.BuildConfig, portFile string) pkgcache.BuildConfig {
-	return pkgcache.BuildConfig{
+func (p Port) toPkgCacheBuildConfig(buildConfig *buildsystems.BuildConfig, portFile string) meta.BuildConfig {
+	return meta.BuildConfig{
 		Patches:         append([]string{}, buildConfig.Patches...),
 		Dependencies:    append([]string{}, buildConfig.Dependencies...),
 		DevDependencies: append([]string{}, buildConfig.DevDependencies...),

@@ -9,6 +9,7 @@ import (
 
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgcache/nfs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -25,13 +26,13 @@ type fakePkgCacheConfig struct {
 	writable bool
 }
 
-func (f fakePkgCacheConfig) GetDir(dirType context.PkgCacheDirType) string {
+func (f fakePkgCacheConfig) GetDir(dirType pkgcache.PkgCacheDirType) string {
 	switch dirType {
-	case context.PkgCacheDirRepos:
+	case pkgcache.PkgCacheDirRepos:
 		return filepath.Join(f.dir, "repos")
-	case context.PkgCacheDirArtifacts:
+	case pkgcache.PkgCacheDirArtifacts:
 		return filepath.Join(f.dir, "artifacts-test")
-	case context.PkgCacheDirDownloads:
+	case pkgcache.PkgCacheDirDownloads:
 		return filepath.Join(f.dir, "downloads")
 	default:
 		return f.dir
@@ -40,8 +41,8 @@ func (f fakePkgCacheConfig) GetDir(dirType context.PkgCacheDirType) string {
 func (f fakePkgCacheConfig) IsWritable() bool                         { return f.writable }
 func (f fakePkgCacheConfig) GetCacheArtifacts() bool                  { return true }
 func (f fakePkgCacheConfig) GetCacheDownloads() bool                  { return true }
-func (f fakePkgCacheConfig) GetArtifactCache() context.AritifactCache { return nil }
-func (f fakePkgCacheConfig) GetRepoCache() context.RepoCache {
+func (f fakePkgCacheConfig) GetArtifactCache() pkgcache.AritifactCache { return nil }
+func (f fakePkgCacheConfig) GetRepoCache() pkgcache.RepoCache {
 	return nfs.NewRepoConfig(fakeContext{pkgCacheConfig: f}, f.writable)
 }
 
