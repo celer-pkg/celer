@@ -1,4 +1,4 @@
-package nfs
+package netfs
 
 import (
 	"fmt"
@@ -16,7 +16,6 @@ import (
 type RepoConfig struct {
 	ctx      pkgcache.CacheContext
 	writable bool
-	chattrFS *fileio.ChattrFS
 }
 
 func NewRepoConfig(ctx pkgcache.CacheContext, writable bool) *RepoConfig {
@@ -28,7 +27,6 @@ func NewRepoConfig(ctx pkgcache.CacheContext, writable bool) *RepoConfig {
 	return &RepoConfig{
 		ctx:      ctx,
 		writable: writable,
-		chattrFS: fileio.NewChattrFS(pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot)),
 	}
 }
 
@@ -53,7 +51,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 
 	// Create folder to store repo archive.
 	cacheRepoDir := r.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRepos)
-	if err := r.chattrFS.MkdirAll(cacheRepoDir, fileio.CacheDirPerm); err != nil {
+	if err := os.MkdirAll(cacheRepoDir, fileio.CacheDirPerm); err != nil {
 		return "", err
 	}
 
@@ -71,7 +69,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		}
 
 		// Create repo name folder.
-		if err := r.chattrFS.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
+		if err := os.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
 			return "", err
 		}
 
@@ -85,7 +83,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 			return "", err
 		}
 		defer os.Remove(tempArchivePath)
-		if err := r.chattrFS.CopyFile(tempArchivePath, archivePath); err != nil {
+		if err := fileio.CopyFile(tempArchivePath, archivePath); err != nil {
 			return "", err
 		}
 
@@ -112,12 +110,12 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 		}
 
 		// Create repo name folder.
-		if err := r.chattrFS.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
+		if err := fileio.MkdirAll(filepath.Dir(archivePath), fileio.CacheDirPerm); err != nil {
 			return "", err
 		}
 
 		// Copy original archive to repo cache dir.
-		if err := r.chattrFS.CopyFile(archiveFile, archivePath); err != nil {
+		if err := fileio.CopyFile(archiveFile, archivePath); err != nil {
 			return "", err
 		}
 

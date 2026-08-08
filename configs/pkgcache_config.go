@@ -6,7 +6,7 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgcache/local"
+	"github.com/celer-pkg/celer/pkgcache/dev"
 )
 
 // ================= PkgCacheConfig ================= //
@@ -77,14 +77,14 @@ func (p PkgCacheConfig) GetRepoCache() pkgcache.RepoCache {
 // ================= DevCacheConfig ================= //
 
 type DevCacheConfig struct {
-	ctx                context.Context
-	localArtifactCache *local.LocalArtifactCache
+	ctx              context.Context
+	devArtifactCache *dev.DevArtifactCache
 }
 
 func NewDevCacheConfig(ctx context.Context) *DevCacheConfig {
 	cacheConfig := DevCacheConfig{ctx: ctx}
 	cacheDir := cacheConfig.GetDir()
-	cacheConfig.localArtifactCache = local.NewLocalArtifactCache(ctx, cacheDir)
+	cacheConfig.devArtifactCache = dev.NewDevArtifactCache(ctx, cacheDir)
 	return &cacheConfig
 }
 
@@ -98,6 +98,6 @@ func (d DevCacheConfig) GetDir() string {
 	return filepath.Join(homeDir, "celer", hostName+"-dev")
 }
 
-func (d DevCacheConfig) GetDevArtifactCache() pkgcache.LocalAritifactCache {
-	return d.localArtifactCache
+func (d DevCacheConfig) GetDevArtifactCache() pkgcache.DevAritifactCache {
+	return d.devArtifactCache
 }

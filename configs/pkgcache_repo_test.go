@@ -10,7 +10,7 @@ import (
 	"github.com/celer-pkg/celer/buildsystems"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgcache/nfs"
+	"github.com/celer-pkg/celer/pkgcache/netfs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 	"github.com/celer-pkg/celer/pkgs/git"
@@ -38,12 +38,12 @@ func (f fakePkgCacheConfig) GetDir(dirType pkgcache.PkgCacheDirType) string {
 		return f.dir
 	}
 }
-func (f fakePkgCacheConfig) IsWritable() bool                         { return f.writable }
-func (f fakePkgCacheConfig) GetCacheArtifacts() bool                  { return true }
-func (f fakePkgCacheConfig) GetCacheDownloads() bool                  { return true }
+func (f fakePkgCacheConfig) IsWritable() bool                          { return f.writable }
+func (f fakePkgCacheConfig) GetCacheArtifacts() bool                   { return true }
+func (f fakePkgCacheConfig) GetCacheDownloads() bool                   { return true }
 func (f fakePkgCacheConfig) GetArtifactCache() pkgcache.AritifactCache { return nil }
 func (f fakePkgCacheConfig) GetRepoCache() pkgcache.RepoCache {
-	return nfs.NewRepoConfig(fakeContext{pkgCacheConfig: f}, f.writable)
+	return netfs.NewRepoConfig(fakeContext{pkgCacheConfig: f}, f.writable)
 }
 
 // creates a local bare repo that acts like remote origin.

@@ -75,7 +75,7 @@ func (c *Celer) PkgCacheConfig() pkgcache.PkgCacheConfig {
 	return c.configData.PkgCacheConfig
 }
 
-func (c *Celer) DevCacheConfig() pkgcache.LocalCacheConfig {
+func (c *Celer) DevCacheConfig() pkgcache.DevCacheConfig {
 	return c.devCacheConfig
 }
 

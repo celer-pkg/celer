@@ -19,7 +19,7 @@ type Context interface {
 	InstalledDir() string
 	InstalledDevDir() string
 	PkgCacheConfig() pkgcache.PkgCacheConfig
-	DevCacheConfig() pkgcache.LocalCacheConfig
+	DevCacheConfig() pkgcache.DevCacheConfig
 	ProxyHostPort() (host string, port int)
 	CCacheEnabled() bool
 	GenerateToolchainFile() error

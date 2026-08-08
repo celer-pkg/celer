@@ -45,17 +45,17 @@ type RepoCache interface {
 	Store(nameVersion, repoUrl, repoDir, archiveFile string) (string, error)
 }
 
-// ========================== local cache ========================== //
+// ========================== dev cache ========================== //
 
-// LocalCacheConfig is the config for local cache (under the user's home dir)
+// DevCacheConfig is the config for dev cache (under the user's home dir)
 // for reusing built artifacts across workspaces.
-type LocalCacheConfig interface {
+type DevCacheConfig interface {
 	GetDir() string
-	GetDevArtifactCache() LocalAritifactCache
+	GetDevArtifactCache() DevAritifactCache
 }
 
-// LocalAritifactCache stores/restores a port's built package under user's home dir.
-type LocalAritifactCache interface {
+// DevAritifactCache stores/restores a port's built package under user's home dir.
+type DevAritifactCache interface {
 	Restore(nameVersion, buildhash, packageDir string) (string, error)
 	Store(packageDir, metadata string) error
 }

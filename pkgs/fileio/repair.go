@@ -133,8 +133,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 			}
 
 			color.Printf(color.Hint, "- caching to pkgcache: %s", fileName)
-			chattrFS := NewChattrFS(pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot))
-			cachedPath, err := SaveCachedFile(downloaded, cachedDownloadsDir, fileName, r.sha256, chattrFS)
+			cachedPath, err := SaveCachedFile(downloaded, cachedDownloadsDir, fileName, r.sha256)
 			if err != nil {
 				return fmt.Errorf("failed to cache downloaded file %s -> %w", fileName, err)
 			}

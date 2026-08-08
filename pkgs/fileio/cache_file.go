@@ -66,13 +66,13 @@ func FindCachedFile(cacheDir, fileName, sha256 string) (string, error) {
 }
 
 // SaveCachedFile saves a downloaded file to the cache directory using SHA256 in the filename.
-func SaveCachedFile(srcFile, cacheDir, fileName, sha256 string, chattrFS *ChattrFS) (string, error) {
+func SaveCachedFile(srcFile, cacheDir, fileName, sha256 string) (string, error) {
 	if sha256 == "" {
 		panic(fmt.Sprintf("no sha-256 provided when caching file to pkgcache for %s", fileName))
 	}
 
 	if !PathExists(cacheDir) {
-		if err := chattrFS.MkdirAll(cacheDir, CacheDirPerm); err != nil {
+		if err := os.MkdirAll(cacheDir, CacheDirPerm); err != nil {
 			return "", fmt.Errorf("failed to create cache dir -> %w", err)
 		}
 	}
@@ -92,7 +92,7 @@ func SaveCachedFile(srcFile, cacheDir, fileName, sha256 string, chattrFS *Chattr
 	}
 
 	// Copy file to cache (overwrite in-place if it exists, compatible with chattr +a).
-	if err := chattrFS.CopyFile(srcFile, cachedFilePath); err != nil {
+	if err := CopyFile(srcFile, cachedFilePath); err != nil {
 		return "", fmt.Errorf("failed to copy file to cache -> %w", err)
 	}
 

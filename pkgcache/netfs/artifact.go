@@ -1,4 +1,4 @@
-package nfs
+package netfs
 
 import (
 	"crypto/sha256"
@@ -18,7 +18,6 @@ import (
 type ArtifactConfig struct {
 	ctx        pkgcache.CacheContext
 	writable   bool
-	chattrFS   *fileio.ChattrFS
 	maxRetries int
 }
 
@@ -31,7 +30,6 @@ func NewArtifactConfig(ctx pkgcache.CacheContext, writable bool) *ArtifactConfig
 	return &ArtifactConfig{
 		ctx:        ctx,
 		writable:   writable,
-		chattrFS:   fileio.NewChattrFS(pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot)),
 		maxRetries: 3,
 	}
 }
@@ -177,18 +175,17 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 	}
 
 	// Create dirs and write to cache (with retry for NFS transient issues).
-	destName := filepath.Join(platformName, projectName, buildType, nameVersion)
-	if err := a.chattrFS.MkdirAll(destDir, fileio.CacheDirPerm); err != nil {
-		return storeErrorDiagnostic(err, destName, destDir)
+	if err := os.MkdirAll(destDir, fileio.CacheDirPerm); err != nil {
+		return err
 	}
-	if err := a.chattrFS.MkdirAll(metaDir, fileio.CacheDirPerm); err != nil {
-		return storeErrorDiagnostic(err, destName, metaDir)
+	if err := os.MkdirAll(metaDir, fileio.CacheDirPerm); err != nil {
+		return err
 	}
 
 	// Copy the compressed archive to cache. Retry on transient IO failures.
 	var storeErr error
 	for attempt := 1; attempt <= a.maxRetries; attempt++ {
-		storeErr = a.chattrFS.CopyFile(tempArchivePath, archivePath)
+		storeErr = fileio.CopyFile(tempArchivePath, archivePath)
 		if storeErr == nil {
 			break
 		}
@@ -198,12 +195,12 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 		}
 	}
 	if storeErr != nil {
-		return storeErrorDiagnostic(storeErr, destName, archivePath)
+		return err
 	}
 
 	// Write meta file.
 	metaPath := filepath.Join(metaDir, hash+".meta")
-	if err := a.chattrFS.WriteFile(metaPath, []byte(meta), fileio.CacheFilePerm); err != nil {
+	if err := os.WriteFile(metaPath, []byte(meta), fileio.CacheFilePerm); err != nil {
 		return err
 	}
 
