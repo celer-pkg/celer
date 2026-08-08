@@ -251,7 +251,7 @@ func (p Port) doGetCommitHash(nameVersion string, native bool) (string, error) {
 		}
 
 		// Calculate checksum of archive file.
-		commit, err := fileio.ComputeSHA256(filePath)
+		commit, err := fileio.SHA256Sum(filePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to get checksum of part's archive %s -> %w", nameVersion, err)
 		}

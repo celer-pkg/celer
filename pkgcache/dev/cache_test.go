@@ -7,75 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgcache"
-	"github.com/celer-pkg/celer/pkgcache/netfs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
-
-// ---- test fakes ----
-
-type fakePkgCache struct {
-	dir      string
-	writable bool
-}
-
-func (f fakePkgCache) GetDir(dirType pkgcache.PkgCacheDirType) string {
-	switch dirType {
-	case pkgcache.PkgCacheDirRepos:
-		return filepath.Join(f.dir, "repos")
-	case pkgcache.PkgCacheDirArtifacts:
-		return filepath.Join(f.dir, "artifacts")
-	case pkgcache.PkgCacheDirDownloads:
-		return filepath.Join(f.dir, "downloads")
-	default:
-		return f.dir
-	}
-}
-func (f fakePkgCache) IsWritable() bool                          { return f.writable }
-func (f fakePkgCache) GetCacheArtifacts() bool                   { return true }
-func (f fakePkgCache) GetCacheDownloads() bool                   { return true }
-func (f fakePkgCache) GetArtifactCache() pkgcache.AritifactCache { return nil }
-func (f fakePkgCache) GetRepoCache() pkgcache.RepoCache {
-	return netfs.NewRepoConfig(fakeContext{pkgCache: f}, f.writable)
-}
-
-type fakeDevCache struct{}
-
-func (f fakeDevCache) GetDir() string                                  { return "" }
-func (f fakeDevCache) GetDevArtifactCache() pkgcache.DevAritifactCache { return nil }
-
-type fakeContext struct {
-	pkgCache fakePkgCache
-	devCache fakeDevCache
-	offline  bool
-}
-
-func (fakeContext) Version() string                           { return "test" }
-func (fakeContext) Platform() context.Platform                { return nil }
-func (fakeContext) RootFS() context.RootFS                    { return nil }
-func (fakeContext) Project() context.Project                  { return nil }
-func (fakeContext) PlatformName() string                      { return "test-platform" }
-func (fakeContext) ProjectName() string                       { return "test-project" }
-func (fakeContext) BuildType() string                         { return "release" }
-func (fakeContext) LibraryFolder() string                     { return "" }
-func (fakeContext) Downloads() string                         { return "" }
-func (fakeContext) Jobs() int                                 { return 1 }
-func (f fakeContext) Offline() bool                           { return f.offline }
-func (fakeContext) Verbose() bool                             { return false }
-func (fakeContext) InstalledDir() string                      { return "" }
-func (fakeContext) InstalledDevDir() string                   { return "" }
-func (f fakeContext) PkgCacheConfig() pkgcache.PkgCacheConfig { return f.pkgCache }
-func (f fakeContext) DevCacheConfig() pkgcache.DevCacheConfig { return f.devCache }
-func (fakeContext) ProxyHostPort() (string, int)              { return "", 0 }
-func (fakeContext) CCacheEnabled() bool                       { return false }
-func (fakeContext) GenerateToolchainFile() error              { return nil }
-func (fakeContext) ExprVars() *context.ExprVars               { return nil }
-func (fakeContext) PythonConfig() context.PythonConfig        { return nil }
-func (fakeContext) Features() context.Features                { return nil }
-
-// ---- helpers ----
 
 func newTestDevArtifactCache(t *testing.T) *DevArtifactCache {
 	t.Helper()
@@ -91,7 +25,7 @@ func newTestDevArtifactCache(t *testing.T) *DevArtifactCache {
 		t.Fatal(err)
 	}
 
-	return NewDevArtifactCache(fakeContext{}, cacheDir)
+	return NewDevArtifactCache(cacheDir)
 }
 
 // makePackageDir creates a fake built package directory with a couple of files

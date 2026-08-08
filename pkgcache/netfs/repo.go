@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
@@ -14,11 +15,11 @@ import (
 )
 
 type RepoConfig struct {
-	ctx      pkgcache.CacheContext
+	ctx      context.Context
 	writable bool
 }
 
-func NewRepoConfig(ctx pkgcache.CacheContext, writable bool) *RepoConfig {
+func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
 	pkgCacheConfig := ctx.PkgCacheConfig()
 	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot) == "" {
 		return nil
@@ -94,7 +95,7 @@ func (r RepoConfig) Store(nameVersion, repoUrl, repoDir, archiveFile string) (st
 			return "", nil
 		}
 
-		checksum, err := fileio.ComputeSHA256(archiveFile)
+		checksum, err := fileio.SHA256Sum(archiveFile)
 		if err != nil {
 			return "", err
 		}
@@ -186,7 +187,7 @@ func (r RepoConfig) Restore(nameVersion, repoUrl, repoDir, checksum string) (str
 		}
 		localChecksum = commitHash
 	} else {
-		cachedChecksum, err := fileio.ComputeSHA256(archivePath)
+		cachedChecksum, err := fileio.SHA256Sum(archivePath)
 		if err != nil {
 			_ = os.RemoveAll(repoDir)
 			return "", fmt.Errorf("invalid cached repo, verify checksum failed -> %w", err)
