@@ -92,7 +92,7 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 		}
-		pkgCacheConfig := NewPkgCacheConfig(nil, nil)
+		pkgCacheConfig := NewPkgCacheConfig()
 		pkgCacheConfig.Dir = cacheDir
 		pkgCacheConfig.Writable = true
 		fakeCtx.pkgCacheConfig = pkgCacheConfig

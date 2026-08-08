@@ -45,6 +45,9 @@ func (f fakePkgCacheConfig) GetArtifactCache() pkgcache.AritifactCache { return 
 func (f fakePkgCacheConfig) GetRepoCache() pkgcache.RepoCache {
 	return netfs.NewRepoConfig(fakeContext{pkgCacheConfig: f}, f.writable)
 }
+func (f fakePkgCacheConfig) GetDownloadCache() pkgcache.DownloadCache {
+	return netfs.NewDownloadConfig(f)
+}
 
 // creates a local bare repo that acts like remote origin.
 // Using a local origin keeps this test deterministic and network-independent.
@@ -113,7 +116,7 @@ func setupArchiveFile(t *testing.T, tmpWorkspace string) (archivePath string, ar
 		t.Fatal(err)
 	}
 
-	checksum, err := fileio.ComputeSHA256(archivePath)
+	checksum, err := fileio.SHA256Sum(archivePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -359,7 +362,7 @@ func TestBuildConfigClone_ArchiveRepoCache(t *testing.T) {
 	if !fileio.PathExists(downloadsArchivePath) {
 		t.Fatalf("expected restored downloads archive exists: %s", downloadsArchivePath)
 	}
-	restoredChecksum, err := fileio.ComputeSHA256(downloadsArchivePath)
+	restoredChecksum, err := fileio.SHA256Sum(downloadsArchivePath)
 	if err != nil {
 		t.Fatal(err)
 	}

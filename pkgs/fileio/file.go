@@ -1,6 +1,8 @@
 package fileio
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -578,4 +580,34 @@ func IsELFFile(path string) bool {
 		return false
 	}
 	return magic[0] == 0x7f && magic[1] == 'E' && magic[2] == 'L' && magic[3] == 'F'
+}
+
+// SHA256Sum computes the SHA256 hash of a file.
+func SHA256Sum(filePath string) (string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open file -> %w", err)
+	}
+	defer file.Close()
+
+	hash := sha256.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", fmt.Errorf("failed to compute hash -> %w", err)
+	}
+
+	return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+// verifySHA256 verifies if a file's SHA256 matches the expected hash.
+func VerifyFileSHA256(filePath, expectedHash string) bool {
+	if expectedHash == "" {
+		panic("no sha256 provided for " + filePath)
+	}
+
+	computedHash, err := SHA256Sum(filePath)
+	if err != nil {
+		return false
+	}
+
+	return computedHash == expectedHash
 }
