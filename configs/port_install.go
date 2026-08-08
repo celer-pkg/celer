@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/celer-pkg/celer/buildtools"
-	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
@@ -412,7 +412,7 @@ func (p *Port) InstallFromPackage(options InstallOptions) (bool, error) {
 func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 	// Check if pkgCacheConfig has been configured.
 	pkgCacheConfig := p.ctx.PkgCacheConfig()
-	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(context.PkgCacheDirRoot) == "" {
+	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot) == "" {
 		return false, nil
 	}
 
@@ -435,7 +435,7 @@ func (p *Port) InstallFromPkgCache(options InstallOptions) (bool, error) {
 			return false, err
 		}
 
-		fromDir := pkgCacheConfig.GetDir(context.PkgCacheDirRoot)
+		fromDir := pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot)
 		return true, p.writeTraceFile(fmt.Sprintf("pkg-cache: %q", fromDir))
 	}
 
@@ -714,7 +714,7 @@ func (p *Port) doInstallFromSource() error {
 
 		// Store package cache with meta file inside.
 		pkgCache := p.ctx.PkgCacheConfig()
-		if pkgCache != nil && pkgCache.GetDir(context.PkgCacheDirRoot) != "" && pkgCache.IsWritable() {
+		if pkgCache != nil && pkgCache.GetDir(pkgcache.PkgCacheDirRoot) != "" && pkgCache.IsWritable() {
 			if p.pkgCacheStoreSkippedReason == "" && !p.shouldSkipArtifactPkgCache() {
 				artifactCache := pkgCache.GetArtifactCache()
 				if artifactCache != nil {

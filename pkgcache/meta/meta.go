@@ -1,4 +1,4 @@
-package pkgcache
+package meta
 
 import (
 	"bytes"

@@ -9,6 +9,7 @@ import (
 
 	"github.com/celer-pkg/celer/configs"
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/spf13/cobra"
 )
@@ -16,26 +17,26 @@ import (
 // fakeContext is a minimal context.Context implementation for testing.
 type fakeContext struct{}
 
-func (f fakeContext) Version() string                        { return "test" }
-func (f fakeContext) Platform() context.Platform             { return nil }
-func (f fakeContext) RootFS() context.RootFS                 { return nil }
-func (f fakeContext) Project() context.Project               { return nil }
-func (f fakeContext) BuildType() string                      { return "Release" }
-func (f fakeContext) Downloads() string                      { return "" }
-func (f fakeContext) LibraryFolder() string                  { return "" }
-func (f fakeContext) Jobs() int                              { return 1 }
-func (f fakeContext) Offline() bool                          { return true }
-func (f fakeContext) Verbose() bool                          { return false }
-func (f fakeContext) InstalledDir() string                   { return "" }
-func (f fakeContext) InstalledDevDir() string                { return "" }
-func (f fakeContext) PkgCacheConfig() context.PkgCacheConfig { return nil }
-func (f fakeContext) DevCacheConfig() context.DevCacheConfig { return nil }
-func (f fakeContext) ProxyHostPort() (host string, port int) { return "", 0 }
-func (f fakeContext) CCacheEnabled() bool                    { return false }
-func (f fakeContext) GenerateToolchainFile() error           { return nil }
-func (f fakeContext) ExprVars() *context.ExprVars            { return nil }
-func (f fakeContext) PythonConfig() context.PythonConfig     { return nil }
-func (f fakeContext) Features() context.Features             { return nil }
+func (f fakeContext) Version() string                         { return "test" }
+func (f fakeContext) Platform() context.Platform              { return nil }
+func (f fakeContext) RootFS() context.RootFS                  { return nil }
+func (f fakeContext) Project() context.Project                { return nil }
+func (f fakeContext) BuildType() string                       { return "Release" }
+func (f fakeContext) Downloads() string                       { return "" }
+func (f fakeContext) LibraryFolder() string                   { return "" }
+func (f fakeContext) Jobs() int                               { return 1 }
+func (f fakeContext) Offline() bool                           { return true }
+func (f fakeContext) Verbose() bool                           { return false }
+func (f fakeContext) InstalledDir() string                    { return "" }
+func (f fakeContext) InstalledDevDir() string                 { return "" }
+func (f fakeContext) PkgCacheConfig() pkgcache.PkgCacheConfig { return nil }
+func (f fakeContext) DevCacheConfig() pkgcache.DevCacheConfig { return nil }
+func (f fakeContext) ProxyHostPort() (host string, port int)  { return "", 0 }
+func (f fakeContext) CCacheEnabled() bool                     { return false }
+func (f fakeContext) GenerateToolchainFile() error            { return nil }
+func (f fakeContext) ExprVars() *context.ExprVars             { return nil }
+func (f fakeContext) PythonConfig() context.PythonConfig      { return nil }
+func (f fakeContext) Features() context.Features              { return nil }
 
 // newInitializedCeler returns a Celer that has been Init'd and has a freshly
 // cloned conf repo — the minimum state required for configureCmd's

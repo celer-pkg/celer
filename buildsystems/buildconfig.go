@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/configs/toolchains"
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/generator"
+	"github.com/celer-pkg/celer/pkgcache"
 	pkgcmake "github.com/celer-pkg/celer/pkgs/cmake"
 	"github.com/celer-pkg/celer/pkgs/cmd"
 	"github.com/celer-pkg/celer/pkgs/color"
@@ -372,7 +373,7 @@ func (b BuildConfig) Clone(repoUrl, repoRef, archive string, depth int) error {
 	nameVersion := fmt.Sprintf("%s@%s", b.PortConfig.LibName, b.PortConfig.LibVersion)
 
 	// Try to fetch repo from pkgcache.
-	var repoCache context.RepoCache
+	var repoCache pkgcache.RepoCache
 	pkgCacheConfig := b.Ctx.PkgCacheConfig()
 	if pkgCacheConfig != nil {
 		repoCache = pkgCacheConfig.GetRepoCache()

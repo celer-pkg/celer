@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -26,8 +26,7 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 	pkgCacheConfig := NewPkgCacheConfig(nil, nil)
 	pkgCacheConfig.Dir = cacheDir
 	pkgCacheConfig.Writable = true
-	cachedDownloadsDir := pkgCacheConfig.GetDir(context.PkgCacheDirDownloads)
-	chattrFS := fileio.NewChattrFS(pkgCacheConfig.GetDir(context.PkgCacheDirRoot))
+	cachedDownloadsDir := pkgCacheConfig.GetDir(pkgcache.PkgCacheDirDownloads)
 
 	t.Run("save and find cached download", func(t *testing.T) {
 		// Create a temporary source file to cache.
@@ -42,7 +41,7 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 		fileName := "test-tool-1.0.tar.gz"
 
 		// Save to cache.
-		cachedPath, err := fileio.SaveCachedFile(srcFile, cachedDownloadsDir, fileName, sha256, chattrFS)
+		cachedPath, err := fileio.SaveCachedFile(srcFile, cachedDownloadsDir, fileName, sha256)
 		if err != nil {
 			t.Fatalf("SaveCachedFile failed: %v", err)
 		}
@@ -89,12 +88,12 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 		sha256 := fmt.Sprintf("%x", sha256.Sum256(content))
 		fileName := "test-tool-1.0.tar.gz"
 
-		cachedPath1, err := fileio.SaveCachedFile(srcFile, cachedDownloadsDir, fileName, sha256, chattrFS)
+		cachedPath1, err := fileio.SaveCachedFile(srcFile, cachedDownloadsDir, fileName, sha256)
 		if err != nil {
 			t.Fatalf("first SaveCachedFile failed: %v", err)
 		}
 
-		cachedPath2, err := fileio.SaveCachedFile(srcFile, cachedDownloadsDir, fileName, sha256, chattrFS)
+		cachedPath2, err := fileio.SaveCachedFile(srcFile, cachedDownloadsDir, fileName, sha256)
 		if err != nil {
 			t.Fatalf("second SaveCachedFile failed: %v", err)
 		}

@@ -69,7 +69,6 @@ func Execute() error {
 		&autoremoveCmd{},
 		&reverseCmd{},
 		&searchCmd{},
-		&setupCmd{},
 	}
 
 	// Create celer but init it in command.

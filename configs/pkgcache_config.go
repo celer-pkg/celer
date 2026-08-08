@@ -6,6 +6,7 @@ import (
 
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgcache/dev"
 )
 
 // ================= PkgCacheConfig ================= //
@@ -17,11 +18,11 @@ type PkgCacheConfig struct {
 	CacheDownloads bool   `toml:"cache_downloads"`
 
 	// Internal field.
-	artifactCache context.AritifactCache
-	repoCache     context.RepoCache
+	artifactCache pkgcache.AritifactCache
+	repoCache     pkgcache.RepoCache
 }
 
-func NewPkgCacheConfig(repoCache context.RepoCache, artifactCache context.AritifactCache) *PkgCacheConfig {
+func NewPkgCacheConfig(repoCache pkgcache.RepoCache, artifactCache pkgcache.AritifactCache) *PkgCacheConfig {
 	return &PkgCacheConfig{
 		repoCache:      repoCache,
 		artifactCache:  artifactCache,
@@ -31,15 +32,15 @@ func NewPkgCacheConfig(repoCache context.RepoCache, artifactCache context.Aritif
 	}
 }
 
-func (p PkgCacheConfig) GetDir(dirType context.PkgCacheDirType) string {
+func (p PkgCacheConfig) GetDir(dirType pkgcache.PkgCacheDirType) string {
 	switch dirType {
-	case context.PkgCacheDirArtifacts:
+	case pkgcache.PkgCacheDirArtifacts:
 		return filepath.Join(p.Dir, "artifacts-"+Version)
 
-	case context.PkgCacheDirRepos:
+	case pkgcache.PkgCacheDirRepos:
 		return filepath.Join(p.Dir, "repos")
 
-	case context.PkgCacheDirDownloads:
+	case pkgcache.PkgCacheDirDownloads:
 		return filepath.Join(p.Dir, "downloads")
 
 	default:
@@ -59,14 +60,14 @@ func (p PkgCacheConfig) GetCacheDownloads() bool {
 	return p.CacheDownloads
 }
 
-func (p PkgCacheConfig) GetArtifactCache() context.AritifactCache {
+func (p PkgCacheConfig) GetArtifactCache() pkgcache.AritifactCache {
 	if p.artifactCache == nil {
 		return nil
 	}
 	return p.artifactCache
 }
 
-func (p PkgCacheConfig) GetRepoCache() context.RepoCache {
+func (p PkgCacheConfig) GetRepoCache() pkgcache.RepoCache {
 	if p.repoCache == nil {
 		return nil
 	}
@@ -77,13 +78,13 @@ func (p PkgCacheConfig) GetRepoCache() context.RepoCache {
 
 type DevCacheConfig struct {
 	ctx              context.Context
-	devArtifactCache *pkgcache.DevArtifactCache
+	devArtifactCache *dev.DevArtifactCache
 }
 
 func NewDevCacheConfig(ctx context.Context) *DevCacheConfig {
 	cacheConfig := DevCacheConfig{ctx: ctx}
 	cacheDir := cacheConfig.GetDir()
-	cacheConfig.devArtifactCache = pkgcache.NewDevArtifactCache(ctx, cacheDir)
+	cacheConfig.devArtifactCache = dev.NewDevArtifactCache(ctx, cacheDir)
 	return &cacheConfig
 }
 
@@ -97,6 +98,6 @@ func (d DevCacheConfig) GetDir() string {
 	return filepath.Join(homeDir, "celer", hostName+"-dev")
 }
 
-func (d DevCacheConfig) GetDevArtifactCache() context.DevAritifactCache {
+func (d DevCacheConfig) GetDevArtifactCache() pkgcache.DevAritifactCache {
 	return d.devArtifactCache
 }

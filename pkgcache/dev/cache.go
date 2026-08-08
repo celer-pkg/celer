@@ -1,4 +1,4 @@
-package pkgcache
+package dev
 
 import (
 	"crypto/sha256"

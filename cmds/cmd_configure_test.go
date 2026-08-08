@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/configs"
-	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
 	"github.com/celer-pkg/celer/pkgs/expr"
@@ -250,7 +250,7 @@ func TestConfigureCmd_PkgCacheGroupShouldSucceed(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if celer2.PkgCacheConfig().GetDir(context.PkgCacheDirRoot) != dirs.TestPkgCacheDir {
+	if celer2.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRoot) != dirs.TestPkgCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
 	if !celer2.PkgCacheConfig().IsWritable() {
@@ -532,7 +532,7 @@ func TestConfigure_PkgCacheDir(t *testing.T) {
 	if err := celer2.Init(); err != nil {
 		t.Fatal(err)
 	}
-	if celer2.PkgCacheConfig().GetDir(context.PkgCacheDirRoot) != dirs.TestPkgCacheDir {
+	if celer2.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirRoot) != dirs.TestPkgCacheDir {
 		t.Fatalf("cache dir should be `%s`", dirs.TestPkgCacheDir)
 	}
 }

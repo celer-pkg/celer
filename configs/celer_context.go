@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/celer-pkg/celer/context"
+	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/expr"
 )
@@ -58,7 +59,15 @@ func (c *Celer) Offline() bool {
 	return c.Main.Offline
 }
 
-func (c *Celer) PkgCacheConfig() context.PkgCacheConfig {
+func (c *Celer) PlatformName() string {
+	return c.platform.Name
+}
+
+func (c *Celer) ProjectName() string {
+	return c.project.Name
+}
+
+func (c *Celer) PkgCacheConfig() pkgcache.PkgCacheConfig {
 	if c.configData.PkgCacheConfig == nil {
 		return nil
 	}
@@ -66,7 +75,7 @@ func (c *Celer) PkgCacheConfig() context.PkgCacheConfig {
 	return c.configData.PkgCacheConfig
 }
 
-func (c *Celer) DevCacheConfig() context.DevCacheConfig {
+func (c *Celer) DevCacheConfig() pkgcache.DevCacheConfig {
 	return c.devCacheConfig
 }
 
