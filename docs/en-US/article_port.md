@@ -19,6 +19,7 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
 [[build_configs]]
   system_name         = "linux"               # optional selector
   system_names        = ["linux", "windows"]  # optional selector
+  system_name_except  = "windows"             # optional selector, exclude a single system, mutually exclusive with system_name/system_names
   system_names_except = ["windows"]           # optional selector, exclude listed systems, mutually exclusive with system_name/system_names
   system_processor    = "x86_64"              # optional selector
   build_system        = "cmake"               # mandatory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
@@ -97,7 +98,7 @@ The following are fields and their descriptions:
 
 >Note: `system_names` is an array, used to specify multiple system platforms, for example: ["linux", "windows"], x264 in Linux and Windows have the same configuration, but QNX has a significant difference, so you can use `system_names` to merge Linux and Windows.
 
->Note: `system_names_except` is an array, used to exclude specified system platforms, for example: `system_names_except = ["windows"]` matches all platforms except Windows. **`system_names_except` is mutually exclusive with `system_name`/`system_names` — you cannot use both at the same time.** This field is ideal for "exclude only a few platforms" scenarios, avoiding the need to enumerate every supported platform.
+>Note: `system_names_except` is an array, used to exclude specified system platforms, for example: `system_names_except = ["windows"]` matches all platforms except Windows. `system_name_except` is the singular convenience form for excluding a single system, for example: `system_name_except = "windows"`. **`system_names_except`/`system_name_except` is mutually exclusive with `system_name`/`system_names` — you cannot use both at the same time.** This field is ideal for "exclude only a few platforms" scenarios, avoiding the need to enumerate every supported platform.
 
 ### 1.2.2 build_system
 
