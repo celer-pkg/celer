@@ -104,6 +104,7 @@ type BuildConfig struct {
 	Url               string   `toml:"url,omitempty"` // Used to override url in package.
 	SystemName        string   `toml:"system_name,omitempty"`
 	SystemNames       []string `toml:"system_names,omitempty"`
+	SystemNameExcept  string   `toml:"system_name_except,omitempty"`
 	SystemNamesExcept []string `toml:"system_names_except,omitempty"`
 	SystemProcessor   string   `toml:"system_processor,omitempty"`
 	ToolchainName     string   `toml:"toolchain_name,omitempty"`
@@ -304,9 +305,9 @@ func (b BuildConfig) Validate() error {
 		return err
 	}
 
-	// system_names / system_name and system_names_except are mutually exclusive.
-	if (len(b.SystemNames) > 0 || b.SystemName != "") && len(b.SystemNamesExcept) > 0 {
-		return fmt.Errorf("system_names/system_name and system_names_except are mutually exclusive, use one or the other")
+	// system_names/system_name and system_names_except/system_name_except are mutually exclusive.
+	if (len(b.SystemNames) > 0 || b.SystemName != "") && (len(b.SystemNamesExcept) > 0 || b.SystemNameExcept != "") {
+		return fmt.Errorf("system_names/system_name and system_names_except/system_name_except are mutually exclusive, use one or the other")
 	}
 
 	// Check unsupported buildsystem.

@@ -28,6 +28,7 @@
 [[build_configs]]
   system_name = "linux"                   # 可选选择器
   system_names = ["linux", "windows"]     # 可选选择器
+  system_name_except = "windows"          # 可选选择器，排除单个系统，与 system_name/system_names 互斥
   system_names_except = ["windows"]       # 可选选择器，排除指定系统，与 system_name/system_names 互斥
   system_processor = "x86_64"             # 可选选择器
   toolchain_name = "gcc"                  # 可选选择器
@@ -108,7 +109,7 @@
 
 >Note: `system_names` 是一个数组，用于指定多个系统平台，例如：["linux", "windows"]，x264 在 Linux 和 Windows 上的配置是一样的，但 QNX 上的差别较大，因此可以通过 `system_names` 来合并 Linux 和 Windows。
 
->Note: `system_names_except` 是一个数组，用于排除指定的系统平台，例如：`system_names_except = ["windows"]` 表示匹配除 Windows 之外的所有平台。**`system_names_except` 与 `system_name`/`system_names` 互斥，不能同时使用。** 该字段适用于"仅排除少数平台"的场景，避免逐一列举支持的所有平台。
+>Note: `system_names_except` 是一个数组，用于排除指定的系统平台，例如：`system_names_except = ["windows"]` 表示匹配除 Windows 之外的所有平台。`system_name_except` 是排除单个系统的单值便捷写法，例如：`system_name_except = "windows"`。**`system_names_except`/`system_name_except` 与 `system_name`/`system_names` 互斥，不能同时使用。** 该字段适用于"仅排除少数平台"的场景，避免逐一列举支持的所有平台。
 
 ### 1.2.1.2 toolchain_name, toolchain_names
 
