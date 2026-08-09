@@ -213,10 +213,10 @@ func (c *Celer) SetPkgCacheDir(dir string) error {
 
 	// Update package cache dir.
 	if c.configData.PkgCacheConfig == nil {
-		c.configData.PkgCacheConfig = NewPkgCacheConfig(nil, nil)
+		c.configData.PkgCacheConfig = NewPkgCacheConfig()
 	}
 	c.configData.PkgCacheConfig.Dir = filepath.ToSlash(dir)
-	c.buildPkgCacheCaches()
+	c.initPkgCacheCaches()
 	if err := c.save(); err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func (c *Celer) SetPkgCacheWritable(writable bool) error {
 
 	// Update pkgcache wriatable.
 	c.configData.PkgCacheConfig.Writable = writable
-	c.buildPkgCacheCaches()
+	c.initPkgCacheCaches()
 	if err := c.save(); err != nil {
 		return err
 	}

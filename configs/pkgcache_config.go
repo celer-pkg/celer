@@ -20,12 +20,11 @@ type PkgCacheConfig struct {
 	// Internal field.
 	artifactCache pkgcache.AritifactCache
 	repoCache     pkgcache.RepoCache
+	downloadCache pkgcache.DownloadCache
 }
 
-func NewPkgCacheConfig(repoCache pkgcache.RepoCache, artifactCache pkgcache.AritifactCache) *PkgCacheConfig {
+func NewPkgCacheConfig() *PkgCacheConfig {
 	return &PkgCacheConfig{
-		repoCache:      repoCache,
-		artifactCache:  artifactCache,
 		CacheArtifacts: true,
 		CacheDownloads: true,
 		Writable:       true,
@@ -74,6 +73,13 @@ func (p PkgCacheConfig) GetRepoCache() pkgcache.RepoCache {
 	return p.repoCache
 }
 
+func (p PkgCacheConfig) GetDownloadCache() pkgcache.DownloadCache {
+	if p.downloadCache == nil {
+		return nil
+	}
+	return p.downloadCache
+}
+
 // ================= DevCacheConfig ================= //
 
 type DevCacheConfig struct {
@@ -84,7 +90,7 @@ type DevCacheConfig struct {
 func NewDevCacheConfig(ctx context.Context) *DevCacheConfig {
 	cacheConfig := DevCacheConfig{ctx: ctx}
 	cacheDir := cacheConfig.GetDir()
-	cacheConfig.devArtifactCache = dev.NewDevArtifactCache(ctx, cacheDir)
+	cacheConfig.devArtifactCache = dev.NewDevArtifactCache(cacheDir)
 	return &cacheConfig
 }
 

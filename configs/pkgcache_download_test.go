@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/celer-pkg/celer/pkgcache"
+	"github.com/celer-pkg/celer/pkgcache/netfs"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
@@ -23,10 +24,17 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pkgCacheConfig := NewPkgCacheConfig(nil, nil)
+	pkgCacheConfig := NewPkgCacheConfig()
 	pkgCacheConfig.Dir = cacheDir
 	pkgCacheConfig.Writable = true
 	cachedDownloadsDir := pkgCacheConfig.GetDir(pkgcache.PkgCacheDirDownloads)
+
+	// Create download cache through the NFS implementation using a fake context.
+	fakeCtx := fakeContext{pkgCacheConfig: pkgCacheConfig}
+	downloadCache := netfs.NewDownloadConfig(fakeCtx)
+	if downloadCache == nil {
+		t.Fatal("expected download cache to be created")
+	}
 
 	t.Run("save and find cached download", func(t *testing.T) {
 		// Create a temporary source file to cache.
@@ -40,10 +48,10 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 		sha256 := fmt.Sprintf("%x", sha256.Sum256(content))
 		fileName := "test-tool-1.0.tar.gz"
 
-		// Save to cache.
-		cachedPath, err := fileio.SaveCachedFile(srcFile, cachedDownloadsDir, fileName, sha256)
+		// Save to cache via DownloadCache.Store.
+		cachedPath, err := downloadCache.Store(fileName, sha256, srcFile)
 		if err != nil {
-			t.Fatalf("SaveCachedFile failed: %v", err)
+			t.Fatalf("Store failed: %v", err)
 		}
 
 		if !fileio.PathExists(cachedPath) {
@@ -55,10 +63,10 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 			t.Fatal("expected downloads cache directory to exist")
 		}
 
-		// Find the cached file.
-		foundPath, err := fileio.FindCachedFile(cachedDownloadsDir, fileName, sha256)
+		// Find the cached file via DownloadCache.Restore.
+		foundPath, err := downloadCache.Restore(fileName, sha256)
 		if err != nil {
-			t.Fatalf("FindCachedFile failed: %v", err)
+			t.Fatalf("Restore failed: %v", err)
 		}
 		if foundPath == "" {
 			t.Fatal("expected to find cached file")
@@ -68,7 +76,7 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 		}
 
 		// Verify content integrity.
-		computedHash, err := fileio.ComputeSHA256(cachedPath)
+		computedHash, err := fileio.SHA256Sum(cachedPath)
 		if err != nil {
 			t.Fatalf("ComputeSHA256 failed: %v", err)
 		}
@@ -88,14 +96,14 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 		sha256 := fmt.Sprintf("%x", sha256.Sum256(content))
 		fileName := "test-tool-1.0.tar.gz"
 
-		cachedPath1, err := fileio.SaveCachedFile(srcFile, cachedDownloadsDir, fileName, sha256)
+		cachedPath1, err := downloadCache.Store(fileName, sha256, srcFile)
 		if err != nil {
-			t.Fatalf("first SaveCachedFile failed: %v", err)
+			t.Fatalf("first Store failed: %v", err)
 		}
 
-		cachedPath2, err := fileio.SaveCachedFile(srcFile, cachedDownloadsDir, fileName, sha256)
+		cachedPath2, err := downloadCache.Store(fileName, sha256, srcFile)
 		if err != nil {
-			t.Fatalf("second SaveCachedFile failed: %v", err)
+			t.Fatalf("second Store failed: %v", err)
 		}
 
 		if cachedPath1 != cachedPath2 {
@@ -104,9 +112,9 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 	})
 
 	t.Run("find non-existent file returns empty", func(t *testing.T) {
-		foundPath, err := fileio.FindCachedFile(cachedDownloadsDir, "nonexistent.tar.gz", "abc123")
+		foundPath, err := downloadCache.Restore("nonexistent.tar.gz", "abc123")
 		if err != nil {
-			t.Fatalf("FindCachedFile failed: %v", err)
+			t.Fatalf("Restore failed: %v", err)
 		}
 		if foundPath != "" {
 			t.Fatalf("expected empty path for non-existent file, got %s", foundPath)

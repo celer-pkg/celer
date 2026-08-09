@@ -92,11 +92,11 @@ func TestArtifactCache_StoreAndFetch(t *testing.T) {
 			project:  "proj",
 			build:    "release",
 		}
-		pkgCacheConfig := NewPkgCacheConfig(nil, nil)
+		pkgCacheConfig := NewPkgCacheConfig()
 		pkgCacheConfig.Dir = cacheDir
 		pkgCacheConfig.Writable = true
 		fakeCtx.pkgCacheConfig = pkgCacheConfig
-		pkgCacheConfig.artifactCache = netfs.NewArtifactConfig(fakeCtx, true)
+		pkgCacheConfig.artifactCache = netfs.NewArtifactConfig(fakeCtx)
 
 		nameVersion = "demo@1.0.0"
 		meta = "meta-data-for-test"

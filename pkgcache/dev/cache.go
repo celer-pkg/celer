@@ -7,19 +7,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 )
 
 type DevArtifactCache struct {
 	cacheDir string
-	ctx      context.Context
 }
 
-func NewDevArtifactCache(ctx context.Context, cacheDir string) *DevArtifactCache {
+func NewDevArtifactCache(cacheDir string) *DevArtifactCache {
 	return &DevArtifactCache{
-		ctx:      ctx,
 		cacheDir: cacheDir,
 	}
 }

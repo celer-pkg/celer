@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"github.com/celer-pkg/celer/context"
-	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/expr"
 )
@@ -89,11 +88,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 
 	// Check if local file is valid. If not, try to restore from cache or download again.
 	pkgCacheConfig := ctx.PkgCacheConfig()
-	cachedDownloadsDir := ""
 	canUseCache := r.sha256 != "" && !r.ctx.Offline() && pkgCacheConfig != nil && pkgCacheConfig.IsWritable()
-	if canUseCache {
-		cachedDownloadsDir = pkgCacheConfig.GetDir(pkgcache.PkgCacheDirDownloads)
-	}
 
 	// Determine if download is needed.
 	needToDownload, err := r.needToDownload(fileName, r.sha256)
@@ -103,7 +98,7 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 
 	// Try restore from cache if local file is invalid.
 	if needToDownload && canUseCache {
-		cachedFile, err := r.tryRestoreFromCache(cachedDownloadsDir, fileName)
+		cachedFile, err := r.tryRestoreFromCache(fileName)
 		if err != nil {
 			color.Printf(color.Warning, "✘ failed to search pkgcache: %v\n", err)
 		} else if cachedFile != "" {
@@ -128,17 +123,20 @@ func (r *Repair) handleRemoteURL(ctx context.Context) error {
 
 		// Verify and cache after download.
 		if canUseCache {
-			if !verifySHA256(downloaded, r.sha256) {
+			if !VerifyFileSHA256(downloaded, r.sha256) {
 				return fmt.Errorf("sha-256 mismatch for %s: expected %s", fileName, r.sha256)
 			}
 
 			color.Printf(color.Hint, "- caching to pkgcache: %s", fileName)
-			cachedPath, err := SaveCachedFile(downloaded, cachedDownloadsDir, fileName, r.sha256)
-			if err != nil {
-				return fmt.Errorf("failed to cache downloaded file %s -> %w", fileName, err)
+			downloadCache := pkgCacheConfig.GetDownloadCache()
+			if downloadCache != nil {
+				cachedPath, err := downloadCache.Store(fileName, r.sha256, downloaded)
+				if err != nil {
+					return fmt.Errorf("failed to cache downloaded file %s -> %w", fileName, err)
+				}
+				color.PrintInline(color.Hint, "✔ cached to pkgcache: %s\n", fileName)
+				downloaded = cachedPath
 			}
-			color.PrintInline(color.Hint, "✔ cached to pkgcache: %s\n", fileName)
-			downloaded = cachedPath
 		}
 	}
 
@@ -278,7 +276,7 @@ func (r Repair) needToDownload(archive, sha256 string) (needToDownload bool, err
 
 	// Verify sha256, not matches indicate file is corrupted or outdated, need to re-download.
 	if sha256 != "" {
-		computedSha256, err := ComputeSHA256(destFilePath)
+		computedSha256, err := SHA256Sum(destFilePath)
 		if err != nil {
 			return false, fmt.Errorf("failed to compute sha256 for %s -> %w", archive, err)
 		}
@@ -292,7 +290,7 @@ func (r Repair) needToDownload(archive, sha256 string) (needToDownload bool, err
 
 // tryRestoreFromCache attempts to find and verify cached file by comparing sha256.
 // Returns cached file path if found empty string otherwise.
-func (r *Repair) tryRestoreFromCache(cacheDir, fileName string) (string, error) {
+func (r *Repair) tryRestoreFromCache(fileName string) (string, error) {
 	if r.sha256 == "" {
 		return "", nil
 	}
@@ -301,8 +299,18 @@ func (r *Repair) tryRestoreFromCache(cacheDir, fileName string) (string, error) 
 		return "", nil
 	}
 
-	// First, find cached file by sha-256.
-	cachedFile, err := FindCachedFile(cacheDir, fileName, r.sha256)
+	pkgCacheConfig := r.ctx.PkgCacheConfig()
+	if pkgCacheConfig == nil {
+		return "", nil
+	}
+
+	downloadCache := pkgCacheConfig.GetDownloadCache()
+	if downloadCache == nil {
+		return "", nil
+	}
+
+	// Find cached file by sha256 via the DownloadCache interface.
+	cachedFile, err := downloadCache.Restore(fileName, r.sha256)
 	if err != nil {
 		return "", err
 	}

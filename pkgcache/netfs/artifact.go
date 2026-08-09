@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgcache"
 	"github.com/celer-pkg/celer/pkgs/color"
 	"github.com/celer-pkg/celer/pkgs/dirs"
@@ -16,12 +17,12 @@ import (
 )
 
 type ArtifactConfig struct {
-	ctx        pkgcache.CacheContext
+	ctx        context.Context
 	writable   bool
 	maxRetries int
 }
 
-func NewArtifactConfig(ctx pkgcache.CacheContext, writable bool) *ArtifactConfig {
+func NewArtifactConfig(ctx context.Context) *ArtifactConfig {
 	pkgCacheConfig := ctx.PkgCacheConfig()
 	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(pkgcache.PkgCacheDirArtifacts) == "" {
 		return nil
@@ -29,7 +30,7 @@ func NewArtifactConfig(ctx pkgcache.CacheContext, writable bool) *ArtifactConfig
 
 	return &ArtifactConfig{
 		ctx:        ctx,
-		writable:   writable,
+		writable:   pkgCacheConfig.IsWritable(),
 		maxRetries: 3,
 	}
 }
@@ -42,8 +43,8 @@ func (a ArtifactConfig) Restore(nameVersion, buildHash, packageDir string) (stri
 		return "", nil
 	}
 
-	platformName := a.ctx.PlatformName()
-	projectName := a.ctx.ProjectName()
+	platformName := a.ctx.Platform().GetName()
+	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
 
 	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirArtifacts)
@@ -209,8 +210,8 @@ func (a ArtifactConfig) Store(packageDir, meta string) error {
 
 // Remove removes the cache for the specified platform, project, build type and name version.
 func (a ArtifactConfig) Remove(nameVersion string) error {
-	platformName := a.ctx.PlatformName()
-	projectName := a.ctx.ProjectName()
+	platformName := a.ctx.Platform().GetName()
+	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
 	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirArtifacts)
 	pacakgeDir := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion)
@@ -225,8 +226,8 @@ func (a ArtifactConfig) Remove(nameVersion string) error {
 
 // Exist check both archive file and build desc file exist.
 func (a ArtifactConfig) Exist(nameVersion, hash string) bool {
-	platformName := a.ctx.PlatformName()
-	projectName := a.ctx.ProjectName()
+	platformName := a.ctx.Platform().GetName()
+	projectName := a.ctx.Project().GetName()
 	buildType := a.ctx.BuildType()
 	artifactCacheDir := a.ctx.PkgCacheConfig().GetDir(pkgcache.PkgCacheDirArtifacts)
 	archivePath := filepath.Join(artifactCacheDir, platformName, projectName, buildType, nameVersion, hash+".tar.gz")

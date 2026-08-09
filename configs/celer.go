@@ -233,7 +233,7 @@ func (c *Celer) InitWithPlatform(platform string, opts InitOption) error {
 			if strings.TrimSpace(c.configData.PkgCacheConfig.Dir) == "" {
 				return fmt.Errorf("pkgcache dir is empty")
 			}
-			c.buildPkgCacheCaches()
+			c.initPkgCacheCaches()
 		}
 
 		// Setup ccache.
@@ -457,15 +457,15 @@ func (c *Celer) GetProjectName() string {
 	return cfg.Main.Project
 }
 
-// buildPkgCacheCaches populates repoCache and artifactCache on PkgCacheConfig.
-// Safe to call multiple times; callers should ensure Dir is non-empty first.
-func (c *Celer) buildPkgCacheCaches() {
+// initPkgCacheCaches populates repoCache, artifactCache and downloadCache on PkgCacheConfig.
+func (c *Celer) initPkgCacheCaches() {
 	if c.configData.PkgCacheConfig == nil {
 		return
 	}
 
-	c.configData.PkgCacheConfig.repoCache = netfs.NewRepoConfig(c, c.configData.PkgCacheConfig.Writable)
-	c.configData.PkgCacheConfig.artifactCache = netfs.NewArtifactConfig(c, c.configData.PkgCacheConfig.Writable)
+	c.configData.PkgCacheConfig.repoCache = netfs.NewRepoConfig(c)
+	c.configData.PkgCacheConfig.artifactCache = netfs.NewArtifactConfig(c)
+	c.configData.PkgCacheConfig.downloadCache = netfs.NewDownloadConfig(c)
 }
 
 func (c *Celer) portsRepoUrl() string {

@@ -1,15 +1,5 @@
 package pkgcache
 
-// ========================== CacheContext ========================== //
-
-type CacheContext interface {
-	Offline() bool
-	PlatformName() string
-	ProjectName() string
-	BuildType() string
-	PkgCacheConfig() PkgCacheConfig
-}
-
 // ========================== pkg-cache types ========================== //
 
 // PkgCacheDirType identifies a cache subdirectory.
@@ -29,6 +19,7 @@ type PkgCacheConfig interface {
 	IsWritable() bool
 	GetCacheArtifacts() bool
 	GetCacheDownloads() bool
+	GetDownloadCache() DownloadCache
 	GetArtifactCache() AritifactCache
 	GetRepoCache() RepoCache
 }
@@ -43,6 +34,12 @@ type AritifactCache interface {
 type RepoCache interface {
 	Restore(nameVersion, repoUrl, repoDir, checksum string) (string, error)
 	Store(nameVersion, repoUrl, repoDir, archiveFile string) (string, error)
+}
+
+// DownloadCache stores/restores downloaded files (tools, archives), keyed by SHA256.
+type DownloadCache interface {
+	Restore(fileName, sha256 string) (string, error)
+	Store(fileName, sha256, srcFile string) (string, error)
 }
 
 // ========================== dev cache ========================== //
