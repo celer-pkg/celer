@@ -22,7 +22,7 @@ type ArtifactConfig struct {
 	maxRetries int
 }
 
-func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
+func NewArtifactConfig(ctx context.Context) *ArtifactConfig {
 	pkgCacheConfig := ctx.PkgCacheConfig()
 	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(pkgcache.PkgCacheDirArtifacts) == "" {
 		return nil
@@ -30,7 +30,7 @@ func NewArtifactConfig(ctx context.Context, writable bool) *ArtifactConfig {
 
 	return &ArtifactConfig{
 		ctx:        ctx,
-		writable:   writable,
+		writable:   pkgCacheConfig.IsWritable(),
 		maxRetries: 3,
 	}
 }

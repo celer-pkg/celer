@@ -43,10 +43,10 @@ func (f fakePkgCacheConfig) GetCacheArtifacts() bool                   { return 
 func (f fakePkgCacheConfig) GetCacheDownloads() bool                   { return true }
 func (f fakePkgCacheConfig) GetArtifactCache() pkgcache.AritifactCache { return nil }
 func (f fakePkgCacheConfig) GetRepoCache() pkgcache.RepoCache {
-	return netfs.NewRepoConfig(fakeContext{pkgCacheConfig: f}, f.writable)
+	return netfs.NewRepoConfig(fakeContext{pkgCacheConfig: f})
 }
 func (f fakePkgCacheConfig) GetDownloadCache() pkgcache.DownloadCache {
-	return netfs.NewDownloadConfig(f)
+	return netfs.NewDownloadConfig(fakeContext{pkgCacheConfig: f})
 }
 
 // creates a local bare repo that acts like remote origin.

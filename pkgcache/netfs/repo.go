@@ -19,7 +19,7 @@ type RepoConfig struct {
 	writable bool
 }
 
-func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
+func NewRepoConfig(ctx context.Context) *RepoConfig {
 	pkgCacheConfig := ctx.PkgCacheConfig()
 	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot) == "" {
 		return nil
@@ -27,7 +27,7 @@ func NewRepoConfig(ctx context.Context, writable bool) *RepoConfig {
 
 	return &RepoConfig{
 		ctx:      ctx,
-		writable: writable,
+		writable: pkgCacheConfig.IsWritable(),
 	}
 }
 

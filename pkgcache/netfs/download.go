@@ -21,8 +21,9 @@ type DownloadConfig struct {
 }
 
 // NewDownloadConfig creates a DownloadConfig backed by the cache dir from ctx.
-func NewDownloadConfig(pkgCacheConfig pkgcache.PkgCacheConfig) *DownloadConfig {
-	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(pkgcache.PkgCacheDirRoot) == "" {
+func NewDownloadConfig(ctx context.Context) *DownloadConfig {
+	pkgCacheConfig := ctx.PkgCacheConfig()
+	if pkgCacheConfig == nil || pkgCacheConfig.GetDir(pkgcache.PkgCacheDirArtifacts) == "" {
 		return nil
 	}
 

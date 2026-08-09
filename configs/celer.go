@@ -463,10 +463,9 @@ func (c *Celer) initPkgCacheCaches() {
 		return
 	}
 
-	c.configData.PkgCacheConfig.repoCache = netfs.NewRepoConfig(c, c.configData.PkgCacheConfig.Writable)
-	c.configData.PkgCacheConfig.artifactCache = netfs.NewArtifactConfig(c, c.configData.PkgCacheConfig.Writable)
-	c.configData.PkgCacheConfig.downloadCache = netfs.NewDownloadConfig(c.configData.PkgCacheConfig)
-
+	c.configData.PkgCacheConfig.repoCache = netfs.NewRepoConfig(c)
+	c.configData.PkgCacheConfig.artifactCache = netfs.NewArtifactConfig(c)
+	c.configData.PkgCacheConfig.downloadCache = netfs.NewDownloadConfig(c)
 }
 
 func (c *Celer) portsRepoUrl() string {

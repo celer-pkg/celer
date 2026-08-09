@@ -30,7 +30,8 @@ func TestDownloadCache_SaveAndFind(t *testing.T) {
 	cachedDownloadsDir := pkgCacheConfig.GetDir(pkgcache.PkgCacheDirDownloads)
 
 	// Create download cache through the NFS implementation using a fake context.
-	downloadCache := netfs.NewDownloadConfig(pkgCacheConfig)
+	fakeCtx := fakeContext{pkgCacheConfig: pkgCacheConfig}
+	downloadCache := netfs.NewDownloadConfig(fakeCtx)
 	if downloadCache == nil {
 		t.Fatal("expected download cache to be created")
 	}
