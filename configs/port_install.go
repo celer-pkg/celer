@@ -507,8 +507,9 @@ func (p *Port) InstallFromSource(options InstallOptions) error {
 		return err
 	}
 
-	// Check if cpython version conflicts with venv version defined in celer.toml
-	if p.Parent == "" {
+	// Check if cpython version conflicts with venv version defined in celer.toml.
+	// Skip this check when the top-level port is cpython itself.
+	if p.Parent == "" && p.Name != "cpython" {
 		if err := p.checkCPythonVersionConflict(); err != nil {
 			return err
 		}
