@@ -1288,28 +1288,33 @@ func (p Port) writeTraceFile(installedFrom string) error {
 	return nil
 }
 
+// checkCPythonVersionConflict enforces the one-dimension python invariant:
+// when the project declares [python] version, every cpython dependency must
+// match it. conda python and the venv are both driven by [python] version, so
+// this keeps cpython aligned with them too.
 func (p *Port) checkCPythonVersionConflict() error {
-	cpythonVer := p.cpythonDepVersion()
+	pythonConfig := p.ctx.PythonConfig()
+	if pythonConfig == nil || pythonConfig.GetVersion() == "" {
+		return nil
+	}
+
+	cpythonVer := p.cpythonVersion()
 	if cpythonVer == "" {
 		return nil
 	}
+
 	cpythonMinor := expr.GetMinorVersion(cpythonVer)
-
-	venvVersion := buildtools.GetDefaultPythonVersion()
-	if pythonConfig := p.ctx.PythonConfig(); pythonConfig != nil && pythonConfig.GetVersion() != "" {
-		venvVersion = pythonConfig.GetVersion()
-	}
-	venvMinor := expr.GetMinorVersion(venvVersion)
-
-	if cpythonMinor != venvMinor {
-		return fmt.Errorf("cpython dependency version %s does not match venv python version %s "+
-			"(cpython minor %s vs venv minor %s); set [python] version in celer.toml to match the cpython dependency",
-			cpythonVer, venvVersion, cpythonMinor, venvMinor)
+	configuredMinor := expr.GetMinorVersion(pythonConfig.GetVersion())
+	if cpythonMinor != configuredMinor {
+		return fmt.Errorf("cpython version configured in port.toml %s does not match [python] version %s "+
+			"in celer.toml (cpython minor %s vs configured minor %s); align them so conda python, "+
+			"the venv, and cpython stay on one version",
+			cpythonVer, pythonConfig.GetVersion(), cpythonMinor, configuredMinor)
 	}
 	return nil
 }
 
-func (p Port) cpythonDepVersion() string {
+func (p Port) cpythonVersion() string {
 	for _, nameVersion := range p.MatchedConfig.Dependencies {
 		if name, ver, ok := strings.Cut(nameVersion, "@"); ok && name == "cpython" && ver != "" {
 			return ver
