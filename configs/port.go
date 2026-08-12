@@ -217,7 +217,7 @@ func (p Port) Installed() (bool, error) {
 		options := RemoveOptions{
 			Purge:      true,
 			Recursive:  false,
-			BuildCache: false,
+			BuildCache: true,
 		}
 		if err := p.Remove(options); err != nil {
 			return false, fmt.Errorf("failed to remove installed package -> %w", err)
