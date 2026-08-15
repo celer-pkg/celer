@@ -1036,6 +1036,11 @@ func (b BuildConfig) msvcEnvs() (string, error) {
 	appendEnv("CC", toolchain.GetCC())
 	appendEnv("CXX", toolchain.GetCXX())
 
+	// libtool (makefiles projects) only understands GNU-style ar and does not
+	// support MSVC's lib.exe. Override AR with MSYS2's GNU ar so static
+	// libraries can be created from MSVC-generated COFF objects.
+	appendEnv("AR", "ar")
+
 	return strings.Join(args, " "), nil
 }
 
