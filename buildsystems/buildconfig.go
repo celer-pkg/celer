@@ -109,6 +109,7 @@ type BuildConfig struct {
 	SystemProcessor   string   `toml:"system_processor,omitempty"`
 	ToolchainName     string   `toml:"toolchain_name,omitempty"`
 	ToolchainNames    []string `toml:"toolchain_names,omitempty"`
+	ToolchainVersion  string   `toml:"toolchain_version,omitempty"`
 
 	// Build System
 	BuildSystem         string `toml:"build_system"`
