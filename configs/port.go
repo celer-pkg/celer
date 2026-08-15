@@ -11,6 +11,7 @@ import (
 	"github.com/celer-pkg/celer/context"
 	"github.com/celer-pkg/celer/pkgs/dirs"
 	"github.com/celer-pkg/celer/pkgs/errors"
+	"github.com/celer-pkg/celer/pkgs/expr"
 	"github.com/celer-pkg/celer/pkgs/fileio"
 
 	"github.com/BurntSushi/toml"
@@ -518,6 +519,15 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 			}
 		}
 		if !found {
+			return false
+		}
+	}
+
+	// Filter by toolchain version if specified (compare major.minor part).
+	if config.ToolchainVersion != "" {
+		currentToolchainVersion := strings.TrimSpace(p.ctx.Platform().GetToolchain().GetVersion())
+		targetToolchainVersion := strings.TrimSpace(config.ToolchainVersion)
+		if expr.GetMinorVersion(currentToolchainVersion) != expr.GetMinorVersion(targetToolchainVersion) {
 			return false
 		}
 	}
