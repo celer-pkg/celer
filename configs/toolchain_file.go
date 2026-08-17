@@ -60,7 +60,8 @@ func (c *Celer) GenerateToolchainFile() error {
 	fmt.Fprintf(&builder, "  list(APPEND CMAKE_PREFIX_PATH \"$ENV{CMAKE_PREFIX_PATH}\")\n")
 	fmt.Fprintf(&builder, "endif()\n")
 
-	// Some libraries generate cmake config into share/cmake.
+	// Append "lib/cmake" and "share/cmake" into CMAKE config search paths.
+	fmt.Fprintf(&builder, "list(APPEND CMAKE_PREFIX_PATH \"${INSTALLED_DIR}/lib/cmake\")\n")
 	fmt.Fprintf(&builder, "list(APPEND CMAKE_PREFIX_PATH \"${INSTALLED_DIR}/share/cmake\")\n")
 
 	// Write pkg-config configuration.
