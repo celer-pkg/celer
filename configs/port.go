@@ -482,14 +482,6 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 		targetSystemNames = []string{config.SystemName}
 	}
 
-	// Build the except list from system_names_except / system_name_except.
-	var exceptSystemNames []string
-	if len(config.SystemNamesExcept) > 0 {
-		exceptSystemNames = config.SystemNamesExcept
-	} else if config.SystemNameExcept != "" {
-		exceptSystemNames = []string{config.SystemNameExcept}
-	}
-
 	// Trim whitespace from system names and processor.
 	targetSystemProcessor := strings.ToLower(strings.TrimSpace(config.SystemProcessor))
 	currentSystemName := strings.ToLower(p.currentSystemName())
@@ -500,25 +492,10 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 		return false
 	}
 
-	// Merge ToolchainName and ToolchainNames into a single list.
-	var toolchainNames []string
-	if len(config.ToolchainNames) > 0 {
-		toolchainNames = config.ToolchainNames
-	} else if config.ToolchainName != "" {
-		toolchainNames = []string{config.ToolchainName}
-	}
-
 	// Filter by toolchain name if specified.
-	if len(toolchainNames) > 0 {
+	if config.ToolchainName != "" {
 		currentToolchain := strings.TrimSpace(p.ctx.Platform().GetToolchain().GetName())
-		found := false
-		for _, name := range toolchainNames {
-			if strings.EqualFold(strings.TrimSpace(name), currentToolchain) {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !strings.EqualFold(strings.TrimSpace(config.ToolchainName), currentToolchain) {
 			return false
 		}
 	}
@@ -532,13 +509,20 @@ func (p Port) matchBuildConfig(config buildsystems.BuildConfig) bool {
 		}
 	}
 
-	// system_names_except takes priority: match all systems except those listed.
-	if len(exceptSystemNames) > 0 {
-		for _, exceptName := range exceptSystemNames {
-			exceptName = strings.ToLower(strings.TrimSpace(exceptName))
-			if exceptName != "" && exceptName == currentSystemName {
-				return false
-			}
+	// Filter by toolchain version if specified (compare major.minor part).
+	if config.ToolchainVersion != "" {
+		currentToolchainVersion := strings.TrimSpace(p.ctx.Platform().GetToolchain().GetVersion())
+		targetToolchainVersion := strings.TrimSpace(config.ToolchainVersion)
+		if expr.GetMinorVersion(currentToolchainVersion) != expr.GetMinorVersion(targetToolchainVersion) {
+			return false
+		}
+	}
+
+	// system_name_except takes priority: match all systems except this one.
+	if config.SystemNameExcept != "" {
+		exceptName := strings.ToLower(strings.TrimSpace(config.SystemNameExcept))
+		if exceptName == currentSystemName {
+			return false
 		}
 		return true
 	}
