@@ -29,7 +29,7 @@ func FixupPkgConfigFile(packageDir string) error {
 			for _, entity := range entities {
 				if strings.HasSuffix(entity.Name(), ".pc") {
 					pkgPath := filepath.Join(pkgConfig, entity.Name())
-					if err := doFixupPkgConfigFile(pkgPath); err != nil {
+					if err := doFixupPkgConfigFile(pkgPath, packageDir); err != nil {
 						return err
 					}
 				}
@@ -40,7 +40,11 @@ func FixupPkgConfigFile(packageDir string) error {
 	return nil
 }
 
-func doFixupPkgConfigFile(pkgPath string) error {
+func doFixupPkgConfigFile(pkgPath string, packageDir string) error {
+	// Normalize packageDir to forward slashes for matching against .pc content.
+	packageDir = filepath.ToSlash(packageDir)
+	packageDir = strings.TrimSuffix(packageDir, "/")
+
 	// Ensure the file is writable before opening it for RDWR.
 	if err := os.Chmod(pkgPath, os.ModePerm); err != nil {
 		return err
@@ -60,50 +64,21 @@ func doFixupPkgConfigFile(pkgPath string) error {
 		// Remove space before `=`.
 		line = strings.ReplaceAll(line, "prefix =", "prefix=")
 
-		switch {
-		case strings.HasPrefix(line, "prefix="):
-			// Rewrite to self-locating prefix using pkgconf's built-in ${pcfiledir} variable.
+		// Rewrite prefix to self-locating prefix using pkgconf's built-in ${pcfiledir} variable.
+		if strings.HasPrefix(line, "prefix=") {
 			fmt.Fprintf(&buffer, "prefix=${pcfiledir}/../..\n")
-
-		case strings.HasPrefix(line, "pkgdatadir="),
-			strings.HasPrefix(line, "xcbincludedir="),
-			strings.HasPrefix(line, "pythondir="):
-			line = strings.ReplaceAll(line, "${pc_sysrootdir}", "")
-			line = strings.ReplaceAll(line, "${pc_sys_root_dir}", "")
-			fmt.Fprintf(&buffer, "%s\n", line)
-
-		case strings.HasPrefix(line, "Libs:"):
-			lineOrigin := strings.ReplaceAll(line, "  ", " ")
-			line = strings.TrimPrefix(line, "Libs:")
-			line = strings.TrimSpace(line)
-
-			parts := strings.Split(line, " ")
-			for _, part := range parts {
-				part = strings.TrimSpace(part)
-				if strings.HasPrefix(part, "-L") && part != "-L${libdir}" {
-					lineOrigin = strings.ReplaceAll(lineOrigin, part, "-L${libdir}")
-				}
-			}
-			fmt.Fprintf(&buffer, "%s\n", lineOrigin)
-
-		case strings.HasPrefix(line, "Libs.private:"):
-			lineOrigin := strings.ReplaceAll(line, "  ", " ")
-
-			line = strings.TrimPrefix(line, "Libs.private:")
-			line = strings.TrimSpace(line)
-
-			parts := strings.Split(line, " ")
-			for _, part := range parts {
-				part = strings.TrimSpace(part)
-				if strings.HasPrefix(part, "-L") && part != "-L${libdir}" {
-					lineOrigin = strings.ReplaceAll(lineOrigin, part, "-L${libdir}")
-				}
-			}
-			fmt.Fprintf(&buffer, "%s\n", lineOrigin)
-
-		default:
-			fmt.Fprintf(&buffer, "%s\n", line)
+			continue
 		}
+
+		// Strip pkgconf sysroot variables (cross-compilation artifacts).
+		line = strings.ReplaceAll(line, "${pc_sysrootdir}", "")
+		line = strings.ReplaceAll(line, "${pc_sys_root_dir}", "")
+
+		// Replace any absolute packageDir path with ${prefix}.
+		line = strings.ReplaceAll(line, packageDir+"/", "${prefix}/")
+		line = strings.ReplaceAll(line, packageDir, "${prefix}")
+
+		fmt.Fprintf(&buffer, "%s\n", line)
 	}
 
 	if err := scanner.Err(); err != nil {
