@@ -1259,7 +1259,7 @@ func (p Port) writeTraceFile(installedFrom string) error {
 
 	// For Python packages, transform paths to be relative to installed/.
 	// PackageFiles returns "libraryDir/relative/path", we need "venv-x.y@project/relative/path".
-	if p.MatchedConfig.SystemName == "python" {
+	if p.MatchedConfig.BuildSystem == "python" {
 		venvDir := buildtools.PythonTool.VenvDir()
 		venvFolder, _ := filepath.Rel(dirs.InstalledDir, venvDir) // "venv-3.10@ros2"
 		for i, file := range packageFiles {
