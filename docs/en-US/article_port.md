@@ -2,7 +2,7 @@
 
 &emsp;&emsp;Celer uses a git repository to manage third-party library configuration files. This repository is continuously expanding and aims to support more and more C/C++ third-party libraries.
 
-## 1. Introduction to port.toml
+## Introduction to port.toml
 
 Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
 
@@ -20,8 +20,9 @@ Let's look at an example port.toml file: **ports/glog/0.6.0/port.toml**:
   system_name         = "linux"               # optional selector
   system_names        = ["linux", "windows"]  # optional selector
   system_name_except  = "windows"             # optional selector, exclude a single system, mutually exclusive with system_name/system_names
-  system_names_except = ["windows"]           # optional selector, exclude listed systems, mutually exclusive with system_name/system_names
   system_processor    = "x86_64"              # optional selector
+  toolchain_name      = "gcc"                 # optional selector
+  toolchain_version   = "9.5"                 # optional selector
   build_system        = "cmake"               # mandatory field, should be **cmake**, **makefiles**, **b2**, **meson**, etc.
   cmake_generator     = []                    # optional field, should be "Ninja", "Unix Makefiles", "Visual Studio xxx"
   build_tools         = [...]                 # optional field
@@ -79,11 +80,11 @@ The following are fields and their descriptions:
 | build_configs | Array, describes how to build the library on different platforms. |
 | dev_dependencies | Array, tools required during build (e.g. autoconf, nasm). |
 
-## 1.2 build_configs
+## build_configs
 
-&emsp;&emsp;**build_configs** is an array to meet different compilation requirements on different platforms. Celer will automatically find the matching **build_config** according to **system_name/system_processor** to assemble the compilation command. Build configuration often varies across systems, involving platform-specific flags or distinct build steps. Some libraries require special pre-processing or post-processing to compile correctly on Windows.
+&emsp;&emsp;**build_configs** is an array to meet different compilation requirements on different platforms. Celer will automatically find the matching **build_config** according to **system_name/system_processor/toolchain_name** to assemble the compilation command. Build configuration often varies across systems, involving platform-specific flags or distinct build steps. Some libraries require special pre-processing or post-processing to compile correctly on Windows.
 
-### 1.2.1 system_name, system_names, system_processor
+### system_name, system_names, system_processor
 
 &emsp;&emsp;Used to match selectors in platform toolchain (`toolchain.system_name`, `toolchain.system_names`, `toolchain.system_processor`). Matching rules are as follows:
 
@@ -98,9 +99,21 @@ The following are fields and their descriptions:
 
 >Note: `system_names` is an array, used to specify multiple system platforms, for example: ["linux", "windows"], x264 in Linux and Windows have the same configuration, but QNX has a significant difference, so you can use `system_names` to merge Linux and Windows.
 
->Note: `system_names_except` is an array, used to exclude specified system platforms, for example: `system_names_except = ["windows"]` matches all platforms except Windows. `system_name_except` is the singular convenience form for excluding a single system, for example: `system_name_except = "windows"`. **`system_names_except`/`system_name_except` is mutually exclusive with `system_name`/`system_names` — you cannot use both at the same time.** This field is ideal for "exclude only a few platforms" scenarios, avoiding the need to enumerate every supported platform.
+>Note: `system_name_except` excludes a single system, for example: `system_name_except = "windows"` matches all platforms except Windows. **`system_name_except` is mutually exclusive with `system_name`/`system_names` — you cannot use both at the same time.** This field is ideal for "exclude only a few platforms" scenarios, avoiding the need to enumerate every supported platform.
 
-### 1.2.2 build_system
+### toolchain_name
+
+&emsp;&emsp;Optional selector matching the toolchain by name (e.g. `gcc`, `clang`, `clang-cl`, `msvc`, `qcc`). Unset to match any toolchain.
+
+>Note: `toolchain_name` is **AND**-ed with `system_name` / `system_processor` — all set selectors must be satisfied for the `build_config` to match.
+
+### toolchain_version
+
+&emsp;&emsp;Optional selector matching the toolchain by version, comparing only the **major.minor** part (e.g. `"9.5"` matches `9.5.0`). Unset to match any version.
+
+>Note: `toolchain_version` is **AND**-ed with `toolchain_name` / `system_name` / `system_processor` — all set selectors must be satisfied for the `build_config` to match.
+
+### build_system
 
 &emsp;&emsp;Different build tools vary significantly in their cross-compilation configurations. To simplify usage, Celer abstracts them into unified buildsystem options, celer supports build systems as shown below:
 
@@ -114,18 +127,18 @@ The following are fields and their descriptions:
 - **nobuild**: Header-only libraries requiring no compilation
 - **custom**: Custom build logic
 
-### 1.2.3 cmake_generator
+### cmake_generator
 
 &emsp;&emsp;CMake can generate default build system files in different OS and also allows to specify it manually. Currently, celer supports **Ninja**, **Unix Makefiles**, **Visual Studio xxxx**.
 
-### 1.2.4 build_tools
+### build_tools
 
 &emsp;&emsp;Optional, some libraries require certain tools to be installed, such as: ruby, perl, or even additional python libraries via pip3, for example: pip3 install setuptools. Celer has managered some builtin buildtools: [windows builtin buildtools](../../buildtools/static/x86_64-windows.toml) and [linux builtin buildtools](../../buildtools/static/x86_64-linux.toml), Celer also support definng extral buildtools by creating **x86_64-windows.toml** or **x86_64-linux.toml** under folder of **conf/buildtools**.
 
 >**Tip:**  
 &emsp;&emsp;In actuality, Celer has built-in support for a variety of build tools, such as: Windows versions of CMake, MinGit, strawberry-perl, msys2, vswhere, and more. Although most of these tools are not user-configurable, when switching between different buildsystems, Celer automatically adds them to the buildtools list. For example, when compiling with makefiles on Windows, msys2 is automatically added to the buildtools.
 
-### 1.2.5 build_shared, build_static
+### build_shared, build_static
 
 &emsp;&emsp;Optional, tri-state boolean fields that declare whether to build shared and/or static libraries. Celer maps this intent to each build system's fixed parameters automatically:
 
@@ -135,7 +148,7 @@ The following are fields and their descriptions:
 - **qmake**: shared → `-shared`, static → `-static`
 - **makefiles**: uses `build_shared_option` / `build_static_option` (see 1.2.6), because makefiles flags vary per project.
 
-### 1.2.6 build_shared_option, build_static_option
+### build_shared_option, build_static_option
 
 &emsp;&emsp;Optional, **makefiles only**. Makefiles configure scripts use project-specific flags to enable shared/static libraries (`--enable-shared`, `--with-shared`, `--enable-shared=yes`, ...), so the flag string must be supplied per port. These fields hold that string and are emitted only when the matching intent (`build_shared` / `build_static`) is `true`.
 
@@ -146,13 +159,13 @@ The following are fields and their descriptions:
 
 >**Note:** cmake, meson, b2, and qmake ignore these fields — their shared/static flags are fixed per build system.
 
-### 1.2.7 c_standard, cxx_standard
+### c_standard, cxx_standard
 
 &emsp;&emsp;Optional, default is empty, they are used to override the c and c++ standard value that defined in global **celer.toml**.
 - c_standard's candicated values：**c90**, **c99**, **c11**, **c17**, **c23**；  
 - cxx_standard's candicated values：**c++11**、**c++14**、**c++17**、**c++20**；
 
-### 1.2.8 build_type
+### build_type
 
 &emsp;&emsp;Optional, default is empty, used to specify the build type. When build_type is specified in port.toml, it will override the global build_type setting defined in celer.toml. This is useful for libraries that require a specific build type.
 - build_type's candidate values：**release**, **debug**, **relwithdebinfo**, **minsizerel**；
@@ -160,14 +173,14 @@ The following are fields and their descriptions:
 
 >**Note:** build_type also affects package cache key calculation. Different build_type values will generate different cache entries.
 
-### 1.2.9 envs
+### envs
 
 &emsp;&emsp;Optional, you can define some environment variables here, such as **CXXFLAGS=-fPIC**, or even compile some libraries need to set specified environment variables, such as: the **libxext** library needs to set the environment variable: **"xorg_cv_malloc0_returns_null=yes"** when cross-compiling to the aarch64 platform, the purpose is to mask the compiler check error report;  
 &emsp;&emsp;In addition, it should be noted that each library's **toml** file supports defining **envs**, but when compiling them, **envs** are completely independent of each other, as each library compilation ends, the **envs** defined in the **toml** file will be cleared from the current process, and when compiling the next library, if the corresponding **toml** file defines new **envs**, then set the new environment variables.
 
 > **Note:** Defining search paths through `-I`, `-isystem`, or `-L` in `CFLAGS`, `CXXFLAGS`, `CPPFLAGS`, or `LDFLAGS` is deprecated. Prefer `include_dirs` and `lib_dirs`.
 
-### 1.2.10 include_dirs, lib_dirs
+### include_dirs, lib_dirs
 
 &emsp;&emsp;Optional, empty by default. These fields declare header and library directories that are not in the default search paths. Specify directories only; Celer converts them to the appropriate build-system arguments, so do not add `-I`, `-isystem`, or `-L` prefixes manually.
 
@@ -197,28 +210,28 @@ Currently supported build systems and mappings:
 
 > **Note:** `b2`, `gyp`, `qmake`, `prebuilt`, `nobuild`, and `custom` do not currently guarantee support for these fields. Use their `options`, `envs`, or lifecycle hooks to pass the required arguments.
 
-### 1.2.11 patches
+### patches
 
 &emsp;&emsp;Optional. Some library source codes may contain issues that cause compilation errors. Traditionally, this requires manual source code modification and recompilation. To avoid manual intervention, we can create fix patches for these modifications. You may place multiple patch files (git patch or Linux patch formats supported) in the port's version directory. As this field accepts an array, multiple patches can be defined. Celer will attempt to apply these patches automatically before each configure step.
 
-### 1.2.12 build_in_source
+### build_in_source
 
 &emsp;&emsp;Optional, a few third-party libraries (e.g., NASM, Boost) require in-source configure and build. Note: This **build_in_source** option primarily serves makefiles projects.   
 >Please note that: b2 builds are already encapsulated as a dedicated buildsystem (i.e., buildsystem = "b2").
 
-### 1.2.13 apply_envs
+### apply_envs
 
 &emsp;&emsp;Optional, default **false**. CMake builds normally skip port `envs` (compiler tools are defined in toolchain_file.cmake). Set **apply_envs = true** to apply port `envs` to the build environment. Useful for Rust/Cargo cross-compilation that needs `CC`/`CXX` env vars.
 
-### 1.2.14 autogen_options
+### autogen_options
 
 &emsp;&emsp;Optional, a few third-party libraries (e.g., NASM, Boost) require running **./autogen.sh** before configure. This field is used to specify the options to be passed to **./autogen.sh**.
 
-### 1.2.15 dependencies
+### dependencies
 
 &emsp;&emsp; Optional, if your third-party library depends on other third-party libraries during compilation, you need to define them here. These libraries will be compiled and installed before the current library. Note that the format is **name@version**, and we must explicitly specify the version of the current library.
 
-### 1.2.16 dev_dependencies
+###  dev_dependencies
 
 &emsp;&emsp;Optional, similar to **dependencies**, but here the third-party library dependencies are tools required during compilation, such as: many makefiles projects require **autoconf**, **nasm**, etc. tools before configure. Any library defined in **dev_dependencies** will be compiled and installed using the local tooolchain compiler. They will be installed to a specific directory, such as: **installed/x86_64-linux-dev**, and the **installed/x86_64-linux-dev/bin** path will be automatically added to the **PATH** environment variable, enabling access to these tools during compilation.
 
@@ -226,7 +239,7 @@ Currently supported build systems and mappings:
 >- To avoid manually installing some local tools using **sudo apt install xxx**.  
 >- When compiling a third-party library that is a newer version, even if you install these tools using **apt**, you may still encounter errors such as **autoconf** version too low. In this case, you need to manually download the tool source code, compile it locally, and install it to the system directory. This is not only time-consuming but also pollutes the system environment.
 
-### 1.2.17 pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
+### pre_configure, post_configure, pre_build, fix_build, post_build, pre_install, post_install
 
 &emsp;&emsp;Optional, there are always libraries with problematic code. When compilation fails, we can provide patches to fix the source code. For relatively minor issues like incorrect output filenames, we can add corrective commands in **post_install**. Similarly, if file-related issues occur in other stages, we can apply pre-processing or post-processing adjustments at the corresponding steps. A typical example is the libffi library, which doesn't compile smoothly on Windows—various pre-and post-processing steps are required to make it work.
 

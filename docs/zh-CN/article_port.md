@@ -29,10 +29,9 @@
   system_name = "linux"                   # 可选选择器
   system_names = ["linux", "windows"]     # 可选选择器
   system_name_except = "windows"          # 可选选择器，排除单个系统，与 system_name/system_names 互斥
-  system_names_except = ["windows"]       # 可选选择器，排除指定系统，与 system_name/system_names 互斥
   system_processor = "x86_64"             # 可选选择器
   toolchain_name = "gcc"                  # 可选选择器
-  toolchain_names = ["gcc", "clang"]      # 可选选择器
+  toolchain_version = "9.5"               # 可选选择器
   build_system = "cmake"                  # 必填字段，可选值：cmake、makefiles、b2、meson 等
   cmake_generator = []                    # 可选字段
   build_tools = []                        # 可选字段
@@ -94,7 +93,7 @@
 &emsp;&emsp;**build_configs** 被设计为一个数组，以满足不同系统平台上库的不同编译需求。Celer 会根据 **system_name/system_processor/toolchain_name** 自动找到匹配的 **build_config** 来组装编译命令。  
 &emsp;&emsp;第三方库的编译配置通常在不同系统上会有差异。这些差异通常涉及平台特定的编译标志或甚至 entirely distinct build steps。一些库甚至需要特殊的预处理或后处理才能在 Windows 上正确编译。
 
-### 1.2.1.1 system_name, system_names, system_processor
+### system_name, system_names, system_processor
 
 &emsp;&emsp;用于匹配 platform toolchain 中的选择器（`toolchain.system_name`、`toolchain.system_names`、`toolchain.system_processor`）。匹配规则如下：
 
@@ -109,33 +108,21 @@
 
 >Note: `system_names` 是一个数组，用于指定多个系统平台，例如：["linux", "windows"]，x264 在 Linux 和 Windows 上的配置是一样的，但 QNX 上的差别较大，因此可以通过 `system_names` 来合并 Linux 和 Windows。
 
->Note: `system_names_except` 是一个数组，用于排除指定的系统平台，例如：`system_names_except = ["windows"]` 表示匹配除 Windows 之外的所有平台。`system_name_except` 是排除单个系统的单值便捷写法，例如：`system_name_except = "windows"`。**`system_names_except`/`system_name_except` 与 `system_name`/`system_names` 互斥，不能同时使用。** 该字段适用于"仅排除少数平台"的场景，避免逐一列举支持的所有平台。
+>Note: `system_name_except` 用于排除单个系统，例如：`system_name_except = "windows"` 表示匹配除 Windows 之外的所有平台。**`system_name_except` 与 `system_name`/`system_names` 互斥，不能同时使用。** 该字段适用于"仅排除少数平台"的场景，避免逐一列举支持的所有平台。
 
-### 1.2.1.2 toolchain_name, toolchain_names
+### toolchain_name
 
-&emsp;&emsp;可选选择器，用于进一步限定匹配特定的工具链。当同一个平台（如 `linux` + `x86_64`）下存在多个工具链变体时（如 `gcc`、`clang`），可通过 `toolchain_name` 或 `toolchain_names` 为不同工具链提供差异化的构建配置。
+&emsp;&emsp;可选选择器，按工具链名称匹配（如 `gcc`、`clang`、`clang-cl`、`msvc`、`qcc`）。不设置则匹配任意工具链。
 
-&emsp;&emsp;`toolchain_name` 为单个工具链名称，`toolchain_names` 为数组形式，两者语义等同于 `system_name` / `system_names`。候选值为平台所支持的工具链：
+>Note: `toolchain_name` 与 `system_name` / `system_processor` 是 **AND** 关系——必须同时满足所有已设置的选择器才会命中该 `build_config`。
 
-| 工具链 | 说明 |
-| --- | --- |
-| `gcc` | GNU Compiler Collection |
-| `clang` | LLVM Clang（类 Unix 模式） |
-| `clang-cl` | LLVM Clang（MSVC 兼容模式，仅 Windows） |
-| `msvc` | Microsoft Visual C++（仅 Windows） |
-| `qcc` | QNX C/C++ Compiler |
+### toolchain_version
 
-**匹配规则：**
+&emsp;&emsp;可选选择器，按工具链版本匹配，只比较 **主次版本（major.minor）**（如 `"9.5"` 匹配 `9.5.0`）。不设置则匹配任意版本。
 
-| 选择器 | 描述 |
-| --- | --- |
-| 不设置 `toolchain_name` / `toolchain_names` | 不按工具链筛选（默认行为） |
-| `toolchain_name = "gcc"` | 仅匹配 gcc 工具链 |
-| `toolchain_names = ["gcc", "clang"]` | 匹配 gcc 或 clang 工具链 |
+>Note: `toolchain_version` 与 `toolchain_name` / `system_name` / `system_processor` 是 **AND** 关系——必须同时满足所有已设置的选择器才会命中该 `build_config`。
 
->Note: `toolchain_name` / `toolchain_names` 与 `system_name` / `system_processor` 是 **AND** 关系——必须同时满足所有已设置的选择器才会命中该 `build_config`。
-
-### 1.2.2 build_system
+### build_system
 
 &emsp;&emsp;不同的构建工具在交叉编译配置上有显著差异。为了简化使用，Celer 抽象出统一的构建系统选项，目前支持的构建系统如下:
 
@@ -149,18 +136,18 @@
 - **nobuild**: 无需构建的纯头文件库
 - **custom**: 自定义构建逻辑
 
-### 1.2.3 cmake_generator
+### cmake_generator
 
 &emsp;&emsp;CMake在configure能根据不同的系统生成Unix Makefiles， Xcodee 或者 Visual Studio xxx等构建文件，同时也支持手动制定构建工具，它的值为： **Ninja**, **Unix Makefiles**, **Visual Studio xxxx**.
 
-### 1.2.4 build_tools
+### build_tools
 
 &emsp;&emsp;**build_tools** 是一个可选字段，用于指定一些库需要本地安装的额外工具，例如：ruby、perl、甚至通过 pip3 安装的额外 python 库，例如：["ruby", "perl", "python3:setuptools"]。
 
 >**Tip:**  
 &emsp;&emsp;实际上，Celer 已内置支持多种构建工具，包括：Windows 版的 CMake、MinGit、strawberry-perl、msys2、vswhere 等。虽然这些工具大多不支持用户配置，但当切换不同的构建系统时，Celer 会自动将它们加入构建工具列表。例如在 Windows 上使用 makefiles 编译时，msys2 就会被自动添加到构建工具中。
 
-### 1.2.5 build_shared，build_static
+### build_shared，build_static
 
 &emsp;&emsp;可选配置，三态布尔字段，用于声明是否构建动态库和/或静态库。Celer 会根据该意图自动映射到各构建系统的固定参数：
 
@@ -170,7 +157,7 @@
 - **qmake**：shared → `-shared`，static → `-static`
 - **makefiles**：使用 `build_shared_option` / `build_static_option`（见 1.2.6），因为 makefiles 的参数因项目而异。
 
-### 1.2.6 build_shared_option，build_static_option
+### build_shared_option，build_static_option
 
 &emsp;&emsp;可选配置，**仅 makefiles 有效**。makefiles 的 configure 脚本使用因项目而异的参数来启用动态/静态库（`--enable-shared`、`--with-shared`、`--enable-shared=yes` 等），因此需要按端口指定参数字符串。这两个字段仅在与对应的意图（`build_shared` / `build_static`）为 `true` 时才会被传递。
 
@@ -181,13 +168,13 @@
 
 >**注意：** cmake、meson、b2、qmake 会忽略这两个字段——它们的动态/静态参数由构建系统固定。
 
-### 1.2.7 c_standard, cxx_standard
+### c_standard, cxx_standard
 
 &emsp;&emsp;可选配置，默认值为空，分别用于指定 c 和 c++ 标准。
 - c_standard 的候选值：**c90**, **c99**, **c11**, **c17**, **c23**;
 - cxx_standard 的候选值：**c++11**、**c++14**、**c++17**、**c++20**；
 
-### 1.2.8 build_type
+### build_type
 
 &emsp;&emsp;可选配置，默认值为空，用于指定构建类型。当在 port.toml 中指定 build_type 时，它会覆盖 celer.toml 中定义的全局 build_type 设置。这对于某些需要特定构建类型的库非常有用。
 - build_type 的候选值：**release**, **debug**, **relwithdebinfo**, **minsizerel**；
@@ -201,7 +188,7 @@
 
 > **注意：** 不建议再通过 `CFLAGS`、`CXXFLAGS`、`CPPFLAGS` 或 `LDFLAGS` 配置 `-I`、`-isystem`、`-L` 等搜索目录；请优先使用 `include_dirs` 和 `lib_dirs`。
 
-### 1.2.10 include_dirs, lib_dirs
+### include_dirs, lib_dirs
 
 &emsp;&emsp;可选配置，默认值为空，用于声明不在默认搜索路径中的头文件目录和库文件目录。字段值只填写目录，Celer 会根据构建系统自动转换成对应参数，因此不要在目录前手动添加 `-I`、`-isystem` 或 `-L`。
 
@@ -231,28 +218,28 @@
 
 > **注意：** `b2`、`gyp`、`qmake`、`prebuilt`、`nobuild` 和 `custom` 当前不保证支持这两个字段。使用这些构建系统时，请通过各自的 `options`、`envs` 或阶段钩子传递所需参数。
 
-### 1.2.11 patches
+### patches
 
 &emsp;&emsp;可选配置，默认值为空，用于定义一些补丁文件，例如：某些库的源代码包含问题，导致编译错误。传统上，这需要手动修改源代码并重新编译。为了避免手动干预，我们可以为这些修改创建修复补丁。您可以将多个补丁文件（git 补丁或 Linux 补丁格式均支持）放在端口版本目录中。由于此字段接受数组，因此可以定义多个补丁。Celer 会尝试在每个 configure 步骤之前自动应用这些补丁。
 
-### 1.2.12 build_in_source
+### build_in_source
 
 &emsp;&emsp;可选配置，默认值为空，用于指定一些库需要在源代码目录中进行配置和构建，例如：**NASM**、**Boost** 等库。注意：此 **build_in_source** 选项主要适用于 makefiles 项目。  
 >需注意：b2 构建已经被封装为专用的构建系统（即 buildsystem = "b2"）。
 
-### 1.2.13 apply_envs
+### apply_envs
 
 &emsp;&emsp;可选配置，默认 **false**。CMake 构建默认跳过 port 的 envs（编译器工具由 toolchain_file.cmake 定义）。设置 **apply_envs = true** 可将 port 的 envs 应用到构建环境。适用于 Rust/Cargo 交叉编译等需要 `CC`/`CXX` 环境变量的场景。
 
-### 1.2.14 autogen_options
+### autogen_options
 
 &emsp;&emsp;可选配置，默认值为空，用于指定一些库需要在源代码目录中运行 **./autogen.sh** 脚本，例如：**NASM**、**Boost** 等库。注意：此 **autogen_options** 选项主要适用于 makefiles 项目。
 
-### 1.2.15 dependencies
+### dependencies
 
 &emsp;&emsp; 可选配置，默认为空，若当前第三方库在编译时依赖其他第三方库，需在此处定义。这些依赖库将在当前库之前完成编译安装。需注意格式必须为 name@version，且必须显式指定依赖库的版本号。
 
-### 1.2.16 dev_dependencies
+### dev_dependencies
 &emsp;&emsp;可选配置，默认为空，与 dependencies 类似，但此处定义的第三方库依赖项是编译期间所需的工具。例如：许多 makefiles 项目在配置前需要 autoconf、nasm 等工具。所有在 dev_dependencies 中定义的库都将使用本地工具链编译器进行编译安装，它们会被安装到特定目录（如 installed/x86_64-linux-dev），且 installed/x86_64-linux-dev/bin 路径将自动加入 PATH 环境变量，确保编译期间可访问这些工具。
 
 >为什么需要 **dev_dependencies**:   
@@ -284,6 +271,6 @@
 
 > 注意：Celer 提供了一些动态变量，可在 toml 文件中使用，例如：**${BUILD_DIR}**，在编译过程中会被实际路径替换。完整列表请参考 [动态变量](./article_expvars.md)。
 
-### 1.2.18 options
+### options
 
 &emsp;&emsp;可选配置，默认值为空，当编译第三方库时，通常会有许多选项需要启用或禁用。我们可以在这里定义它们，例如 **-DBUILD_TESTING=OFF**；
